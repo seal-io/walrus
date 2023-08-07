@@ -10,13 +10,13 @@ import (
 	"errors"
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
+	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
-// AllocationCostCreateInput holds the creation input of the AllocationCost entity.
-type AllocationCostCreateInput struct {
+// CostReportCreateInput holds the creation input of the CostReport entity.
+type CostReportCreateInput struct {
 	inputConfig `uri:"-" query:"-" json:"-"`
 
 	Fingerprint         string                  `uri:"-" query:"-" json:"fingerprint"`
@@ -50,70 +50,70 @@ type AllocationCostCreateInput struct {
 	RAMByteUsageMax     float64                 `uri:"-" query:"-" json:"rambyteUsageMax,omitempty"`
 }
 
-// Model returns the AllocationCost entity for creating,
+// Model returns the CostReport entity for creating,
 // after validating.
-func (acci *AllocationCostCreateInput) Model() *AllocationCost {
-	if acci == nil {
+func (crci *CostReportCreateInput) Model() *CostReport {
+	if crci == nil {
 		return nil
 	}
 
-	ac := &AllocationCost{
-		Fingerprint:         acci.Fingerprint,
-		Name:                acci.Name,
-		Minutes:             acci.Minutes,
-		EndTime:             acci.EndTime,
-		StartTime:           acci.StartTime,
-		ClusterName:         acci.ClusterName,
-		Namespace:           acci.Namespace,
-		Node:                acci.Node,
-		Controller:          acci.Controller,
-		ControllerKind:      acci.ControllerKind,
-		Pod:                 acci.Pod,
-		Container:           acci.Container,
-		Pvs:                 acci.Pvs,
-		Labels:              acci.Labels,
-		TotalCost:           acci.TotalCost,
-		Currency:            acci.Currency,
-		CPUCost:             acci.CPUCost,
-		CPUCoreRequest:      acci.CPUCoreRequest,
-		GpuCost:             acci.GpuCost,
-		GpuCount:            acci.GpuCount,
-		RAMCost:             acci.RAMCost,
-		RAMByteRequest:      acci.RAMByteRequest,
-		PvCost:              acci.PvCost,
-		PvBytes:             acci.PvBytes,
-		LoadBalancerCost:    acci.LoadBalancerCost,
-		CPUCoreUsageAverage: acci.CPUCoreUsageAverage,
-		CPUCoreUsageMax:     acci.CPUCoreUsageMax,
-		RAMByteUsageAverage: acci.RAMByteUsageAverage,
-		RAMByteUsageMax:     acci.RAMByteUsageMax,
+	cr := &CostReport{
+		Fingerprint:         crci.Fingerprint,
+		Name:                crci.Name,
+		Minutes:             crci.Minutes,
+		EndTime:             crci.EndTime,
+		StartTime:           crci.StartTime,
+		ClusterName:         crci.ClusterName,
+		Namespace:           crci.Namespace,
+		Node:                crci.Node,
+		Controller:          crci.Controller,
+		ControllerKind:      crci.ControllerKind,
+		Pod:                 crci.Pod,
+		Container:           crci.Container,
+		Pvs:                 crci.Pvs,
+		Labels:              crci.Labels,
+		TotalCost:           crci.TotalCost,
+		Currency:            crci.Currency,
+		CPUCost:             crci.CPUCost,
+		CPUCoreRequest:      crci.CPUCoreRequest,
+		GpuCost:             crci.GpuCost,
+		GpuCount:            crci.GpuCount,
+		RAMCost:             crci.RAMCost,
+		RAMByteRequest:      crci.RAMByteRequest,
+		PvCost:              crci.PvCost,
+		PvBytes:             crci.PvBytes,
+		LoadBalancerCost:    crci.LoadBalancerCost,
+		CPUCoreUsageAverage: crci.CPUCoreUsageAverage,
+		CPUCoreUsageMax:     crci.CPUCoreUsageMax,
+		RAMByteUsageAverage: crci.RAMByteUsageAverage,
+		RAMByteUsageMax:     crci.RAMByteUsageMax,
 	}
 
-	return ac
+	return cr
 }
 
 // Load checks the input.
 // TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (acci *AllocationCostCreateInput) Load() error {
-	if acci == nil {
+func (crci *CostReportCreateInput) Load() error {
+	if crci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return acci.LoadWith(acci.inputConfig.Context, acci.inputConfig.ClientSet)
+	return crci.LoadWith(crci.inputConfig.Context, crci.inputConfig.ClientSet)
 }
 
 // LoadWith checks the input with the given context and client set.
 // TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (acci *AllocationCostCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
-	if acci == nil {
+func (crci *CostReportCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+	if crci == nil {
 		return errors.New("nil receiver")
 	}
 
 	return nil
 }
 
-// AllocationCostCreateInputs holds the creation input item of the AllocationCost entities.
-type AllocationCostCreateInputsItem struct {
+// CostReportCreateInputs holds the creation input item of the CostReport entities.
+type CostReportCreateInputsItem struct {
 	Fingerprint         string                  `uri:"-" query:"-" json:"fingerprint"`
 	Name                string                  `uri:"-" query:"-" json:"name"`
 	Minutes             float64                 `uri:"-" query:"-" json:"minutes"`
@@ -145,148 +145,148 @@ type AllocationCostCreateInputsItem struct {
 	RAMByteUsageMax     float64                 `uri:"-" query:"-" json:"rambyteUsageMax,omitempty"`
 }
 
-// AllocationCostCreateInputs holds the creation input of the AllocationCost entities.
-type AllocationCostCreateInputs struct {
+// CostReportCreateInputs holds the creation input of the CostReport entities.
+type CostReportCreateInputs struct {
 	inputConfig `uri:"-" query:"-" json:"-"`
 
-	Items []*AllocationCostCreateInputsItem `uri:"-" query:"-" json:"items"`
+	Items []*CostReportCreateInputsItem `uri:"-" query:"-" json:"items"`
 }
 
-// Model returns the AllocationCost entities for creating,
+// Model returns the CostReport entities for creating,
 // after validating.
-func (acci *AllocationCostCreateInputs) Model() []*AllocationCost {
-	if acci == nil || len(acci.Items) == 0 {
+func (crci *CostReportCreateInputs) Model() []*CostReport {
+	if crci == nil || len(crci.Items) == 0 {
 		return nil
 	}
 
-	acs := make([]*AllocationCost, len(acci.Items))
+	crs := make([]*CostReport, len(crci.Items))
 
-	for i := range acci.Items {
-		ac := &AllocationCost{
-			Fingerprint:         acci.Items[i].Fingerprint,
-			Name:                acci.Items[i].Name,
-			Minutes:             acci.Items[i].Minutes,
-			EndTime:             acci.Items[i].EndTime,
-			StartTime:           acci.Items[i].StartTime,
-			ClusterName:         acci.Items[i].ClusterName,
-			Namespace:           acci.Items[i].Namespace,
-			Node:                acci.Items[i].Node,
-			Controller:          acci.Items[i].Controller,
-			ControllerKind:      acci.Items[i].ControllerKind,
-			Pod:                 acci.Items[i].Pod,
-			Container:           acci.Items[i].Container,
-			Pvs:                 acci.Items[i].Pvs,
-			Labels:              acci.Items[i].Labels,
-			TotalCost:           acci.Items[i].TotalCost,
-			Currency:            acci.Items[i].Currency,
-			CPUCost:             acci.Items[i].CPUCost,
-			CPUCoreRequest:      acci.Items[i].CPUCoreRequest,
-			GpuCost:             acci.Items[i].GpuCost,
-			GpuCount:            acci.Items[i].GpuCount,
-			RAMCost:             acci.Items[i].RAMCost,
-			RAMByteRequest:      acci.Items[i].RAMByteRequest,
-			PvCost:              acci.Items[i].PvCost,
-			PvBytes:             acci.Items[i].PvBytes,
-			LoadBalancerCost:    acci.Items[i].LoadBalancerCost,
-			CPUCoreUsageAverage: acci.Items[i].CPUCoreUsageAverage,
-			CPUCoreUsageMax:     acci.Items[i].CPUCoreUsageMax,
-			RAMByteUsageAverage: acci.Items[i].RAMByteUsageAverage,
-			RAMByteUsageMax:     acci.Items[i].RAMByteUsageMax,
+	for i := range crci.Items {
+		cr := &CostReport{
+			Fingerprint:         crci.Items[i].Fingerprint,
+			Name:                crci.Items[i].Name,
+			Minutes:             crci.Items[i].Minutes,
+			EndTime:             crci.Items[i].EndTime,
+			StartTime:           crci.Items[i].StartTime,
+			ClusterName:         crci.Items[i].ClusterName,
+			Namespace:           crci.Items[i].Namespace,
+			Node:                crci.Items[i].Node,
+			Controller:          crci.Items[i].Controller,
+			ControllerKind:      crci.Items[i].ControllerKind,
+			Pod:                 crci.Items[i].Pod,
+			Container:           crci.Items[i].Container,
+			Pvs:                 crci.Items[i].Pvs,
+			Labels:              crci.Items[i].Labels,
+			TotalCost:           crci.Items[i].TotalCost,
+			Currency:            crci.Items[i].Currency,
+			CPUCost:             crci.Items[i].CPUCost,
+			CPUCoreRequest:      crci.Items[i].CPUCoreRequest,
+			GpuCost:             crci.Items[i].GpuCost,
+			GpuCount:            crci.Items[i].GpuCount,
+			RAMCost:             crci.Items[i].RAMCost,
+			RAMByteRequest:      crci.Items[i].RAMByteRequest,
+			PvCost:              crci.Items[i].PvCost,
+			PvBytes:             crci.Items[i].PvBytes,
+			LoadBalancerCost:    crci.Items[i].LoadBalancerCost,
+			CPUCoreUsageAverage: crci.Items[i].CPUCoreUsageAverage,
+			CPUCoreUsageMax:     crci.Items[i].CPUCoreUsageMax,
+			RAMByteUsageAverage: crci.Items[i].RAMByteUsageAverage,
+			RAMByteUsageMax:     crci.Items[i].RAMByteUsageMax,
 		}
 
-		acs[i] = ac
+		crs[i] = cr
 	}
 
-	return acs
+	return crs
 }
 
 // Load checks the input.
 // TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (acci *AllocationCostCreateInputs) Load() error {
-	if acci == nil {
+func (crci *CostReportCreateInputs) Load() error {
+	if crci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return acci.LoadWith(acci.inputConfig.Context, acci.inputConfig.ClientSet)
+	return crci.LoadWith(crci.inputConfig.Context, crci.inputConfig.ClientSet)
 }
 
 // LoadWith checks the input with the given context and client set.
 // TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (acci *AllocationCostCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
-	if acci == nil {
+func (crci *CostReportCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+	if crci == nil {
 		return errors.New("nil receiver")
 	}
 
-	if len(acci.Items) == 0 {
+	if len(crci.Items) == 0 {
 		return errors.New("empty items")
 	}
 
 	return nil
 }
 
-// AllocationCostDeleteInput holds the deletion input of the AllocationCost entity.
-type AllocationCostDeleteInput = AllocationCostQueryInput
+// CostReportDeleteInput holds the deletion input of the CostReport entity.
+type CostReportDeleteInput = CostReportQueryInput
 
-// AllocationCostDeleteInputs holds the deletion input item of the AllocationCost entities.
-type AllocationCostDeleteInputsItem struct {
+// CostReportDeleteInputs holds the deletion input item of the CostReport entities.
+type CostReportDeleteInputsItem struct {
 	ID int `uri:"-" query:"-" json:"id"`
 }
 
-// AllocationCostDeleteInputs holds the deletion input of the AllocationCost entities.
-type AllocationCostDeleteInputs struct {
+// CostReportDeleteInputs holds the deletion input of the CostReport entities.
+type CostReportDeleteInputs struct {
 	inputConfig `uri:"-" query:"-" json:"-"`
 
-	Items []*AllocationCostDeleteInputsItem `uri:"-" query:"-" json:"items"`
+	Items []*CostReportDeleteInputsItem `uri:"-" query:"-" json:"items"`
 }
 
-// Model returns the AllocationCost entities for deleting,
+// Model returns the CostReport entities for deleting,
 // after validating.
-func (acdi *AllocationCostDeleteInputs) Model() []*AllocationCost {
-	if acdi == nil || len(acdi.Items) == 0 {
+func (crdi *CostReportDeleteInputs) Model() []*CostReport {
+	if crdi == nil || len(crdi.Items) == 0 {
 		return nil
 	}
 
-	acs := make([]*AllocationCost, len(acdi.Items))
-	for i := range acdi.Items {
-		acs[i] = &AllocationCost{
-			ID: acdi.Items[i].ID,
+	crs := make([]*CostReport, len(crdi.Items))
+	for i := range crdi.Items {
+		crs[i] = &CostReport{
+			ID: crdi.Items[i].ID,
 		}
 	}
-	return acs
+	return crs
 }
 
 // Load checks the input.
 // TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (acdi *AllocationCostDeleteInputs) Load() error {
-	if acdi == nil {
+func (crdi *CostReportDeleteInputs) Load() error {
+	if crdi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return acdi.LoadWith(acdi.inputConfig.Context, acdi.inputConfig.ClientSet)
+	return crdi.LoadWith(crdi.inputConfig.Context, crdi.inputConfig.ClientSet)
 }
 
 // LoadWith checks the input with the given context and client set.
 // TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (acdi *AllocationCostDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
-	if acdi == nil {
+func (crdi *CostReportDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+	if crdi == nil {
 		return errors.New("nil receiver")
 	}
 
-	if len(acdi.Items) == 0 {
+	if len(crdi.Items) == 0 {
 		return errors.New("empty items")
 	}
 
-	q := cs.AllocationCosts().Query()
+	q := cs.CostReports().Query()
 
-	ids := make([]int, 0, len(acdi.Items))
+	ids := make([]int, 0, len(crdi.Items))
 
-	for i := range acdi.Items {
-		if acdi.Items[i] == nil {
+	for i := range crdi.Items {
+		if crdi.Items[i] == nil {
 			return errors.New("nil item")
 		}
 
-		if acdi.Items[i].ID != 0 {
-			ids = append(ids, acdi.Items[i].ID)
+		if crdi.Items[i].ID != 0 {
+			ids = append(ids, crdi.Items[i].ID)
 		} else {
 			return errors.New("found item hasn't identify")
 		}
@@ -294,7 +294,7 @@ func (acdi *AllocationCostDeleteInputs) LoadWith(ctx context.Context, cs ClientS
 
 	idsLen := len(ids)
 
-	idsCnt, err := q.Where(allocationcost.IDIn(ids...)).
+	idsCnt, err := q.Where(costreport.IDIn(ids...)).
 		Count(ctx)
 	if err != nil {
 		return err
@@ -307,95 +307,95 @@ func (acdi *AllocationCostDeleteInputs) LoadWith(ctx context.Context, cs ClientS
 	return nil
 }
 
-// AllocationCostQueryInput holds the query input of the AllocationCost entity.
-type AllocationCostQueryInput struct {
+// CostReportQueryInput holds the query input of the CostReport entity.
+type CostReportQueryInput struct {
 	inputConfig `uri:"-" query:"-" json:"-"`
 
-	Refer *object.Refer `uri:"allocationcost,default=\"\"" query:"-" json:"-"`
+	Refer *object.Refer `uri:"costreport,default=\"\"" query:"-" json:"-"`
 	ID    int           `uri:"id" query:"-" json:"id"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
 }
 
-// Model returns the AllocationCost entity for querying,
+// Model returns the CostReport entity for querying,
 // after validating.
-func (acqi *AllocationCostQueryInput) Model() *AllocationCost {
-	if acqi == nil {
+func (crqi *CostReportQueryInput) Model() *CostReport {
+	if crqi == nil {
 		return nil
 	}
 
-	return &AllocationCost{
-		ID: acqi.ID,
+	return &CostReport{
+		ID: crqi.ID,
 	}
 }
 
 // Load checks the input.
 // TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (acqi *AllocationCostQueryInput) Load() error {
-	if acqi == nil {
+func (crqi *CostReportQueryInput) Load() error {
+	if crqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return acqi.LoadWith(acqi.inputConfig.Context, acqi.inputConfig.ClientSet)
+	return crqi.LoadWith(crqi.inputConfig.Context, crqi.inputConfig.ClientSet)
 }
 
 // LoadWith checks the input with the given context and client set.
 // TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (acqi *AllocationCostQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
-	if acqi == nil {
+func (crqi *CostReportQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+	if crqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	if acqi.Refer != nil && *acqi.Refer == "" {
+	if crqi.Refer != nil && *crqi.Refer == "" {
 		return nil
 	}
 
-	q := cs.AllocationCosts().Query()
+	q := cs.CostReports().Query()
 
-	if acqi.Refer != nil {
-		if acqi.Refer.IsNumeric() {
+	if crqi.Refer != nil {
+		if crqi.Refer.IsNumeric() {
 			q.Where(
-				allocationcost.ID(acqi.Refer.Int()))
+				costreport.ID(crqi.Refer.Int()))
 		} else {
-			return errors.New("invalid identify refer of allocationcost")
+			return errors.New("invalid identify refer of costreport")
 		}
-	} else if acqi.ID != 0 {
+	} else if crqi.ID != 0 {
 		q.Where(
-			allocationcost.ID(acqi.ID))
+			costreport.ID(crqi.ID))
 	} else {
-		return errors.New("invalid identify of allocationcost")
+		return errors.New("invalid identify of costreport")
 	}
 
-	acqi.ID, err = q.OnlyID(ctx)
+	crqi.ID, err = q.OnlyID(ctx)
 	return err
 }
 
-// AllocationCostQueryInputs holds the query input of the AllocationCost entities.
-type AllocationCostQueryInputs struct {
+// CostReportQueryInputs holds the query input of the CostReport entities.
+type CostReportQueryInputs struct {
 	inputConfig `uri:"-" query:"-" json:"-"`
 }
 
 // Load checks the input.
 // TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (acqi *AllocationCostQueryInputs) Load() error {
-	if acqi == nil {
+func (crqi *CostReportQueryInputs) Load() error {
+	if crqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return acqi.LoadWith(acqi.inputConfig.Context, acqi.inputConfig.ClientSet)
+	return crqi.LoadWith(crqi.inputConfig.Context, crqi.inputConfig.ClientSet)
 }
 
 // LoadWith checks the input with the given context and client set.
 // TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (acqi *AllocationCostQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
-	if acqi == nil {
+func (crqi *CostReportQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+	if crqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	return err
 }
 
-// AllocationCostUpdateInput holds the modification input of the AllocationCost entity.
-type AllocationCostUpdateInput struct {
-	AllocationCostQueryInput `uri:",inline" query:"-" json:",inline"`
+// CostReportUpdateInput holds the modification input of the CostReport entity.
+type CostReportUpdateInput struct {
+	CostReportQueryInput `uri:",inline" query:"-" json:",inline"`
 
 	TotalCost           float64 `uri:"-" query:"-" json:"totalCost,omitempty"`
 	Currency            int     `uri:"-" query:"-" json:"currency,omitempty"`
@@ -411,34 +411,34 @@ type AllocationCostUpdateInput struct {
 	RAMByteUsageMax     float64 `uri:"-" query:"-" json:"rambyteUsageMax,omitempty"`
 }
 
-// Model returns the AllocationCost entity for modifying,
+// Model returns the CostReport entity for modifying,
 // after validating.
-func (acui *AllocationCostUpdateInput) Model() *AllocationCost {
-	if acui == nil {
+func (crui *CostReportUpdateInput) Model() *CostReport {
+	if crui == nil {
 		return nil
 	}
 
-	ac := &AllocationCost{
-		ID:                  acui.ID,
-		TotalCost:           acui.TotalCost,
-		Currency:            acui.Currency,
-		CPUCost:             acui.CPUCost,
-		GpuCost:             acui.GpuCost,
-		RAMCost:             acui.RAMCost,
-		PvCost:              acui.PvCost,
-		PvBytes:             acui.PvBytes,
-		LoadBalancerCost:    acui.LoadBalancerCost,
-		CPUCoreUsageAverage: acui.CPUCoreUsageAverage,
-		CPUCoreUsageMax:     acui.CPUCoreUsageMax,
-		RAMByteUsageAverage: acui.RAMByteUsageAverage,
-		RAMByteUsageMax:     acui.RAMByteUsageMax,
+	cr := &CostReport{
+		ID:                  crui.ID,
+		TotalCost:           crui.TotalCost,
+		Currency:            crui.Currency,
+		CPUCost:             crui.CPUCost,
+		GpuCost:             crui.GpuCost,
+		RAMCost:             crui.RAMCost,
+		PvCost:              crui.PvCost,
+		PvBytes:             crui.PvBytes,
+		LoadBalancerCost:    crui.LoadBalancerCost,
+		CPUCoreUsageAverage: crui.CPUCoreUsageAverage,
+		CPUCoreUsageMax:     crui.CPUCoreUsageMax,
+		RAMByteUsageAverage: crui.RAMByteUsageAverage,
+		RAMByteUsageMax:     crui.RAMByteUsageMax,
 	}
 
-	return ac
+	return cr
 }
 
-// AllocationCostUpdateInputs holds the modification input item of the AllocationCost entities.
-type AllocationCostUpdateInputsItem struct {
+// CostReportUpdateInputs holds the modification input item of the CostReport entities.
+type CostReportUpdateInputsItem struct {
 	ID int `uri:"-" query:"-" json:"id"`
 
 	TotalCost           float64 `uri:"-" query:"-" json:"totalCost,omitempty"`
@@ -455,77 +455,77 @@ type AllocationCostUpdateInputsItem struct {
 	RAMByteUsageMax     float64 `uri:"-" query:"-" json:"rambyteUsageMax,omitempty"`
 }
 
-// AllocationCostUpdateInputs holds the modification input of the AllocationCost entities.
-type AllocationCostUpdateInputs struct {
+// CostReportUpdateInputs holds the modification input of the CostReport entities.
+type CostReportUpdateInputs struct {
 	inputConfig `uri:"-" query:"-" json:"-"`
 
-	Items []*AllocationCostUpdateInputsItem `uri:"-" query:"-" json:"items"`
+	Items []*CostReportUpdateInputsItem `uri:"-" query:"-" json:"items"`
 }
 
-// Model returns the AllocationCost entities for modifying,
+// Model returns the CostReport entities for modifying,
 // after validating.
-func (acui *AllocationCostUpdateInputs) Model() []*AllocationCost {
-	if acui == nil || len(acui.Items) == 0 {
+func (crui *CostReportUpdateInputs) Model() []*CostReport {
+	if crui == nil || len(crui.Items) == 0 {
 		return nil
 	}
 
-	acs := make([]*AllocationCost, len(acui.Items))
+	crs := make([]*CostReport, len(crui.Items))
 
-	for i := range acui.Items {
-		ac := &AllocationCost{
-			ID:                  acui.Items[i].ID,
-			TotalCost:           acui.Items[i].TotalCost,
-			Currency:            acui.Items[i].Currency,
-			CPUCost:             acui.Items[i].CPUCost,
-			GpuCost:             acui.Items[i].GpuCost,
-			RAMCost:             acui.Items[i].RAMCost,
-			PvCost:              acui.Items[i].PvCost,
-			PvBytes:             acui.Items[i].PvBytes,
-			LoadBalancerCost:    acui.Items[i].LoadBalancerCost,
-			CPUCoreUsageAverage: acui.Items[i].CPUCoreUsageAverage,
-			CPUCoreUsageMax:     acui.Items[i].CPUCoreUsageMax,
-			RAMByteUsageAverage: acui.Items[i].RAMByteUsageAverage,
-			RAMByteUsageMax:     acui.Items[i].RAMByteUsageMax,
+	for i := range crui.Items {
+		cr := &CostReport{
+			ID:                  crui.Items[i].ID,
+			TotalCost:           crui.Items[i].TotalCost,
+			Currency:            crui.Items[i].Currency,
+			CPUCost:             crui.Items[i].CPUCost,
+			GpuCost:             crui.Items[i].GpuCost,
+			RAMCost:             crui.Items[i].RAMCost,
+			PvCost:              crui.Items[i].PvCost,
+			PvBytes:             crui.Items[i].PvBytes,
+			LoadBalancerCost:    crui.Items[i].LoadBalancerCost,
+			CPUCoreUsageAverage: crui.Items[i].CPUCoreUsageAverage,
+			CPUCoreUsageMax:     crui.Items[i].CPUCoreUsageMax,
+			RAMByteUsageAverage: crui.Items[i].RAMByteUsageAverage,
+			RAMByteUsageMax:     crui.Items[i].RAMByteUsageMax,
 		}
 
-		acs[i] = ac
+		crs[i] = cr
 	}
 
-	return acs
+	return crs
 }
 
 // Load checks the input.
 // TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (acui *AllocationCostUpdateInputs) Load() error {
-	if acui == nil {
+func (crui *CostReportUpdateInputs) Load() error {
+	if crui == nil {
 		return errors.New("nil receiver")
 	}
 
-	return acui.LoadWith(acui.inputConfig.Context, acui.inputConfig.ClientSet)
+	return crui.LoadWith(crui.inputConfig.Context, crui.inputConfig.ClientSet)
 }
 
 // LoadWith checks the input with the given context and client set.
 // TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (acui *AllocationCostUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
-	if acui == nil {
+func (crui *CostReportUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+	if crui == nil {
 		return errors.New("nil receiver")
 	}
 
-	if len(acui.Items) == 0 {
+	if len(crui.Items) == 0 {
 		return errors.New("empty items")
 	}
 
-	q := cs.AllocationCosts().Query()
+	q := cs.CostReports().Query()
 
-	ids := make([]int, 0, len(acui.Items))
+	ids := make([]int, 0, len(crui.Items))
 
-	for i := range acui.Items {
-		if acui.Items[i] == nil {
+	for i := range crui.Items {
+		if crui.Items[i] == nil {
 			return errors.New("nil item")
 		}
 
-		if acui.Items[i].ID != 0 {
-			ids = append(ids, acui.Items[i].ID)
+		if crui.Items[i].ID != 0 {
+			ids = append(ids, crui.Items[i].ID)
 		} else {
 			return errors.New("found item hasn't identify")
 		}
@@ -533,7 +533,7 @@ func (acui *AllocationCostUpdateInputs) LoadWith(ctx context.Context, cs ClientS
 
 	idsLen := len(ids)
 
-	idsCnt, err := q.Where(allocationcost.IDIn(ids...)).
+	idsCnt, err := q.Where(costreport.IDIn(ids...)).
 		Count(ctx)
 	if err != nil {
 		return err
@@ -546,8 +546,8 @@ func (acui *AllocationCostUpdateInputs) LoadWith(ctx context.Context, cs ClientS
 	return nil
 }
 
-// AllocationCostOutput holds the output of the AllocationCost entity.
-type AllocationCostOutput struct {
+// CostReportOutput holds the output of the CostReport entity.
+type CostReportOutput struct {
 	ID                  int                     `json:"id,omitempty"`
 	StartTime           time.Time               `json:"startTime,omitempty"`
 	EndTime             time.Time               `json:"endTime,omitempty"`
@@ -580,67 +580,67 @@ type AllocationCostOutput struct {
 	RAMByteUsageMax     float64                 `json:"rambyteUsageMax,omitempty"`
 }
 
-// View returns the output of AllocationCost.
-func (ac *AllocationCost) View() *AllocationCostOutput {
-	return ExposeAllocationCost(ac)
+// View returns the output of CostReport.
+func (cr *CostReport) View() *CostReportOutput {
+	return ExposeCostReport(cr)
 }
 
-// View returns the output of AllocationCosts.
-func (acs AllocationCosts) View() []*AllocationCostOutput {
-	return ExposeAllocationCosts(acs)
+// View returns the output of CostReports.
+func (crs CostReports) View() []*CostReportOutput {
+	return ExposeCostReports(crs)
 }
 
-// ExposeAllocationCost converts the AllocationCost to AllocationCostOutput.
-func ExposeAllocationCost(ac *AllocationCost) *AllocationCostOutput {
-	if ac == nil {
+// ExposeCostReport converts the CostReport to CostReportOutput.
+func ExposeCostReport(cr *CostReport) *CostReportOutput {
+	if cr == nil {
 		return nil
 	}
 
-	aco := &AllocationCostOutput{
-		ID:                  ac.ID,
-		StartTime:           ac.StartTime,
-		EndTime:             ac.EndTime,
-		Minutes:             ac.Minutes,
-		Name:                ac.Name,
-		Fingerprint:         ac.Fingerprint,
-		ClusterName:         ac.ClusterName,
-		Namespace:           ac.Namespace,
-		Node:                ac.Node,
-		Controller:          ac.Controller,
-		ControllerKind:      ac.ControllerKind,
-		Pod:                 ac.Pod,
-		Container:           ac.Container,
-		Pvs:                 ac.Pvs,
-		Labels:              ac.Labels,
-		TotalCost:           ac.TotalCost,
-		Currency:            ac.Currency,
-		CPUCost:             ac.CPUCost,
-		CPUCoreRequest:      ac.CPUCoreRequest,
-		GpuCost:             ac.GpuCost,
-		GpuCount:            ac.GpuCount,
-		RAMCost:             ac.RAMCost,
-		RAMByteRequest:      ac.RAMByteRequest,
-		PvCost:              ac.PvCost,
-		PvBytes:             ac.PvBytes,
-		LoadBalancerCost:    ac.LoadBalancerCost,
-		CPUCoreUsageAverage: ac.CPUCoreUsageAverage,
-		CPUCoreUsageMax:     ac.CPUCoreUsageMax,
-		RAMByteUsageAverage: ac.RAMByteUsageAverage,
-		RAMByteUsageMax:     ac.RAMByteUsageMax,
+	cro := &CostReportOutput{
+		ID:                  cr.ID,
+		StartTime:           cr.StartTime,
+		EndTime:             cr.EndTime,
+		Minutes:             cr.Minutes,
+		Name:                cr.Name,
+		Fingerprint:         cr.Fingerprint,
+		ClusterName:         cr.ClusterName,
+		Namespace:           cr.Namespace,
+		Node:                cr.Node,
+		Controller:          cr.Controller,
+		ControllerKind:      cr.ControllerKind,
+		Pod:                 cr.Pod,
+		Container:           cr.Container,
+		Pvs:                 cr.Pvs,
+		Labels:              cr.Labels,
+		TotalCost:           cr.TotalCost,
+		Currency:            cr.Currency,
+		CPUCost:             cr.CPUCost,
+		CPUCoreRequest:      cr.CPUCoreRequest,
+		GpuCost:             cr.GpuCost,
+		GpuCount:            cr.GpuCount,
+		RAMCost:             cr.RAMCost,
+		RAMByteRequest:      cr.RAMByteRequest,
+		PvCost:              cr.PvCost,
+		PvBytes:             cr.PvBytes,
+		LoadBalancerCost:    cr.LoadBalancerCost,
+		CPUCoreUsageAverage: cr.CPUCoreUsageAverage,
+		CPUCoreUsageMax:     cr.CPUCoreUsageMax,
+		RAMByteUsageAverage: cr.RAMByteUsageAverage,
+		RAMByteUsageMax:     cr.RAMByteUsageMax,
 	}
 
-	return aco
+	return cro
 }
 
-// ExposeAllocationCosts converts the AllocationCost slice to AllocationCostOutput pointer slice.
-func ExposeAllocationCosts(acs []*AllocationCost) []*AllocationCostOutput {
-	if len(acs) == 0 {
+// ExposeCostReports converts the CostReport slice to CostReportOutput pointer slice.
+func ExposeCostReports(crs []*CostReport) []*CostReportOutput {
+	if len(crs) == 0 {
 		return nil
 	}
 
-	acos := make([]*AllocationCostOutput, len(acs))
-	for i := range acs {
-		acos[i] = ExposeAllocationCost(acs[i])
+	cros := make([]*CostReportOutput, len(crs))
+	for i := range crs {
+		cros[i] = ExposeCostReport(crs[i])
 	}
-	return acos
+	return cros
 }

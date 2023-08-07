@@ -122,15 +122,15 @@ func (pu *PerspectiveUpdate) SetNillableBuiltin(b *bool) *PerspectiveUpdate {
 	return pu
 }
 
-// SetAllocationQueries sets the "allocation_queries" field.
-func (pu *PerspectiveUpdate) SetAllocationQueries(tc []types.QueryCondition) *PerspectiveUpdate {
-	pu.mutation.SetAllocationQueries(tc)
+// SetCostQueries sets the "cost_queries" field.
+func (pu *PerspectiveUpdate) SetCostQueries(tc []types.QueryCondition) *PerspectiveUpdate {
+	pu.mutation.SetCostQueries(tc)
 	return pu
 }
 
-// AppendAllocationQueries appends tc to the "allocation_queries" field.
-func (pu *PerspectiveUpdate) AppendAllocationQueries(tc []types.QueryCondition) *PerspectiveUpdate {
-	pu.mutation.AppendAllocationQueries(tc)
+// AppendCostQueries appends tc to the "cost_queries" field.
+func (pu *PerspectiveUpdate) AppendCostQueries(tc []types.QueryCondition) *PerspectiveUpdate {
+	pu.mutation.AppendCostQueries(tc)
 	return pu
 }
 
@@ -251,7 +251,7 @@ func (pu *PerspectiveUpdate) Set(obj *Perspective) *PerspectiveUpdate {
 	pu.SetStartTime(obj.StartTime)
 	pu.SetEndTime(obj.EndTime)
 	pu.SetBuiltin(obj.Builtin)
-	pu.SetAllocationQueries(obj.AllocationQueries)
+	pu.SetCostQueries(obj.CostQueries)
 
 	// With Default.
 	if obj.UpdateTime != nil {
@@ -315,12 +315,12 @@ func (pu *PerspectiveUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := pu.mutation.Builtin(); ok {
 		_spec.SetField(perspective.FieldBuiltin, field.TypeBool, value)
 	}
-	if value, ok := pu.mutation.AllocationQueries(); ok {
-		_spec.SetField(perspective.FieldAllocationQueries, field.TypeJSON, value)
+	if value, ok := pu.mutation.CostQueries(); ok {
+		_spec.SetField(perspective.FieldCostQueries, field.TypeJSON, value)
 	}
-	if value, ok := pu.mutation.AppendedAllocationQueries(); ok {
+	if value, ok := pu.mutation.AppendedCostQueries(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, perspective.FieldAllocationQueries, value)
+			sqljson.Append(u, perspective.FieldCostQueries, value)
 		})
 	}
 	_spec.Node.Schema = pu.schemaConfig.Perspective
@@ -430,15 +430,15 @@ func (puo *PerspectiveUpdateOne) SetNillableBuiltin(b *bool) *PerspectiveUpdateO
 	return puo
 }
 
-// SetAllocationQueries sets the "allocation_queries" field.
-func (puo *PerspectiveUpdateOne) SetAllocationQueries(tc []types.QueryCondition) *PerspectiveUpdateOne {
-	puo.mutation.SetAllocationQueries(tc)
+// SetCostQueries sets the "cost_queries" field.
+func (puo *PerspectiveUpdateOne) SetCostQueries(tc []types.QueryCondition) *PerspectiveUpdateOne {
+	puo.mutation.SetCostQueries(tc)
 	return puo
 }
 
-// AppendAllocationQueries appends tc to the "allocation_queries" field.
-func (puo *PerspectiveUpdateOne) AppendAllocationQueries(tc []types.QueryCondition) *PerspectiveUpdateOne {
-	puo.mutation.AppendAllocationQueries(tc)
+// AppendCostQueries appends tc to the "cost_queries" field.
+func (puo *PerspectiveUpdateOne) AppendCostQueries(tc []types.QueryCondition) *PerspectiveUpdateOne {
+	puo.mutation.AppendCostQueries(tc)
 	return puo
 }
 
@@ -596,8 +596,8 @@ func (puo *PerspectiveUpdateOne) Set(obj *Perspective) *PerspectiveUpdateOne {
 			if db.Builtin != obj.Builtin {
 				puo.SetBuiltin(obj.Builtin)
 			}
-			if !reflect.DeepEqual(db.AllocationQueries, obj.AllocationQueries) {
-				puo.SetAllocationQueries(obj.AllocationQueries)
+			if !reflect.DeepEqual(db.CostQueries, obj.CostQueries) {
+				puo.SetCostQueries(obj.CostQueries)
 			}
 
 			// With Default.
@@ -670,8 +670,8 @@ func (puo *PerspectiveUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx cont
 		if _, set := puo.mutation.Field(perspective.FieldBuiltin); set {
 			obj.Builtin = x.Builtin
 		}
-		if _, set := puo.mutation.Field(perspective.FieldAllocationQueries); set {
-			obj.AllocationQueries = x.AllocationQueries
+		if _, set := puo.mutation.Field(perspective.FieldCostQueries); set {
+			obj.CostQueries = x.CostQueries
 		}
 	}
 
@@ -775,12 +775,12 @@ func (puo *PerspectiveUpdateOne) sqlSave(ctx context.Context) (_node *Perspectiv
 	if value, ok := puo.mutation.Builtin(); ok {
 		_spec.SetField(perspective.FieldBuiltin, field.TypeBool, value)
 	}
-	if value, ok := puo.mutation.AllocationQueries(); ok {
-		_spec.SetField(perspective.FieldAllocationQueries, field.TypeJSON, value)
+	if value, ok := puo.mutation.CostQueries(); ok {
+		_spec.SetField(perspective.FieldCostQueries, field.TypeJSON, value)
 	}
-	if value, ok := puo.mutation.AppendedAllocationQueries(); ok {
+	if value, ok := puo.mutation.AppendedCostQueries(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, perspective.FieldAllocationQueries, value)
+			sqljson.Append(u, perspective.FieldCostQueries, value)
 		})
 	}
 	_spec.Node.Schema = puo.schemaConfig.Perspective

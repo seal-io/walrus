@@ -19,9 +19,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 
-	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
-	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/model/distributelock"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
@@ -51,12 +50,10 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// AllocationCost is the client for interacting with the AllocationCost builders.
-	AllocationCost *AllocationCostClient
-	// ClusterCost is the client for interacting with the ClusterCost builders.
-	ClusterCost *ClusterCostClient
 	// Connector is the client for interacting with the Connector builders.
 	Connector *ConnectorClient
+	// CostReport is the client for interacting with the CostReport builders.
+	CostReport *CostReportClient
 	// DistributeLock is the client for interacting with the DistributeLock builders.
 	DistributeLock *DistributeLockClient
 	// Environment is the client for interacting with the Environment builders.
@@ -106,9 +103,8 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
-	c.AllocationCost = NewAllocationCostClient(c.config)
-	c.ClusterCost = NewClusterCostClient(c.config)
 	c.Connector = NewConnectorClient(c.config)
+	c.CostReport = NewCostReportClient(c.config)
 	c.DistributeLock = NewDistributeLockClient(c.config)
 	c.Environment = NewEnvironmentClient(c.config)
 	c.EnvironmentConnectorRelationship = NewEnvironmentConnectorRelationshipClient(c.config)
@@ -211,9 +207,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:                              ctx,
 		config:                           cfg,
-		AllocationCost:                   NewAllocationCostClient(cfg),
-		ClusterCost:                      NewClusterCostClient(cfg),
 		Connector:                        NewConnectorClient(cfg),
+		CostReport:                       NewCostReportClient(cfg),
 		DistributeLock:                   NewDistributeLockClient(cfg),
 		Environment:                      NewEnvironmentClient(cfg),
 		EnvironmentConnectorRelationship: NewEnvironmentConnectorRelationshipClient(cfg),
@@ -251,9 +246,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:                              ctx,
 		config:                           cfg,
-		AllocationCost:                   NewAllocationCostClient(cfg),
-		ClusterCost:                      NewClusterCostClient(cfg),
 		Connector:                        NewConnectorClient(cfg),
+		CostReport:                       NewCostReportClient(cfg),
 		DistributeLock:                   NewDistributeLockClient(cfg),
 		Environment:                      NewEnvironmentClient(cfg),
 		EnvironmentConnectorRelationship: NewEnvironmentConnectorRelationshipClient(cfg),
@@ -278,7 +272,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		AllocationCost.
+//		Connector.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -301,7 +295,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.AllocationCost, c.ClusterCost, c.Connector, c.DistributeLock, c.Environment,
+		c.Connector, c.CostReport, c.DistributeLock, c.Environment,
 		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Role,
 		c.Service, c.ServiceRelationship, c.ServiceResource,
 		c.ServiceResourceRelationship, c.ServiceRevision, c.Setting, c.Subject,
@@ -315,7 +309,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.AllocationCost, c.ClusterCost, c.Connector, c.DistributeLock, c.Environment,
+		c.Connector, c.CostReport, c.DistributeLock, c.Environment,
 		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Role,
 		c.Service, c.ServiceRelationship, c.ServiceResource,
 		c.ServiceResourceRelationship, c.ServiceRevision, c.Setting, c.Subject,
@@ -325,19 +319,14 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	}
 }
 
-// AllocationCosts implements the ClientSet.
-func (c *Client) AllocationCosts() *AllocationCostClient {
-	return c.AllocationCost
-}
-
-// ClusterCosts implements the ClientSet.
-func (c *Client) ClusterCosts() *ClusterCostClient {
-	return c.ClusterCost
-}
-
 // Connectors implements the ClientSet.
 func (c *Client) Connectors() *ConnectorClient {
 	return c.Connector
+}
+
+// CostReports implements the ClientSet.
+func (c *Client) CostReports() *CostReportClient {
+	return c.CostReport
 }
 
 // DistributeLocks implements the ClientSet.
@@ -476,12 +465,10 @@ func (c *Client) WithTx(ctx context.Context, fn func(tx *Tx) error) (err error) 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
-	case *AllocationCostMutation:
-		return c.AllocationCost.mutate(ctx, m)
-	case *ClusterCostMutation:
-		return c.ClusterCost.mutate(ctx, m)
 	case *ConnectorMutation:
 		return c.Connector.mutate(ctx, m)
+	case *CostReportMutation:
+		return c.CostReport.mutate(ctx, m)
 	case *DistributeLockMutation:
 		return c.DistributeLock.mutate(ctx, m)
 	case *EnvironmentMutation:
@@ -520,281 +507,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Variable.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("model: unknown mutation type %T", m)
-	}
-}
-
-// AllocationCostClient is a client for the AllocationCost schema.
-type AllocationCostClient struct {
-	config
-}
-
-// NewAllocationCostClient returns a client for the AllocationCost from the given config.
-func NewAllocationCostClient(c config) *AllocationCostClient {
-	return &AllocationCostClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `allocationcost.Hooks(f(g(h())))`.
-func (c *AllocationCostClient) Use(hooks ...Hook) {
-	c.hooks.AllocationCost = append(c.hooks.AllocationCost, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `allocationcost.Intercept(f(g(h())))`.
-func (c *AllocationCostClient) Intercept(interceptors ...Interceptor) {
-	c.inters.AllocationCost = append(c.inters.AllocationCost, interceptors...)
-}
-
-// Create returns a builder for creating a AllocationCost entity.
-func (c *AllocationCostClient) Create() *AllocationCostCreate {
-	mutation := newAllocationCostMutation(c.config, OpCreate)
-	return &AllocationCostCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of AllocationCost entities.
-func (c *AllocationCostClient) CreateBulk(builders ...*AllocationCostCreate) *AllocationCostCreateBulk {
-	return &AllocationCostCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for AllocationCost.
-func (c *AllocationCostClient) Update() *AllocationCostUpdate {
-	mutation := newAllocationCostMutation(c.config, OpUpdate)
-	return &AllocationCostUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *AllocationCostClient) UpdateOne(ac *AllocationCost) *AllocationCostUpdateOne {
-	mutation := newAllocationCostMutation(c.config, OpUpdateOne, withAllocationCost(ac))
-	return &AllocationCostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *AllocationCostClient) UpdateOneID(id int) *AllocationCostUpdateOne {
-	mutation := newAllocationCostMutation(c.config, OpUpdateOne, withAllocationCostID(id))
-	return &AllocationCostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for AllocationCost.
-func (c *AllocationCostClient) Delete() *AllocationCostDelete {
-	mutation := newAllocationCostMutation(c.config, OpDelete)
-	return &AllocationCostDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *AllocationCostClient) DeleteOne(ac *AllocationCost) *AllocationCostDeleteOne {
-	return c.DeleteOneID(ac.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *AllocationCostClient) DeleteOneID(id int) *AllocationCostDeleteOne {
-	builder := c.Delete().Where(allocationcost.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &AllocationCostDeleteOne{builder}
-}
-
-// Query returns a query builder for AllocationCost.
-func (c *AllocationCostClient) Query() *AllocationCostQuery {
-	return &AllocationCostQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeAllocationCost},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a AllocationCost entity by its id.
-func (c *AllocationCostClient) Get(ctx context.Context, id int) (*AllocationCost, error) {
-	return c.Query().Where(allocationcost.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *AllocationCostClient) GetX(ctx context.Context, id int) *AllocationCost {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryConnector queries the connector edge of a AllocationCost.
-func (c *AllocationCostClient) QueryConnector(ac *AllocationCost) *ConnectorQuery {
-	query := (&ConnectorClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := ac.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(allocationcost.Table, allocationcost.FieldID, id),
-			sqlgraph.To(connector.Table, connector.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, allocationcost.ConnectorTable, allocationcost.ConnectorColumn),
-		)
-		schemaConfig := ac.schemaConfig
-		step.To.Schema = schemaConfig.Connector
-		step.Edge.Schema = schemaConfig.AllocationCost
-		fromV = sqlgraph.Neighbors(ac.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *AllocationCostClient) Hooks() []Hook {
-	hooks := c.hooks.AllocationCost
-	return append(hooks[:len(hooks):len(hooks)], allocationcost.Hooks[:]...)
-}
-
-// Interceptors returns the client interceptors.
-func (c *AllocationCostClient) Interceptors() []Interceptor {
-	return c.inters.AllocationCost
-}
-
-func (c *AllocationCostClient) mutate(ctx context.Context, m *AllocationCostMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&AllocationCostCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&AllocationCostUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&AllocationCostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&AllocationCostDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("model: unknown AllocationCost mutation op: %q", m.Op())
-	}
-}
-
-// ClusterCostClient is a client for the ClusterCost schema.
-type ClusterCostClient struct {
-	config
-}
-
-// NewClusterCostClient returns a client for the ClusterCost from the given config.
-func NewClusterCostClient(c config) *ClusterCostClient {
-	return &ClusterCostClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `clustercost.Hooks(f(g(h())))`.
-func (c *ClusterCostClient) Use(hooks ...Hook) {
-	c.hooks.ClusterCost = append(c.hooks.ClusterCost, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `clustercost.Intercept(f(g(h())))`.
-func (c *ClusterCostClient) Intercept(interceptors ...Interceptor) {
-	c.inters.ClusterCost = append(c.inters.ClusterCost, interceptors...)
-}
-
-// Create returns a builder for creating a ClusterCost entity.
-func (c *ClusterCostClient) Create() *ClusterCostCreate {
-	mutation := newClusterCostMutation(c.config, OpCreate)
-	return &ClusterCostCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of ClusterCost entities.
-func (c *ClusterCostClient) CreateBulk(builders ...*ClusterCostCreate) *ClusterCostCreateBulk {
-	return &ClusterCostCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for ClusterCost.
-func (c *ClusterCostClient) Update() *ClusterCostUpdate {
-	mutation := newClusterCostMutation(c.config, OpUpdate)
-	return &ClusterCostUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *ClusterCostClient) UpdateOne(cc *ClusterCost) *ClusterCostUpdateOne {
-	mutation := newClusterCostMutation(c.config, OpUpdateOne, withClusterCost(cc))
-	return &ClusterCostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *ClusterCostClient) UpdateOneID(id int) *ClusterCostUpdateOne {
-	mutation := newClusterCostMutation(c.config, OpUpdateOne, withClusterCostID(id))
-	return &ClusterCostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for ClusterCost.
-func (c *ClusterCostClient) Delete() *ClusterCostDelete {
-	mutation := newClusterCostMutation(c.config, OpDelete)
-	return &ClusterCostDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *ClusterCostClient) DeleteOne(cc *ClusterCost) *ClusterCostDeleteOne {
-	return c.DeleteOneID(cc.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ClusterCostClient) DeleteOneID(id int) *ClusterCostDeleteOne {
-	builder := c.Delete().Where(clustercost.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ClusterCostDeleteOne{builder}
-}
-
-// Query returns a query builder for ClusterCost.
-func (c *ClusterCostClient) Query() *ClusterCostQuery {
-	return &ClusterCostQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeClusterCost},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a ClusterCost entity by its id.
-func (c *ClusterCostClient) Get(ctx context.Context, id int) (*ClusterCost, error) {
-	return c.Query().Where(clustercost.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *ClusterCostClient) GetX(ctx context.Context, id int) *ClusterCost {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryConnector queries the connector edge of a ClusterCost.
-func (c *ClusterCostClient) QueryConnector(cc *ClusterCost) *ConnectorQuery {
-	query := (&ConnectorClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := cc.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(clustercost.Table, clustercost.FieldID, id),
-			sqlgraph.To(connector.Table, connector.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, clustercost.ConnectorTable, clustercost.ConnectorColumn),
-		)
-		schemaConfig := cc.schemaConfig
-		step.To.Schema = schemaConfig.Connector
-		step.Edge.Schema = schemaConfig.ClusterCost
-		fromV = sqlgraph.Neighbors(cc.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *ClusterCostClient) Hooks() []Hook {
-	return c.hooks.ClusterCost
-}
-
-// Interceptors returns the client interceptors.
-func (c *ClusterCostClient) Interceptors() []Interceptor {
-	return c.inters.ClusterCost
-}
-
-func (c *ClusterCostClient) mutate(ctx context.Context, m *ClusterCostMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&ClusterCostCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&ClusterCostUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&ClusterCostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&ClusterCostDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("model: unknown ClusterCost mutation op: %q", m.Op())
 	}
 }
 
@@ -948,38 +660,19 @@ func (c *ConnectorClient) QueryResources(co *Connector) *ServiceResourceQuery {
 	return query
 }
 
-// QueryClusterCosts queries the cluster_costs edge of a Connector.
-func (c *ConnectorClient) QueryClusterCosts(co *Connector) *ClusterCostQuery {
-	query := (&ClusterCostClient{config: c.config}).Query()
+// QueryCostReports queries the cost_reports edge of a Connector.
+func (c *ConnectorClient) QueryCostReports(co *Connector) *CostReportQuery {
+	query := (&CostReportClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := co.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(connector.Table, connector.FieldID, id),
-			sqlgraph.To(clustercost.Table, clustercost.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, connector.ClusterCostsTable, connector.ClusterCostsColumn),
+			sqlgraph.To(costreport.Table, costreport.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, connector.CostReportsTable, connector.CostReportsColumn),
 		)
 		schemaConfig := co.schemaConfig
-		step.To.Schema = schemaConfig.ClusterCost
-		step.Edge.Schema = schemaConfig.ClusterCost
-		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryAllocationCosts queries the allocation_costs edge of a Connector.
-func (c *ConnectorClient) QueryAllocationCosts(co *Connector) *AllocationCostQuery {
-	query := (&AllocationCostClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := co.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(connector.Table, connector.FieldID, id),
-			sqlgraph.To(allocationcost.Table, allocationcost.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, connector.AllocationCostsTable, connector.AllocationCostsColumn),
-		)
-		schemaConfig := co.schemaConfig
-		step.To.Schema = schemaConfig.AllocationCost
-		step.Edge.Schema = schemaConfig.AllocationCost
+		step.To.Schema = schemaConfig.CostReport
+		step.Edge.Schema = schemaConfig.CostReport
 		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -1010,6 +703,144 @@ func (c *ConnectorClient) mutate(ctx context.Context, m *ConnectorMutation) (Val
 		return (&ConnectorDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("model: unknown Connector mutation op: %q", m.Op())
+	}
+}
+
+// CostReportClient is a client for the CostReport schema.
+type CostReportClient struct {
+	config
+}
+
+// NewCostReportClient returns a client for the CostReport from the given config.
+func NewCostReportClient(c config) *CostReportClient {
+	return &CostReportClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `costreport.Hooks(f(g(h())))`.
+func (c *CostReportClient) Use(hooks ...Hook) {
+	c.hooks.CostReport = append(c.hooks.CostReport, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `costreport.Intercept(f(g(h())))`.
+func (c *CostReportClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CostReport = append(c.inters.CostReport, interceptors...)
+}
+
+// Create returns a builder for creating a CostReport entity.
+func (c *CostReportClient) Create() *CostReportCreate {
+	mutation := newCostReportMutation(c.config, OpCreate)
+	return &CostReportCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CostReport entities.
+func (c *CostReportClient) CreateBulk(builders ...*CostReportCreate) *CostReportCreateBulk {
+	return &CostReportCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CostReport.
+func (c *CostReportClient) Update() *CostReportUpdate {
+	mutation := newCostReportMutation(c.config, OpUpdate)
+	return &CostReportUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CostReportClient) UpdateOne(cr *CostReport) *CostReportUpdateOne {
+	mutation := newCostReportMutation(c.config, OpUpdateOne, withCostReport(cr))
+	return &CostReportUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CostReportClient) UpdateOneID(id int) *CostReportUpdateOne {
+	mutation := newCostReportMutation(c.config, OpUpdateOne, withCostReportID(id))
+	return &CostReportUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CostReport.
+func (c *CostReportClient) Delete() *CostReportDelete {
+	mutation := newCostReportMutation(c.config, OpDelete)
+	return &CostReportDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CostReportClient) DeleteOne(cr *CostReport) *CostReportDeleteOne {
+	return c.DeleteOneID(cr.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CostReportClient) DeleteOneID(id int) *CostReportDeleteOne {
+	builder := c.Delete().Where(costreport.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CostReportDeleteOne{builder}
+}
+
+// Query returns a query builder for CostReport.
+func (c *CostReportClient) Query() *CostReportQuery {
+	return &CostReportQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCostReport},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CostReport entity by its id.
+func (c *CostReportClient) Get(ctx context.Context, id int) (*CostReport, error) {
+	return c.Query().Where(costreport.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CostReportClient) GetX(ctx context.Context, id int) *CostReport {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryConnector queries the connector edge of a CostReport.
+func (c *CostReportClient) QueryConnector(cr *CostReport) *ConnectorQuery {
+	query := (&ConnectorClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(costreport.Table, costreport.FieldID, id),
+			sqlgraph.To(connector.Table, connector.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, costreport.ConnectorTable, costreport.ConnectorColumn),
+		)
+		schemaConfig := cr.schemaConfig
+		step.To.Schema = schemaConfig.Connector
+		step.Edge.Schema = schemaConfig.CostReport
+		fromV = sqlgraph.Neighbors(cr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CostReportClient) Hooks() []Hook {
+	hooks := c.hooks.CostReport
+	return append(hooks[:len(hooks):len(hooks)], costreport.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *CostReportClient) Interceptors() []Interceptor {
+	return c.inters.CostReport
+}
+
+func (c *CostReportClient) mutate(ctx context.Context, m *CostReportMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CostReportCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CostReportUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CostReportUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CostReportDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown CostReport mutation op: %q", m.Op())
 	}
 }
 
@@ -3981,14 +3812,14 @@ func (c *VariableClient) mutate(ctx context.Context, m *VariableMutation) (Value
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		AllocationCost, ClusterCost, Connector, DistributeLock, Environment,
+		Connector, CostReport, DistributeLock, Environment,
 		EnvironmentConnectorRelationship, Perspective, Project, Role, Service,
 		ServiceRelationship, ServiceResource, ServiceResourceRelationship,
 		ServiceRevision, Setting, Subject, SubjectRoleRelationship, Template,
 		TemplateVersion, Token, Variable []ent.Hook
 	}
 	inters struct {
-		AllocationCost, ClusterCost, Connector, DistributeLock, Environment,
+		Connector, CostReport, DistributeLock, Environment,
 		EnvironmentConnectorRelationship, Perspective, Project, Role, Service,
 		ServiceRelationship, ServiceResource, ServiceResourceRelationship,
 		ServiceRevision, Setting, Subject, SubjectRoleRelationship, Template,

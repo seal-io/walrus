@@ -16,9 +16,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
-	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
@@ -30,16 +29,15 @@ import (
 // ConnectorQuery is the builder for querying Connector entities.
 type ConnectorQuery struct {
 	config
-	ctx                 *QueryContext
-	order               []connector.OrderOption
-	inters              []Interceptor
-	predicates          []predicate.Connector
-	withProject         *ProjectQuery
-	withEnvironments    *EnvironmentConnectorRelationshipQuery
-	withResources       *ServiceResourceQuery
-	withClusterCosts    *ClusterCostQuery
-	withAllocationCosts *AllocationCostQuery
-	modifiers           []func(*sql.Selector)
+	ctx              *QueryContext
+	order            []connector.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.Connector
+	withProject      *ProjectQuery
+	withEnvironments *EnvironmentConnectorRelationshipQuery
+	withResources    *ServiceResourceQuery
+	withCostReports  *CostReportQuery
+	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -151,9 +149,9 @@ func (cq *ConnectorQuery) QueryResources() *ServiceResourceQuery {
 	return query
 }
 
-// QueryClusterCosts chains the current query on the "cluster_costs" edge.
-func (cq *ConnectorQuery) QueryClusterCosts() *ClusterCostQuery {
-	query := (&ClusterCostClient{config: cq.config}).Query()
+// QueryCostReports chains the current query on the "cost_reports" edge.
+func (cq *ConnectorQuery) QueryCostReports() *CostReportQuery {
+	query := (&CostReportClient{config: cq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := cq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -164,37 +162,12 @@ func (cq *ConnectorQuery) QueryClusterCosts() *ClusterCostQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(connector.Table, connector.FieldID, selector),
-			sqlgraph.To(clustercost.Table, clustercost.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, connector.ClusterCostsTable, connector.ClusterCostsColumn),
+			sqlgraph.To(costreport.Table, costreport.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, connector.CostReportsTable, connector.CostReportsColumn),
 		)
 		schemaConfig := cq.schemaConfig
-		step.To.Schema = schemaConfig.ClusterCost
-		step.Edge.Schema = schemaConfig.ClusterCost
-		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryAllocationCosts chains the current query on the "allocation_costs" edge.
-func (cq *ConnectorQuery) QueryAllocationCosts() *AllocationCostQuery {
-	query := (&AllocationCostClient{config: cq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := cq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := cq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(connector.Table, connector.FieldID, selector),
-			sqlgraph.To(allocationcost.Table, allocationcost.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, connector.AllocationCostsTable, connector.AllocationCostsColumn),
-		)
-		schemaConfig := cq.schemaConfig
-		step.To.Schema = schemaConfig.AllocationCost
-		step.Edge.Schema = schemaConfig.AllocationCost
+		step.To.Schema = schemaConfig.CostReport
+		step.Edge.Schema = schemaConfig.CostReport
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -388,16 +361,15 @@ func (cq *ConnectorQuery) Clone() *ConnectorQuery {
 		return nil
 	}
 	return &ConnectorQuery{
-		config:              cq.config,
-		ctx:                 cq.ctx.Clone(),
-		order:               append([]connector.OrderOption{}, cq.order...),
-		inters:              append([]Interceptor{}, cq.inters...),
-		predicates:          append([]predicate.Connector{}, cq.predicates...),
-		withProject:         cq.withProject.Clone(),
-		withEnvironments:    cq.withEnvironments.Clone(),
-		withResources:       cq.withResources.Clone(),
-		withClusterCosts:    cq.withClusterCosts.Clone(),
-		withAllocationCosts: cq.withAllocationCosts.Clone(),
+		config:           cq.config,
+		ctx:              cq.ctx.Clone(),
+		order:            append([]connector.OrderOption{}, cq.order...),
+		inters:           append([]Interceptor{}, cq.inters...),
+		predicates:       append([]predicate.Connector{}, cq.predicates...),
+		withProject:      cq.withProject.Clone(),
+		withEnvironments: cq.withEnvironments.Clone(),
+		withResources:    cq.withResources.Clone(),
+		withCostReports:  cq.withCostReports.Clone(),
 		// clone intermediate query.
 		sql:  cq.sql.Clone(),
 		path: cq.path,
@@ -437,25 +409,14 @@ func (cq *ConnectorQuery) WithResources(opts ...func(*ServiceResourceQuery)) *Co
 	return cq
 }
 
-// WithClusterCosts tells the query-builder to eager-load the nodes that are connected to
-// the "cluster_costs" edge. The optional arguments are used to configure the query builder of the edge.
-func (cq *ConnectorQuery) WithClusterCosts(opts ...func(*ClusterCostQuery)) *ConnectorQuery {
-	query := (&ClusterCostClient{config: cq.config}).Query()
+// WithCostReports tells the query-builder to eager-load the nodes that are connected to
+// the "cost_reports" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *ConnectorQuery) WithCostReports(opts ...func(*CostReportQuery)) *ConnectorQuery {
+	query := (&CostReportClient{config: cq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	cq.withClusterCosts = query
-	return cq
-}
-
-// WithAllocationCosts tells the query-builder to eager-load the nodes that are connected to
-// the "allocation_costs" edge. The optional arguments are used to configure the query builder of the edge.
-func (cq *ConnectorQuery) WithAllocationCosts(opts ...func(*AllocationCostQuery)) *ConnectorQuery {
-	query := (&AllocationCostClient{config: cq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	cq.withAllocationCosts = query
+	cq.withCostReports = query
 	return cq
 }
 
@@ -537,12 +498,11 @@ func (cq *ConnectorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Co
 	var (
 		nodes       = []*Connector{}
 		_spec       = cq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [4]bool{
 			cq.withProject != nil,
 			cq.withEnvironments != nil,
 			cq.withResources != nil,
-			cq.withClusterCosts != nil,
-			cq.withAllocationCosts != nil,
+			cq.withCostReports != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -590,17 +550,10 @@ func (cq *ConnectorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Co
 			return nil, err
 		}
 	}
-	if query := cq.withClusterCosts; query != nil {
-		if err := cq.loadClusterCosts(ctx, query, nodes,
-			func(n *Connector) { n.Edges.ClusterCosts = []*ClusterCost{} },
-			func(n *Connector, e *ClusterCost) { n.Edges.ClusterCosts = append(n.Edges.ClusterCosts, e) }); err != nil {
-			return nil, err
-		}
-	}
-	if query := cq.withAllocationCosts; query != nil {
-		if err := cq.loadAllocationCosts(ctx, query, nodes,
-			func(n *Connector) { n.Edges.AllocationCosts = []*AllocationCost{} },
-			func(n *Connector, e *AllocationCost) { n.Edges.AllocationCosts = append(n.Edges.AllocationCosts, e) }); err != nil {
+	if query := cq.withCostReports; query != nil {
+		if err := cq.loadCostReports(ctx, query, nodes,
+			func(n *Connector) { n.Edges.CostReports = []*CostReport{} },
+			func(n *Connector, e *CostReport) { n.Edges.CostReports = append(n.Edges.CostReports, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -696,7 +649,7 @@ func (cq *ConnectorQuery) loadResources(ctx context.Context, query *ServiceResou
 	}
 	return nil
 }
-func (cq *ConnectorQuery) loadClusterCosts(ctx context.Context, query *ClusterCostQuery, nodes []*Connector, init func(*Connector), assign func(*Connector, *ClusterCost)) error {
+func (cq *ConnectorQuery) loadCostReports(ctx context.Context, query *CostReportQuery, nodes []*Connector, init func(*Connector), assign func(*Connector, *CostReport)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[object.ID]*Connector)
 	for i := range nodes {
@@ -707,40 +660,10 @@ func (cq *ConnectorQuery) loadClusterCosts(ctx context.Context, query *ClusterCo
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(clustercost.FieldConnectorID)
+		query.ctx.AppendFieldOnce(costreport.FieldConnectorID)
 	}
-	query.Where(predicate.ClusterCost(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(connector.ClusterCostsColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.ConnectorID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "connector_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
-func (cq *ConnectorQuery) loadAllocationCosts(ctx context.Context, query *AllocationCostQuery, nodes []*Connector, init func(*Connector), assign func(*Connector, *AllocationCost)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[object.ID]*Connector)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(allocationcost.FieldConnectorID)
-	}
-	query.Where(predicate.AllocationCost(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(connector.AllocationCostsColumn), fks...))
+	query.Where(predicate.CostReport(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(connector.CostReportsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

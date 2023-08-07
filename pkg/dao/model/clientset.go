@@ -9,14 +9,11 @@ import "context"
 
 // ClientSet is an interface that allows getting all clients.
 type ClientSet interface {
-	// AllocationCosts returns the client for interacting with the AllocationCost builders.
-	AllocationCosts() *AllocationCostClient
-
-	// ClusterCosts returns the client for interacting with the ClusterCost builders.
-	ClusterCosts() *ClusterCostClient
-
 	// Connectors returns the client for interacting with the Connector builders.
 	Connectors() *ConnectorClient
+
+	// CostReports returns the client for interacting with the CostReport builders.
+	CostReports() *CostReportClient
 
 	// DistributeLocks returns the client for interacting with the DistributeLock builders.
 	DistributeLocks() *DistributeLockClient
@@ -89,22 +86,16 @@ type ClientSet interface {
 	WithTx(context.Context, func(tx *Tx) error) error
 }
 
-// AllocationCostClientGetter is an interface that allows getting AllocationCostClient.
-type AllocationCostClientGetter interface {
-	// AllocationCosts returns the client for interacting with the AllocationCost builders.
-	AllocationCosts() *AllocationCostClient
-}
-
-// ClusterCostClientGetter is an interface that allows getting ClusterCostClient.
-type ClusterCostClientGetter interface {
-	// ClusterCosts returns the client for interacting with the ClusterCost builders.
-	ClusterCosts() *ClusterCostClient
-}
-
 // ConnectorClientGetter is an interface that allows getting ConnectorClient.
 type ConnectorClientGetter interface {
 	// Connectors returns the client for interacting with the Connector builders.
 	Connectors() *ConnectorClient
+}
+
+// CostReportClientGetter is an interface that allows getting CostReportClient.
+type CostReportClientGetter interface {
+	// CostReports returns the client for interacting with the CostReport builders.
+	CostReports() *CostReportClient
 }
 
 // DistributeLockClientGetter is an interface that allows getting DistributeLockClient.

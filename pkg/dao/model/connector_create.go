@@ -17,9 +17,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
-	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
@@ -204,34 +203,19 @@ func (cc *ConnectorCreate) AddResources(s ...*ServiceResource) *ConnectorCreate 
 	return cc.AddResourceIDs(ids...)
 }
 
-// AddClusterCostIDs adds the "cluster_costs" edge to the ClusterCost entity by IDs.
-func (cc *ConnectorCreate) AddClusterCostIDs(ids ...int) *ConnectorCreate {
-	cc.mutation.AddClusterCostIDs(ids...)
+// AddCostReportIDs adds the "cost_reports" edge to the CostReport entity by IDs.
+func (cc *ConnectorCreate) AddCostReportIDs(ids ...int) *ConnectorCreate {
+	cc.mutation.AddCostReportIDs(ids...)
 	return cc
 }
 
-// AddClusterCosts adds the "cluster_costs" edges to the ClusterCost entity.
-func (cc *ConnectorCreate) AddClusterCosts(c ...*ClusterCost) *ConnectorCreate {
+// AddCostReports adds the "cost_reports" edges to the CostReport entity.
+func (cc *ConnectorCreate) AddCostReports(c ...*CostReport) *ConnectorCreate {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return cc.AddClusterCostIDs(ids...)
-}
-
-// AddAllocationCostIDs adds the "allocation_costs" edge to the AllocationCost entity by IDs.
-func (cc *ConnectorCreate) AddAllocationCostIDs(ids ...int) *ConnectorCreate {
-	cc.mutation.AddAllocationCostIDs(ids...)
-	return cc
-}
-
-// AddAllocationCosts adds the "allocation_costs" edges to the AllocationCost entity.
-func (cc *ConnectorCreate) AddAllocationCosts(a ...*AllocationCost) *ConnectorCreate {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return cc.AddAllocationCostIDs(ids...)
+	return cc.AddCostReportIDs(ids...)
 }
 
 // Mutation returns the ConnectorMutation object of the builder.
@@ -487,35 +471,18 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := cc.mutation.ClusterCostsIDs(); len(nodes) > 0 {
+	if nodes := cc.mutation.CostReportsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   connector.ClusterCostsTable,
-			Columns: []string{connector.ClusterCostsColumn},
+			Table:   connector.CostReportsTable,
+			Columns: []string{connector.CostReportsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(clustercost.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(costreport.FieldID, field.TypeInt),
 			},
 		}
-		edge.Schema = cc.schemaConfig.ClusterCost
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := cc.mutation.AllocationCostsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   connector.AllocationCostsTable,
-			Columns: []string{connector.AllocationCostsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(allocationcost.FieldID, field.TypeInt),
-			},
-		}
-		edge.Schema = cc.schemaConfig.AllocationCost
+		edge.Schema = cc.schemaConfig.CostReport
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

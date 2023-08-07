@@ -69,13 +69,11 @@ type ConnectorEdges struct {
 	Environments []*EnvironmentConnectorRelationship `json:"environments,omitempty"`
 	// ServiceResources that use the connector.
 	Resources []*ServiceResource `json:"resources,omitempty"`
-	// ClusterCosts that linked to the connection
-	ClusterCosts []*ClusterCost `json:"cluster_costs,omitempty"`
-	// AllocationCosts that linked to the connection.
-	AllocationCosts []*AllocationCost `json:"allocation_costs,omitempty"`
+	// CostReports that linked to the connection.
+	CostReports []*CostReport `json:"cost_reports,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [4]bool
 }
 
 // ProjectOrErr returns the Project value or an error if the edge
@@ -109,22 +107,13 @@ func (e ConnectorEdges) ResourcesOrErr() ([]*ServiceResource, error) {
 	return nil, &NotLoadedError{edge: "resources"}
 }
 
-// ClusterCostsOrErr returns the ClusterCosts value or an error if the edge
+// CostReportsOrErr returns the CostReports value or an error if the edge
 // was not loaded in eager-loading.
-func (e ConnectorEdges) ClusterCostsOrErr() ([]*ClusterCost, error) {
+func (e ConnectorEdges) CostReportsOrErr() ([]*CostReport, error) {
 	if e.loadedTypes[3] {
-		return e.ClusterCosts, nil
+		return e.CostReports, nil
 	}
-	return nil, &NotLoadedError{edge: "cluster_costs"}
-}
-
-// AllocationCostsOrErr returns the AllocationCosts value or an error if the edge
-// was not loaded in eager-loading.
-func (e ConnectorEdges) AllocationCostsOrErr() ([]*AllocationCost, error) {
-	if e.loadedTypes[4] {
-		return e.AllocationCosts, nil
-	}
-	return nil, &NotLoadedError{edge: "allocation_costs"}
+	return nil, &NotLoadedError{edge: "cost_reports"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -287,14 +276,9 @@ func (c *Connector) QueryResources() *ServiceResourceQuery {
 	return NewConnectorClient(c.config).QueryResources(c)
 }
 
-// QueryClusterCosts queries the "cluster_costs" edge of the Connector entity.
-func (c *Connector) QueryClusterCosts() *ClusterCostQuery {
-	return NewConnectorClient(c.config).QueryClusterCosts(c)
-}
-
-// QueryAllocationCosts queries the "allocation_costs" edge of the Connector entity.
-func (c *Connector) QueryAllocationCosts() *AllocationCostQuery {
-	return NewConnectorClient(c.config).QueryAllocationCosts(c)
+// QueryCostReports queries the "cost_reports" edge of the Connector entity.
+func (c *Connector) QueryCostReports() *CostReportQuery {
+	return NewConnectorClient(c.config).QueryCostReports(c)
 }
 
 // Update returns a builder for updating this Connector.

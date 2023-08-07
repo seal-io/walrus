@@ -9,14 +9,11 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// AllocationCost is the predicate function for allocationcost builders.
-type AllocationCost func(*sql.Selector)
-
-// ClusterCost is the predicate function for clustercost builders.
-type ClusterCost func(*sql.Selector)
-
 // Connector is the predicate function for connector builders.
 type Connector func(*sql.Selector)
+
+// CostReport is the predicate function for costreport builders.
+type CostReport func(*sql.Selector)
 
 // DistributeLock is the predicate function for distributelock builders.
 type DistributeLock func(*sql.Selector)

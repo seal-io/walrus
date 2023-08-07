@@ -17,12 +17,10 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
-	// AllocationCost is the client for interacting with the AllocationCost builders.
-	AllocationCost *AllocationCostClient
-	// ClusterCost is the client for interacting with the ClusterCost builders.
-	ClusterCost *ClusterCostClient
 	// Connector is the client for interacting with the Connector builders.
 	Connector *ConnectorClient
+	// CostReport is the client for interacting with the CostReport builders.
+	CostReport *CostReportClient
 	// DistributeLock is the client for interacting with the DistributeLock builders.
 	DistributeLock *DistributeLockClient
 	// Environment is the client for interacting with the Environment builders.
@@ -190,9 +188,8 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
-	tx.AllocationCost = NewAllocationCostClient(tx.config)
-	tx.ClusterCost = NewClusterCostClient(tx.config)
 	tx.Connector = NewConnectorClient(tx.config)
+	tx.CostReport = NewCostReportClient(tx.config)
 	tx.DistributeLock = NewDistributeLockClient(tx.config)
 	tx.Environment = NewEnvironmentClient(tx.config)
 	tx.EnvironmentConnectorRelationship = NewEnvironmentConnectorRelationshipClient(tx.config)
@@ -220,7 +217,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: AllocationCost.QueryXXX(), the query will be executed
+// applies a query, for example: Connector.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.
@@ -274,19 +271,14 @@ func (tx *txDriver) Query(ctx context.Context, query string, args, v any) error 
 
 var _ dialect.Driver = (*txDriver)(nil)
 
-// AllocationCosts implements the ClientSet.
-func (tx *Tx) AllocationCosts() *AllocationCostClient {
-	return tx.AllocationCost
-}
-
-// ClusterCosts implements the ClientSet.
-func (tx *Tx) ClusterCosts() *ClusterCostClient {
-	return tx.ClusterCost
-}
-
 // Connectors implements the ClientSet.
 func (tx *Tx) Connectors() *ConnectorClient {
 	return tx.Connector
+}
+
+// CostReports implements the ClientSet.
+func (tx *Tx) CostReports() *CostReportClient {
+	return tx.CostReport
 }
 
 // DistributeLocks implements the ClientSet.
@@ -386,9 +378,8 @@ func (tx *Tx) Dialect() string {
 
 // Intercept adds the query interceptors to all the entity clients.
 func (tx *Tx) Intercept(interceptors ...Interceptor) {
-	tx.AllocationCost.Intercept(interceptors...)
-	tx.ClusterCost.Intercept(interceptors...)
 	tx.Connector.Intercept(interceptors...)
+	tx.CostReport.Intercept(interceptors...)
 	tx.DistributeLock.Intercept(interceptors...)
 	tx.Environment.Intercept(interceptors...)
 	tx.EnvironmentConnectorRelationship.Intercept(interceptors...)
@@ -435,9 +426,8 @@ func (tx *txDriver) QueryContext(ctx context.Context, query string, args ...any)
 
 // Use adds the mutation hooks to all the entity clients.
 func (tx *Tx) Use(hooks ...Hook) {
-	tx.AllocationCost.Use(hooks...)
-	tx.ClusterCost.Use(hooks...)
 	tx.Connector.Use(hooks...)
+	tx.CostReport.Use(hooks...)
 	tx.DistributeLock.Use(hooks...)
 	tx.Environment.Use(hooks...)
 	tx.EnvironmentConnectorRelationship.Use(hooks...)

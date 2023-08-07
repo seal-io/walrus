@@ -15,9 +15,8 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
-	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/model/distributelock"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
@@ -53,9 +52,8 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAllocationCost                   = "AllocationCost"
-	TypeClusterCost                      = "ClusterCost"
 	TypeConnector                        = "Connector"
+	TypeCostReport                       = "CostReport"
 	TypeDistributeLock                   = "DistributeLock"
 	TypeEnvironment                      = "Environment"
 	TypeEnvironmentConnectorRelationship = "EnvironmentConnectorRelationship"
@@ -76,3764 +74,40 @@ const (
 	TypeVariable                         = "Variable"
 )
 
-// AllocationCostMutation represents an operation that mutates the AllocationCost nodes in the graph.
-type AllocationCostMutation struct {
-	config
-	op                        Op
-	typ                       string
-	id                        *int
-	start_time                *time.Time
-	end_time                  *time.Time
-	minutes                   *float64
-	addminutes                *float64
-	name                      *string
-	fingerprint               *string
-	cluster_name              *string
-	namespace                 *string
-	node                      *string
-	controller                *string
-	controller_kind           *string
-	pod                       *string
-	container                 *string
-	pvs                       *map[string]types.PVCost
-	labels                    *map[string]string
-	totalCost                 *float64
-	addtotalCost              *float64
-	currency                  *int
-	addcurrency               *int
-	cpu_cost                  *float64
-	addcpu_cost               *float64
-	cpu_core_request          *float64
-	addcpu_core_request       *float64
-	gpu_cost                  *float64
-	addgpu_cost               *float64
-	gpu_count                 *float64
-	addgpu_count              *float64
-	ram_cost                  *float64
-	addram_cost               *float64
-	ram_byte_request          *float64
-	addram_byte_request       *float64
-	pv_cost                   *float64
-	addpv_cost                *float64
-	pv_bytes                  *float64
-	addpv_bytes               *float64
-	load_balancer_cost        *float64
-	addload_balancer_cost     *float64
-	cpu_core_usage_average    *float64
-	addcpu_core_usage_average *float64
-	cpu_core_usage_max        *float64
-	addcpu_core_usage_max     *float64
-	ram_byte_usage_average    *float64
-	addram_byte_usage_average *float64
-	ram_byte_usage_max        *float64
-	addram_byte_usage_max     *float64
-	clearedFields             map[string]struct{}
-	connector                 *object.ID
-	clearedconnector          bool
-	done                      bool
-	oldValue                  func(context.Context) (*AllocationCost, error)
-	predicates                []predicate.AllocationCost
-}
-
-var _ ent.Mutation = (*AllocationCostMutation)(nil)
-
-// allocationCostOption allows management of the mutation configuration using functional options.
-type allocationCostOption func(*AllocationCostMutation)
-
-// newAllocationCostMutation creates new mutation for the AllocationCost entity.
-func newAllocationCostMutation(c config, op Op, opts ...allocationCostOption) *AllocationCostMutation {
-	m := &AllocationCostMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeAllocationCost,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withAllocationCostID sets the ID field of the mutation.
-func withAllocationCostID(id int) allocationCostOption {
-	return func(m *AllocationCostMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *AllocationCost
-		)
-		m.oldValue = func(ctx context.Context) (*AllocationCost, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().AllocationCost.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withAllocationCost sets the old AllocationCost of the mutation.
-func withAllocationCost(node *AllocationCost) allocationCostOption {
-	return func(m *AllocationCostMutation) {
-		m.oldValue = func(context.Context) (*AllocationCost, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m AllocationCostMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m AllocationCostMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("model: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *AllocationCostMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *AllocationCostMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().AllocationCost.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetStartTime sets the "start_time" field.
-func (m *AllocationCostMutation) SetStartTime(t time.Time) {
-	m.start_time = &t
-}
-
-// StartTime returns the value of the "start_time" field in the mutation.
-func (m *AllocationCostMutation) StartTime() (r time.Time, exists bool) {
-	v := m.start_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStartTime returns the old "start_time" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldStartTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStartTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStartTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStartTime: %w", err)
-	}
-	return oldValue.StartTime, nil
-}
-
-// ResetStartTime resets all changes to the "start_time" field.
-func (m *AllocationCostMutation) ResetStartTime() {
-	m.start_time = nil
-}
-
-// SetEndTime sets the "end_time" field.
-func (m *AllocationCostMutation) SetEndTime(t time.Time) {
-	m.end_time = &t
-}
-
-// EndTime returns the value of the "end_time" field in the mutation.
-func (m *AllocationCostMutation) EndTime() (r time.Time, exists bool) {
-	v := m.end_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldEndTime returns the old "end_time" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldEndTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEndTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEndTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEndTime: %w", err)
-	}
-	return oldValue.EndTime, nil
-}
-
-// ResetEndTime resets all changes to the "end_time" field.
-func (m *AllocationCostMutation) ResetEndTime() {
-	m.end_time = nil
-}
-
-// SetMinutes sets the "minutes" field.
-func (m *AllocationCostMutation) SetMinutes(f float64) {
-	m.minutes = &f
-	m.addminutes = nil
-}
-
-// Minutes returns the value of the "minutes" field in the mutation.
-func (m *AllocationCostMutation) Minutes() (r float64, exists bool) {
-	v := m.minutes
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldMinutes returns the old "minutes" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldMinutes(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldMinutes is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldMinutes requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldMinutes: %w", err)
-	}
-	return oldValue.Minutes, nil
-}
-
-// AddMinutes adds f to the "minutes" field.
-func (m *AllocationCostMutation) AddMinutes(f float64) {
-	if m.addminutes != nil {
-		*m.addminutes += f
-	} else {
-		m.addminutes = &f
-	}
-}
-
-// AddedMinutes returns the value that was added to the "minutes" field in this mutation.
-func (m *AllocationCostMutation) AddedMinutes() (r float64, exists bool) {
-	v := m.addminutes
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetMinutes resets all changes to the "minutes" field.
-func (m *AllocationCostMutation) ResetMinutes() {
-	m.minutes = nil
-	m.addminutes = nil
-}
-
-// SetConnectorID sets the "connector_id" field.
-func (m *AllocationCostMutation) SetConnectorID(o object.ID) {
-	m.connector = &o
-}
-
-// ConnectorID returns the value of the "connector_id" field in the mutation.
-func (m *AllocationCostMutation) ConnectorID() (r object.ID, exists bool) {
-	v := m.connector
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldConnectorID returns the old "connector_id" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldConnectorID(ctx context.Context) (v object.ID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldConnectorID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldConnectorID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldConnectorID: %w", err)
-	}
-	return oldValue.ConnectorID, nil
-}
-
-// ResetConnectorID resets all changes to the "connector_id" field.
-func (m *AllocationCostMutation) ResetConnectorID() {
-	m.connector = nil
-}
-
-// SetName sets the "name" field.
-func (m *AllocationCostMutation) SetName(s string) {
-	m.name = &s
-}
-
-// Name returns the value of the "name" field in the mutation.
-func (m *AllocationCostMutation) Name() (r string, exists bool) {
-	v := m.name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldName returns the old "name" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
-	}
-	return oldValue.Name, nil
-}
-
-// ResetName resets all changes to the "name" field.
-func (m *AllocationCostMutation) ResetName() {
-	m.name = nil
-}
-
-// SetFingerprint sets the "fingerprint" field.
-func (m *AllocationCostMutation) SetFingerprint(s string) {
-	m.fingerprint = &s
-}
-
-// Fingerprint returns the value of the "fingerprint" field in the mutation.
-func (m *AllocationCostMutation) Fingerprint() (r string, exists bool) {
-	v := m.fingerprint
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldFingerprint returns the old "fingerprint" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldFingerprint(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldFingerprint is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldFingerprint requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldFingerprint: %w", err)
-	}
-	return oldValue.Fingerprint, nil
-}
-
-// ResetFingerprint resets all changes to the "fingerprint" field.
-func (m *AllocationCostMutation) ResetFingerprint() {
-	m.fingerprint = nil
-}
-
-// SetClusterName sets the "cluster_name" field.
-func (m *AllocationCostMutation) SetClusterName(s string) {
-	m.cluster_name = &s
-}
-
-// ClusterName returns the value of the "cluster_name" field in the mutation.
-func (m *AllocationCostMutation) ClusterName() (r string, exists bool) {
-	v := m.cluster_name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldClusterName returns the old "cluster_name" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldClusterName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldClusterName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldClusterName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldClusterName: %w", err)
-	}
-	return oldValue.ClusterName, nil
-}
-
-// ClearClusterName clears the value of the "cluster_name" field.
-func (m *AllocationCostMutation) ClearClusterName() {
-	m.cluster_name = nil
-	m.clearedFields[allocationcost.FieldClusterName] = struct{}{}
-}
-
-// ClusterNameCleared returns if the "cluster_name" field was cleared in this mutation.
-func (m *AllocationCostMutation) ClusterNameCleared() bool {
-	_, ok := m.clearedFields[allocationcost.FieldClusterName]
-	return ok
-}
-
-// ResetClusterName resets all changes to the "cluster_name" field.
-func (m *AllocationCostMutation) ResetClusterName() {
-	m.cluster_name = nil
-	delete(m.clearedFields, allocationcost.FieldClusterName)
-}
-
-// SetNamespace sets the "namespace" field.
-func (m *AllocationCostMutation) SetNamespace(s string) {
-	m.namespace = &s
-}
-
-// Namespace returns the value of the "namespace" field in the mutation.
-func (m *AllocationCostMutation) Namespace() (r string, exists bool) {
-	v := m.namespace
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldNamespace returns the old "namespace" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldNamespace(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldNamespace is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldNamespace requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldNamespace: %w", err)
-	}
-	return oldValue.Namespace, nil
-}
-
-// ClearNamespace clears the value of the "namespace" field.
-func (m *AllocationCostMutation) ClearNamespace() {
-	m.namespace = nil
-	m.clearedFields[allocationcost.FieldNamespace] = struct{}{}
-}
-
-// NamespaceCleared returns if the "namespace" field was cleared in this mutation.
-func (m *AllocationCostMutation) NamespaceCleared() bool {
-	_, ok := m.clearedFields[allocationcost.FieldNamespace]
-	return ok
-}
-
-// ResetNamespace resets all changes to the "namespace" field.
-func (m *AllocationCostMutation) ResetNamespace() {
-	m.namespace = nil
-	delete(m.clearedFields, allocationcost.FieldNamespace)
-}
-
-// SetNode sets the "node" field.
-func (m *AllocationCostMutation) SetNode(s string) {
-	m.node = &s
-}
-
-// Node returns the value of the "node" field in the mutation.
-func (m *AllocationCostMutation) Node() (r string, exists bool) {
-	v := m.node
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldNode returns the old "node" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldNode(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldNode is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldNode requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldNode: %w", err)
-	}
-	return oldValue.Node, nil
-}
-
-// ClearNode clears the value of the "node" field.
-func (m *AllocationCostMutation) ClearNode() {
-	m.node = nil
-	m.clearedFields[allocationcost.FieldNode] = struct{}{}
-}
-
-// NodeCleared returns if the "node" field was cleared in this mutation.
-func (m *AllocationCostMutation) NodeCleared() bool {
-	_, ok := m.clearedFields[allocationcost.FieldNode]
-	return ok
-}
-
-// ResetNode resets all changes to the "node" field.
-func (m *AllocationCostMutation) ResetNode() {
-	m.node = nil
-	delete(m.clearedFields, allocationcost.FieldNode)
-}
-
-// SetController sets the "controller" field.
-func (m *AllocationCostMutation) SetController(s string) {
-	m.controller = &s
-}
-
-// Controller returns the value of the "controller" field in the mutation.
-func (m *AllocationCostMutation) Controller() (r string, exists bool) {
-	v := m.controller
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldController returns the old "controller" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldController(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldController is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldController requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldController: %w", err)
-	}
-	return oldValue.Controller, nil
-}
-
-// ClearController clears the value of the "controller" field.
-func (m *AllocationCostMutation) ClearController() {
-	m.controller = nil
-	m.clearedFields[allocationcost.FieldController] = struct{}{}
-}
-
-// ControllerCleared returns if the "controller" field was cleared in this mutation.
-func (m *AllocationCostMutation) ControllerCleared() bool {
-	_, ok := m.clearedFields[allocationcost.FieldController]
-	return ok
-}
-
-// ResetController resets all changes to the "controller" field.
-func (m *AllocationCostMutation) ResetController() {
-	m.controller = nil
-	delete(m.clearedFields, allocationcost.FieldController)
-}
-
-// SetControllerKind sets the "controller_kind" field.
-func (m *AllocationCostMutation) SetControllerKind(s string) {
-	m.controller_kind = &s
-}
-
-// ControllerKind returns the value of the "controller_kind" field in the mutation.
-func (m *AllocationCostMutation) ControllerKind() (r string, exists bool) {
-	v := m.controller_kind
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldControllerKind returns the old "controller_kind" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldControllerKind(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldControllerKind is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldControllerKind requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldControllerKind: %w", err)
-	}
-	return oldValue.ControllerKind, nil
-}
-
-// ClearControllerKind clears the value of the "controller_kind" field.
-func (m *AllocationCostMutation) ClearControllerKind() {
-	m.controller_kind = nil
-	m.clearedFields[allocationcost.FieldControllerKind] = struct{}{}
-}
-
-// ControllerKindCleared returns if the "controller_kind" field was cleared in this mutation.
-func (m *AllocationCostMutation) ControllerKindCleared() bool {
-	_, ok := m.clearedFields[allocationcost.FieldControllerKind]
-	return ok
-}
-
-// ResetControllerKind resets all changes to the "controller_kind" field.
-func (m *AllocationCostMutation) ResetControllerKind() {
-	m.controller_kind = nil
-	delete(m.clearedFields, allocationcost.FieldControllerKind)
-}
-
-// SetPod sets the "pod" field.
-func (m *AllocationCostMutation) SetPod(s string) {
-	m.pod = &s
-}
-
-// Pod returns the value of the "pod" field in the mutation.
-func (m *AllocationCostMutation) Pod() (r string, exists bool) {
-	v := m.pod
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPod returns the old "pod" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldPod(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPod is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPod requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPod: %w", err)
-	}
-	return oldValue.Pod, nil
-}
-
-// ClearPod clears the value of the "pod" field.
-func (m *AllocationCostMutation) ClearPod() {
-	m.pod = nil
-	m.clearedFields[allocationcost.FieldPod] = struct{}{}
-}
-
-// PodCleared returns if the "pod" field was cleared in this mutation.
-func (m *AllocationCostMutation) PodCleared() bool {
-	_, ok := m.clearedFields[allocationcost.FieldPod]
-	return ok
-}
-
-// ResetPod resets all changes to the "pod" field.
-func (m *AllocationCostMutation) ResetPod() {
-	m.pod = nil
-	delete(m.clearedFields, allocationcost.FieldPod)
-}
-
-// SetContainer sets the "container" field.
-func (m *AllocationCostMutation) SetContainer(s string) {
-	m.container = &s
-}
-
-// Container returns the value of the "container" field in the mutation.
-func (m *AllocationCostMutation) Container() (r string, exists bool) {
-	v := m.container
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldContainer returns the old "container" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldContainer(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldContainer is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldContainer requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldContainer: %w", err)
-	}
-	return oldValue.Container, nil
-}
-
-// ClearContainer clears the value of the "container" field.
-func (m *AllocationCostMutation) ClearContainer() {
-	m.container = nil
-	m.clearedFields[allocationcost.FieldContainer] = struct{}{}
-}
-
-// ContainerCleared returns if the "container" field was cleared in this mutation.
-func (m *AllocationCostMutation) ContainerCleared() bool {
-	_, ok := m.clearedFields[allocationcost.FieldContainer]
-	return ok
-}
-
-// ResetContainer resets all changes to the "container" field.
-func (m *AllocationCostMutation) ResetContainer() {
-	m.container = nil
-	delete(m.clearedFields, allocationcost.FieldContainer)
-}
-
-// SetPvs sets the "pvs" field.
-func (m *AllocationCostMutation) SetPvs(mc map[string]types.PVCost) {
-	m.pvs = &mc
-}
-
-// Pvs returns the value of the "pvs" field in the mutation.
-func (m *AllocationCostMutation) Pvs() (r map[string]types.PVCost, exists bool) {
-	v := m.pvs
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPvs returns the old "pvs" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldPvs(ctx context.Context) (v map[string]types.PVCost, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPvs is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPvs requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPvs: %w", err)
-	}
-	return oldValue.Pvs, nil
-}
-
-// ResetPvs resets all changes to the "pvs" field.
-func (m *AllocationCostMutation) ResetPvs() {
-	m.pvs = nil
-}
-
-// SetLabels sets the "labels" field.
-func (m *AllocationCostMutation) SetLabels(value map[string]string) {
-	m.labels = &value
-}
-
-// Labels returns the value of the "labels" field in the mutation.
-func (m *AllocationCostMutation) Labels() (r map[string]string, exists bool) {
-	v := m.labels
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldLabels returns the old "labels" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldLabels(ctx context.Context) (v map[string]string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLabels is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLabels requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLabels: %w", err)
-	}
-	return oldValue.Labels, nil
-}
-
-// ResetLabels resets all changes to the "labels" field.
-func (m *AllocationCostMutation) ResetLabels() {
-	m.labels = nil
-}
-
-// SetTotalCost sets the "totalCost" field.
-func (m *AllocationCostMutation) SetTotalCost(f float64) {
-	m.totalCost = &f
-	m.addtotalCost = nil
-}
-
-// TotalCost returns the value of the "totalCost" field in the mutation.
-func (m *AllocationCostMutation) TotalCost() (r float64, exists bool) {
-	v := m.totalCost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTotalCost returns the old "totalCost" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldTotalCost(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTotalCost is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTotalCost requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTotalCost: %w", err)
-	}
-	return oldValue.TotalCost, nil
-}
-
-// AddTotalCost adds f to the "totalCost" field.
-func (m *AllocationCostMutation) AddTotalCost(f float64) {
-	if m.addtotalCost != nil {
-		*m.addtotalCost += f
-	} else {
-		m.addtotalCost = &f
-	}
-}
-
-// AddedTotalCost returns the value that was added to the "totalCost" field in this mutation.
-func (m *AllocationCostMutation) AddedTotalCost() (r float64, exists bool) {
-	v := m.addtotalCost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetTotalCost resets all changes to the "totalCost" field.
-func (m *AllocationCostMutation) ResetTotalCost() {
-	m.totalCost = nil
-	m.addtotalCost = nil
-}
-
-// SetCurrency sets the "currency" field.
-func (m *AllocationCostMutation) SetCurrency(i int) {
-	m.currency = &i
-	m.addcurrency = nil
-}
-
-// Currency returns the value of the "currency" field in the mutation.
-func (m *AllocationCostMutation) Currency() (r int, exists bool) {
-	v := m.currency
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCurrency returns the old "currency" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldCurrency(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCurrency is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCurrency requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCurrency: %w", err)
-	}
-	return oldValue.Currency, nil
-}
-
-// AddCurrency adds i to the "currency" field.
-func (m *AllocationCostMutation) AddCurrency(i int) {
-	if m.addcurrency != nil {
-		*m.addcurrency += i
-	} else {
-		m.addcurrency = &i
-	}
-}
-
-// AddedCurrency returns the value that was added to the "currency" field in this mutation.
-func (m *AllocationCostMutation) AddedCurrency() (r int, exists bool) {
-	v := m.addcurrency
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ClearCurrency clears the value of the "currency" field.
-func (m *AllocationCostMutation) ClearCurrency() {
-	m.currency = nil
-	m.addcurrency = nil
-	m.clearedFields[allocationcost.FieldCurrency] = struct{}{}
-}
-
-// CurrencyCleared returns if the "currency" field was cleared in this mutation.
-func (m *AllocationCostMutation) CurrencyCleared() bool {
-	_, ok := m.clearedFields[allocationcost.FieldCurrency]
-	return ok
-}
-
-// ResetCurrency resets all changes to the "currency" field.
-func (m *AllocationCostMutation) ResetCurrency() {
-	m.currency = nil
-	m.addcurrency = nil
-	delete(m.clearedFields, allocationcost.FieldCurrency)
-}
-
-// SetCPUCost sets the "cpu_cost" field.
-func (m *AllocationCostMutation) SetCPUCost(f float64) {
-	m.cpu_cost = &f
-	m.addcpu_cost = nil
-}
-
-// CPUCost returns the value of the "cpu_cost" field in the mutation.
-func (m *AllocationCostMutation) CPUCost() (r float64, exists bool) {
-	v := m.cpu_cost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCPUCost returns the old "cpu_cost" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldCPUCost(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCPUCost is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCPUCost requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCPUCost: %w", err)
-	}
-	return oldValue.CPUCost, nil
-}
-
-// AddCPUCost adds f to the "cpu_cost" field.
-func (m *AllocationCostMutation) AddCPUCost(f float64) {
-	if m.addcpu_cost != nil {
-		*m.addcpu_cost += f
-	} else {
-		m.addcpu_cost = &f
-	}
-}
-
-// AddedCPUCost returns the value that was added to the "cpu_cost" field in this mutation.
-func (m *AllocationCostMutation) AddedCPUCost() (r float64, exists bool) {
-	v := m.addcpu_cost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetCPUCost resets all changes to the "cpu_cost" field.
-func (m *AllocationCostMutation) ResetCPUCost() {
-	m.cpu_cost = nil
-	m.addcpu_cost = nil
-}
-
-// SetCPUCoreRequest sets the "cpu_core_request" field.
-func (m *AllocationCostMutation) SetCPUCoreRequest(f float64) {
-	m.cpu_core_request = &f
-	m.addcpu_core_request = nil
-}
-
-// CPUCoreRequest returns the value of the "cpu_core_request" field in the mutation.
-func (m *AllocationCostMutation) CPUCoreRequest() (r float64, exists bool) {
-	v := m.cpu_core_request
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCPUCoreRequest returns the old "cpu_core_request" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldCPUCoreRequest(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCPUCoreRequest is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCPUCoreRequest requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCPUCoreRequest: %w", err)
-	}
-	return oldValue.CPUCoreRequest, nil
-}
-
-// AddCPUCoreRequest adds f to the "cpu_core_request" field.
-func (m *AllocationCostMutation) AddCPUCoreRequest(f float64) {
-	if m.addcpu_core_request != nil {
-		*m.addcpu_core_request += f
-	} else {
-		m.addcpu_core_request = &f
-	}
-}
-
-// AddedCPUCoreRequest returns the value that was added to the "cpu_core_request" field in this mutation.
-func (m *AllocationCostMutation) AddedCPUCoreRequest() (r float64, exists bool) {
-	v := m.addcpu_core_request
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetCPUCoreRequest resets all changes to the "cpu_core_request" field.
-func (m *AllocationCostMutation) ResetCPUCoreRequest() {
-	m.cpu_core_request = nil
-	m.addcpu_core_request = nil
-}
-
-// SetGpuCost sets the "gpu_cost" field.
-func (m *AllocationCostMutation) SetGpuCost(f float64) {
-	m.gpu_cost = &f
-	m.addgpu_cost = nil
-}
-
-// GpuCost returns the value of the "gpu_cost" field in the mutation.
-func (m *AllocationCostMutation) GpuCost() (r float64, exists bool) {
-	v := m.gpu_cost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldGpuCost returns the old "gpu_cost" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldGpuCost(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldGpuCost is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldGpuCost requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldGpuCost: %w", err)
-	}
-	return oldValue.GpuCost, nil
-}
-
-// AddGpuCost adds f to the "gpu_cost" field.
-func (m *AllocationCostMutation) AddGpuCost(f float64) {
-	if m.addgpu_cost != nil {
-		*m.addgpu_cost += f
-	} else {
-		m.addgpu_cost = &f
-	}
-}
-
-// AddedGpuCost returns the value that was added to the "gpu_cost" field in this mutation.
-func (m *AllocationCostMutation) AddedGpuCost() (r float64, exists bool) {
-	v := m.addgpu_cost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetGpuCost resets all changes to the "gpu_cost" field.
-func (m *AllocationCostMutation) ResetGpuCost() {
-	m.gpu_cost = nil
-	m.addgpu_cost = nil
-}
-
-// SetGpuCount sets the "gpu_count" field.
-func (m *AllocationCostMutation) SetGpuCount(f float64) {
-	m.gpu_count = &f
-	m.addgpu_count = nil
-}
-
-// GpuCount returns the value of the "gpu_count" field in the mutation.
-func (m *AllocationCostMutation) GpuCount() (r float64, exists bool) {
-	v := m.gpu_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldGpuCount returns the old "gpu_count" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldGpuCount(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldGpuCount is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldGpuCount requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldGpuCount: %w", err)
-	}
-	return oldValue.GpuCount, nil
-}
-
-// AddGpuCount adds f to the "gpu_count" field.
-func (m *AllocationCostMutation) AddGpuCount(f float64) {
-	if m.addgpu_count != nil {
-		*m.addgpu_count += f
-	} else {
-		m.addgpu_count = &f
-	}
-}
-
-// AddedGpuCount returns the value that was added to the "gpu_count" field in this mutation.
-func (m *AllocationCostMutation) AddedGpuCount() (r float64, exists bool) {
-	v := m.addgpu_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetGpuCount resets all changes to the "gpu_count" field.
-func (m *AllocationCostMutation) ResetGpuCount() {
-	m.gpu_count = nil
-	m.addgpu_count = nil
-}
-
-// SetRAMCost sets the "ram_cost" field.
-func (m *AllocationCostMutation) SetRAMCost(f float64) {
-	m.ram_cost = &f
-	m.addram_cost = nil
-}
-
-// RAMCost returns the value of the "ram_cost" field in the mutation.
-func (m *AllocationCostMutation) RAMCost() (r float64, exists bool) {
-	v := m.ram_cost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRAMCost returns the old "ram_cost" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldRAMCost(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRAMCost is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRAMCost requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRAMCost: %w", err)
-	}
-	return oldValue.RAMCost, nil
-}
-
-// AddRAMCost adds f to the "ram_cost" field.
-func (m *AllocationCostMutation) AddRAMCost(f float64) {
-	if m.addram_cost != nil {
-		*m.addram_cost += f
-	} else {
-		m.addram_cost = &f
-	}
-}
-
-// AddedRAMCost returns the value that was added to the "ram_cost" field in this mutation.
-func (m *AllocationCostMutation) AddedRAMCost() (r float64, exists bool) {
-	v := m.addram_cost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetRAMCost resets all changes to the "ram_cost" field.
-func (m *AllocationCostMutation) ResetRAMCost() {
-	m.ram_cost = nil
-	m.addram_cost = nil
-}
-
-// SetRAMByteRequest sets the "ram_byte_request" field.
-func (m *AllocationCostMutation) SetRAMByteRequest(f float64) {
-	m.ram_byte_request = &f
-	m.addram_byte_request = nil
-}
-
-// RAMByteRequest returns the value of the "ram_byte_request" field in the mutation.
-func (m *AllocationCostMutation) RAMByteRequest() (r float64, exists bool) {
-	v := m.ram_byte_request
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRAMByteRequest returns the old "ram_byte_request" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldRAMByteRequest(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRAMByteRequest is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRAMByteRequest requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRAMByteRequest: %w", err)
-	}
-	return oldValue.RAMByteRequest, nil
-}
-
-// AddRAMByteRequest adds f to the "ram_byte_request" field.
-func (m *AllocationCostMutation) AddRAMByteRequest(f float64) {
-	if m.addram_byte_request != nil {
-		*m.addram_byte_request += f
-	} else {
-		m.addram_byte_request = &f
-	}
-}
-
-// AddedRAMByteRequest returns the value that was added to the "ram_byte_request" field in this mutation.
-func (m *AllocationCostMutation) AddedRAMByteRequest() (r float64, exists bool) {
-	v := m.addram_byte_request
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetRAMByteRequest resets all changes to the "ram_byte_request" field.
-func (m *AllocationCostMutation) ResetRAMByteRequest() {
-	m.ram_byte_request = nil
-	m.addram_byte_request = nil
-}
-
-// SetPvCost sets the "pv_cost" field.
-func (m *AllocationCostMutation) SetPvCost(f float64) {
-	m.pv_cost = &f
-	m.addpv_cost = nil
-}
-
-// PvCost returns the value of the "pv_cost" field in the mutation.
-func (m *AllocationCostMutation) PvCost() (r float64, exists bool) {
-	v := m.pv_cost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPvCost returns the old "pv_cost" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldPvCost(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPvCost is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPvCost requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPvCost: %w", err)
-	}
-	return oldValue.PvCost, nil
-}
-
-// AddPvCost adds f to the "pv_cost" field.
-func (m *AllocationCostMutation) AddPvCost(f float64) {
-	if m.addpv_cost != nil {
-		*m.addpv_cost += f
-	} else {
-		m.addpv_cost = &f
-	}
-}
-
-// AddedPvCost returns the value that was added to the "pv_cost" field in this mutation.
-func (m *AllocationCostMutation) AddedPvCost() (r float64, exists bool) {
-	v := m.addpv_cost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetPvCost resets all changes to the "pv_cost" field.
-func (m *AllocationCostMutation) ResetPvCost() {
-	m.pv_cost = nil
-	m.addpv_cost = nil
-}
-
-// SetPvBytes sets the "pv_bytes" field.
-func (m *AllocationCostMutation) SetPvBytes(f float64) {
-	m.pv_bytes = &f
-	m.addpv_bytes = nil
-}
-
-// PvBytes returns the value of the "pv_bytes" field in the mutation.
-func (m *AllocationCostMutation) PvBytes() (r float64, exists bool) {
-	v := m.pv_bytes
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPvBytes returns the old "pv_bytes" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldPvBytes(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPvBytes is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPvBytes requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPvBytes: %w", err)
-	}
-	return oldValue.PvBytes, nil
-}
-
-// AddPvBytes adds f to the "pv_bytes" field.
-func (m *AllocationCostMutation) AddPvBytes(f float64) {
-	if m.addpv_bytes != nil {
-		*m.addpv_bytes += f
-	} else {
-		m.addpv_bytes = &f
-	}
-}
-
-// AddedPvBytes returns the value that was added to the "pv_bytes" field in this mutation.
-func (m *AllocationCostMutation) AddedPvBytes() (r float64, exists bool) {
-	v := m.addpv_bytes
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetPvBytes resets all changes to the "pv_bytes" field.
-func (m *AllocationCostMutation) ResetPvBytes() {
-	m.pv_bytes = nil
-	m.addpv_bytes = nil
-}
-
-// SetLoadBalancerCost sets the "load_balancer_cost" field.
-func (m *AllocationCostMutation) SetLoadBalancerCost(f float64) {
-	m.load_balancer_cost = &f
-	m.addload_balancer_cost = nil
-}
-
-// LoadBalancerCost returns the value of the "load_balancer_cost" field in the mutation.
-func (m *AllocationCostMutation) LoadBalancerCost() (r float64, exists bool) {
-	v := m.load_balancer_cost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldLoadBalancerCost returns the old "load_balancer_cost" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldLoadBalancerCost(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLoadBalancerCost is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLoadBalancerCost requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLoadBalancerCost: %w", err)
-	}
-	return oldValue.LoadBalancerCost, nil
-}
-
-// AddLoadBalancerCost adds f to the "load_balancer_cost" field.
-func (m *AllocationCostMutation) AddLoadBalancerCost(f float64) {
-	if m.addload_balancer_cost != nil {
-		*m.addload_balancer_cost += f
-	} else {
-		m.addload_balancer_cost = &f
-	}
-}
-
-// AddedLoadBalancerCost returns the value that was added to the "load_balancer_cost" field in this mutation.
-func (m *AllocationCostMutation) AddedLoadBalancerCost() (r float64, exists bool) {
-	v := m.addload_balancer_cost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetLoadBalancerCost resets all changes to the "load_balancer_cost" field.
-func (m *AllocationCostMutation) ResetLoadBalancerCost() {
-	m.load_balancer_cost = nil
-	m.addload_balancer_cost = nil
-}
-
-// SetCPUCoreUsageAverage sets the "cpu_core_usage_average" field.
-func (m *AllocationCostMutation) SetCPUCoreUsageAverage(f float64) {
-	m.cpu_core_usage_average = &f
-	m.addcpu_core_usage_average = nil
-}
-
-// CPUCoreUsageAverage returns the value of the "cpu_core_usage_average" field in the mutation.
-func (m *AllocationCostMutation) CPUCoreUsageAverage() (r float64, exists bool) {
-	v := m.cpu_core_usage_average
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCPUCoreUsageAverage returns the old "cpu_core_usage_average" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldCPUCoreUsageAverage(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCPUCoreUsageAverage is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCPUCoreUsageAverage requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCPUCoreUsageAverage: %w", err)
-	}
-	return oldValue.CPUCoreUsageAverage, nil
-}
-
-// AddCPUCoreUsageAverage adds f to the "cpu_core_usage_average" field.
-func (m *AllocationCostMutation) AddCPUCoreUsageAverage(f float64) {
-	if m.addcpu_core_usage_average != nil {
-		*m.addcpu_core_usage_average += f
-	} else {
-		m.addcpu_core_usage_average = &f
-	}
-}
-
-// AddedCPUCoreUsageAverage returns the value that was added to the "cpu_core_usage_average" field in this mutation.
-func (m *AllocationCostMutation) AddedCPUCoreUsageAverage() (r float64, exists bool) {
-	v := m.addcpu_core_usage_average
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetCPUCoreUsageAverage resets all changes to the "cpu_core_usage_average" field.
-func (m *AllocationCostMutation) ResetCPUCoreUsageAverage() {
-	m.cpu_core_usage_average = nil
-	m.addcpu_core_usage_average = nil
-}
-
-// SetCPUCoreUsageMax sets the "cpu_core_usage_max" field.
-func (m *AllocationCostMutation) SetCPUCoreUsageMax(f float64) {
-	m.cpu_core_usage_max = &f
-	m.addcpu_core_usage_max = nil
-}
-
-// CPUCoreUsageMax returns the value of the "cpu_core_usage_max" field in the mutation.
-func (m *AllocationCostMutation) CPUCoreUsageMax() (r float64, exists bool) {
-	v := m.cpu_core_usage_max
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCPUCoreUsageMax returns the old "cpu_core_usage_max" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldCPUCoreUsageMax(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCPUCoreUsageMax is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCPUCoreUsageMax requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCPUCoreUsageMax: %w", err)
-	}
-	return oldValue.CPUCoreUsageMax, nil
-}
-
-// AddCPUCoreUsageMax adds f to the "cpu_core_usage_max" field.
-func (m *AllocationCostMutation) AddCPUCoreUsageMax(f float64) {
-	if m.addcpu_core_usage_max != nil {
-		*m.addcpu_core_usage_max += f
-	} else {
-		m.addcpu_core_usage_max = &f
-	}
-}
-
-// AddedCPUCoreUsageMax returns the value that was added to the "cpu_core_usage_max" field in this mutation.
-func (m *AllocationCostMutation) AddedCPUCoreUsageMax() (r float64, exists bool) {
-	v := m.addcpu_core_usage_max
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetCPUCoreUsageMax resets all changes to the "cpu_core_usage_max" field.
-func (m *AllocationCostMutation) ResetCPUCoreUsageMax() {
-	m.cpu_core_usage_max = nil
-	m.addcpu_core_usage_max = nil
-}
-
-// SetRAMByteUsageAverage sets the "ram_byte_usage_average" field.
-func (m *AllocationCostMutation) SetRAMByteUsageAverage(f float64) {
-	m.ram_byte_usage_average = &f
-	m.addram_byte_usage_average = nil
-}
-
-// RAMByteUsageAverage returns the value of the "ram_byte_usage_average" field in the mutation.
-func (m *AllocationCostMutation) RAMByteUsageAverage() (r float64, exists bool) {
-	v := m.ram_byte_usage_average
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRAMByteUsageAverage returns the old "ram_byte_usage_average" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldRAMByteUsageAverage(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRAMByteUsageAverage is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRAMByteUsageAverage requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRAMByteUsageAverage: %w", err)
-	}
-	return oldValue.RAMByteUsageAverage, nil
-}
-
-// AddRAMByteUsageAverage adds f to the "ram_byte_usage_average" field.
-func (m *AllocationCostMutation) AddRAMByteUsageAverage(f float64) {
-	if m.addram_byte_usage_average != nil {
-		*m.addram_byte_usage_average += f
-	} else {
-		m.addram_byte_usage_average = &f
-	}
-}
-
-// AddedRAMByteUsageAverage returns the value that was added to the "ram_byte_usage_average" field in this mutation.
-func (m *AllocationCostMutation) AddedRAMByteUsageAverage() (r float64, exists bool) {
-	v := m.addram_byte_usage_average
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetRAMByteUsageAverage resets all changes to the "ram_byte_usage_average" field.
-func (m *AllocationCostMutation) ResetRAMByteUsageAverage() {
-	m.ram_byte_usage_average = nil
-	m.addram_byte_usage_average = nil
-}
-
-// SetRAMByteUsageMax sets the "ram_byte_usage_max" field.
-func (m *AllocationCostMutation) SetRAMByteUsageMax(f float64) {
-	m.ram_byte_usage_max = &f
-	m.addram_byte_usage_max = nil
-}
-
-// RAMByteUsageMax returns the value of the "ram_byte_usage_max" field in the mutation.
-func (m *AllocationCostMutation) RAMByteUsageMax() (r float64, exists bool) {
-	v := m.ram_byte_usage_max
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRAMByteUsageMax returns the old "ram_byte_usage_max" field's value of the AllocationCost entity.
-// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldRAMByteUsageMax(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRAMByteUsageMax is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRAMByteUsageMax requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRAMByteUsageMax: %w", err)
-	}
-	return oldValue.RAMByteUsageMax, nil
-}
-
-// AddRAMByteUsageMax adds f to the "ram_byte_usage_max" field.
-func (m *AllocationCostMutation) AddRAMByteUsageMax(f float64) {
-	if m.addram_byte_usage_max != nil {
-		*m.addram_byte_usage_max += f
-	} else {
-		m.addram_byte_usage_max = &f
-	}
-}
-
-// AddedRAMByteUsageMax returns the value that was added to the "ram_byte_usage_max" field in this mutation.
-func (m *AllocationCostMutation) AddedRAMByteUsageMax() (r float64, exists bool) {
-	v := m.addram_byte_usage_max
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetRAMByteUsageMax resets all changes to the "ram_byte_usage_max" field.
-func (m *AllocationCostMutation) ResetRAMByteUsageMax() {
-	m.ram_byte_usage_max = nil
-	m.addram_byte_usage_max = nil
-}
-
-// ClearConnector clears the "connector" edge to the Connector entity.
-func (m *AllocationCostMutation) ClearConnector() {
-	m.clearedconnector = true
-}
-
-// ConnectorCleared reports if the "connector" edge to the Connector entity was cleared.
-func (m *AllocationCostMutation) ConnectorCleared() bool {
-	return m.clearedconnector
-}
-
-// ConnectorIDs returns the "connector" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ConnectorID instead. It exists only for internal usage by the builders.
-func (m *AllocationCostMutation) ConnectorIDs() (ids []object.ID) {
-	if id := m.connector; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetConnector resets all changes to the "connector" edge.
-func (m *AllocationCostMutation) ResetConnector() {
-	m.connector = nil
-	m.clearedconnector = false
-}
-
-// Where appends a list predicates to the AllocationCostMutation builder.
-func (m *AllocationCostMutation) Where(ps ...predicate.AllocationCost) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the AllocationCostMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *AllocationCostMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.AllocationCost, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *AllocationCostMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *AllocationCostMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (AllocationCost).
-func (m *AllocationCostMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *AllocationCostMutation) Fields() []string {
-	fields := make([]string, 0, 30)
-	if m.start_time != nil {
-		fields = append(fields, allocationcost.FieldStartTime)
-	}
-	if m.end_time != nil {
-		fields = append(fields, allocationcost.FieldEndTime)
-	}
-	if m.minutes != nil {
-		fields = append(fields, allocationcost.FieldMinutes)
-	}
-	if m.connector != nil {
-		fields = append(fields, allocationcost.FieldConnectorID)
-	}
-	if m.name != nil {
-		fields = append(fields, allocationcost.FieldName)
-	}
-	if m.fingerprint != nil {
-		fields = append(fields, allocationcost.FieldFingerprint)
-	}
-	if m.cluster_name != nil {
-		fields = append(fields, allocationcost.FieldClusterName)
-	}
-	if m.namespace != nil {
-		fields = append(fields, allocationcost.FieldNamespace)
-	}
-	if m.node != nil {
-		fields = append(fields, allocationcost.FieldNode)
-	}
-	if m.controller != nil {
-		fields = append(fields, allocationcost.FieldController)
-	}
-	if m.controller_kind != nil {
-		fields = append(fields, allocationcost.FieldControllerKind)
-	}
-	if m.pod != nil {
-		fields = append(fields, allocationcost.FieldPod)
-	}
-	if m.container != nil {
-		fields = append(fields, allocationcost.FieldContainer)
-	}
-	if m.pvs != nil {
-		fields = append(fields, allocationcost.FieldPvs)
-	}
-	if m.labels != nil {
-		fields = append(fields, allocationcost.FieldLabels)
-	}
-	if m.totalCost != nil {
-		fields = append(fields, allocationcost.FieldTotalCost)
-	}
-	if m.currency != nil {
-		fields = append(fields, allocationcost.FieldCurrency)
-	}
-	if m.cpu_cost != nil {
-		fields = append(fields, allocationcost.FieldCPUCost)
-	}
-	if m.cpu_core_request != nil {
-		fields = append(fields, allocationcost.FieldCPUCoreRequest)
-	}
-	if m.gpu_cost != nil {
-		fields = append(fields, allocationcost.FieldGpuCost)
-	}
-	if m.gpu_count != nil {
-		fields = append(fields, allocationcost.FieldGpuCount)
-	}
-	if m.ram_cost != nil {
-		fields = append(fields, allocationcost.FieldRAMCost)
-	}
-	if m.ram_byte_request != nil {
-		fields = append(fields, allocationcost.FieldRAMByteRequest)
-	}
-	if m.pv_cost != nil {
-		fields = append(fields, allocationcost.FieldPvCost)
-	}
-	if m.pv_bytes != nil {
-		fields = append(fields, allocationcost.FieldPvBytes)
-	}
-	if m.load_balancer_cost != nil {
-		fields = append(fields, allocationcost.FieldLoadBalancerCost)
-	}
-	if m.cpu_core_usage_average != nil {
-		fields = append(fields, allocationcost.FieldCPUCoreUsageAverage)
-	}
-	if m.cpu_core_usage_max != nil {
-		fields = append(fields, allocationcost.FieldCPUCoreUsageMax)
-	}
-	if m.ram_byte_usage_average != nil {
-		fields = append(fields, allocationcost.FieldRAMByteUsageAverage)
-	}
-	if m.ram_byte_usage_max != nil {
-		fields = append(fields, allocationcost.FieldRAMByteUsageMax)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *AllocationCostMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case allocationcost.FieldStartTime:
-		return m.StartTime()
-	case allocationcost.FieldEndTime:
-		return m.EndTime()
-	case allocationcost.FieldMinutes:
-		return m.Minutes()
-	case allocationcost.FieldConnectorID:
-		return m.ConnectorID()
-	case allocationcost.FieldName:
-		return m.Name()
-	case allocationcost.FieldFingerprint:
-		return m.Fingerprint()
-	case allocationcost.FieldClusterName:
-		return m.ClusterName()
-	case allocationcost.FieldNamespace:
-		return m.Namespace()
-	case allocationcost.FieldNode:
-		return m.Node()
-	case allocationcost.FieldController:
-		return m.Controller()
-	case allocationcost.FieldControllerKind:
-		return m.ControllerKind()
-	case allocationcost.FieldPod:
-		return m.Pod()
-	case allocationcost.FieldContainer:
-		return m.Container()
-	case allocationcost.FieldPvs:
-		return m.Pvs()
-	case allocationcost.FieldLabels:
-		return m.Labels()
-	case allocationcost.FieldTotalCost:
-		return m.TotalCost()
-	case allocationcost.FieldCurrency:
-		return m.Currency()
-	case allocationcost.FieldCPUCost:
-		return m.CPUCost()
-	case allocationcost.FieldCPUCoreRequest:
-		return m.CPUCoreRequest()
-	case allocationcost.FieldGpuCost:
-		return m.GpuCost()
-	case allocationcost.FieldGpuCount:
-		return m.GpuCount()
-	case allocationcost.FieldRAMCost:
-		return m.RAMCost()
-	case allocationcost.FieldRAMByteRequest:
-		return m.RAMByteRequest()
-	case allocationcost.FieldPvCost:
-		return m.PvCost()
-	case allocationcost.FieldPvBytes:
-		return m.PvBytes()
-	case allocationcost.FieldLoadBalancerCost:
-		return m.LoadBalancerCost()
-	case allocationcost.FieldCPUCoreUsageAverage:
-		return m.CPUCoreUsageAverage()
-	case allocationcost.FieldCPUCoreUsageMax:
-		return m.CPUCoreUsageMax()
-	case allocationcost.FieldRAMByteUsageAverage:
-		return m.RAMByteUsageAverage()
-	case allocationcost.FieldRAMByteUsageMax:
-		return m.RAMByteUsageMax()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *AllocationCostMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case allocationcost.FieldStartTime:
-		return m.OldStartTime(ctx)
-	case allocationcost.FieldEndTime:
-		return m.OldEndTime(ctx)
-	case allocationcost.FieldMinutes:
-		return m.OldMinutes(ctx)
-	case allocationcost.FieldConnectorID:
-		return m.OldConnectorID(ctx)
-	case allocationcost.FieldName:
-		return m.OldName(ctx)
-	case allocationcost.FieldFingerprint:
-		return m.OldFingerprint(ctx)
-	case allocationcost.FieldClusterName:
-		return m.OldClusterName(ctx)
-	case allocationcost.FieldNamespace:
-		return m.OldNamespace(ctx)
-	case allocationcost.FieldNode:
-		return m.OldNode(ctx)
-	case allocationcost.FieldController:
-		return m.OldController(ctx)
-	case allocationcost.FieldControllerKind:
-		return m.OldControllerKind(ctx)
-	case allocationcost.FieldPod:
-		return m.OldPod(ctx)
-	case allocationcost.FieldContainer:
-		return m.OldContainer(ctx)
-	case allocationcost.FieldPvs:
-		return m.OldPvs(ctx)
-	case allocationcost.FieldLabels:
-		return m.OldLabels(ctx)
-	case allocationcost.FieldTotalCost:
-		return m.OldTotalCost(ctx)
-	case allocationcost.FieldCurrency:
-		return m.OldCurrency(ctx)
-	case allocationcost.FieldCPUCost:
-		return m.OldCPUCost(ctx)
-	case allocationcost.FieldCPUCoreRequest:
-		return m.OldCPUCoreRequest(ctx)
-	case allocationcost.FieldGpuCost:
-		return m.OldGpuCost(ctx)
-	case allocationcost.FieldGpuCount:
-		return m.OldGpuCount(ctx)
-	case allocationcost.FieldRAMCost:
-		return m.OldRAMCost(ctx)
-	case allocationcost.FieldRAMByteRequest:
-		return m.OldRAMByteRequest(ctx)
-	case allocationcost.FieldPvCost:
-		return m.OldPvCost(ctx)
-	case allocationcost.FieldPvBytes:
-		return m.OldPvBytes(ctx)
-	case allocationcost.FieldLoadBalancerCost:
-		return m.OldLoadBalancerCost(ctx)
-	case allocationcost.FieldCPUCoreUsageAverage:
-		return m.OldCPUCoreUsageAverage(ctx)
-	case allocationcost.FieldCPUCoreUsageMax:
-		return m.OldCPUCoreUsageMax(ctx)
-	case allocationcost.FieldRAMByteUsageAverage:
-		return m.OldRAMByteUsageAverage(ctx)
-	case allocationcost.FieldRAMByteUsageMax:
-		return m.OldRAMByteUsageMax(ctx)
-	}
-	return nil, fmt.Errorf("unknown AllocationCost field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *AllocationCostMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case allocationcost.FieldStartTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStartTime(v)
-		return nil
-	case allocationcost.FieldEndTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetEndTime(v)
-		return nil
-	case allocationcost.FieldMinutes:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetMinutes(v)
-		return nil
-	case allocationcost.FieldConnectorID:
-		v, ok := value.(object.ID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetConnectorID(v)
-		return nil
-	case allocationcost.FieldName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetName(v)
-		return nil
-	case allocationcost.FieldFingerprint:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetFingerprint(v)
-		return nil
-	case allocationcost.FieldClusterName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetClusterName(v)
-		return nil
-	case allocationcost.FieldNamespace:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetNamespace(v)
-		return nil
-	case allocationcost.FieldNode:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetNode(v)
-		return nil
-	case allocationcost.FieldController:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetController(v)
-		return nil
-	case allocationcost.FieldControllerKind:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetControllerKind(v)
-		return nil
-	case allocationcost.FieldPod:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPod(v)
-		return nil
-	case allocationcost.FieldContainer:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetContainer(v)
-		return nil
-	case allocationcost.FieldPvs:
-		v, ok := value.(map[string]types.PVCost)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPvs(v)
-		return nil
-	case allocationcost.FieldLabels:
-		v, ok := value.(map[string]string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetLabels(v)
-		return nil
-	case allocationcost.FieldTotalCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTotalCost(v)
-		return nil
-	case allocationcost.FieldCurrency:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCurrency(v)
-		return nil
-	case allocationcost.FieldCPUCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCPUCost(v)
-		return nil
-	case allocationcost.FieldCPUCoreRequest:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCPUCoreRequest(v)
-		return nil
-	case allocationcost.FieldGpuCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetGpuCost(v)
-		return nil
-	case allocationcost.FieldGpuCount:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetGpuCount(v)
-		return nil
-	case allocationcost.FieldRAMCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRAMCost(v)
-		return nil
-	case allocationcost.FieldRAMByteRequest:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRAMByteRequest(v)
-		return nil
-	case allocationcost.FieldPvCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPvCost(v)
-		return nil
-	case allocationcost.FieldPvBytes:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPvBytes(v)
-		return nil
-	case allocationcost.FieldLoadBalancerCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetLoadBalancerCost(v)
-		return nil
-	case allocationcost.FieldCPUCoreUsageAverage:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCPUCoreUsageAverage(v)
-		return nil
-	case allocationcost.FieldCPUCoreUsageMax:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCPUCoreUsageMax(v)
-		return nil
-	case allocationcost.FieldRAMByteUsageAverage:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRAMByteUsageAverage(v)
-		return nil
-	case allocationcost.FieldRAMByteUsageMax:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRAMByteUsageMax(v)
-		return nil
-	}
-	return fmt.Errorf("unknown AllocationCost field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *AllocationCostMutation) AddedFields() []string {
-	var fields []string
-	if m.addminutes != nil {
-		fields = append(fields, allocationcost.FieldMinutes)
-	}
-	if m.addtotalCost != nil {
-		fields = append(fields, allocationcost.FieldTotalCost)
-	}
-	if m.addcurrency != nil {
-		fields = append(fields, allocationcost.FieldCurrency)
-	}
-	if m.addcpu_cost != nil {
-		fields = append(fields, allocationcost.FieldCPUCost)
-	}
-	if m.addcpu_core_request != nil {
-		fields = append(fields, allocationcost.FieldCPUCoreRequest)
-	}
-	if m.addgpu_cost != nil {
-		fields = append(fields, allocationcost.FieldGpuCost)
-	}
-	if m.addgpu_count != nil {
-		fields = append(fields, allocationcost.FieldGpuCount)
-	}
-	if m.addram_cost != nil {
-		fields = append(fields, allocationcost.FieldRAMCost)
-	}
-	if m.addram_byte_request != nil {
-		fields = append(fields, allocationcost.FieldRAMByteRequest)
-	}
-	if m.addpv_cost != nil {
-		fields = append(fields, allocationcost.FieldPvCost)
-	}
-	if m.addpv_bytes != nil {
-		fields = append(fields, allocationcost.FieldPvBytes)
-	}
-	if m.addload_balancer_cost != nil {
-		fields = append(fields, allocationcost.FieldLoadBalancerCost)
-	}
-	if m.addcpu_core_usage_average != nil {
-		fields = append(fields, allocationcost.FieldCPUCoreUsageAverage)
-	}
-	if m.addcpu_core_usage_max != nil {
-		fields = append(fields, allocationcost.FieldCPUCoreUsageMax)
-	}
-	if m.addram_byte_usage_average != nil {
-		fields = append(fields, allocationcost.FieldRAMByteUsageAverage)
-	}
-	if m.addram_byte_usage_max != nil {
-		fields = append(fields, allocationcost.FieldRAMByteUsageMax)
-	}
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *AllocationCostMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case allocationcost.FieldMinutes:
-		return m.AddedMinutes()
-	case allocationcost.FieldTotalCost:
-		return m.AddedTotalCost()
-	case allocationcost.FieldCurrency:
-		return m.AddedCurrency()
-	case allocationcost.FieldCPUCost:
-		return m.AddedCPUCost()
-	case allocationcost.FieldCPUCoreRequest:
-		return m.AddedCPUCoreRequest()
-	case allocationcost.FieldGpuCost:
-		return m.AddedGpuCost()
-	case allocationcost.FieldGpuCount:
-		return m.AddedGpuCount()
-	case allocationcost.FieldRAMCost:
-		return m.AddedRAMCost()
-	case allocationcost.FieldRAMByteRequest:
-		return m.AddedRAMByteRequest()
-	case allocationcost.FieldPvCost:
-		return m.AddedPvCost()
-	case allocationcost.FieldPvBytes:
-		return m.AddedPvBytes()
-	case allocationcost.FieldLoadBalancerCost:
-		return m.AddedLoadBalancerCost()
-	case allocationcost.FieldCPUCoreUsageAverage:
-		return m.AddedCPUCoreUsageAverage()
-	case allocationcost.FieldCPUCoreUsageMax:
-		return m.AddedCPUCoreUsageMax()
-	case allocationcost.FieldRAMByteUsageAverage:
-		return m.AddedRAMByteUsageAverage()
-	case allocationcost.FieldRAMByteUsageMax:
-		return m.AddedRAMByteUsageMax()
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *AllocationCostMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	case allocationcost.FieldMinutes:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddMinutes(v)
-		return nil
-	case allocationcost.FieldTotalCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddTotalCost(v)
-		return nil
-	case allocationcost.FieldCurrency:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddCurrency(v)
-		return nil
-	case allocationcost.FieldCPUCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddCPUCost(v)
-		return nil
-	case allocationcost.FieldCPUCoreRequest:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddCPUCoreRequest(v)
-		return nil
-	case allocationcost.FieldGpuCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddGpuCost(v)
-		return nil
-	case allocationcost.FieldGpuCount:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddGpuCount(v)
-		return nil
-	case allocationcost.FieldRAMCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddRAMCost(v)
-		return nil
-	case allocationcost.FieldRAMByteRequest:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddRAMByteRequest(v)
-		return nil
-	case allocationcost.FieldPvCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddPvCost(v)
-		return nil
-	case allocationcost.FieldPvBytes:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddPvBytes(v)
-		return nil
-	case allocationcost.FieldLoadBalancerCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddLoadBalancerCost(v)
-		return nil
-	case allocationcost.FieldCPUCoreUsageAverage:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddCPUCoreUsageAverage(v)
-		return nil
-	case allocationcost.FieldCPUCoreUsageMax:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddCPUCoreUsageMax(v)
-		return nil
-	case allocationcost.FieldRAMByteUsageAverage:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddRAMByteUsageAverage(v)
-		return nil
-	case allocationcost.FieldRAMByteUsageMax:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddRAMByteUsageMax(v)
-		return nil
-	}
-	return fmt.Errorf("unknown AllocationCost numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *AllocationCostMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(allocationcost.FieldClusterName) {
-		fields = append(fields, allocationcost.FieldClusterName)
-	}
-	if m.FieldCleared(allocationcost.FieldNamespace) {
-		fields = append(fields, allocationcost.FieldNamespace)
-	}
-	if m.FieldCleared(allocationcost.FieldNode) {
-		fields = append(fields, allocationcost.FieldNode)
-	}
-	if m.FieldCleared(allocationcost.FieldController) {
-		fields = append(fields, allocationcost.FieldController)
-	}
-	if m.FieldCleared(allocationcost.FieldControllerKind) {
-		fields = append(fields, allocationcost.FieldControllerKind)
-	}
-	if m.FieldCleared(allocationcost.FieldPod) {
-		fields = append(fields, allocationcost.FieldPod)
-	}
-	if m.FieldCleared(allocationcost.FieldContainer) {
-		fields = append(fields, allocationcost.FieldContainer)
-	}
-	if m.FieldCleared(allocationcost.FieldCurrency) {
-		fields = append(fields, allocationcost.FieldCurrency)
-	}
-	return fields
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *AllocationCostMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *AllocationCostMutation) ClearField(name string) error {
-	switch name {
-	case allocationcost.FieldClusterName:
-		m.ClearClusterName()
-		return nil
-	case allocationcost.FieldNamespace:
-		m.ClearNamespace()
-		return nil
-	case allocationcost.FieldNode:
-		m.ClearNode()
-		return nil
-	case allocationcost.FieldController:
-		m.ClearController()
-		return nil
-	case allocationcost.FieldControllerKind:
-		m.ClearControllerKind()
-		return nil
-	case allocationcost.FieldPod:
-		m.ClearPod()
-		return nil
-	case allocationcost.FieldContainer:
-		m.ClearContainer()
-		return nil
-	case allocationcost.FieldCurrency:
-		m.ClearCurrency()
-		return nil
-	}
-	return fmt.Errorf("unknown AllocationCost nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *AllocationCostMutation) ResetField(name string) error {
-	switch name {
-	case allocationcost.FieldStartTime:
-		m.ResetStartTime()
-		return nil
-	case allocationcost.FieldEndTime:
-		m.ResetEndTime()
-		return nil
-	case allocationcost.FieldMinutes:
-		m.ResetMinutes()
-		return nil
-	case allocationcost.FieldConnectorID:
-		m.ResetConnectorID()
-		return nil
-	case allocationcost.FieldName:
-		m.ResetName()
-		return nil
-	case allocationcost.FieldFingerprint:
-		m.ResetFingerprint()
-		return nil
-	case allocationcost.FieldClusterName:
-		m.ResetClusterName()
-		return nil
-	case allocationcost.FieldNamespace:
-		m.ResetNamespace()
-		return nil
-	case allocationcost.FieldNode:
-		m.ResetNode()
-		return nil
-	case allocationcost.FieldController:
-		m.ResetController()
-		return nil
-	case allocationcost.FieldControllerKind:
-		m.ResetControllerKind()
-		return nil
-	case allocationcost.FieldPod:
-		m.ResetPod()
-		return nil
-	case allocationcost.FieldContainer:
-		m.ResetContainer()
-		return nil
-	case allocationcost.FieldPvs:
-		m.ResetPvs()
-		return nil
-	case allocationcost.FieldLabels:
-		m.ResetLabels()
-		return nil
-	case allocationcost.FieldTotalCost:
-		m.ResetTotalCost()
-		return nil
-	case allocationcost.FieldCurrency:
-		m.ResetCurrency()
-		return nil
-	case allocationcost.FieldCPUCost:
-		m.ResetCPUCost()
-		return nil
-	case allocationcost.FieldCPUCoreRequest:
-		m.ResetCPUCoreRequest()
-		return nil
-	case allocationcost.FieldGpuCost:
-		m.ResetGpuCost()
-		return nil
-	case allocationcost.FieldGpuCount:
-		m.ResetGpuCount()
-		return nil
-	case allocationcost.FieldRAMCost:
-		m.ResetRAMCost()
-		return nil
-	case allocationcost.FieldRAMByteRequest:
-		m.ResetRAMByteRequest()
-		return nil
-	case allocationcost.FieldPvCost:
-		m.ResetPvCost()
-		return nil
-	case allocationcost.FieldPvBytes:
-		m.ResetPvBytes()
-		return nil
-	case allocationcost.FieldLoadBalancerCost:
-		m.ResetLoadBalancerCost()
-		return nil
-	case allocationcost.FieldCPUCoreUsageAverage:
-		m.ResetCPUCoreUsageAverage()
-		return nil
-	case allocationcost.FieldCPUCoreUsageMax:
-		m.ResetCPUCoreUsageMax()
-		return nil
-	case allocationcost.FieldRAMByteUsageAverage:
-		m.ResetRAMByteUsageAverage()
-		return nil
-	case allocationcost.FieldRAMByteUsageMax:
-		m.ResetRAMByteUsageMax()
-		return nil
-	}
-	return fmt.Errorf("unknown AllocationCost field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *AllocationCostMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.connector != nil {
-		edges = append(edges, allocationcost.EdgeConnector)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *AllocationCostMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case allocationcost.EdgeConnector:
-		if id := m.connector; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *AllocationCostMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *AllocationCostMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *AllocationCostMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.clearedconnector {
-		edges = append(edges, allocationcost.EdgeConnector)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *AllocationCostMutation) EdgeCleared(name string) bool {
-	switch name {
-	case allocationcost.EdgeConnector:
-		return m.clearedconnector
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *AllocationCostMutation) ClearEdge(name string) error {
-	switch name {
-	case allocationcost.EdgeConnector:
-		m.ClearConnector()
-		return nil
-	}
-	return fmt.Errorf("unknown AllocationCost unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *AllocationCostMutation) ResetEdge(name string) error {
-	switch name {
-	case allocationcost.EdgeConnector:
-		m.ResetConnector()
-		return nil
-	}
-	return fmt.Errorf("unknown AllocationCost edge %s", name)
-}
-
-// ClusterCostMutation represents an operation that mutates the ClusterCost nodes in the graph.
-type ClusterCostMutation struct {
-	config
-	op                 Op
-	typ                string
-	id                 *int
-	start_time         *time.Time
-	end_time           *time.Time
-	minutes            *float64
-	addminutes         *float64
-	cluster_name       *string
-	total_cost         *float64
-	addtotal_cost      *float64
-	currency           *int
-	addcurrency        *int
-	allocation_cost    *float64
-	addallocation_cost *float64
-	idle_cost          *float64
-	addidle_cost       *float64
-	management_cost    *float64
-	addmanagement_cost *float64
-	clearedFields      map[string]struct{}
-	connector          *object.ID
-	clearedconnector   bool
-	done               bool
-	oldValue           func(context.Context) (*ClusterCost, error)
-	predicates         []predicate.ClusterCost
-}
-
-var _ ent.Mutation = (*ClusterCostMutation)(nil)
-
-// clusterCostOption allows management of the mutation configuration using functional options.
-type clusterCostOption func(*ClusterCostMutation)
-
-// newClusterCostMutation creates new mutation for the ClusterCost entity.
-func newClusterCostMutation(c config, op Op, opts ...clusterCostOption) *ClusterCostMutation {
-	m := &ClusterCostMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeClusterCost,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withClusterCostID sets the ID field of the mutation.
-func withClusterCostID(id int) clusterCostOption {
-	return func(m *ClusterCostMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *ClusterCost
-		)
-		m.oldValue = func(ctx context.Context) (*ClusterCost, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().ClusterCost.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withClusterCost sets the old ClusterCost of the mutation.
-func withClusterCost(node *ClusterCost) clusterCostOption {
-	return func(m *ClusterCostMutation) {
-		m.oldValue = func(context.Context) (*ClusterCost, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m ClusterCostMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m ClusterCostMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("model: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *ClusterCostMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *ClusterCostMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().ClusterCost.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetStartTime sets the "start_time" field.
-func (m *ClusterCostMutation) SetStartTime(t time.Time) {
-	m.start_time = &t
-}
-
-// StartTime returns the value of the "start_time" field in the mutation.
-func (m *ClusterCostMutation) StartTime() (r time.Time, exists bool) {
-	v := m.start_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStartTime returns the old "start_time" field's value of the ClusterCost entity.
-// If the ClusterCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClusterCostMutation) OldStartTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStartTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStartTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStartTime: %w", err)
-	}
-	return oldValue.StartTime, nil
-}
-
-// ResetStartTime resets all changes to the "start_time" field.
-func (m *ClusterCostMutation) ResetStartTime() {
-	m.start_time = nil
-}
-
-// SetEndTime sets the "end_time" field.
-func (m *ClusterCostMutation) SetEndTime(t time.Time) {
-	m.end_time = &t
-}
-
-// EndTime returns the value of the "end_time" field in the mutation.
-func (m *ClusterCostMutation) EndTime() (r time.Time, exists bool) {
-	v := m.end_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldEndTime returns the old "end_time" field's value of the ClusterCost entity.
-// If the ClusterCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClusterCostMutation) OldEndTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEndTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEndTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEndTime: %w", err)
-	}
-	return oldValue.EndTime, nil
-}
-
-// ResetEndTime resets all changes to the "end_time" field.
-func (m *ClusterCostMutation) ResetEndTime() {
-	m.end_time = nil
-}
-
-// SetMinutes sets the "minutes" field.
-func (m *ClusterCostMutation) SetMinutes(f float64) {
-	m.minutes = &f
-	m.addminutes = nil
-}
-
-// Minutes returns the value of the "minutes" field in the mutation.
-func (m *ClusterCostMutation) Minutes() (r float64, exists bool) {
-	v := m.minutes
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldMinutes returns the old "minutes" field's value of the ClusterCost entity.
-// If the ClusterCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClusterCostMutation) OldMinutes(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldMinutes is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldMinutes requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldMinutes: %w", err)
-	}
-	return oldValue.Minutes, nil
-}
-
-// AddMinutes adds f to the "minutes" field.
-func (m *ClusterCostMutation) AddMinutes(f float64) {
-	if m.addminutes != nil {
-		*m.addminutes += f
-	} else {
-		m.addminutes = &f
-	}
-}
-
-// AddedMinutes returns the value that was added to the "minutes" field in this mutation.
-func (m *ClusterCostMutation) AddedMinutes() (r float64, exists bool) {
-	v := m.addminutes
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetMinutes resets all changes to the "minutes" field.
-func (m *ClusterCostMutation) ResetMinutes() {
-	m.minutes = nil
-	m.addminutes = nil
-}
-
-// SetConnectorID sets the "connector_id" field.
-func (m *ClusterCostMutation) SetConnectorID(o object.ID) {
-	m.connector = &o
-}
-
-// ConnectorID returns the value of the "connector_id" field in the mutation.
-func (m *ClusterCostMutation) ConnectorID() (r object.ID, exists bool) {
-	v := m.connector
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldConnectorID returns the old "connector_id" field's value of the ClusterCost entity.
-// If the ClusterCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClusterCostMutation) OldConnectorID(ctx context.Context) (v object.ID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldConnectorID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldConnectorID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldConnectorID: %w", err)
-	}
-	return oldValue.ConnectorID, nil
-}
-
-// ResetConnectorID resets all changes to the "connector_id" field.
-func (m *ClusterCostMutation) ResetConnectorID() {
-	m.connector = nil
-}
-
-// SetClusterName sets the "cluster_name" field.
-func (m *ClusterCostMutation) SetClusterName(s string) {
-	m.cluster_name = &s
-}
-
-// ClusterName returns the value of the "cluster_name" field in the mutation.
-func (m *ClusterCostMutation) ClusterName() (r string, exists bool) {
-	v := m.cluster_name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldClusterName returns the old "cluster_name" field's value of the ClusterCost entity.
-// If the ClusterCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClusterCostMutation) OldClusterName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldClusterName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldClusterName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldClusterName: %w", err)
-	}
-	return oldValue.ClusterName, nil
-}
-
-// ResetClusterName resets all changes to the "cluster_name" field.
-func (m *ClusterCostMutation) ResetClusterName() {
-	m.cluster_name = nil
-}
-
-// SetTotalCost sets the "total_cost" field.
-func (m *ClusterCostMutation) SetTotalCost(f float64) {
-	m.total_cost = &f
-	m.addtotal_cost = nil
-}
-
-// TotalCost returns the value of the "total_cost" field in the mutation.
-func (m *ClusterCostMutation) TotalCost() (r float64, exists bool) {
-	v := m.total_cost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTotalCost returns the old "total_cost" field's value of the ClusterCost entity.
-// If the ClusterCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClusterCostMutation) OldTotalCost(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTotalCost is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTotalCost requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTotalCost: %w", err)
-	}
-	return oldValue.TotalCost, nil
-}
-
-// AddTotalCost adds f to the "total_cost" field.
-func (m *ClusterCostMutation) AddTotalCost(f float64) {
-	if m.addtotal_cost != nil {
-		*m.addtotal_cost += f
-	} else {
-		m.addtotal_cost = &f
-	}
-}
-
-// AddedTotalCost returns the value that was added to the "total_cost" field in this mutation.
-func (m *ClusterCostMutation) AddedTotalCost() (r float64, exists bool) {
-	v := m.addtotal_cost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetTotalCost resets all changes to the "total_cost" field.
-func (m *ClusterCostMutation) ResetTotalCost() {
-	m.total_cost = nil
-	m.addtotal_cost = nil
-}
-
-// SetCurrency sets the "currency" field.
-func (m *ClusterCostMutation) SetCurrency(i int) {
-	m.currency = &i
-	m.addcurrency = nil
-}
-
-// Currency returns the value of the "currency" field in the mutation.
-func (m *ClusterCostMutation) Currency() (r int, exists bool) {
-	v := m.currency
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCurrency returns the old "currency" field's value of the ClusterCost entity.
-// If the ClusterCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClusterCostMutation) OldCurrency(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCurrency is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCurrency requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCurrency: %w", err)
-	}
-	return oldValue.Currency, nil
-}
-
-// AddCurrency adds i to the "currency" field.
-func (m *ClusterCostMutation) AddCurrency(i int) {
-	if m.addcurrency != nil {
-		*m.addcurrency += i
-	} else {
-		m.addcurrency = &i
-	}
-}
-
-// AddedCurrency returns the value that was added to the "currency" field in this mutation.
-func (m *ClusterCostMutation) AddedCurrency() (r int, exists bool) {
-	v := m.addcurrency
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ClearCurrency clears the value of the "currency" field.
-func (m *ClusterCostMutation) ClearCurrency() {
-	m.currency = nil
-	m.addcurrency = nil
-	m.clearedFields[clustercost.FieldCurrency] = struct{}{}
-}
-
-// CurrencyCleared returns if the "currency" field was cleared in this mutation.
-func (m *ClusterCostMutation) CurrencyCleared() bool {
-	_, ok := m.clearedFields[clustercost.FieldCurrency]
-	return ok
-}
-
-// ResetCurrency resets all changes to the "currency" field.
-func (m *ClusterCostMutation) ResetCurrency() {
-	m.currency = nil
-	m.addcurrency = nil
-	delete(m.clearedFields, clustercost.FieldCurrency)
-}
-
-// SetAllocationCost sets the "allocation_cost" field.
-func (m *ClusterCostMutation) SetAllocationCost(f float64) {
-	m.allocation_cost = &f
-	m.addallocation_cost = nil
-}
-
-// AllocationCost returns the value of the "allocation_cost" field in the mutation.
-func (m *ClusterCostMutation) AllocationCost() (r float64, exists bool) {
-	v := m.allocation_cost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldAllocationCost returns the old "allocation_cost" field's value of the ClusterCost entity.
-// If the ClusterCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClusterCostMutation) OldAllocationCost(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldAllocationCost is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldAllocationCost requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldAllocationCost: %w", err)
-	}
-	return oldValue.AllocationCost, nil
-}
-
-// AddAllocationCost adds f to the "allocation_cost" field.
-func (m *ClusterCostMutation) AddAllocationCost(f float64) {
-	if m.addallocation_cost != nil {
-		*m.addallocation_cost += f
-	} else {
-		m.addallocation_cost = &f
-	}
-}
-
-// AddedAllocationCost returns the value that was added to the "allocation_cost" field in this mutation.
-func (m *ClusterCostMutation) AddedAllocationCost() (r float64, exists bool) {
-	v := m.addallocation_cost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetAllocationCost resets all changes to the "allocation_cost" field.
-func (m *ClusterCostMutation) ResetAllocationCost() {
-	m.allocation_cost = nil
-	m.addallocation_cost = nil
-}
-
-// SetIdleCost sets the "idle_cost" field.
-func (m *ClusterCostMutation) SetIdleCost(f float64) {
-	m.idle_cost = &f
-	m.addidle_cost = nil
-}
-
-// IdleCost returns the value of the "idle_cost" field in the mutation.
-func (m *ClusterCostMutation) IdleCost() (r float64, exists bool) {
-	v := m.idle_cost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIdleCost returns the old "idle_cost" field's value of the ClusterCost entity.
-// If the ClusterCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClusterCostMutation) OldIdleCost(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIdleCost is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIdleCost requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIdleCost: %w", err)
-	}
-	return oldValue.IdleCost, nil
-}
-
-// AddIdleCost adds f to the "idle_cost" field.
-func (m *ClusterCostMutation) AddIdleCost(f float64) {
-	if m.addidle_cost != nil {
-		*m.addidle_cost += f
-	} else {
-		m.addidle_cost = &f
-	}
-}
-
-// AddedIdleCost returns the value that was added to the "idle_cost" field in this mutation.
-func (m *ClusterCostMutation) AddedIdleCost() (r float64, exists bool) {
-	v := m.addidle_cost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetIdleCost resets all changes to the "idle_cost" field.
-func (m *ClusterCostMutation) ResetIdleCost() {
-	m.idle_cost = nil
-	m.addidle_cost = nil
-}
-
-// SetManagementCost sets the "management_cost" field.
-func (m *ClusterCostMutation) SetManagementCost(f float64) {
-	m.management_cost = &f
-	m.addmanagement_cost = nil
-}
-
-// ManagementCost returns the value of the "management_cost" field in the mutation.
-func (m *ClusterCostMutation) ManagementCost() (r float64, exists bool) {
-	v := m.management_cost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldManagementCost returns the old "management_cost" field's value of the ClusterCost entity.
-// If the ClusterCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClusterCostMutation) OldManagementCost(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldManagementCost is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldManagementCost requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldManagementCost: %w", err)
-	}
-	return oldValue.ManagementCost, nil
-}
-
-// AddManagementCost adds f to the "management_cost" field.
-func (m *ClusterCostMutation) AddManagementCost(f float64) {
-	if m.addmanagement_cost != nil {
-		*m.addmanagement_cost += f
-	} else {
-		m.addmanagement_cost = &f
-	}
-}
-
-// AddedManagementCost returns the value that was added to the "management_cost" field in this mutation.
-func (m *ClusterCostMutation) AddedManagementCost() (r float64, exists bool) {
-	v := m.addmanagement_cost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetManagementCost resets all changes to the "management_cost" field.
-func (m *ClusterCostMutation) ResetManagementCost() {
-	m.management_cost = nil
-	m.addmanagement_cost = nil
-}
-
-// ClearConnector clears the "connector" edge to the Connector entity.
-func (m *ClusterCostMutation) ClearConnector() {
-	m.clearedconnector = true
-}
-
-// ConnectorCleared reports if the "connector" edge to the Connector entity was cleared.
-func (m *ClusterCostMutation) ConnectorCleared() bool {
-	return m.clearedconnector
-}
-
-// ConnectorIDs returns the "connector" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ConnectorID instead. It exists only for internal usage by the builders.
-func (m *ClusterCostMutation) ConnectorIDs() (ids []object.ID) {
-	if id := m.connector; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetConnector resets all changes to the "connector" edge.
-func (m *ClusterCostMutation) ResetConnector() {
-	m.connector = nil
-	m.clearedconnector = false
-}
-
-// Where appends a list predicates to the ClusterCostMutation builder.
-func (m *ClusterCostMutation) Where(ps ...predicate.ClusterCost) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the ClusterCostMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *ClusterCostMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.ClusterCost, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *ClusterCostMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *ClusterCostMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (ClusterCost).
-func (m *ClusterCostMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *ClusterCostMutation) Fields() []string {
-	fields := make([]string, 0, 10)
-	if m.start_time != nil {
-		fields = append(fields, clustercost.FieldStartTime)
-	}
-	if m.end_time != nil {
-		fields = append(fields, clustercost.FieldEndTime)
-	}
-	if m.minutes != nil {
-		fields = append(fields, clustercost.FieldMinutes)
-	}
-	if m.connector != nil {
-		fields = append(fields, clustercost.FieldConnectorID)
-	}
-	if m.cluster_name != nil {
-		fields = append(fields, clustercost.FieldClusterName)
-	}
-	if m.total_cost != nil {
-		fields = append(fields, clustercost.FieldTotalCost)
-	}
-	if m.currency != nil {
-		fields = append(fields, clustercost.FieldCurrency)
-	}
-	if m.allocation_cost != nil {
-		fields = append(fields, clustercost.FieldAllocationCost)
-	}
-	if m.idle_cost != nil {
-		fields = append(fields, clustercost.FieldIdleCost)
-	}
-	if m.management_cost != nil {
-		fields = append(fields, clustercost.FieldManagementCost)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *ClusterCostMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case clustercost.FieldStartTime:
-		return m.StartTime()
-	case clustercost.FieldEndTime:
-		return m.EndTime()
-	case clustercost.FieldMinutes:
-		return m.Minutes()
-	case clustercost.FieldConnectorID:
-		return m.ConnectorID()
-	case clustercost.FieldClusterName:
-		return m.ClusterName()
-	case clustercost.FieldTotalCost:
-		return m.TotalCost()
-	case clustercost.FieldCurrency:
-		return m.Currency()
-	case clustercost.FieldAllocationCost:
-		return m.AllocationCost()
-	case clustercost.FieldIdleCost:
-		return m.IdleCost()
-	case clustercost.FieldManagementCost:
-		return m.ManagementCost()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *ClusterCostMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case clustercost.FieldStartTime:
-		return m.OldStartTime(ctx)
-	case clustercost.FieldEndTime:
-		return m.OldEndTime(ctx)
-	case clustercost.FieldMinutes:
-		return m.OldMinutes(ctx)
-	case clustercost.FieldConnectorID:
-		return m.OldConnectorID(ctx)
-	case clustercost.FieldClusterName:
-		return m.OldClusterName(ctx)
-	case clustercost.FieldTotalCost:
-		return m.OldTotalCost(ctx)
-	case clustercost.FieldCurrency:
-		return m.OldCurrency(ctx)
-	case clustercost.FieldAllocationCost:
-		return m.OldAllocationCost(ctx)
-	case clustercost.FieldIdleCost:
-		return m.OldIdleCost(ctx)
-	case clustercost.FieldManagementCost:
-		return m.OldManagementCost(ctx)
-	}
-	return nil, fmt.Errorf("unknown ClusterCost field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *ClusterCostMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case clustercost.FieldStartTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStartTime(v)
-		return nil
-	case clustercost.FieldEndTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetEndTime(v)
-		return nil
-	case clustercost.FieldMinutes:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetMinutes(v)
-		return nil
-	case clustercost.FieldConnectorID:
-		v, ok := value.(object.ID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetConnectorID(v)
-		return nil
-	case clustercost.FieldClusterName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetClusterName(v)
-		return nil
-	case clustercost.FieldTotalCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTotalCost(v)
-		return nil
-	case clustercost.FieldCurrency:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCurrency(v)
-		return nil
-	case clustercost.FieldAllocationCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetAllocationCost(v)
-		return nil
-	case clustercost.FieldIdleCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIdleCost(v)
-		return nil
-	case clustercost.FieldManagementCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetManagementCost(v)
-		return nil
-	}
-	return fmt.Errorf("unknown ClusterCost field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *ClusterCostMutation) AddedFields() []string {
-	var fields []string
-	if m.addminutes != nil {
-		fields = append(fields, clustercost.FieldMinutes)
-	}
-	if m.addtotal_cost != nil {
-		fields = append(fields, clustercost.FieldTotalCost)
-	}
-	if m.addcurrency != nil {
-		fields = append(fields, clustercost.FieldCurrency)
-	}
-	if m.addallocation_cost != nil {
-		fields = append(fields, clustercost.FieldAllocationCost)
-	}
-	if m.addidle_cost != nil {
-		fields = append(fields, clustercost.FieldIdleCost)
-	}
-	if m.addmanagement_cost != nil {
-		fields = append(fields, clustercost.FieldManagementCost)
-	}
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *ClusterCostMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case clustercost.FieldMinutes:
-		return m.AddedMinutes()
-	case clustercost.FieldTotalCost:
-		return m.AddedTotalCost()
-	case clustercost.FieldCurrency:
-		return m.AddedCurrency()
-	case clustercost.FieldAllocationCost:
-		return m.AddedAllocationCost()
-	case clustercost.FieldIdleCost:
-		return m.AddedIdleCost()
-	case clustercost.FieldManagementCost:
-		return m.AddedManagementCost()
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *ClusterCostMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	case clustercost.FieldMinutes:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddMinutes(v)
-		return nil
-	case clustercost.FieldTotalCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddTotalCost(v)
-		return nil
-	case clustercost.FieldCurrency:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddCurrency(v)
-		return nil
-	case clustercost.FieldAllocationCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddAllocationCost(v)
-		return nil
-	case clustercost.FieldIdleCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddIdleCost(v)
-		return nil
-	case clustercost.FieldManagementCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddManagementCost(v)
-		return nil
-	}
-	return fmt.Errorf("unknown ClusterCost numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *ClusterCostMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(clustercost.FieldCurrency) {
-		fields = append(fields, clustercost.FieldCurrency)
-	}
-	return fields
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *ClusterCostMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *ClusterCostMutation) ClearField(name string) error {
-	switch name {
-	case clustercost.FieldCurrency:
-		m.ClearCurrency()
-		return nil
-	}
-	return fmt.Errorf("unknown ClusterCost nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *ClusterCostMutation) ResetField(name string) error {
-	switch name {
-	case clustercost.FieldStartTime:
-		m.ResetStartTime()
-		return nil
-	case clustercost.FieldEndTime:
-		m.ResetEndTime()
-		return nil
-	case clustercost.FieldMinutes:
-		m.ResetMinutes()
-		return nil
-	case clustercost.FieldConnectorID:
-		m.ResetConnectorID()
-		return nil
-	case clustercost.FieldClusterName:
-		m.ResetClusterName()
-		return nil
-	case clustercost.FieldTotalCost:
-		m.ResetTotalCost()
-		return nil
-	case clustercost.FieldCurrency:
-		m.ResetCurrency()
-		return nil
-	case clustercost.FieldAllocationCost:
-		m.ResetAllocationCost()
-		return nil
-	case clustercost.FieldIdleCost:
-		m.ResetIdleCost()
-		return nil
-	case clustercost.FieldManagementCost:
-		m.ResetManagementCost()
-		return nil
-	}
-	return fmt.Errorf("unknown ClusterCost field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *ClusterCostMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.connector != nil {
-		edges = append(edges, clustercost.EdgeConnector)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *ClusterCostMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case clustercost.EdgeConnector:
-		if id := m.connector; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *ClusterCostMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *ClusterCostMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *ClusterCostMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.clearedconnector {
-		edges = append(edges, clustercost.EdgeConnector)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *ClusterCostMutation) EdgeCleared(name string) bool {
-	switch name {
-	case clustercost.EdgeConnector:
-		return m.clearedconnector
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *ClusterCostMutation) ClearEdge(name string) error {
-	switch name {
-	case clustercost.EdgeConnector:
-		m.ClearConnector()
-		return nil
-	}
-	return fmt.Errorf("unknown ClusterCost unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *ClusterCostMutation) ResetEdge(name string) error {
-	switch name {
-	case clustercost.EdgeConnector:
-		m.ResetConnector()
-		return nil
-	}
-	return fmt.Errorf("unknown ClusterCost edge %s", name)
-}
-
 // ConnectorMutation represents an operation that mutates the Connector nodes in the graph.
 type ConnectorMutation struct {
 	config
-	op                      Op
-	typ                     string
-	id                      *object.ID
-	name                    *string
-	description             *string
-	labels                  *map[string]string
-	annotations             *map[string]string
-	create_time             *time.Time
-	update_time             *time.Time
-	status                  *status.Status
-	_type                   *string
-	config_version          *string
-	config_data             *crypto.Properties
-	enable_fin_ops          *bool
-	fin_ops_custom_pricing  **types.FinOpsCustomPricing
-	category                *string
-	clearedFields           map[string]struct{}
-	project                 *object.ID
-	clearedproject          bool
-	environments            map[object.ID]struct{}
-	removedenvironments     map[object.ID]struct{}
-	clearedenvironments     bool
-	resources               map[object.ID]struct{}
-	removedresources        map[object.ID]struct{}
-	clearedresources        bool
-	cluster_costs           map[int]struct{}
-	removedcluster_costs    map[int]struct{}
-	clearedcluster_costs    bool
-	allocation_costs        map[int]struct{}
-	removedallocation_costs map[int]struct{}
-	clearedallocation_costs bool
-	done                    bool
-	oldValue                func(context.Context) (*Connector, error)
-	predicates              []predicate.Connector
+	op                     Op
+	typ                    string
+	id                     *object.ID
+	name                   *string
+	description            *string
+	labels                 *map[string]string
+	annotations            *map[string]string
+	create_time            *time.Time
+	update_time            *time.Time
+	status                 *status.Status
+	_type                  *string
+	config_version         *string
+	config_data            *crypto.Properties
+	enable_fin_ops         *bool
+	fin_ops_custom_pricing **types.FinOpsCustomPricing
+	category               *string
+	clearedFields          map[string]struct{}
+	project                *object.ID
+	clearedproject         bool
+	environments           map[object.ID]struct{}
+	removedenvironments    map[object.ID]struct{}
+	clearedenvironments    bool
+	resources              map[object.ID]struct{}
+	removedresources       map[object.ID]struct{}
+	clearedresources       bool
+	cost_reports           map[int]struct{}
+	removedcost_reports    map[int]struct{}
+	clearedcost_reports    bool
+	done                   bool
+	oldValue               func(context.Context) (*Connector, error)
+	predicates             []predicate.Connector
 }
 
 var _ ent.Mutation = (*ConnectorMutation)(nil)
@@ -4656,112 +930,58 @@ func (m *ConnectorMutation) ResetResources() {
 	m.removedresources = nil
 }
 
-// AddClusterCostIDs adds the "cluster_costs" edge to the ClusterCost entity by ids.
-func (m *ConnectorMutation) AddClusterCostIDs(ids ...int) {
-	if m.cluster_costs == nil {
-		m.cluster_costs = make(map[int]struct{})
+// AddCostReportIDs adds the "cost_reports" edge to the CostReport entity by ids.
+func (m *ConnectorMutation) AddCostReportIDs(ids ...int) {
+	if m.cost_reports == nil {
+		m.cost_reports = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.cluster_costs[ids[i]] = struct{}{}
+		m.cost_reports[ids[i]] = struct{}{}
 	}
 }
 
-// ClearClusterCosts clears the "cluster_costs" edge to the ClusterCost entity.
-func (m *ConnectorMutation) ClearClusterCosts() {
-	m.clearedcluster_costs = true
+// ClearCostReports clears the "cost_reports" edge to the CostReport entity.
+func (m *ConnectorMutation) ClearCostReports() {
+	m.clearedcost_reports = true
 }
 
-// ClusterCostsCleared reports if the "cluster_costs" edge to the ClusterCost entity was cleared.
-func (m *ConnectorMutation) ClusterCostsCleared() bool {
-	return m.clearedcluster_costs
+// CostReportsCleared reports if the "cost_reports" edge to the CostReport entity was cleared.
+func (m *ConnectorMutation) CostReportsCleared() bool {
+	return m.clearedcost_reports
 }
 
-// RemoveClusterCostIDs removes the "cluster_costs" edge to the ClusterCost entity by IDs.
-func (m *ConnectorMutation) RemoveClusterCostIDs(ids ...int) {
-	if m.removedcluster_costs == nil {
-		m.removedcluster_costs = make(map[int]struct{})
+// RemoveCostReportIDs removes the "cost_reports" edge to the CostReport entity by IDs.
+func (m *ConnectorMutation) RemoveCostReportIDs(ids ...int) {
+	if m.removedcost_reports == nil {
+		m.removedcost_reports = make(map[int]struct{})
 	}
 	for i := range ids {
-		delete(m.cluster_costs, ids[i])
-		m.removedcluster_costs[ids[i]] = struct{}{}
+		delete(m.cost_reports, ids[i])
+		m.removedcost_reports[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedClusterCosts returns the removed IDs of the "cluster_costs" edge to the ClusterCost entity.
-func (m *ConnectorMutation) RemovedClusterCostsIDs() (ids []int) {
-	for id := range m.removedcluster_costs {
+// RemovedCostReports returns the removed IDs of the "cost_reports" edge to the CostReport entity.
+func (m *ConnectorMutation) RemovedCostReportsIDs() (ids []int) {
+	for id := range m.removedcost_reports {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ClusterCostsIDs returns the "cluster_costs" edge IDs in the mutation.
-func (m *ConnectorMutation) ClusterCostsIDs() (ids []int) {
-	for id := range m.cluster_costs {
+// CostReportsIDs returns the "cost_reports" edge IDs in the mutation.
+func (m *ConnectorMutation) CostReportsIDs() (ids []int) {
+	for id := range m.cost_reports {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetClusterCosts resets all changes to the "cluster_costs" edge.
-func (m *ConnectorMutation) ResetClusterCosts() {
-	m.cluster_costs = nil
-	m.clearedcluster_costs = false
-	m.removedcluster_costs = nil
-}
-
-// AddAllocationCostIDs adds the "allocation_costs" edge to the AllocationCost entity by ids.
-func (m *ConnectorMutation) AddAllocationCostIDs(ids ...int) {
-	if m.allocation_costs == nil {
-		m.allocation_costs = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.allocation_costs[ids[i]] = struct{}{}
-	}
-}
-
-// ClearAllocationCosts clears the "allocation_costs" edge to the AllocationCost entity.
-func (m *ConnectorMutation) ClearAllocationCosts() {
-	m.clearedallocation_costs = true
-}
-
-// AllocationCostsCleared reports if the "allocation_costs" edge to the AllocationCost entity was cleared.
-func (m *ConnectorMutation) AllocationCostsCleared() bool {
-	return m.clearedallocation_costs
-}
-
-// RemoveAllocationCostIDs removes the "allocation_costs" edge to the AllocationCost entity by IDs.
-func (m *ConnectorMutation) RemoveAllocationCostIDs(ids ...int) {
-	if m.removedallocation_costs == nil {
-		m.removedallocation_costs = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.allocation_costs, ids[i])
-		m.removedallocation_costs[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedAllocationCosts returns the removed IDs of the "allocation_costs" edge to the AllocationCost entity.
-func (m *ConnectorMutation) RemovedAllocationCostsIDs() (ids []int) {
-	for id := range m.removedallocation_costs {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// AllocationCostsIDs returns the "allocation_costs" edge IDs in the mutation.
-func (m *ConnectorMutation) AllocationCostsIDs() (ids []int) {
-	for id := range m.allocation_costs {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetAllocationCosts resets all changes to the "allocation_costs" edge.
-func (m *ConnectorMutation) ResetAllocationCosts() {
-	m.allocation_costs = nil
-	m.clearedallocation_costs = false
-	m.removedallocation_costs = nil
+// ResetCostReports resets all changes to the "cost_reports" edge.
+func (m *ConnectorMutation) ResetCostReports() {
+	m.cost_reports = nil
+	m.clearedcost_reports = false
+	m.removedcost_reports = nil
 }
 
 // Where appends a list predicates to the ConnectorMutation builder.
@@ -5157,7 +1377,7 @@ func (m *ConnectorMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ConnectorMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 4)
 	if m.project != nil {
 		edges = append(edges, connector.EdgeProject)
 	}
@@ -5167,11 +1387,8 @@ func (m *ConnectorMutation) AddedEdges() []string {
 	if m.resources != nil {
 		edges = append(edges, connector.EdgeResources)
 	}
-	if m.cluster_costs != nil {
-		edges = append(edges, connector.EdgeClusterCosts)
-	}
-	if m.allocation_costs != nil {
-		edges = append(edges, connector.EdgeAllocationCosts)
+	if m.cost_reports != nil {
+		edges = append(edges, connector.EdgeCostReports)
 	}
 	return edges
 }
@@ -5196,15 +1413,9 @@ func (m *ConnectorMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case connector.EdgeClusterCosts:
-		ids := make([]ent.Value, 0, len(m.cluster_costs))
-		for id := range m.cluster_costs {
-			ids = append(ids, id)
-		}
-		return ids
-	case connector.EdgeAllocationCosts:
-		ids := make([]ent.Value, 0, len(m.allocation_costs))
-		for id := range m.allocation_costs {
+	case connector.EdgeCostReports:
+		ids := make([]ent.Value, 0, len(m.cost_reports))
+		for id := range m.cost_reports {
 			ids = append(ids, id)
 		}
 		return ids
@@ -5214,18 +1425,15 @@ func (m *ConnectorMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ConnectorMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 4)
 	if m.removedenvironments != nil {
 		edges = append(edges, connector.EdgeEnvironments)
 	}
 	if m.removedresources != nil {
 		edges = append(edges, connector.EdgeResources)
 	}
-	if m.removedcluster_costs != nil {
-		edges = append(edges, connector.EdgeClusterCosts)
-	}
-	if m.removedallocation_costs != nil {
-		edges = append(edges, connector.EdgeAllocationCosts)
+	if m.removedcost_reports != nil {
+		edges = append(edges, connector.EdgeCostReports)
 	}
 	return edges
 }
@@ -5246,15 +1454,9 @@ func (m *ConnectorMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case connector.EdgeClusterCosts:
-		ids := make([]ent.Value, 0, len(m.removedcluster_costs))
-		for id := range m.removedcluster_costs {
-			ids = append(ids, id)
-		}
-		return ids
-	case connector.EdgeAllocationCosts:
-		ids := make([]ent.Value, 0, len(m.removedallocation_costs))
-		for id := range m.removedallocation_costs {
+	case connector.EdgeCostReports:
+		ids := make([]ent.Value, 0, len(m.removedcost_reports))
+		for id := range m.removedcost_reports {
 			ids = append(ids, id)
 		}
 		return ids
@@ -5264,7 +1466,7 @@ func (m *ConnectorMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ConnectorMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 4)
 	if m.clearedproject {
 		edges = append(edges, connector.EdgeProject)
 	}
@@ -5274,11 +1476,8 @@ func (m *ConnectorMutation) ClearedEdges() []string {
 	if m.clearedresources {
 		edges = append(edges, connector.EdgeResources)
 	}
-	if m.clearedcluster_costs {
-		edges = append(edges, connector.EdgeClusterCosts)
-	}
-	if m.clearedallocation_costs {
-		edges = append(edges, connector.EdgeAllocationCosts)
+	if m.clearedcost_reports {
+		edges = append(edges, connector.EdgeCostReports)
 	}
 	return edges
 }
@@ -5293,10 +1492,8 @@ func (m *ConnectorMutation) EdgeCleared(name string) bool {
 		return m.clearedenvironments
 	case connector.EdgeResources:
 		return m.clearedresources
-	case connector.EdgeClusterCosts:
-		return m.clearedcluster_costs
-	case connector.EdgeAllocationCosts:
-		return m.clearedallocation_costs
+	case connector.EdgeCostReports:
+		return m.clearedcost_reports
 	}
 	return false
 }
@@ -5325,14 +1522,2643 @@ func (m *ConnectorMutation) ResetEdge(name string) error {
 	case connector.EdgeResources:
 		m.ResetResources()
 		return nil
-	case connector.EdgeClusterCosts:
-		m.ResetClusterCosts()
-		return nil
-	case connector.EdgeAllocationCosts:
-		m.ResetAllocationCosts()
+	case connector.EdgeCostReports:
+		m.ResetCostReports()
 		return nil
 	}
 	return fmt.Errorf("unknown Connector edge %s", name)
+}
+
+// CostReportMutation represents an operation that mutates the CostReport nodes in the graph.
+type CostReportMutation struct {
+	config
+	op                        Op
+	typ                       string
+	id                        *int
+	start_time                *time.Time
+	end_time                  *time.Time
+	minutes                   *float64
+	addminutes                *float64
+	name                      *string
+	fingerprint               *string
+	cluster_name              *string
+	namespace                 *string
+	node                      *string
+	controller                *string
+	controller_kind           *string
+	pod                       *string
+	container                 *string
+	pvs                       *map[string]types.PVCost
+	labels                    *map[string]string
+	totalCost                 *float64
+	addtotalCost              *float64
+	currency                  *int
+	addcurrency               *int
+	cpu_cost                  *float64
+	addcpu_cost               *float64
+	cpu_core_request          *float64
+	addcpu_core_request       *float64
+	gpu_cost                  *float64
+	addgpu_cost               *float64
+	gpu_count                 *float64
+	addgpu_count              *float64
+	ram_cost                  *float64
+	addram_cost               *float64
+	ram_byte_request          *float64
+	addram_byte_request       *float64
+	pv_cost                   *float64
+	addpv_cost                *float64
+	pv_bytes                  *float64
+	addpv_bytes               *float64
+	load_balancer_cost        *float64
+	addload_balancer_cost     *float64
+	cpu_core_usage_average    *float64
+	addcpu_core_usage_average *float64
+	cpu_core_usage_max        *float64
+	addcpu_core_usage_max     *float64
+	ram_byte_usage_average    *float64
+	addram_byte_usage_average *float64
+	ram_byte_usage_max        *float64
+	addram_byte_usage_max     *float64
+	clearedFields             map[string]struct{}
+	connector                 *object.ID
+	clearedconnector          bool
+	done                      bool
+	oldValue                  func(context.Context) (*CostReport, error)
+	predicates                []predicate.CostReport
+}
+
+var _ ent.Mutation = (*CostReportMutation)(nil)
+
+// costReportOption allows management of the mutation configuration using functional options.
+type costReportOption func(*CostReportMutation)
+
+// newCostReportMutation creates new mutation for the CostReport entity.
+func newCostReportMutation(c config, op Op, opts ...costReportOption) *CostReportMutation {
+	m := &CostReportMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCostReport,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCostReportID sets the ID field of the mutation.
+func withCostReportID(id int) costReportOption {
+	return func(m *CostReportMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CostReport
+		)
+		m.oldValue = func(ctx context.Context) (*CostReport, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CostReport.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCostReport sets the old CostReport of the mutation.
+func withCostReport(node *CostReport) costReportOption {
+	return func(m *CostReportMutation) {
+		m.oldValue = func(context.Context) (*CostReport, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CostReportMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CostReportMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("model: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CostReportMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CostReportMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CostReport.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetStartTime sets the "start_time" field.
+func (m *CostReportMutation) SetStartTime(t time.Time) {
+	m.start_time = &t
+}
+
+// StartTime returns the value of the "start_time" field in the mutation.
+func (m *CostReportMutation) StartTime() (r time.Time, exists bool) {
+	v := m.start_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartTime returns the old "start_time" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldStartTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartTime: %w", err)
+	}
+	return oldValue.StartTime, nil
+}
+
+// ResetStartTime resets all changes to the "start_time" field.
+func (m *CostReportMutation) ResetStartTime() {
+	m.start_time = nil
+}
+
+// SetEndTime sets the "end_time" field.
+func (m *CostReportMutation) SetEndTime(t time.Time) {
+	m.end_time = &t
+}
+
+// EndTime returns the value of the "end_time" field in the mutation.
+func (m *CostReportMutation) EndTime() (r time.Time, exists bool) {
+	v := m.end_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndTime returns the old "end_time" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldEndTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndTime: %w", err)
+	}
+	return oldValue.EndTime, nil
+}
+
+// ResetEndTime resets all changes to the "end_time" field.
+func (m *CostReportMutation) ResetEndTime() {
+	m.end_time = nil
+}
+
+// SetMinutes sets the "minutes" field.
+func (m *CostReportMutation) SetMinutes(f float64) {
+	m.minutes = &f
+	m.addminutes = nil
+}
+
+// Minutes returns the value of the "minutes" field in the mutation.
+func (m *CostReportMutation) Minutes() (r float64, exists bool) {
+	v := m.minutes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMinutes returns the old "minutes" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldMinutes(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMinutes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMinutes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMinutes: %w", err)
+	}
+	return oldValue.Minutes, nil
+}
+
+// AddMinutes adds f to the "minutes" field.
+func (m *CostReportMutation) AddMinutes(f float64) {
+	if m.addminutes != nil {
+		*m.addminutes += f
+	} else {
+		m.addminutes = &f
+	}
+}
+
+// AddedMinutes returns the value that was added to the "minutes" field in this mutation.
+func (m *CostReportMutation) AddedMinutes() (r float64, exists bool) {
+	v := m.addminutes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMinutes resets all changes to the "minutes" field.
+func (m *CostReportMutation) ResetMinutes() {
+	m.minutes = nil
+	m.addminutes = nil
+}
+
+// SetConnectorID sets the "connector_id" field.
+func (m *CostReportMutation) SetConnectorID(o object.ID) {
+	m.connector = &o
+}
+
+// ConnectorID returns the value of the "connector_id" field in the mutation.
+func (m *CostReportMutation) ConnectorID() (r object.ID, exists bool) {
+	v := m.connector
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConnectorID returns the old "connector_id" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldConnectorID(ctx context.Context) (v object.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConnectorID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConnectorID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConnectorID: %w", err)
+	}
+	return oldValue.ConnectorID, nil
+}
+
+// ResetConnectorID resets all changes to the "connector_id" field.
+func (m *CostReportMutation) ResetConnectorID() {
+	m.connector = nil
+}
+
+// SetName sets the "name" field.
+func (m *CostReportMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *CostReportMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *CostReportMutation) ResetName() {
+	m.name = nil
+}
+
+// SetFingerprint sets the "fingerprint" field.
+func (m *CostReportMutation) SetFingerprint(s string) {
+	m.fingerprint = &s
+}
+
+// Fingerprint returns the value of the "fingerprint" field in the mutation.
+func (m *CostReportMutation) Fingerprint() (r string, exists bool) {
+	v := m.fingerprint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFingerprint returns the old "fingerprint" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldFingerprint(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFingerprint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFingerprint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFingerprint: %w", err)
+	}
+	return oldValue.Fingerprint, nil
+}
+
+// ResetFingerprint resets all changes to the "fingerprint" field.
+func (m *CostReportMutation) ResetFingerprint() {
+	m.fingerprint = nil
+}
+
+// SetClusterName sets the "cluster_name" field.
+func (m *CostReportMutation) SetClusterName(s string) {
+	m.cluster_name = &s
+}
+
+// ClusterName returns the value of the "cluster_name" field in the mutation.
+func (m *CostReportMutation) ClusterName() (r string, exists bool) {
+	v := m.cluster_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClusterName returns the old "cluster_name" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldClusterName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClusterName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClusterName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClusterName: %w", err)
+	}
+	return oldValue.ClusterName, nil
+}
+
+// ClearClusterName clears the value of the "cluster_name" field.
+func (m *CostReportMutation) ClearClusterName() {
+	m.cluster_name = nil
+	m.clearedFields[costreport.FieldClusterName] = struct{}{}
+}
+
+// ClusterNameCleared returns if the "cluster_name" field was cleared in this mutation.
+func (m *CostReportMutation) ClusterNameCleared() bool {
+	_, ok := m.clearedFields[costreport.FieldClusterName]
+	return ok
+}
+
+// ResetClusterName resets all changes to the "cluster_name" field.
+func (m *CostReportMutation) ResetClusterName() {
+	m.cluster_name = nil
+	delete(m.clearedFields, costreport.FieldClusterName)
+}
+
+// SetNamespace sets the "namespace" field.
+func (m *CostReportMutation) SetNamespace(s string) {
+	m.namespace = &s
+}
+
+// Namespace returns the value of the "namespace" field in the mutation.
+func (m *CostReportMutation) Namespace() (r string, exists bool) {
+	v := m.namespace
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespace returns the old "namespace" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldNamespace(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespace is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespace requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespace: %w", err)
+	}
+	return oldValue.Namespace, nil
+}
+
+// ClearNamespace clears the value of the "namespace" field.
+func (m *CostReportMutation) ClearNamespace() {
+	m.namespace = nil
+	m.clearedFields[costreport.FieldNamespace] = struct{}{}
+}
+
+// NamespaceCleared returns if the "namespace" field was cleared in this mutation.
+func (m *CostReportMutation) NamespaceCleared() bool {
+	_, ok := m.clearedFields[costreport.FieldNamespace]
+	return ok
+}
+
+// ResetNamespace resets all changes to the "namespace" field.
+func (m *CostReportMutation) ResetNamespace() {
+	m.namespace = nil
+	delete(m.clearedFields, costreport.FieldNamespace)
+}
+
+// SetNode sets the "node" field.
+func (m *CostReportMutation) SetNode(s string) {
+	m.node = &s
+}
+
+// Node returns the value of the "node" field in the mutation.
+func (m *CostReportMutation) Node() (r string, exists bool) {
+	v := m.node
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNode returns the old "node" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldNode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNode: %w", err)
+	}
+	return oldValue.Node, nil
+}
+
+// ClearNode clears the value of the "node" field.
+func (m *CostReportMutation) ClearNode() {
+	m.node = nil
+	m.clearedFields[costreport.FieldNode] = struct{}{}
+}
+
+// NodeCleared returns if the "node" field was cleared in this mutation.
+func (m *CostReportMutation) NodeCleared() bool {
+	_, ok := m.clearedFields[costreport.FieldNode]
+	return ok
+}
+
+// ResetNode resets all changes to the "node" field.
+func (m *CostReportMutation) ResetNode() {
+	m.node = nil
+	delete(m.clearedFields, costreport.FieldNode)
+}
+
+// SetController sets the "controller" field.
+func (m *CostReportMutation) SetController(s string) {
+	m.controller = &s
+}
+
+// Controller returns the value of the "controller" field in the mutation.
+func (m *CostReportMutation) Controller() (r string, exists bool) {
+	v := m.controller
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldController returns the old "controller" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldController(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldController is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldController requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldController: %w", err)
+	}
+	return oldValue.Controller, nil
+}
+
+// ClearController clears the value of the "controller" field.
+func (m *CostReportMutation) ClearController() {
+	m.controller = nil
+	m.clearedFields[costreport.FieldController] = struct{}{}
+}
+
+// ControllerCleared returns if the "controller" field was cleared in this mutation.
+func (m *CostReportMutation) ControllerCleared() bool {
+	_, ok := m.clearedFields[costreport.FieldController]
+	return ok
+}
+
+// ResetController resets all changes to the "controller" field.
+func (m *CostReportMutation) ResetController() {
+	m.controller = nil
+	delete(m.clearedFields, costreport.FieldController)
+}
+
+// SetControllerKind sets the "controller_kind" field.
+func (m *CostReportMutation) SetControllerKind(s string) {
+	m.controller_kind = &s
+}
+
+// ControllerKind returns the value of the "controller_kind" field in the mutation.
+func (m *CostReportMutation) ControllerKind() (r string, exists bool) {
+	v := m.controller_kind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldControllerKind returns the old "controller_kind" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldControllerKind(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldControllerKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldControllerKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldControllerKind: %w", err)
+	}
+	return oldValue.ControllerKind, nil
+}
+
+// ClearControllerKind clears the value of the "controller_kind" field.
+func (m *CostReportMutation) ClearControllerKind() {
+	m.controller_kind = nil
+	m.clearedFields[costreport.FieldControllerKind] = struct{}{}
+}
+
+// ControllerKindCleared returns if the "controller_kind" field was cleared in this mutation.
+func (m *CostReportMutation) ControllerKindCleared() bool {
+	_, ok := m.clearedFields[costreport.FieldControllerKind]
+	return ok
+}
+
+// ResetControllerKind resets all changes to the "controller_kind" field.
+func (m *CostReportMutation) ResetControllerKind() {
+	m.controller_kind = nil
+	delete(m.clearedFields, costreport.FieldControllerKind)
+}
+
+// SetPod sets the "pod" field.
+func (m *CostReportMutation) SetPod(s string) {
+	m.pod = &s
+}
+
+// Pod returns the value of the "pod" field in the mutation.
+func (m *CostReportMutation) Pod() (r string, exists bool) {
+	v := m.pod
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPod returns the old "pod" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldPod(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPod is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPod requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPod: %w", err)
+	}
+	return oldValue.Pod, nil
+}
+
+// ClearPod clears the value of the "pod" field.
+func (m *CostReportMutation) ClearPod() {
+	m.pod = nil
+	m.clearedFields[costreport.FieldPod] = struct{}{}
+}
+
+// PodCleared returns if the "pod" field was cleared in this mutation.
+func (m *CostReportMutation) PodCleared() bool {
+	_, ok := m.clearedFields[costreport.FieldPod]
+	return ok
+}
+
+// ResetPod resets all changes to the "pod" field.
+func (m *CostReportMutation) ResetPod() {
+	m.pod = nil
+	delete(m.clearedFields, costreport.FieldPod)
+}
+
+// SetContainer sets the "container" field.
+func (m *CostReportMutation) SetContainer(s string) {
+	m.container = &s
+}
+
+// Container returns the value of the "container" field in the mutation.
+func (m *CostReportMutation) Container() (r string, exists bool) {
+	v := m.container
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContainer returns the old "container" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldContainer(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContainer is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContainer requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContainer: %w", err)
+	}
+	return oldValue.Container, nil
+}
+
+// ClearContainer clears the value of the "container" field.
+func (m *CostReportMutation) ClearContainer() {
+	m.container = nil
+	m.clearedFields[costreport.FieldContainer] = struct{}{}
+}
+
+// ContainerCleared returns if the "container" field was cleared in this mutation.
+func (m *CostReportMutation) ContainerCleared() bool {
+	_, ok := m.clearedFields[costreport.FieldContainer]
+	return ok
+}
+
+// ResetContainer resets all changes to the "container" field.
+func (m *CostReportMutation) ResetContainer() {
+	m.container = nil
+	delete(m.clearedFields, costreport.FieldContainer)
+}
+
+// SetPvs sets the "pvs" field.
+func (m *CostReportMutation) SetPvs(mc map[string]types.PVCost) {
+	m.pvs = &mc
+}
+
+// Pvs returns the value of the "pvs" field in the mutation.
+func (m *CostReportMutation) Pvs() (r map[string]types.PVCost, exists bool) {
+	v := m.pvs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPvs returns the old "pvs" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldPvs(ctx context.Context) (v map[string]types.PVCost, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPvs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPvs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPvs: %w", err)
+	}
+	return oldValue.Pvs, nil
+}
+
+// ResetPvs resets all changes to the "pvs" field.
+func (m *CostReportMutation) ResetPvs() {
+	m.pvs = nil
+}
+
+// SetLabels sets the "labels" field.
+func (m *CostReportMutation) SetLabels(value map[string]string) {
+	m.labels = &value
+}
+
+// Labels returns the value of the "labels" field in the mutation.
+func (m *CostReportMutation) Labels() (r map[string]string, exists bool) {
+	v := m.labels
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLabels returns the old "labels" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldLabels(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLabels is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLabels requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLabels: %w", err)
+	}
+	return oldValue.Labels, nil
+}
+
+// ResetLabels resets all changes to the "labels" field.
+func (m *CostReportMutation) ResetLabels() {
+	m.labels = nil
+}
+
+// SetTotalCost sets the "totalCost" field.
+func (m *CostReportMutation) SetTotalCost(f float64) {
+	m.totalCost = &f
+	m.addtotalCost = nil
+}
+
+// TotalCost returns the value of the "totalCost" field in the mutation.
+func (m *CostReportMutation) TotalCost() (r float64, exists bool) {
+	v := m.totalCost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotalCost returns the old "totalCost" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldTotalCost(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotalCost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotalCost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotalCost: %w", err)
+	}
+	return oldValue.TotalCost, nil
+}
+
+// AddTotalCost adds f to the "totalCost" field.
+func (m *CostReportMutation) AddTotalCost(f float64) {
+	if m.addtotalCost != nil {
+		*m.addtotalCost += f
+	} else {
+		m.addtotalCost = &f
+	}
+}
+
+// AddedTotalCost returns the value that was added to the "totalCost" field in this mutation.
+func (m *CostReportMutation) AddedTotalCost() (r float64, exists bool) {
+	v := m.addtotalCost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTotalCost resets all changes to the "totalCost" field.
+func (m *CostReportMutation) ResetTotalCost() {
+	m.totalCost = nil
+	m.addtotalCost = nil
+}
+
+// SetCurrency sets the "currency" field.
+func (m *CostReportMutation) SetCurrency(i int) {
+	m.currency = &i
+	m.addcurrency = nil
+}
+
+// Currency returns the value of the "currency" field in the mutation.
+func (m *CostReportMutation) Currency() (r int, exists bool) {
+	v := m.currency
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCurrency returns the old "currency" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldCurrency(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCurrency is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCurrency requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCurrency: %w", err)
+	}
+	return oldValue.Currency, nil
+}
+
+// AddCurrency adds i to the "currency" field.
+func (m *CostReportMutation) AddCurrency(i int) {
+	if m.addcurrency != nil {
+		*m.addcurrency += i
+	} else {
+		m.addcurrency = &i
+	}
+}
+
+// AddedCurrency returns the value that was added to the "currency" field in this mutation.
+func (m *CostReportMutation) AddedCurrency() (r int, exists bool) {
+	v := m.addcurrency
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearCurrency clears the value of the "currency" field.
+func (m *CostReportMutation) ClearCurrency() {
+	m.currency = nil
+	m.addcurrency = nil
+	m.clearedFields[costreport.FieldCurrency] = struct{}{}
+}
+
+// CurrencyCleared returns if the "currency" field was cleared in this mutation.
+func (m *CostReportMutation) CurrencyCleared() bool {
+	_, ok := m.clearedFields[costreport.FieldCurrency]
+	return ok
+}
+
+// ResetCurrency resets all changes to the "currency" field.
+func (m *CostReportMutation) ResetCurrency() {
+	m.currency = nil
+	m.addcurrency = nil
+	delete(m.clearedFields, costreport.FieldCurrency)
+}
+
+// SetCPUCost sets the "cpu_cost" field.
+func (m *CostReportMutation) SetCPUCost(f float64) {
+	m.cpu_cost = &f
+	m.addcpu_cost = nil
+}
+
+// CPUCost returns the value of the "cpu_cost" field in the mutation.
+func (m *CostReportMutation) CPUCost() (r float64, exists bool) {
+	v := m.cpu_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCPUCost returns the old "cpu_cost" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldCPUCost(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCPUCost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCPUCost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCPUCost: %w", err)
+	}
+	return oldValue.CPUCost, nil
+}
+
+// AddCPUCost adds f to the "cpu_cost" field.
+func (m *CostReportMutation) AddCPUCost(f float64) {
+	if m.addcpu_cost != nil {
+		*m.addcpu_cost += f
+	} else {
+		m.addcpu_cost = &f
+	}
+}
+
+// AddedCPUCost returns the value that was added to the "cpu_cost" field in this mutation.
+func (m *CostReportMutation) AddedCPUCost() (r float64, exists bool) {
+	v := m.addcpu_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCPUCost resets all changes to the "cpu_cost" field.
+func (m *CostReportMutation) ResetCPUCost() {
+	m.cpu_cost = nil
+	m.addcpu_cost = nil
+}
+
+// SetCPUCoreRequest sets the "cpu_core_request" field.
+func (m *CostReportMutation) SetCPUCoreRequest(f float64) {
+	m.cpu_core_request = &f
+	m.addcpu_core_request = nil
+}
+
+// CPUCoreRequest returns the value of the "cpu_core_request" field in the mutation.
+func (m *CostReportMutation) CPUCoreRequest() (r float64, exists bool) {
+	v := m.cpu_core_request
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCPUCoreRequest returns the old "cpu_core_request" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldCPUCoreRequest(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCPUCoreRequest is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCPUCoreRequest requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCPUCoreRequest: %w", err)
+	}
+	return oldValue.CPUCoreRequest, nil
+}
+
+// AddCPUCoreRequest adds f to the "cpu_core_request" field.
+func (m *CostReportMutation) AddCPUCoreRequest(f float64) {
+	if m.addcpu_core_request != nil {
+		*m.addcpu_core_request += f
+	} else {
+		m.addcpu_core_request = &f
+	}
+}
+
+// AddedCPUCoreRequest returns the value that was added to the "cpu_core_request" field in this mutation.
+func (m *CostReportMutation) AddedCPUCoreRequest() (r float64, exists bool) {
+	v := m.addcpu_core_request
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCPUCoreRequest resets all changes to the "cpu_core_request" field.
+func (m *CostReportMutation) ResetCPUCoreRequest() {
+	m.cpu_core_request = nil
+	m.addcpu_core_request = nil
+}
+
+// SetGpuCost sets the "gpu_cost" field.
+func (m *CostReportMutation) SetGpuCost(f float64) {
+	m.gpu_cost = &f
+	m.addgpu_cost = nil
+}
+
+// GpuCost returns the value of the "gpu_cost" field in the mutation.
+func (m *CostReportMutation) GpuCost() (r float64, exists bool) {
+	v := m.gpu_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGpuCost returns the old "gpu_cost" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldGpuCost(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGpuCost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGpuCost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGpuCost: %w", err)
+	}
+	return oldValue.GpuCost, nil
+}
+
+// AddGpuCost adds f to the "gpu_cost" field.
+func (m *CostReportMutation) AddGpuCost(f float64) {
+	if m.addgpu_cost != nil {
+		*m.addgpu_cost += f
+	} else {
+		m.addgpu_cost = &f
+	}
+}
+
+// AddedGpuCost returns the value that was added to the "gpu_cost" field in this mutation.
+func (m *CostReportMutation) AddedGpuCost() (r float64, exists bool) {
+	v := m.addgpu_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetGpuCost resets all changes to the "gpu_cost" field.
+func (m *CostReportMutation) ResetGpuCost() {
+	m.gpu_cost = nil
+	m.addgpu_cost = nil
+}
+
+// SetGpuCount sets the "gpu_count" field.
+func (m *CostReportMutation) SetGpuCount(f float64) {
+	m.gpu_count = &f
+	m.addgpu_count = nil
+}
+
+// GpuCount returns the value of the "gpu_count" field in the mutation.
+func (m *CostReportMutation) GpuCount() (r float64, exists bool) {
+	v := m.gpu_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGpuCount returns the old "gpu_count" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldGpuCount(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGpuCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGpuCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGpuCount: %w", err)
+	}
+	return oldValue.GpuCount, nil
+}
+
+// AddGpuCount adds f to the "gpu_count" field.
+func (m *CostReportMutation) AddGpuCount(f float64) {
+	if m.addgpu_count != nil {
+		*m.addgpu_count += f
+	} else {
+		m.addgpu_count = &f
+	}
+}
+
+// AddedGpuCount returns the value that was added to the "gpu_count" field in this mutation.
+func (m *CostReportMutation) AddedGpuCount() (r float64, exists bool) {
+	v := m.addgpu_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetGpuCount resets all changes to the "gpu_count" field.
+func (m *CostReportMutation) ResetGpuCount() {
+	m.gpu_count = nil
+	m.addgpu_count = nil
+}
+
+// SetRAMCost sets the "ram_cost" field.
+func (m *CostReportMutation) SetRAMCost(f float64) {
+	m.ram_cost = &f
+	m.addram_cost = nil
+}
+
+// RAMCost returns the value of the "ram_cost" field in the mutation.
+func (m *CostReportMutation) RAMCost() (r float64, exists bool) {
+	v := m.ram_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRAMCost returns the old "ram_cost" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldRAMCost(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRAMCost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRAMCost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRAMCost: %w", err)
+	}
+	return oldValue.RAMCost, nil
+}
+
+// AddRAMCost adds f to the "ram_cost" field.
+func (m *CostReportMutation) AddRAMCost(f float64) {
+	if m.addram_cost != nil {
+		*m.addram_cost += f
+	} else {
+		m.addram_cost = &f
+	}
+}
+
+// AddedRAMCost returns the value that was added to the "ram_cost" field in this mutation.
+func (m *CostReportMutation) AddedRAMCost() (r float64, exists bool) {
+	v := m.addram_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRAMCost resets all changes to the "ram_cost" field.
+func (m *CostReportMutation) ResetRAMCost() {
+	m.ram_cost = nil
+	m.addram_cost = nil
+}
+
+// SetRAMByteRequest sets the "ram_byte_request" field.
+func (m *CostReportMutation) SetRAMByteRequest(f float64) {
+	m.ram_byte_request = &f
+	m.addram_byte_request = nil
+}
+
+// RAMByteRequest returns the value of the "ram_byte_request" field in the mutation.
+func (m *CostReportMutation) RAMByteRequest() (r float64, exists bool) {
+	v := m.ram_byte_request
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRAMByteRequest returns the old "ram_byte_request" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldRAMByteRequest(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRAMByteRequest is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRAMByteRequest requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRAMByteRequest: %w", err)
+	}
+	return oldValue.RAMByteRequest, nil
+}
+
+// AddRAMByteRequest adds f to the "ram_byte_request" field.
+func (m *CostReportMutation) AddRAMByteRequest(f float64) {
+	if m.addram_byte_request != nil {
+		*m.addram_byte_request += f
+	} else {
+		m.addram_byte_request = &f
+	}
+}
+
+// AddedRAMByteRequest returns the value that was added to the "ram_byte_request" field in this mutation.
+func (m *CostReportMutation) AddedRAMByteRequest() (r float64, exists bool) {
+	v := m.addram_byte_request
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRAMByteRequest resets all changes to the "ram_byte_request" field.
+func (m *CostReportMutation) ResetRAMByteRequest() {
+	m.ram_byte_request = nil
+	m.addram_byte_request = nil
+}
+
+// SetPvCost sets the "pv_cost" field.
+func (m *CostReportMutation) SetPvCost(f float64) {
+	m.pv_cost = &f
+	m.addpv_cost = nil
+}
+
+// PvCost returns the value of the "pv_cost" field in the mutation.
+func (m *CostReportMutation) PvCost() (r float64, exists bool) {
+	v := m.pv_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPvCost returns the old "pv_cost" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldPvCost(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPvCost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPvCost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPvCost: %w", err)
+	}
+	return oldValue.PvCost, nil
+}
+
+// AddPvCost adds f to the "pv_cost" field.
+func (m *CostReportMutation) AddPvCost(f float64) {
+	if m.addpv_cost != nil {
+		*m.addpv_cost += f
+	} else {
+		m.addpv_cost = &f
+	}
+}
+
+// AddedPvCost returns the value that was added to the "pv_cost" field in this mutation.
+func (m *CostReportMutation) AddedPvCost() (r float64, exists bool) {
+	v := m.addpv_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPvCost resets all changes to the "pv_cost" field.
+func (m *CostReportMutation) ResetPvCost() {
+	m.pv_cost = nil
+	m.addpv_cost = nil
+}
+
+// SetPvBytes sets the "pv_bytes" field.
+func (m *CostReportMutation) SetPvBytes(f float64) {
+	m.pv_bytes = &f
+	m.addpv_bytes = nil
+}
+
+// PvBytes returns the value of the "pv_bytes" field in the mutation.
+func (m *CostReportMutation) PvBytes() (r float64, exists bool) {
+	v := m.pv_bytes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPvBytes returns the old "pv_bytes" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldPvBytes(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPvBytes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPvBytes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPvBytes: %w", err)
+	}
+	return oldValue.PvBytes, nil
+}
+
+// AddPvBytes adds f to the "pv_bytes" field.
+func (m *CostReportMutation) AddPvBytes(f float64) {
+	if m.addpv_bytes != nil {
+		*m.addpv_bytes += f
+	} else {
+		m.addpv_bytes = &f
+	}
+}
+
+// AddedPvBytes returns the value that was added to the "pv_bytes" field in this mutation.
+func (m *CostReportMutation) AddedPvBytes() (r float64, exists bool) {
+	v := m.addpv_bytes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPvBytes resets all changes to the "pv_bytes" field.
+func (m *CostReportMutation) ResetPvBytes() {
+	m.pv_bytes = nil
+	m.addpv_bytes = nil
+}
+
+// SetLoadBalancerCost sets the "load_balancer_cost" field.
+func (m *CostReportMutation) SetLoadBalancerCost(f float64) {
+	m.load_balancer_cost = &f
+	m.addload_balancer_cost = nil
+}
+
+// LoadBalancerCost returns the value of the "load_balancer_cost" field in the mutation.
+func (m *CostReportMutation) LoadBalancerCost() (r float64, exists bool) {
+	v := m.load_balancer_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLoadBalancerCost returns the old "load_balancer_cost" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldLoadBalancerCost(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLoadBalancerCost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLoadBalancerCost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLoadBalancerCost: %w", err)
+	}
+	return oldValue.LoadBalancerCost, nil
+}
+
+// AddLoadBalancerCost adds f to the "load_balancer_cost" field.
+func (m *CostReportMutation) AddLoadBalancerCost(f float64) {
+	if m.addload_balancer_cost != nil {
+		*m.addload_balancer_cost += f
+	} else {
+		m.addload_balancer_cost = &f
+	}
+}
+
+// AddedLoadBalancerCost returns the value that was added to the "load_balancer_cost" field in this mutation.
+func (m *CostReportMutation) AddedLoadBalancerCost() (r float64, exists bool) {
+	v := m.addload_balancer_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLoadBalancerCost resets all changes to the "load_balancer_cost" field.
+func (m *CostReportMutation) ResetLoadBalancerCost() {
+	m.load_balancer_cost = nil
+	m.addload_balancer_cost = nil
+}
+
+// SetCPUCoreUsageAverage sets the "cpu_core_usage_average" field.
+func (m *CostReportMutation) SetCPUCoreUsageAverage(f float64) {
+	m.cpu_core_usage_average = &f
+	m.addcpu_core_usage_average = nil
+}
+
+// CPUCoreUsageAverage returns the value of the "cpu_core_usage_average" field in the mutation.
+func (m *CostReportMutation) CPUCoreUsageAverage() (r float64, exists bool) {
+	v := m.cpu_core_usage_average
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCPUCoreUsageAverage returns the old "cpu_core_usage_average" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldCPUCoreUsageAverage(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCPUCoreUsageAverage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCPUCoreUsageAverage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCPUCoreUsageAverage: %w", err)
+	}
+	return oldValue.CPUCoreUsageAverage, nil
+}
+
+// AddCPUCoreUsageAverage adds f to the "cpu_core_usage_average" field.
+func (m *CostReportMutation) AddCPUCoreUsageAverage(f float64) {
+	if m.addcpu_core_usage_average != nil {
+		*m.addcpu_core_usage_average += f
+	} else {
+		m.addcpu_core_usage_average = &f
+	}
+}
+
+// AddedCPUCoreUsageAverage returns the value that was added to the "cpu_core_usage_average" field in this mutation.
+func (m *CostReportMutation) AddedCPUCoreUsageAverage() (r float64, exists bool) {
+	v := m.addcpu_core_usage_average
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCPUCoreUsageAverage resets all changes to the "cpu_core_usage_average" field.
+func (m *CostReportMutation) ResetCPUCoreUsageAverage() {
+	m.cpu_core_usage_average = nil
+	m.addcpu_core_usage_average = nil
+}
+
+// SetCPUCoreUsageMax sets the "cpu_core_usage_max" field.
+func (m *CostReportMutation) SetCPUCoreUsageMax(f float64) {
+	m.cpu_core_usage_max = &f
+	m.addcpu_core_usage_max = nil
+}
+
+// CPUCoreUsageMax returns the value of the "cpu_core_usage_max" field in the mutation.
+func (m *CostReportMutation) CPUCoreUsageMax() (r float64, exists bool) {
+	v := m.cpu_core_usage_max
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCPUCoreUsageMax returns the old "cpu_core_usage_max" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldCPUCoreUsageMax(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCPUCoreUsageMax is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCPUCoreUsageMax requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCPUCoreUsageMax: %w", err)
+	}
+	return oldValue.CPUCoreUsageMax, nil
+}
+
+// AddCPUCoreUsageMax adds f to the "cpu_core_usage_max" field.
+func (m *CostReportMutation) AddCPUCoreUsageMax(f float64) {
+	if m.addcpu_core_usage_max != nil {
+		*m.addcpu_core_usage_max += f
+	} else {
+		m.addcpu_core_usage_max = &f
+	}
+}
+
+// AddedCPUCoreUsageMax returns the value that was added to the "cpu_core_usage_max" field in this mutation.
+func (m *CostReportMutation) AddedCPUCoreUsageMax() (r float64, exists bool) {
+	v := m.addcpu_core_usage_max
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCPUCoreUsageMax resets all changes to the "cpu_core_usage_max" field.
+func (m *CostReportMutation) ResetCPUCoreUsageMax() {
+	m.cpu_core_usage_max = nil
+	m.addcpu_core_usage_max = nil
+}
+
+// SetRAMByteUsageAverage sets the "ram_byte_usage_average" field.
+func (m *CostReportMutation) SetRAMByteUsageAverage(f float64) {
+	m.ram_byte_usage_average = &f
+	m.addram_byte_usage_average = nil
+}
+
+// RAMByteUsageAverage returns the value of the "ram_byte_usage_average" field in the mutation.
+func (m *CostReportMutation) RAMByteUsageAverage() (r float64, exists bool) {
+	v := m.ram_byte_usage_average
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRAMByteUsageAverage returns the old "ram_byte_usage_average" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldRAMByteUsageAverage(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRAMByteUsageAverage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRAMByteUsageAverage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRAMByteUsageAverage: %w", err)
+	}
+	return oldValue.RAMByteUsageAverage, nil
+}
+
+// AddRAMByteUsageAverage adds f to the "ram_byte_usage_average" field.
+func (m *CostReportMutation) AddRAMByteUsageAverage(f float64) {
+	if m.addram_byte_usage_average != nil {
+		*m.addram_byte_usage_average += f
+	} else {
+		m.addram_byte_usage_average = &f
+	}
+}
+
+// AddedRAMByteUsageAverage returns the value that was added to the "ram_byte_usage_average" field in this mutation.
+func (m *CostReportMutation) AddedRAMByteUsageAverage() (r float64, exists bool) {
+	v := m.addram_byte_usage_average
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRAMByteUsageAverage resets all changes to the "ram_byte_usage_average" field.
+func (m *CostReportMutation) ResetRAMByteUsageAverage() {
+	m.ram_byte_usage_average = nil
+	m.addram_byte_usage_average = nil
+}
+
+// SetRAMByteUsageMax sets the "ram_byte_usage_max" field.
+func (m *CostReportMutation) SetRAMByteUsageMax(f float64) {
+	m.ram_byte_usage_max = &f
+	m.addram_byte_usage_max = nil
+}
+
+// RAMByteUsageMax returns the value of the "ram_byte_usage_max" field in the mutation.
+func (m *CostReportMutation) RAMByteUsageMax() (r float64, exists bool) {
+	v := m.ram_byte_usage_max
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRAMByteUsageMax returns the old "ram_byte_usage_max" field's value of the CostReport entity.
+// If the CostReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CostReportMutation) OldRAMByteUsageMax(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRAMByteUsageMax is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRAMByteUsageMax requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRAMByteUsageMax: %w", err)
+	}
+	return oldValue.RAMByteUsageMax, nil
+}
+
+// AddRAMByteUsageMax adds f to the "ram_byte_usage_max" field.
+func (m *CostReportMutation) AddRAMByteUsageMax(f float64) {
+	if m.addram_byte_usage_max != nil {
+		*m.addram_byte_usage_max += f
+	} else {
+		m.addram_byte_usage_max = &f
+	}
+}
+
+// AddedRAMByteUsageMax returns the value that was added to the "ram_byte_usage_max" field in this mutation.
+func (m *CostReportMutation) AddedRAMByteUsageMax() (r float64, exists bool) {
+	v := m.addram_byte_usage_max
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRAMByteUsageMax resets all changes to the "ram_byte_usage_max" field.
+func (m *CostReportMutation) ResetRAMByteUsageMax() {
+	m.ram_byte_usage_max = nil
+	m.addram_byte_usage_max = nil
+}
+
+// ClearConnector clears the "connector" edge to the Connector entity.
+func (m *CostReportMutation) ClearConnector() {
+	m.clearedconnector = true
+}
+
+// ConnectorCleared reports if the "connector" edge to the Connector entity was cleared.
+func (m *CostReportMutation) ConnectorCleared() bool {
+	return m.clearedconnector
+}
+
+// ConnectorIDs returns the "connector" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ConnectorID instead. It exists only for internal usage by the builders.
+func (m *CostReportMutation) ConnectorIDs() (ids []object.ID) {
+	if id := m.connector; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetConnector resets all changes to the "connector" edge.
+func (m *CostReportMutation) ResetConnector() {
+	m.connector = nil
+	m.clearedconnector = false
+}
+
+// Where appends a list predicates to the CostReportMutation builder.
+func (m *CostReportMutation) Where(ps ...predicate.CostReport) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CostReportMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CostReportMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CostReport, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CostReportMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CostReportMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (CostReport).
+func (m *CostReportMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CostReportMutation) Fields() []string {
+	fields := make([]string, 0, 30)
+	if m.start_time != nil {
+		fields = append(fields, costreport.FieldStartTime)
+	}
+	if m.end_time != nil {
+		fields = append(fields, costreport.FieldEndTime)
+	}
+	if m.minutes != nil {
+		fields = append(fields, costreport.FieldMinutes)
+	}
+	if m.connector != nil {
+		fields = append(fields, costreport.FieldConnectorID)
+	}
+	if m.name != nil {
+		fields = append(fields, costreport.FieldName)
+	}
+	if m.fingerprint != nil {
+		fields = append(fields, costreport.FieldFingerprint)
+	}
+	if m.cluster_name != nil {
+		fields = append(fields, costreport.FieldClusterName)
+	}
+	if m.namespace != nil {
+		fields = append(fields, costreport.FieldNamespace)
+	}
+	if m.node != nil {
+		fields = append(fields, costreport.FieldNode)
+	}
+	if m.controller != nil {
+		fields = append(fields, costreport.FieldController)
+	}
+	if m.controller_kind != nil {
+		fields = append(fields, costreport.FieldControllerKind)
+	}
+	if m.pod != nil {
+		fields = append(fields, costreport.FieldPod)
+	}
+	if m.container != nil {
+		fields = append(fields, costreport.FieldContainer)
+	}
+	if m.pvs != nil {
+		fields = append(fields, costreport.FieldPvs)
+	}
+	if m.labels != nil {
+		fields = append(fields, costreport.FieldLabels)
+	}
+	if m.totalCost != nil {
+		fields = append(fields, costreport.FieldTotalCost)
+	}
+	if m.currency != nil {
+		fields = append(fields, costreport.FieldCurrency)
+	}
+	if m.cpu_cost != nil {
+		fields = append(fields, costreport.FieldCPUCost)
+	}
+	if m.cpu_core_request != nil {
+		fields = append(fields, costreport.FieldCPUCoreRequest)
+	}
+	if m.gpu_cost != nil {
+		fields = append(fields, costreport.FieldGpuCost)
+	}
+	if m.gpu_count != nil {
+		fields = append(fields, costreport.FieldGpuCount)
+	}
+	if m.ram_cost != nil {
+		fields = append(fields, costreport.FieldRAMCost)
+	}
+	if m.ram_byte_request != nil {
+		fields = append(fields, costreport.FieldRAMByteRequest)
+	}
+	if m.pv_cost != nil {
+		fields = append(fields, costreport.FieldPvCost)
+	}
+	if m.pv_bytes != nil {
+		fields = append(fields, costreport.FieldPvBytes)
+	}
+	if m.load_balancer_cost != nil {
+		fields = append(fields, costreport.FieldLoadBalancerCost)
+	}
+	if m.cpu_core_usage_average != nil {
+		fields = append(fields, costreport.FieldCPUCoreUsageAverage)
+	}
+	if m.cpu_core_usage_max != nil {
+		fields = append(fields, costreport.FieldCPUCoreUsageMax)
+	}
+	if m.ram_byte_usage_average != nil {
+		fields = append(fields, costreport.FieldRAMByteUsageAverage)
+	}
+	if m.ram_byte_usage_max != nil {
+		fields = append(fields, costreport.FieldRAMByteUsageMax)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CostReportMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case costreport.FieldStartTime:
+		return m.StartTime()
+	case costreport.FieldEndTime:
+		return m.EndTime()
+	case costreport.FieldMinutes:
+		return m.Minutes()
+	case costreport.FieldConnectorID:
+		return m.ConnectorID()
+	case costreport.FieldName:
+		return m.Name()
+	case costreport.FieldFingerprint:
+		return m.Fingerprint()
+	case costreport.FieldClusterName:
+		return m.ClusterName()
+	case costreport.FieldNamespace:
+		return m.Namespace()
+	case costreport.FieldNode:
+		return m.Node()
+	case costreport.FieldController:
+		return m.Controller()
+	case costreport.FieldControllerKind:
+		return m.ControllerKind()
+	case costreport.FieldPod:
+		return m.Pod()
+	case costreport.FieldContainer:
+		return m.Container()
+	case costreport.FieldPvs:
+		return m.Pvs()
+	case costreport.FieldLabels:
+		return m.Labels()
+	case costreport.FieldTotalCost:
+		return m.TotalCost()
+	case costreport.FieldCurrency:
+		return m.Currency()
+	case costreport.FieldCPUCost:
+		return m.CPUCost()
+	case costreport.FieldCPUCoreRequest:
+		return m.CPUCoreRequest()
+	case costreport.FieldGpuCost:
+		return m.GpuCost()
+	case costreport.FieldGpuCount:
+		return m.GpuCount()
+	case costreport.FieldRAMCost:
+		return m.RAMCost()
+	case costreport.FieldRAMByteRequest:
+		return m.RAMByteRequest()
+	case costreport.FieldPvCost:
+		return m.PvCost()
+	case costreport.FieldPvBytes:
+		return m.PvBytes()
+	case costreport.FieldLoadBalancerCost:
+		return m.LoadBalancerCost()
+	case costreport.FieldCPUCoreUsageAverage:
+		return m.CPUCoreUsageAverage()
+	case costreport.FieldCPUCoreUsageMax:
+		return m.CPUCoreUsageMax()
+	case costreport.FieldRAMByteUsageAverage:
+		return m.RAMByteUsageAverage()
+	case costreport.FieldRAMByteUsageMax:
+		return m.RAMByteUsageMax()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CostReportMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case costreport.FieldStartTime:
+		return m.OldStartTime(ctx)
+	case costreport.FieldEndTime:
+		return m.OldEndTime(ctx)
+	case costreport.FieldMinutes:
+		return m.OldMinutes(ctx)
+	case costreport.FieldConnectorID:
+		return m.OldConnectorID(ctx)
+	case costreport.FieldName:
+		return m.OldName(ctx)
+	case costreport.FieldFingerprint:
+		return m.OldFingerprint(ctx)
+	case costreport.FieldClusterName:
+		return m.OldClusterName(ctx)
+	case costreport.FieldNamespace:
+		return m.OldNamespace(ctx)
+	case costreport.FieldNode:
+		return m.OldNode(ctx)
+	case costreport.FieldController:
+		return m.OldController(ctx)
+	case costreport.FieldControllerKind:
+		return m.OldControllerKind(ctx)
+	case costreport.FieldPod:
+		return m.OldPod(ctx)
+	case costreport.FieldContainer:
+		return m.OldContainer(ctx)
+	case costreport.FieldPvs:
+		return m.OldPvs(ctx)
+	case costreport.FieldLabels:
+		return m.OldLabels(ctx)
+	case costreport.FieldTotalCost:
+		return m.OldTotalCost(ctx)
+	case costreport.FieldCurrency:
+		return m.OldCurrency(ctx)
+	case costreport.FieldCPUCost:
+		return m.OldCPUCost(ctx)
+	case costreport.FieldCPUCoreRequest:
+		return m.OldCPUCoreRequest(ctx)
+	case costreport.FieldGpuCost:
+		return m.OldGpuCost(ctx)
+	case costreport.FieldGpuCount:
+		return m.OldGpuCount(ctx)
+	case costreport.FieldRAMCost:
+		return m.OldRAMCost(ctx)
+	case costreport.FieldRAMByteRequest:
+		return m.OldRAMByteRequest(ctx)
+	case costreport.FieldPvCost:
+		return m.OldPvCost(ctx)
+	case costreport.FieldPvBytes:
+		return m.OldPvBytes(ctx)
+	case costreport.FieldLoadBalancerCost:
+		return m.OldLoadBalancerCost(ctx)
+	case costreport.FieldCPUCoreUsageAverage:
+		return m.OldCPUCoreUsageAverage(ctx)
+	case costreport.FieldCPUCoreUsageMax:
+		return m.OldCPUCoreUsageMax(ctx)
+	case costreport.FieldRAMByteUsageAverage:
+		return m.OldRAMByteUsageAverage(ctx)
+	case costreport.FieldRAMByteUsageMax:
+		return m.OldRAMByteUsageMax(ctx)
+	}
+	return nil, fmt.Errorf("unknown CostReport field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CostReportMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case costreport.FieldStartTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartTime(v)
+		return nil
+	case costreport.FieldEndTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndTime(v)
+		return nil
+	case costreport.FieldMinutes:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMinutes(v)
+		return nil
+	case costreport.FieldConnectorID:
+		v, ok := value.(object.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConnectorID(v)
+		return nil
+	case costreport.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case costreport.FieldFingerprint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFingerprint(v)
+		return nil
+	case costreport.FieldClusterName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClusterName(v)
+		return nil
+	case costreport.FieldNamespace:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespace(v)
+		return nil
+	case costreport.FieldNode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNode(v)
+		return nil
+	case costreport.FieldController:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetController(v)
+		return nil
+	case costreport.FieldControllerKind:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetControllerKind(v)
+		return nil
+	case costreport.FieldPod:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPod(v)
+		return nil
+	case costreport.FieldContainer:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContainer(v)
+		return nil
+	case costreport.FieldPvs:
+		v, ok := value.(map[string]types.PVCost)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPvs(v)
+		return nil
+	case costreport.FieldLabels:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLabels(v)
+		return nil
+	case costreport.FieldTotalCost:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotalCost(v)
+		return nil
+	case costreport.FieldCurrency:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCurrency(v)
+		return nil
+	case costreport.FieldCPUCost:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCPUCost(v)
+		return nil
+	case costreport.FieldCPUCoreRequest:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCPUCoreRequest(v)
+		return nil
+	case costreport.FieldGpuCost:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGpuCost(v)
+		return nil
+	case costreport.FieldGpuCount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGpuCount(v)
+		return nil
+	case costreport.FieldRAMCost:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRAMCost(v)
+		return nil
+	case costreport.FieldRAMByteRequest:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRAMByteRequest(v)
+		return nil
+	case costreport.FieldPvCost:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPvCost(v)
+		return nil
+	case costreport.FieldPvBytes:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPvBytes(v)
+		return nil
+	case costreport.FieldLoadBalancerCost:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLoadBalancerCost(v)
+		return nil
+	case costreport.FieldCPUCoreUsageAverage:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCPUCoreUsageAverage(v)
+		return nil
+	case costreport.FieldCPUCoreUsageMax:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCPUCoreUsageMax(v)
+		return nil
+	case costreport.FieldRAMByteUsageAverage:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRAMByteUsageAverage(v)
+		return nil
+	case costreport.FieldRAMByteUsageMax:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRAMByteUsageMax(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CostReport field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CostReportMutation) AddedFields() []string {
+	var fields []string
+	if m.addminutes != nil {
+		fields = append(fields, costreport.FieldMinutes)
+	}
+	if m.addtotalCost != nil {
+		fields = append(fields, costreport.FieldTotalCost)
+	}
+	if m.addcurrency != nil {
+		fields = append(fields, costreport.FieldCurrency)
+	}
+	if m.addcpu_cost != nil {
+		fields = append(fields, costreport.FieldCPUCost)
+	}
+	if m.addcpu_core_request != nil {
+		fields = append(fields, costreport.FieldCPUCoreRequest)
+	}
+	if m.addgpu_cost != nil {
+		fields = append(fields, costreport.FieldGpuCost)
+	}
+	if m.addgpu_count != nil {
+		fields = append(fields, costreport.FieldGpuCount)
+	}
+	if m.addram_cost != nil {
+		fields = append(fields, costreport.FieldRAMCost)
+	}
+	if m.addram_byte_request != nil {
+		fields = append(fields, costreport.FieldRAMByteRequest)
+	}
+	if m.addpv_cost != nil {
+		fields = append(fields, costreport.FieldPvCost)
+	}
+	if m.addpv_bytes != nil {
+		fields = append(fields, costreport.FieldPvBytes)
+	}
+	if m.addload_balancer_cost != nil {
+		fields = append(fields, costreport.FieldLoadBalancerCost)
+	}
+	if m.addcpu_core_usage_average != nil {
+		fields = append(fields, costreport.FieldCPUCoreUsageAverage)
+	}
+	if m.addcpu_core_usage_max != nil {
+		fields = append(fields, costreport.FieldCPUCoreUsageMax)
+	}
+	if m.addram_byte_usage_average != nil {
+		fields = append(fields, costreport.FieldRAMByteUsageAverage)
+	}
+	if m.addram_byte_usage_max != nil {
+		fields = append(fields, costreport.FieldRAMByteUsageMax)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CostReportMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case costreport.FieldMinutes:
+		return m.AddedMinutes()
+	case costreport.FieldTotalCost:
+		return m.AddedTotalCost()
+	case costreport.FieldCurrency:
+		return m.AddedCurrency()
+	case costreport.FieldCPUCost:
+		return m.AddedCPUCost()
+	case costreport.FieldCPUCoreRequest:
+		return m.AddedCPUCoreRequest()
+	case costreport.FieldGpuCost:
+		return m.AddedGpuCost()
+	case costreport.FieldGpuCount:
+		return m.AddedGpuCount()
+	case costreport.FieldRAMCost:
+		return m.AddedRAMCost()
+	case costreport.FieldRAMByteRequest:
+		return m.AddedRAMByteRequest()
+	case costreport.FieldPvCost:
+		return m.AddedPvCost()
+	case costreport.FieldPvBytes:
+		return m.AddedPvBytes()
+	case costreport.FieldLoadBalancerCost:
+		return m.AddedLoadBalancerCost()
+	case costreport.FieldCPUCoreUsageAverage:
+		return m.AddedCPUCoreUsageAverage()
+	case costreport.FieldCPUCoreUsageMax:
+		return m.AddedCPUCoreUsageMax()
+	case costreport.FieldRAMByteUsageAverage:
+		return m.AddedRAMByteUsageAverage()
+	case costreport.FieldRAMByteUsageMax:
+		return m.AddedRAMByteUsageMax()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CostReportMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case costreport.FieldMinutes:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMinutes(v)
+		return nil
+	case costreport.FieldTotalCost:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTotalCost(v)
+		return nil
+	case costreport.FieldCurrency:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCurrency(v)
+		return nil
+	case costreport.FieldCPUCost:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCPUCost(v)
+		return nil
+	case costreport.FieldCPUCoreRequest:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCPUCoreRequest(v)
+		return nil
+	case costreport.FieldGpuCost:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddGpuCost(v)
+		return nil
+	case costreport.FieldGpuCount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddGpuCount(v)
+		return nil
+	case costreport.FieldRAMCost:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRAMCost(v)
+		return nil
+	case costreport.FieldRAMByteRequest:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRAMByteRequest(v)
+		return nil
+	case costreport.FieldPvCost:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPvCost(v)
+		return nil
+	case costreport.FieldPvBytes:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPvBytes(v)
+		return nil
+	case costreport.FieldLoadBalancerCost:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLoadBalancerCost(v)
+		return nil
+	case costreport.FieldCPUCoreUsageAverage:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCPUCoreUsageAverage(v)
+		return nil
+	case costreport.FieldCPUCoreUsageMax:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCPUCoreUsageMax(v)
+		return nil
+	case costreport.FieldRAMByteUsageAverage:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRAMByteUsageAverage(v)
+		return nil
+	case costreport.FieldRAMByteUsageMax:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRAMByteUsageMax(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CostReport numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CostReportMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(costreport.FieldClusterName) {
+		fields = append(fields, costreport.FieldClusterName)
+	}
+	if m.FieldCleared(costreport.FieldNamespace) {
+		fields = append(fields, costreport.FieldNamespace)
+	}
+	if m.FieldCleared(costreport.FieldNode) {
+		fields = append(fields, costreport.FieldNode)
+	}
+	if m.FieldCleared(costreport.FieldController) {
+		fields = append(fields, costreport.FieldController)
+	}
+	if m.FieldCleared(costreport.FieldControllerKind) {
+		fields = append(fields, costreport.FieldControllerKind)
+	}
+	if m.FieldCleared(costreport.FieldPod) {
+		fields = append(fields, costreport.FieldPod)
+	}
+	if m.FieldCleared(costreport.FieldContainer) {
+		fields = append(fields, costreport.FieldContainer)
+	}
+	if m.FieldCleared(costreport.FieldCurrency) {
+		fields = append(fields, costreport.FieldCurrency)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CostReportMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CostReportMutation) ClearField(name string) error {
+	switch name {
+	case costreport.FieldClusterName:
+		m.ClearClusterName()
+		return nil
+	case costreport.FieldNamespace:
+		m.ClearNamespace()
+		return nil
+	case costreport.FieldNode:
+		m.ClearNode()
+		return nil
+	case costreport.FieldController:
+		m.ClearController()
+		return nil
+	case costreport.FieldControllerKind:
+		m.ClearControllerKind()
+		return nil
+	case costreport.FieldPod:
+		m.ClearPod()
+		return nil
+	case costreport.FieldContainer:
+		m.ClearContainer()
+		return nil
+	case costreport.FieldCurrency:
+		m.ClearCurrency()
+		return nil
+	}
+	return fmt.Errorf("unknown CostReport nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CostReportMutation) ResetField(name string) error {
+	switch name {
+	case costreport.FieldStartTime:
+		m.ResetStartTime()
+		return nil
+	case costreport.FieldEndTime:
+		m.ResetEndTime()
+		return nil
+	case costreport.FieldMinutes:
+		m.ResetMinutes()
+		return nil
+	case costreport.FieldConnectorID:
+		m.ResetConnectorID()
+		return nil
+	case costreport.FieldName:
+		m.ResetName()
+		return nil
+	case costreport.FieldFingerprint:
+		m.ResetFingerprint()
+		return nil
+	case costreport.FieldClusterName:
+		m.ResetClusterName()
+		return nil
+	case costreport.FieldNamespace:
+		m.ResetNamespace()
+		return nil
+	case costreport.FieldNode:
+		m.ResetNode()
+		return nil
+	case costreport.FieldController:
+		m.ResetController()
+		return nil
+	case costreport.FieldControllerKind:
+		m.ResetControllerKind()
+		return nil
+	case costreport.FieldPod:
+		m.ResetPod()
+		return nil
+	case costreport.FieldContainer:
+		m.ResetContainer()
+		return nil
+	case costreport.FieldPvs:
+		m.ResetPvs()
+		return nil
+	case costreport.FieldLabels:
+		m.ResetLabels()
+		return nil
+	case costreport.FieldTotalCost:
+		m.ResetTotalCost()
+		return nil
+	case costreport.FieldCurrency:
+		m.ResetCurrency()
+		return nil
+	case costreport.FieldCPUCost:
+		m.ResetCPUCost()
+		return nil
+	case costreport.FieldCPUCoreRequest:
+		m.ResetCPUCoreRequest()
+		return nil
+	case costreport.FieldGpuCost:
+		m.ResetGpuCost()
+		return nil
+	case costreport.FieldGpuCount:
+		m.ResetGpuCount()
+		return nil
+	case costreport.FieldRAMCost:
+		m.ResetRAMCost()
+		return nil
+	case costreport.FieldRAMByteRequest:
+		m.ResetRAMByteRequest()
+		return nil
+	case costreport.FieldPvCost:
+		m.ResetPvCost()
+		return nil
+	case costreport.FieldPvBytes:
+		m.ResetPvBytes()
+		return nil
+	case costreport.FieldLoadBalancerCost:
+		m.ResetLoadBalancerCost()
+		return nil
+	case costreport.FieldCPUCoreUsageAverage:
+		m.ResetCPUCoreUsageAverage()
+		return nil
+	case costreport.FieldCPUCoreUsageMax:
+		m.ResetCPUCoreUsageMax()
+		return nil
+	case costreport.FieldRAMByteUsageAverage:
+		m.ResetRAMByteUsageAverage()
+		return nil
+	case costreport.FieldRAMByteUsageMax:
+		m.ResetRAMByteUsageMax()
+		return nil
+	}
+	return fmt.Errorf("unknown CostReport field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CostReportMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.connector != nil {
+		edges = append(edges, costreport.EdgeConnector)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CostReportMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case costreport.EdgeConnector:
+		if id := m.connector; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CostReportMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CostReportMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CostReportMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedconnector {
+		edges = append(edges, costreport.EdgeConnector)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CostReportMutation) EdgeCleared(name string) bool {
+	switch name {
+	case costreport.EdgeConnector:
+		return m.clearedconnector
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CostReportMutation) ClearEdge(name string) error {
+	switch name {
+	case costreport.EdgeConnector:
+		m.ClearConnector()
+		return nil
+	}
+	return fmt.Errorf("unknown CostReport unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CostReportMutation) ResetEdge(name string) error {
+	switch name {
+	case costreport.EdgeConnector:
+		m.ResetConnector()
+		return nil
+	}
+	return fmt.Errorf("unknown CostReport edge %s", name)
 }
 
 // DistributeLockMutation represents an operation that mutates the DistributeLock nodes in the graph.
@@ -7347,24 +6173,24 @@ func (m *EnvironmentConnectorRelationshipMutation) ResetEdge(name string) error 
 // PerspectiveMutation represents an operation that mutates the Perspective nodes in the graph.
 type PerspectiveMutation struct {
 	config
-	op                       Op
-	typ                      string
-	id                       *object.ID
-	name                     *string
-	description              *string
-	labels                   *map[string]string
-	annotations              *map[string]string
-	create_time              *time.Time
-	update_time              *time.Time
-	start_time               *string
-	end_time                 *string
-	builtin                  *bool
-	allocation_queries       *[]types.QueryCondition
-	appendallocation_queries []types.QueryCondition
-	clearedFields            map[string]struct{}
-	done                     bool
-	oldValue                 func(context.Context) (*Perspective, error)
-	predicates               []predicate.Perspective
+	op                 Op
+	typ                string
+	id                 *object.ID
+	name               *string
+	description        *string
+	labels             *map[string]string
+	annotations        *map[string]string
+	create_time        *time.Time
+	update_time        *time.Time
+	start_time         *string
+	end_time           *string
+	builtin            *bool
+	cost_queries       *[]types.QueryCondition
+	appendcost_queries []types.QueryCondition
+	clearedFields      map[string]struct{}
+	done               bool
+	oldValue           func(context.Context) (*Perspective, error)
+	predicates         []predicate.Perspective
 }
 
 var _ ent.Mutation = (*PerspectiveMutation)(nil)
@@ -7834,55 +6660,55 @@ func (m *PerspectiveMutation) ResetBuiltin() {
 	m.builtin = nil
 }
 
-// SetAllocationQueries sets the "allocation_queries" field.
-func (m *PerspectiveMutation) SetAllocationQueries(tc []types.QueryCondition) {
-	m.allocation_queries = &tc
-	m.appendallocation_queries = nil
+// SetCostQueries sets the "cost_queries" field.
+func (m *PerspectiveMutation) SetCostQueries(tc []types.QueryCondition) {
+	m.cost_queries = &tc
+	m.appendcost_queries = nil
 }
 
-// AllocationQueries returns the value of the "allocation_queries" field in the mutation.
-func (m *PerspectiveMutation) AllocationQueries() (r []types.QueryCondition, exists bool) {
-	v := m.allocation_queries
+// CostQueries returns the value of the "cost_queries" field in the mutation.
+func (m *PerspectiveMutation) CostQueries() (r []types.QueryCondition, exists bool) {
+	v := m.cost_queries
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldAllocationQueries returns the old "allocation_queries" field's value of the Perspective entity.
+// OldCostQueries returns the old "cost_queries" field's value of the Perspective entity.
 // If the Perspective object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PerspectiveMutation) OldAllocationQueries(ctx context.Context) (v []types.QueryCondition, err error) {
+func (m *PerspectiveMutation) OldCostQueries(ctx context.Context) (v []types.QueryCondition, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldAllocationQueries is only allowed on UpdateOne operations")
+		return v, errors.New("OldCostQueries is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldAllocationQueries requires an ID field in the mutation")
+		return v, errors.New("OldCostQueries requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldAllocationQueries: %w", err)
+		return v, fmt.Errorf("querying old value for OldCostQueries: %w", err)
 	}
-	return oldValue.AllocationQueries, nil
+	return oldValue.CostQueries, nil
 }
 
-// AppendAllocationQueries adds tc to the "allocation_queries" field.
-func (m *PerspectiveMutation) AppendAllocationQueries(tc []types.QueryCondition) {
-	m.appendallocation_queries = append(m.appendallocation_queries, tc...)
+// AppendCostQueries adds tc to the "cost_queries" field.
+func (m *PerspectiveMutation) AppendCostQueries(tc []types.QueryCondition) {
+	m.appendcost_queries = append(m.appendcost_queries, tc...)
 }
 
-// AppendedAllocationQueries returns the list of values that were appended to the "allocation_queries" field in this mutation.
-func (m *PerspectiveMutation) AppendedAllocationQueries() ([]types.QueryCondition, bool) {
-	if len(m.appendallocation_queries) == 0 {
+// AppendedCostQueries returns the list of values that were appended to the "cost_queries" field in this mutation.
+func (m *PerspectiveMutation) AppendedCostQueries() ([]types.QueryCondition, bool) {
+	if len(m.appendcost_queries) == 0 {
 		return nil, false
 	}
-	return m.appendallocation_queries, true
+	return m.appendcost_queries, true
 }
 
-// ResetAllocationQueries resets all changes to the "allocation_queries" field.
-func (m *PerspectiveMutation) ResetAllocationQueries() {
-	m.allocation_queries = nil
-	m.appendallocation_queries = nil
+// ResetCostQueries resets all changes to the "cost_queries" field.
+func (m *PerspectiveMutation) ResetCostQueries() {
+	m.cost_queries = nil
+	m.appendcost_queries = nil
 }
 
 // Where appends a list predicates to the PerspectiveMutation builder.
@@ -7947,8 +6773,8 @@ func (m *PerspectiveMutation) Fields() []string {
 	if m.builtin != nil {
 		fields = append(fields, perspective.FieldBuiltin)
 	}
-	if m.allocation_queries != nil {
-		fields = append(fields, perspective.FieldAllocationQueries)
+	if m.cost_queries != nil {
+		fields = append(fields, perspective.FieldCostQueries)
 	}
 	return fields
 }
@@ -7976,8 +6802,8 @@ func (m *PerspectiveMutation) Field(name string) (ent.Value, bool) {
 		return m.EndTime()
 	case perspective.FieldBuiltin:
 		return m.Builtin()
-	case perspective.FieldAllocationQueries:
-		return m.AllocationQueries()
+	case perspective.FieldCostQueries:
+		return m.CostQueries()
 	}
 	return nil, false
 }
@@ -8005,8 +6831,8 @@ func (m *PerspectiveMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldEndTime(ctx)
 	case perspective.FieldBuiltin:
 		return m.OldBuiltin(ctx)
-	case perspective.FieldAllocationQueries:
-		return m.OldAllocationQueries(ctx)
+	case perspective.FieldCostQueries:
+		return m.OldCostQueries(ctx)
 	}
 	return nil, fmt.Errorf("unknown Perspective field %s", name)
 }
@@ -8079,12 +6905,12 @@ func (m *PerspectiveMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetBuiltin(v)
 		return nil
-	case perspective.FieldAllocationQueries:
+	case perspective.FieldCostQueries:
 		v, ok := value.([]types.QueryCondition)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetAllocationQueries(v)
+		m.SetCostQueries(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Perspective field %s", name)
@@ -8183,8 +7009,8 @@ func (m *PerspectiveMutation) ResetField(name string) error {
 	case perspective.FieldBuiltin:
 		m.ResetBuiltin()
 		return nil
-	case perspective.FieldAllocationQueries:
-		m.ResetAllocationQueries()
+	case perspective.FieldCostQueries:
+		m.ResetCostQueries()
 		return nil
 	}
 	return fmt.Errorf("unknown Perspective field %s", name)
