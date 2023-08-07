@@ -2,50 +2,56 @@ package types
 
 import (
 	"strings"
-
-	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // QueryCondition indicated the filters, groupBys, step, and shared costs query params.
 type (
 	QueryCondition struct {
-		Filters     AllocationCostFilters `json:"filters,omitempty"`
-		SharedCosts ShareCosts            `json:"shareCosts,omitempty"`
-		GroupBy     GroupByField          `json:"groupBy,omitempty"`
-		Step        Step                  `json:"step,omitempty"`
-		Paging      QueryPagination       `json:"paging,omitempty"`
-		Query       string                `json:"query"`
+		Filters       CostFilters        `json:"filters,omitempty"`
+		GroupBy       GroupByField       `json:"groupBy,omitempty"`
+		Step          Step               `json:"step,omitempty"`
+		Paging        QueryPagination    `json:"paging,omitempty"`
+		Query         string             `json:"query"`
+		SharedOptions *SharedCostOptions `json:"sharedOptions,omitempty"`
 	}
 )
 
-// Filters: allocation, idle and management filters.
 type (
-	AllocationCostFilters [][]FilterRule
-	FilterRule            struct {
+	// CostFilters indicate the filters for cost query.
+	CostFilters [][]FilterRule
+
+	// FilterRule indicate the filter rule for cost query.
+	FilterRule struct {
 		FieldName  FilterField `json:"fieldName,omitempty"`
 		Operator   Operator    `json:"operator,omitempty"`
 		Values     []string    `json:"values,omitempty"`
 		IncludeAll bool        `json:"includeAll,omitempty"`
 	}
 
-	ShareCosts []SharedCost
-	SharedCost struct {
-		Filters               AllocationCostFilters `json:"filters,omitempty"`
-		IdleCostFilters       IdleCostFilters       `json:"idleCostFilters,omitempty"`
-		ManagementCostFilters ManagementCostFilters `json:"managementCostFilters,omitempty"`
-		SharingStrategy       SharingStrategy       `json:"sharingStrategy,omitempty"`
+	// SharedCostOptions indicate the shared cost options for shared cost query.
+	SharedCostOptions struct {
+		Item       ItemSharedOptions      `json:"item,omitempty"`
+		Idle       *IdleShareOption       `json:"idle,omitempty"`
+		Management *ManagementShareOption `json:"management,omitempty"`
 	}
 
-	IdleCostFilters []IdleCostFilter
-	IdleCostFilter  struct {
-		ConnectorID object.ID `json:"connectorID,omitempty"`
-		IncludeAll  bool      `json:"includeAll,omitempty"`
+	// ItemSharedOptions indicate the shared cost options for custom item cost query.
+	ItemSharedOptions []ItemSharedOption
+
+	// ItemSharedOption indicate the shared cost option for custom item cost query.
+	ItemSharedOption struct {
+		Filters         CostFilters     `json:"filters,omitempty"`
+		SharingStrategy SharingStrategy `json:"sharingStrategy,omitempty"`
 	}
 
-	ManagementCostFilters []ManagementCostFilter
-	ManagementCostFilter  struct {
-		ConnectorID object.ID `json:"connectorID,omitempty"`
-		IncludeAll  bool      `json:"includeAll,omitempty"`
+	// IdleShareOption indicate the shared cost option for idle cost.
+	IdleShareOption struct {
+		SharingStrategy SharingStrategy `json:"sharingStrategy,omitempty"`
+	}
+
+	// ManagementShareOption indicate the shared cost option for management cost.
+	ManagementShareOption struct {
+		SharingStrategy SharingStrategy `json:"sharingStrategy,omitempty"`
 	}
 )
 
@@ -76,6 +82,7 @@ const (
 	FilterFieldControllerKind FilterField = "controller_kind"
 	FilterFieldPod            FilterField = "pod"
 	FilterFieldContainer      FilterField = "container"
+	FilterFieldName           FilterField = "name"
 
 	// FilterFieldProject is "label:seal.io/project-name".
 	FilterFieldProject = FilterField("label:" + LabelSealProjectName)

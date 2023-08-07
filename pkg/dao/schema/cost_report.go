@@ -16,19 +16,19 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
-// AllocationCost holds the schema definition for the cluster allocated resource hourly cost.
-type AllocationCost struct {
+// CostReport holds the schema definition for the cluster resource item hourly cost.
+type CostReport struct {
 	ent.Schema
 }
 
-func (AllocationCost) Indexes() []ent.Index {
+func (CostReport) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("start_time", "end_time", "connector_id", "fingerprint").
 			Unique(),
 	}
 }
 
-func (AllocationCost) Fields() []ent.Field {
+func (CostReport) Fields() []ent.Field {
 	return []ent.Field{
 		field.Time("start_time").
 			Comment("Usage start time for current cost.").
@@ -153,12 +153,12 @@ func (AllocationCost) Fields() []ent.Field {
 	}
 }
 
-func (AllocationCost) Edges() []ent.Edge {
+func (CostReport) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Connector 1-* AllocationCosts.
+		// Connector 1-* CostReports.
 		edge.From("connector", Connector.Type).
-			Comment("Connector current cost linked.").
-			Ref("allocation_costs").
+			Comment("Connector current cost item linked.").
+			Ref("cost_reports").
 			Field("connector_id").
 			Unique().
 			Required().
@@ -168,13 +168,13 @@ func (AllocationCost) Edges() []ent.Edge {
 	}
 }
 
-func (AllocationCost) Annotations() []schema.Annotation {
+func (CostReport) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entx.SkipClearingOptionalField(),
 	}
 }
 
-func (AllocationCost) Hooks() []ent.Hook {
+func (CostReport) Hooks() []ent.Hook {
 	// Generate fingerprint by conditions.
 	generateFingerprint := func(n ent.Mutator) ent.Mutator {
 		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
@@ -182,7 +182,7 @@ func (AllocationCost) Hooks() []ent.Hook {
 				return n.Mutate(ctx, m)
 			}
 
-			var cn, nd, ns, pd, cd string
+			var cn, nd, ns, pd, cd, name string
 
 			if v, ok := m.Field("cluster_name"); ok {
 				cn = v.(string)
@@ -204,7 +204,17 @@ func (AllocationCost) Hooks() []ent.Hook {
 				cd = v.(string)
 			}
 
-			err := m.SetField("fingerprint", strs.Join("/", cn, nd, ns, pd, cd))
+			if v, ok := m.Field("name"); ok {
+				name = v.(string)
+			}
+
+			var err error
+			if types.IsIdleOrManagementCost(name) {
+				err = m.SetField("fingerprint", strs.Join("/", cn, name))
+			} else {
+				err = m.SetField("fingerprint", strs.Join("/", cn, nd, ns, pd, cd))
+			}
+
 			if err != nil {
 				return nil, fmt.Errorf("error generating fingerprint: %w", err)
 			}

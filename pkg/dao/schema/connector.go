@@ -93,15 +93,8 @@ func (Connector) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.Restrict),
 				entx.SkipIO()),
-		// Connector 1-* ClusterCosts.
-		edge.To("cluster_costs", ClusterCost.Type).
-			Comment("ClusterCosts that linked to the connection").
-			Annotations(
-				entsql.OnDelete(entsql.Cascade),
-				entx.SkipIO()),
-		// Connector 1-* AllocationCosts.
-		edge.To("allocation_costs", AllocationCost.Type).
-			Comment("AllocationCosts that linked to the connection.").
+		edge.To("cost_reports", CostReport.Type).
+			Comment("CostReports that linked to the connection.").
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
 				entx.SkipIO()),

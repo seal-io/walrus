@@ -38,8 +38,8 @@ func (Perspective) Fields() []ent.Field {
 		field.Bool("builtin").
 			Comment("Is builtin perspective.").
 			Default(false),
-		field.JSON("allocation_queries", []types.QueryCondition{}).
-			Comment("Indicated the perspective included allocation queries, record the used query condition.").
+		field.JSON("cost_queries", []types.QueryCondition{}).
+			Comment("Indicated the perspective included cost queries, record the used query condition.").
 			Default([]types.QueryCondition{}),
 	}
 }
