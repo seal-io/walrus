@@ -612,6 +612,16 @@ func ConfigDataLTE(v crypto.Properties) predicate.Connector {
 	return predicate.Connector(sql.FieldLTE(FieldConfigData, v))
 }
 
+// ConfigDataIsNil applies the IsNil predicate on the "config_data" field.
+func ConfigDataIsNil() predicate.Connector {
+	return predicate.Connector(sql.FieldIsNull(FieldConfigData))
+}
+
+// ConfigDataNotNil applies the NotNil predicate on the "config_data" field.
+func ConfigDataNotNil() predicate.Connector {
+	return predicate.Connector(sql.FieldNotNull(FieldConfigData))
+}
+
 // EnableFinOpsEQ applies the EQ predicate on the "enable_fin_ops" field.
 func EnableFinOpsEQ(v bool) predicate.Connector {
 	return predicate.Connector(sql.FieldEQ(FieldEnableFinOps, v))

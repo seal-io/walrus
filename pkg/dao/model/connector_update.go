@@ -133,6 +133,12 @@ func (cu *ConnectorUpdate) SetConfigData(c crypto.Properties) *ConnectorUpdate {
 	return cu
 }
 
+// ClearConfigData clears the value of the "config_data" field.
+func (cu *ConnectorUpdate) ClearConfigData() *ConnectorUpdate {
+	cu.mutation.ClearConfigData()
+	return cu
+}
+
 // SetEnableFinOps sets the "enable_fin_ops" field.
 func (cu *ConnectorUpdate) SetEnableFinOps(b bool) *ConnectorUpdate {
 	cu.mutation.SetEnableFinOps(b)
@@ -383,7 +389,9 @@ func (cu *ConnectorUpdate) Set(obj *Connector) *ConnectorUpdate {
 		cu.SetStatus(obj.Status)
 	}
 	cu.SetConfigVersion(obj.ConfigVersion)
-	cu.SetConfigData(obj.ConfigData)
+	if !reflect.ValueOf(obj.ConfigData).IsZero() {
+		cu.SetConfigData(obj.ConfigData)
+	}
 	cu.SetEnableFinOps(obj.EnableFinOps)
 	if obj.FinOpsCustomPricing != nil && !obj.FinOpsCustomPricing.IsZero() {
 		cu.SetFinOpsCustomPricing(obj.FinOpsCustomPricing)
@@ -454,6 +462,9 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := cu.mutation.ConfigData(); ok {
 		_spec.SetField(connector.FieldConfigData, field.TypeOther, value)
+	}
+	if cu.mutation.ConfigDataCleared() {
+		_spec.ClearField(connector.FieldConfigData, field.TypeOther)
 	}
 	if value, ok := cu.mutation.EnableFinOps(); ok {
 		_spec.SetField(connector.FieldEnableFinOps, field.TypeBool, value)
@@ -721,6 +732,12 @@ func (cuo *ConnectorUpdateOne) SetConfigVersion(s string) *ConnectorUpdateOne {
 // SetConfigData sets the "config_data" field.
 func (cuo *ConnectorUpdateOne) SetConfigData(c crypto.Properties) *ConnectorUpdateOne {
 	cuo.mutation.SetConfigData(c)
+	return cuo
+}
+
+// ClearConfigData clears the value of the "config_data" field.
+func (cuo *ConnectorUpdateOne) ClearConfigData() *ConnectorUpdateOne {
+	cuo.mutation.ClearConfigData()
 	return cuo
 }
 
@@ -1009,8 +1026,10 @@ func (cuo *ConnectorUpdateOne) Set(obj *Connector) *ConnectorUpdateOne {
 			if db.ConfigVersion != obj.ConfigVersion {
 				cuo.SetConfigVersion(obj.ConfigVersion)
 			}
-			if !reflect.DeepEqual(db.ConfigData, obj.ConfigData) {
-				cuo.SetConfigData(obj.ConfigData)
+			if !reflect.ValueOf(obj.ConfigData).IsZero() {
+				if !reflect.DeepEqual(db.ConfigData, obj.ConfigData) {
+					cuo.SetConfigData(obj.ConfigData)
+				}
 			}
 			if db.EnableFinOps != obj.EnableFinOps {
 				cuo.SetEnableFinOps(obj.EnableFinOps)
@@ -1208,6 +1227,9 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 	}
 	if value, ok := cuo.mutation.ConfigData(); ok {
 		_spec.SetField(connector.FieldConfigData, field.TypeOther, value)
+	}
+	if cuo.mutation.ConfigDataCleared() {
+		_spec.ClearField(connector.FieldConfigData, field.TypeOther)
 	}
 	if value, ok := cuo.mutation.EnableFinOps(); ok {
 		_spec.SetField(connector.FieldEnableFinOps, field.TypeBool, value)

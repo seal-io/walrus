@@ -24,7 +24,7 @@ var (
 		{Name: "status", Type: field.TypeJSON, Nullable: true},
 		{Name: "type", Type: field.TypeString},
 		{Name: "config_version", Type: field.TypeString},
-		{Name: "config_data", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
+		{Name: "config_data", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
 		{Name: "enable_fin_ops", Type: field.TypeBool},
 		{Name: "fin_ops_custom_pricing", Type: field.TypeJSON, Nullable: true},
 		{Name: "category", Type: field.TypeString},
