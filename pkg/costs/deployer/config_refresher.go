@@ -30,7 +30,7 @@ func UpdateCustomPricing(ctx context.Context, conn *model.Connector) error {
 		return err
 	}
 
-	if !status.ConnectorStatusReady.IsTrue(conn) {
+	if !status.ConnectorStatusCostToolsDeployed.IsTrue(conn) || !status.ConnectorStatusReady.IsTrue(conn) {
 		return nil
 	}
 
