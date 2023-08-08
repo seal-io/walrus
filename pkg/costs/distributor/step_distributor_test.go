@@ -43,142 +43,196 @@ func TestStepDistribute(t *testing.T) {
 		utc8StartTime = time.Date(2023, 0o2, 27, 0, 0, 0, 0, time.FixedZone("Asia/Shanghai", 28800))
 		utc8EndTime   = utc8StartTime.Add(1 * 24 * time.Hour)
 	)
-	_, err := testData(ctx, client, startTime, endTime)
+
+	conns, err := testData(ctx, client, startTime, endTime)
 	assert.Nil(t, err, "error create cost test data: %w", err)
 
+	filterFirstConn := types.CostFilters{
+		{
+			{
+				FieldName: types.FilterFieldConnectorID,
+				Operator:  types.OperatorIn,
+				Values: []string{
+					conns[0].ID.String(),
+				},
+			},
+		},
+	}
+
 	cases := []struct {
-		name                        string
-		inputStartTime              time.Time
-		inputEndTime                time.Time
-		inputCondition              types.QueryCondition
-		outputTotalItemNum          int
-		outputQueriedItemNum        int
-		outputQueriedItemCost       float64
-		outputQueriedItemSharedCost float64
+		name               string
+		inputStartTime     time.Time
+		inputEndTime       time.Time
+		inputCondition     types.QueryCondition
+		outputTotalItemNum int
+		outputItems        []stepTestOutputItem
 	}{
 		{
-			name:           "daily cost",
+			name:           "single connector, daily cost",
 			inputStartTime: startTime,
 			inputEndTime:   endTime,
 			inputCondition: types.QueryCondition{
+				Filters: filterFirstConn,
 				Step:    types.StepDay,
 				GroupBy: types.GroupByFieldDay,
-				SharedCosts: types.ShareCosts{
+			},
+			outputTotalItemNum: 5,
+			outputItems: []stepTestOutputItem{
+				newStepTestOutputItem("2023-03-03T00:00:00Z", "2023-03-03T00:00:00Z", 2520, 0),
+				newStepTestOutputItem("2023-03-02T00:00:00Z", "2023-03-02T00:00:00Z", 2520, 0),
+				newStepTestOutputItem("2023-03-01T00:00:00Z", "2023-03-01T00:00:00Z", 2520, 0),
+				newStepTestOutputItem("2023-02-28T00:00:00Z", "2023-02-28T00:00:00Z", 2520, 0),
+				newStepTestOutputItem("2023-02-27T00:00:00Z", "2023-02-27T00:00:00Z", 2520, 0),
+			},
+		},
+		{
+			name:           "single connector, daily cost with equally share idle and management costs",
+			inputStartTime: startTime,
+			inputEndTime:   endTime,
+			inputCondition: types.QueryCondition{
+				Filters: types.CostFilters{
 					{
-						IdleCostFilters: types.IdleCostFilters{
-							{
-								IncludeAll: true,
-							},
-						},
-						ManagementCostFilters: types.ManagementCostFilters{
-							{
-								IncludeAll: true,
-							},
-						},
-						SharingStrategy: types.SharingStrategyProportionally,
+						filterFirstConn[0][0],
+						filterExcludeIdleMgnt[0][0],
+					},
+				},
+				Step:    types.StepDay,
+				GroupBy: types.GroupByFieldDay,
+				SharedOptions: &types.SharedCostOptions{
+					Idle: &types.IdleShareOption{
+						SharingStrategy: types.SharingStrategyEqually,
+					},
+					Management: &types.ManagementShareOption{
+						SharingStrategy: types.SharingStrategyEqually,
 					},
 				},
 			},
-			outputTotalItemNum:          5,
-			outputQueriedItemNum:        5,
-			outputQueriedItemCost:       2400,
-			outputQueriedItemSharedCost: 1680,
+			outputTotalItemNum: 5,
+			outputItems: []stepTestOutputItem{
+				newStepTestOutputItem("2023-03-03T00:00:00Z", "2023-03-03T00:00:00Z", 2520, 1080),
+				newStepTestOutputItem("2023-03-02T00:00:00Z", "2023-03-02T00:00:00Z", 2520, 1080),
+				newStepTestOutputItem("2023-03-01T00:00:00Z", "2023-03-01T00:00:00Z", 2520, 1080),
+				newStepTestOutputItem("2023-02-28T00:00:00Z", "2023-02-28T00:00:00Z", 2520, 1080),
+				newStepTestOutputItem("2023-02-27T00:00:00Z", "2023-02-27T00:00:00Z", 2520, 1080),
+			},
 		},
 		{
-			name:           "daily cost with time zone",
+			name:           "single connector, daily cost with time zone",
 			inputStartTime: utc8StartTime,
 			inputEndTime:   utc8EndTime,
 			inputCondition: types.QueryCondition{
+				Filters: types.CostFilters{
+					{
+						filterFirstConn[0][0],
+						filterExcludeIdleMgnt[0][0],
+					},
+				},
+				Step:          types.StepDay,
+				GroupBy:       types.GroupByFieldDay,
+				SharedOptions: sharedOptionSplitIdleMgntProportionallly,
+			},
+			outputTotalItemNum: 1,
+			outputItems: []stepTestOutputItem{
+				newStepTestOutputItem("2023-02-27T00:00:00Z", "2023-02-27T00:00:00Z", 1680, 720),
+			},
+		},
+		{
+			name:           "single connector, monthly cost",
+			inputStartTime: startTime,
+			inputEndTime:   endTime,
+			inputCondition: types.QueryCondition{
+				Filters: types.CostFilters{
+					{
+						filterFirstConn[0][0],
+						filterExcludeIdleMgnt[0][0],
+					},
+				},
+				Step:          types.StepMonth,
+				GroupBy:       types.GroupByFieldMonth,
+				SharedOptions: sharedOptionSplitIdleMgntProportionallly,
+			},
+			outputTotalItemNum: 2,
+			outputItems: []stepTestOutputItem{
+				newStepTestOutputItem("2023-03-01T00:00:00Z", "2023-03-01T00:00:00Z", 7560, 3240),
+				newStepTestOutputItem("2023-02-01T00:00:00Z", "2023-02-01T00:00:00Z", 5040, 2160),
+			},
+		},
+		{
+			name:           "single connector, daily cost group by namespace",
+			inputStartTime: startTime,
+			inputEndTime:   endTime,
+			inputCondition: types.QueryCondition{
+				Filters: types.CostFilters{
+					{
+						filterFirstConn[0][0],
+						filterExcludeIdleMgnt[0][0],
+					},
+				},
 				Step:    types.StepDay,
-				GroupBy: types.GroupByFieldDay,
-				SharedCosts: types.ShareCosts{
-					{
-						IdleCostFilters: types.IdleCostFilters{
-							{
-								IncludeAll: true,
-							},
-						},
-						ManagementCostFilters: types.ManagementCostFilters{
-							{
-								IncludeAll: true,
-							},
-						},
-						SharingStrategy: types.SharingStrategyProportionally,
-					},
-				},
-			},
-			outputTotalItemNum:          1,
-			outputQueriedItemNum:        1,
-			outputQueriedItemCost:       1600,
-			outputQueriedItemSharedCost: 1120,
-		},
-		{
-			name:           "monthly cost",
-			inputStartTime: startTime,
-			inputEndTime:   endTime,
-			inputCondition: types.QueryCondition{
-				Step:    types.StepMonth,
-				GroupBy: types.GroupByFieldMonth,
-				SharedCosts: types.ShareCosts{
-					{
-						IdleCostFilters: types.IdleCostFilters{
-							{
-								IncludeAll: true,
-							},
-						},
-						ManagementCostFilters: types.ManagementCostFilters{
-							{
-								IncludeAll: true,
-							},
-						},
-						SharingStrategy: types.SharingStrategyProportionally,
-					},
-				},
-			},
-			outputTotalItemNum:          2,
-			outputQueriedItemNum:        2,
-			outputQueriedItemCost:       7200,
-			outputQueriedItemSharedCost: 5040,
-		},
-		{
-			name:           "monthly cost group by namespace",
-			inputStartTime: startTime,
-			inputEndTime:   endTime,
-			inputCondition: types.QueryCondition{
-				Step:    types.StepMonth,
 				GroupBy: types.GroupByFieldNamespace,
-				SharedCosts: types.ShareCosts{
-					{
-						IdleCostFilters: types.IdleCostFilters{
-							{
-								IncludeAll: true,
-							},
-						},
-						ManagementCostFilters: types.ManagementCostFilters{
-							{
-								IncludeAll: true,
-							},
-						},
-						SharingStrategy: types.SharingStrategyProportionally,
-					},
-				},
 			},
-			outputTotalItemNum:          6,
-			outputQueriedItemNum:        6,
-			outputQueriedItemCost:       2400,
-			outputQueriedItemSharedCost: 1680,
+			outputTotalItemNum: 15,
+			outputItems: []stepTestOutputItem{
+				newStepTestOutputItem("namespace-t3", "2023-03-03T00:00:00Z", 720, 0),
+				newStepTestOutputItem("namespace-t2", "2023-03-03T00:00:00Z", 480, 0),
+				newStepTestOutputItem("namespace-t1", "2023-03-03T00:00:00Z", 240, 0),
+
+				newStepTestOutputItem("namespace-t3", "2023-03-02T00:00:00Z", 720, 0),
+				newStepTestOutputItem("namespace-t2", "2023-03-02T00:00:00Z", 480, 0),
+				newStepTestOutputItem("namespace-t1", "2023-03-02T00:00:00Z", 240, 0),
+			},
+		},
+		{
+			name:           "multiple connector, daily cost group by namespace",
+			inputStartTime: startTime,
+			inputEndTime:   endTime,
+			inputCondition: types.QueryCondition{
+				Filters: filterExcludeIdleMgnt,
+				Step:    types.StepDay,
+				GroupBy: types.GroupByFieldNamespace,
+			},
+			outputTotalItemNum: 20,
+			outputItems: []stepTestOutputItem{
+				newStepTestOutputItem("namespace-t3", "2023-03-03T00:00:00Z", 1440, 0),
+			},
 		},
 	}
 
 	for _, v := range cases {
 		dsb := stepDistributor{client: client}
 		items, count, err := dsb.distribute(ctx, v.inputStartTime, v.inputEndTime, v.inputCondition)
-		assert.Nil(t, err, "%s: error get distribute resource costs: %w", v.name, err)
+
+		assert.Nil(t, err, "%s: error get distribute resource cost: %w", v.name, err)
 		assert.Equal(t, v.outputTotalItemNum, count, "%s: total item count mismatch", v.name)
-		assert.Len(t, items, v.outputQueriedItemNum, "%s: queried item length mismatch", v.name)
-		assert.Equal(t, v.outputQueriedItemCost, items[0].Cost.TotalCost,
-			"%s: first item total cost mismatch", v.name)
-		assert.Equal(t, v.outputQueriedItemSharedCost, items[0].Cost.SharedCost,
-			"%s: first item shared cost mismatch", v.name)
+
+		for i := range v.outputItems {
+			assert.Equal(t, v.outputItems[i].itemName, items[i].ItemName,
+				"%s: item %d name mismatch", v.name, i)
+
+			assert.Equal(t, v.outputItems[i].startTime, items[i].StartTime.Format(time.RFC3339),
+				"%s: item %d startTime mismatch", v.name, i)
+
+			assert.Equal(t, v.outputItems[i].totalCost, items[i].TotalCost,
+				"%s: item %d total cost mismatch", v.name, i)
+
+			assert.Equal(t, v.outputItems[i].sharedCost, items[i].SharedCost,
+				"%s: item %d shared cost mismatch", v.name, i)
+		}
 	}
+}
+
+func newStepTestOutputItem(itemName, startTime string, totalCost, sharedCost float64) stepTestOutputItem {
+	return stepTestOutputItem{
+		testOutputItem: testOutputItem{
+			itemName:   itemName,
+			totalCost:  totalCost,
+			sharedCost: sharedCost,
+		},
+		startTime: startTime,
+	}
+}
+
+type stepTestOutputItem struct {
+	testOutputItem
+	startTime string
 }

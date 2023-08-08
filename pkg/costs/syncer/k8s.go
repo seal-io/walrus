@@ -11,8 +11,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/costs/collector"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
-	"github.com/seal-io/seal/pkg/dao/model/clustercost"
+	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	opk8s "github.com/seal-io/seal/pkg/operator/k8s"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/timex"
@@ -90,53 +89,34 @@ func (in *K8sCostSyncer) syncCost(ctx context.Context, conn *model.Connector, st
 		stepEnd := stepStart.Add(maxTimeRange)
 		in.logger.Debugf("connector: %s, step sync within %s, %s", conn.Name, stepStart.String(), stepEnd.String())
 
-		cc, ac, err := collect.K8sCosts(&stepStart, &stepEnd, defaultStep)
+		ac, err := collect.K8sCosts(&stepStart, &stepEnd, defaultStep)
 		if err != nil {
 			return err
 		}
 
-		if len(cc) == 0 {
+		if len(ac) == 0 {
 			stepStart = stepEnd
 			continue
 		}
 
-		if err = in.batchCreateClusterCosts(ctx, cc); err != nil {
-			return fmt.Errorf("error creating cluster costs: %w", err)
+		if err = in.batchCreateCostReports(ctx, ac); err != nil {
+			return fmt.Errorf("error creating item costs: %w", err)
 		}
 
-		if err = in.batchCreateAllocationCosts(ctx, ac); err != nil {
-			return fmt.Errorf("error creating allocation costs: %w", err)
-		}
-
-		in.logger.Debugf("create %d cluster costs, %d allocation costs for connector %q, within %s, %s",
-			len(cc), len(ac), conn.ID, stepStart.String(), stepEnd.String(),
-		)
 		stepStart = stepEnd
 	}
 
 	return nil
 }
 
-func (in *K8sCostSyncer) batchCreateClusterCosts(ctx context.Context, costs []*model.ClusterCost) error {
-	return in.client.ClusterCosts().CreateBulk().
+func (in *K8sCostSyncer) batchCreateCostReports(ctx context.Context, costs []*model.CostReport) error {
+	return in.client.CostReports().CreateBulk().
 		Set(costs...).
 		OnConflictColumns(
-			clustercost.FieldStartTime,
-			clustercost.FieldEndTime,
-			clustercost.FieldConnectorID,
-		).
-		DoNothing().
-		Exec(ctx)
-}
-
-func (in *K8sCostSyncer) batchCreateAllocationCosts(ctx context.Context, costs []*model.AllocationCost) error {
-	return in.client.AllocationCosts().CreateBulk().
-		Set(costs...).
-		OnConflictColumns(
-			allocationcost.FieldStartTime,
-			allocationcost.FieldEndTime,
-			allocationcost.FieldConnectorID,
-			allocationcost.FieldFingerprint,
+			costreport.FieldStartTime,
+			costreport.FieldEndTime,
+			costreport.FieldConnectorID,
+			costreport.FieldFingerprint,
 		).
 		DoNothing().
 		Exec(ctx)
@@ -177,9 +157,9 @@ func (in *K8sCostSyncer) timeRange(
 	startTime = &s
 	endTime = &e
 
-	existed, err := in.client.ClusterCosts().Query().
-		Where(clustercost.ConnectorID(conn.ID)).
-		Order(model.Desc(clustercost.FieldEndTime)).
+	existed, err := in.client.CostReports().Query().
+		Where(costreport.ConnectorID(conn.ID)).
+		Order(model.Desc(costreport.FieldEndTime)).
 		First(ctx)
 	if err != nil {
 		if model.IsNotFound(err) {
