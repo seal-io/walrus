@@ -4,31 +4,22 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
 
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/strs"
 	"github.com/seal-io/seal/utils/timex"
 )
 
-type SharedCost struct {
-	StartTime      time.Time        `json:"startTime"`
-	TotalCost      float64          `json:"totalCost"`
-	IdleCost       float64          `json:"idleCost"`
-	ManagementCost float64          `json:"managementCost"`
-	AllocationCost float64          `json:"allocationCost"`
-	Condition      types.SharedCost `json:"condition"`
-}
-
-// orderByWithOffsetSQL generate the order by sql with groupBy field and timezone offset,
+// orderBySQL generate the order by sql with groupBy field and timezone offset,
 // offset is in seconds east of UTC.
-func orderByWithOffsetSQL(field types.GroupByField, offset int) (string, error) {
+func orderBySQL(field types.GroupByField, offset int) (string, error) {
 	if field == "" {
 		return "", fmt.Errorf("invalid order by: blank")
 	}
@@ -38,12 +29,123 @@ func orderByWithOffsetSQL(field types.GroupByField, offset int) (string, error) 
 	switch field {
 	case types.GroupByFieldDay, types.GroupByFieldWeek, types.GroupByFieldMonth:
 		return fmt.Sprintf(
-			`date_trunc('%s', start_time AT TIME ZONE '%s') DESC`,
+			`date_trunc('%s', start_time AT TIME ZONE '%s') DESC, SUM(total_cost) DESC`,
 			field,
 			timezone,
 		), nil
+	case types.GroupByFieldNamespace,
+		types.GroupByFieldNode,
+		types.GroupByFieldController,
+		types.GroupByFieldControllerKind,
+		types.GroupByFieldPod,
+		types.GroupByFieldContainer:
+		// Will include idle and management cost.
+		return fmt.Sprintf(`CASE WHEN %s = '%s' THEN 0 WHEN %s = '%s' THEN 1 ELSE 2 END, SUM(total_cost) DESC`,
+			field,
+			types.ManagementCostItemName,
+			field,
+			types.IdleCostItemName,
+		), nil
+	case types.GroupByFieldWorkload:
+		groupByField := fmt.Sprintf(`CASE
+           WHEN namespace = '%s' THEN '%s'
+           WHEN namespace = '%s' THEN '%s'
+           WHEN namespace = '' THEN '%s'
+           WHEN controller_kind = '' THEN '%s'
+           WHEN controller = '' THEN '%s'
+           ELSE  concat_ws('/', namespace, controller_kind, controller)
+           END`,
+			types.ManagementCostItemName, types.ManagementCostItemName,
+			types.IdleCostItemName, types.IdleCostItemName,
+			types.UnallocatedItemName, types.UnallocatedItemName, types.UnallocatedItemName,
+		)
+
+		return fmt.Sprintf(`CASE
+				WHEN (%s) = '%s' THEN 0
+				WHEN (%s) = '%s' THEN 1 
+				ELSE 2 
+				END, 
+				SUM(total_cost) DESC`,
+			groupByField, types.ManagementCostItemName,
+			groupByField, types.IdleCostItemName,
+		), nil
 	default:
+		// ConnectorID, ClusterName and others.
 		return `SUM(total_cost) DESC`, nil
+	}
+}
+
+// orderByWithStepSQL generate the order by sql with groupBy field, step and timezone offset,
+// offset is in seconds east of UTC.
+func orderByWithStepSQL(field types.GroupByField, step types.Step, offset int) (string, error) {
+	if field == "" {
+		return "", fmt.Errorf("invalid order by: blank")
+	}
+
+	timezone := timex.TimezoneInPosix(offset)
+
+	var (
+		byTotal = `SUM(total_cost) DESC`
+		byStep  = fmt.Sprintf(`date_trunc('%s', start_time AT TIME ZONE '%s') DESC`, step, timezone)
+		byCase  = fmt.Sprintf(`CASE WHEN %s = '%s' THEN 0 WHEN %s = '%s' THEN 1 ELSE 2 END`,
+			field, types.ManagementCostItemName, field, types.IdleCostItemName)
+	)
+
+	orderBys := func(by ...string) string {
+		return strings.Join(by, ",")
+	}
+
+	switch field {
+	case types.GroupByFieldDay, types.GroupByFieldWeek, types.GroupByFieldMonth:
+		return orderBys(
+			byStep,
+			byTotal,
+		), nil
+	case types.GroupByFieldNamespace,
+		types.GroupByFieldNode,
+		types.GroupByFieldController,
+		types.GroupByFieldControllerKind,
+		types.GroupByFieldPod,
+		types.GroupByFieldContainer:
+		// Will include idle and management cost.
+		return orderBys(
+			byCase,
+			byStep,
+			byTotal,
+		), nil
+	case types.GroupByFieldWorkload:
+		workloadGroupByField := fmt.Sprintf(`CASE
+           WHEN namespace = '%s' THEN '%s'
+           WHEN namespace = '%s' THEN '%s'
+           WHEN namespace = '' THEN '%s'
+           WHEN controller_kind = '' THEN '%s'
+           WHEN controller = '' THEN '%s'
+           ELSE  concat_ws('/', namespace, controller_kind, controller)
+           END`,
+			types.ManagementCostItemName, types.ManagementCostItemName,
+			types.IdleCostItemName, types.IdleCostItemName,
+			types.UnallocatedItemName, types.UnallocatedItemName, types.UnallocatedItemName,
+		)
+
+		workloadByCase := fmt.Sprintf(`CASE
+				WHEN (%s) = '%s' THEN 0
+				WHEN (%s) = '%s' THEN 1 
+				ELSE 2 
+				END`,
+			workloadGroupByField, types.ManagementCostItemName,
+			workloadGroupByField, types.IdleCostItemName,
+		)
+
+		return orderBys(
+			workloadByCase,
+			byStep,
+			byTotal,
+		), nil
+	default:
+		return orderBys(
+			byStep,
+			byTotal,
+		), nil
 	}
 }
 
@@ -69,11 +171,18 @@ func groupByWithZoneOffsetSQL(field types.GroupByField, offset int) (string, err
 	case field == types.GroupByFieldMonth:
 		groupBy = fmt.Sprintf(`date_trunc('month', (start_time AT TIME ZONE '%s'))`, timeZone)
 	case field == types.GroupByFieldWorkload:
-		groupBy = fmt.Sprintf(`CASE WHEN namespace = '' THEN '%s' 
- WHEN controller_kind = '' THEN '%s'
- WHEN controller = '' THEN '%s'
- ELSE  concat_ws('/', namespace, controller_kind, controller)
-END`, types.UnallocatedLabel, types.UnallocatedLabel, types.UnallocatedLabel)
+		groupBy = fmt.Sprintf(`CASE
+           WHEN namespace = '%s' THEN '%s'
+           WHEN namespace = '%s' THEN '%s'
+           WHEN namespace = '' THEN '%s'
+           WHEN controller_kind = '' THEN '%s'
+           WHEN controller = '' THEN '%s'
+           ELSE  concat_ws('/', namespace, controller_kind, controller)
+           END`,
+			types.ManagementCostItemName, types.ManagementCostItemName,
+			types.IdleCostItemName, types.IdleCostItemName,
+			types.UnallocatedItemName, types.UnallocatedItemName, types.UnallocatedItemName,
+		)
 	default:
 		groupBy = strs.Underscore(string(field))
 	}
@@ -129,7 +238,7 @@ func havingSQL(
 			args[i] = connIDs[i]
 		}
 
-		having = sql.In(allocationcost.FieldConnectorID, args...)
+		having = sql.In(costreport.FieldConnectorID, args...)
 	default:
 		col := sql.Max(fmt.Sprintf(`CAST((%s) AS varchar)`, groupBySQL))
 		pattern := fmt.Sprintf("%%%s%%", query)
@@ -140,7 +249,7 @@ func havingSQL(
 }
 
 // FilterToSQLPredicates create sql predicate from filters.
-func FilterToSQLPredicates(filters types.AllocationCostFilters) *sql.Predicate {
+func FilterToSQLPredicates(filters types.CostFilters) *sql.Predicate {
 	var or []*sql.Predicate
 
 	for _, cond := range filters {
@@ -186,13 +295,13 @@ func ruleToSQLPredicates(cond types.FilterRule) *sql.Predicate {
 		switch cond.Operator {
 		case types.OperatorIn:
 			pred = sqljson.ValueIn(
-				allocationcost.FieldLabels,
+				costreport.FieldLabels,
 				toArgs(cond.Values),
 				sqljson.Path(labelName),
 			)
 		case types.OperatorNotIn:
 			pred = sqljson.ValueNotIn(
-				allocationcost.FieldLabels,
+				costreport.FieldLabels,
 				toArgs(cond.Values),
 				sqljson.Path(labelName),
 			)
@@ -212,4 +321,30 @@ func ruleToSQLPredicates(cond types.FilterRule) *sql.Predicate {
 	}
 
 	return pred
+}
+
+type CostPerConnector struct {
+	ConnectorID    object.ID `json:"connectorID,omitempty"`
+	TotalCost      float64   `json:"totalCost,omitempty"`
+	IdleCost       float64   `json:"idleCost,omitempty"`
+	ManagementCost float64   `json:"managementCost,omitempty"`
+	WorkloadCost   float64   `json:"workloadCost,omitempty"`
+}
+
+type SharedCostConnectors struct {
+	Idle       *types.IdleShareOption
+	Management *types.ManagementShareOption
+	Items      []ItemSharedCost
+}
+
+type ItemSharedCost struct {
+	Option      *types.ItemSharedOption
+	SharedCosts map[object.ID]float64
+}
+
+type CalculateInfo struct {
+	ItemCoefficientPerConn map[string]map[object.ID]float64
+	ItemCountPerConn       map[object.ID]int
+	CostPerConn            map[object.ID]CostPerConnector
+	ItemConnIDs            map[string][]object.ID
 }

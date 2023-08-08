@@ -8,8 +8,8 @@ import (
 	"github.com/seal-io/seal/pkg/costs/deployer"
 	"github.com/seal-io/seal/pkg/costs/syncer"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/operator"
@@ -138,8 +138,8 @@ func (in *StatusSyncer) syncFinOpsData(ctx context.Context, conn model.Connector
 		return true, "", err
 	}
 
-	existed, err := in.client.ClusterCosts().Query().
-		Where(clustercost.ConnectorID(conn.ID)).
+	existed, err := in.client.CostReports().Query().
+		Where(costreport.ConnectorID(conn.ID)).
 		Exist(ctx)
 	if err != nil {
 		return true, "", err

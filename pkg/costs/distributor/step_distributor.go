@@ -6,14 +6,12 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/seal/pkg/apis/cost/view"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
-	"github.com/seal-io/seal/pkg/dao/model/clustercost"
-	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/sqlx"
 )
 
@@ -27,47 +25,47 @@ func (r *stepDistributor) distribute(
 	endTime time.Time,
 	cond types.QueryCondition,
 ) ([]view.Resource, int, error) {
-	allocationCosts, queriedCount, err := r.AllocationCosts(ctx, startTime, endTime, cond)
+	// Item costs.
+	itemCosts, count, err := r.itemCost(ctx, startTime, endTime, cond)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	sharedCosts, err := r.SharedCosts(ctx, startTime, endTime, cond.SharedCosts, cond.Step)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	totalAllocationCosts := r.totalAllocationCosts(allocationCosts)
-
-	if err != nil {
-		return nil, 0, err
-	}
-
-	itemNameSet := sets.Set[string]{}
-
-	for i, item := range allocationCosts {
-		if item.ItemName == "" {
-			allocationCosts[i].ItemName = types.UnallocatedLabel
+	// Apply shared costs.
+	if cond.SharedOptions != nil {
+		sharedCosts, err := r.sharedCosts(ctx, startTime, endTime, cond.Step, cond.SharedOptions)
+		if err != nil {
+			return nil, 0, err
 		}
 
-		var (
-			bucket              = item.StartTime.Format(time.RFC3339)
-			shares              = sharedCosts[bucket]
-			totalAllocationCost = totalAllocationCosts[bucket]
-		)
+		calInfo, err := r.calculateInfo(ctx, startTime, endTime, cond)
+		if err != nil {
+			return nil, 0, err
+		}
 
-		itemNameSet.Insert(allocationCosts[i].ItemName)
-		applySharedCost(itemNameSet.Len(), &allocationCosts[i].Cost, shares, totalAllocationCost)
+		for i, item := range itemCosts {
+			if types.IsIdleOrManagementCost(item.ItemName) {
+				continue
+			}
+
+			var (
+				bucket = item.StartTime.Format(time.RFC3339)
+				shared = sharedCosts[bucket]
+				info   = calInfo[bucket]
+			)
+
+			applySharedCost(&itemCosts[i], shared, info)
+		}
 	}
 
-	if err = applyItemDisplayName(ctx, r.client, allocationCosts, cond.GroupBy); err != nil {
+	if err = applyItemDisplayName(ctx, r.client, itemCosts, cond.GroupBy); err != nil {
 		return nil, 0, err
 	}
 
-	return allocationCosts, queriedCount, nil
+	return itemCosts, count, nil
 }
 
-func (r *stepDistributor) AllocationCosts(
+func (r *stepDistributor) itemCost(
 	ctx context.Context,
 	startTime,
 	endTime time.Time,
@@ -76,7 +74,7 @@ func (r *stepDistributor) AllocationCosts(
 	// Condition.
 	_, offset := startTime.Zone()
 
-	orderBy, err := orderByWithOffsetSQL(cond.GroupBy, offset)
+	orderBy, err := orderByWithStepSQL(cond.GroupBy, cond.Step, offset)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -87,7 +85,7 @@ func (r *stepDistributor) AllocationCosts(
 	}
 
 	dateTrunc, err := sqlx.DateTruncWithZoneOffsetSQL(
-		allocationcost.FieldStartTime,
+		costreport.FieldStartTime,
 		string(cond.Step),
 		offset,
 	)
@@ -101,8 +99,8 @@ func (r *stepDistributor) AllocationCosts(
 			dateTrunc,
 		}
 		ps = []*sql.Predicate{
-			sql.GTE(allocationcost.FieldStartTime, startTime),
-			sql.LTE(allocationcost.FieldEndTime, endTime),
+			sql.GTE(costreport.FieldStartTime, startTime),
+			sql.LTE(costreport.FieldEndTime, endTime),
 		}
 	)
 
@@ -121,11 +119,11 @@ func (r *stepDistributor) AllocationCosts(
 	countSubQuery := sql.Select(groupBys...).
 		Where(sql.And(ps...)).
 		GroupBy(groupBys...).
-		From(sql.Table(allocationcost.Table)).
+		From(sql.Table(costreport.Table)).
 		As("subQuery")
 
 	// Queried count.
-	queriedCount, err := r.client.AllocationCosts().Query().
+	count, err := r.client.CostReports().Query().
 		Modify(func(s *sql.Selector) {
 			if havingPs != nil {
 				countSubQuery.Having(havingPs)
@@ -139,31 +137,35 @@ func (r *stepDistributor) AllocationCosts(
 	}
 
 	// Query.
-	query := r.client.AllocationCosts().Query().
+	query := r.client.CostReports().Query().
 		Modify(func(s *sql.Selector) {
-			s.Where(
-				sql.And(ps...),
-			).SelectExpr(
-				sql.Raw(fmt.Sprintf(`%s AS "itemName"`, groupBy)),
-				sql.Raw(fmt.Sprintf(`%s AS "startTime"`, dateTrunc)),
-				sql.Expr(model.As(model.Sum(allocationcost.FieldTotalCost), "totalCost")(s)),
-				sql.Expr(model.As(model.Sum(allocationcost.FieldCPUCost), "cpuCost")(s)),
-				sql.Expr(model.As(model.Sum(allocationcost.FieldGpuCost), "gpuCost")(s)),
-				sql.Expr(model.As(model.Sum(allocationcost.FieldRAMCost), "ramCost")(s)),
-				sql.Expr(model.As(model.Sum(allocationcost.FieldPvCost), "pvCost")(s)),
-				sql.Expr(model.As(model.Sum(allocationcost.FieldLoadBalancerCost), "loadBalancerCost")(s)),
-			).
+			s.
+				Where(
+					sql.And(ps...),
+				).
+				SelectExpr(
+					sql.Raw(fmt.Sprintf(`%s AS "itemName"`, groupBy)),
+					sql.Raw(fmt.Sprintf(`%s AS "startTime"`, dateTrunc)),
+					sql.Expr(model.As(model.Sum(costreport.FieldTotalCost), "totalCost")(s)),
+					sql.Expr(model.As(model.Sum(costreport.FieldCPUCost), "cpuCost")(s)),
+					sql.Expr(model.As(model.Sum(costreport.FieldGpuCost), "gpuCost")(s)),
+					sql.Expr(model.As(model.Sum(costreport.FieldRAMCost), "ramCost")(s)),
+					sql.Expr(model.As(model.Sum(costreport.FieldPvCost), "pvCost")(s)),
+					sql.Expr(model.As(model.Sum(costreport.FieldLoadBalancerCost), "loadBalancerCost")(s)),
+				).
 				GroupBy(
 					groupBys...,
-				).OrderExpr(
-				sql.Expr(orderBy),
-			)
+				).
+				OrderExpr(
+					sql.Expr(orderBy),
+				)
 
 			if havingPs != nil {
 				s.Having(havingPs)
 			}
 		})
 
+	// Paging.
 	var (
 		page    = cond.Paging.Page
 		perPage = cond.Paging.PerPage
@@ -177,27 +179,353 @@ func (r *stepDistributor) AllocationCosts(
 
 	var items []view.Resource
 	if err = query.Scan(ctx, &items); err != nil {
-		return nil, 0, fmt.Errorf("error query allocation cost: %w", err)
+		return nil, 0, fmt.Errorf("error query item cost: %w", err)
 	}
 
-	return items, queriedCount, nil
+	// Rename unallocated item name.
+	for i := range items {
+		if items[i].ItemName == "" {
+			items[i].ItemName = types.UnallocatedItemName
+		}
+	}
+
+	return items, count, nil
 }
 
-func (r *stepDistributor) SharedCosts(
+func (r *stepDistributor) sharedCosts(
 	ctx context.Context,
 	startTime,
 	endTime time.Time,
-	conds types.ShareCosts,
 	step types.Step,
-) (map[string][]*SharedCost, error) {
-	if len(conds) == 0 {
+	opts *types.SharedCostOptions,
+) (map[string]*SharedCostConnectors, error) {
+	if (opts == nil) || opts.Idle == nil && opts.Management == nil && len(opts.Item) == 0 {
 		return nil, nil
+	}
+
+	cpc, err := r.costPerConnectorsPerDays(ctx, startTime, endTime, step)
+	if err != nil {
+		return nil, err
+	}
+
+	scc := make(map[string]*SharedCostConnectors)
+
+	for date := range cpc {
+		if _, ok := scc[date]; !ok {
+			scc[date] = &SharedCostConnectors{}
+		}
+
+		// Idle costs.
+		scc[date].Idle = opts.Idle
+
+		// Management costs.
+		scc[date].Management = opts.Management
+	}
+
+	// Shared item costs.
+	for _, v := range opts.Item {
+		opt := v
+
+		itemCosts, err := r.itemCostPerConnPerDay(ctx, startTime, endTime, step, v.Filters)
+		if err != nil {
+			return nil, err
+		}
+
+		for date, ic := range itemCosts {
+			if _, ok := scc[date]; !ok {
+				scc[date] = &SharedCostConnectors{}
+			}
+
+			scc[date].Items = append(scc[date].Items, ItemSharedCost{
+				Option:      &opt,
+				SharedCosts: ic,
+			})
+		}
+	}
+
+	return scc, nil
+}
+
+func (r *stepDistributor) calculateInfo(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	cond types.QueryCondition,
+) (map[string]*CalculateInfo, error) {
+	// Condition.
+	_, offset := startTime.Zone()
+
+	groupBy, err := groupByWithZoneOffsetSQL(cond.GroupBy, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	dateTrunc, err := sqlx.DateTruncWithZoneOffsetSQL(
+		costreport.FieldStartTime,
+		string(cond.Step),
+		offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		groupBys = []string{
+			groupBy,
+			dateTrunc,
+			costreport.FieldConnectorID,
+		}
+		ps = []*sql.Predicate{
+			sql.GTE(costreport.FieldStartTime, startTime),
+			sql.LTE(costreport.FieldEndTime, endTime),
+		}
+	)
+
+	if filterPs := FilterToSQLPredicates(cond.Filters); filterPs != nil {
+		ps = append(ps, filterPs)
+	}
+
+	// Query.
+	query := r.client.CostReports().Query().
+		Modify(func(s *sql.Selector) {
+			s.
+				Where(
+					sql.And(ps...),
+				).
+				SelectExpr(
+					sql.Raw(fmt.Sprintf(`%s AS "itemName"`, groupBy)),
+					sql.Raw(fmt.Sprintf(`%s AS "startTime"`, dateTrunc)),
+					sql.Expr(model.As(model.Sum(costreport.FieldTotalCost), "totalCost")(s)),
+				).
+				AppendSelect(
+					sql.As(costreport.FieldConnectorID, "connectorID"),
+				).
+				GroupBy(
+					groupBys...,
+				)
+		})
+
+	var items []struct {
+		ConnectorID object.ID `json:"connectorID,omitempty"`
+		TotalCost   float64   `json:"totalCost,omitempty"`
+		ItemName    string    `json:"itemName,omitempty"`
+		StartTime   time.Time `json:"startTime,omitempty"`
+	}
+
+	if err = query.Scan(ctx, &items); err != nil {
+		return nil, fmt.Errorf("error query item cost: %w", err)
+	}
+
+	cpc, err := r.costPerConnectorsPerDays(ctx, startTime, endTime, cond.Step)
+	if err != nil {
+		return nil, err
+	}
+
+	info := make(map[string]*CalculateInfo)
+
+	for _, v := range items {
+		// Name.
+		itemName := v.ItemName
+		if itemName == "" {
+			itemName = types.UnallocatedItemName
+		}
+
+		// Bucket.
+		bucket := v.StartTime.Format(time.RFC3339)
+		if _, ok := info[bucket]; !ok {
+			info[bucket] = &CalculateInfo{
+				ItemCountPerConn:       make(map[object.ID]int),
+				ItemCoefficientPerConn: make(map[string]map[object.ID]float64),
+				ItemConnIDs:            make(map[string][]object.ID),
+			}
+		}
+
+		// Count.
+		if !types.IsIdleOrManagementCost(itemName) {
+			info[bucket].ItemCountPerConn[v.ConnectorID] += 1
+		}
+
+		// Coefficient.
+		if _, ok := info[bucket].ItemCoefficientPerConn[itemName]; !ok {
+			info[bucket].ItemCoefficientPerConn[itemName] = make(map[object.ID]float64)
+		}
+
+		if cpc[bucket] != nil && cpc[bucket][v.ConnectorID].WorkloadCost != 0 {
+			coef := v.TotalCost / cpc[bucket][v.ConnectorID].WorkloadCost
+			info[bucket].ItemCoefficientPerConn[itemName][v.ConnectorID] = coef
+		}
+
+		// Cost per connector.
+		info[bucket].CostPerConn = cpc[bucket]
+
+		// Item connector ids.
+		info[bucket].ItemConnIDs[itemName] = append(info[bucket].ItemConnIDs[itemName], v.ConnectorID)
+	}
+
+	return info, nil
+}
+
+func (r *stepDistributor) costPerConnectorsPerDays(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	step types.Step,
+) (map[string]map[object.ID]CostPerConnector, error) {
+	connIDs, err := connectorIDs(ctx, r.client)
+	if err != nil {
+		return nil, err
+	}
+
+	idleCosts, err := r.idleCostPerConnPerDay(ctx, startTime, endTime, step, connIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	mgntCosts, err := r.mgntCostPerConnPerDay(ctx, startTime, endTime, step, connIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	totalCosts, err := r.totalCostPerConnPerDay(ctx, startTime, endTime, step, connIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	cpc := make(map[string]map[object.ID]CostPerConnector, len(totalCosts))
+	for date, cs := range totalCosts {
+		if _, ok := cpc[date]; !ok {
+			cpc[date] = make(map[object.ID]CostPerConnector)
+		}
+
+		for cid, t := range cs {
+			i := idleCosts[date][cid]
+			m := mgntCosts[date][cid]
+			w := t - m - i
+			cpc[date][cid] = CostPerConnector{
+				ConnectorID:    cid,
+				TotalCost:      t,
+				IdleCost:       i,
+				ManagementCost: m,
+				WorkloadCost:   w,
+			}
+		}
+	}
+
+	return cpc, nil
+}
+
+func (r *stepDistributor) idleCostPerConnPerDay(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	step types.Step,
+	connIDs []object.ID,
+) (map[string]map[object.ID]float64, error) {
+	if len(connIDs) == 0 {
+		return nil, nil
+	}
+
+	return r.costPerConnPerDayQuery(
+		ctx,
+		startTime,
+		endTime,
+		step,
+		sql.EQ(costreport.FieldName, types.IdleCostItemName),
+		connIDs,
+	)
+}
+
+func (r *stepDistributor) mgntCostPerConnPerDay(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	step types.Step,
+	connIDs []object.ID,
+) (map[string]map[object.ID]float64, error) {
+	if len(connIDs) == 0 {
+		return nil, nil
+	}
+
+	return r.costPerConnPerDayQuery(
+		ctx,
+		startTime,
+		endTime,
+		step,
+		sql.EQ(costreport.FieldName, types.ManagementCostItemName),
+		connIDs,
+	)
+}
+
+func (r *stepDistributor) totalCostPerConnPerDay(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	step types.Step,
+	connIDs []object.ID,
+) (map[string]map[object.ID]float64, error) {
+	if len(connIDs) == 0 {
+		return nil, nil
+	}
+
+	return r.costPerConnPerDayQuery(
+		ctx,
+		startTime,
+		endTime,
+		step,
+		nil,
+		connIDs,
+	)
+}
+
+func (r *stepDistributor) itemCostPerConnPerDay(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	step types.Step,
+	filters types.CostFilters,
+) (map[string]map[object.ID]float64, error) {
+	eps := FilterToSQLPredicates(filters)
+
+	return r.costPerConnPerDayQuery(
+		ctx,
+		startTime,
+		endTime,
+		step,
+		eps,
+		nil,
+	)
+}
+
+func (r *stepDistributor) costPerConnPerDayQuery(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	step types.Step,
+	eps *sql.Predicate,
+	connIDs []object.ID,
+) (map[string]map[object.ID]float64, error) {
+	ps := []*sql.Predicate{
+		sql.GTE(costreport.FieldStartTime, startTime),
+		sql.LTE(costreport.FieldEndTime, endTime),
+	}
+
+	if len(connIDs) != 0 {
+		ids := make([]any, len(connIDs))
+		for i := range connIDs {
+			ids[i] = connIDs[i]
+		}
+
+		ps = append(ps, sql.In(costreport.FieldConnectorID, ids...))
+	}
+
+	if eps != nil {
+		ps = append(ps, eps)
 	}
 
 	_, offset := startTime.Zone()
 
 	dateTrunc, err := sqlx.DateTruncWithZoneOffsetSQL(
-		allocationcost.FieldStartTime,
+		costreport.FieldStartTime,
 		string(step),
 		offset,
 	)
@@ -205,295 +533,44 @@ func (r *stepDistributor) SharedCosts(
 		return nil, err
 	}
 
-	sharedCosts := make(map[string][]*SharedCost)
-
-	for _, v := range conds {
-		saCosts, err := r.sharedAllocationCost(ctx, startTime, endTime, v, dateTrunc)
-		if err != nil {
-			return nil, err
-		}
-
-		idleCosts, err := r.sharedIdleCost(ctx, startTime, endTime, v, dateTrunc)
-		if err != nil {
-			return nil, err
-		}
-
-		mgntCost, err := r.sharedManagementCost(ctx, startTime, endTime, v, dateTrunc)
-		if err != nil {
-			return nil, err
-		}
-
-		bucket := sharedCostBuckets(saCosts, idleCosts, mgntCost, v)
-		for key, sc := range bucket {
-			sharedCosts[key] = append(sharedCosts[key], sc)
-		}
+	var costs []struct {
+		StartTime time.Time `json:"startTime,omitempty"`
+		CostPerConnector
 	}
-
-	return sharedCosts, nil
-}
-
-func (r *stepDistributor) sharedAllocationCost(
-	ctx context.Context,
-	startTime,
-	endTime time.Time,
-	cond types.SharedCost,
-	dateTrunc string,
-) (map[string]*SharedCost, error) {
-	if len(cond.Filters) == 0 {
-		return nil, nil
-	}
-
-	ps := []*sql.Predicate{
-		sql.GTE(allocationcost.FieldStartTime, startTime),
-		sql.LTE(allocationcost.FieldEndTime, endTime),
-	}
-
-	if filterPs := FilterToSQLPredicates(cond.Filters); filterPs != nil {
-		ps = append(ps, filterPs)
-	}
-
-	var costs []SharedCost
-
-	err := r.client.AllocationCosts().Query().
+	err = r.client.CostReports().Query().
 		Modify(func(s *sql.Selector) {
-			s.Where(
-				sql.And(ps...),
-			).SelectExpr(
-				sql.Raw(fmt.Sprintf(`%s AS "startTime"`, dateTrunc)),
-				sql.Expr(model.As(model.Sum(allocationcost.FieldTotalCost), "allocationCost")(s)),
-			).GroupBy(dateTrunc)
+			s.
+				Where(
+					sql.And(ps...),
+				).
+				SelectExpr(
+					sql.Raw(fmt.Sprintf(`%s AS "startTime"`, dateTrunc)),
+					sql.Expr(model.As(model.Sum(costreport.FieldTotalCost), "totalCost")(s)),
+				).
+				AppendSelect(
+					sql.As(costreport.FieldConnectorID, "connectorID"),
+				).
+				GroupBy(
+					costreport.FieldConnectorID,
+					dateTrunc,
+				)
 		}).
 		Scan(ctx, &costs)
+
 	if err != nil {
-		return nil, fmt.Errorf("error query shared allocation cost: %w", err)
+		return nil, fmt.Errorf("error query cost per connector: %w", err)
 	}
 
-	bucket := make(map[string]*SharedCost)
+	bucket := make(map[string]map[object.ID]float64)
 
 	for _, v := range costs {
 		key := v.StartTime.Format(time.RFC3339)
+
 		if _, ok := bucket[key]; !ok {
-			bucket[key] = &SharedCost{}
+			bucket[key] = make(map[object.ID]float64)
 		}
-		bucket[key].StartTime = v.StartTime
-		bucket[key].AllocationCost += v.AllocationCost
+		bucket[key][v.ConnectorID] += v.TotalCost
 	}
 
 	return bucket, nil
-}
-
-func (r *stepDistributor) sharedIdleCost(
-	ctx context.Context,
-	startTime,
-	endTime time.Time,
-	cond types.SharedCost,
-	dateTrunc string,
-) (map[string]*SharedCost, error) {
-	if len(cond.IdleCostFilters) == 0 {
-		return nil, nil
-	}
-
-	timePs := []*sql.Predicate{
-		sql.GTE(allocationcost.FieldStartTime, startTime),
-		sql.LTE(allocationcost.FieldEndTime, endTime),
-	}
-
-	var ps []*sql.Predicate
-	ps = append(ps, timePs...)
-
-	for _, v := range cond.IdleCostFilters {
-		if v.ConnectorID.Valid() {
-			ps = append(ps, sql.EQ("connector_id", v.ConnectorID))
-		}
-	}
-
-	var costs []SharedCost
-
-	err := r.client.ClusterCosts().Query().
-		Modify(func(s *sql.Selector) {
-			s.Where(
-				sql.And(ps...),
-			).SelectExpr(
-				sql.Raw(fmt.Sprintf(`%s AS "startTime"`, dateTrunc)),
-				sql.Expr(model.As(model.Sum(clustercost.FieldIdleCost), "idleCost")(s)),
-			).GroupBy(dateTrunc)
-		}).
-		Scan(ctx, &costs)
-	if err != nil {
-		return nil, fmt.Errorf("error query cluster cost: %w", err)
-	}
-
-	bucket := make(map[string]*SharedCost)
-
-	for _, v := range costs {
-		key := v.StartTime.Format(time.RFC3339)
-		if _, ok := bucket[key]; !ok {
-			bucket[key] = &SharedCost{}
-		}
-		bucket[key].StartTime = v.StartTime
-		bucket[key].IdleCost += v.IdleCost
-	}
-
-	return bucket, nil
-}
-
-func (r *stepDistributor) sharedManagementCost(
-	ctx context.Context,
-	startTime,
-	endTime time.Time,
-	cond types.SharedCost,
-	dateTrunc string,
-) (map[string]*SharedCost, error) {
-	if len(cond.ManagementCostFilters) == 0 {
-		return nil, nil
-	}
-
-	ps := []*sql.Predicate{
-		sql.GTE(allocationcost.FieldStartTime, startTime),
-		sql.LTE(allocationcost.FieldEndTime, endTime),
-	}
-
-	for _, v := range cond.ManagementCostFilters {
-		if v.ConnectorID.Valid() {
-			ps = append(ps, sql.EQ(clustercost.FieldConnectorID, v.ConnectorID))
-		}
-	}
-
-	var costs []SharedCost
-
-	err := r.client.ClusterCosts().Query().
-		Modify(func(s *sql.Selector) {
-			s.Where(
-				sql.And(ps...),
-			).SelectExpr(
-				sql.Raw(fmt.Sprintf(`%s AS "startTime"`, dateTrunc)),
-				sql.Expr(model.As(model.Sum(clustercost.FieldManagementCost), "managementCost")(s)),
-			).GroupBy(dateTrunc)
-		}).
-		Scan(ctx, &costs)
-	if err != nil {
-		return nil, fmt.Errorf("error query management cost: %w", err)
-	}
-
-	bucket := make(map[string]*SharedCost)
-
-	for _, v := range costs {
-		key := v.StartTime.Format(time.RFC3339)
-		if _, ok := bucket[key]; !ok {
-			bucket[key] = &SharedCost{}
-		}
-		bucket[key].StartTime = v.StartTime
-		bucket[key].ManagementCost += v.ManagementCost
-	}
-
-	return bucket, nil
-}
-
-func (r *stepDistributor) totalAllocationCosts(costs []view.Resource) map[string]float64 {
-	bucket := make(map[string]float64)
-
-	for _, v := range costs {
-		key := v.StartTime.Format(time.RFC3339)
-		bucket[key] += v.TotalCost
-	}
-
-	return bucket
-}
-
-func applyItemDisplayName(
-	ctx context.Context,
-	client model.ClientSet,
-	items []view.Resource,
-	groupBy types.GroupByField,
-) error {
-	if groupBy != types.GroupByFieldConnectorID {
-		return nil
-	}
-
-	// Group by connector id.
-	conns, err := client.Connectors().Query().
-		Where(
-			connector.TypeEQ(types.ConnectorTypeK8s),
-		).
-		Select(
-			connector.FieldID,
-			connector.FieldName,
-		).
-		All(ctx)
-	if err != nil {
-		return err
-	}
-
-	for i, v := range items {
-		for _, conn := range conns {
-			if v.ItemName == conn.ID.String() {
-				items[i].ItemName = conn.Name
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-func applySharedCost(
-	count int,
-	allocationCost *view.Cost,
-	shares []*SharedCost,
-	totalAllocationCost float64,
-) {
-	var coefficients float64
-	if allocationCost.TotalCost != 0 && totalAllocationCost != 0 {
-		coefficients = allocationCost.TotalCost / totalAllocationCost
-	}
-
-	for _, v := range shares {
-		var shared float64
-
-		switch v.Condition.SharingStrategy {
-		case types.SharingStrategyEqually:
-			if count != 0 {
-				shared = v.TotalCost / float64(count)
-			}
-		case types.SharingStrategyProportionally:
-			shared = v.TotalCost * coefficients
-		}
-		allocationCost.SharedCost += shared
-		allocationCost.TotalCost += shared
-	}
-}
-
-func sharedCostBuckets(
-	allocation, idle, management map[string]*SharedCost,
-	cond types.SharedCost,
-) map[string]*SharedCost {
-	grouped := make(map[string]*SharedCost)
-	for key, v := range allocation {
-		if _, ok := grouped[key]; !ok {
-			grouped[key] = &SharedCost{}
-		}
-		grouped[key].TotalCost += v.AllocationCost
-		grouped[key].AllocationCost += v.TotalCost
-		grouped[key].Condition = cond
-	}
-
-	for key, v := range idle {
-		if _, ok := grouped[key]; !ok {
-			grouped[key] = &SharedCost{}
-		}
-		grouped[key].TotalCost += v.IdleCost
-		grouped[key].IdleCost += v.IdleCost
-		grouped[key].Condition = cond
-	}
-
-	for key, v := range management {
-		if _, ok := grouped[key]; !ok {
-			grouped[key] = &SharedCost{}
-		}
-		grouped[key].TotalCost += v.ManagementCost
-		grouped[key].ManagementCost += v.ManagementCost
-		grouped[key].Condition = cond
-	}
-
-	return grouped
 }
