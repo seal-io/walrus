@@ -35,8 +35,8 @@ func (ServiceRevision) Fields() []ent.Field {
 			Comment("ID of the service to which the revision belongs.").
 			NotEmpty().
 			Immutable(),
-		field.String("template_id").
-			Comment("ID of the template.").
+		field.String("template_name").
+			Comment("Name of the template.").
 			NotEmpty().
 			Immutable(),
 		field.String("template_version").
