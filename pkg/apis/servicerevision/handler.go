@@ -153,7 +153,7 @@ var (
 		servicerevision.FieldStatusMessage,
 		servicerevision.FieldInputPlan,
 		servicerevision.FieldOutput,
-		servicerevision.FieldTemplateID,
+		servicerevision.FieldTemplateName,
 		servicerevision.FieldTemplateVersion,
 		servicerevision.FieldAttributes,
 		servicerevision.FieldVariables,
@@ -598,7 +598,7 @@ func (h Handler) GetDiffLatest(ctx *gin.Context, req view.DiffLatestRequest) (*v
 		Select(
 			servicerevision.FieldID,
 			servicerevision.FieldServiceID,
-			servicerevision.FieldTemplateID,
+			servicerevision.FieldTemplateName,
 			servicerevision.FieldTemplateVersion,
 			servicerevision.FieldAttributes,
 		).
@@ -612,7 +612,7 @@ func (h Handler) GetDiffLatest(ctx *gin.Context, req view.DiffLatestRequest) (*v
 	latestRevision, err := h.modelClient.ServiceRevisions().Query().
 		Select(
 			servicerevision.FieldID,
-			servicerevision.FieldTemplateID,
+			servicerevision.FieldTemplateName,
 			servicerevision.FieldTemplateVersion,
 			servicerevision.FieldAttributes,
 		).
@@ -625,12 +625,12 @@ func (h Handler) GetDiffLatest(ctx *gin.Context, req view.DiffLatestRequest) (*v
 
 	return &view.RevisionDiffResponse{
 		Old: view.RevisionDiff{
-			TemplateID:      latestRevision.TemplateID,
+			TemplateName:    latestRevision.TemplateName,
 			TemplateVersion: latestRevision.TemplateVersion,
 			Attributes:      latestRevision.Attributes,
 		},
 		New: view.RevisionDiff{
-			TemplateID:      compareRevision.TemplateID,
+			TemplateName:    compareRevision.TemplateName,
 			TemplateVersion: compareRevision.TemplateVersion,
 			Attributes:      compareRevision.Attributes,
 		},
@@ -645,7 +645,7 @@ func (h Handler) GetDiffPrevious(
 	compareRevision, err := h.modelClient.ServiceRevisions().Query().
 		Select(
 			servicerevision.FieldID,
-			servicerevision.FieldTemplateID,
+			servicerevision.FieldTemplateName,
 			servicerevision.FieldTemplateVersion,
 			servicerevision.FieldAttributes,
 			servicerevision.FieldServiceID,
@@ -663,7 +663,7 @@ func (h Handler) GetDiffPrevious(
 	previousRevision, err := h.modelClient.ServiceRevisions().Query().
 		Select(
 			servicerevision.FieldID,
-			servicerevision.FieldTemplateID,
+			servicerevision.FieldTemplateName,
 			servicerevision.FieldTemplateVersion,
 			servicerevision.FieldAttributes,
 		).
@@ -679,7 +679,7 @@ func (h Handler) GetDiffPrevious(
 
 	if previousRevision != nil {
 		old = view.RevisionDiff{
-			TemplateID:      previousRevision.TemplateID,
+			TemplateName:    previousRevision.TemplateName,
 			TemplateVersion: previousRevision.TemplateVersion,
 			Attributes:      previousRevision.Attributes,
 		}
@@ -688,7 +688,7 @@ func (h Handler) GetDiffPrevious(
 	return &view.RevisionDiffResponse{
 		Old: old,
 		New: view.RevisionDiff{
-			TemplateID:      compareRevision.TemplateID,
+			TemplateName:    compareRevision.TemplateName,
 			TemplateVersion: compareRevision.TemplateVersion,
 			Attributes:      compareRevision.Attributes,
 		},

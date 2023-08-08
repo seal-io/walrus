@@ -388,7 +388,7 @@ func (d Deployer) CreateServiceRevision(
 		ProjectID:       opts.Service.ProjectID,
 		ServiceID:       opts.Service.ID,
 		EnvironmentID:   opts.Service.EnvironmentID,
-		TemplateID:      opts.Service.Template.ID,
+		TemplateName:    opts.Service.Template.Name,
 		TemplateVersion: opts.Service.Template.Version,
 		Attributes:      opts.Service.Attributes,
 		Tags:            opts.Tags,
@@ -427,7 +427,7 @@ func (d Deployer) CreateServiceRevision(
 	if opts.JobType == JobTypeDestroy &&
 		prevEntity != nil &&
 		prevEntity.Status == status.ServiceRevisionStatusSucceeded {
-		entity.TemplateID = prevEntity.TemplateID
+		entity.TemplateName = prevEntity.TemplateName
 		entity.TemplateVersion = prevEntity.TemplateVersion
 		entity.Attributes = prevEntity.Attributes
 		entity.InputPlan = prevEntity.InputPlan
@@ -636,11 +636,11 @@ func (d Deployer) GetModuleConfig(
 	)
 
 	predicates = append(predicates, templateversion.And(
-		templateversion.TemplateID(opts.ServiceRevision.TemplateID),
+		templateversion.TemplateName(opts.ServiceRevision.TemplateName),
 		templateversion.Version(opts.ServiceRevision.TemplateVersion),
 	))
 
-	moduleVersion, err := d.modelClient.TemplateVersions().
+	templateVersion, err := d.modelClient.TemplateVersions().
 		Query().
 		Select(
 			templateversion.FieldID,
@@ -655,11 +655,11 @@ func (d Deployer) GetModuleConfig(
 		return nil, nil, err
 	}
 
-	if moduleVersion.Schema != nil {
-		requiredProviders = append(requiredProviders, moduleVersion.Schema.RequiredProviders...)
+	if templateVersion.Schema != nil {
+		requiredProviders = append(requiredProviders, templateVersion.Schema.RequiredProviders...)
 	}
 
-	mc, err := getModuleConfig(opts.ServiceRevision, moduleVersion, opts)
+	mc, err := getModuleConfig(opts.ServiceRevision, templateVersion, opts)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -863,7 +863,7 @@ func (d Deployer) getPreviousRequiredProviders(
 
 	templateVersion, err := d.modelClient.TemplateVersions().Query().
 		Where(
-			templateversion.TemplateID(entity.TemplateID),
+			templateversion.TemplateName(entity.TemplateName),
 			templateversion.Version(entity.TemplateVersion),
 		).
 		Only(ctx)

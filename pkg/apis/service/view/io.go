@@ -73,7 +73,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	// Verify module version.
 
 	templateVersion, err := modelClient.TemplateVersions().Query().
-		Where(templateversion.TemplateID(r.Template.ID), templateversion.Version(r.Template.Version)).
+		Where(templateversion.TemplateName(r.Template.Name), templateversion.Version(r.Template.Version)).
 		Only(ctx)
 	if err != nil {
 		return runtime.Errorw(err, "failed to get template version")
@@ -299,7 +299,7 @@ func (r *CollectionCreateRequest) ValidateWith(ctx context.Context, input any) e
 	templateVersionPredicates := make([]predicate.TemplateVersion, 0)
 
 	for _, s := range r.Services {
-		key := strs.Join("/", s.Template.ID, s.Template.Version)
+		key := strs.Join("/", s.Template.Name, s.Template.Version)
 		if templateVersionKeys.Has(key) {
 			continue
 		}
@@ -307,7 +307,7 @@ func (r *CollectionCreateRequest) ValidateWith(ctx context.Context, input any) e
 		templateVersionKeys.Insert(key)
 
 		templateVersionPredicates = append(templateVersionPredicates, templateversion.And(
-			templateversion.TemplateID(s.Template.ID),
+			templateversion.TemplateName(s.Template.Name),
 			templateversion.Version(s.Template.Version),
 		))
 	}
@@ -328,7 +328,7 @@ func (r *CollectionCreateRequest) ValidateWith(ctx context.Context, input any) e
 	templateVersionMap := make(map[string]*model.TemplateVersion, len(templateVersions))
 
 	for _, tv := range templateVersions {
-		key := strs.Join("/", tv.TemplateID, tv.Version)
+		key := strs.Join("/", tv.TemplateName, tv.Version)
 		if _, ok := templateVersionMap[key]; !ok {
 			templateVersionMap[key] = tv
 		}
@@ -351,7 +351,7 @@ func (r *CollectionCreateRequest) ValidateWith(ctx context.Context, input any) e
 		}
 
 		// Verify template version.
-		key := strs.Join("/", s.Template.ID, s.Template.Version)
+		key := strs.Join("/", s.Template.Name, s.Template.Version)
 
 		templateVersion, ok := templateVersionMap[key]
 		if !ok {
@@ -483,14 +483,14 @@ func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error
 		return runtime.Errorw(err, "failed to get service")
 	}
 
-	if r.Template.ID != svc.Template.ID {
+	if r.Template.Name != svc.Template.Name {
 		return errors.New("invalid template id: immutable")
 	}
 
 	tv, err := modelClient.TemplateVersions().Query().
 		Select(templateversion.FieldSchema).
 		Where(
-			templateversion.TemplateID(r.Template.ID),
+			templateversion.TemplateName(r.Template.Name),
 			templateversion.Version(r.Template.Version),
 		).
 		Only(ctx)

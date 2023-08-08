@@ -30,16 +30,16 @@ type GetResponse = *model.TemplateVersionOutput
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.TemplateVersion, templateversion.OrderOption] `query:",inline"`
 
-	TemplateIDs []string `query:"templateID"`
+	TemplateNames []string `query:"templateNames"`
 }
 
 func (r *CollectionGetRequest) Validate() error {
-	if len(r.TemplateIDs) == 0 {
-		return errors.New("invalid request: missing template id")
+	if len(r.TemplateNames) == 0 {
+		return errors.New("invalid request: missing template name")
 	}
 
-	for _, id := range r.TemplateIDs {
-		if id == "" {
+	for _, name := range r.TemplateNames {
+		if name == "" {
 			return errors.New("invalid template id: blank")
 		}
 	}

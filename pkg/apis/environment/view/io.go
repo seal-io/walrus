@@ -70,7 +70,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	templateVersionPredicates := make([]predicate.TemplateVersion, 0)
 
 	for _, s := range r.Services {
-		key := strs.Join("/", s.Template.ID, s.Template.Version)
+		key := strs.Join("/", s.Template.Name, s.Template.Version)
 		if templateVersionKeys.Has(key) {
 			continue
 		}
@@ -78,7 +78,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 		templateVersionKeys.Insert(key)
 
 		templateVersionPredicates = append(templateVersionPredicates, templateversion.And(
-			templateversion.TemplateID(s.Template.ID),
+			templateversion.TemplateName(s.Template.Name),
 			templateversion.Version(s.Template.Version),
 		))
 	}
@@ -99,7 +99,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	templateVersionMap := make(map[string]*model.TemplateVersion, len(templateVersions))
 
 	for _, tv := range templateVersions {
-		key := strs.Join("/", tv.TemplateID, tv.Version)
+		key := strs.Join("/", tv.TemplateName, tv.Version)
 		if _, ok := templateVersionMap[key]; !ok {
 			templateVersionMap[key] = tv
 		}
@@ -115,7 +115,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 		}
 
 		// Verify template version.
-		key := strs.Join("/", s.Template.ID, s.Template.Version)
+		key := strs.Join("/", s.Template.Name, s.Template.Version)
 
 		templateVersion, ok := templateVersionMap[key]
 		if !ok {

@@ -13,12 +13,6 @@ const (
 )
 
 const (
-	TemplateStatusInitializing = "Initializing"
-	TemplateStatusReady        = "Ready"
-	TemplateStatusError        = "Error"
-)
-
-const (
 	ServiceRevisionStatusRunning   = "Running"
 	ServiceRevisionStatusSucceeded = "Succeeded"
 	ServiceRevisionStatusFailed    = "Failed"

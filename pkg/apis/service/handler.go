@@ -614,7 +614,7 @@ func (h Handler) getServiceOutputs(
 		Where(servicerevision.ServiceID(serviceID)).
 		Select(
 			servicerevision.FieldOutput,
-			servicerevision.FieldTemplateID,
+			servicerevision.FieldTemplateName,
 			servicerevision.FieldTemplateVersion,
 			servicerevision.FieldAttributes,
 			servicerevision.FieldStatus,
