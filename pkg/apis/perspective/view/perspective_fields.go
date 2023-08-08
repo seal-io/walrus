@@ -16,6 +16,7 @@ var BuiltInPerspectiveFilterFields = []PerspectiveField{
 	FilterPerspectiveField("Controller Kind", types.FilterFieldControllerKind),
 	FilterPerspectiveField("Pod", types.FilterFieldPod),
 	FilterPerspectiveField("Container", types.FilterFieldContainer),
+	FilterPerspectiveField("Name", types.FilterFieldName),
 }
 
 var BuiltInPerspectiveGroupFields = []PerspectiveField{

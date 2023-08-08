@@ -37,7 +37,7 @@ func (r *CreateRequest) Validate() error {
 		return errors.New("invalid end time: blank")
 	}
 
-	return validation.ValidateAllocationQueries(r.AllocationQueries)
+	return validation.ValidateCostQueries(r.CostQueries)
 }
 
 type CreateResponse = *model.PerspectiveOutput
@@ -59,7 +59,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 		return fmt.Errorf("invalid name: %w", err)
 	}
 
-	if err := validation.ValidateAllocationQueries(r.AllocationQueries); err != nil {
+	if err := validation.ValidateCostQueries(r.CostQueries); err != nil {
 		return err
 	}
 
@@ -73,7 +73,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	if r.Name == existed.Name &&
 		r.StartTime == existed.StartTime &&
 		r.EndTime == existed.EndTime &&
-		reflect.DeepEqual(r.AllocationQueries, existed.AllocationQueries) {
+		reflect.DeepEqual(r.CostQueries, existed.CostQueries) {
 		return errors.New("invalid input: nothing update")
 	}
 

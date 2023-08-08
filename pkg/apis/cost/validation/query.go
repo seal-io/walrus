@@ -8,13 +8,13 @@ import (
 	"github.com/seal-io/seal/utils/slice"
 )
 
-func ValidateAllocationQueries(queries []types.QueryCondition) error {
+func ValidateCostQueries(queries []types.QueryCondition) error {
 	if len(queries) == 0 {
-		return errors.New("invalid allocation queries: blank")
+		return errors.New("invalid cost queries: blank")
 	}
 
 	for i := range queries {
-		err := ValidateAllocationQuery(queries[i])
+		err := ValidateCostQuery(queries[i])
 		if err != nil {
 			return err
 		}
@@ -23,13 +23,13 @@ func ValidateAllocationQueries(queries []types.QueryCondition) error {
 	return nil
 }
 
-func ValidateAllocationQuery(query types.QueryCondition) error {
+func ValidateCostQuery(query types.QueryCondition) error {
 	// Filter.
 	if len(query.Filters) == 0 {
 		return errors.New("invalid filter: blank")
 	}
 
-	err := ValidateAllocationCostFilters(query.Filters)
+	err := ValidateCostFilters(query.Filters)
 	if err != nil {
 		return err
 	}
@@ -83,8 +83,8 @@ func ValidateAllocationQuery(query types.QueryCondition) error {
 	}
 
 	// Share cost.
-	if len(query.SharedCosts) != 0 {
-		err = ValidateShareCostFilters(query.SharedCosts)
+	if query.SharedOptions != nil {
+		err = ValidateShareCostFilters(query.SharedOptions)
 		if err != nil {
 			return err
 		}
@@ -102,47 +102,43 @@ func ValidateAllocationQuery(query types.QueryCondition) error {
 	return nil
 }
 
-func ValidateShareCostFilters(filters types.ShareCosts) error {
-	for _, v := range filters {
+func ValidateShareCostFilters(options *types.SharedCostOptions) error {
+	isValidStrategy := func(strategy types.SharingStrategy) bool {
+		return slice.ContainsAny([]types.SharingStrategy{
+			types.SharingStrategyProportionally,
+			types.SharingStrategyEqually,
+		}, strategy)
+	}
+
+	for _, v := range options.Item {
 		// Allocation resource.
 		if len(v.Filters) != 0 {
-			err := ValidateAllocationCostFilters(v.Filters)
+			err := ValidateCostFilters(v.Filters)
 			if err != nil {
 				return err
 			}
 		}
 
-		// Management.
-		if len(v.ManagementCostFilters) != 0 {
-			for _, mf := range v.ManagementCostFilters {
-				if !mf.IncludeAll && !mf.ConnectorID.Valid() {
-					return errors.New("invalid management share cost: blank connector id")
-				}
-			}
-		}
-
-		// Idle cost.
-		if len(v.IdleCostFilters) != 0 {
-			for _, idf := range v.IdleCostFilters {
-				if !idf.IncludeAll && !idf.ConnectorID.Valid() {
-					return errors.New("invalid idle share cost: blank connector id")
-				}
-			}
-		}
-
 		// Share strategy.
-		if !slice.ContainsAny([]types.SharingStrategy{
-			types.SharingStrategyProportionally,
-			types.SharingStrategyEqually,
-		}, v.SharingStrategy) {
+		if !isValidStrategy(v.SharingStrategy) {
 			return fmt.Errorf("invalid share strategy: unsupported")
 		}
+	}
+
+	// Management.
+	if options.Management != nil && !isValidStrategy(options.Management.SharingStrategy) {
+		return fmt.Errorf("invalid share strategy: unsupported")
+	}
+
+	// Idle cost.
+	if options.Idle != nil && !isValidStrategy(options.Idle.SharingStrategy) {
+		return fmt.Errorf("invalid share strategy: unsupported")
 	}
 
 	return nil
 }
 
-func ValidateAllocationCostFilters(filters types.AllocationCostFilters) error {
+func ValidateCostFilters(filters types.CostFilters) error {
 	for _, condOr := range filters {
 		if len(condOr) == 0 {
 			return errors.New("invalid filter: blank")

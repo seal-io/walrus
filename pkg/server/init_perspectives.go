@@ -29,29 +29,14 @@ func perspectiveAll() *model.Perspective {
 		StartTime: "now-7d",
 		EndTime:   "now",
 		Builtin:   true,
-		AllocationQueries: []types.QueryCondition{
+		CostQueries: []types.QueryCondition{
 			// Daily cost.
 			{
-				Filters: types.AllocationCostFilters{
+				Filters: types.CostFilters{
 					{
 						{
 							IncludeAll: true,
 						},
-					},
-				},
-				SharedCosts: types.ShareCosts{
-					{
-						IdleCostFilters: types.IdleCostFilters{
-							{
-								IncludeAll: true,
-							},
-						},
-						ManagementCostFilters: types.ManagementCostFilters{
-							{
-								IncludeAll: true,
-							},
-						},
-						SharingStrategy: types.SharingStrategyProportionally,
 					},
 				},
 				GroupBy: types.GroupByFieldDay,
@@ -62,26 +47,11 @@ func perspectiveAll() *model.Perspective {
 			},
 			// Per project cost.
 			{
-				Filters: types.AllocationCostFilters{
+				Filters: types.CostFilters{
 					{
 						{
 							IncludeAll: true,
 						},
-					},
-				},
-				SharedCosts: types.ShareCosts{
-					{
-						IdleCostFilters: types.IdleCostFilters{
-							{
-								IncludeAll: true,
-							},
-						},
-						ManagementCostFilters: types.ManagementCostFilters{
-							{
-								IncludeAll: true,
-							},
-						},
-						SharingStrategy: types.SharingStrategyProportionally,
 					},
 				},
 				GroupBy: types.GroupByFieldProject,
@@ -92,26 +62,11 @@ func perspectiveAll() *model.Perspective {
 			},
 			// Per cluster cost.
 			{
-				Filters: types.AllocationCostFilters{
+				Filters: types.CostFilters{
 					{
 						{
 							IncludeAll: true,
 						},
-					},
-				},
-				SharedCosts: types.ShareCosts{
-					{
-						IdleCostFilters: types.IdleCostFilters{
-							{
-								IncludeAll: true,
-							},
-						},
-						ManagementCostFilters: types.ManagementCostFilters{
-							{
-								IncludeAll: true,
-							},
-						},
-						SharingStrategy: types.SharingStrategyProportionally,
 					},
 				},
 				GroupBy: types.GroupByFieldConnectorID,
@@ -130,10 +85,10 @@ func perspectiveCluster() *model.Perspective {
 		StartTime: "now-7d",
 		EndTime:   "now",
 		Builtin:   true,
-		AllocationQueries: []types.QueryCondition{
+		CostQueries: []types.QueryCondition{
 			// Daily cost.
 			{
-				Filters: types.AllocationCostFilters{
+				Filters: types.CostFilters{
 					{
 						{
 							FieldName: types.FilterFieldConnectorID,
@@ -142,23 +97,7 @@ func perspectiveCluster() *model.Perspective {
 						},
 					},
 				},
-				SharedCosts: types.ShareCosts{
-					{
-						IdleCostFilters: types.IdleCostFilters{
-							{
-								ConnectorID: "${connectorID}",
-							},
-						},
-						ManagementCostFilters: types.ManagementCostFilters{
-							{
-								ConnectorID: "${connectorID}",
-							},
-						},
-						SharingStrategy: types.SharingStrategyProportionally,
-					},
-				},
 				GroupBy: types.GroupByFieldDay,
-				Step:    types.StepDay,
 				Paging: types.QueryPagination{
 					Page:    1,
 					PerPage: 10,
@@ -166,27 +105,28 @@ func perspectiveCluster() *model.Perspective {
 			},
 			// Per namespace cost.
 			{
-				Filters: types.AllocationCostFilters{
+				Filters: types.CostFilters{
 					{
 						{
 							FieldName: types.FilterFieldConnectorID,
 							Operator:  types.OperatorIn,
 							Values:    []string{"${connectorID}"},
 						},
+						{
+							FieldName: types.FilterFieldName,
+							Operator:  types.OperatorNotIn,
+							Values: []string{
+								types.ManagementCostItemName,
+								types.IdleCostItemName,
+							},
+						},
 					},
 				},
-				SharedCosts: types.ShareCosts{
-					{
-						IdleCostFilters: types.IdleCostFilters{
-							{
-								ConnectorID: "${connectorID}",
-							},
-						},
-						ManagementCostFilters: types.ManagementCostFilters{
-							{
-								ConnectorID: "${connectorID}",
-							},
-						},
+				SharedOptions: &types.SharedCostOptions{
+					Idle: &types.IdleShareOption{
+						SharingStrategy: types.SharingStrategyProportionally,
+					},
+					Management: &types.ManagementShareOption{
 						SharingStrategy: types.SharingStrategyProportionally,
 					},
 				},
@@ -198,27 +138,28 @@ func perspectiveCluster() *model.Perspective {
 			},
 			// Workload per day cost.
 			{
-				Filters: types.AllocationCostFilters{
+				Filters: types.CostFilters{
 					{
 						{
 							FieldName: types.FilterFieldConnectorID,
 							Operator:  types.OperatorIn,
 							Values:    []string{"${connectorID}"},
 						},
+						{
+							FieldName: types.FilterFieldName,
+							Operator:  types.OperatorNotIn,
+							Values: []string{
+								types.ManagementCostItemName,
+								types.IdleCostItemName,
+							},
+						},
 					},
 				},
-				SharedCosts: types.ShareCosts{
-					{
-						IdleCostFilters: types.IdleCostFilters{
-							{
-								ConnectorID: "${connectorID}",
-							},
-						},
-						ManagementCostFilters: types.ManagementCostFilters{
-							{
-								ConnectorID: "${connectorID}",
-							},
-						},
+				SharedOptions: &types.SharedCostOptions{
+					Idle: &types.IdleShareOption{
+						SharingStrategy: types.SharingStrategyProportionally,
+					},
+					Management: &types.ManagementShareOption{
 						SharingStrategy: types.SharingStrategyProportionally,
 					},
 				},
@@ -239,10 +180,27 @@ func perspectiveProject() *model.Perspective {
 		StartTime: "now-7d",
 		EndTime:   "now",
 		Builtin:   true,
-		AllocationQueries: []types.QueryCondition{
+		CostQueries: []types.QueryCondition{
+			// Daily cost.
+			{
+				Filters: types.CostFilters{
+					{
+						{
+							FieldName: types.FilterFieldProject,
+							Operator:  types.OperatorIn,
+							Values:    []string{"${project}"},
+						},
+					},
+				},
+				GroupBy: types.GroupByFieldDay,
+				Paging: types.QueryPagination{
+					Page:    1,
+					PerPage: 10,
+				},
+			},
 			// Service cost.
 			{
-				Filters: types.AllocationCostFilters{
+				Filters: types.CostFilters{
 					{
 						{
 							FieldName: types.FilterFieldProject,
