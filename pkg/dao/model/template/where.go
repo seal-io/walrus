@@ -13,61 +13,62 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id string) predicate.Template {
+func ID(id object.ID) predicate.Template {
 	return predicate.Template(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id string) predicate.Template {
+func IDEQ(id object.ID) predicate.Template {
 	return predicate.Template(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id string) predicate.Template {
+func IDNEQ(id object.ID) predicate.Template {
 	return predicate.Template(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...string) predicate.Template {
+func IDIn(ids ...object.ID) predicate.Template {
 	return predicate.Template(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...string) predicate.Template {
+func IDNotIn(ids ...object.ID) predicate.Template {
 	return predicate.Template(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id string) predicate.Template {
+func IDGT(id object.ID) predicate.Template {
 	return predicate.Template(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id string) predicate.Template {
+func IDGTE(id object.ID) predicate.Template {
 	return predicate.Template(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id string) predicate.Template {
+func IDLT(id object.ID) predicate.Template {
 	return predicate.Template(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id string) predicate.Template {
+func IDLTE(id object.ID) predicate.Template {
 	return predicate.Template(sql.FieldLTE(FieldID, id))
 }
 
-// IDEqualFold applies the EqualFold predicate on the ID field.
-func IDEqualFold(id string) predicate.Template {
-	return predicate.Template(sql.FieldEqualFold(FieldID, id))
+// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
+func Name(v string) predicate.Template {
+	return predicate.Template(sql.FieldEQ(FieldName, v))
 }
 
-// IDContainsFold applies the ContainsFold predicate on the ID field.
-func IDContainsFold(id string) predicate.Template {
-	return predicate.Template(sql.FieldContainsFold(FieldID, id))
+// Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
+func Description(v string) predicate.Template {
+	return predicate.Template(sql.FieldEQ(FieldDescription, v))
 }
 
 // CreateTime applies equality check predicate on the "create_time" field. It's identical to CreateTimeEQ.
@@ -80,21 +81,6 @@ func UpdateTime(v time.Time) predicate.Template {
 	return predicate.Template(sql.FieldEQ(FieldUpdateTime, v))
 }
 
-// Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
-func Status(v string) predicate.Template {
-	return predicate.Template(sql.FieldEQ(FieldStatus, v))
-}
-
-// StatusMessage applies equality check predicate on the "status_message" field. It's identical to StatusMessageEQ.
-func StatusMessage(v string) predicate.Template {
-	return predicate.Template(sql.FieldEQ(FieldStatusMessage, v))
-}
-
-// Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
-func Description(v string) predicate.Template {
-	return predicate.Template(sql.FieldEQ(FieldDescription, v))
-}
-
 // Icon applies equality check predicate on the "icon" field. It's identical to IconEQ.
 func Icon(v string) predicate.Template {
 	return predicate.Template(sql.FieldEQ(FieldIcon, v))
@@ -103,6 +89,156 @@ func Icon(v string) predicate.Template {
 // Source applies equality check predicate on the "source" field. It's identical to SourceEQ.
 func Source(v string) predicate.Template {
 	return predicate.Template(sql.FieldEQ(FieldSource, v))
+}
+
+// NameEQ applies the EQ predicate on the "name" field.
+func NameEQ(v string) predicate.Template {
+	return predicate.Template(sql.FieldEQ(FieldName, v))
+}
+
+// NameNEQ applies the NEQ predicate on the "name" field.
+func NameNEQ(v string) predicate.Template {
+	return predicate.Template(sql.FieldNEQ(FieldName, v))
+}
+
+// NameIn applies the In predicate on the "name" field.
+func NameIn(vs ...string) predicate.Template {
+	return predicate.Template(sql.FieldIn(FieldName, vs...))
+}
+
+// NameNotIn applies the NotIn predicate on the "name" field.
+func NameNotIn(vs ...string) predicate.Template {
+	return predicate.Template(sql.FieldNotIn(FieldName, vs...))
+}
+
+// NameGT applies the GT predicate on the "name" field.
+func NameGT(v string) predicate.Template {
+	return predicate.Template(sql.FieldGT(FieldName, v))
+}
+
+// NameGTE applies the GTE predicate on the "name" field.
+func NameGTE(v string) predicate.Template {
+	return predicate.Template(sql.FieldGTE(FieldName, v))
+}
+
+// NameLT applies the LT predicate on the "name" field.
+func NameLT(v string) predicate.Template {
+	return predicate.Template(sql.FieldLT(FieldName, v))
+}
+
+// NameLTE applies the LTE predicate on the "name" field.
+func NameLTE(v string) predicate.Template {
+	return predicate.Template(sql.FieldLTE(FieldName, v))
+}
+
+// NameContains applies the Contains predicate on the "name" field.
+func NameContains(v string) predicate.Template {
+	return predicate.Template(sql.FieldContains(FieldName, v))
+}
+
+// NameHasPrefix applies the HasPrefix predicate on the "name" field.
+func NameHasPrefix(v string) predicate.Template {
+	return predicate.Template(sql.FieldHasPrefix(FieldName, v))
+}
+
+// NameHasSuffix applies the HasSuffix predicate on the "name" field.
+func NameHasSuffix(v string) predicate.Template {
+	return predicate.Template(sql.FieldHasSuffix(FieldName, v))
+}
+
+// NameEqualFold applies the EqualFold predicate on the "name" field.
+func NameEqualFold(v string) predicate.Template {
+	return predicate.Template(sql.FieldEqualFold(FieldName, v))
+}
+
+// NameContainsFold applies the ContainsFold predicate on the "name" field.
+func NameContainsFold(v string) predicate.Template {
+	return predicate.Template(sql.FieldContainsFold(FieldName, v))
+}
+
+// DescriptionEQ applies the EQ predicate on the "description" field.
+func DescriptionEQ(v string) predicate.Template {
+	return predicate.Template(sql.FieldEQ(FieldDescription, v))
+}
+
+// DescriptionNEQ applies the NEQ predicate on the "description" field.
+func DescriptionNEQ(v string) predicate.Template {
+	return predicate.Template(sql.FieldNEQ(FieldDescription, v))
+}
+
+// DescriptionIn applies the In predicate on the "description" field.
+func DescriptionIn(vs ...string) predicate.Template {
+	return predicate.Template(sql.FieldIn(FieldDescription, vs...))
+}
+
+// DescriptionNotIn applies the NotIn predicate on the "description" field.
+func DescriptionNotIn(vs ...string) predicate.Template {
+	return predicate.Template(sql.FieldNotIn(FieldDescription, vs...))
+}
+
+// DescriptionGT applies the GT predicate on the "description" field.
+func DescriptionGT(v string) predicate.Template {
+	return predicate.Template(sql.FieldGT(FieldDescription, v))
+}
+
+// DescriptionGTE applies the GTE predicate on the "description" field.
+func DescriptionGTE(v string) predicate.Template {
+	return predicate.Template(sql.FieldGTE(FieldDescription, v))
+}
+
+// DescriptionLT applies the LT predicate on the "description" field.
+func DescriptionLT(v string) predicate.Template {
+	return predicate.Template(sql.FieldLT(FieldDescription, v))
+}
+
+// DescriptionLTE applies the LTE predicate on the "description" field.
+func DescriptionLTE(v string) predicate.Template {
+	return predicate.Template(sql.FieldLTE(FieldDescription, v))
+}
+
+// DescriptionContains applies the Contains predicate on the "description" field.
+func DescriptionContains(v string) predicate.Template {
+	return predicate.Template(sql.FieldContains(FieldDescription, v))
+}
+
+// DescriptionHasPrefix applies the HasPrefix predicate on the "description" field.
+func DescriptionHasPrefix(v string) predicate.Template {
+	return predicate.Template(sql.FieldHasPrefix(FieldDescription, v))
+}
+
+// DescriptionHasSuffix applies the HasSuffix predicate on the "description" field.
+func DescriptionHasSuffix(v string) predicate.Template {
+	return predicate.Template(sql.FieldHasSuffix(FieldDescription, v))
+}
+
+// DescriptionIsNil applies the IsNil predicate on the "description" field.
+func DescriptionIsNil() predicate.Template {
+	return predicate.Template(sql.FieldIsNull(FieldDescription))
+}
+
+// DescriptionNotNil applies the NotNil predicate on the "description" field.
+func DescriptionNotNil() predicate.Template {
+	return predicate.Template(sql.FieldNotNull(FieldDescription))
+}
+
+// DescriptionEqualFold applies the EqualFold predicate on the "description" field.
+func DescriptionEqualFold(v string) predicate.Template {
+	return predicate.Template(sql.FieldEqualFold(FieldDescription, v))
+}
+
+// DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
+func DescriptionContainsFold(v string) predicate.Template {
+	return predicate.Template(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// LabelsIsNil applies the IsNil predicate on the "labels" field.
+func LabelsIsNil() predicate.Template {
+	return predicate.Template(sql.FieldIsNull(FieldLabels))
+}
+
+// LabelsNotNil applies the NotNil predicate on the "labels" field.
+func LabelsNotNil() predicate.Template {
+	return predicate.Template(sql.FieldNotNull(FieldLabels))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
@@ -185,61 +321,6 @@ func UpdateTimeLTE(v time.Time) predicate.Template {
 	return predicate.Template(sql.FieldLTE(FieldUpdateTime, v))
 }
 
-// StatusEQ applies the EQ predicate on the "status" field.
-func StatusEQ(v string) predicate.Template {
-	return predicate.Template(sql.FieldEQ(FieldStatus, v))
-}
-
-// StatusNEQ applies the NEQ predicate on the "status" field.
-func StatusNEQ(v string) predicate.Template {
-	return predicate.Template(sql.FieldNEQ(FieldStatus, v))
-}
-
-// StatusIn applies the In predicate on the "status" field.
-func StatusIn(vs ...string) predicate.Template {
-	return predicate.Template(sql.FieldIn(FieldStatus, vs...))
-}
-
-// StatusNotIn applies the NotIn predicate on the "status" field.
-func StatusNotIn(vs ...string) predicate.Template {
-	return predicate.Template(sql.FieldNotIn(FieldStatus, vs...))
-}
-
-// StatusGT applies the GT predicate on the "status" field.
-func StatusGT(v string) predicate.Template {
-	return predicate.Template(sql.FieldGT(FieldStatus, v))
-}
-
-// StatusGTE applies the GTE predicate on the "status" field.
-func StatusGTE(v string) predicate.Template {
-	return predicate.Template(sql.FieldGTE(FieldStatus, v))
-}
-
-// StatusLT applies the LT predicate on the "status" field.
-func StatusLT(v string) predicate.Template {
-	return predicate.Template(sql.FieldLT(FieldStatus, v))
-}
-
-// StatusLTE applies the LTE predicate on the "status" field.
-func StatusLTE(v string) predicate.Template {
-	return predicate.Template(sql.FieldLTE(FieldStatus, v))
-}
-
-// StatusContains applies the Contains predicate on the "status" field.
-func StatusContains(v string) predicate.Template {
-	return predicate.Template(sql.FieldContains(FieldStatus, v))
-}
-
-// StatusHasPrefix applies the HasPrefix predicate on the "status" field.
-func StatusHasPrefix(v string) predicate.Template {
-	return predicate.Template(sql.FieldHasPrefix(FieldStatus, v))
-}
-
-// StatusHasSuffix applies the HasSuffix predicate on the "status" field.
-func StatusHasSuffix(v string) predicate.Template {
-	return predicate.Template(sql.FieldHasSuffix(FieldStatus, v))
-}
-
 // StatusIsNil applies the IsNil predicate on the "status" field.
 func StatusIsNil() predicate.Template {
 	return predicate.Template(sql.FieldIsNull(FieldStatus))
@@ -248,166 +329,6 @@ func StatusIsNil() predicate.Template {
 // StatusNotNil applies the NotNil predicate on the "status" field.
 func StatusNotNil() predicate.Template {
 	return predicate.Template(sql.FieldNotNull(FieldStatus))
-}
-
-// StatusEqualFold applies the EqualFold predicate on the "status" field.
-func StatusEqualFold(v string) predicate.Template {
-	return predicate.Template(sql.FieldEqualFold(FieldStatus, v))
-}
-
-// StatusContainsFold applies the ContainsFold predicate on the "status" field.
-func StatusContainsFold(v string) predicate.Template {
-	return predicate.Template(sql.FieldContainsFold(FieldStatus, v))
-}
-
-// StatusMessageEQ applies the EQ predicate on the "status_message" field.
-func StatusMessageEQ(v string) predicate.Template {
-	return predicate.Template(sql.FieldEQ(FieldStatusMessage, v))
-}
-
-// StatusMessageNEQ applies the NEQ predicate on the "status_message" field.
-func StatusMessageNEQ(v string) predicate.Template {
-	return predicate.Template(sql.FieldNEQ(FieldStatusMessage, v))
-}
-
-// StatusMessageIn applies the In predicate on the "status_message" field.
-func StatusMessageIn(vs ...string) predicate.Template {
-	return predicate.Template(sql.FieldIn(FieldStatusMessage, vs...))
-}
-
-// StatusMessageNotIn applies the NotIn predicate on the "status_message" field.
-func StatusMessageNotIn(vs ...string) predicate.Template {
-	return predicate.Template(sql.FieldNotIn(FieldStatusMessage, vs...))
-}
-
-// StatusMessageGT applies the GT predicate on the "status_message" field.
-func StatusMessageGT(v string) predicate.Template {
-	return predicate.Template(sql.FieldGT(FieldStatusMessage, v))
-}
-
-// StatusMessageGTE applies the GTE predicate on the "status_message" field.
-func StatusMessageGTE(v string) predicate.Template {
-	return predicate.Template(sql.FieldGTE(FieldStatusMessage, v))
-}
-
-// StatusMessageLT applies the LT predicate on the "status_message" field.
-func StatusMessageLT(v string) predicate.Template {
-	return predicate.Template(sql.FieldLT(FieldStatusMessage, v))
-}
-
-// StatusMessageLTE applies the LTE predicate on the "status_message" field.
-func StatusMessageLTE(v string) predicate.Template {
-	return predicate.Template(sql.FieldLTE(FieldStatusMessage, v))
-}
-
-// StatusMessageContains applies the Contains predicate on the "status_message" field.
-func StatusMessageContains(v string) predicate.Template {
-	return predicate.Template(sql.FieldContains(FieldStatusMessage, v))
-}
-
-// StatusMessageHasPrefix applies the HasPrefix predicate on the "status_message" field.
-func StatusMessageHasPrefix(v string) predicate.Template {
-	return predicate.Template(sql.FieldHasPrefix(FieldStatusMessage, v))
-}
-
-// StatusMessageHasSuffix applies the HasSuffix predicate on the "status_message" field.
-func StatusMessageHasSuffix(v string) predicate.Template {
-	return predicate.Template(sql.FieldHasSuffix(FieldStatusMessage, v))
-}
-
-// StatusMessageIsNil applies the IsNil predicate on the "status_message" field.
-func StatusMessageIsNil() predicate.Template {
-	return predicate.Template(sql.FieldIsNull(FieldStatusMessage))
-}
-
-// StatusMessageNotNil applies the NotNil predicate on the "status_message" field.
-func StatusMessageNotNil() predicate.Template {
-	return predicate.Template(sql.FieldNotNull(FieldStatusMessage))
-}
-
-// StatusMessageEqualFold applies the EqualFold predicate on the "status_message" field.
-func StatusMessageEqualFold(v string) predicate.Template {
-	return predicate.Template(sql.FieldEqualFold(FieldStatusMessage, v))
-}
-
-// StatusMessageContainsFold applies the ContainsFold predicate on the "status_message" field.
-func StatusMessageContainsFold(v string) predicate.Template {
-	return predicate.Template(sql.FieldContainsFold(FieldStatusMessage, v))
-}
-
-// DescriptionEQ applies the EQ predicate on the "description" field.
-func DescriptionEQ(v string) predicate.Template {
-	return predicate.Template(sql.FieldEQ(FieldDescription, v))
-}
-
-// DescriptionNEQ applies the NEQ predicate on the "description" field.
-func DescriptionNEQ(v string) predicate.Template {
-	return predicate.Template(sql.FieldNEQ(FieldDescription, v))
-}
-
-// DescriptionIn applies the In predicate on the "description" field.
-func DescriptionIn(vs ...string) predicate.Template {
-	return predicate.Template(sql.FieldIn(FieldDescription, vs...))
-}
-
-// DescriptionNotIn applies the NotIn predicate on the "description" field.
-func DescriptionNotIn(vs ...string) predicate.Template {
-	return predicate.Template(sql.FieldNotIn(FieldDescription, vs...))
-}
-
-// DescriptionGT applies the GT predicate on the "description" field.
-func DescriptionGT(v string) predicate.Template {
-	return predicate.Template(sql.FieldGT(FieldDescription, v))
-}
-
-// DescriptionGTE applies the GTE predicate on the "description" field.
-func DescriptionGTE(v string) predicate.Template {
-	return predicate.Template(sql.FieldGTE(FieldDescription, v))
-}
-
-// DescriptionLT applies the LT predicate on the "description" field.
-func DescriptionLT(v string) predicate.Template {
-	return predicate.Template(sql.FieldLT(FieldDescription, v))
-}
-
-// DescriptionLTE applies the LTE predicate on the "description" field.
-func DescriptionLTE(v string) predicate.Template {
-	return predicate.Template(sql.FieldLTE(FieldDescription, v))
-}
-
-// DescriptionContains applies the Contains predicate on the "description" field.
-func DescriptionContains(v string) predicate.Template {
-	return predicate.Template(sql.FieldContains(FieldDescription, v))
-}
-
-// DescriptionHasPrefix applies the HasPrefix predicate on the "description" field.
-func DescriptionHasPrefix(v string) predicate.Template {
-	return predicate.Template(sql.FieldHasPrefix(FieldDescription, v))
-}
-
-// DescriptionHasSuffix applies the HasSuffix predicate on the "description" field.
-func DescriptionHasSuffix(v string) predicate.Template {
-	return predicate.Template(sql.FieldHasSuffix(FieldDescription, v))
-}
-
-// DescriptionIsNil applies the IsNil predicate on the "description" field.
-func DescriptionIsNil() predicate.Template {
-	return predicate.Template(sql.FieldIsNull(FieldDescription))
-}
-
-// DescriptionNotNil applies the NotNil predicate on the "description" field.
-func DescriptionNotNil() predicate.Template {
-	return predicate.Template(sql.FieldNotNull(FieldDescription))
-}
-
-// DescriptionEqualFold applies the EqualFold predicate on the "description" field.
-func DescriptionEqualFold(v string) predicate.Template {
-	return predicate.Template(sql.FieldEqualFold(FieldDescription, v))
-}
-
-// DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
-func DescriptionContainsFold(v string) predicate.Template {
-	return predicate.Template(sql.FieldContainsFold(FieldDescription, v))
 }
 
 // IconEQ applies the EQ predicate on the "icon" field.

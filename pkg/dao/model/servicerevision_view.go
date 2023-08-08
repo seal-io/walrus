@@ -28,7 +28,7 @@ type ServiceRevisionCreateInput struct {
 	Output                    string                      `uri:"-" query:"-" json:"output"`
 	InputPlan                 string                      `uri:"-" query:"-" json:"inputPlan"`
 	TemplateVersion           string                      `uri:"-" query:"-" json:"templateVersion"`
-	TemplateID                string                      `uri:"-" query:"-" json:"templateID"`
+	TemplateName              string                      `uri:"-" query:"-" json:"templateName"`
 	Attributes                property.Values             `uri:"-" query:"-" json:"attributes,omitempty"`
 	Variables                 crypto.Map[string, string]  `uri:"-" query:"-" json:"variables,omitempty"`
 	DeployerType              string                      `uri:"-" query:"-" json:"deployerType,omitempty"`
@@ -48,7 +48,7 @@ func (srci *ServiceRevisionCreateInput) Model() *ServiceRevision {
 		Output:                    srci.Output,
 		InputPlan:                 srci.InputPlan,
 		TemplateVersion:           srci.TemplateVersion,
-		TemplateID:                srci.TemplateID,
+		TemplateName:              srci.TemplateName,
 		Attributes:                srci.Attributes,
 		Variables:                 srci.Variables,
 		DeployerType:              srci.DeployerType,
@@ -114,7 +114,7 @@ type ServiceRevisionCreateInputsItem struct {
 	Output                    string                      `uri:"-" query:"-" json:"output"`
 	InputPlan                 string                      `uri:"-" query:"-" json:"inputPlan"`
 	TemplateVersion           string                      `uri:"-" query:"-" json:"templateVersion"`
-	TemplateID                string                      `uri:"-" query:"-" json:"templateID"`
+	TemplateName              string                      `uri:"-" query:"-" json:"templateName"`
 	Attributes                property.Values             `uri:"-" query:"-" json:"attributes,omitempty"`
 	Variables                 crypto.Map[string, string]  `uri:"-" query:"-" json:"variables,omitempty"`
 	DeployerType              string                      `uri:"-" query:"-" json:"deployerType,omitempty"`
@@ -148,7 +148,7 @@ func (srci *ServiceRevisionCreateInputs) Model() []*ServiceRevision {
 			Output:                    srci.Items[i].Output,
 			InputPlan:                 srci.Items[i].InputPlan,
 			TemplateVersion:           srci.Items[i].TemplateVersion,
-			TemplateID:                srci.Items[i].TemplateID,
+			TemplateName:              srci.Items[i].TemplateName,
 			Attributes:                srci.Items[i].Attributes,
 			Variables:                 srci.Items[i].Variables,
 			DeployerType:              srci.Items[i].DeployerType,
@@ -649,7 +649,7 @@ type ServiceRevisionOutput struct {
 	CreateTime                *time.Time                  `json:"createTime,omitempty"`
 	Status                    string                      `json:"status,omitempty"`
 	StatusMessage             string                      `json:"statusMessage,omitempty"`
-	TemplateID                string                      `json:"templateID,omitempty"`
+	TemplateName              string                      `json:"templateName,omitempty"`
 	TemplateVersion           string                      `json:"templateVersion,omitempty"`
 	Attributes                property.Values             `json:"attributes,omitempty"`
 	Variables                 crypto.Map[string, string]  `json:"variables,omitempty"`
@@ -684,7 +684,7 @@ func ExposeServiceRevision(sr *ServiceRevision) *ServiceRevisionOutput {
 		CreateTime:                sr.CreateTime,
 		Status:                    sr.Status,
 		StatusMessage:             sr.StatusMessage,
-		TemplateID:                sr.TemplateID,
+		TemplateName:              sr.TemplateName,
 		TemplateVersion:           sr.TemplateVersion,
 		Attributes:                sr.Attributes,
 		Variables:                 sr.Variables,

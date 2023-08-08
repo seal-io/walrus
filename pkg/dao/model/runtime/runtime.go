@@ -548,10 +548,10 @@ func init() {
 	servicerevisionDescServiceID := servicerevisionFields[1].Descriptor()
 	// servicerevision.ServiceIDValidator is a validator for the "service_id" field. It is called by the builders before save.
 	servicerevision.ServiceIDValidator = servicerevisionDescServiceID.Validators[0].(func(string) error)
-	// servicerevisionDescTemplateID is the schema descriptor for template_id field.
-	servicerevisionDescTemplateID := servicerevisionFields[2].Descriptor()
-	// servicerevision.TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
-	servicerevision.TemplateIDValidator = servicerevisionDescTemplateID.Validators[0].(func(string) error)
+	// servicerevisionDescTemplateName is the schema descriptor for template_name field.
+	servicerevisionDescTemplateName := servicerevisionFields[2].Descriptor()
+	// servicerevision.TemplateNameValidator is a validator for the "template_name" field. It is called by the builders before save.
+	servicerevision.TemplateNameValidator = servicerevisionDescTemplateName.Validators[0].(func(string) error)
 	// servicerevisionDescTemplateVersion is the schema descriptor for template_version field.
 	servicerevisionDescTemplateVersion := servicerevisionFields[3].Descriptor()
 	// servicerevision.TemplateVersionValidator is a validator for the "template_version" field. It is called by the builders before save.
@@ -671,34 +671,34 @@ func init() {
 	// subjectrolerelationship.RoleIDValidator is a validator for the "role_id" field. It is called by the builders before save.
 	subjectrolerelationship.RoleIDValidator = subjectrolerelationshipDescRoleID.Validators[0].(func(string) error)
 	templateMixin := schema.Template{}.Mixin()
-	templateMixinHooks1 := templateMixin[1].Hooks()
-	template.Hooks[0] = templateMixinHooks1[0]
+	templateMixinHooks0 := templateMixin[0].Hooks()
+	template.Hooks[0] = templateMixinHooks0[0]
 	templateMixinFields0 := templateMixin[0].Fields()
 	_ = templateMixinFields0
 	templateFields := schema.Template{}.Fields()
 	_ = templateFields
+	// templateDescName is the schema descriptor for name field.
+	templateDescName := templateMixinFields0[1].Descriptor()
+	// template.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	template.NameValidator = templateDescName.Validators[0].(func(string) error)
+	// templateDescLabels is the schema descriptor for labels field.
+	templateDescLabels := templateMixinFields0[3].Descriptor()
+	// template.DefaultLabels holds the default value on creation for the labels field.
+	template.DefaultLabels = templateDescLabels.Default.(map[string]string)
 	// templateDescCreateTime is the schema descriptor for create_time field.
-	templateDescCreateTime := templateMixinFields0[0].Descriptor()
+	templateDescCreateTime := templateMixinFields0[4].Descriptor()
 	// template.DefaultCreateTime holds the default value on creation for the create_time field.
 	template.DefaultCreateTime = templateDescCreateTime.Default.(func() time.Time)
 	// templateDescUpdateTime is the schema descriptor for update_time field.
-	templateDescUpdateTime := templateMixinFields0[1].Descriptor()
+	templateDescUpdateTime := templateMixinFields0[5].Descriptor()
 	// template.DefaultUpdateTime holds the default value on creation for the update_time field.
 	template.DefaultUpdateTime = templateDescUpdateTime.Default.(func() time.Time)
 	// template.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	template.UpdateDefaultUpdateTime = templateDescUpdateTime.UpdateDefault.(func() time.Time)
-	// templateDescLabels is the schema descriptor for labels field.
-	templateDescLabels := templateFields[3].Descriptor()
-	// template.DefaultLabels holds the default value on creation for the labels field.
-	template.DefaultLabels = templateDescLabels.Default.(map[string]string)
 	// templateDescSource is the schema descriptor for source field.
-	templateDescSource := templateFields[4].Descriptor()
+	templateDescSource := templateFields[1].Descriptor()
 	// template.SourceValidator is a validator for the "source" field. It is called by the builders before save.
 	template.SourceValidator = templateDescSource.Validators[0].(func(string) error)
-	// templateDescID is the schema descriptor for id field.
-	templateDescID := templateFields[0].Descriptor()
-	// template.IDValidator is a validator for the "id" field. It is called by the builders before save.
-	template.IDValidator = templateDescID.Validators[0].(func(string) error)
 	templateversionMixin := schema.TemplateVersion{}.Mixin()
 	templateversionMixinHooks0 := templateversionMixin[0].Hooks()
 	templateversion.Hooks[0] = templateversionMixinHooks0[0]
@@ -720,16 +720,20 @@ func init() {
 	templateversionDescTemplateID := templateversionFields[0].Descriptor()
 	// templateversion.TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
 	templateversion.TemplateIDValidator = templateversionDescTemplateID.Validators[0].(func(string) error)
+	// templateversionDescTemplateName is the schema descriptor for template_name field.
+	templateversionDescTemplateName := templateversionFields[1].Descriptor()
+	// templateversion.TemplateNameValidator is a validator for the "template_name" field. It is called by the builders before save.
+	templateversion.TemplateNameValidator = templateversionDescTemplateName.Validators[0].(func(string) error)
 	// templateversionDescVersion is the schema descriptor for version field.
-	templateversionDescVersion := templateversionFields[1].Descriptor()
+	templateversionDescVersion := templateversionFields[2].Descriptor()
 	// templateversion.VersionValidator is a validator for the "version" field. It is called by the builders before save.
 	templateversion.VersionValidator = templateversionDescVersion.Validators[0].(func(string) error)
 	// templateversionDescSource is the schema descriptor for source field.
-	templateversionDescSource := templateversionFields[2].Descriptor()
+	templateversionDescSource := templateversionFields[3].Descriptor()
 	// templateversion.SourceValidator is a validator for the "source" field. It is called by the builders before save.
 	templateversion.SourceValidator = templateversionDescSource.Validators[0].(func(string) error)
 	// templateversionDescSchema is the schema descriptor for schema field.
-	templateversionDescSchema := templateversionFields[3].Descriptor()
+	templateversionDescSchema := templateversionFields[4].Descriptor()
 	// templateversion.DefaultSchema holds the default value on creation for the schema field.
 	templateversion.DefaultSchema = templateversionDescSchema.Default.(*types.TemplateSchema)
 	tokenMixin := schema.Token{}.Mixin()

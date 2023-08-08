@@ -23,6 +23,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
 // TemplateUpdate is the builder for updating Template entities.
@@ -40,49 +41,9 @@ func (tu *TemplateUpdate) Where(ps ...predicate.Template) *TemplateUpdate {
 	return tu
 }
 
-// SetUpdateTime sets the "update_time" field.
-func (tu *TemplateUpdate) SetUpdateTime(t time.Time) *TemplateUpdate {
-	tu.mutation.SetUpdateTime(t)
-	return tu
-}
-
-// SetStatus sets the "status" field.
-func (tu *TemplateUpdate) SetStatus(s string) *TemplateUpdate {
-	tu.mutation.SetStatus(s)
-	return tu
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (tu *TemplateUpdate) SetNillableStatus(s *string) *TemplateUpdate {
-	if s != nil {
-		tu.SetStatus(*s)
-	}
-	return tu
-}
-
-// ClearStatus clears the value of the "status" field.
-func (tu *TemplateUpdate) ClearStatus() *TemplateUpdate {
-	tu.mutation.ClearStatus()
-	return tu
-}
-
-// SetStatusMessage sets the "status_message" field.
-func (tu *TemplateUpdate) SetStatusMessage(s string) *TemplateUpdate {
-	tu.mutation.SetStatusMessage(s)
-	return tu
-}
-
-// SetNillableStatusMessage sets the "status_message" field if the given value is not nil.
-func (tu *TemplateUpdate) SetNillableStatusMessage(s *string) *TemplateUpdate {
-	if s != nil {
-		tu.SetStatusMessage(*s)
-	}
-	return tu
-}
-
-// ClearStatusMessage clears the value of the "status_message" field.
-func (tu *TemplateUpdate) ClearStatusMessage() *TemplateUpdate {
-	tu.mutation.ClearStatusMessage()
+// SetName sets the "name" field.
+func (tu *TemplateUpdate) SetName(s string) *TemplateUpdate {
+	tu.mutation.SetName(s)
 	return tu
 }
 
@@ -106,6 +67,44 @@ func (tu *TemplateUpdate) ClearDescription() *TemplateUpdate {
 	return tu
 }
 
+// SetLabels sets the "labels" field.
+func (tu *TemplateUpdate) SetLabels(m map[string]string) *TemplateUpdate {
+	tu.mutation.SetLabels(m)
+	return tu
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (tu *TemplateUpdate) ClearLabels() *TemplateUpdate {
+	tu.mutation.ClearLabels()
+	return tu
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (tu *TemplateUpdate) SetUpdateTime(t time.Time) *TemplateUpdate {
+	tu.mutation.SetUpdateTime(t)
+	return tu
+}
+
+// SetStatus sets the "status" field.
+func (tu *TemplateUpdate) SetStatus(s status.Status) *TemplateUpdate {
+	tu.mutation.SetStatus(s)
+	return tu
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (tu *TemplateUpdate) SetNillableStatus(s *status.Status) *TemplateUpdate {
+	if s != nil {
+		tu.SetStatus(*s)
+	}
+	return tu
+}
+
+// ClearStatus clears the value of the "status" field.
+func (tu *TemplateUpdate) ClearStatus() *TemplateUpdate {
+	tu.mutation.ClearStatus()
+	return tu
+}
+
 // SetIcon sets the "icon" field.
 func (tu *TemplateUpdate) SetIcon(s string) *TemplateUpdate {
 	tu.mutation.SetIcon(s)
@@ -123,12 +122,6 @@ func (tu *TemplateUpdate) SetNillableIcon(s *string) *TemplateUpdate {
 // ClearIcon clears the value of the "icon" field.
 func (tu *TemplateUpdate) ClearIcon() *TemplateUpdate {
 	tu.mutation.ClearIcon()
-	return tu
-}
-
-// SetLabels sets the "labels" field.
-func (tu *TemplateUpdate) SetLabels(m map[string]string) *TemplateUpdate {
-	tu.mutation.SetLabels(m)
 	return tu
 }
 
@@ -223,6 +216,11 @@ func (tu *TemplateUpdate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (tu *TemplateUpdate) check() error {
+	if v, ok := tu.mutation.Name(); ok {
+		if err := template.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Template.name": %w`, err)}
+		}
+	}
 	if v, ok := tu.mutation.Source(); ok {
 		if err := template.SourceValidator(v); err != nil {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`model: validator failed for field "Template.source": %w`, err)}
@@ -264,23 +262,25 @@ func (tu *TemplateUpdate) check() error {
 //	}
 func (tu *TemplateUpdate) Set(obj *Template) *TemplateUpdate {
 	// Without Default.
-	if obj.Status != "" {
-		tu.SetStatus(obj.Status)
-	}
-	if obj.StatusMessage != "" {
-		tu.SetStatusMessage(obj.StatusMessage)
-	}
+	tu.SetName(obj.Name)
 	if obj.Description != "" {
 		tu.SetDescription(obj.Description)
 	} else {
 		tu.ClearDescription()
+	}
+	if !reflect.ValueOf(obj.Labels).IsZero() {
+		tu.SetLabels(obj.Labels)
+	} else {
+		tu.ClearLabels()
+	}
+	if !reflect.ValueOf(obj.Status).IsZero() {
+		tu.SetStatus(obj.Status)
 	}
 	if obj.Icon != "" {
 		tu.SetIcon(obj.Icon)
 	} else {
 		tu.ClearIcon()
 	}
-	tu.SetLabels(obj.Labels)
 	tu.SetSource(obj.Source)
 
 	// With Default.
@@ -312,20 +312,8 @@ func (tu *TemplateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := tu.mutation.UpdateTime(); ok {
-		_spec.SetField(template.FieldUpdateTime, field.TypeTime, value)
-	}
-	if value, ok := tu.mutation.Status(); ok {
-		_spec.SetField(template.FieldStatus, field.TypeString, value)
-	}
-	if tu.mutation.StatusCleared() {
-		_spec.ClearField(template.FieldStatus, field.TypeString)
-	}
-	if value, ok := tu.mutation.StatusMessage(); ok {
-		_spec.SetField(template.FieldStatusMessage, field.TypeString, value)
-	}
-	if tu.mutation.StatusMessageCleared() {
-		_spec.ClearField(template.FieldStatusMessage, field.TypeString)
+	if value, ok := tu.mutation.Name(); ok {
+		_spec.SetField(template.FieldName, field.TypeString, value)
 	}
 	if value, ok := tu.mutation.Description(); ok {
 		_spec.SetField(template.FieldDescription, field.TypeString, value)
@@ -333,14 +321,26 @@ func (tu *TemplateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if tu.mutation.DescriptionCleared() {
 		_spec.ClearField(template.FieldDescription, field.TypeString)
 	}
+	if value, ok := tu.mutation.Labels(); ok {
+		_spec.SetField(template.FieldLabels, field.TypeJSON, value)
+	}
+	if tu.mutation.LabelsCleared() {
+		_spec.ClearField(template.FieldLabels, field.TypeJSON)
+	}
+	if value, ok := tu.mutation.UpdateTime(); ok {
+		_spec.SetField(template.FieldUpdateTime, field.TypeTime, value)
+	}
+	if value, ok := tu.mutation.Status(); ok {
+		_spec.SetField(template.FieldStatus, field.TypeJSON, value)
+	}
+	if tu.mutation.StatusCleared() {
+		_spec.ClearField(template.FieldStatus, field.TypeJSON)
+	}
 	if value, ok := tu.mutation.Icon(); ok {
 		_spec.SetField(template.FieldIcon, field.TypeString, value)
 	}
 	if tu.mutation.IconCleared() {
 		_spec.ClearField(template.FieldIcon, field.TypeString)
-	}
-	if value, ok := tu.mutation.Labels(); ok {
-		_spec.SetField(template.FieldLabels, field.TypeJSON, value)
 	}
 	if value, ok := tu.mutation.Source(); ok {
 		_spec.SetField(template.FieldSource, field.TypeString, value)
@@ -418,49 +418,9 @@ type TemplateUpdateOne struct {
 	object    *Template
 }
 
-// SetUpdateTime sets the "update_time" field.
-func (tuo *TemplateUpdateOne) SetUpdateTime(t time.Time) *TemplateUpdateOne {
-	tuo.mutation.SetUpdateTime(t)
-	return tuo
-}
-
-// SetStatus sets the "status" field.
-func (tuo *TemplateUpdateOne) SetStatus(s string) *TemplateUpdateOne {
-	tuo.mutation.SetStatus(s)
-	return tuo
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (tuo *TemplateUpdateOne) SetNillableStatus(s *string) *TemplateUpdateOne {
-	if s != nil {
-		tuo.SetStatus(*s)
-	}
-	return tuo
-}
-
-// ClearStatus clears the value of the "status" field.
-func (tuo *TemplateUpdateOne) ClearStatus() *TemplateUpdateOne {
-	tuo.mutation.ClearStatus()
-	return tuo
-}
-
-// SetStatusMessage sets the "status_message" field.
-func (tuo *TemplateUpdateOne) SetStatusMessage(s string) *TemplateUpdateOne {
-	tuo.mutation.SetStatusMessage(s)
-	return tuo
-}
-
-// SetNillableStatusMessage sets the "status_message" field if the given value is not nil.
-func (tuo *TemplateUpdateOne) SetNillableStatusMessage(s *string) *TemplateUpdateOne {
-	if s != nil {
-		tuo.SetStatusMessage(*s)
-	}
-	return tuo
-}
-
-// ClearStatusMessage clears the value of the "status_message" field.
-func (tuo *TemplateUpdateOne) ClearStatusMessage() *TemplateUpdateOne {
-	tuo.mutation.ClearStatusMessage()
+// SetName sets the "name" field.
+func (tuo *TemplateUpdateOne) SetName(s string) *TemplateUpdateOne {
+	tuo.mutation.SetName(s)
 	return tuo
 }
 
@@ -484,6 +444,44 @@ func (tuo *TemplateUpdateOne) ClearDescription() *TemplateUpdateOne {
 	return tuo
 }
 
+// SetLabels sets the "labels" field.
+func (tuo *TemplateUpdateOne) SetLabels(m map[string]string) *TemplateUpdateOne {
+	tuo.mutation.SetLabels(m)
+	return tuo
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (tuo *TemplateUpdateOne) ClearLabels() *TemplateUpdateOne {
+	tuo.mutation.ClearLabels()
+	return tuo
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (tuo *TemplateUpdateOne) SetUpdateTime(t time.Time) *TemplateUpdateOne {
+	tuo.mutation.SetUpdateTime(t)
+	return tuo
+}
+
+// SetStatus sets the "status" field.
+func (tuo *TemplateUpdateOne) SetStatus(s status.Status) *TemplateUpdateOne {
+	tuo.mutation.SetStatus(s)
+	return tuo
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (tuo *TemplateUpdateOne) SetNillableStatus(s *status.Status) *TemplateUpdateOne {
+	if s != nil {
+		tuo.SetStatus(*s)
+	}
+	return tuo
+}
+
+// ClearStatus clears the value of the "status" field.
+func (tuo *TemplateUpdateOne) ClearStatus() *TemplateUpdateOne {
+	tuo.mutation.ClearStatus()
+	return tuo
+}
+
 // SetIcon sets the "icon" field.
 func (tuo *TemplateUpdateOne) SetIcon(s string) *TemplateUpdateOne {
 	tuo.mutation.SetIcon(s)
@@ -501,12 +499,6 @@ func (tuo *TemplateUpdateOne) SetNillableIcon(s *string) *TemplateUpdateOne {
 // ClearIcon clears the value of the "icon" field.
 func (tuo *TemplateUpdateOne) ClearIcon() *TemplateUpdateOne {
 	tuo.mutation.ClearIcon()
-	return tuo
-}
-
-// SetLabels sets the "labels" field.
-func (tuo *TemplateUpdateOne) SetLabels(m map[string]string) *TemplateUpdateOne {
-	tuo.mutation.SetLabels(m)
 	return tuo
 }
 
@@ -614,6 +606,11 @@ func (tuo *TemplateUpdateOne) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (tuo *TemplateUpdateOne) check() error {
+	if v, ok := tuo.mutation.Name(); ok {
+		if err := template.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Template.name": %w`, err)}
+		}
+	}
 	if v, ok := tuo.mutation.Source(); ok {
 		if err := template.SourceValidator(v); err != nil {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`model: validator failed for field "Template.source": %w`, err)}
@@ -665,15 +662,8 @@ func (tuo *TemplateUpdateOne) Set(obj *Template) *TemplateUpdateOne {
 			}
 
 			// Without Default.
-			if obj.Status != "" {
-				if db.Status != obj.Status {
-					tuo.SetStatus(obj.Status)
-				}
-			}
-			if obj.StatusMessage != "" {
-				if db.StatusMessage != obj.StatusMessage {
-					tuo.SetStatusMessage(obj.StatusMessage)
-				}
+			if db.Name != obj.Name {
+				tuo.SetName(obj.Name)
 			}
 			if obj.Description != "" {
 				if db.Description != obj.Description {
@@ -682,15 +672,24 @@ func (tuo *TemplateUpdateOne) Set(obj *Template) *TemplateUpdateOne {
 			} else {
 				tuo.ClearDescription()
 			}
+			if !reflect.ValueOf(obj.Labels).IsZero() {
+				if !reflect.DeepEqual(db.Labels, obj.Labels) {
+					tuo.SetLabels(obj.Labels)
+				}
+			} else {
+				tuo.ClearLabels()
+			}
+			if !reflect.ValueOf(obj.Status).IsZero() {
+				if !db.Status.Equal(obj.Status) {
+					tuo.SetStatus(obj.Status)
+				}
+			}
 			if obj.Icon != "" {
 				if db.Icon != obj.Icon {
 					tuo.SetIcon(obj.Icon)
 				}
 			} else {
 				tuo.ClearIcon()
-			}
-			if !reflect.DeepEqual(db.Labels, obj.Labels) {
-				tuo.SetLabels(obj.Labels)
 			}
 			if db.Source != obj.Source {
 				tuo.SetSource(obj.Source)
@@ -745,20 +744,20 @@ func (tuo *TemplateUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context
 	if obj == nil {
 		obj = tuo.object
 	} else if x := tuo.object; x != nil {
-		if _, set := tuo.mutation.Field(template.FieldStatus); set {
-			obj.Status = x.Status
-		}
-		if _, set := tuo.mutation.Field(template.FieldStatusMessage); set {
-			obj.StatusMessage = x.StatusMessage
+		if _, set := tuo.mutation.Field(template.FieldName); set {
+			obj.Name = x.Name
 		}
 		if _, set := tuo.mutation.Field(template.FieldDescription); set {
 			obj.Description = x.Description
 		}
-		if _, set := tuo.mutation.Field(template.FieldIcon); set {
-			obj.Icon = x.Icon
-		}
 		if _, set := tuo.mutation.Field(template.FieldLabels); set {
 			obj.Labels = x.Labels
+		}
+		if _, set := tuo.mutation.Field(template.FieldStatus); set {
+			obj.Status = x.Status
+		}
+		if _, set := tuo.mutation.Field(template.FieldIcon); set {
+			obj.Icon = x.Icon
 		}
 		if _, set := tuo.mutation.Field(template.FieldSource); set {
 			obj.Source = x.Source
@@ -833,20 +832,8 @@ func (tuo *TemplateUpdateOne) sqlSave(ctx context.Context) (_node *Template, err
 			}
 		}
 	}
-	if value, ok := tuo.mutation.UpdateTime(); ok {
-		_spec.SetField(template.FieldUpdateTime, field.TypeTime, value)
-	}
-	if value, ok := tuo.mutation.Status(); ok {
-		_spec.SetField(template.FieldStatus, field.TypeString, value)
-	}
-	if tuo.mutation.StatusCleared() {
-		_spec.ClearField(template.FieldStatus, field.TypeString)
-	}
-	if value, ok := tuo.mutation.StatusMessage(); ok {
-		_spec.SetField(template.FieldStatusMessage, field.TypeString, value)
-	}
-	if tuo.mutation.StatusMessageCleared() {
-		_spec.ClearField(template.FieldStatusMessage, field.TypeString)
+	if value, ok := tuo.mutation.Name(); ok {
+		_spec.SetField(template.FieldName, field.TypeString, value)
 	}
 	if value, ok := tuo.mutation.Description(); ok {
 		_spec.SetField(template.FieldDescription, field.TypeString, value)
@@ -854,14 +841,26 @@ func (tuo *TemplateUpdateOne) sqlSave(ctx context.Context) (_node *Template, err
 	if tuo.mutation.DescriptionCleared() {
 		_spec.ClearField(template.FieldDescription, field.TypeString)
 	}
+	if value, ok := tuo.mutation.Labels(); ok {
+		_spec.SetField(template.FieldLabels, field.TypeJSON, value)
+	}
+	if tuo.mutation.LabelsCleared() {
+		_spec.ClearField(template.FieldLabels, field.TypeJSON)
+	}
+	if value, ok := tuo.mutation.UpdateTime(); ok {
+		_spec.SetField(template.FieldUpdateTime, field.TypeTime, value)
+	}
+	if value, ok := tuo.mutation.Status(); ok {
+		_spec.SetField(template.FieldStatus, field.TypeJSON, value)
+	}
+	if tuo.mutation.StatusCleared() {
+		_spec.ClearField(template.FieldStatus, field.TypeJSON)
+	}
 	if value, ok := tuo.mutation.Icon(); ok {
 		_spec.SetField(template.FieldIcon, field.TypeString, value)
 	}
 	if tuo.mutation.IconCleared() {
 		_spec.ClearField(template.FieldIcon, field.TypeString)
-	}
-	if value, ok := tuo.mutation.Labels(); ok {
-		_spec.SetField(template.FieldLabels, field.TypeJSON, value)
 	}
 	if value, ok := tuo.mutation.Source(); ok {
 		_spec.SetField(template.FieldSource, field.TypeString, value)

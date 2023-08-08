@@ -20,6 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // TemplateQuery is the builder for querying Template entities.
@@ -116,8 +117,8 @@ func (tq *TemplateQuery) FirstX(ctx context.Context) *Template {
 
 // FirstID returns the first Template ID from the query.
 // Returns a *NotFoundError when no Template ID was found.
-func (tq *TemplateQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (tq *TemplateQuery) FirstID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = tq.Limit(1).IDs(setContextOp(ctx, tq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -129,7 +130,7 @@ func (tq *TemplateQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (tq *TemplateQuery) FirstIDX(ctx context.Context) string {
+func (tq *TemplateQuery) FirstIDX(ctx context.Context) object.ID {
 	id, err := tq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -167,8 +168,8 @@ func (tq *TemplateQuery) OnlyX(ctx context.Context) *Template {
 // OnlyID is like Only, but returns the only Template ID in the query.
 // Returns a *NotSingularError when more than one Template ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (tq *TemplateQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (tq *TemplateQuery) OnlyID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = tq.Limit(2).IDs(setContextOp(ctx, tq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -184,7 +185,7 @@ func (tq *TemplateQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (tq *TemplateQuery) OnlyIDX(ctx context.Context) string {
+func (tq *TemplateQuery) OnlyIDX(ctx context.Context) object.ID {
 	id, err := tq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -212,7 +213,7 @@ func (tq *TemplateQuery) AllX(ctx context.Context) []*Template {
 }
 
 // IDs executes the query and returns a list of Template IDs.
-func (tq *TemplateQuery) IDs(ctx context.Context) (ids []string, err error) {
+func (tq *TemplateQuery) IDs(ctx context.Context) (ids []object.ID, err error) {
 	if tq.ctx.Unique == nil && tq.path != nil {
 		tq.Unique(true)
 	}
@@ -224,7 +225,7 @@ func (tq *TemplateQuery) IDs(ctx context.Context) (ids []string, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (tq *TemplateQuery) IDsX(ctx context.Context) []string {
+func (tq *TemplateQuery) IDsX(ctx context.Context) []object.ID {
 	ids, err := tq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -308,12 +309,12 @@ func (tq *TemplateQuery) WithVersions(opts ...func(*TemplateVersionQuery)) *Temp
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"create_time,omitempty"`
+//		Name string `json:"name,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Template.Query().
-//		GroupBy(template.FieldCreateTime).
+//		GroupBy(template.FieldName).
 //		Aggregate(model.Count()).
 //		Scan(ctx, &v)
 func (tq *TemplateQuery) GroupBy(field string, fields ...string) *TemplateGroupBy {
@@ -331,11 +332,11 @@ func (tq *TemplateQuery) GroupBy(field string, fields ...string) *TemplateGroupB
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"create_time,omitempty"`
+//		Name string `json:"name,omitempty"`
 //	}
 //
 //	client.Template.Query().
-//		Select(template.FieldCreateTime).
+//		Select(template.FieldName).
 //		Scan(ctx, &v)
 func (tq *TemplateQuery) Select(fields ...string) *TemplateSelect {
 	tq.ctx.Fields = append(tq.ctx.Fields, fields...)
@@ -419,7 +420,7 @@ func (tq *TemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tem
 
 func (tq *TemplateQuery) loadVersions(ctx context.Context, query *TemplateVersionQuery, nodes []*Template, init func(*Template), assign func(*Template, *TemplateVersion)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[string]*Template)
+	nodeids := make(map[object.ID]*Template)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]

@@ -12,6 +12,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
 // TemplateCreateInput holds the creation input of the Template entity.
@@ -19,9 +20,10 @@ type TemplateCreateInput struct {
 	inputConfig `uri:"-" query:"-" json:"-"`
 
 	Source      string            `uri:"-" query:"-" json:"source"`
+	Name        string            `uri:"-" query:"-" json:"name"`
 	Description string            `uri:"-" query:"-" json:"description,omitempty"`
-	Icon        string            `uri:"-" query:"-" json:"icon,omitempty"`
 	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
+	Icon        string            `uri:"-" query:"-" json:"icon,omitempty"`
 }
 
 // Model returns the Template entity for creating,
@@ -33,9 +35,10 @@ func (tci *TemplateCreateInput) Model() *Template {
 
 	t := &Template{
 		Source:      tci.Source,
+		Name:        tci.Name,
 		Description: tci.Description,
-		Icon:        tci.Icon,
 		Labels:      tci.Labels,
+		Icon:        tci.Icon,
 	}
 
 	return t
@@ -64,9 +67,10 @@ func (tci *TemplateCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err
 // TemplateCreateInputs holds the creation input item of the Template entities.
 type TemplateCreateInputsItem struct {
 	Source      string            `uri:"-" query:"-" json:"source"`
+	Name        string            `uri:"-" query:"-" json:"name"`
 	Description string            `uri:"-" query:"-" json:"description,omitempty"`
-	Icon        string            `uri:"-" query:"-" json:"icon,omitempty"`
 	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
+	Icon        string            `uri:"-" query:"-" json:"icon,omitempty"`
 }
 
 // TemplateCreateInputs holds the creation input of the Template entities.
@@ -88,9 +92,10 @@ func (tci *TemplateCreateInputs) Model() []*Template {
 	for i := range tci.Items {
 		t := &Template{
 			Source:      tci.Items[i].Source,
+			Name:        tci.Items[i].Name,
 			Description: tci.Items[i].Description,
-			Icon:        tci.Items[i].Icon,
 			Labels:      tci.Items[i].Labels,
+			Icon:        tci.Items[i].Icon,
 		}
 
 		ts[i] = t
@@ -128,7 +133,7 @@ type TemplateDeleteInput = TemplateQueryInput
 
 // TemplateDeleteInputs holds the deletion input item of the Template entities.
 type TemplateDeleteInputsItem struct {
-	ID string `uri:"-" query:"-" json:"id"`
+	ID object.ID `uri:"-" query:"-" json:"id"`
 }
 
 // TemplateDeleteInputs holds the deletion input of the Template entities.
@@ -177,7 +182,7 @@ func (tdi *TemplateDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (er
 
 	q := cs.Templates().Query()
 
-	ids := make([]string, 0, len(tdi.Items))
+	ids := make([]object.ID, 0, len(tdi.Items))
 
 	for i := range tdi.Items {
 		if tdi.Items[i] == nil {
@@ -211,7 +216,7 @@ type TemplateQueryInput struct {
 	inputConfig `uri:"-" query:"-" json:"-"`
 
 	Refer *object.Refer `uri:"template,default=\"\"" query:"-" json:"-"`
-	ID    string        `uri:"id" query:"-" json:"id"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
+	ID    object.ID     `uri:"id" query:"-" json:"id"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
 }
 
 // Model returns the Template entity for querying,
@@ -250,9 +255,9 @@ func (tqi *TemplateQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err 
 	q := cs.Templates().Query()
 
 	if tqi.Refer != nil {
-		if tqi.Refer.IsString() {
+		if tqi.Refer.IsID() {
 			q.Where(
-				template.ID(tqi.Refer.String()))
+				template.ID(tqi.Refer.ID()))
 		} else {
 			return errors.New("invalid identify refer of template")
 		}
@@ -296,9 +301,10 @@ func (tqi *TemplateQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 type TemplateUpdateInput struct {
 	TemplateQueryInput `uri:",inline" query:"-" json:",inline"`
 
+	Name        string            `uri:"-" query:"-" json:"name,omitempty"`
 	Description string            `uri:"-" query:"-" json:"description,omitempty"`
-	Icon        string            `uri:"-" query:"-" json:"icon,omitempty"`
 	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
+	Icon        string            `uri:"-" query:"-" json:"icon,omitempty"`
 	Source      string            `uri:"-" query:"-" json:"source,omitempty"`
 }
 
@@ -311,9 +317,10 @@ func (tui *TemplateUpdateInput) Model() *Template {
 
 	t := &Template{
 		ID:          tui.ID,
+		Name:        tui.Name,
 		Description: tui.Description,
-		Icon:        tui.Icon,
 		Labels:      tui.Labels,
+		Icon:        tui.Icon,
 		Source:      tui.Source,
 	}
 
@@ -322,11 +329,12 @@ func (tui *TemplateUpdateInput) Model() *Template {
 
 // TemplateUpdateInputs holds the modification input item of the Template entities.
 type TemplateUpdateInputsItem struct {
-	ID string `uri:"-" query:"-" json:"id"`
+	ID object.ID `uri:"-" query:"-" json:"id"`
 
+	Name        string            `uri:"-" query:"-" json:"name,omitempty"`
 	Description string            `uri:"-" query:"-" json:"description,omitempty"`
-	Icon        string            `uri:"-" query:"-" json:"icon,omitempty"`
 	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
+	Icon        string            `uri:"-" query:"-" json:"icon,omitempty"`
 	Source      string            `uri:"-" query:"-" json:"source,omitempty"`
 }
 
@@ -349,9 +357,10 @@ func (tui *TemplateUpdateInputs) Model() []*Template {
 	for i := range tui.Items {
 		t := &Template{
 			ID:          tui.Items[i].ID,
+			Name:        tui.Items[i].Name,
 			Description: tui.Items[i].Description,
-			Icon:        tui.Items[i].Icon,
 			Labels:      tui.Items[i].Labels,
+			Icon:        tui.Items[i].Icon,
 			Source:      tui.Items[i].Source,
 		}
 
@@ -384,7 +393,7 @@ func (tui *TemplateUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (er
 
 	q := cs.Templates().Query()
 
-	ids := make([]string, 0, len(tui.Items))
+	ids := make([]object.ID, 0, len(tui.Items))
 
 	for i := range tui.Items {
 		if tui.Items[i] == nil {
@@ -415,15 +424,15 @@ func (tui *TemplateUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (er
 
 // TemplateOutput holds the output of the Template entity.
 type TemplateOutput struct {
-	ID            string            `json:"id,omitempty"`
-	CreateTime    *time.Time        `json:"createTime,omitempty"`
-	UpdateTime    *time.Time        `json:"updateTime,omitempty"`
-	Status        string            `json:"status,omitempty"`
-	StatusMessage string            `json:"statusMessage,omitempty"`
-	Description   string            `json:"description,omitempty"`
-	Icon          string            `json:"icon,omitempty"`
-	Labels        map[string]string `json:"labels,omitempty"`
-	Source        string            `json:"source,omitempty"`
+	ID          object.ID         `json:"id,omitempty"`
+	Name        string            `json:"name,omitempty"`
+	Description string            `json:"description,omitempty"`
+	Labels      map[string]string `json:"labels,omitempty"`
+	CreateTime  *time.Time        `json:"createTime,omitempty"`
+	UpdateTime  *time.Time        `json:"updateTime,omitempty"`
+	Status      status.Status     `json:"status,omitempty"`
+	Icon        string            `json:"icon,omitempty"`
+	Source      string            `json:"source,omitempty"`
 }
 
 // View returns the output of Template.
@@ -443,15 +452,15 @@ func ExposeTemplate(t *Template) *TemplateOutput {
 	}
 
 	to := &TemplateOutput{
-		ID:            t.ID,
-		CreateTime:    t.CreateTime,
-		UpdateTime:    t.UpdateTime,
-		Status:        t.Status,
-		StatusMessage: t.StatusMessage,
-		Description:   t.Description,
-		Icon:          t.Icon,
-		Labels:        t.Labels,
-		Source:        t.Source,
+		ID:          t.ID,
+		Name:        t.Name,
+		Description: t.Description,
+		Labels:      t.Labels,
+		CreateTime:  t.CreateTime,
+		UpdateTime:  t.UpdateTime,
+		Status:      t.Status,
+		Icon:        t.Icon,
+		Source:      t.Source,
 	}
 
 	return to

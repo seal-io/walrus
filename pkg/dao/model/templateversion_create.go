@@ -61,8 +61,14 @@ func (tvc *TemplateVersionCreate) SetNillableUpdateTime(t *time.Time) *TemplateV
 }
 
 // SetTemplateID sets the "template_id" field.
-func (tvc *TemplateVersionCreate) SetTemplateID(s string) *TemplateVersionCreate {
-	tvc.mutation.SetTemplateID(s)
+func (tvc *TemplateVersionCreate) SetTemplateID(o object.ID) *TemplateVersionCreate {
+	tvc.mutation.SetTemplateID(o)
+	return tvc
+}
+
+// SetTemplateName sets the "template_name" field.
+func (tvc *TemplateVersionCreate) SetTemplateName(s string) *TemplateVersionCreate {
+	tvc.mutation.SetTemplateName(s)
 	return tvc
 }
 
@@ -165,8 +171,16 @@ func (tvc *TemplateVersionCreate) check() error {
 		return &ValidationError{Name: "template_id", err: errors.New(`model: missing required field "TemplateVersion.template_id"`)}
 	}
 	if v, ok := tvc.mutation.TemplateID(); ok {
-		if err := templateversion.TemplateIDValidator(v); err != nil {
+		if err := templateversion.TemplateIDValidator(string(v)); err != nil {
 			return &ValidationError{Name: "template_id", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.template_id": %w`, err)}
+		}
+	}
+	if _, ok := tvc.mutation.TemplateName(); !ok {
+		return &ValidationError{Name: "template_name", err: errors.New(`model: missing required field "TemplateVersion.template_name"`)}
+	}
+	if v, ok := tvc.mutation.TemplateName(); ok {
+		if err := templateversion.TemplateNameValidator(v); err != nil {
+			return &ValidationError{Name: "template_name", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.template_name": %w`, err)}
 		}
 	}
 	if _, ok := tvc.mutation.Version(); !ok {
@@ -236,6 +250,10 @@ func (tvc *TemplateVersionCreate) createSpec() (*TemplateVersion, *sqlgraph.Crea
 		_spec.SetField(templateversion.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
 	}
+	if value, ok := tvc.mutation.TemplateName(); ok {
+		_spec.SetField(templateversion.FieldTemplateName, field.TypeString, value)
+		_node.TemplateName = value
+	}
 	if value, ok := tvc.mutation.Version(); ok {
 		_spec.SetField(templateversion.FieldVersion, field.TypeString, value)
 		_node.Version = value
@@ -290,6 +308,7 @@ func (tvc *TemplateVersionCreate) createSpec() (*TemplateVersion, *sqlgraph.Crea
 func (tvc *TemplateVersionCreate) Set(obj *TemplateVersion) *TemplateVersionCreate {
 	// Required.
 	tvc.SetTemplateID(obj.TemplateID)
+	tvc.SetTemplateName(obj.TemplateName)
 	tvc.SetVersion(obj.Version)
 	tvc.SetSource(obj.Source)
 	tvc.SetSchema(obj.Schema)
@@ -339,6 +358,9 @@ func (tvc *TemplateVersionCreate) SaveE(ctx context.Context, cbs ...func(ctx con
 	if x := tvc.object; x != nil {
 		if _, set := tvc.mutation.Field(templateversion.FieldTemplateID); set {
 			obj.TemplateID = x.TemplateID
+		}
+		if _, set := tvc.mutation.Field(templateversion.FieldTemplateName); set {
+			obj.TemplateName = x.TemplateName
 		}
 		if _, set := tvc.mutation.Field(templateversion.FieldVersion); set {
 			obj.Version = x.Version
@@ -447,6 +469,9 @@ func (tvcb *TemplateVersionCreateBulk) SaveE(ctx context.Context, cbs ...func(ct
 		for i := range x {
 			if _, set := tvcb.builders[i].mutation.Field(templateversion.FieldTemplateID); set {
 				objs[i].TemplateID = x[i].TemplateID
+			}
+			if _, set := tvcb.builders[i].mutation.Field(templateversion.FieldTemplateName); set {
+				objs[i].TemplateName = x[i].TemplateName
 			}
 			if _, set := tvcb.builders[i].mutation.Field(templateversion.FieldVersion); set {
 				objs[i].Version = x[i].Version
@@ -626,6 +651,9 @@ func (u *TemplateVersionUpsertOne) UpdateNewValues() *TemplateVersionUpsertOne {
 		}
 		if _, exists := u.create.mutation.TemplateID(); exists {
 			s.SetIgnore(templateversion.FieldTemplateID)
+		}
+		if _, exists := u.create.mutation.TemplateName(); exists {
+			s.SetIgnore(templateversion.FieldTemplateName)
 		}
 		if _, exists := u.create.mutation.Version(); exists {
 			s.SetIgnore(templateversion.FieldVersion)
@@ -878,6 +906,9 @@ func (u *TemplateVersionUpsertBulk) UpdateNewValues() *TemplateVersionUpsertBulk
 			}
 			if _, exists := b.mutation.TemplateID(); exists {
 				s.SetIgnore(templateversion.FieldTemplateID)
+			}
+			if _, exists := b.mutation.TemplateName(); exists {
+				s.SetIgnore(templateversion.FieldTemplateName)
 			}
 			if _, exists := b.mutation.Version(); exists {
 				s.SetIgnore(templateversion.FieldVersion)

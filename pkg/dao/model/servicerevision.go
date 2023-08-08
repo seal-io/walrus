@@ -41,8 +41,8 @@ type ServiceRevision struct {
 	EnvironmentID object.ID `json:"environment_id,omitempty"`
 	// ID of the service to which the revision belongs.
 	ServiceID object.ID `json:"service_id,omitempty"`
-	// ID of the template.
-	TemplateID string `json:"template_id,omitempty"`
+	// Name of the template.
+	TemplateName string `json:"template_name,omitempty"`
 	// Version of the template.
 	TemplateVersion string `json:"template_version,omitempty"`
 	// Attributes to configure the template.
@@ -134,7 +134,7 @@ func (*ServiceRevision) scanValues(columns []string) ([]any, error) {
 			values[i] = new(property.Values)
 		case servicerevision.FieldDuration:
 			values[i] = new(sql.NullInt64)
-		case servicerevision.FieldStatus, servicerevision.FieldStatusMessage, servicerevision.FieldTemplateID, servicerevision.FieldTemplateVersion, servicerevision.FieldInputPlan, servicerevision.FieldOutput, servicerevision.FieldDeployerType:
+		case servicerevision.FieldStatus, servicerevision.FieldStatusMessage, servicerevision.FieldTemplateName, servicerevision.FieldTemplateVersion, servicerevision.FieldInputPlan, servicerevision.FieldOutput, servicerevision.FieldDeployerType:
 			values[i] = new(sql.NullString)
 		case servicerevision.FieldCreateTime:
 			values[i] = new(sql.NullTime)
@@ -196,11 +196,11 @@ func (sr *ServiceRevision) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				sr.ServiceID = *value
 			}
-		case servicerevision.FieldTemplateID:
+		case servicerevision.FieldTemplateName:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field template_id", values[i])
+				return fmt.Errorf("unexpected type %T for field template_name", values[i])
 			} else if value.Valid {
-				sr.TemplateID = value.String
+				sr.TemplateName = value.String
 			}
 		case servicerevision.FieldTemplateVersion:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -331,8 +331,8 @@ func (sr *ServiceRevision) String() string {
 	builder.WriteString("service_id=")
 	builder.WriteString(fmt.Sprintf("%v", sr.ServiceID))
 	builder.WriteString(", ")
-	builder.WriteString("template_id=")
-	builder.WriteString(sr.TemplateID)
+	builder.WriteString("template_name=")
+	builder.WriteString(sr.TemplateName)
 	builder.WriteString(", ")
 	builder.WriteString("template_version=")
 	builder.WriteString(sr.TemplateVersion)

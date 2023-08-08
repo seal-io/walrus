@@ -3282,7 +3282,7 @@ func (c *TemplateClient) UpdateOne(t *Template) *TemplateUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *TemplateClient) UpdateOneID(id string) *TemplateUpdateOne {
+func (c *TemplateClient) UpdateOneID(id object.ID) *TemplateUpdateOne {
 	mutation := newTemplateMutation(c.config, OpUpdateOne, withTemplateID(id))
 	return &TemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -3299,7 +3299,7 @@ func (c *TemplateClient) DeleteOne(t *Template) *TemplateDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *TemplateClient) DeleteOneID(id string) *TemplateDeleteOne {
+func (c *TemplateClient) DeleteOneID(id object.ID) *TemplateDeleteOne {
 	builder := c.Delete().Where(template.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -3316,12 +3316,12 @@ func (c *TemplateClient) Query() *TemplateQuery {
 }
 
 // Get returns a Template entity by its id.
-func (c *TemplateClient) Get(ctx context.Context, id string) (*Template, error) {
+func (c *TemplateClient) Get(ctx context.Context, id object.ID) (*Template, error) {
 	return c.Query().Where(template.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *TemplateClient) GetX(ctx context.Context, id string) *Template {
+func (c *TemplateClient) GetX(ctx context.Context, id object.ID) *Template {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)

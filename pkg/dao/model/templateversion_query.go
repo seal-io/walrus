@@ -417,8 +417,8 @@ func (tvq *TemplateVersionQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 }
 
 func (tvq *TemplateVersionQuery) loadTemplate(ctx context.Context, query *TemplateQuery, nodes []*TemplateVersion, init func(*TemplateVersion), assign func(*TemplateVersion, *Template)) error {
-	ids := make([]string, 0, len(nodes))
-	nodeids := make(map[string][]*TemplateVersion)
+	ids := make([]object.ID, 0, len(nodes))
+	nodeids := make(map[object.ID][]*TemplateVersion)
 	for i := range nodes {
 		fk := nodes[i].TemplateID
 		if _, ok := nodeids[fk]; !ok {
