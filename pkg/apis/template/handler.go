@@ -8,6 +8,7 @@ import (
 	modbus "github.com/seal-io/seal/pkg/bus/template"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/template"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/topic"
@@ -67,8 +68,8 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	)
 
 	if shouldSyncSchema {
-		entity.Status = status.TemplateStatusInitializing
-		entity.StatusMessage = ""
+		status.TemplateStatusInitialized.Unknown(entity, "Initializing template")
+		entity.Status.SetSummary(status.WalkTemplate(&entity.Status))
 	}
 
 	entity, err = h.modelClient.Templates().UpdateOne(entity).
@@ -112,7 +113,7 @@ func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteReq
 
 var (
 	queryFields = []string{
-		template.FieldID,
+		template.FieldName,
 	}
 	getFields  = template.Columns
 	sortFields = []string{
@@ -182,7 +183,7 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 			return err
 		}
 
-		dm, ok := event.Data.(datamessage.Message[string])
+		dm, ok := event.Data.(datamessage.Message[object.ID])
 		if !ok {
 			continue
 		}
@@ -228,8 +229,9 @@ func (h Handler) RouteRefresh(ctx *gin.Context, req view.RefreshRequest) error {
 	if err != nil {
 		return err
 	}
-	entity.Status = status.TemplateStatusInitializing
-	entity.StatusMessage = ""
+
+	status.TemplateStatusInitialized.Unknown(entity, "Initializing template")
+	entity.Status.SetSummary(status.WalkTemplate(&entity.Status))
 
 	entity, err = h.modelClient.Templates().UpdateOne(entity).
 		Set(entity).

@@ -299,7 +299,7 @@ func (r *RevisionDiffPreviousRequest) Validate() error {
 }
 
 type RevisionDiff struct {
-	TemplateID      string          `json:"templateId"`
+	TemplateName    string          `json:"templateName"`
 	TemplateVersion string          `json:"templateVersion"`
 	Attributes      property.Values `json:"attributes"`
 }

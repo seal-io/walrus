@@ -5,6 +5,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/templateversion/view"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 )
 
@@ -54,7 +55,11 @@ func (h Handler) CollectionGet(
 	req view.CollectionGetRequest,
 ) (view.CollectionGetResponse, int, error) {
 	query := h.modelClient.TemplateVersions().Query().
-		Where(templateversion.TemplateIDIn(req.TemplateIDs...))
+		Where(templateversion.TemplateNameIn(req.TemplateNames...)).
+		WithTemplate(func(tq *model.TemplateQuery) {
+			tq.Select(template.FieldID, template.FieldName)
+		})
+
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
 	}

@@ -46,7 +46,7 @@ var getServiceRevisionFields = servicerevision.WithoutFields(
 	servicerevision.FieldStatusMessage,
 	servicerevision.FieldInputPlan,
 	servicerevision.FieldOutput,
-	servicerevision.FieldTemplateID,
+	servicerevision.FieldTemplateName,
 	servicerevision.FieldTemplateVersion,
 	servicerevision.FieldAttributes,
 	servicerevision.FieldVariables,
