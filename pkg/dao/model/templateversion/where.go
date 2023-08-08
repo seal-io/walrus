@@ -72,8 +72,13 @@ func UpdateTime(v time.Time) predicate.TemplateVersion {
 }
 
 // TemplateID applies equality check predicate on the "template_id" field. It's identical to TemplateIDEQ.
-func TemplateID(v string) predicate.TemplateVersion {
+func TemplateID(v object.ID) predicate.TemplateVersion {
 	return predicate.TemplateVersion(sql.FieldEQ(FieldTemplateID, v))
+}
+
+// TemplateName applies equality check predicate on the "template_name" field. It's identical to TemplateNameEQ.
+func TemplateName(v string) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldEQ(FieldTemplateName, v))
 }
 
 // Version applies equality check predicate on the "version" field. It's identical to VersionEQ.
@@ -167,68 +172,138 @@ func UpdateTimeLTE(v time.Time) predicate.TemplateVersion {
 }
 
 // TemplateIDEQ applies the EQ predicate on the "template_id" field.
-func TemplateIDEQ(v string) predicate.TemplateVersion {
+func TemplateIDEQ(v object.ID) predicate.TemplateVersion {
 	return predicate.TemplateVersion(sql.FieldEQ(FieldTemplateID, v))
 }
 
 // TemplateIDNEQ applies the NEQ predicate on the "template_id" field.
-func TemplateIDNEQ(v string) predicate.TemplateVersion {
+func TemplateIDNEQ(v object.ID) predicate.TemplateVersion {
 	return predicate.TemplateVersion(sql.FieldNEQ(FieldTemplateID, v))
 }
 
 // TemplateIDIn applies the In predicate on the "template_id" field.
-func TemplateIDIn(vs ...string) predicate.TemplateVersion {
+func TemplateIDIn(vs ...object.ID) predicate.TemplateVersion {
 	return predicate.TemplateVersion(sql.FieldIn(FieldTemplateID, vs...))
 }
 
 // TemplateIDNotIn applies the NotIn predicate on the "template_id" field.
-func TemplateIDNotIn(vs ...string) predicate.TemplateVersion {
+func TemplateIDNotIn(vs ...object.ID) predicate.TemplateVersion {
 	return predicate.TemplateVersion(sql.FieldNotIn(FieldTemplateID, vs...))
 }
 
 // TemplateIDGT applies the GT predicate on the "template_id" field.
-func TemplateIDGT(v string) predicate.TemplateVersion {
+func TemplateIDGT(v object.ID) predicate.TemplateVersion {
 	return predicate.TemplateVersion(sql.FieldGT(FieldTemplateID, v))
 }
 
 // TemplateIDGTE applies the GTE predicate on the "template_id" field.
-func TemplateIDGTE(v string) predicate.TemplateVersion {
+func TemplateIDGTE(v object.ID) predicate.TemplateVersion {
 	return predicate.TemplateVersion(sql.FieldGTE(FieldTemplateID, v))
 }
 
 // TemplateIDLT applies the LT predicate on the "template_id" field.
-func TemplateIDLT(v string) predicate.TemplateVersion {
+func TemplateIDLT(v object.ID) predicate.TemplateVersion {
 	return predicate.TemplateVersion(sql.FieldLT(FieldTemplateID, v))
 }
 
 // TemplateIDLTE applies the LTE predicate on the "template_id" field.
-func TemplateIDLTE(v string) predicate.TemplateVersion {
+func TemplateIDLTE(v object.ID) predicate.TemplateVersion {
 	return predicate.TemplateVersion(sql.FieldLTE(FieldTemplateID, v))
 }
 
 // TemplateIDContains applies the Contains predicate on the "template_id" field.
-func TemplateIDContains(v string) predicate.TemplateVersion {
-	return predicate.TemplateVersion(sql.FieldContains(FieldTemplateID, v))
+func TemplateIDContains(v object.ID) predicate.TemplateVersion {
+	vc := string(v)
+	return predicate.TemplateVersion(sql.FieldContains(FieldTemplateID, vc))
 }
 
 // TemplateIDHasPrefix applies the HasPrefix predicate on the "template_id" field.
-func TemplateIDHasPrefix(v string) predicate.TemplateVersion {
-	return predicate.TemplateVersion(sql.FieldHasPrefix(FieldTemplateID, v))
+func TemplateIDHasPrefix(v object.ID) predicate.TemplateVersion {
+	vc := string(v)
+	return predicate.TemplateVersion(sql.FieldHasPrefix(FieldTemplateID, vc))
 }
 
 // TemplateIDHasSuffix applies the HasSuffix predicate on the "template_id" field.
-func TemplateIDHasSuffix(v string) predicate.TemplateVersion {
-	return predicate.TemplateVersion(sql.FieldHasSuffix(FieldTemplateID, v))
+func TemplateIDHasSuffix(v object.ID) predicate.TemplateVersion {
+	vc := string(v)
+	return predicate.TemplateVersion(sql.FieldHasSuffix(FieldTemplateID, vc))
 }
 
 // TemplateIDEqualFold applies the EqualFold predicate on the "template_id" field.
-func TemplateIDEqualFold(v string) predicate.TemplateVersion {
-	return predicate.TemplateVersion(sql.FieldEqualFold(FieldTemplateID, v))
+func TemplateIDEqualFold(v object.ID) predicate.TemplateVersion {
+	vc := string(v)
+	return predicate.TemplateVersion(sql.FieldEqualFold(FieldTemplateID, vc))
 }
 
 // TemplateIDContainsFold applies the ContainsFold predicate on the "template_id" field.
-func TemplateIDContainsFold(v string) predicate.TemplateVersion {
-	return predicate.TemplateVersion(sql.FieldContainsFold(FieldTemplateID, v))
+func TemplateIDContainsFold(v object.ID) predicate.TemplateVersion {
+	vc := string(v)
+	return predicate.TemplateVersion(sql.FieldContainsFold(FieldTemplateID, vc))
+}
+
+// TemplateNameEQ applies the EQ predicate on the "template_name" field.
+func TemplateNameEQ(v string) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldEQ(FieldTemplateName, v))
+}
+
+// TemplateNameNEQ applies the NEQ predicate on the "template_name" field.
+func TemplateNameNEQ(v string) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldNEQ(FieldTemplateName, v))
+}
+
+// TemplateNameIn applies the In predicate on the "template_name" field.
+func TemplateNameIn(vs ...string) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldIn(FieldTemplateName, vs...))
+}
+
+// TemplateNameNotIn applies the NotIn predicate on the "template_name" field.
+func TemplateNameNotIn(vs ...string) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldNotIn(FieldTemplateName, vs...))
+}
+
+// TemplateNameGT applies the GT predicate on the "template_name" field.
+func TemplateNameGT(v string) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldGT(FieldTemplateName, v))
+}
+
+// TemplateNameGTE applies the GTE predicate on the "template_name" field.
+func TemplateNameGTE(v string) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldGTE(FieldTemplateName, v))
+}
+
+// TemplateNameLT applies the LT predicate on the "template_name" field.
+func TemplateNameLT(v string) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldLT(FieldTemplateName, v))
+}
+
+// TemplateNameLTE applies the LTE predicate on the "template_name" field.
+func TemplateNameLTE(v string) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldLTE(FieldTemplateName, v))
+}
+
+// TemplateNameContains applies the Contains predicate on the "template_name" field.
+func TemplateNameContains(v string) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldContains(FieldTemplateName, v))
+}
+
+// TemplateNameHasPrefix applies the HasPrefix predicate on the "template_name" field.
+func TemplateNameHasPrefix(v string) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldHasPrefix(FieldTemplateName, v))
+}
+
+// TemplateNameHasSuffix applies the HasSuffix predicate on the "template_name" field.
+func TemplateNameHasSuffix(v string) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldHasSuffix(FieldTemplateName, v))
+}
+
+// TemplateNameEqualFold applies the EqualFold predicate on the "template_name" field.
+func TemplateNameEqualFold(v string) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldEqualFold(FieldTemplateName, v))
+}
+
+// TemplateNameContainsFold applies the ContainsFold predicate on the "template_name" field.
+func TemplateNameContainsFold(v string) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldContainsFold(FieldTemplateName, v))
 }
 
 // VersionEQ applies the EQ predicate on the "version" field.

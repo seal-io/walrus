@@ -26,6 +26,8 @@ const (
 	FieldUpdateTime = "update_time"
 	// FieldTemplateID holds the string denoting the template_id field in the database.
 	FieldTemplateID = "template_id"
+	// FieldTemplateName holds the string denoting the template_name field in the database.
+	FieldTemplateName = "template_name"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
 	// FieldSource holds the string denoting the source field in the database.
@@ -51,6 +53,7 @@ var Columns = []string{
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldTemplateID,
+	FieldTemplateName,
 	FieldVersion,
 	FieldSource,
 	FieldSchema,
@@ -81,6 +84,8 @@ var (
 	UpdateDefaultUpdateTime func() time.Time
 	// TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
 	TemplateIDValidator func(string) error
+	// TemplateNameValidator is a validator for the "template_name" field. It is called by the builders before save.
+	TemplateNameValidator func(string) error
 	// VersionValidator is a validator for the "version" field. It is called by the builders before save.
 	VersionValidator func(string) error
 	// SourceValidator is a validator for the "source" field. It is called by the builders before save.
@@ -110,6 +115,11 @@ func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
 // ByTemplateID orders the results by the template_id field.
 func ByTemplateID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTemplateID, opts...).ToFunc()
+}
+
+// ByTemplateName orders the results by the template_name field.
+func ByTemplateName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTemplateName, opts...).ToFunc()
 }
 
 // ByVersion orders the results by the version field.

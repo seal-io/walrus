@@ -93,9 +93,9 @@ func ServiceID(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldServiceID, v))
 }
 
-// TemplateID applies equality check predicate on the "template_id" field. It's identical to TemplateIDEQ.
-func TemplateID(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldEQ(FieldTemplateID, v))
+// TemplateName applies equality check predicate on the "template_name" field. It's identical to TemplateNameEQ.
+func TemplateName(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldEQ(FieldTemplateName, v))
 }
 
 // TemplateVersion applies equality check predicate on the "template_version" field. It's identical to TemplateVersionEQ.
@@ -533,69 +533,69 @@ func ServiceIDContainsFold(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldContainsFold(FieldServiceID, vc))
 }
 
-// TemplateIDEQ applies the EQ predicate on the "template_id" field.
-func TemplateIDEQ(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldEQ(FieldTemplateID, v))
+// TemplateNameEQ applies the EQ predicate on the "template_name" field.
+func TemplateNameEQ(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldEQ(FieldTemplateName, v))
 }
 
-// TemplateIDNEQ applies the NEQ predicate on the "template_id" field.
-func TemplateIDNEQ(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldNEQ(FieldTemplateID, v))
+// TemplateNameNEQ applies the NEQ predicate on the "template_name" field.
+func TemplateNameNEQ(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldNEQ(FieldTemplateName, v))
 }
 
-// TemplateIDIn applies the In predicate on the "template_id" field.
-func TemplateIDIn(vs ...string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldIn(FieldTemplateID, vs...))
+// TemplateNameIn applies the In predicate on the "template_name" field.
+func TemplateNameIn(vs ...string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldIn(FieldTemplateName, vs...))
 }
 
-// TemplateIDNotIn applies the NotIn predicate on the "template_id" field.
-func TemplateIDNotIn(vs ...string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldNotIn(FieldTemplateID, vs...))
+// TemplateNameNotIn applies the NotIn predicate on the "template_name" field.
+func TemplateNameNotIn(vs ...string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldNotIn(FieldTemplateName, vs...))
 }
 
-// TemplateIDGT applies the GT predicate on the "template_id" field.
-func TemplateIDGT(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldGT(FieldTemplateID, v))
+// TemplateNameGT applies the GT predicate on the "template_name" field.
+func TemplateNameGT(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldGT(FieldTemplateName, v))
 }
 
-// TemplateIDGTE applies the GTE predicate on the "template_id" field.
-func TemplateIDGTE(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldGTE(FieldTemplateID, v))
+// TemplateNameGTE applies the GTE predicate on the "template_name" field.
+func TemplateNameGTE(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldGTE(FieldTemplateName, v))
 }
 
-// TemplateIDLT applies the LT predicate on the "template_id" field.
-func TemplateIDLT(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldLT(FieldTemplateID, v))
+// TemplateNameLT applies the LT predicate on the "template_name" field.
+func TemplateNameLT(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldLT(FieldTemplateName, v))
 }
 
-// TemplateIDLTE applies the LTE predicate on the "template_id" field.
-func TemplateIDLTE(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldLTE(FieldTemplateID, v))
+// TemplateNameLTE applies the LTE predicate on the "template_name" field.
+func TemplateNameLTE(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldLTE(FieldTemplateName, v))
 }
 
-// TemplateIDContains applies the Contains predicate on the "template_id" field.
-func TemplateIDContains(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldContains(FieldTemplateID, v))
+// TemplateNameContains applies the Contains predicate on the "template_name" field.
+func TemplateNameContains(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldContains(FieldTemplateName, v))
 }
 
-// TemplateIDHasPrefix applies the HasPrefix predicate on the "template_id" field.
-func TemplateIDHasPrefix(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldHasPrefix(FieldTemplateID, v))
+// TemplateNameHasPrefix applies the HasPrefix predicate on the "template_name" field.
+func TemplateNameHasPrefix(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldHasPrefix(FieldTemplateName, v))
 }
 
-// TemplateIDHasSuffix applies the HasSuffix predicate on the "template_id" field.
-func TemplateIDHasSuffix(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldHasSuffix(FieldTemplateID, v))
+// TemplateNameHasSuffix applies the HasSuffix predicate on the "template_name" field.
+func TemplateNameHasSuffix(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldHasSuffix(FieldTemplateName, v))
 }
 
-// TemplateIDEqualFold applies the EqualFold predicate on the "template_id" field.
-func TemplateIDEqualFold(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldEqualFold(FieldTemplateID, v))
+// TemplateNameEqualFold applies the EqualFold predicate on the "template_name" field.
+func TemplateNameEqualFold(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldEqualFold(FieldTemplateName, v))
 }
 
-// TemplateIDContainsFold applies the ContainsFold predicate on the "template_id" field.
-func TemplateIDContainsFold(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldContainsFold(FieldTemplateID, v))
+// TemplateNameContainsFold applies the ContainsFold predicate on the "template_name" field.
+func TemplateNameContainsFold(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldContainsFold(FieldTemplateName, v))
 }
 
 // TemplateVersionEQ applies the EQ predicate on the "template_version" field.

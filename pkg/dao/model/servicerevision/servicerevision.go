@@ -33,8 +33,8 @@ const (
 	FieldEnvironmentID = "environment_id"
 	// FieldServiceID holds the string denoting the service_id field in the database.
 	FieldServiceID = "service_id"
-	// FieldTemplateID holds the string denoting the template_id field in the database.
-	FieldTemplateID = "template_id"
+	// FieldTemplateName holds the string denoting the template_name field in the database.
+	FieldTemplateName = "template_name"
 	// FieldTemplateVersion holds the string denoting the template_version field in the database.
 	FieldTemplateVersion = "template_version"
 	// FieldAttributes holds the string denoting the attributes field in the database.
@@ -93,7 +93,7 @@ var Columns = []string{
 	FieldStatusMessage,
 	FieldEnvironmentID,
 	FieldServiceID,
-	FieldTemplateID,
+	FieldTemplateName,
 	FieldTemplateVersion,
 	FieldAttributes,
 	FieldVariables,
@@ -131,8 +131,8 @@ var (
 	EnvironmentIDValidator func(string) error
 	// ServiceIDValidator is a validator for the "service_id" field. It is called by the builders before save.
 	ServiceIDValidator func(string) error
-	// TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
-	TemplateIDValidator func(string) error
+	// TemplateNameValidator is a validator for the "template_name" field. It is called by the builders before save.
+	TemplateNameValidator func(string) error
 	// TemplateVersionValidator is a validator for the "template_version" field. It is called by the builders before save.
 	TemplateVersionValidator func(string) error
 	// DefaultVariables holds the default value on creation for the "variables" field.
@@ -185,9 +185,9 @@ func ByServiceID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldServiceID, opts...).ToFunc()
 }
 
-// ByTemplateID orders the results by the template_id field.
-func ByTemplateID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTemplateID, opts...).ToFunc()
+// ByTemplateName orders the results by the template_name field.
+func ByTemplateName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTemplateName, opts...).ToFunc()
 }
 
 // ByTemplateVersion orders the results by the template_version field.

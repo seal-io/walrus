@@ -30,7 +30,9 @@ type TemplateVersion struct {
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime *time.Time `json:"update_time,omitempty"`
 	// ID of the template.
-	TemplateID string `json:"template_id,omitempty"`
+	TemplateID object.ID `json:"template_id,omitempty"`
+	// Name of the template.
+	TemplateName string `json:"template_name,omitempty"`
 	// Template version.
 	Version string `json:"version,omitempty"`
 	// Template version source.
@@ -72,9 +74,9 @@ func (*TemplateVersion) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case templateversion.FieldSchema:
 			values[i] = new([]byte)
-		case templateversion.FieldID:
+		case templateversion.FieldID, templateversion.FieldTemplateID:
 			values[i] = new(object.ID)
-		case templateversion.FieldTemplateID, templateversion.FieldVersion, templateversion.FieldSource:
+		case templateversion.FieldTemplateName, templateversion.FieldVersion, templateversion.FieldSource:
 			values[i] = new(sql.NullString)
 		case templateversion.FieldCreateTime, templateversion.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -114,10 +116,16 @@ func (tv *TemplateVersion) assignValues(columns []string, values []any) error {
 				*tv.UpdateTime = value.Time
 			}
 		case templateversion.FieldTemplateID:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field template_id", values[i])
+			} else if value != nil {
+				tv.TemplateID = *value
+			}
+		case templateversion.FieldTemplateName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field template_name", values[i])
 			} else if value.Valid {
-				tv.TemplateID = value.String
+				tv.TemplateName = value.String
 			}
 		case templateversion.FieldVersion:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -191,7 +199,10 @@ func (tv *TemplateVersion) String() string {
 	}
 	builder.WriteString(", ")
 	builder.WriteString("template_id=")
-	builder.WriteString(tv.TemplateID)
+	builder.WriteString(fmt.Sprintf("%v", tv.TemplateID))
+	builder.WriteString(", ")
+	builder.WriteString("template_name=")
+	builder.WriteString(tv.TemplateName)
 	builder.WriteString(", ")
 	builder.WriteString("version=")
 	builder.WriteString(tv.Version)

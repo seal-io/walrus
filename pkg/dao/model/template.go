@@ -14,6 +14,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/template"
+	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/json"
 )
 
@@ -21,22 +23,21 @@ import (
 type Template struct {
 	config `json:"-"`
 	// ID of the ent.
-	// It is also the name of the template.
-	ID string `json:"id,omitempty"`
+	ID object.ID `json:"id,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `json:"labels,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime *time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime *time.Time `json:"update_time,omitempty"`
 	// Status holds the value of the "status" field.
-	Status string `json:"status,omitempty"`
-	// StatusMessage holds the value of the "status_message" field.
-	StatusMessage string `json:"status_message,omitempty"`
-	// Description of the template.
-	Description string `json:"description,omitempty"`
+	Status status.Status `json:"status,omitempty"`
 	// A URL to an SVG or PNG image to be used as an icon.
 	Icon string `json:"icon,omitempty"`
-	// Labels of the template.
-	Labels map[string]string `json:"labels,omitempty"`
 	// Source of the template.
 	Source string `json:"source,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -68,9 +69,11 @@ func (*Template) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case template.FieldLabels:
+		case template.FieldLabels, template.FieldStatus:
 			values[i] = new([]byte)
-		case template.FieldID, template.FieldStatus, template.FieldStatusMessage, template.FieldDescription, template.FieldIcon, template.FieldSource:
+		case template.FieldID:
+			values[i] = new(object.ID)
+		case template.FieldName, template.FieldDescription, template.FieldIcon, template.FieldSource:
 			values[i] = new(sql.NullString)
 		case template.FieldCreateTime, template.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -90,10 +93,30 @@ func (t *Template) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case template.FieldID:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				t.ID = *value
+			}
+		case template.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				t.ID = value.String
+				t.Name = value.String
+			}
+		case template.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				t.Description = value.String
+			}
+		case template.FieldLabels:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field labels", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &t.Labels); err != nil {
+					return fmt.Errorf("unmarshal field labels: %w", err)
+				}
 			}
 		case template.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -110,36 +133,18 @@ func (t *Template) assignValues(columns []string, values []any) error {
 				*t.UpdateTime = value.Time
 			}
 		case template.FieldStatus:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
-			} else if value.Valid {
-				t.Status = value.String
-			}
-		case template.FieldStatusMessage:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field status_message", values[i])
-			} else if value.Valid {
-				t.StatusMessage = value.String
-			}
-		case template.FieldDescription:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field description", values[i])
-			} else if value.Valid {
-				t.Description = value.String
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &t.Status); err != nil {
+					return fmt.Errorf("unmarshal field status: %w", err)
+				}
 			}
 		case template.FieldIcon:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field icon", values[i])
 			} else if value.Valid {
 				t.Icon = value.String
-			}
-		case template.FieldLabels:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field labels", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &t.Labels); err != nil {
-					return fmt.Errorf("unmarshal field labels: %w", err)
-				}
 			}
 		case template.FieldSource:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -188,6 +193,15 @@ func (t *Template) String() string {
 	var builder strings.Builder
 	builder.WriteString("Template(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", t.ID))
+	builder.WriteString("name=")
+	builder.WriteString(t.Name)
+	builder.WriteString(", ")
+	builder.WriteString("description=")
+	builder.WriteString(t.Description)
+	builder.WriteString(", ")
+	builder.WriteString("labels=")
+	builder.WriteString(fmt.Sprintf("%v", t.Labels))
+	builder.WriteString(", ")
 	if v := t.CreateTime; v != nil {
 		builder.WriteString("create_time=")
 		builder.WriteString(v.Format(time.ANSIC))
@@ -199,19 +213,10 @@ func (t *Template) String() string {
 	}
 	builder.WriteString(", ")
 	builder.WriteString("status=")
-	builder.WriteString(t.Status)
-	builder.WriteString(", ")
-	builder.WriteString("status_message=")
-	builder.WriteString(t.StatusMessage)
-	builder.WriteString(", ")
-	builder.WriteString("description=")
-	builder.WriteString(t.Description)
+	builder.WriteString(fmt.Sprintf("%v", t.Status))
 	builder.WriteString(", ")
 	builder.WriteString("icon=")
 	builder.WriteString(t.Icon)
-	builder.WriteString(", ")
-	builder.WriteString("labels=")
-	builder.WriteString(fmt.Sprintf("%v", t.Labels))
 	builder.WriteString(", ")
 	builder.WriteString("source=")
 	builder.WriteString(t.Source)

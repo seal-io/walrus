@@ -475,7 +475,7 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "status", Type: field.TypeString, Nullable: true},
 		{Name: "status_message", Type: field.TypeString, Nullable: true},
-		{Name: "template_id", Type: field.TypeString},
+		{Name: "template_name", Type: field.TypeString},
 		{Name: "template_version", Type: field.TypeString},
 		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
 		{Name: "variables", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
@@ -640,14 +640,14 @@ var (
 	}
 	// TemplatesColumns holds the columns for the "templates" table.
 	TemplatesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "status", Type: field.TypeString, Nullable: true},
-		{Name: "status_message", Type: field.TypeString, Nullable: true},
-		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "status", Type: field.TypeJSON, Nullable: true},
 		{Name: "icon", Type: field.TypeString, Nullable: true},
-		{Name: "labels", Type: field.TypeJSON},
 		{Name: "source", Type: field.TypeString},
 	}
 	// TemplatesTable holds the schema information for the "templates" table.
@@ -657,8 +657,8 @@ var (
 		PrimaryKey: []*schema.Column{TemplatesColumns[0]},
 		Indexes: []*schema.Index{
 			{
-				Name:    "template_create_time",
-				Unique:  false,
+				Name:    "template_name",
+				Unique:  true,
 				Columns: []*schema.Column{TemplatesColumns[1]},
 			},
 		},
@@ -668,10 +668,11 @@ var (
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
+		{Name: "template_name", Type: field.TypeString},
 		{Name: "version", Type: field.TypeString},
 		{Name: "source", Type: field.TypeString},
 		{Name: "schema", Type: field.TypeJSON},
-		{Name: "template_id", Type: field.TypeString},
+		{Name: "template_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// TemplateVersionsTable holds the schema information for the "template_versions" table.
 	TemplateVersionsTable = &schema.Table{
@@ -681,7 +682,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "template_versions_templates_versions",
-				Columns:    []*schema.Column{TemplateVersionsColumns[6]},
+				Columns:    []*schema.Column{TemplateVersionsColumns[7]},
 				RefColumns: []*schema.Column{TemplatesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

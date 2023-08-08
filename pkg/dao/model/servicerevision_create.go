@@ -97,9 +97,9 @@ func (src *ServiceRevisionCreate) SetServiceID(o object.ID) *ServiceRevisionCrea
 	return src
 }
 
-// SetTemplateID sets the "template_id" field.
-func (src *ServiceRevisionCreate) SetTemplateID(s string) *ServiceRevisionCreate {
-	src.mutation.SetTemplateID(s)
+// SetTemplateName sets the "template_name" field.
+func (src *ServiceRevisionCreate) SetTemplateName(s string) *ServiceRevisionCreate {
+	src.mutation.SetTemplateName(s)
 	return src
 }
 
@@ -290,12 +290,12 @@ func (src *ServiceRevisionCreate) check() error {
 			return &ValidationError{Name: "service_id", err: fmt.Errorf(`model: validator failed for field "ServiceRevision.service_id": %w`, err)}
 		}
 	}
-	if _, ok := src.mutation.TemplateID(); !ok {
-		return &ValidationError{Name: "template_id", err: errors.New(`model: missing required field "ServiceRevision.template_id"`)}
+	if _, ok := src.mutation.TemplateName(); !ok {
+		return &ValidationError{Name: "template_name", err: errors.New(`model: missing required field "ServiceRevision.template_name"`)}
 	}
-	if v, ok := src.mutation.TemplateID(); ok {
-		if err := servicerevision.TemplateIDValidator(v); err != nil {
-			return &ValidationError{Name: "template_id", err: fmt.Errorf(`model: validator failed for field "ServiceRevision.template_id": %w`, err)}
+	if v, ok := src.mutation.TemplateName(); ok {
+		if err := servicerevision.TemplateNameValidator(v); err != nil {
+			return &ValidationError{Name: "template_name", err: fmt.Errorf(`model: validator failed for field "ServiceRevision.template_name": %w`, err)}
 		}
 	}
 	if _, ok := src.mutation.TemplateVersion(); !ok {
@@ -385,9 +385,9 @@ func (src *ServiceRevisionCreate) createSpec() (*ServiceRevision, *sqlgraph.Crea
 		_spec.SetField(servicerevision.FieldStatusMessage, field.TypeString, value)
 		_node.StatusMessage = value
 	}
-	if value, ok := src.mutation.TemplateID(); ok {
-		_spec.SetField(servicerevision.FieldTemplateID, field.TypeString, value)
-		_node.TemplateID = value
+	if value, ok := src.mutation.TemplateName(); ok {
+		_spec.SetField(servicerevision.FieldTemplateName, field.TypeString, value)
+		_node.TemplateName = value
 	}
 	if value, ok := src.mutation.TemplateVersion(); ok {
 		_spec.SetField(servicerevision.FieldTemplateVersion, field.TypeString, value)
@@ -505,7 +505,7 @@ func (src *ServiceRevisionCreate) Set(obj *ServiceRevision) *ServiceRevisionCrea
 	src.SetProjectID(obj.ProjectID)
 	src.SetEnvironmentID(obj.EnvironmentID)
 	src.SetServiceID(obj.ServiceID)
-	src.SetTemplateID(obj.TemplateID)
+	src.SetTemplateName(obj.TemplateName)
 	src.SetTemplateVersion(obj.TemplateVersion)
 	src.SetVariables(obj.Variables)
 	src.SetInputPlan(obj.InputPlan)
@@ -579,8 +579,8 @@ func (src *ServiceRevisionCreate) SaveE(ctx context.Context, cbs ...func(ctx con
 		if _, set := src.mutation.Field(servicerevision.FieldServiceID); set {
 			obj.ServiceID = x.ServiceID
 		}
-		if _, set := src.mutation.Field(servicerevision.FieldTemplateID); set {
-			obj.TemplateID = x.TemplateID
+		if _, set := src.mutation.Field(servicerevision.FieldTemplateName); set {
+			obj.TemplateName = x.TemplateName
 		}
 		if _, set := src.mutation.Field(servicerevision.FieldTemplateVersion); set {
 			obj.TemplateVersion = x.TemplateVersion
@@ -708,8 +708,8 @@ func (srcb *ServiceRevisionCreateBulk) SaveE(ctx context.Context, cbs ...func(ct
 			if _, set := srcb.builders[i].mutation.Field(servicerevision.FieldServiceID); set {
 				objs[i].ServiceID = x[i].ServiceID
 			}
-			if _, set := srcb.builders[i].mutation.Field(servicerevision.FieldTemplateID); set {
-				objs[i].TemplateID = x[i].TemplateID
+			if _, set := srcb.builders[i].mutation.Field(servicerevision.FieldTemplateName); set {
+				objs[i].TemplateName = x[i].TemplateName
 			}
 			if _, set := srcb.builders[i].mutation.Field(servicerevision.FieldTemplateVersion); set {
 				objs[i].TemplateVersion = x[i].TemplateVersion
@@ -1034,8 +1034,8 @@ func (u *ServiceRevisionUpsertOne) UpdateNewValues() *ServiceRevisionUpsertOne {
 		if _, exists := u.create.mutation.ServiceID(); exists {
 			s.SetIgnore(servicerevision.FieldServiceID)
 		}
-		if _, exists := u.create.mutation.TemplateID(); exists {
-			s.SetIgnore(servicerevision.FieldTemplateID)
+		if _, exists := u.create.mutation.TemplateName(); exists {
+			s.SetIgnore(servicerevision.FieldTemplateName)
 		}
 	}))
 	return u
@@ -1443,8 +1443,8 @@ func (u *ServiceRevisionUpsertBulk) UpdateNewValues() *ServiceRevisionUpsertBulk
 			if _, exists := b.mutation.ServiceID(); exists {
 				s.SetIgnore(servicerevision.FieldServiceID)
 			}
-			if _, exists := b.mutation.TemplateID(); exists {
-				s.SetIgnore(servicerevision.FieldTemplateID)
+			if _, exists := b.mutation.TemplateName(); exists {
+				s.SetIgnore(servicerevision.FieldTemplateName)
 			}
 		}
 	}))

@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"entgo.io/ent/dialect"
@@ -19,6 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
 // TemplateCreate is the builder for creating a Template entity.
@@ -29,6 +31,32 @@ type TemplateCreate struct {
 	conflict   []sql.ConflictOption
 	object     *Template
 	fromUpsert bool
+}
+
+// SetName sets the "name" field.
+func (tc *TemplateCreate) SetName(s string) *TemplateCreate {
+	tc.mutation.SetName(s)
+	return tc
+}
+
+// SetDescription sets the "description" field.
+func (tc *TemplateCreate) SetDescription(s string) *TemplateCreate {
+	tc.mutation.SetDescription(s)
+	return tc
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (tc *TemplateCreate) SetNillableDescription(s *string) *TemplateCreate {
+	if s != nil {
+		tc.SetDescription(*s)
+	}
+	return tc
+}
+
+// SetLabels sets the "labels" field.
+func (tc *TemplateCreate) SetLabels(m map[string]string) *TemplateCreate {
+	tc.mutation.SetLabels(m)
+	return tc
 }
 
 // SetCreateTime sets the "create_time" field.
@@ -60,43 +88,15 @@ func (tc *TemplateCreate) SetNillableUpdateTime(t *time.Time) *TemplateCreate {
 }
 
 // SetStatus sets the "status" field.
-func (tc *TemplateCreate) SetStatus(s string) *TemplateCreate {
+func (tc *TemplateCreate) SetStatus(s status.Status) *TemplateCreate {
 	tc.mutation.SetStatus(s)
 	return tc
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (tc *TemplateCreate) SetNillableStatus(s *string) *TemplateCreate {
+func (tc *TemplateCreate) SetNillableStatus(s *status.Status) *TemplateCreate {
 	if s != nil {
 		tc.SetStatus(*s)
-	}
-	return tc
-}
-
-// SetStatusMessage sets the "status_message" field.
-func (tc *TemplateCreate) SetStatusMessage(s string) *TemplateCreate {
-	tc.mutation.SetStatusMessage(s)
-	return tc
-}
-
-// SetNillableStatusMessage sets the "status_message" field if the given value is not nil.
-func (tc *TemplateCreate) SetNillableStatusMessage(s *string) *TemplateCreate {
-	if s != nil {
-		tc.SetStatusMessage(*s)
-	}
-	return tc
-}
-
-// SetDescription sets the "description" field.
-func (tc *TemplateCreate) SetDescription(s string) *TemplateCreate {
-	tc.mutation.SetDescription(s)
-	return tc
-}
-
-// SetNillableDescription sets the "description" field if the given value is not nil.
-func (tc *TemplateCreate) SetNillableDescription(s *string) *TemplateCreate {
-	if s != nil {
-		tc.SetDescription(*s)
 	}
 	return tc
 }
@@ -115,12 +115,6 @@ func (tc *TemplateCreate) SetNillableIcon(s *string) *TemplateCreate {
 	return tc
 }
 
-// SetLabels sets the "labels" field.
-func (tc *TemplateCreate) SetLabels(m map[string]string) *TemplateCreate {
-	tc.mutation.SetLabels(m)
-	return tc
-}
-
 // SetSource sets the "source" field.
 func (tc *TemplateCreate) SetSource(s string) *TemplateCreate {
 	tc.mutation.SetSource(s)
@@ -128,8 +122,8 @@ func (tc *TemplateCreate) SetSource(s string) *TemplateCreate {
 }
 
 // SetID sets the "id" field.
-func (tc *TemplateCreate) SetID(s string) *TemplateCreate {
-	tc.mutation.SetID(s)
+func (tc *TemplateCreate) SetID(o object.ID) *TemplateCreate {
+	tc.mutation.SetID(o)
 	return tc
 }
 
@@ -185,6 +179,10 @@ func (tc *TemplateCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (tc *TemplateCreate) defaults() error {
+	if _, ok := tc.mutation.Labels(); !ok {
+		v := template.DefaultLabels
+		tc.mutation.SetLabels(v)
+	}
 	if _, ok := tc.mutation.CreateTime(); !ok {
 		if template.DefaultCreateTime == nil {
 			return fmt.Errorf("model: uninitialized template.DefaultCreateTime (forgotten import model/runtime?)")
@@ -199,23 +197,24 @@ func (tc *TemplateCreate) defaults() error {
 		v := template.DefaultUpdateTime()
 		tc.mutation.SetUpdateTime(v)
 	}
-	if _, ok := tc.mutation.Labels(); !ok {
-		v := template.DefaultLabels
-		tc.mutation.SetLabels(v)
-	}
 	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
 func (tc *TemplateCreate) check() error {
+	if _, ok := tc.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Template.name"`)}
+	}
+	if v, ok := tc.mutation.Name(); ok {
+		if err := template.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Template.name": %w`, err)}
+		}
+	}
 	if _, ok := tc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "create_time", err: errors.New(`model: missing required field "Template.create_time"`)}
 	}
 	if _, ok := tc.mutation.UpdateTime(); !ok {
 		return &ValidationError{Name: "update_time", err: errors.New(`model: missing required field "Template.update_time"`)}
-	}
-	if _, ok := tc.mutation.Labels(); !ok {
-		return &ValidationError{Name: "labels", err: errors.New(`model: missing required field "Template.labels"`)}
 	}
 	if _, ok := tc.mutation.Source(); !ok {
 		return &ValidationError{Name: "source", err: errors.New(`model: missing required field "Template.source"`)}
@@ -223,11 +222,6 @@ func (tc *TemplateCreate) check() error {
 	if v, ok := tc.mutation.Source(); ok {
 		if err := template.SourceValidator(v); err != nil {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`model: validator failed for field "Template.source": %w`, err)}
-		}
-	}
-	if v, ok := tc.mutation.ID(); ok {
-		if err := template.IDValidator(v); err != nil {
-			return &ValidationError{Name: "id", err: fmt.Errorf(`model: validator failed for field "Template.id": %w`, err)}
 		}
 	}
 	return nil
@@ -245,10 +239,10 @@ func (tc *TemplateCreate) sqlSave(ctx context.Context) (*Template, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(string); ok {
-			_node.ID = id
-		} else {
-			return nil, fmt.Errorf("unexpected Template.ID type: %T", _spec.ID.Value)
+		if id, ok := _spec.ID.Value.(*object.ID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
 		}
 	}
 	tc.mutation.id = &_node.ID
@@ -265,7 +259,19 @@ func (tc *TemplateCreate) createSpec() (*Template, *sqlgraph.CreateSpec) {
 	_spec.OnConflict = tc.conflict
 	if id, ok := tc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
+	}
+	if value, ok := tc.mutation.Name(); ok {
+		_spec.SetField(template.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if value, ok := tc.mutation.Description(); ok {
+		_spec.SetField(template.FieldDescription, field.TypeString, value)
+		_node.Description = value
+	}
+	if value, ok := tc.mutation.Labels(); ok {
+		_spec.SetField(template.FieldLabels, field.TypeJSON, value)
+		_node.Labels = value
 	}
 	if value, ok := tc.mutation.CreateTime(); ok {
 		_spec.SetField(template.FieldCreateTime, field.TypeTime, value)
@@ -276,24 +282,12 @@ func (tc *TemplateCreate) createSpec() (*Template, *sqlgraph.CreateSpec) {
 		_node.UpdateTime = &value
 	}
 	if value, ok := tc.mutation.Status(); ok {
-		_spec.SetField(template.FieldStatus, field.TypeString, value)
+		_spec.SetField(template.FieldStatus, field.TypeJSON, value)
 		_node.Status = value
-	}
-	if value, ok := tc.mutation.StatusMessage(); ok {
-		_spec.SetField(template.FieldStatusMessage, field.TypeString, value)
-		_node.StatusMessage = value
-	}
-	if value, ok := tc.mutation.Description(); ok {
-		_spec.SetField(template.FieldDescription, field.TypeString, value)
-		_node.Description = value
 	}
 	if value, ok := tc.mutation.Icon(); ok {
 		_spec.SetField(template.FieldIcon, field.TypeString, value)
 		_node.Icon = value
-	}
-	if value, ok := tc.mutation.Labels(); ok {
-		_spec.SetField(template.FieldLabels, field.TypeJSON, value)
-		_node.Labels = value
 	}
 	if value, ok := tc.mutation.Source(); ok {
 		_spec.SetField(template.FieldSource, field.TypeString, value)
@@ -339,25 +333,24 @@ func (tc *TemplateCreate) createSpec() (*Template, *sqlgraph.CreateSpec) {
 //	}
 func (tc *TemplateCreate) Set(obj *Template) *TemplateCreate {
 	// Required.
-	tc.SetID(obj.ID)
-	tc.SetLabels(obj.Labels)
+	tc.SetName(obj.Name)
 	tc.SetSource(obj.Source)
 
 	// Optional.
+	if obj.Description != "" {
+		tc.SetDescription(obj.Description)
+	}
+	if !reflect.ValueOf(obj.Labels).IsZero() {
+		tc.SetLabels(obj.Labels)
+	}
 	if obj.CreateTime != nil {
 		tc.SetCreateTime(*obj.CreateTime)
 	}
 	if obj.UpdateTime != nil {
 		tc.SetUpdateTime(*obj.UpdateTime)
 	}
-	if obj.Status != "" {
+	if !reflect.ValueOf(obj.Status).IsZero() {
 		tc.SetStatus(obj.Status)
-	}
-	if obj.StatusMessage != "" {
-		tc.SetStatusMessage(obj.StatusMessage)
-	}
-	if obj.Description != "" {
-		tc.SetDescription(obj.Description)
 	}
 	if obj.Icon != "" {
 		tc.SetIcon(obj.Icon)
@@ -398,14 +391,14 @@ func (tc *TemplateCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Con
 	mc := tc.getClientSet()
 
 	if x := tc.object; x != nil {
-		if _, set := tc.mutation.Field(template.FieldStatus); set {
-			obj.Status = x.Status
-		}
-		if _, set := tc.mutation.Field(template.FieldStatusMessage); set {
-			obj.StatusMessage = x.StatusMessage
+		if _, set := tc.mutation.Field(template.FieldName); set {
+			obj.Name = x.Name
 		}
 		if _, set := tc.mutation.Field(template.FieldDescription); set {
 			obj.Description = x.Description
+		}
+		if _, set := tc.mutation.Field(template.FieldStatus); set {
+			obj.Status = x.Status
 		}
 		if _, set := tc.mutation.Field(template.FieldIcon); set {
 			obj.Icon = x.Icon
@@ -512,14 +505,14 @@ func (tcb *TemplateCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx contex
 
 	if x := tcb.objects; x != nil {
 		for i := range x {
-			if _, set := tcb.builders[i].mutation.Field(template.FieldStatus); set {
-				objs[i].Status = x[i].Status
-			}
-			if _, set := tcb.builders[i].mutation.Field(template.FieldStatusMessage); set {
-				objs[i].StatusMessage = x[i].StatusMessage
+			if _, set := tcb.builders[i].mutation.Field(template.FieldName); set {
+				objs[i].Name = x[i].Name
 			}
 			if _, set := tcb.builders[i].mutation.Field(template.FieldDescription); set {
 				objs[i].Description = x[i].Description
+			}
+			if _, set := tcb.builders[i].mutation.Field(template.FieldStatus); set {
+				objs[i].Status = x[i].Status
 			}
 			if _, set := tcb.builders[i].mutation.Field(template.FieldIcon); set {
 				objs[i].Icon = x[i].Icon
@@ -608,7 +601,7 @@ func (u *TemplateUpsertBulk) ExecEX(ctx context.Context, cbs ...func(ctx context
 // of the `INSERT` statement. For example:
 //
 //	client.Template.Create().
-//		SetCreateTime(v).
+//		SetName(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -617,7 +610,7 @@ func (u *TemplateUpsertBulk) ExecEX(ctx context.Context, cbs ...func(ctx context
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.TemplateUpsert) {
-//			SetCreateTime(v+v).
+//			SetName(v+v).
 //		}).
 //		Exec(ctx)
 func (tc *TemplateCreate) OnConflict(opts ...sql.ConflictOption) *TemplateUpsertOne {
@@ -653,51 +646,15 @@ type (
 	}
 )
 
-// SetUpdateTime sets the "update_time" field.
-func (u *TemplateUpsert) SetUpdateTime(v time.Time) *TemplateUpsert {
-	u.Set(template.FieldUpdateTime, v)
+// SetName sets the "name" field.
+func (u *TemplateUpsert) SetName(v string) *TemplateUpsert {
+	u.Set(template.FieldName, v)
 	return u
 }
 
-// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
-func (u *TemplateUpsert) UpdateUpdateTime() *TemplateUpsert {
-	u.SetExcluded(template.FieldUpdateTime)
-	return u
-}
-
-// SetStatus sets the "status" field.
-func (u *TemplateUpsert) SetStatus(v string) *TemplateUpsert {
-	u.Set(template.FieldStatus, v)
-	return u
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *TemplateUpsert) UpdateStatus() *TemplateUpsert {
-	u.SetExcluded(template.FieldStatus)
-	return u
-}
-
-// ClearStatus clears the value of the "status" field.
-func (u *TemplateUpsert) ClearStatus() *TemplateUpsert {
-	u.SetNull(template.FieldStatus)
-	return u
-}
-
-// SetStatusMessage sets the "status_message" field.
-func (u *TemplateUpsert) SetStatusMessage(v string) *TemplateUpsert {
-	u.Set(template.FieldStatusMessage, v)
-	return u
-}
-
-// UpdateStatusMessage sets the "status_message" field to the value that was provided on create.
-func (u *TemplateUpsert) UpdateStatusMessage() *TemplateUpsert {
-	u.SetExcluded(template.FieldStatusMessage)
-	return u
-}
-
-// ClearStatusMessage clears the value of the "status_message" field.
-func (u *TemplateUpsert) ClearStatusMessage() *TemplateUpsert {
-	u.SetNull(template.FieldStatusMessage)
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *TemplateUpsert) UpdateName() *TemplateUpsert {
+	u.SetExcluded(template.FieldName)
 	return u
 }
 
@@ -719,6 +676,54 @@ func (u *TemplateUpsert) ClearDescription() *TemplateUpsert {
 	return u
 }
 
+// SetLabels sets the "labels" field.
+func (u *TemplateUpsert) SetLabels(v map[string]string) *TemplateUpsert {
+	u.Set(template.FieldLabels, v)
+	return u
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *TemplateUpsert) UpdateLabels() *TemplateUpsert {
+	u.SetExcluded(template.FieldLabels)
+	return u
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *TemplateUpsert) ClearLabels() *TemplateUpsert {
+	u.SetNull(template.FieldLabels)
+	return u
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (u *TemplateUpsert) SetUpdateTime(v time.Time) *TemplateUpsert {
+	u.Set(template.FieldUpdateTime, v)
+	return u
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *TemplateUpsert) UpdateUpdateTime() *TemplateUpsert {
+	u.SetExcluded(template.FieldUpdateTime)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *TemplateUpsert) SetStatus(v status.Status) *TemplateUpsert {
+	u.Set(template.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *TemplateUpsert) UpdateStatus() *TemplateUpsert {
+	u.SetExcluded(template.FieldStatus)
+	return u
+}
+
+// ClearStatus clears the value of the "status" field.
+func (u *TemplateUpsert) ClearStatus() *TemplateUpsert {
+	u.SetNull(template.FieldStatus)
+	return u
+}
+
 // SetIcon sets the "icon" field.
 func (u *TemplateUpsert) SetIcon(v string) *TemplateUpsert {
 	u.Set(template.FieldIcon, v)
@@ -734,18 +739,6 @@ func (u *TemplateUpsert) UpdateIcon() *TemplateUpsert {
 // ClearIcon clears the value of the "icon" field.
 func (u *TemplateUpsert) ClearIcon() *TemplateUpsert {
 	u.SetNull(template.FieldIcon)
-	return u
-}
-
-// SetLabels sets the "labels" field.
-func (u *TemplateUpsert) SetLabels(v map[string]string) *TemplateUpsert {
-	u.Set(template.FieldLabels, v)
-	return u
-}
-
-// UpdateLabels sets the "labels" field to the value that was provided on create.
-func (u *TemplateUpsert) UpdateLabels() *TemplateUpsert {
-	u.SetExcluded(template.FieldLabels)
 	return u
 }
 
@@ -812,59 +805,17 @@ func (u *TemplateUpsertOne) Update(set func(*TemplateUpsert)) *TemplateUpsertOne
 	return u
 }
 
-// SetUpdateTime sets the "update_time" field.
-func (u *TemplateUpsertOne) SetUpdateTime(v time.Time) *TemplateUpsertOne {
+// SetName sets the "name" field.
+func (u *TemplateUpsertOne) SetName(v string) *TemplateUpsertOne {
 	return u.Update(func(s *TemplateUpsert) {
-		s.SetUpdateTime(v)
+		s.SetName(v)
 	})
 }
 
-// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
-func (u *TemplateUpsertOne) UpdateUpdateTime() *TemplateUpsertOne {
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *TemplateUpsertOne) UpdateName() *TemplateUpsertOne {
 	return u.Update(func(s *TemplateUpsert) {
-		s.UpdateUpdateTime()
-	})
-}
-
-// SetStatus sets the "status" field.
-func (u *TemplateUpsertOne) SetStatus(v string) *TemplateUpsertOne {
-	return u.Update(func(s *TemplateUpsert) {
-		s.SetStatus(v)
-	})
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *TemplateUpsertOne) UpdateStatus() *TemplateUpsertOne {
-	return u.Update(func(s *TemplateUpsert) {
-		s.UpdateStatus()
-	})
-}
-
-// ClearStatus clears the value of the "status" field.
-func (u *TemplateUpsertOne) ClearStatus() *TemplateUpsertOne {
-	return u.Update(func(s *TemplateUpsert) {
-		s.ClearStatus()
-	})
-}
-
-// SetStatusMessage sets the "status_message" field.
-func (u *TemplateUpsertOne) SetStatusMessage(v string) *TemplateUpsertOne {
-	return u.Update(func(s *TemplateUpsert) {
-		s.SetStatusMessage(v)
-	})
-}
-
-// UpdateStatusMessage sets the "status_message" field to the value that was provided on create.
-func (u *TemplateUpsertOne) UpdateStatusMessage() *TemplateUpsertOne {
-	return u.Update(func(s *TemplateUpsert) {
-		s.UpdateStatusMessage()
-	})
-}
-
-// ClearStatusMessage clears the value of the "status_message" field.
-func (u *TemplateUpsertOne) ClearStatusMessage() *TemplateUpsertOne {
-	return u.Update(func(s *TemplateUpsert) {
-		s.ClearStatusMessage()
+		s.UpdateName()
 	})
 }
 
@@ -889,6 +840,62 @@ func (u *TemplateUpsertOne) ClearDescription() *TemplateUpsertOne {
 	})
 }
 
+// SetLabels sets the "labels" field.
+func (u *TemplateUpsertOne) SetLabels(v map[string]string) *TemplateUpsertOne {
+	return u.Update(func(s *TemplateUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *TemplateUpsertOne) UpdateLabels() *TemplateUpsertOne {
+	return u.Update(func(s *TemplateUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *TemplateUpsertOne) ClearLabels() *TemplateUpsertOne {
+	return u.Update(func(s *TemplateUpsert) {
+		s.ClearLabels()
+	})
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (u *TemplateUpsertOne) SetUpdateTime(v time.Time) *TemplateUpsertOne {
+	return u.Update(func(s *TemplateUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *TemplateUpsertOne) UpdateUpdateTime() *TemplateUpsertOne {
+	return u.Update(func(s *TemplateUpsert) {
+		s.UpdateUpdateTime()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *TemplateUpsertOne) SetStatus(v status.Status) *TemplateUpsertOne {
+	return u.Update(func(s *TemplateUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *TemplateUpsertOne) UpdateStatus() *TemplateUpsertOne {
+	return u.Update(func(s *TemplateUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// ClearStatus clears the value of the "status" field.
+func (u *TemplateUpsertOne) ClearStatus() *TemplateUpsertOne {
+	return u.Update(func(s *TemplateUpsert) {
+		s.ClearStatus()
+	})
+}
+
 // SetIcon sets the "icon" field.
 func (u *TemplateUpsertOne) SetIcon(v string) *TemplateUpsertOne {
 	return u.Update(func(s *TemplateUpsert) {
@@ -907,20 +914,6 @@ func (u *TemplateUpsertOne) UpdateIcon() *TemplateUpsertOne {
 func (u *TemplateUpsertOne) ClearIcon() *TemplateUpsertOne {
 	return u.Update(func(s *TemplateUpsert) {
 		s.ClearIcon()
-	})
-}
-
-// SetLabels sets the "labels" field.
-func (u *TemplateUpsertOne) SetLabels(v map[string]string) *TemplateUpsertOne {
-	return u.Update(func(s *TemplateUpsert) {
-		s.SetLabels(v)
-	})
-}
-
-// UpdateLabels sets the "labels" field to the value that was provided on create.
-func (u *TemplateUpsertOne) UpdateLabels() *TemplateUpsertOne {
-	return u.Update(func(s *TemplateUpsert) {
-		s.UpdateLabels()
 	})
 }
 
@@ -954,7 +947,7 @@ func (u *TemplateUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *TemplateUpsertOne) ID(ctx context.Context) (id string, err error) {
+func (u *TemplateUpsertOne) ID(ctx context.Context) (id object.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -968,7 +961,7 @@ func (u *TemplateUpsertOne) ID(ctx context.Context) (id string, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *TemplateUpsertOne) IDX(ctx context.Context) string {
+func (u *TemplateUpsertOne) IDX(ctx context.Context) object.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -1072,7 +1065,7 @@ func (tcb *TemplateCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.TemplateUpsert) {
-//			SetCreateTime(v+v).
+//			SetName(v+v).
 //		}).
 //		Exec(ctx)
 func (tcb *TemplateCreateBulk) OnConflict(opts ...sql.ConflictOption) *TemplateUpsertBulk {
@@ -1154,59 +1147,17 @@ func (u *TemplateUpsertBulk) Update(set func(*TemplateUpsert)) *TemplateUpsertBu
 	return u
 }
 
-// SetUpdateTime sets the "update_time" field.
-func (u *TemplateUpsertBulk) SetUpdateTime(v time.Time) *TemplateUpsertBulk {
+// SetName sets the "name" field.
+func (u *TemplateUpsertBulk) SetName(v string) *TemplateUpsertBulk {
 	return u.Update(func(s *TemplateUpsert) {
-		s.SetUpdateTime(v)
+		s.SetName(v)
 	})
 }
 
-// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
-func (u *TemplateUpsertBulk) UpdateUpdateTime() *TemplateUpsertBulk {
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *TemplateUpsertBulk) UpdateName() *TemplateUpsertBulk {
 	return u.Update(func(s *TemplateUpsert) {
-		s.UpdateUpdateTime()
-	})
-}
-
-// SetStatus sets the "status" field.
-func (u *TemplateUpsertBulk) SetStatus(v string) *TemplateUpsertBulk {
-	return u.Update(func(s *TemplateUpsert) {
-		s.SetStatus(v)
-	})
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *TemplateUpsertBulk) UpdateStatus() *TemplateUpsertBulk {
-	return u.Update(func(s *TemplateUpsert) {
-		s.UpdateStatus()
-	})
-}
-
-// ClearStatus clears the value of the "status" field.
-func (u *TemplateUpsertBulk) ClearStatus() *TemplateUpsertBulk {
-	return u.Update(func(s *TemplateUpsert) {
-		s.ClearStatus()
-	})
-}
-
-// SetStatusMessage sets the "status_message" field.
-func (u *TemplateUpsertBulk) SetStatusMessage(v string) *TemplateUpsertBulk {
-	return u.Update(func(s *TemplateUpsert) {
-		s.SetStatusMessage(v)
-	})
-}
-
-// UpdateStatusMessage sets the "status_message" field to the value that was provided on create.
-func (u *TemplateUpsertBulk) UpdateStatusMessage() *TemplateUpsertBulk {
-	return u.Update(func(s *TemplateUpsert) {
-		s.UpdateStatusMessage()
-	})
-}
-
-// ClearStatusMessage clears the value of the "status_message" field.
-func (u *TemplateUpsertBulk) ClearStatusMessage() *TemplateUpsertBulk {
-	return u.Update(func(s *TemplateUpsert) {
-		s.ClearStatusMessage()
+		s.UpdateName()
 	})
 }
 
@@ -1231,6 +1182,62 @@ func (u *TemplateUpsertBulk) ClearDescription() *TemplateUpsertBulk {
 	})
 }
 
+// SetLabels sets the "labels" field.
+func (u *TemplateUpsertBulk) SetLabels(v map[string]string) *TemplateUpsertBulk {
+	return u.Update(func(s *TemplateUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *TemplateUpsertBulk) UpdateLabels() *TemplateUpsertBulk {
+	return u.Update(func(s *TemplateUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *TemplateUpsertBulk) ClearLabels() *TemplateUpsertBulk {
+	return u.Update(func(s *TemplateUpsert) {
+		s.ClearLabels()
+	})
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (u *TemplateUpsertBulk) SetUpdateTime(v time.Time) *TemplateUpsertBulk {
+	return u.Update(func(s *TemplateUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *TemplateUpsertBulk) UpdateUpdateTime() *TemplateUpsertBulk {
+	return u.Update(func(s *TemplateUpsert) {
+		s.UpdateUpdateTime()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *TemplateUpsertBulk) SetStatus(v status.Status) *TemplateUpsertBulk {
+	return u.Update(func(s *TemplateUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *TemplateUpsertBulk) UpdateStatus() *TemplateUpsertBulk {
+	return u.Update(func(s *TemplateUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// ClearStatus clears the value of the "status" field.
+func (u *TemplateUpsertBulk) ClearStatus() *TemplateUpsertBulk {
+	return u.Update(func(s *TemplateUpsert) {
+		s.ClearStatus()
+	})
+}
+
 // SetIcon sets the "icon" field.
 func (u *TemplateUpsertBulk) SetIcon(v string) *TemplateUpsertBulk {
 	return u.Update(func(s *TemplateUpsert) {
@@ -1249,20 +1256,6 @@ func (u *TemplateUpsertBulk) UpdateIcon() *TemplateUpsertBulk {
 func (u *TemplateUpsertBulk) ClearIcon() *TemplateUpsertBulk {
 	return u.Update(func(s *TemplateUpsert) {
 		s.ClearIcon()
-	})
-}
-
-// SetLabels sets the "labels" field.
-func (u *TemplateUpsertBulk) SetLabels(v map[string]string) *TemplateUpsertBulk {
-	return u.Update(func(s *TemplateUpsert) {
-		s.SetLabels(v)
-	})
-}
-
-// UpdateLabels sets the "labels" field to the value that was provided on create.
-func (u *TemplateUpsertBulk) UpdateLabels() *TemplateUpsertBulk {
-	return u.Update(func(s *TemplateUpsert) {
-		s.UpdateLabels()
 	})
 }
 
