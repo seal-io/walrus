@@ -5,8 +5,10 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/entx"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 type TemplateVersion struct {
@@ -22,10 +24,17 @@ func (TemplateVersion) Mixin() []ent.Mixin {
 
 func (TemplateVersion) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("template_id").
+		object.IDField("template_id").
 			Comment("ID of the template.").
 			NotEmpty().
 			Immutable(),
+		// Redundant template name reduce the number of queries.
+		field.String("template_name").
+			Comment("Name of the template.").
+			NotEmpty().
+			Immutable().Annotations(
+			entx.SkipIO(),
+		),
 		field.String("version").
 			Comment("Template version.").
 			NotEmpty().
