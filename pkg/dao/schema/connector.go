@@ -57,7 +57,10 @@ func (Connector) Fields() []ent.Field {
 			NotEmpty(),
 		crypto.PropertiesField("config_data").
 			Comment("Connector config data.").
-			Default(crypto.Properties{}),
+			Default(crypto.Properties{}).
+			Optional().
+			Annotations(
+				entx.SkipClearingOptionalField()),
 		field.Bool("enable_fin_ops").
 			Comment("Config whether enable finOps, will install prometheus and opencost while enable."),
 		field.JSON("fin_ops_custom_pricing", &types.FinOpsCustomPricing{}).
