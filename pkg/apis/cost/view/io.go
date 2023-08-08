@@ -40,8 +40,8 @@ type (
 )
 
 type (
-	AllocationCostRequest struct {
-		_ struct{} `route:"POST=/allocation-costs"`
+	CostReportRequest struct {
+		_ struct{} `route:"POST=/cost-reports"`
 
 		types.QueryCondition `json:",inline"`
 
@@ -50,7 +50,7 @@ type (
 	}
 )
 
-func (r *AllocationCostRequest) Validate() error {
+func (r *CostReportRequest) Validate() error {
 	if err := r.validateTimeRange(); err != nil {
 		return err
 	}
@@ -59,10 +59,10 @@ func (r *AllocationCostRequest) Validate() error {
 		return errors.New("invalid filter: blank")
 	}
 
-	return costvalidation.ValidateAllocationQuery(r.QueryCondition)
+	return costvalidation.ValidateCostQuery(r.QueryCondition)
 }
 
-func (r *AllocationCostRequest) validateTimeRange() error {
+func (r *CostReportRequest) validateTimeRange() error {
 	switch {
 	case slice.ContainsAny([]types.GroupByField{types.GroupByFieldDay, types.GroupByFieldWeek}, r.GroupBy):
 		return validation.TimeRangeWithinYear(r.StartTime, r.EndTime)
@@ -126,7 +126,7 @@ type SummaryClusterCostResponse struct {
 	Currency           int                 `json:"currency,omitempty"`
 	TotalCost          float64             `json:"totalCost,omitempty"`
 	AverageDailyCost   float64             `json:"averageDailyCost,omitempty"`
-	AllocationCost     float64             `json:"allocationCost,omitempty"`
+	ItemCost           float64             `json:"itemCost,omitempty"`
 	ManagementCost     float64             `json:"managementCost,omitempty"`
 	IdleCost           float64             `json:"idleCost,omitempty"`
 	CollectedTimeRange *CollectedTimeRange `json:"collectedTimeRange,omitempty"`
@@ -162,10 +162,10 @@ type SummaryCostCommonResponse struct {
 type SummaryQueriedCostRequest struct {
 	_ struct{} `route:"POST=/summary-queried-costs"`
 
-	StartTime   time.Time                   `json:"startTime,omitempty"`
-	EndTime     time.Time                   `json:"endTime,omitempty"`
-	Filters     types.AllocationCostFilters `json:"filters,omitempty"`
-	SharedCosts types.ShareCosts            `json:"shareCosts,omitempty"`
+	StartTime     time.Time                `json:"startTime,omitempty"`
+	EndTime       time.Time                `json:"endTime,omitempty"`
+	Filters       types.CostFilters        `json:"filters,omitempty"`
+	SharedOptions *types.SharedCostOptions `json:"sharedOptions,omitempty"`
 }
 
 func (r *SummaryQueriedCostRequest) Validate() error {
@@ -177,14 +177,12 @@ func (r *SummaryQueriedCostRequest) Validate() error {
 		return errors.New("invalid filters: blank")
 	}
 
-	if err := costvalidation.ValidateAllocationCostFilters(r.Filters); err != nil {
+	if err := costvalidation.ValidateCostFilters(r.Filters); err != nil {
 		return err
 	}
 
-	if len(r.SharedCosts) != 0 {
-		if err := costvalidation.ValidateShareCostFilters(r.SharedCosts); err != nil {
-			return err
-		}
+	if err := costvalidation.ValidateShareCostFilters(r.SharedOptions); err != nil {
+		return err
 	}
 
 	return nil

@@ -10,8 +10,8 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/perspective/view"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -144,14 +144,14 @@ func (h Handler) CollectionRouteFields(
 	req view.CollectionRouteFieldsRequest,
 ) (view.CollectionRouteFieldsResponse, int, error) {
 	ps := []*sql.Predicate{
-		sqljson.ValueIsNotNull(allocationcost.FieldLabels),
+		sqljson.ValueIsNotNull(costreport.FieldLabels),
 	}
 	if req.StartTime != nil {
-		ps = append(ps, sql.GTE(allocationcost.FieldStartTime, req.StartTime))
+		ps = append(ps, sql.GTE(costreport.FieldStartTime, req.StartTime))
 	}
 
 	if req.EndTime != nil {
-		ps = append(ps, sql.LTE(allocationcost.FieldEndTime, req.EndTime))
+		ps = append(ps, sql.LTE(costreport.FieldEndTime, req.EndTime))
 	}
 
 	switch req.FieldType {
@@ -160,12 +160,12 @@ func (h Handler) CollectionRouteFields(
 	case view.FieldTypeStep:
 		return view.BuiltInPerspectiveStepFields, len(view.BuiltInPerspectiveStepFields), nil
 	default:
-		labelKeys, err := h.modelClient.AllocationCosts().Query().
+		labelKeys, err := h.modelClient.CostReports().Query().
 			Modify(func(s *sql.Selector) {
 				s.Where(
 					sql.And(ps...),
 				).SelectExpr(
-					sql.Expr(fmt.Sprintf(`DISTINCT(jsonb_object_keys(%s))`, allocationcost.FieldLabels)),
+					sql.Expr(fmt.Sprintf(`DISTINCT(jsonb_object_keys(%s))`, costreport.FieldLabels)),
 				)
 			}).
 			Strings(ctx)
@@ -189,11 +189,11 @@ func (h Handler) CollectionRouteValues(
 ) (view.CollectionRouteValuesResponse, int, error) {
 	var ps []*sql.Predicate
 	if req.StartTime != nil {
-		ps = append(ps, sql.GTE(allocationcost.FieldStartTime, req.StartTime))
+		ps = append(ps, sql.GTE(costreport.FieldStartTime, req.StartTime))
 	}
 
 	if req.EndTime != nil {
-		ps = append(ps, sql.LTE(allocationcost.FieldEndTime, req.EndTime))
+		ps = append(ps, sql.LTE(costreport.FieldEndTime, req.EndTime))
 	}
 
 	var (
@@ -210,9 +210,9 @@ func (h Handler) CollectionRouteValues(
 				strings.TrimPrefix(fieldStr, types.LabelPrefix))
 		)
 
-		ps = append(ps, sqljson.ValueIsNotNull(allocationcost.FieldLabels))
+		ps = append(ps, sqljson.ValueIsNotNull(costreport.FieldLabels))
 
-		err := h.modelClient.AllocationCosts().Query().
+		err := h.modelClient.CostReports().Query().
 			Modify(func(s *sql.Selector) {
 				s.Where(
 					sql.And(ps...),
@@ -238,7 +238,7 @@ func (h Handler) CollectionRouteValues(
 		return pvalues, len(pvalues), nil
 	}
 
-	values, err := h.modelClient.AllocationCosts().Query().
+	values, err := h.modelClient.CostReports().Query().
 		Modify(func(s *sql.Selector) {
 			if len(ps) != 0 {
 				s.Where(sql.And(ps...))
