@@ -670,9 +670,22 @@ func (m *ConnectorMutation) OldConfigData(ctx context.Context) (v crypto.Propert
 	return oldValue.ConfigData, nil
 }
 
+// ClearConfigData clears the value of the "config_data" field.
+func (m *ConnectorMutation) ClearConfigData() {
+	m.config_data = nil
+	m.clearedFields[connector.FieldConfigData] = struct{}{}
+}
+
+// ConfigDataCleared returns if the "config_data" field was cleared in this mutation.
+func (m *ConnectorMutation) ConfigDataCleared() bool {
+	_, ok := m.clearedFields[connector.FieldConfigData]
+	return ok
+}
+
 // ResetConfigData resets all changes to the "config_data" field.
 func (m *ConnectorMutation) ResetConfigData() {
 	m.config_data = nil
+	delete(m.clearedFields, connector.FieldConfigData)
 }
 
 // SetEnableFinOps sets the "enable_fin_ops" field.
@@ -1286,6 +1299,9 @@ func (m *ConnectorMutation) ClearedFields() []string {
 	if m.FieldCleared(connector.FieldStatus) {
 		fields = append(fields, connector.FieldStatus)
 	}
+	if m.FieldCleared(connector.FieldConfigData) {
+		fields = append(fields, connector.FieldConfigData)
+	}
 	if m.FieldCleared(connector.FieldFinOpsCustomPricing) {
 		fields = append(fields, connector.FieldFinOpsCustomPricing)
 	}
@@ -1317,6 +1333,9 @@ func (m *ConnectorMutation) ClearField(name string) error {
 		return nil
 	case connector.FieldStatus:
 		m.ClearStatus()
+		return nil
+	case connector.FieldConfigData:
+		m.ClearConfigData()
 		return nil
 	case connector.FieldFinOpsCustomPricing:
 		m.ClearFinOpsCustomPricing()

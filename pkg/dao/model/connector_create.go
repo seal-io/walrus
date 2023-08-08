@@ -316,9 +316,6 @@ func (cc *ConnectorCreate) check() error {
 			return &ValidationError{Name: "config_version", err: fmt.Errorf(`model: validator failed for field "Connector.config_version": %w`, err)}
 		}
 	}
-	if _, ok := cc.mutation.ConfigData(); !ok {
-		return &ValidationError{Name: "config_data", err: errors.New(`model: missing required field "Connector.config_data"`)}
-	}
 	if _, ok := cc.mutation.EnableFinOps(); !ok {
 		return &ValidationError{Name: "enable_fin_ops", err: errors.New(`model: missing required field "Connector.enable_fin_ops"`)}
 	}
@@ -514,7 +511,6 @@ func (cc *ConnectorCreate) Set(obj *Connector) *ConnectorCreate {
 	cc.SetName(obj.Name)
 	cc.SetType(obj.Type)
 	cc.SetConfigVersion(obj.ConfigVersion)
-	cc.SetConfigData(obj.ConfigData)
 	cc.SetEnableFinOps(obj.EnableFinOps)
 	cc.SetCategory(obj.Category)
 
@@ -539,6 +535,9 @@ func (cc *ConnectorCreate) Set(obj *Connector) *ConnectorCreate {
 	}
 	if !reflect.ValueOf(obj.Status).IsZero() {
 		cc.SetStatus(obj.Status)
+	}
+	if !reflect.ValueOf(obj.ConfigData).IsZero() {
+		cc.SetConfigData(obj.ConfigData)
 	}
 	if obj.FinOpsCustomPricing != nil && !obj.FinOpsCustomPricing.IsZero() {
 		cc.SetFinOpsCustomPricing(obj.FinOpsCustomPricing)
@@ -978,6 +977,12 @@ func (u *ConnectorUpsert) UpdateConfigData() *ConnectorUpsert {
 	return u
 }
 
+// ClearConfigData clears the value of the "config_data" field.
+func (u *ConnectorUpsert) ClearConfigData() *ConnectorUpsert {
+	u.SetNull(connector.FieldConfigData)
+	return u
+}
+
 // SetEnableFinOps sets the "enable_fin_ops" field.
 func (u *ConnectorUpsert) SetEnableFinOps(v bool) *ConnectorUpsert {
 	u.Set(connector.FieldEnableFinOps, v)
@@ -1214,6 +1219,13 @@ func (u *ConnectorUpsertOne) SetConfigData(v crypto.Properties) *ConnectorUpsert
 func (u *ConnectorUpsertOne) UpdateConfigData() *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.UpdateConfigData()
+	})
+}
+
+// ClearConfigData clears the value of the "config_data" field.
+func (u *ConnectorUpsertOne) ClearConfigData() *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.ClearConfigData()
 	})
 }
 
@@ -1625,6 +1637,13 @@ func (u *ConnectorUpsertBulk) SetConfigData(v crypto.Properties) *ConnectorUpser
 func (u *ConnectorUpsertBulk) UpdateConfigData() *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.UpdateConfigData()
+	})
+}
+
+// ClearConfigData clears the value of the "config_data" field.
+func (u *ConnectorUpsertBulk) ClearConfigData() *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.ClearConfigData()
 	})
 }
 
