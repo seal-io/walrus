@@ -110,16 +110,37 @@ func (in *K8sCostSyncer) syncCost(ctx context.Context, conn *model.Connector, st
 }
 
 func (in *K8sCostSyncer) batchCreateCostReports(ctx context.Context, costs []*model.CostReport) error {
-	return in.client.CostReports().CreateBulk().
-		Set(costs...).
-		OnConflictColumns(
-			costreport.FieldStartTime,
-			costreport.FieldEndTime,
-			costreport.FieldConnectorID,
-			costreport.FieldFingerprint,
-		).
-		DoNothing().
-		Exec(ctx)
+	batchCreate := func(ctx context.Context, cs []*model.CostReport) error {
+		return in.client.CostReports().CreateBulk().
+			Set(cs...).
+			OnConflictColumns(
+				costreport.FieldStartTime,
+				costreport.FieldEndTime,
+				costreport.FieldConnectorID,
+				costreport.FieldFingerprint,
+			).
+			DoNothing().
+			Exec(ctx)
+	}
+
+	batchSize := 1000
+	totalCosts := len(costs)
+
+	for i := 0; i < totalCosts; i += batchSize {
+		end := i + batchSize
+		if end > totalCosts {
+			end = totalCosts
+		}
+
+		batch := costs[i:end]
+
+		err := batchCreate(ctx, batch)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (in *K8sCostSyncer) timeRange(
