@@ -22,10 +22,10 @@ import (
 
 	"github.com/seal-io/seal/pkg/bus/template"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/seal/pkg/vcs"
 	"github.com/seal-io/seal/utils/files"
 	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/json"
@@ -118,10 +118,12 @@ func (s schemaSyncer) Do(_ context.Context, message template.BusMessage) error {
 
 		logger.Warnf("recording syncing template %s schema failed: %v", m.ID, err)
 
+		status.TemplateStatusInitialized.False(m, fmt.Sprintf("sync schema failed: %v", err))
+		m.Status.SetSummary(status.WalkTemplate(&m.Status))
+
 		// State template.
 		err = s.mc.Templates().UpdateOne(m).
-			SetStatus(status.TemplateStatusError).
-			SetStatusMessage(fmt.Sprintf("sync schema failed: %v", err)).
+			SetStatus(m.Status).
 			Exec(ctx)
 		if err != nil {
 			logger.Errorf("failed to update template %s: %v", m.ID, err)
@@ -132,33 +134,28 @@ func (s schemaSyncer) Do(_ context.Context, message template.BusMessage) error {
 }
 
 func syncSchema(ctx context.Context, mc model.ClientSet, t *model.Template) error {
-	versions, err := loadTerraformTemplateVersions(t)
+	repo, err := vcs.ParseURLToRepo(t.Source)
 	if err != nil {
 		return err
 	}
 
-	return mc.WithTx(ctx, func(tx *model.Tx) error {
-		// Clean up previous template versions if there's any.
-		_, err := tx.TemplateVersions().Delete().
-			Where(templateversion.TemplateID(t.ID)).
-			Exec(ctx)
+	if t.Name != "" {
+		repo.Name = t.Name
+	}
+
+	var c *model.Catalog
+	if t.CatalogID.Valid() {
+		c, err = mc.Catalogs().Get(ctx, t.CatalogID)
 		if err != nil {
 			return err
 		}
+	}
 
-		// Create new template versions.
-		err = tx.TemplateVersions().CreateBulk().
-			Set(versions...).
-			Exec(ctx)
-		if err != nil {
-			return err
-		}
+	if repo.Reference != "" {
+		return syncTemplateFromRef(ctx, mc, repo)
+	}
 
-		// State template.
-		return tx.Templates().UpdateOne(t).
-			SetStatus(status.TemplateStatusReady).
-			Exec(ctx)
-	})
+	return SyncTemplateFromGitRepo(ctx, mc, c, repo)
 }
 
 func loadTerraformTemplateVersions(t *model.Template) ([]*model.TemplateVersion, error) {

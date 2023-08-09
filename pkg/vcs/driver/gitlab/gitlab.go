@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/drone/go-scm/scm"
@@ -11,10 +12,11 @@ import (
 	"github.com/drone/go-scm/scm/transport"
 
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 const (
-	Driver = "Gitlab"
+	Driver = types.GitDriverGitlab
 )
 
 func NewClient(conn *model.Connector) (*scm.Client, error) {
@@ -56,6 +58,30 @@ func NewClient(conn *model.Connector) (*scm.Client, error) {
 		Transport: &transport.BearerToken{
 			Token: token,
 		},
+	}
+
+	return client, nil
+}
+
+func NewClientFromURL(rawURL, token string) (*scm.Client, error) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := gitlab.New(u.Scheme + "://" + u.Host)
+	if err != nil {
+		return nil, err
+	}
+
+	client.Client = &http.Client{
+		Timeout: time.Second * 15,
+	}
+
+	if token != "" {
+		client.Client.Transport = &transport.BearerToken{
+			Token: token,
+		}
 	}
 
 	return client, nil

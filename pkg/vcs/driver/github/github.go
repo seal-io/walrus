@@ -11,10 +11,11 @@ import (
 	"github.com/drone/go-scm/scm/transport"
 
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 const (
-	Driver = "Github"
+	Driver = types.GitDriverGithub
 )
 
 func NewClient(conn *model.Connector) (*scm.Client, error) {
@@ -56,6 +57,21 @@ func NewClient(conn *model.Connector) (*scm.Client, error) {
 		Transport: &transport.BearerToken{
 			Token: token,
 		},
+	}
+
+	return client, nil
+}
+
+func NewClientFromURL(_, token string) (*scm.Client, error) {
+	client := github.NewDefault()
+	client.Client = &http.Client{
+		Timeout: time.Second * 15,
+	}
+
+	if token != "" {
+		client.Client.Transport = &transport.BearerToken{
+			Token: token,
+		}
 	}
 
 	return client, nil
