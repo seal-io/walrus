@@ -132,6 +132,10 @@ func (h Handler) CollectionGet(
 		query.Where(queries)
 	}
 
+	if req.CatalogID.Valid() {
+		query.Where(template.CatalogID(req.CatalogID))
+	}
+
 	// Get count.
 	cnt, err := query.Clone().Count(ctx)
 	if err != nil {

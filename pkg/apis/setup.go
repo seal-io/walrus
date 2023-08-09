@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"k8s.io/client-go/rest"
 
+	"github.com/seal-io/seal/pkg/apis/catalog"
 	"github.com/seal-io/seal/pkg/apis/cli"
 	"github.com/seal-io/seal/pkg/apis/connector"
 	"github.com/seal-io/seal/pkg/apis/cost"
@@ -127,6 +128,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		runtime.MustRouteResource(r, subjectrole.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, token.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, variable.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, catalog.Handle(opts.ModelClient))
 	}
 	runtime.MustRouteGet(apis, "/openapi", openapi.Index(opts.EnableAuthn, resourceApis.BasePath()))
 	runtime.MustRouteStatic(apis, "/swagger/*any", swagger.Index("/openapi"))

@@ -3,7 +3,6 @@ package view
 import (
 	"errors"
 	"fmt"
-	"net/url"
 
 	"github.com/hashicorp/go-getter"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/template"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/validation"
 )
@@ -19,8 +19,6 @@ import (
 
 type CreateRequest struct {
 	model.TemplateCreateInput `json:",inline"`
-
-	ID string `json:"id"`
 }
 
 func (r *CreateRequest) Validate() error {
@@ -29,7 +27,6 @@ func (r *CreateRequest) Validate() error {
 
 func (r *CreateRequest) Model() *model.Template {
 	entity := r.TemplateCreateInput.Model()
-	entity.ID = r.ID
 
 	return entity
 }
@@ -47,18 +44,12 @@ func (r *UpdateRequest) Validate() error {
 }
 
 func validate(m *model.Template) error {
-	if err := validation.IsDNSLabel(m.ID); err != nil {
+	if err := validation.IsDNSLabel(m.Name); err != nil {
 		return err
 	}
 
 	if _, err := getter.Detect(m.Source, "", getter.Detectors); err != nil {
 		return fmt.Errorf("invalid source: %w", err)
-	}
-
-	if m.Icon != "" {
-		if _, err := url.ParseRequestURI(m.Icon); err != nil {
-			return fmt.Errorf("invalid icon URL: %w", err)
-		}
 	}
 
 	return nil
@@ -69,14 +60,18 @@ type GetRequest struct {
 }
 
 func (r *GetRequest) Validate() error {
-	return validation.IsDNSLabel(r.ID)
+	if !r.ID.Valid() {
+		return errors.New("invalid id: blank")
+	}
+
+	return nil
 }
 
 type GetResponse = *model.TemplateOutput
 
 type StreamResponse struct {
 	Type       datamessage.EventType   `json:"type"`
-	IDs        []string                `json:"ids,omitempty"`
+	IDs        []object.ID             `json:"ids,omitempty"`
 	Collection []*model.TemplateOutput `json:"collection,omitempty"`
 }
 
@@ -90,8 +85,8 @@ func (r CollectionDeleteRequest) Validate() error {
 	}
 
 	for _, i := range r {
-		if err := validation.IsDNSLabel(i.ID); err != nil {
-			return fmt.Errorf("invalid id: %w", err)
+		if !i.ID.Valid() {
+			return errors.New("invalid id: blank")
 		}
 	}
 
@@ -100,6 +95,16 @@ func (r CollectionDeleteRequest) Validate() error {
 
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.Template, template.OrderOption] `query:",inline"`
+
+	CatalogID object.ID `query:"catalogID,omitempty"`
+}
+
+func (r *CollectionGetRequest) Validate() error {
+	if r.CatalogID != "" && !r.CatalogID.Valid() {
+		return errors.New("invalid catalogId: blank")
+	}
+
+	return nil
 }
 
 type CollectionGetResponse = []*model.TemplateOutput
@@ -113,9 +118,13 @@ type CollectionStreamRequest struct {
 type RefreshRequest struct {
 	_ struct{} `route:"POST=/refresh"`
 
-	ID string `uri:"id"`
+	ID object.ID `uri:"id"`
 }
 
 func (r *RefreshRequest) Validate() error {
-	return validation.IsDNSLabel(r.ID)
+	if !r.ID.Valid() {
+		return errors.New("invalid id: blank")
+	}
+
+	return nil
 }
