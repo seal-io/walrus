@@ -55,10 +55,11 @@ type Server struct {
 	ConnBurst          int
 	GopoolWorkerFactor int
 
-	KubeConfig      string
-	KubeConnTimeout time.Duration
-	KubeConnQPS     float64
-	KubeConnBurst   int
+	KubeConfig         string
+	KubeConnTimeout    time.Duration
+	KubeConnQPS        float64
+	KubeConnBurst      int
+	KubeLeaderElection bool
 
 	DataSourceAddress        string
 	DataSourceConnMaxOpen    int
@@ -87,6 +88,7 @@ func New() *Server {
 		KubeConnTimeout:       5 * time.Minute,
 		KubeConnQPS:           16,
 		KubeConnBurst:         64,
+		KubeLeaderElection:    true,
 		DataSourceConnMaxOpen: 15,
 		DataSourceConnMaxIdle: 5,
 		DataSourceConnMaxLife: 10 * time.Minute,
@@ -231,6 +233,13 @@ func (r *Server) Flags(cmd *cli.Command) {
 			Usage:       "The burst(maximum number at the same moment) when dialing the worker kubernetes cluster.",
 			Destination: &r.KubeConnBurst,
 			Value:       r.KubeConnBurst,
+		},
+		&cli.BoolFlag{
+			Name: "kube-leader-election",
+			Usage: "The config to determines whether or not to use leader election, " +
+				"leader election is primarily used in multi-instance deployments.",
+			Destination: &r.KubeLeaderElection,
+			Value:       r.KubeLeaderElection,
 		},
 		&cli.StringFlag{
 			Name: "data-source-address",
@@ -502,9 +511,10 @@ func (r *Server) Run(c context.Context) error {
 
 	// Setup k8s controllers.
 	setupK8sCtrlsOpts := setupK8sCtrlsOptions{
-		K8sConfig:     k8sCfg,
-		K8sCacheReady: initOpts.K8sCacheReady,
-		ModelClient:   modelClient,
+		K8sConfig:      k8sCfg,
+		K8sCacheReady:  initOpts.K8sCacheReady,
+		ModelClient:    modelClient,
+		LeaderElection: r.KubeLeaderElection,
 	}
 
 	g.Go(func() error {
