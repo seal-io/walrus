@@ -171,6 +171,11 @@ function seal::format::wsl::bin() {
   echo -n "${bin}"
 }
 
+function seal::format::gofmt::bin() {
+  local bin="gofmt"
+  echo -n "${bin}"
+}
+
 function seal::format::run() {
   local path=$1
   shift 1
@@ -191,6 +196,17 @@ function seal::format::run() {
   )
   seal::log::debug "goimports ${goimports_opts[*]}"
   $(seal::format::goimports::bin) "${goimports_opts[@]}"
+
+    # gofmt interface{} -> any
+  local gofmt_opts=(
+    "-w"
+    "-r"
+    "interface{} -> any"
+    "${path}"
+  )
+
+  seal::log::debug "gofmt ${gofmt_opts[*]}"
+  $(seal::format::gofmt::bin) "${gofmt_opts[@]}"
 
   # gofumpt
   if ! seal::format::gofumpt::validate; then
