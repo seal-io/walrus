@@ -55,7 +55,7 @@ func ({{ $receiver }} *{{ $singular }}) Model() *{{ $.Name }} {
         return nil
     }
 
-    {{ $modelReceiver := $.Receiver -}}
+    {{ $modelReceiver := printf "_%s" $.Receiver -}}
 
     {{ $modelReceiver }} := &{{ $.Name }}{
         {{- range $f := $input.Fields }}
@@ -312,7 +312,7 @@ func ({{ $receiver }} *{{ $plural }}) Model() []*{{ $.Name }} {
         return nil
     }
 
-    {{ $modelsReceiver := printf "%ss" ($.Receiver) }}
+    {{ $modelsReceiver := printf "_%ss" ($.Receiver) }}
 
     {{ $modelsReceiver }} := make([]*{{ $.Name }}, len({{ $receiver }}.Items))
     for i := range {{ $receiver }}.Items {
@@ -719,7 +719,7 @@ func ({{ $receiver }} *{{ $singular }}) Model() *{{ $.Name }} {
         return nil
     }
 
-    {{ $modelReceiver := $.Receiver -}}
+    {{ $modelReceiver := printf "_%s" $.Receiver -}}
 
     {{ $modelReceiver }} := &{{ $.Name }}{
         ID: {{ $receiver }}.ID,
@@ -1009,7 +1009,7 @@ type {{ $singular }} struct {
     {{- end }}
 }
 
-{{- $modelReceiver := $.Receiver }}
+{{- $modelReceiver := printf "_%s" $.Receiver  }}
 
 // View returns the output of {{ $.Name }}.
 func ({{ $modelReceiver }} *{{ $.Name }}) View() *{{ $singular }} {

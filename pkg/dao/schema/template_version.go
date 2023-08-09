@@ -32,9 +32,8 @@ func (TemplateVersion) Fields() []ent.Field {
 		field.String("template_name").
 			Comment("Name of the template.").
 			NotEmpty().
-			Immutable().Annotations(
-			entx.SkipIO(),
-		),
+			Immutable().
+			Annotations(entx.SkipIO()),
 		field.String("version").
 			Comment("Template version.").
 			NotEmpty().
