@@ -14,6 +14,7 @@ const ChannelName = "setting_update"
 
 func Handler(ctx context.Context, client model.ClientSet, rd database.Record) error {
 	oid := object.NewID(rd.RecordID)
+
 	setting, err := client.Settings().Get(ctx, oid)
 	if err != nil {
 		return fmt.Errorf("error get setting %s: %w", oid, err)

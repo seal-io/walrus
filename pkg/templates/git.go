@@ -310,6 +310,7 @@ func GetTemplateVersions(
 	for i := range versions {
 		v := versions[i]
 		tag := v.Original()
+
 		err := w.Reset(&git.ResetOptions{
 			Commit: plumbing.NewHash(tag),
 			Mode:   git.HardReset,

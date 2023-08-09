@@ -8,88 +8,88 @@ import (
 func TestRemoveNulls(t *testing.T) {
 	testCases := []struct {
 		name     string
-		input    map[string]interface{}
-		expected map[string]interface{}
+		input    map[string]any
+		expected map[string]any
 	}{
 		{
 			name: "Map with no null keys",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"foo": "bar",
 			},
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"foo": "bar",
 			},
 		},
 		{
 			name: "Map with null keys",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"foo": "bar",
 				"baz": nil,
 				"qux": []string{},
 			},
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"foo": "bar",
 				"qux": []string{},
 			},
 		},
 		{
 			name: "Map with null keys and nested maps",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"foo": "bar",
-				"baz": map[string]interface{}{
+				"baz": map[string]any{
 					"qux": nil,
 				},
 			},
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"foo": "bar",
-				"baz": map[string]interface{}{},
+				"baz": map[string]any{},
 			},
 		},
 		{
 			name: "Map with null keys and nested maps with non-null keys",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"foo": "bar",
-				"baz": map[string]interface{}{
+				"baz": map[string]any{
 					"qux": "quux",
 				},
 			},
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"foo": "bar",
-				"baz": map[string]interface{}{
+				"baz": map[string]any{
 					"qux": "quux",
 				},
 			},
 		},
 		{
 			name: "Map with null keys and nested maps with null keys",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"foo": "bar",
-				"baz": map[string]interface{}{
+				"baz": map[string]any{
 					"qux":  nil,
 					"quux": "quuz",
 				},
 			},
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"foo": "bar",
-				"baz": map[string]interface{}{
+				"baz": map[string]any{
 					"quux": "quuz",
 				},
 			},
 		},
 		{
 			name: "slice with null values",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"foo": "bar",
-				"baz": []map[string]interface{}{
+				"baz": []map[string]any{
 					{
 						"qux":  nil,
 						"quux": "quuz",
 					},
 				},
 			},
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"foo": "bar",
-				"baz": []map[string]interface{}{
+				"baz": []map[string]any{
 					{
 						"quux": "quuz",
 					},

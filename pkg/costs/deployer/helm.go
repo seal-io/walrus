@@ -23,7 +23,7 @@ type ChartApp struct {
 	Name         string
 	Namespace    string
 	ChartTgzName string
-	Values       map[string]interface{}
+	Values       map[string]any
 	Entry        *repo.Entry
 }
 
@@ -74,7 +74,7 @@ func NewHelm(namespace, kubeconfig string) (*Helm, error) {
 	config := action.Configuration{}
 	logger := log.WithName("cost")
 
-	if err = config.Init(settings.RESTClientGetter(), namespace, "secrets", func(format string, v ...interface{}) {
+	if err = config.Init(settings.RESTClientGetter(), namespace, "secrets", func(format string, v ...any) {
 		logger.WithName("helm").Debugf(format, v...)
 	}); err != nil {
 		return nil, err
@@ -108,7 +108,7 @@ func (h *Helm) Download(repoURL, chartName string) (string, error) {
 	return outputPath, nil
 }
 
-func (h *Helm) Install(name, chartPath string, values map[string]interface{}) error {
+func (h *Helm) Install(name, chartPath string, values map[string]any) error {
 	ch, err := loader.Load(chartPath)
 	if err != nil {
 		return fmt.Errorf("error load chart %s from %s: %w", name, chartPath, err)

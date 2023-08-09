@@ -22,14 +22,14 @@ type ModuleConfig struct {
 	// Schema is the variable schema.
 	Schema *types.TemplateSchema
 	// Attributes is the attributes of the module.
-	Attributes map[string]interface{}
+	Attributes map[string]any
 	// Outputs is the module outputs.
 	Outputs []Output
 }
 
 // CreateOptions represents the CreateOptions of the Config.
 type CreateOptions struct {
-	Attributes       map[string]interface{}
+	Attributes       map[string]any
 	TerraformOptions *TerraformOptions
 	ProviderOptions  *ProviderOptions
 	ModuleOptions    *ModuleOptions

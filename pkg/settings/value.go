@@ -27,7 +27,7 @@ type Value interface {
 	ShouldValue(context.Context, model.ClientSet) string
 
 	// ValueJSONUnmarshal unmarshal the setting value into the given holder.
-	ValueJSONUnmarshal(context.Context, model.ClientSet, interface{}) error
+	ValueJSONUnmarshal(context.Context, model.ClientSet, any) error
 
 	// ValueBool returns the bool value of the setting.
 	ValueBool(context.Context, model.ClientSet) (bool, error)
@@ -59,7 +59,7 @@ type Value interface {
 
 	// Set configures the value of the setting,
 	// returns true if accept the new value change.
-	Set(context.Context, model.ClientSet, interface{}) (bool, error)
+	Set(context.Context, model.ClientSet, any) (bool, error)
 
 	// Cas configures the value of setting with CAS operation.
 	Cas(context.Context, model.ClientSet, func(oldVal string) (newVal string, err error)) error
@@ -112,7 +112,7 @@ func (v value) ShouldValue(ctx context.Context, client model.ClientSet) string {
 func (v value) ValueJSONUnmarshal(
 	ctx context.Context,
 	client model.ClientSet,
-	holder interface{},
+	holder any,
 ) error {
 	val, err := v.Value(ctx, client)
 	if err != nil {
@@ -237,7 +237,7 @@ func (v value) ShouldValueURL(ctx context.Context, client model.ClientSet) *url.
 func (v value) Set(
 	ctx context.Context,
 	client model.ClientSet,
-	newValueRaw interface{},
+	newValueRaw any,
 ) (bool, error) {
 	oldVal, err := v.Value(ctx, client)
 	if err != nil {

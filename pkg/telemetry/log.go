@@ -13,10 +13,10 @@ type phLogger struct {
 	log.Logger
 }
 
-func (l phLogger) Logf(format string, args ...interface{}) {
+func (l phLogger) Logf(format string, args ...any) {
 	l.Logger.Infof(format, args...)
 }
 
-func (l phLogger) Errorf(format string, args ...interface{}) {
+func (l phLogger) Errorf(format string, args ...any) {
 	l.Logger.Errorf(format, args...)
 }

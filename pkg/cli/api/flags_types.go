@@ -11,7 +11,7 @@ import (
 )
 
 // ObjectFlag creates a custom flag for map[string]interface{}.
-type ObjectFlag map[string]interface{}
+type ObjectFlag map[string]any
 
 // String returns a string represent of this flag.
 func (i *ObjectFlag) String() string {
@@ -29,7 +29,7 @@ func (i *ObjectFlag) String() string {
 
 // Set a new value on the flag.
 func (i *ObjectFlag) Set(value string) error {
-	var val map[string]interface{}
+	var val map[string]any
 
 	err := json.Unmarshal([]byte(value), &val)
 	if err != nil {
@@ -46,7 +46,7 @@ func (i *ObjectFlag) Type() string {
 }
 
 // ArrayObjectFlag creates a custom flag for []interface.
-type ArrayObjectFlag []interface{}
+type ArrayObjectFlag []any
 
 // String returns a string represent of this flag.
 func (i *ArrayObjectFlag) String() string {
@@ -64,7 +64,7 @@ func (i *ArrayObjectFlag) String() string {
 
 // Set a new value on the flag.
 func (i *ArrayObjectFlag) Set(value string) error {
-	var val []interface{}
+	var val []any
 
 	err := json.Unmarshal([]byte(value), &val)
 	if err != nil {
@@ -104,7 +104,7 @@ func (i ObjectIDFlag) Type() string {
 }
 
 // AddFlag create flag with name, type, description, default value, and add it to flagSet.
-func AddFlag(name, schemaType, description string, value interface{}, flags *pflag.FlagSet) interface{} {
+func AddFlag(name, schemaType, description string, value any, flags *pflag.FlagSet) any {
 	existed := flags.Lookup(name)
 	if existed != nil {
 		return nil

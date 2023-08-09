@@ -535,9 +535,9 @@ var (
 )
 
 // toSchemaExtension returns the OpenAPI schema extension for the given resource, handle and path.
-func toSchemaExtension(resource, handle, path string) map[string]interface{} {
+func toSchemaExtension(resource, handle, path string) map[string]any {
 	var (
-		ext              = make(map[string]interface{})
+		ext              = make(map[string]any)
 		_, handleName, _ = strings.Cut(handle, ".")
 	)
 

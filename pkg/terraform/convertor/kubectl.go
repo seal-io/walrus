@@ -35,7 +35,7 @@ func (m KubectlConvertor) ToBlocks(connectors model.Connectors, opts Options) (b
 	return blocks, nil
 }
 
-func (m KubectlConvertor) toBlock(connector *model.Connector, opts interface{}) (*block.Block, error) {
+func (m KubectlConvertor) toBlock(connector *model.Connector, opts any) (*block.Block, error) {
 	convertOpts, ok := opts.(K8sConvertorOptions)
 	if !ok {
 		return nil, errors.New("invalid options type")
@@ -45,7 +45,7 @@ func (m KubectlConvertor) toBlock(connector *model.Connector, opts interface{}) 
 		// NB(alex) the config path should keep the same with the secret mount path in deployer.
 		configPath = convertOpts.ConfigPath + "/" + util.GetK8sSecretName(connector.ID.String())
 		alias      = convertOpts.ConnSeparator + connector.ID.String()
-		attributes = map[string]interface{}{
+		attributes = map[string]any{
 			"config_path": configPath,
 			"alias":       alias,
 		}

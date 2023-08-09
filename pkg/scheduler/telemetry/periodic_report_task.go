@@ -30,7 +30,7 @@ func (in *PeriodicReportTask) Name() string {
 	return "telemetry-periodic-report"
 }
 
-func (in *PeriodicReportTask) Process(ctx context.Context, args ...interface{}) error {
+func (in *PeriodicReportTask) Process(ctx context.Context, args ...any) error {
 	if !in.mu.TryLock() {
 		in.logger.Warn("previous processing is not finished")
 		return nil

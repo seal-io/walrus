@@ -12,26 +12,26 @@ import (
 type testTask struct {
 	sync.RWMutex
 
-	outputs []interface{}
+	outputs []any
 }
 
 func (in *testTask) Name() string {
 	return "test-task"
 }
 
-func (in *testTask) Process(ctx context.Context, args ...interface{}) error {
+func (in *testTask) Process(ctx context.Context, args ...any) error {
 	in.Lock()
 	defer in.Unlock()
 
 	in.outputs = args
 	if len(args) == 0 {
-		in.outputs = []interface{}{"testing"}
+		in.outputs = []any{"testing"}
 	}
 
 	return nil
 }
 
-func (in *testTask) Outputs() []interface{} {
+func (in *testTask) Outputs() []any {
 	in.RLock()
 	defer in.RUnlock()
 
@@ -56,14 +56,14 @@ func TestScheduler_Schedule(t *testing.T) {
 	err = Schedule("test", ImmediateExpr("* * * ? * *"), &actual)
 	assert.Nil(t, err, "error none variables scheduling")
 	time.Sleep(3 * time.Second) // Give an enough range to execute scheduling.
-	assert.Equal(t, []interface{}{"testing"}, actual.Outputs(),
+	assert.Equal(t, []any{"testing"}, actual.Outputs(),
 		"invalid output of none variables scheduling")
 
 	actual = testTask{}
 	err = Schedule("test", AwaitedExpr("* * * ? * *"), &actual, "test", "with", "variables")
 	assert.Nil(t, err, "error variables scheduling")
 	time.Sleep(5 * time.Second) // Give an enough range to execute scheduling.
-	assert.Equal(t, []interface{}{"test", "with", "variables"}, actual.Outputs(),
+	assert.Equal(t, []any{"test", "with", "variables"}, actual.Outputs(),
 		"invalid output of variables scheduling")
 
 	err = Stop()

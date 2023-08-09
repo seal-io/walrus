@@ -10,10 +10,10 @@ import (
 // The following codes inspired by
 // https://github.com/kubernetes/kubernetes/blob/master/pkg/printers/internalversion/printers.go.
 
-func digPodErrorReason(status map[string]interface{}) string {
+func digPodErrorReason(status map[string]any) string {
 	initContainerStatuses, _, _ := unstructured.NestedSlice(status, "initContainerStatuses")
 	for i := range initContainerStatuses {
-		initContainerStatus, ok := initContainerStatuses[i].(map[string]interface{})
+		initContainerStatus, ok := initContainerStatuses[i].(map[string]any)
 		if !ok {
 			continue
 		}
@@ -66,7 +66,7 @@ func digPodErrorReason(status map[string]interface{}) string {
 
 	containerStatuses, _, _ := unstructured.NestedSlice(status, "containerStatuses")
 	for i := len(containerStatuses) - 1; i >= 0; i-- {
-		containerStatus, ok := containerStatuses[i].(map[string]interface{})
+		containerStatus, ok := containerStatuses[i].(map[string]any)
 		if !ok {
 			continue
 		}

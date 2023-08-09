@@ -177,7 +177,7 @@ func toParam(p *openapi3.Parameter) *Param {
 	var (
 		typ = "string"
 		des string
-		def interface{}
+		def any
 	)
 
 	if p.Schema != nil && p.Schema.Value != nil {
@@ -273,7 +273,7 @@ func toBodyParams(bodyRef *openapi3.RequestBodyRef, comps *openapi3.Components) 
 }
 
 // schemaType get schema type, description, default from OpenAPI schema.
-func schemaType(s *openapi3.Schema) (string, string, interface{}) {
+func schemaType(s *openapi3.Schema) (string, string, any) {
 	var (
 		typ     = s.Type
 		extType string

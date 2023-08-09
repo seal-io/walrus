@@ -101,8 +101,8 @@ func (p *patcher) applyLabels(ctx context.Context, o *unstructured.Unstructured,
 	}
 
 	// Change.
-	patchBytes, err := json.Marshal(map[string]interface{}{
-		"metadata": map[string]interface{}{
+	patchBytes, err := json.Marshal(map[string]any{
+		"metadata": map[string]any{
 			"labels": update,
 		},
 	})

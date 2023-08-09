@@ -73,12 +73,12 @@ type (
 		Result     []QueryResult `json:"result"`
 	}
 	QueryResult struct {
-		Metric map[string]interface{} `json:"metric"`
-		Values [][]interface{}        `json:"values"`
+		Metric map[string]any `json:"metric"`
+		Values [][]any        `json:"values"`
 	}
 	Vector struct {
-		Timestamp float64     `json:"timestamp"`
-		Value     interface{} `json:"value"`
+		Timestamp float64 `json:"timestamp"`
+		Value     any     `json:"value"`
 	}
 )
 

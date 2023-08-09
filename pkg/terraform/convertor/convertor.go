@@ -6,7 +6,7 @@ import (
 )
 
 type (
-	Options = interface{}
+	Options = any
 	// Convertor converts the connector to provider block.
 	// E.g. ConnectorType(kubernetes) connector to ProviderType(kubernetes) provider block.
 	// ConnectorType(kubernetes) connector to ProviderType(helm) provider block.
