@@ -1,5 +1,7 @@
 package terraform
 
+import "k8s.io/apimachinery/pkg/util/sets"
+
 // seal metadata indicate seal will set value to these attribute while user module include these attribute.
 const (
 	SealMetadataProjectName     = "seal_metadata_project_name"
@@ -11,4 +13,14 @@ const (
 	// SealMetadataNamespaceName is the managed namespace name of an environment,
 	// valid when Kubernetes connector is used in the environment.
 	SealMetadataNamespaceName = "seal_metadata_namespace_name"
+)
+
+var SealMetadataSet = sets.NewString(
+	SealMetadataProjectName,
+	SealMetadataEnvironmentName,
+	SealMetadataServiceName,
+	SealMetadataProjectID,
+	SealMetadataEnvironmentID,
+	SealMetadataServiceID,
+	SealMetadataNamespaceName,
 )

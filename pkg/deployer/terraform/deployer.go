@@ -833,7 +833,9 @@ func (d Deployer) getVariables(
 	}
 	requiredSet := sets.NewString(variableNames...)
 
-	missingSet := requiredSet.Difference(foundSet)
+	missingSet := requiredSet.
+		Difference(foundSet).
+		Difference(SealMetadataSet)
 	if missingSet.Len() > 0 {
 		return nil, fmt.Errorf("missing variables: %s", missingSet.List())
 	}
