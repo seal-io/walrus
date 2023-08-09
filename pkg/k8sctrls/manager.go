@@ -12,13 +12,18 @@ import (
 	"github.com/seal-io/seal/utils/log"
 )
 
-func NewManager(cfg *rest.Config) (*Manager, error) {
+func NewManager(opts ManagerOptions) (*Manager, error) {
 	logger := log.WithName("k8sctrl")
 
-	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
+	mgr, err := ctrl.NewManager(opts.K8sConfig, ctrl.Options{
 		Scheme:    scheme.Scheme,
 		Logger:    log.AsLogr(logger),
 		Namespace: types.SealSystemNamespace,
+
+		// Leader election.
+		LeaderElection:          opts.LeaderElection,
+		LeaderElectionID:        "seal-leader-election",
+		LeaderElectionNamespace: types.SealSystemNamespace,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error creating kubernetes controller manager: %w", err)
@@ -33,6 +38,11 @@ func NewManager(cfg *rest.Config) (*Manager, error) {
 type Manager struct {
 	logger log.Logger
 	mgr    ctrl.Manager
+}
+
+type ManagerOptions struct {
+	K8sConfig      *rest.Config
+	LeaderElection bool
 }
 
 type StartOptions struct {
