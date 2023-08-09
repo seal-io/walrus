@@ -9,6 +9,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/entx"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 type Template struct {
@@ -34,11 +35,16 @@ func (Template) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("icon").
 			Comment("A URL to an SVG or PNG image to be used as an icon.").
+			Annotations(entx.SkipInput()).
 			Optional(),
 		// For terraform deployer, this is a superset of terraform module git source.
 		field.String("source").
 			Comment("Source of the template.").
 			NotEmpty(),
+		object.IDField("catalog_id").
+			Comment("ID of the template catalog.").
+			Optional().
+			Immutable(),
 	}
 }
 
@@ -50,5 +56,13 @@ func (Template) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
 				entx.SkipIO()),
+		// Catalog 1-* Templates.
+		edge.From("catalog", Catalog.Type).
+			Ref("templates").
+			Field("catalog_id").
+			Comment("Catalog to which the template belongs.").
+			Unique().
+			Immutable().
+			Annotations(entx.SkipInput()),
 	}
 }
