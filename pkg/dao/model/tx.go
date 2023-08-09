@@ -17,6 +17,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Catalog is the client for interacting with the Catalog builders.
+	Catalog *CatalogClient
 	// Connector is the client for interacting with the Connector builders.
 	Connector *ConnectorClient
 	// CostReport is the client for interacting with the CostReport builders.
@@ -188,6 +190,7 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Catalog = NewCatalogClient(tx.config)
 	tx.Connector = NewConnectorClient(tx.config)
 	tx.CostReport = NewCostReportClient(tx.config)
 	tx.DistributeLock = NewDistributeLockClient(tx.config)
@@ -217,7 +220,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Connector.QueryXXX(), the query will be executed
+// applies a query, for example: Catalog.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.
@@ -270,6 +273,11 @@ func (tx *txDriver) Query(ctx context.Context, query string, args, v any) error 
 }
 
 var _ dialect.Driver = (*txDriver)(nil)
+
+// Catalogs implements the ClientSet.
+func (tx *Tx) Catalogs() *CatalogClient {
+	return tx.Catalog
+}
 
 // Connectors implements the ClientSet.
 func (tx *Tx) Connectors() *ConnectorClient {
@@ -378,6 +386,7 @@ func (tx *Tx) Dialect() string {
 
 // Intercept adds the query interceptors to all the entity clients.
 func (tx *Tx) Intercept(interceptors ...Interceptor) {
+	tx.Catalog.Intercept(interceptors...)
 	tx.Connector.Intercept(interceptors...)
 	tx.CostReport.Intercept(interceptors...)
 	tx.DistributeLock.Intercept(interceptors...)
@@ -426,6 +435,7 @@ func (tx *txDriver) QueryContext(ctx context.Context, query string, args ...any)
 
 // Use adds the mutation hooks to all the entity clients.
 func (tx *Tx) Use(hooks ...Hook) {
+	tx.Catalog.Use(hooks...)
 	tx.Connector.Use(hooks...)
 	tx.CostReport.Use(hooks...)
 	tx.DistributeLock.Use(hooks...)

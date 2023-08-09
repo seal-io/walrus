@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 
+	"github.com/seal-io/seal/pkg/dao/model/catalog"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/model/distributelock"
@@ -96,6 +97,7 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			catalog.Table:                          catalog.ValidColumn,
 			connector.Table:                        connector.ValidColumn,
 			costreport.Table:                       costreport.ValidColumn,
 			distributelock.Table:                   distributelock.ValidColumn,

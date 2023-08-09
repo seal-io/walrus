@@ -41,7 +41,7 @@ func (cci *ConnectorCreateInput) Model() *Connector {
 		return nil
 	}
 
-	c := &Connector{
+	_c := &Connector{
 		Category:            cci.Category,
 		EnableFinOps:        cci.EnableFinOps,
 		ConfigVersion:       cci.ConfigVersion,
@@ -54,10 +54,10 @@ func (cci *ConnectorCreateInput) Model() *Connector {
 	}
 
 	if cci.Project != nil {
-		c.ProjectID = cci.Project.ID
+		_c.ProjectID = cci.Project.ID
 	}
 
-	return c
+	return _c
 }
 
 // Load checks the input.
@@ -116,10 +116,10 @@ func (cci *ConnectorCreateInputs) Model() []*Connector {
 		return nil
 	}
 
-	cs := make([]*Connector, len(cci.Items))
+	_cs := make([]*Connector, len(cci.Items))
 
 	for i := range cci.Items {
-		c := &Connector{
+		_c := &Connector{
 			Category:            cci.Items[i].Category,
 			EnableFinOps:        cci.Items[i].EnableFinOps,
 			ConfigVersion:       cci.Items[i].ConfigVersion,
@@ -132,13 +132,13 @@ func (cci *ConnectorCreateInputs) Model() []*Connector {
 		}
 
 		if cci.Project != nil {
-			c.ProjectID = cci.Project.ID
+			_c.ProjectID = cci.Project.ID
 		}
 
-		cs[i] = c
+		_cs[i] = _c
 	}
 
-	return cs
+	return _cs
 }
 
 // Load checks the input.
@@ -195,13 +195,13 @@ func (cdi *ConnectorDeleteInputs) Model() []*Connector {
 		return nil
 	}
 
-	cs := make([]*Connector, len(cdi.Items))
+	_cs := make([]*Connector, len(cdi.Items))
 	for i := range cdi.Items {
-		cs[i] = &Connector{
+		_cs[i] = &Connector{
 			ID: cdi.Items[i].ID,
 		}
 	}
-	return cs
+	return _cs
 }
 
 // Load checks the input.
@@ -396,7 +396,7 @@ func (cui *ConnectorUpdateInput) Model() *Connector {
 		return nil
 	}
 
-	c := &Connector{
+	_c := &Connector{
 		ID:                  cui.ID,
 		Name:                cui.Name,
 		Description:         cui.Description,
@@ -409,7 +409,7 @@ func (cui *ConnectorUpdateInput) Model() *Connector {
 		Category:            cui.Category,
 	}
 
-	return c
+	return _c
 }
 
 // ConnectorUpdateInputs holds the modification input item of the Connector entities.
@@ -443,10 +443,10 @@ func (cui *ConnectorUpdateInputs) Model() []*Connector {
 		return nil
 	}
 
-	cs := make([]*Connector, len(cui.Items))
+	_cs := make([]*Connector, len(cui.Items))
 
 	for i := range cui.Items {
-		c := &Connector{
+		_c := &Connector{
 			ID:                  cui.Items[i].ID,
 			Name:                cui.Items[i].Name,
 			Description:         cui.Items[i].Description,
@@ -459,10 +459,10 @@ func (cui *ConnectorUpdateInputs) Model() []*Connector {
 			Category:            cui.Items[i].Category,
 		}
 
-		cs[i] = c
+		_cs[i] = _c
 	}
 
-	return cs
+	return _cs
 }
 
 // Load checks the input.
@@ -546,56 +546,56 @@ type ConnectorOutput struct {
 }
 
 // View returns the output of Connector.
-func (c *Connector) View() *ConnectorOutput {
-	return ExposeConnector(c)
+func (_c *Connector) View() *ConnectorOutput {
+	return ExposeConnector(_c)
 }
 
 // View returns the output of Connectors.
-func (cs Connectors) View() []*ConnectorOutput {
-	return ExposeConnectors(cs)
+func (_cs Connectors) View() []*ConnectorOutput {
+	return ExposeConnectors(_cs)
 }
 
 // ExposeConnector converts the Connector to ConnectorOutput.
-func ExposeConnector(c *Connector) *ConnectorOutput {
-	if c == nil {
+func ExposeConnector(_c *Connector) *ConnectorOutput {
+	if _c == nil {
 		return nil
 	}
 
 	co := &ConnectorOutput{
-		ID:                  c.ID,
-		Name:                c.Name,
-		Description:         c.Description,
-		Labels:              c.Labels,
-		CreateTime:          c.CreateTime,
-		UpdateTime:          c.UpdateTime,
-		Status:              c.Status,
-		Type:                c.Type,
-		ConfigVersion:       c.ConfigVersion,
-		ConfigData:          c.ConfigData,
-		EnableFinOps:        c.EnableFinOps,
-		FinOpsCustomPricing: c.FinOpsCustomPricing,
-		Category:            c.Category,
+		ID:                  _c.ID,
+		Name:                _c.Name,
+		Description:         _c.Description,
+		Labels:              _c.Labels,
+		CreateTime:          _c.CreateTime,
+		UpdateTime:          _c.UpdateTime,
+		Status:              _c.Status,
+		Type:                _c.Type,
+		ConfigVersion:       _c.ConfigVersion,
+		ConfigData:          _c.ConfigData,
+		EnableFinOps:        _c.EnableFinOps,
+		FinOpsCustomPricing: _c.FinOpsCustomPricing,
+		Category:            _c.Category,
 	}
 
-	if c.Edges.Project != nil {
-		co.Project = ExposeProject(c.Edges.Project)
-	} else if c.ProjectID != "" {
+	if _c.Edges.Project != nil {
+		co.Project = ExposeProject(_c.Edges.Project)
+	} else if _c.ProjectID != "" {
 		co.Project = &ProjectOutput{
-			ID: c.ProjectID,
+			ID: _c.ProjectID,
 		}
 	}
 	return co
 }
 
 // ExposeConnectors converts the Connector slice to ConnectorOutput pointer slice.
-func ExposeConnectors(cs []*Connector) []*ConnectorOutput {
-	if len(cs) == 0 {
+func ExposeConnectors(_cs []*Connector) []*ConnectorOutput {
+	if len(_cs) == 0 {
 		return nil
 	}
 
-	cos := make([]*ConnectorOutput, len(cs))
-	for i := range cs {
-		cos[i] = ExposeConnector(cs[i])
+	cos := make([]*ConnectorOutput, len(_cs))
+	for i := range _cs {
+		cos[i] = ExposeConnector(_cs[i])
 	}
 	return cos
 }

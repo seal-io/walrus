@@ -36,7 +36,7 @@ func (vci *VariableCreateInput) Model() *Variable {
 		return nil
 	}
 
-	v := &Variable{
+	_v := &Variable{
 		Value:       vci.Value,
 		Name:        vci.Name,
 		Sensitive:   vci.Sensitive,
@@ -44,13 +44,13 @@ func (vci *VariableCreateInput) Model() *Variable {
 	}
 
 	if vci.Project != nil {
-		v.ProjectID = vci.Project.ID
+		_v.ProjectID = vci.Project.ID
 	}
 	if vci.Environment != nil {
-		v.EnvironmentID = vci.Environment.ID
+		_v.EnvironmentID = vci.Environment.ID
 	}
 
-	return v
+	return _v
 }
 
 // Load checks the input.
@@ -111,10 +111,10 @@ func (vci *VariableCreateInputs) Model() []*Variable {
 		return nil
 	}
 
-	vs := make([]*Variable, len(vci.Items))
+	_vs := make([]*Variable, len(vci.Items))
 
 	for i := range vci.Items {
-		v := &Variable{
+		_v := &Variable{
 			Value:       vci.Items[i].Value,
 			Name:        vci.Items[i].Name,
 			Sensitive:   vci.Items[i].Sensitive,
@@ -122,16 +122,16 @@ func (vci *VariableCreateInputs) Model() []*Variable {
 		}
 
 		if vci.Project != nil {
-			v.ProjectID = vci.Project.ID
+			_v.ProjectID = vci.Project.ID
 		}
 		if vci.Environment != nil {
-			v.EnvironmentID = vci.Environment.ID
+			_v.EnvironmentID = vci.Environment.ID
 		}
 
-		vs[i] = v
+		_vs[i] = _v
 	}
 
-	return vs
+	return _vs
 }
 
 // Load checks the input.
@@ -196,13 +196,13 @@ func (vdi *VariableDeleteInputs) Model() []*Variable {
 		return nil
 	}
 
-	vs := make([]*Variable, len(vdi.Items))
+	_vs := make([]*Variable, len(vdi.Items))
 	for i := range vdi.Items {
-		vs[i] = &Variable{
+		_vs[i] = &Variable{
 			ID: vdi.Items[i].ID,
 		}
 	}
-	return vs
+	return _vs
 }
 
 // Load checks the input.
@@ -450,14 +450,14 @@ func (vui *VariableUpdateInput) Model() *Variable {
 		return nil
 	}
 
-	v := &Variable{
+	_v := &Variable{
 		ID:          vui.ID,
 		Value:       vui.Value,
 		Sensitive:   vui.Sensitive,
 		Description: vui.Description,
 	}
 
-	return v
+	return _v
 }
 
 // VariableUpdateInputs holds the modification input item of the Variable entities.
@@ -487,20 +487,20 @@ func (vui *VariableUpdateInputs) Model() []*Variable {
 		return nil
 	}
 
-	vs := make([]*Variable, len(vui.Items))
+	_vs := make([]*Variable, len(vui.Items))
 
 	for i := range vui.Items {
-		v := &Variable{
+		_v := &Variable{
 			ID:          vui.Items[i].ID,
 			Value:       vui.Items[i].Value,
 			Sensitive:   vui.Items[i].Sensitive,
 			Description: vui.Items[i].Description,
 		}
 
-		vs[i] = v
+		_vs[i] = _v
 	}
 
-	return vs
+	return _vs
 }
 
 // Load checks the input.
@@ -610,57 +610,57 @@ type VariableOutput struct {
 }
 
 // View returns the output of Variable.
-func (v *Variable) View() *VariableOutput {
-	return ExposeVariable(v)
+func (_v *Variable) View() *VariableOutput {
+	return ExposeVariable(_v)
 }
 
 // View returns the output of Variables.
-func (vs Variables) View() []*VariableOutput {
-	return ExposeVariables(vs)
+func (_vs Variables) View() []*VariableOutput {
+	return ExposeVariables(_vs)
 }
 
 // ExposeVariable converts the Variable to VariableOutput.
-func ExposeVariable(v *Variable) *VariableOutput {
-	if v == nil {
+func ExposeVariable(_v *Variable) *VariableOutput {
+	if _v == nil {
 		return nil
 	}
 
 	vo := &VariableOutput{
-		ID:          v.ID,
-		CreateTime:  v.CreateTime,
-		UpdateTime:  v.UpdateTime,
-		Name:        v.Name,
-		Value:       v.Value,
-		Sensitive:   v.Sensitive,
-		Description: v.Description,
+		ID:          _v.ID,
+		CreateTime:  _v.CreateTime,
+		UpdateTime:  _v.UpdateTime,
+		Name:        _v.Name,
+		Value:       _v.Value,
+		Sensitive:   _v.Sensitive,
+		Description: _v.Description,
 	}
 
-	if v.Edges.Project != nil {
-		vo.Project = ExposeProject(v.Edges.Project)
-	} else if v.ProjectID != "" {
+	if _v.Edges.Project != nil {
+		vo.Project = ExposeProject(_v.Edges.Project)
+	} else if _v.ProjectID != "" {
 		vo.Project = &ProjectOutput{
-			ID: v.ProjectID,
+			ID: _v.ProjectID,
 		}
 	}
-	if v.Edges.Environment != nil {
-		vo.Environment = ExposeEnvironment(v.Edges.Environment)
-	} else if v.EnvironmentID != "" {
+	if _v.Edges.Environment != nil {
+		vo.Environment = ExposeEnvironment(_v.Edges.Environment)
+	} else if _v.EnvironmentID != "" {
 		vo.Environment = &EnvironmentOutput{
-			ID: v.EnvironmentID,
+			ID: _v.EnvironmentID,
 		}
 	}
 	return vo
 }
 
 // ExposeVariables converts the Variable slice to VariableOutput pointer slice.
-func ExposeVariables(vs []*Variable) []*VariableOutput {
-	if len(vs) == 0 {
+func ExposeVariables(_vs []*Variable) []*VariableOutput {
+	if len(_vs) == 0 {
 		return nil
 	}
 
-	vos := make([]*VariableOutput, len(vs))
-	for i := range vs {
-		vos[i] = ExposeVariable(vs[i])
+	vos := make([]*VariableOutput, len(_vs))
+	for i := range _vs {
+		vos[i] = ExposeVariable(_vs[i])
 	}
 	return vos
 }

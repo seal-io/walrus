@@ -34,24 +34,24 @@ func (eci *EnvironmentCreateInput) Model() *Environment {
 		return nil
 	}
 
-	e := &Environment{
+	_e := &Environment{
 		Name:        eci.Name,
 		Description: eci.Description,
 		Labels:      eci.Labels,
 	}
 
 	if eci.Project != nil {
-		e.ProjectID = eci.Project.ID
+		_e.ProjectID = eci.Project.ID
 	}
 
 	for j := range eci.Connectors {
 		if eci.Connectors[j] == nil {
 			continue
 		}
-		e.Edges.Connectors = append(e.Edges.Connectors,
+		_e.Edges.Connectors = append(_e.Edges.Connectors,
 			eci.Connectors[j].Model())
 	}
-	return e
+	return _e
 }
 
 // Load checks the input.
@@ -115,31 +115,31 @@ func (eci *EnvironmentCreateInputs) Model() []*Environment {
 		return nil
 	}
 
-	es := make([]*Environment, len(eci.Items))
+	_es := make([]*Environment, len(eci.Items))
 
 	for i := range eci.Items {
-		e := &Environment{
+		_e := &Environment{
 			Name:        eci.Items[i].Name,
 			Description: eci.Items[i].Description,
 			Labels:      eci.Items[i].Labels,
 		}
 
 		if eci.Project != nil {
-			e.ProjectID = eci.Project.ID
+			_e.ProjectID = eci.Project.ID
 		}
 
 		for j := range eci.Items[i].Connectors {
 			if eci.Items[i].Connectors[j] == nil {
 				continue
 			}
-			e.Edges.Connectors = append(e.Edges.Connectors,
+			_e.Edges.Connectors = append(_e.Edges.Connectors,
 				eci.Items[i].Connectors[j].Model())
 		}
 
-		es[i] = e
+		_es[i] = _e
 	}
 
-	return es
+	return _es
 }
 
 // Load checks the input.
@@ -196,13 +196,13 @@ func (edi *EnvironmentDeleteInputs) Model() []*Environment {
 		return nil
 	}
 
-	es := make([]*Environment, len(edi.Items))
+	_es := make([]*Environment, len(edi.Items))
 	for i := range edi.Items {
-		es[i] = &Environment{
+		_es[i] = &Environment{
 			ID: edi.Items[i].ID,
 		}
 	}
-	return es
+	return _es
 }
 
 // Load checks the input.
@@ -390,7 +390,7 @@ func (eui *EnvironmentUpdateInput) Model() *Environment {
 		return nil
 	}
 
-	e := &Environment{
+	_e := &Environment{
 		ID:          eui.ID,
 		Name:        eui.Name,
 		Description: eui.Description,
@@ -401,10 +401,10 @@ func (eui *EnvironmentUpdateInput) Model() *Environment {
 		if eui.Connectors[j] == nil {
 			continue
 		}
-		e.Edges.Connectors = append(e.Edges.Connectors,
+		_e.Edges.Connectors = append(_e.Edges.Connectors,
 			eui.Connectors[j].Model())
 	}
-	return e
+	return _e
 }
 
 // EnvironmentUpdateInputs holds the modification input item of the Environment entities.
@@ -434,10 +434,10 @@ func (eui *EnvironmentUpdateInputs) Model() []*Environment {
 		return nil
 	}
 
-	es := make([]*Environment, len(eui.Items))
+	_es := make([]*Environment, len(eui.Items))
 
 	for i := range eui.Items {
-		e := &Environment{
+		_e := &Environment{
 			ID:          eui.Items[i].ID,
 			Name:        eui.Items[i].Name,
 			Description: eui.Items[i].Description,
@@ -448,14 +448,14 @@ func (eui *EnvironmentUpdateInputs) Model() []*Environment {
 			if eui.Items[i].Connectors[j] == nil {
 				continue
 			}
-			e.Edges.Connectors = append(e.Edges.Connectors,
+			_e.Edges.Connectors = append(_e.Edges.Connectors,
 				eui.Items[i].Connectors[j].Model())
 		}
 
-		es[i] = e
+		_es[i] = _e
 	}
 
-	return es
+	return _es
 }
 
 // Load checks the input.
@@ -533,52 +533,52 @@ type EnvironmentOutput struct {
 }
 
 // View returns the output of Environment.
-func (e *Environment) View() *EnvironmentOutput {
-	return ExposeEnvironment(e)
+func (_e *Environment) View() *EnvironmentOutput {
+	return ExposeEnvironment(_e)
 }
 
 // View returns the output of Environments.
-func (es Environments) View() []*EnvironmentOutput {
-	return ExposeEnvironments(es)
+func (_es Environments) View() []*EnvironmentOutput {
+	return ExposeEnvironments(_es)
 }
 
 // ExposeEnvironment converts the Environment to EnvironmentOutput.
-func ExposeEnvironment(e *Environment) *EnvironmentOutput {
-	if e == nil {
+func ExposeEnvironment(_e *Environment) *EnvironmentOutput {
+	if _e == nil {
 		return nil
 	}
 
 	eo := &EnvironmentOutput{
-		ID:          e.ID,
-		Name:        e.Name,
-		Description: e.Description,
-		Labels:      e.Labels,
-		CreateTime:  e.CreateTime,
-		UpdateTime:  e.UpdateTime,
+		ID:          _e.ID,
+		Name:        _e.Name,
+		Description: _e.Description,
+		Labels:      _e.Labels,
+		CreateTime:  _e.CreateTime,
+		UpdateTime:  _e.UpdateTime,
 	}
 
-	if e.Edges.Project != nil {
-		eo.Project = ExposeProject(e.Edges.Project)
-	} else if e.ProjectID != "" {
+	if _e.Edges.Project != nil {
+		eo.Project = ExposeProject(_e.Edges.Project)
+	} else if _e.ProjectID != "" {
 		eo.Project = &ProjectOutput{
-			ID: e.ProjectID,
+			ID: _e.ProjectID,
 		}
 	}
-	if e.Edges.Connectors != nil {
-		eo.Connectors = ExposeEnvironmentConnectorRelationships(e.Edges.Connectors)
+	if _e.Edges.Connectors != nil {
+		eo.Connectors = ExposeEnvironmentConnectorRelationships(_e.Edges.Connectors)
 	}
 	return eo
 }
 
 // ExposeEnvironments converts the Environment slice to EnvironmentOutput pointer slice.
-func ExposeEnvironments(es []*Environment) []*EnvironmentOutput {
-	if len(es) == 0 {
+func ExposeEnvironments(_es []*Environment) []*EnvironmentOutput {
+	if len(_es) == 0 {
 		return nil
 	}
 
-	eos := make([]*EnvironmentOutput, len(es))
-	for i := range es {
-		eos[i] = ExposeEnvironment(es[i])
+	eos := make([]*EnvironmentOutput, len(_es))
+	for i := range _es {
+		eos[i] = ExposeEnvironment(_es[i])
 	}
 	return eos
 }

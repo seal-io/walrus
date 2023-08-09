@@ -12,6 +12,33 @@ import (
 )
 
 var (
+	// CatalogsColumns holds the columns for the "catalogs" table.
+	CatalogsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
+		{Name: "annotations", Type: field.TypeJSON, Nullable: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeJSON, Nullable: true},
+		{Name: "type", Type: field.TypeString},
+		{Name: "source", Type: field.TypeString},
+		{Name: "sync", Type: field.TypeJSON, Nullable: true},
+	}
+	// CatalogsTable holds the schema information for the "catalogs" table.
+	CatalogsTable = &schema.Table{
+		Name:       "catalogs",
+		Columns:    CatalogsColumns,
+		PrimaryKey: []*schema.Column{CatalogsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "catalog_name",
+				Unique:  true,
+				Columns: []*schema.Column{CatalogsColumns[1]},
+			},
+		},
+	}
 	// ConnectorsColumns holds the columns for the "connectors" table.
 	ConnectorsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
@@ -649,12 +676,21 @@ var (
 		{Name: "status", Type: field.TypeJSON, Nullable: true},
 		{Name: "icon", Type: field.TypeString, Nullable: true},
 		{Name: "source", Type: field.TypeString},
+		{Name: "catalog_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// TemplatesTable holds the schema information for the "templates" table.
 	TemplatesTable = &schema.Table{
 		Name:       "templates",
 		Columns:    TemplatesColumns,
 		PrimaryKey: []*schema.Column{TemplatesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "templates_catalogs_templates",
+				Columns:    []*schema.Column{TemplatesColumns[9]},
+				RefColumns: []*schema.Column{CatalogsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "template_name",
@@ -791,6 +827,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		CatalogsTable,
 		ConnectorsTable,
 		CostReportsTable,
 		DistributeLocksTable,
@@ -836,6 +873,7 @@ func init() {
 	SubjectRoleRelationshipsTable.ForeignKeys[0].RefTable = ProjectsTable
 	SubjectRoleRelationshipsTable.ForeignKeys[1].RefTable = SubjectsTable
 	SubjectRoleRelationshipsTable.ForeignKeys[2].RefTable = RolesTable
+	TemplatesTable.ForeignKeys[0].RefTable = CatalogsTable
 	TemplateVersionsTable.ForeignKeys[0].RefTable = TemplatesTable
 	TokensTable.ForeignKeys[0].RefTable = SubjectsTable
 	VariablesTable.ForeignKeys[0].RefTable = EnvironmentsTable

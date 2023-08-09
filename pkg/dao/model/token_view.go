@@ -32,14 +32,14 @@ func (tci *TokenCreateInput) Model() *Token {
 		return nil
 	}
 
-	t := &Token{
+	_t := &Token{
 		Value:      tci.Value,
 		Name:       tci.Name,
 		Kind:       tci.Kind,
 		Expiration: tci.Expiration,
 	}
 
-	return t
+	return _t
 }
 
 // Load checks the input.
@@ -84,20 +84,20 @@ func (tci *TokenCreateInputs) Model() []*Token {
 		return nil
 	}
 
-	ts := make([]*Token, len(tci.Items))
+	_ts := make([]*Token, len(tci.Items))
 
 	for i := range tci.Items {
-		t := &Token{
+		_t := &Token{
 			Value:      tci.Items[i].Value,
 			Name:       tci.Items[i].Name,
 			Kind:       tci.Items[i].Kind,
 			Expiration: tci.Items[i].Expiration,
 		}
 
-		ts[i] = t
+		_ts[i] = _t
 	}
 
-	return ts
+	return _ts
 }
 
 // Load checks the input.
@@ -146,13 +146,13 @@ func (tdi *TokenDeleteInputs) Model() []*Token {
 		return nil
 	}
 
-	ts := make([]*Token, len(tdi.Items))
+	_ts := make([]*Token, len(tdi.Items))
 	for i := range tdi.Items {
-		ts[i] = &Token{
+		_ts[i] = &Token{
 			ID: tdi.Items[i].ID,
 		}
 	}
-	return ts
+	return _ts
 }
 
 // Load checks the input.
@@ -305,11 +305,11 @@ func (tui *TokenUpdateInput) Model() *Token {
 		return nil
 	}
 
-	t := &Token{
+	_t := &Token{
 		ID: tui.ID,
 	}
 
-	return t
+	return _t
 }
 
 // TokenUpdateInputs holds the modification input item of the Token entities.
@@ -331,17 +331,17 @@ func (tui *TokenUpdateInputs) Model() []*Token {
 		return nil
 	}
 
-	ts := make([]*Token, len(tui.Items))
+	_ts := make([]*Token, len(tui.Items))
 
 	for i := range tui.Items {
-		t := &Token{
+		_t := &Token{
 			ID: tui.Items[i].ID,
 		}
 
-		ts[i] = t
+		_ts[i] = _t
 	}
 
-	return ts
+	return _ts
 }
 
 // Load checks the input.
@@ -409,49 +409,49 @@ type TokenOutput struct {
 }
 
 // View returns the output of Token.
-func (t *Token) View() *TokenOutput {
-	return ExposeToken(t)
+func (_t *Token) View() *TokenOutput {
+	return ExposeToken(_t)
 }
 
 // View returns the output of Tokens.
-func (ts Tokens) View() []*TokenOutput {
-	return ExposeTokens(ts)
+func (_ts Tokens) View() []*TokenOutput {
+	return ExposeTokens(_ts)
 }
 
 // ExposeToken converts the Token to TokenOutput.
-func ExposeToken(t *Token) *TokenOutput {
-	if t == nil {
+func ExposeToken(_t *Token) *TokenOutput {
+	if _t == nil {
 		return nil
 	}
 
 	to := &TokenOutput{
-		ID:          t.ID,
-		CreateTime:  t.CreateTime,
-		Kind:        t.Kind,
-		Name:        t.Name,
-		Expiration:  t.Expiration,
-		AccessToken: t.AccessToken,
+		ID:          _t.ID,
+		CreateTime:  _t.CreateTime,
+		Kind:        _t.Kind,
+		Name:        _t.Name,
+		Expiration:  _t.Expiration,
+		AccessToken: _t.AccessToken,
 	}
 
-	if t.Edges.Subject != nil {
-		to.Subject = ExposeSubject(t.Edges.Subject)
-	} else if t.SubjectID != "" {
+	if _t.Edges.Subject != nil {
+		to.Subject = ExposeSubject(_t.Edges.Subject)
+	} else if _t.SubjectID != "" {
 		to.Subject = &SubjectOutput{
-			ID: t.SubjectID,
+			ID: _t.SubjectID,
 		}
 	}
 	return to
 }
 
 // ExposeTokens converts the Token slice to TokenOutput pointer slice.
-func ExposeTokens(ts []*Token) []*TokenOutput {
-	if len(ts) == 0 {
+func ExposeTokens(_ts []*Token) []*TokenOutput {
+	if len(_ts) == 0 {
 		return nil
 	}
 
-	tos := make([]*TokenOutput, len(ts))
-	for i := range ts {
-		tos[i] = ExposeToken(ts[i])
+	tos := make([]*TokenOutput, len(_ts))
+	for i := range _ts {
+		tos[i] = ExposeToken(_ts[i])
 	}
 	return tos
 }

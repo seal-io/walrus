@@ -44,7 +44,7 @@ func (srci *ServiceRevisionCreateInput) Model() *ServiceRevision {
 		return nil
 	}
 
-	sr := &ServiceRevision{
+	_sr := &ServiceRevision{
 		Output:                    srci.Output,
 		InputPlan:                 srci.InputPlan,
 		TemplateVersion:           srci.TemplateVersion,
@@ -58,16 +58,16 @@ func (srci *ServiceRevisionCreateInput) Model() *ServiceRevision {
 	}
 
 	if srci.Project != nil {
-		sr.ProjectID = srci.Project.ID
+		_sr.ProjectID = srci.Project.ID
 	}
 	if srci.Environment != nil {
-		sr.EnvironmentID = srci.Environment.ID
+		_sr.EnvironmentID = srci.Environment.ID
 	}
 	if srci.Service != nil {
-		sr.ServiceID = srci.Service.ID
+		_sr.ServiceID = srci.Service.ID
 	}
 
-	return sr
+	return _sr
 }
 
 // Load checks the input.
@@ -141,10 +141,10 @@ func (srci *ServiceRevisionCreateInputs) Model() []*ServiceRevision {
 		return nil
 	}
 
-	srs := make([]*ServiceRevision, len(srci.Items))
+	_srs := make([]*ServiceRevision, len(srci.Items))
 
 	for i := range srci.Items {
-		sr := &ServiceRevision{
+		_sr := &ServiceRevision{
 			Output:                    srci.Items[i].Output,
 			InputPlan:                 srci.Items[i].InputPlan,
 			TemplateVersion:           srci.Items[i].TemplateVersion,
@@ -158,19 +158,19 @@ func (srci *ServiceRevisionCreateInputs) Model() []*ServiceRevision {
 		}
 
 		if srci.Project != nil {
-			sr.ProjectID = srci.Project.ID
+			_sr.ProjectID = srci.Project.ID
 		}
 		if srci.Environment != nil {
-			sr.EnvironmentID = srci.Environment.ID
+			_sr.EnvironmentID = srci.Environment.ID
 		}
 		if srci.Service != nil {
-			sr.ServiceID = srci.Service.ID
+			_sr.ServiceID = srci.Service.ID
 		}
 
-		srs[i] = sr
+		_srs[i] = _sr
 	}
 
-	return srs
+	return _srs
 }
 
 // Load checks the input.
@@ -241,13 +241,13 @@ func (srdi *ServiceRevisionDeleteInputs) Model() []*ServiceRevision {
 		return nil
 	}
 
-	srs := make([]*ServiceRevision, len(srdi.Items))
+	_srs := make([]*ServiceRevision, len(srdi.Items))
 	for i := range srdi.Items {
-		srs[i] = &ServiceRevision{
+		_srs[i] = &ServiceRevision{
 			ID: srdi.Items[i].ID,
 		}
 	}
-	return srs
+	return _srs
 }
 
 // Load checks the input.
@@ -493,7 +493,7 @@ func (srui *ServiceRevisionUpdateInput) Model() *ServiceRevision {
 		return nil
 	}
 
-	sr := &ServiceRevision{
+	_sr := &ServiceRevision{
 		ID:                        srui.ID,
 		TemplateVersion:           srui.TemplateVersion,
 		Attributes:                srui.Attributes,
@@ -506,7 +506,7 @@ func (srui *ServiceRevisionUpdateInput) Model() *ServiceRevision {
 		Tags:                      srui.Tags,
 	}
 
-	return sr
+	return _sr
 }
 
 // ServiceRevisionUpdateInputs holds the modification input item of the ServiceRevision entities.
@@ -542,10 +542,10 @@ func (srui *ServiceRevisionUpdateInputs) Model() []*ServiceRevision {
 		return nil
 	}
 
-	srs := make([]*ServiceRevision, len(srui.Items))
+	_srs := make([]*ServiceRevision, len(srui.Items))
 
 	for i := range srui.Items {
-		sr := &ServiceRevision{
+		_sr := &ServiceRevision{
 			ID:                        srui.Items[i].ID,
 			TemplateVersion:           srui.Items[i].TemplateVersion,
 			Attributes:                srui.Items[i].Attributes,
@@ -558,10 +558,10 @@ func (srui *ServiceRevisionUpdateInputs) Model() []*ServiceRevision {
 			Tags:                      srui.Items[i].Tags,
 		}
 
-		srs[i] = sr
+		_srs[i] = _sr
 	}
 
-	return srs
+	return _srs
 }
 
 // Load checks the input.
@@ -664,69 +664,69 @@ type ServiceRevisionOutput struct {
 }
 
 // View returns the output of ServiceRevision.
-func (sr *ServiceRevision) View() *ServiceRevisionOutput {
-	return ExposeServiceRevision(sr)
+func (_sr *ServiceRevision) View() *ServiceRevisionOutput {
+	return ExposeServiceRevision(_sr)
 }
 
 // View returns the output of ServiceRevisions.
-func (srs ServiceRevisions) View() []*ServiceRevisionOutput {
-	return ExposeServiceRevisions(srs)
+func (_srs ServiceRevisions) View() []*ServiceRevisionOutput {
+	return ExposeServiceRevisions(_srs)
 }
 
 // ExposeServiceRevision converts the ServiceRevision to ServiceRevisionOutput.
-func ExposeServiceRevision(sr *ServiceRevision) *ServiceRevisionOutput {
-	if sr == nil {
+func ExposeServiceRevision(_sr *ServiceRevision) *ServiceRevisionOutput {
+	if _sr == nil {
 		return nil
 	}
 
 	sro := &ServiceRevisionOutput{
-		ID:                        sr.ID,
-		CreateTime:                sr.CreateTime,
-		Status:                    sr.Status,
-		StatusMessage:             sr.StatusMessage,
-		TemplateName:              sr.TemplateName,
-		TemplateVersion:           sr.TemplateVersion,
-		Attributes:                sr.Attributes,
-		Variables:                 sr.Variables,
-		DeployerType:              sr.DeployerType,
-		Duration:                  sr.Duration,
-		PreviousRequiredProviders: sr.PreviousRequiredProviders,
-		Tags:                      sr.Tags,
+		ID:                        _sr.ID,
+		CreateTime:                _sr.CreateTime,
+		Status:                    _sr.Status,
+		StatusMessage:             _sr.StatusMessage,
+		TemplateName:              _sr.TemplateName,
+		TemplateVersion:           _sr.TemplateVersion,
+		Attributes:                _sr.Attributes,
+		Variables:                 _sr.Variables,
+		DeployerType:              _sr.DeployerType,
+		Duration:                  _sr.Duration,
+		PreviousRequiredProviders: _sr.PreviousRequiredProviders,
+		Tags:                      _sr.Tags,
 	}
 
-	if sr.Edges.Project != nil {
-		sro.Project = ExposeProject(sr.Edges.Project)
-	} else if sr.ProjectID != "" {
+	if _sr.Edges.Project != nil {
+		sro.Project = ExposeProject(_sr.Edges.Project)
+	} else if _sr.ProjectID != "" {
 		sro.Project = &ProjectOutput{
-			ID: sr.ProjectID,
+			ID: _sr.ProjectID,
 		}
 	}
-	if sr.Edges.Environment != nil {
-		sro.Environment = ExposeEnvironment(sr.Edges.Environment)
-	} else if sr.EnvironmentID != "" {
+	if _sr.Edges.Environment != nil {
+		sro.Environment = ExposeEnvironment(_sr.Edges.Environment)
+	} else if _sr.EnvironmentID != "" {
 		sro.Environment = &EnvironmentOutput{
-			ID: sr.EnvironmentID,
+			ID: _sr.EnvironmentID,
 		}
 	}
-	if sr.Edges.Service != nil {
-		sro.Service = ExposeService(sr.Edges.Service)
-	} else if sr.ServiceID != "" {
+	if _sr.Edges.Service != nil {
+		sro.Service = ExposeService(_sr.Edges.Service)
+	} else if _sr.ServiceID != "" {
 		sro.Service = &ServiceOutput{
-			ID: sr.ServiceID,
+			ID: _sr.ServiceID,
 		}
 	}
 	return sro
 }
 
 // ExposeServiceRevisions converts the ServiceRevision slice to ServiceRevisionOutput pointer slice.
-func ExposeServiceRevisions(srs []*ServiceRevision) []*ServiceRevisionOutput {
-	if len(srs) == 0 {
+func ExposeServiceRevisions(_srs []*ServiceRevision) []*ServiceRevisionOutput {
+	if len(_srs) == 0 {
 		return nil
 	}
 
-	sros := make([]*ServiceRevisionOutput, len(srs))
-	for i := range srs {
-		sros[i] = ExposeServiceRevision(srs[i])
+	sros := make([]*ServiceRevisionOutput, len(_srs))
+	for i := range _srs {
+		sros[i] = ExposeServiceRevision(_srs[i])
 	}
 	return sros
 }

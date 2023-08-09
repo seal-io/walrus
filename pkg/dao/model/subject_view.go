@@ -35,7 +35,7 @@ func (sci *SubjectCreateInput) Model() *Subject {
 		return nil
 	}
 
-	s := &Subject{
+	_s := &Subject{
 		Name:        sci.Name,
 		Kind:        sci.Kind,
 		Domain:      sci.Domain,
@@ -47,10 +47,10 @@ func (sci *SubjectCreateInput) Model() *Subject {
 		if sci.Roles[j] == nil {
 			continue
 		}
-		s.Edges.Roles = append(s.Edges.Roles,
+		_s.Edges.Roles = append(_s.Edges.Roles,
 			sci.Roles[j].Model())
 	}
-	return s
+	return _s
 }
 
 // Load checks the input.
@@ -107,10 +107,10 @@ func (sci *SubjectCreateInputs) Model() []*Subject {
 		return nil
 	}
 
-	ss := make([]*Subject, len(sci.Items))
+	_ss := make([]*Subject, len(sci.Items))
 
 	for i := range sci.Items {
-		s := &Subject{
+		_s := &Subject{
 			Name:        sci.Items[i].Name,
 			Kind:        sci.Items[i].Kind,
 			Domain:      sci.Items[i].Domain,
@@ -122,14 +122,14 @@ func (sci *SubjectCreateInputs) Model() []*Subject {
 			if sci.Items[i].Roles[j] == nil {
 				continue
 			}
-			s.Edges.Roles = append(s.Edges.Roles,
+			_s.Edges.Roles = append(_s.Edges.Roles,
 				sci.Items[i].Roles[j].Model())
 		}
 
-		ss[i] = s
+		_ss[i] = _s
 	}
 
-	return ss
+	return _ss
 }
 
 // Load checks the input.
@@ -181,13 +181,13 @@ func (sdi *SubjectDeleteInputs) Model() []*Subject {
 		return nil
 	}
 
-	ss := make([]*Subject, len(sdi.Items))
+	_ss := make([]*Subject, len(sdi.Items))
 	for i := range sdi.Items {
-		ss[i] = &Subject{
+		_ss[i] = &Subject{
 			ID: sdi.Items[i].ID,
 		}
 	}
-	return ss
+	return _ss
 }
 
 // Load checks the input.
@@ -380,7 +380,7 @@ func (sui *SubjectUpdateInput) Model() *Subject {
 		return nil
 	}
 
-	s := &Subject{
+	_s := &Subject{
 		ID:          sui.ID,
 		Kind:        sui.Kind,
 		Domain:      sui.Domain,
@@ -392,10 +392,10 @@ func (sui *SubjectUpdateInput) Model() *Subject {
 		if sui.Roles[j] == nil {
 			continue
 		}
-		s.Edges.Roles = append(s.Edges.Roles,
+		_s.Edges.Roles = append(_s.Edges.Roles,
 			sui.Roles[j].Model())
 	}
-	return s
+	return _s
 }
 
 // SubjectUpdateInputs holds the modification input item of the Subject entities.
@@ -424,10 +424,10 @@ func (sui *SubjectUpdateInputs) Model() []*Subject {
 		return nil
 	}
 
-	ss := make([]*Subject, len(sui.Items))
+	_ss := make([]*Subject, len(sui.Items))
 
 	for i := range sui.Items {
-		s := &Subject{
+		_s := &Subject{
 			ID:          sui.Items[i].ID,
 			Kind:        sui.Items[i].Kind,
 			Domain:      sui.Items[i].Domain,
@@ -439,14 +439,14 @@ func (sui *SubjectUpdateInputs) Model() []*Subject {
 			if sui.Items[i].Roles[j] == nil {
 				continue
 			}
-			s.Edges.Roles = append(s.Edges.Roles,
+			_s.Edges.Roles = append(_s.Edges.Roles,
 				sui.Items[i].Roles[j].Model())
 		}
 
-		ss[i] = s
+		_ss[i] = _s
 	}
 
-	return ss
+	return _ss
 }
 
 // Load checks the input.
@@ -538,47 +538,47 @@ type SubjectOutput struct {
 }
 
 // View returns the output of Subject.
-func (s *Subject) View() *SubjectOutput {
-	return ExposeSubject(s)
+func (_s *Subject) View() *SubjectOutput {
+	return ExposeSubject(_s)
 }
 
 // View returns the output of Subjects.
-func (ss Subjects) View() []*SubjectOutput {
-	return ExposeSubjects(ss)
+func (_ss Subjects) View() []*SubjectOutput {
+	return ExposeSubjects(_ss)
 }
 
 // ExposeSubject converts the Subject to SubjectOutput.
-func ExposeSubject(s *Subject) *SubjectOutput {
-	if s == nil {
+func ExposeSubject(_s *Subject) *SubjectOutput {
+	if _s == nil {
 		return nil
 	}
 
 	so := &SubjectOutput{
-		ID:          s.ID,
-		CreateTime:  s.CreateTime,
-		UpdateTime:  s.UpdateTime,
-		Kind:        s.Kind,
-		Domain:      s.Domain,
-		Name:        s.Name,
-		Description: s.Description,
-		Builtin:     s.Builtin,
+		ID:          _s.ID,
+		CreateTime:  _s.CreateTime,
+		UpdateTime:  _s.UpdateTime,
+		Kind:        _s.Kind,
+		Domain:      _s.Domain,
+		Name:        _s.Name,
+		Description: _s.Description,
+		Builtin:     _s.Builtin,
 	}
 
-	if s.Edges.Roles != nil {
-		so.Roles = ExposeSubjectRoleRelationships(s.Edges.Roles)
+	if _s.Edges.Roles != nil {
+		so.Roles = ExposeSubjectRoleRelationships(_s.Edges.Roles)
 	}
 	return so
 }
 
 // ExposeSubjects converts the Subject slice to SubjectOutput pointer slice.
-func ExposeSubjects(ss []*Subject) []*SubjectOutput {
-	if len(ss) == 0 {
+func ExposeSubjects(_ss []*Subject) []*SubjectOutput {
+	if len(_ss) == 0 {
 		return nil
 	}
 
-	sos := make([]*SubjectOutput, len(ss))
-	for i := range ss {
-		sos[i] = ExposeSubject(ss[i])
+	sos := make([]*SubjectOutput, len(_ss))
+	for i := range _ss {
+		sos[i] = ExposeSubject(_ss[i])
 	}
 	return sos
 }

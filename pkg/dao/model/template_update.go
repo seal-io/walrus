@@ -278,8 +278,6 @@ func (tu *TemplateUpdate) Set(obj *Template) *TemplateUpdate {
 	}
 	if obj.Icon != "" {
 		tu.SetIcon(obj.Icon)
-	} else {
-		tu.ClearIcon()
 	}
 	tu.SetSource(obj.Source)
 
@@ -688,8 +686,6 @@ func (tuo *TemplateUpdateOne) Set(obj *Template) *TemplateUpdateOne {
 				if db.Icon != obj.Icon {
 					tuo.SetIcon(obj.Icon)
 				}
-			} else {
-				tuo.ClearIcon()
 			}
 			if db.Source != obj.Source {
 				tuo.SetSource(obj.Source)

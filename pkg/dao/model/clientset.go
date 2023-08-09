@@ -9,6 +9,9 @@ import "context"
 
 // ClientSet is an interface that allows getting all clients.
 type ClientSet interface {
+	// Catalogs returns the client for interacting with the Catalog builders.
+	Catalogs() *CatalogClient
+
 	// Connectors returns the client for interacting with the Connector builders.
 	Connectors() *ConnectorClient
 
@@ -84,6 +87,12 @@ type ClientSet interface {
 	// WithTx gives a new transactional client in the callback function,
 	// if already in a transaction, this will keep in the same transaction.
 	WithTx(context.Context, func(tx *Tx) error) error
+}
+
+// CatalogClientGetter is an interface that allows getting CatalogClient.
+type CatalogClientGetter interface {
+	// Catalogs returns the client for interacting with the Catalog builders.
+	Catalogs() *CatalogClient
 }
 
 // ConnectorClientGetter is an interface that allows getting ConnectorClient.

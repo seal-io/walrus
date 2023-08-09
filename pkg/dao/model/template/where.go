@@ -91,6 +91,11 @@ func Source(v string) predicate.Template {
 	return predicate.Template(sql.FieldEQ(FieldSource, v))
 }
 
+// CatalogID applies equality check predicate on the "catalog_id" field. It's identical to CatalogIDEQ.
+func CatalogID(v object.ID) predicate.Template {
+	return predicate.Template(sql.FieldEQ(FieldCatalogID, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Template {
 	return predicate.Template(sql.FieldEQ(FieldName, v))
@@ -471,6 +476,86 @@ func SourceContainsFold(v string) predicate.Template {
 	return predicate.Template(sql.FieldContainsFold(FieldSource, v))
 }
 
+// CatalogIDEQ applies the EQ predicate on the "catalog_id" field.
+func CatalogIDEQ(v object.ID) predicate.Template {
+	return predicate.Template(sql.FieldEQ(FieldCatalogID, v))
+}
+
+// CatalogIDNEQ applies the NEQ predicate on the "catalog_id" field.
+func CatalogIDNEQ(v object.ID) predicate.Template {
+	return predicate.Template(sql.FieldNEQ(FieldCatalogID, v))
+}
+
+// CatalogIDIn applies the In predicate on the "catalog_id" field.
+func CatalogIDIn(vs ...object.ID) predicate.Template {
+	return predicate.Template(sql.FieldIn(FieldCatalogID, vs...))
+}
+
+// CatalogIDNotIn applies the NotIn predicate on the "catalog_id" field.
+func CatalogIDNotIn(vs ...object.ID) predicate.Template {
+	return predicate.Template(sql.FieldNotIn(FieldCatalogID, vs...))
+}
+
+// CatalogIDGT applies the GT predicate on the "catalog_id" field.
+func CatalogIDGT(v object.ID) predicate.Template {
+	return predicate.Template(sql.FieldGT(FieldCatalogID, v))
+}
+
+// CatalogIDGTE applies the GTE predicate on the "catalog_id" field.
+func CatalogIDGTE(v object.ID) predicate.Template {
+	return predicate.Template(sql.FieldGTE(FieldCatalogID, v))
+}
+
+// CatalogIDLT applies the LT predicate on the "catalog_id" field.
+func CatalogIDLT(v object.ID) predicate.Template {
+	return predicate.Template(sql.FieldLT(FieldCatalogID, v))
+}
+
+// CatalogIDLTE applies the LTE predicate on the "catalog_id" field.
+func CatalogIDLTE(v object.ID) predicate.Template {
+	return predicate.Template(sql.FieldLTE(FieldCatalogID, v))
+}
+
+// CatalogIDContains applies the Contains predicate on the "catalog_id" field.
+func CatalogIDContains(v object.ID) predicate.Template {
+	vc := string(v)
+	return predicate.Template(sql.FieldContains(FieldCatalogID, vc))
+}
+
+// CatalogIDHasPrefix applies the HasPrefix predicate on the "catalog_id" field.
+func CatalogIDHasPrefix(v object.ID) predicate.Template {
+	vc := string(v)
+	return predicate.Template(sql.FieldHasPrefix(FieldCatalogID, vc))
+}
+
+// CatalogIDHasSuffix applies the HasSuffix predicate on the "catalog_id" field.
+func CatalogIDHasSuffix(v object.ID) predicate.Template {
+	vc := string(v)
+	return predicate.Template(sql.FieldHasSuffix(FieldCatalogID, vc))
+}
+
+// CatalogIDIsNil applies the IsNil predicate on the "catalog_id" field.
+func CatalogIDIsNil() predicate.Template {
+	return predicate.Template(sql.FieldIsNull(FieldCatalogID))
+}
+
+// CatalogIDNotNil applies the NotNil predicate on the "catalog_id" field.
+func CatalogIDNotNil() predicate.Template {
+	return predicate.Template(sql.FieldNotNull(FieldCatalogID))
+}
+
+// CatalogIDEqualFold applies the EqualFold predicate on the "catalog_id" field.
+func CatalogIDEqualFold(v object.ID) predicate.Template {
+	vc := string(v)
+	return predicate.Template(sql.FieldEqualFold(FieldCatalogID, vc))
+}
+
+// CatalogIDContainsFold applies the ContainsFold predicate on the "catalog_id" field.
+func CatalogIDContainsFold(v object.ID) predicate.Template {
+	vc := string(v)
+	return predicate.Template(sql.FieldContainsFold(FieldCatalogID, vc))
+}
+
 // HasVersions applies the HasEdge predicate on the "versions" edge.
 func HasVersions() predicate.Template {
 	return predicate.Template(func(s *sql.Selector) {
@@ -492,6 +577,35 @@ func HasVersionsWith(preds ...predicate.TemplateVersion) predicate.Template {
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.TemplateVersion
 		step.Edge.Schema = schemaConfig.TemplateVersion
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCatalog applies the HasEdge predicate on the "catalog" edge.
+func HasCatalog() predicate.Template {
+	return predicate.Template(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CatalogTable, CatalogColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Catalog
+		step.Edge.Schema = schemaConfig.Template
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCatalogWith applies the HasEdge predicate on the "catalog" edge with a given conditions (other predicates).
+func HasCatalogWith(preds ...predicate.Catalog) predicate.Template {
+	return predicate.Template(func(s *sql.Selector) {
+		step := newCatalogStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Catalog
+		step.Edge.Schema = schemaConfig.Template
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

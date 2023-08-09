@@ -17,6 +17,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/model/catalog"
 	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/types/object"
@@ -121,6 +122,20 @@ func (tc *TemplateCreate) SetSource(s string) *TemplateCreate {
 	return tc
 }
 
+// SetCatalogID sets the "catalog_id" field.
+func (tc *TemplateCreate) SetCatalogID(o object.ID) *TemplateCreate {
+	tc.mutation.SetCatalogID(o)
+	return tc
+}
+
+// SetNillableCatalogID sets the "catalog_id" field if the given value is not nil.
+func (tc *TemplateCreate) SetNillableCatalogID(o *object.ID) *TemplateCreate {
+	if o != nil {
+		tc.SetCatalogID(*o)
+	}
+	return tc
+}
+
 // SetID sets the "id" field.
 func (tc *TemplateCreate) SetID(o object.ID) *TemplateCreate {
 	tc.mutation.SetID(o)
@@ -140,6 +155,11 @@ func (tc *TemplateCreate) AddVersions(t ...*TemplateVersion) *TemplateCreate {
 		ids[i] = t[i].ID
 	}
 	return tc.AddVersionIDs(ids...)
+}
+
+// SetCatalog sets the "catalog" edge to the Catalog entity.
+func (tc *TemplateCreate) SetCatalog(c *Catalog) *TemplateCreate {
+	return tc.SetCatalogID(c.ID)
 }
 
 // Mutation returns the TemplateMutation object of the builder.
@@ -310,6 +330,24 @@ func (tc *TemplateCreate) createSpec() (*Template, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := tc.mutation.CatalogIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   template.CatalogTable,
+			Columns: []string{template.CatalogColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(catalog.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = tc.schemaConfig.Template
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.CatalogID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -354,6 +392,9 @@ func (tc *TemplateCreate) Set(obj *Template) *TemplateCreate {
 	}
 	if obj.Icon != "" {
 		tc.SetIcon(obj.Icon)
+	}
+	if obj.CatalogID != "" {
+		tc.SetCatalogID(obj.CatalogID)
 	}
 
 	// Record the given object.
@@ -405,6 +446,9 @@ func (tc *TemplateCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Con
 		}
 		if _, set := tc.mutation.Field(template.FieldSource); set {
 			obj.Source = x.Source
+		}
+		if _, set := tc.mutation.Field(template.FieldCatalogID); set {
+			obj.CatalogID = x.CatalogID
 		}
 		obj.Edges = x.Edges
 	}
@@ -519,6 +563,9 @@ func (tcb *TemplateCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx contex
 			}
 			if _, set := tcb.builders[i].mutation.Field(template.FieldSource); set {
 				objs[i].Source = x[i].Source
+			}
+			if _, set := tcb.builders[i].mutation.Field(template.FieldCatalogID); set {
+				objs[i].CatalogID = x[i].CatalogID
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -773,6 +820,9 @@ func (u *TemplateUpsertOne) UpdateNewValues() *TemplateUpsertOne {
 		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(template.FieldCreateTime)
+		}
+		if _, exists := u.create.mutation.CatalogID(); exists {
+			s.SetIgnore(template.FieldCatalogID)
 		}
 	}))
 	return u
@@ -1114,6 +1164,9 @@ func (u *TemplateUpsertBulk) UpdateNewValues() *TemplateUpsertBulk {
 			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(template.FieldCreateTime)
+			}
+			if _, exists := b.mutation.CatalogID(); exists {
+				s.SetIgnore(template.FieldCatalogID)
 			}
 		}
 	}))

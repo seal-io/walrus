@@ -8,6 +8,7 @@ package runtime
 import (
 	"time"
 
+	"github.com/seal-io/seal/pkg/dao/model/catalog"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/model/distributelock"
@@ -38,6 +39,43 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	catalogMixin := schema.Catalog{}.Mixin()
+	catalogMixinHooks0 := catalogMixin[0].Hooks()
+	catalog.Hooks[0] = catalogMixinHooks0[0]
+	catalogMixinFields0 := catalogMixin[0].Fields()
+	_ = catalogMixinFields0
+	catalogFields := schema.Catalog{}.Fields()
+	_ = catalogFields
+	// catalogDescName is the schema descriptor for name field.
+	catalogDescName := catalogMixinFields0[1].Descriptor()
+	// catalog.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	catalog.NameValidator = catalogDescName.Validators[0].(func(string) error)
+	// catalogDescLabels is the schema descriptor for labels field.
+	catalogDescLabels := catalogMixinFields0[3].Descriptor()
+	// catalog.DefaultLabels holds the default value on creation for the labels field.
+	catalog.DefaultLabels = catalogDescLabels.Default.(map[string]string)
+	// catalogDescAnnotations is the schema descriptor for annotations field.
+	catalogDescAnnotations := catalogMixinFields0[4].Descriptor()
+	// catalog.DefaultAnnotations holds the default value on creation for the annotations field.
+	catalog.DefaultAnnotations = catalogDescAnnotations.Default.(map[string]string)
+	// catalogDescCreateTime is the schema descriptor for create_time field.
+	catalogDescCreateTime := catalogMixinFields0[5].Descriptor()
+	// catalog.DefaultCreateTime holds the default value on creation for the create_time field.
+	catalog.DefaultCreateTime = catalogDescCreateTime.Default.(func() time.Time)
+	// catalogDescUpdateTime is the schema descriptor for update_time field.
+	catalogDescUpdateTime := catalogMixinFields0[6].Descriptor()
+	// catalog.DefaultUpdateTime holds the default value on creation for the update_time field.
+	catalog.DefaultUpdateTime = catalogDescUpdateTime.Default.(func() time.Time)
+	// catalog.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	catalog.UpdateDefaultUpdateTime = catalogDescUpdateTime.UpdateDefault.(func() time.Time)
+	// catalogDescType is the schema descriptor for type field.
+	catalogDescType := catalogFields[0].Descriptor()
+	// catalog.TypeValidator is a validator for the "type" field. It is called by the builders before save.
+	catalog.TypeValidator = catalogDescType.Validators[0].(func(string) error)
+	// catalogDescSource is the schema descriptor for source field.
+	catalogDescSource := catalogFields[1].Descriptor()
+	// catalog.SourceValidator is a validator for the "source" field. It is called by the builders before save.
+	catalog.SourceValidator = catalogDescSource.Validators[0].(func(string) error)
 	connectorMixin := schema.Connector{}.Mixin()
 	connectorMixinHooks0 := connectorMixin[0].Hooks()
 	connectorMixinHooks1 := connectorMixin[1].Hooks()
