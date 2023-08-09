@@ -41,7 +41,7 @@ func (srci *ServiceResourceCreateInput) Model() *ServiceResource {
 		return nil
 	}
 
-	sr := &ServiceResource{
+	_sr := &ServiceResource{
 		Shape:        srci.Shape,
 		DeployerType: srci.DeployerType,
 		Name:         srci.Name,
@@ -52,31 +52,31 @@ func (srci *ServiceResourceCreateInput) Model() *ServiceResource {
 	}
 
 	if srci.Service != nil {
-		sr.ServiceID = srci.Service.ID
+		_sr.ServiceID = srci.Service.ID
 	}
 
 	for j := range srci.Components {
 		if srci.Components[j] == nil {
 			continue
 		}
-		sr.Edges.Components = append(sr.Edges.Components,
+		_sr.Edges.Components = append(_sr.Edges.Components,
 			srci.Components[j].Model())
 	}
 	for j := range srci.Instances {
 		if srci.Instances[j] == nil {
 			continue
 		}
-		sr.Edges.Instances = append(sr.Edges.Instances,
+		_sr.Edges.Instances = append(_sr.Edges.Instances,
 			srci.Instances[j].Model())
 	}
 	for j := range srci.Dependencies {
 		if srci.Dependencies[j] == nil {
 			continue
 		}
-		sr.Edges.Dependencies = append(sr.Edges.Dependencies,
+		_sr.Edges.Dependencies = append(_sr.Edges.Dependencies,
 			srci.Dependencies[j].Model())
 	}
-	return sr
+	return _sr
 }
 
 // Load checks the input.
@@ -164,10 +164,10 @@ func (srci *ServiceResourceCreateInputs) Model() []*ServiceResource {
 		return nil
 	}
 
-	srs := make([]*ServiceResource, len(srci.Items))
+	_srs := make([]*ServiceResource, len(srci.Items))
 
 	for i := range srci.Items {
-		sr := &ServiceResource{
+		_sr := &ServiceResource{
 			Shape:        srci.Items[i].Shape,
 			DeployerType: srci.Items[i].DeployerType,
 			Name:         srci.Items[i].Name,
@@ -178,35 +178,35 @@ func (srci *ServiceResourceCreateInputs) Model() []*ServiceResource {
 		}
 
 		if srci.Service != nil {
-			sr.ServiceID = srci.Service.ID
+			_sr.ServiceID = srci.Service.ID
 		}
 
 		for j := range srci.Items[i].Components {
 			if srci.Items[i].Components[j] == nil {
 				continue
 			}
-			sr.Edges.Components = append(sr.Edges.Components,
+			_sr.Edges.Components = append(_sr.Edges.Components,
 				srci.Items[i].Components[j].Model())
 		}
 		for j := range srci.Items[i].Instances {
 			if srci.Items[i].Instances[j] == nil {
 				continue
 			}
-			sr.Edges.Instances = append(sr.Edges.Instances,
+			_sr.Edges.Instances = append(_sr.Edges.Instances,
 				srci.Items[i].Instances[j].Model())
 		}
 		for j := range srci.Items[i].Dependencies {
 			if srci.Items[i].Dependencies[j] == nil {
 				continue
 			}
-			sr.Edges.Dependencies = append(sr.Edges.Dependencies,
+			_sr.Edges.Dependencies = append(_sr.Edges.Dependencies,
 				srci.Items[i].Dependencies[j].Model())
 		}
 
-		srs[i] = sr
+		_srs[i] = _sr
 	}
 
-	return srs
+	return _srs
 }
 
 // Load checks the input.
@@ -263,13 +263,13 @@ func (srdi *ServiceResourceDeleteInputs) Model() []*ServiceResource {
 		return nil
 	}
 
-	srs := make([]*ServiceResource, len(srdi.Items))
+	_srs := make([]*ServiceResource, len(srdi.Items))
 	for i := range srdi.Items {
-		srs[i] = &ServiceResource{
+		_srs[i] = &ServiceResource{
 			ID: srdi.Items[i].ID,
 		}
 	}
-	return srs
+	return _srs
 }
 
 // Load checks the input.
@@ -457,7 +457,7 @@ func (srui *ServiceResourceUpdateInput) Model() *ServiceResource {
 		return nil
 	}
 
-	sr := &ServiceResource{
+	_sr := &ServiceResource{
 		ID:     srui.ID,
 		Status: srui.Status,
 	}
@@ -466,24 +466,24 @@ func (srui *ServiceResourceUpdateInput) Model() *ServiceResource {
 		if srui.Components[j] == nil {
 			continue
 		}
-		sr.Edges.Components = append(sr.Edges.Components,
+		_sr.Edges.Components = append(_sr.Edges.Components,
 			srui.Components[j].Model())
 	}
 	for j := range srui.Instances {
 		if srui.Instances[j] == nil {
 			continue
 		}
-		sr.Edges.Instances = append(sr.Edges.Instances,
+		_sr.Edges.Instances = append(_sr.Edges.Instances,
 			srui.Instances[j].Model())
 	}
 	for j := range srui.Dependencies {
 		if srui.Dependencies[j] == nil {
 			continue
 		}
-		sr.Edges.Dependencies = append(sr.Edges.Dependencies,
+		_sr.Edges.Dependencies = append(_sr.Edges.Dependencies,
 			srui.Dependencies[j].Model())
 	}
-	return sr
+	return _sr
 }
 
 // ServiceResourceUpdateInputs holds the modification input item of the ServiceResource entities.
@@ -513,10 +513,10 @@ func (srui *ServiceResourceUpdateInputs) Model() []*ServiceResource {
 		return nil
 	}
 
-	srs := make([]*ServiceResource, len(srui.Items))
+	_srs := make([]*ServiceResource, len(srui.Items))
 
 	for i := range srui.Items {
-		sr := &ServiceResource{
+		_sr := &ServiceResource{
 			ID:     srui.Items[i].ID,
 			Status: srui.Items[i].Status,
 		}
@@ -525,28 +525,28 @@ func (srui *ServiceResourceUpdateInputs) Model() []*ServiceResource {
 			if srui.Items[i].Components[j] == nil {
 				continue
 			}
-			sr.Edges.Components = append(sr.Edges.Components,
+			_sr.Edges.Components = append(_sr.Edges.Components,
 				srui.Items[i].Components[j].Model())
 		}
 		for j := range srui.Items[i].Instances {
 			if srui.Items[i].Instances[j] == nil {
 				continue
 			}
-			sr.Edges.Instances = append(sr.Edges.Instances,
+			_sr.Edges.Instances = append(_sr.Edges.Instances,
 				srui.Items[i].Instances[j].Model())
 		}
 		for j := range srui.Items[i].Dependencies {
 			if srui.Items[i].Dependencies[j] == nil {
 				continue
 			}
-			sr.Edges.Dependencies = append(sr.Edges.Dependencies,
+			_sr.Edges.Dependencies = append(_sr.Edges.Dependencies,
 				srui.Items[i].Dependencies[j].Model())
 		}
 
-		srs[i] = sr
+		_srs[i] = _sr
 	}
 
-	return srs
+	return _srs
 }
 
 // Load checks the input.
@@ -634,84 +634,84 @@ type ServiceResourceOutput struct {
 }
 
 // View returns the output of ServiceResource.
-func (sr *ServiceResource) View() *ServiceResourceOutput {
-	return ExposeServiceResource(sr)
+func (_sr *ServiceResource) View() *ServiceResourceOutput {
+	return ExposeServiceResource(_sr)
 }
 
 // View returns the output of ServiceResources.
-func (srs ServiceResources) View() []*ServiceResourceOutput {
-	return ExposeServiceResources(srs)
+func (_srs ServiceResources) View() []*ServiceResourceOutput {
+	return ExposeServiceResources(_srs)
 }
 
 // ExposeServiceResource converts the ServiceResource to ServiceResourceOutput.
-func ExposeServiceResource(sr *ServiceResource) *ServiceResourceOutput {
-	if sr == nil {
+func ExposeServiceResource(_sr *ServiceResource) *ServiceResourceOutput {
+	if _sr == nil {
 		return nil
 	}
 
 	sro := &ServiceResourceOutput{
-		ID:           sr.ID,
-		CreateTime:   sr.CreateTime,
-		UpdateTime:   sr.UpdateTime,
-		ProjectID:    sr.ProjectID,
-		Mode:         sr.Mode,
-		Type:         sr.Type,
-		Name:         sr.Name,
-		DeployerType: sr.DeployerType,
-		Shape:        sr.Shape,
-		Status:       sr.Status,
-		Keys:         sr.Keys,
+		ID:           _sr.ID,
+		CreateTime:   _sr.CreateTime,
+		UpdateTime:   _sr.UpdateTime,
+		ProjectID:    _sr.ProjectID,
+		Mode:         _sr.Mode,
+		Type:         _sr.Type,
+		Name:         _sr.Name,
+		DeployerType: _sr.DeployerType,
+		Shape:        _sr.Shape,
+		Status:       _sr.Status,
+		Keys:         _sr.Keys,
 	}
 
-	if sr.Edges.Service != nil {
-		sro.Service = ExposeService(sr.Edges.Service)
-	} else if sr.ServiceID != "" {
+	if _sr.Edges.Service != nil {
+		sro.Service = ExposeService(_sr.Edges.Service)
+	} else if _sr.ServiceID != "" {
 		sro.Service = &ServiceOutput{
-			ID: sr.ServiceID,
+			ID: _sr.ServiceID,
 		}
 	}
-	if sr.Edges.Connector != nil {
-		sro.Connector = ExposeConnector(sr.Edges.Connector)
-	} else if sr.ConnectorID != "" {
+	if _sr.Edges.Connector != nil {
+		sro.Connector = ExposeConnector(_sr.Edges.Connector)
+	} else if _sr.ConnectorID != "" {
 		sro.Connector = &ConnectorOutput{
-			ID: sr.ConnectorID,
+			ID: _sr.ConnectorID,
 		}
 	}
-	if sr.Edges.Composition != nil {
-		sro.Composition = ExposeServiceResource(sr.Edges.Composition)
-	} else if sr.CompositionID != "" {
+	if _sr.Edges.Composition != nil {
+		sro.Composition = ExposeServiceResource(_sr.Edges.Composition)
+	} else if _sr.CompositionID != "" {
 		sro.Composition = &ServiceResourceOutput{
-			ID: sr.CompositionID,
+			ID: _sr.CompositionID,
 		}
 	}
-	if sr.Edges.Components != nil {
-		sro.Components = ExposeServiceResources(sr.Edges.Components)
+	if _sr.Edges.Components != nil {
+		sro.Components = ExposeServiceResources(_sr.Edges.Components)
 	}
-	if sr.Edges.Class != nil {
-		sro.Class = ExposeServiceResource(sr.Edges.Class)
-	} else if sr.ClassID != "" {
+	if _sr.Edges.Class != nil {
+		sro.Class = ExposeServiceResource(_sr.Edges.Class)
+	} else if _sr.ClassID != "" {
 		sro.Class = &ServiceResourceOutput{
-			ID: sr.ClassID,
+			ID: _sr.ClassID,
 		}
 	}
-	if sr.Edges.Instances != nil {
-		sro.Instances = ExposeServiceResources(sr.Edges.Instances)
+	if _sr.Edges.Instances != nil {
+		sro.Instances = ExposeServiceResources(_sr.Edges.Instances)
 	}
-	if sr.Edges.Dependencies != nil {
-		sro.Dependencies = ExposeServiceResourceRelationships(sr.Edges.Dependencies)
+	if _sr.Edges.Dependencies != nil {
+		sro.Dependencies = ExposeServiceResourceRelationships(_sr.Edges.Dependencies)
 	}
 	return sro
 }
 
 // ExposeServiceResources converts the ServiceResource slice to ServiceResourceOutput pointer slice.
-func ExposeServiceResources(srs []*ServiceResource) []*ServiceResourceOutput {
-	if len(srs) == 0 {
+func ExposeServiceResources(_srs []*ServiceResource) []*ServiceResourceOutput {
+	if len(_srs) == 0 {
 		return nil
 	}
 
-	sros := make([]*ServiceResourceOutput, len(srs))
-	for i := range srs {
-		sros[i] = ExposeServiceResource(srs[i])
+	sros := make([]*ServiceResourceOutput, len(_srs))
+	for i := range _srs {
+		sros[i] = ExposeServiceResource(_srs[i])
 	}
 	return sros
 }

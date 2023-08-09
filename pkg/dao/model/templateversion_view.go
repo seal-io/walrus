@@ -33,17 +33,17 @@ func (tvci *TemplateVersionCreateInput) Model() *TemplateVersion {
 		return nil
 	}
 
-	tv := &TemplateVersion{
+	_tv := &TemplateVersion{
 		Source:  tvci.Source,
 		Version: tvci.Version,
 		Schema:  tvci.Schema,
 	}
 
 	if tvci.Template != nil {
-		tv.TemplateID = tvci.Template.ID
+		_tv.TemplateID = tvci.Template.ID
 	}
 
-	return tv
+	return _tv
 }
 
 // Load checks the input.
@@ -96,23 +96,23 @@ func (tvci *TemplateVersionCreateInputs) Model() []*TemplateVersion {
 		return nil
 	}
 
-	tvs := make([]*TemplateVersion, len(tvci.Items))
+	_tvs := make([]*TemplateVersion, len(tvci.Items))
 
 	for i := range tvci.Items {
-		tv := &TemplateVersion{
+		_tv := &TemplateVersion{
 			Source:  tvci.Items[i].Source,
 			Version: tvci.Items[i].Version,
 			Schema:  tvci.Items[i].Schema,
 		}
 
 		if tvci.Template != nil {
-			tv.TemplateID = tvci.Template.ID
+			_tv.TemplateID = tvci.Template.ID
 		}
 
-		tvs[i] = tv
+		_tvs[i] = _tv
 	}
 
-	return tvs
+	return _tvs
 }
 
 // Load checks the input.
@@ -169,13 +169,13 @@ func (tvdi *TemplateVersionDeleteInputs) Model() []*TemplateVersion {
 		return nil
 	}
 
-	tvs := make([]*TemplateVersion, len(tvdi.Items))
+	_tvs := make([]*TemplateVersion, len(tvdi.Items))
 	for i := range tvdi.Items {
-		tvs[i] = &TemplateVersion{
+		_tvs[i] = &TemplateVersion{
 			ID: tvdi.Items[i].ID,
 		}
 	}
-	return tvs
+	return _tvs
 }
 
 // Load checks the input.
@@ -359,12 +359,12 @@ func (tvui *TemplateVersionUpdateInput) Model() *TemplateVersion {
 		return nil
 	}
 
-	tv := &TemplateVersion{
+	_tv := &TemplateVersion{
 		ID:     tvui.ID,
 		Schema: tvui.Schema,
 	}
 
-	return tv
+	return _tv
 }
 
 // TemplateVersionUpdateInputs holds the modification input item of the TemplateVersion entities.
@@ -390,18 +390,18 @@ func (tvui *TemplateVersionUpdateInputs) Model() []*TemplateVersion {
 		return nil
 	}
 
-	tvs := make([]*TemplateVersion, len(tvui.Items))
+	_tvs := make([]*TemplateVersion, len(tvui.Items))
 
 	for i := range tvui.Items {
-		tv := &TemplateVersion{
+		_tv := &TemplateVersion{
 			ID:     tvui.Items[i].ID,
 			Schema: tvui.Items[i].Schema,
 		}
 
-		tvs[i] = tv
+		_tvs[i] = _tv
 	}
 
-	return tvs
+	return _tvs
 }
 
 // Load checks the input.
@@ -478,49 +478,49 @@ type TemplateVersionOutput struct {
 }
 
 // View returns the output of TemplateVersion.
-func (tv *TemplateVersion) View() *TemplateVersionOutput {
-	return ExposeTemplateVersion(tv)
+func (_tv *TemplateVersion) View() *TemplateVersionOutput {
+	return ExposeTemplateVersion(_tv)
 }
 
 // View returns the output of TemplateVersions.
-func (tvs TemplateVersions) View() []*TemplateVersionOutput {
-	return ExposeTemplateVersions(tvs)
+func (_tvs TemplateVersions) View() []*TemplateVersionOutput {
+	return ExposeTemplateVersions(_tvs)
 }
 
 // ExposeTemplateVersion converts the TemplateVersion to TemplateVersionOutput.
-func ExposeTemplateVersion(tv *TemplateVersion) *TemplateVersionOutput {
-	if tv == nil {
+func ExposeTemplateVersion(_tv *TemplateVersion) *TemplateVersionOutput {
+	if _tv == nil {
 		return nil
 	}
 
 	tvo := &TemplateVersionOutput{
-		ID:         tv.ID,
-		CreateTime: tv.CreateTime,
-		UpdateTime: tv.UpdateTime,
-		Version:    tv.Version,
-		Source:     tv.Source,
-		Schema:     tv.Schema,
+		ID:         _tv.ID,
+		CreateTime: _tv.CreateTime,
+		UpdateTime: _tv.UpdateTime,
+		Version:    _tv.Version,
+		Source:     _tv.Source,
+		Schema:     _tv.Schema,
 	}
 
-	if tv.Edges.Template != nil {
-		tvo.Template = ExposeTemplate(tv.Edges.Template)
-	} else if tv.TemplateID != "" {
+	if _tv.Edges.Template != nil {
+		tvo.Template = ExposeTemplate(_tv.Edges.Template)
+	} else if _tv.TemplateID != "" {
 		tvo.Template = &TemplateOutput{
-			ID: tv.TemplateID,
+			ID: _tv.TemplateID,
 		}
 	}
 	return tvo
 }
 
 // ExposeTemplateVersions converts the TemplateVersion slice to TemplateVersionOutput pointer slice.
-func ExposeTemplateVersions(tvs []*TemplateVersion) []*TemplateVersionOutput {
-	if len(tvs) == 0 {
+func ExposeTemplateVersions(_tvs []*TemplateVersion) []*TemplateVersionOutput {
+	if len(_tvs) == 0 {
 		return nil
 	}
 
-	tvos := make([]*TemplateVersionOutput, len(tvs))
-	for i := range tvs {
-		tvos[i] = ExposeTemplateVersion(tvs[i])
+	tvos := make([]*TemplateVersionOutput, len(_tvs))
+	for i := range _tvs {
+		tvos[i] = ExposeTemplateVersion(_tvs[i])
 	}
 	return tvos
 }

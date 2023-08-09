@@ -19,6 +19,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 
+	"github.com/seal-io/seal/pkg/dao/model/catalog"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/model/distributelock"
@@ -50,6 +51,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Catalog is the client for interacting with the Catalog builders.
+	Catalog *CatalogClient
 	// Connector is the client for interacting with the Connector builders.
 	Connector *ConnectorClient
 	// CostReport is the client for interacting with the CostReport builders.
@@ -103,6 +106,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Catalog = NewCatalogClient(c.config)
 	c.Connector = NewConnectorClient(c.config)
 	c.CostReport = NewCostReportClient(c.config)
 	c.DistributeLock = NewDistributeLockClient(c.config)
@@ -207,6 +211,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:                              ctx,
 		config:                           cfg,
+		Catalog:                          NewCatalogClient(cfg),
 		Connector:                        NewConnectorClient(cfg),
 		CostReport:                       NewCostReportClient(cfg),
 		DistributeLock:                   NewDistributeLockClient(cfg),
@@ -246,6 +251,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:                              ctx,
 		config:                           cfg,
+		Catalog:                          NewCatalogClient(cfg),
 		Connector:                        NewConnectorClient(cfg),
 		CostReport:                       NewCostReportClient(cfg),
 		DistributeLock:                   NewDistributeLockClient(cfg),
@@ -272,7 +278,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Connector.
+//		Catalog.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -295,7 +301,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Connector, c.CostReport, c.DistributeLock, c.Environment,
+		c.Catalog, c.Connector, c.CostReport, c.DistributeLock, c.Environment,
 		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Role,
 		c.Service, c.ServiceRelationship, c.ServiceResource,
 		c.ServiceResourceRelationship, c.ServiceRevision, c.Setting, c.Subject,
@@ -309,7 +315,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Connector, c.CostReport, c.DistributeLock, c.Environment,
+		c.Catalog, c.Connector, c.CostReport, c.DistributeLock, c.Environment,
 		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Role,
 		c.Service, c.ServiceRelationship, c.ServiceResource,
 		c.ServiceResourceRelationship, c.ServiceRevision, c.Setting, c.Subject,
@@ -317,6 +323,11 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	} {
 		n.Intercept(interceptors...)
 	}
+}
+
+// Catalogs implements the ClientSet.
+func (c *Client) Catalogs() *CatalogClient {
+	return c.Catalog
 }
 
 // Connectors implements the ClientSet.
@@ -465,6 +476,8 @@ func (c *Client) WithTx(ctx context.Context, fn func(tx *Tx) error) (err error) 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *CatalogMutation:
+		return c.Catalog.mutate(ctx, m)
 	case *ConnectorMutation:
 		return c.Connector.mutate(ctx, m)
 	case *CostReportMutation:
@@ -507,6 +520,144 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Variable.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("model: unknown mutation type %T", m)
+	}
+}
+
+// CatalogClient is a client for the Catalog schema.
+type CatalogClient struct {
+	config
+}
+
+// NewCatalogClient returns a client for the Catalog from the given config.
+func NewCatalogClient(c config) *CatalogClient {
+	return &CatalogClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `catalog.Hooks(f(g(h())))`.
+func (c *CatalogClient) Use(hooks ...Hook) {
+	c.hooks.Catalog = append(c.hooks.Catalog, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `catalog.Intercept(f(g(h())))`.
+func (c *CatalogClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Catalog = append(c.inters.Catalog, interceptors...)
+}
+
+// Create returns a builder for creating a Catalog entity.
+func (c *CatalogClient) Create() *CatalogCreate {
+	mutation := newCatalogMutation(c.config, OpCreate)
+	return &CatalogCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Catalog entities.
+func (c *CatalogClient) CreateBulk(builders ...*CatalogCreate) *CatalogCreateBulk {
+	return &CatalogCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Catalog.
+func (c *CatalogClient) Update() *CatalogUpdate {
+	mutation := newCatalogMutation(c.config, OpUpdate)
+	return &CatalogUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CatalogClient) UpdateOne(ca *Catalog) *CatalogUpdateOne {
+	mutation := newCatalogMutation(c.config, OpUpdateOne, withCatalog(ca))
+	return &CatalogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CatalogClient) UpdateOneID(id object.ID) *CatalogUpdateOne {
+	mutation := newCatalogMutation(c.config, OpUpdateOne, withCatalogID(id))
+	return &CatalogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Catalog.
+func (c *CatalogClient) Delete() *CatalogDelete {
+	mutation := newCatalogMutation(c.config, OpDelete)
+	return &CatalogDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CatalogClient) DeleteOne(ca *Catalog) *CatalogDeleteOne {
+	return c.DeleteOneID(ca.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CatalogClient) DeleteOneID(id object.ID) *CatalogDeleteOne {
+	builder := c.Delete().Where(catalog.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CatalogDeleteOne{builder}
+}
+
+// Query returns a query builder for Catalog.
+func (c *CatalogClient) Query() *CatalogQuery {
+	return &CatalogQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCatalog},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Catalog entity by its id.
+func (c *CatalogClient) Get(ctx context.Context, id object.ID) (*Catalog, error) {
+	return c.Query().Where(catalog.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CatalogClient) GetX(ctx context.Context, id object.ID) *Catalog {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTemplates queries the templates edge of a Catalog.
+func (c *CatalogClient) QueryTemplates(ca *Catalog) *TemplateQuery {
+	query := (&TemplateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ca.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(catalog.Table, catalog.FieldID, id),
+			sqlgraph.To(template.Table, template.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, catalog.TemplatesTable, catalog.TemplatesColumn),
+		)
+		schemaConfig := ca.schemaConfig
+		step.To.Schema = schemaConfig.Template
+		step.Edge.Schema = schemaConfig.Template
+		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CatalogClient) Hooks() []Hook {
+	hooks := c.hooks.Catalog
+	return append(hooks[:len(hooks):len(hooks)], catalog.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *CatalogClient) Interceptors() []Interceptor {
+	return c.inters.Catalog
+}
+
+func (c *CatalogClient) mutate(ctx context.Context, m *CatalogMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CatalogCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CatalogUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CatalogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CatalogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown Catalog mutation op: %q", m.Op())
 	}
 }
 
@@ -3348,6 +3499,25 @@ func (c *TemplateClient) QueryVersions(t *Template) *TemplateVersionQuery {
 	return query
 }
 
+// QueryCatalog queries the catalog edge of a Template.
+func (c *TemplateClient) QueryCatalog(t *Template) *CatalogQuery {
+	query := (&CatalogClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(template.Table, template.FieldID, id),
+			sqlgraph.To(catalog.Table, catalog.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, template.CatalogTable, template.CatalogColumn),
+		)
+		schemaConfig := t.schemaConfig
+		step.To.Schema = schemaConfig.Catalog
+		step.Edge.Schema = schemaConfig.Template
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *TemplateClient) Hooks() []Hook {
 	hooks := c.hooks.Template
@@ -3812,14 +3982,14 @@ func (c *VariableClient) mutate(ctx context.Context, m *VariableMutation) (Value
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Connector, CostReport, DistributeLock, Environment,
+		Catalog, Connector, CostReport, DistributeLock, Environment,
 		EnvironmentConnectorRelationship, Perspective, Project, Role, Service,
 		ServiceRelationship, ServiceResource, ServiceResourceRelationship,
 		ServiceRevision, Setting, Subject, SubjectRoleRelationship, Template,
 		TemplateVersion, Token, Variable []ent.Hook
 	}
 	inters struct {
-		Connector, CostReport, DistributeLock, Environment,
+		Catalog, Connector, CostReport, DistributeLock, Environment,
 		EnvironmentConnectorRelationship, Perspective, Project, Role, Service,
 		ServiceRelationship, ServiceResource, ServiceResourceRelationship,
 		ServiceRevision, Setting, Subject, SubjectRoleRelationship, Template,

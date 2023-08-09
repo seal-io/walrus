@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/catalog"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/model/distributelock"
@@ -89,6 +90,33 @@ func (f TraverseFunc) Traverse(ctx context.Context, q model.Query) error {
 		return err
 	}
 	return f(ctx, query)
+}
+
+// The CatalogFunc type is an adapter to allow the use of ordinary function as a Querier.
+type CatalogFunc func(context.Context, *model.CatalogQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f CatalogFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.CatalogQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.CatalogQuery", q)
+}
+
+// The TraverseCatalog type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseCatalog func(context.Context, *model.CatalogQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseCatalog) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseCatalog) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.CatalogQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.CatalogQuery", q)
 }
 
 // The ConnectorFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -634,6 +662,8 @@ func (f TraverseVariable) Traverse(ctx context.Context, q model.Query) error {
 // NewQuery returns the generic Query interface for the given typed query.
 func NewQuery(q model.Query) (Query, error) {
 	switch q := q.(type) {
+	case *model.CatalogQuery:
+		return &query[*model.CatalogQuery, predicate.Catalog, catalog.OrderOption]{typ: model.TypeCatalog, tq: q}, nil
 	case *model.ConnectorQuery:
 		return &query[*model.ConnectorQuery, predicate.Connector, connector.OrderOption]{typ: model.TypeConnector, tq: q}, nil
 	case *model.CostReportQuery:

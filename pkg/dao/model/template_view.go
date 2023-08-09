@@ -23,7 +23,6 @@ type TemplateCreateInput struct {
 	Name        string            `uri:"-" query:"-" json:"name"`
 	Description string            `uri:"-" query:"-" json:"description,omitempty"`
 	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
-	Icon        string            `uri:"-" query:"-" json:"icon,omitempty"`
 }
 
 // Model returns the Template entity for creating,
@@ -33,15 +32,14 @@ func (tci *TemplateCreateInput) Model() *Template {
 		return nil
 	}
 
-	t := &Template{
+	_t := &Template{
 		Source:      tci.Source,
 		Name:        tci.Name,
 		Description: tci.Description,
 		Labels:      tci.Labels,
-		Icon:        tci.Icon,
 	}
 
-	return t
+	return _t
 }
 
 // Load checks the input.
@@ -70,7 +68,6 @@ type TemplateCreateInputsItem struct {
 	Name        string            `uri:"-" query:"-" json:"name"`
 	Description string            `uri:"-" query:"-" json:"description,omitempty"`
 	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
-	Icon        string            `uri:"-" query:"-" json:"icon,omitempty"`
 }
 
 // TemplateCreateInputs holds the creation input of the Template entities.
@@ -87,21 +84,20 @@ func (tci *TemplateCreateInputs) Model() []*Template {
 		return nil
 	}
 
-	ts := make([]*Template, len(tci.Items))
+	_ts := make([]*Template, len(tci.Items))
 
 	for i := range tci.Items {
-		t := &Template{
+		_t := &Template{
 			Source:      tci.Items[i].Source,
 			Name:        tci.Items[i].Name,
 			Description: tci.Items[i].Description,
 			Labels:      tci.Items[i].Labels,
-			Icon:        tci.Items[i].Icon,
 		}
 
-		ts[i] = t
+		_ts[i] = _t
 	}
 
-	return ts
+	return _ts
 }
 
 // Load checks the input.
@@ -150,13 +146,13 @@ func (tdi *TemplateDeleteInputs) Model() []*Template {
 		return nil
 	}
 
-	ts := make([]*Template, len(tdi.Items))
+	_ts := make([]*Template, len(tdi.Items))
 	for i := range tdi.Items {
-		ts[i] = &Template{
+		_ts[i] = &Template{
 			ID: tdi.Items[i].ID,
 		}
 	}
-	return ts
+	return _ts
 }
 
 // Load checks the input.
@@ -304,7 +300,6 @@ type TemplateUpdateInput struct {
 	Name        string            `uri:"-" query:"-" json:"name,omitempty"`
 	Description string            `uri:"-" query:"-" json:"description,omitempty"`
 	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
-	Icon        string            `uri:"-" query:"-" json:"icon,omitempty"`
 	Source      string            `uri:"-" query:"-" json:"source,omitempty"`
 }
 
@@ -315,16 +310,15 @@ func (tui *TemplateUpdateInput) Model() *Template {
 		return nil
 	}
 
-	t := &Template{
+	_t := &Template{
 		ID:          tui.ID,
 		Name:        tui.Name,
 		Description: tui.Description,
 		Labels:      tui.Labels,
-		Icon:        tui.Icon,
 		Source:      tui.Source,
 	}
 
-	return t
+	return _t
 }
 
 // TemplateUpdateInputs holds the modification input item of the Template entities.
@@ -334,7 +328,6 @@ type TemplateUpdateInputsItem struct {
 	Name        string            `uri:"-" query:"-" json:"name,omitempty"`
 	Description string            `uri:"-" query:"-" json:"description,omitempty"`
 	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
-	Icon        string            `uri:"-" query:"-" json:"icon,omitempty"`
 	Source      string            `uri:"-" query:"-" json:"source,omitempty"`
 }
 
@@ -352,22 +345,21 @@ func (tui *TemplateUpdateInputs) Model() []*Template {
 		return nil
 	}
 
-	ts := make([]*Template, len(tui.Items))
+	_ts := make([]*Template, len(tui.Items))
 
 	for i := range tui.Items {
-		t := &Template{
+		_t := &Template{
 			ID:          tui.Items[i].ID,
 			Name:        tui.Items[i].Name,
 			Description: tui.Items[i].Description,
 			Labels:      tui.Items[i].Labels,
-			Icon:        tui.Items[i].Icon,
 			Source:      tui.Items[i].Source,
 		}
 
-		ts[i] = t
+		_ts[i] = _t
 	}
 
-	return ts
+	return _ts
 }
 
 // Load checks the input.
@@ -433,48 +425,57 @@ type TemplateOutput struct {
 	Status      status.Status     `json:"status,omitempty"`
 	Icon        string            `json:"icon,omitempty"`
 	Source      string            `json:"source,omitempty"`
+
+	Catalog *CatalogOutput `json:"catalog,omitempty"`
 }
 
 // View returns the output of Template.
-func (t *Template) View() *TemplateOutput {
-	return ExposeTemplate(t)
+func (_t *Template) View() *TemplateOutput {
+	return ExposeTemplate(_t)
 }
 
 // View returns the output of Templates.
-func (ts Templates) View() []*TemplateOutput {
-	return ExposeTemplates(ts)
+func (_ts Templates) View() []*TemplateOutput {
+	return ExposeTemplates(_ts)
 }
 
 // ExposeTemplate converts the Template to TemplateOutput.
-func ExposeTemplate(t *Template) *TemplateOutput {
-	if t == nil {
+func ExposeTemplate(_t *Template) *TemplateOutput {
+	if _t == nil {
 		return nil
 	}
 
 	to := &TemplateOutput{
-		ID:          t.ID,
-		Name:        t.Name,
-		Description: t.Description,
-		Labels:      t.Labels,
-		CreateTime:  t.CreateTime,
-		UpdateTime:  t.UpdateTime,
-		Status:      t.Status,
-		Icon:        t.Icon,
-		Source:      t.Source,
+		ID:          _t.ID,
+		Name:        _t.Name,
+		Description: _t.Description,
+		Labels:      _t.Labels,
+		CreateTime:  _t.CreateTime,
+		UpdateTime:  _t.UpdateTime,
+		Status:      _t.Status,
+		Icon:        _t.Icon,
+		Source:      _t.Source,
 	}
 
+	if _t.Edges.Catalog != nil {
+		to.Catalog = ExposeCatalog(_t.Edges.Catalog)
+	} else if _t.CatalogID != "" {
+		to.Catalog = &CatalogOutput{
+			ID: _t.CatalogID,
+		}
+	}
 	return to
 }
 
 // ExposeTemplates converts the Template slice to TemplateOutput pointer slice.
-func ExposeTemplates(ts []*Template) []*TemplateOutput {
-	if len(ts) == 0 {
+func ExposeTemplates(_ts []*Template) []*TemplateOutput {
+	if len(_ts) == 0 {
 		return nil
 	}
 
-	tos := make([]*TemplateOutput, len(ts))
-	for i := range ts {
-		tos[i] = ExposeTemplate(ts[i])
+	tos := make([]*TemplateOutput, len(_ts))
+	for i := range _ts {
+		tos[i] = ExposeTemplate(_ts[i])
 	}
 	return tos
 }

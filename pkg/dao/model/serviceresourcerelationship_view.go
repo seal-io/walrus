@@ -31,14 +31,14 @@ func (srrci *ServiceResourceRelationshipCreateInput) Model() *ServiceResourceRel
 		return nil
 	}
 
-	srr := &ServiceResourceRelationship{
+	_srr := &ServiceResourceRelationship{
 		Type: srrci.Type,
 	}
 
 	if srrci.Dependency != nil {
-		srr.DependencyID = srrci.Dependency.ID
+		_srr.DependencyID = srrci.Dependency.ID
 	}
-	return srr
+	return _srr
 }
 
 // Load checks the input.
@@ -88,21 +88,21 @@ func (srrci *ServiceResourceRelationshipCreateInputs) Model() []*ServiceResource
 		return nil
 	}
 
-	srrs := make([]*ServiceResourceRelationship, len(srrci.Items))
+	_srrs := make([]*ServiceResourceRelationship, len(srrci.Items))
 
 	for i := range srrci.Items {
-		srr := &ServiceResourceRelationship{
+		_srr := &ServiceResourceRelationship{
 			Type: srrci.Items[i].Type,
 		}
 
 		if srrci.Items[i].Dependency != nil {
-			srr.DependencyID = srrci.Items[i].Dependency.ID
+			_srr.DependencyID = srrci.Items[i].Dependency.ID
 		}
 
-		srrs[i] = srr
+		_srrs[i] = _srr
 	}
 
-	return srrs
+	return _srrs
 }
 
 // Load checks the input.
@@ -152,13 +152,13 @@ func (srrdi *ServiceResourceRelationshipDeleteInputs) Model() []*ServiceResource
 		return nil
 	}
 
-	srrs := make([]*ServiceResourceRelationship, len(srrdi.Items))
+	_srrs := make([]*ServiceResourceRelationship, len(srrdi.Items))
 	for i := range srrdi.Items {
-		srrs[i] = &ServiceResourceRelationship{
+		_srrs[i] = &ServiceResourceRelationship{
 			ID: srrdi.Items[i].ID,
 		}
 	}
-	return srrs
+	return _srrs
 }
 
 // Load checks the input.
@@ -342,14 +342,14 @@ func (srrui *ServiceResourceRelationshipUpdateInput) Model() *ServiceResourceRel
 		return nil
 	}
 
-	srr := &ServiceResourceRelationship{
+	_srr := &ServiceResourceRelationship{
 		ID: srrui.ID,
 	}
 
 	if srrui.Dependency != nil {
-		srr.DependencyID = srrui.Dependency.ID
+		_srr.DependencyID = srrui.Dependency.ID
 	}
-	return srr
+	return _srr
 }
 
 // ServiceResourceRelationshipUpdateInputs holds the modification input item of the ServiceResourceRelationship entities.
@@ -374,21 +374,21 @@ func (srrui *ServiceResourceRelationshipUpdateInputs) Model() []*ServiceResource
 		return nil
 	}
 
-	srrs := make([]*ServiceResourceRelationship, len(srrui.Items))
+	_srrs := make([]*ServiceResourceRelationship, len(srrui.Items))
 
 	for i := range srrui.Items {
-		srr := &ServiceResourceRelationship{
+		_srr := &ServiceResourceRelationship{
 			ID: srrui.Items[i].ID,
 		}
 
 		if srrui.Items[i].Dependency != nil {
-			srr.DependencyID = srrui.Items[i].Dependency.ID
+			_srr.DependencyID = srrui.Items[i].Dependency.ID
 		}
 
-		srrs[i] = srr
+		_srrs[i] = _srr
 	}
 
-	return srrs
+	return _srrs
 }
 
 // Load checks the input.
@@ -475,46 +475,46 @@ type ServiceResourceRelationshipOutput struct {
 }
 
 // View returns the output of ServiceResourceRelationship.
-func (srr *ServiceResourceRelationship) View() *ServiceResourceRelationshipOutput {
-	return ExposeServiceResourceRelationship(srr)
+func (_srr *ServiceResourceRelationship) View() *ServiceResourceRelationshipOutput {
+	return ExposeServiceResourceRelationship(_srr)
 }
 
 // View returns the output of ServiceResourceRelationships.
-func (srrs ServiceResourceRelationships) View() []*ServiceResourceRelationshipOutput {
-	return ExposeServiceResourceRelationships(srrs)
+func (_srrs ServiceResourceRelationships) View() []*ServiceResourceRelationshipOutput {
+	return ExposeServiceResourceRelationships(_srrs)
 }
 
 // ExposeServiceResourceRelationship converts the ServiceResourceRelationship to ServiceResourceRelationshipOutput.
-func ExposeServiceResourceRelationship(srr *ServiceResourceRelationship) *ServiceResourceRelationshipOutput {
-	if srr == nil {
+func ExposeServiceResourceRelationship(_srr *ServiceResourceRelationship) *ServiceResourceRelationshipOutput {
+	if _srr == nil {
 		return nil
 	}
 
 	srro := &ServiceResourceRelationshipOutput{
-		ID:         srr.ID,
-		CreateTime: srr.CreateTime,
-		Type:       srr.Type,
+		ID:         _srr.ID,
+		CreateTime: _srr.CreateTime,
+		Type:       _srr.Type,
 	}
 
-	if srr.Edges.Dependency != nil {
-		srro.Dependency = ExposeServiceResource(srr.Edges.Dependency)
-	} else if srr.DependencyID != "" {
+	if _srr.Edges.Dependency != nil {
+		srro.Dependency = ExposeServiceResource(_srr.Edges.Dependency)
+	} else if _srr.DependencyID != "" {
 		srro.Dependency = &ServiceResourceOutput{
-			ID: srr.DependencyID,
+			ID: _srr.DependencyID,
 		}
 	}
 	return srro
 }
 
 // ExposeServiceResourceRelationships converts the ServiceResourceRelationship slice to ServiceResourceRelationshipOutput pointer slice.
-func ExposeServiceResourceRelationships(srrs []*ServiceResourceRelationship) []*ServiceResourceRelationshipOutput {
-	if len(srrs) == 0 {
+func ExposeServiceResourceRelationships(_srrs []*ServiceResourceRelationship) []*ServiceResourceRelationshipOutput {
+	if len(_srrs) == 0 {
 		return nil
 	}
 
-	srros := make([]*ServiceResourceRelationshipOutput, len(srrs))
-	for i := range srrs {
-		srros[i] = ExposeServiceResourceRelationship(srrs[i])
+	srros := make([]*ServiceResourceRelationshipOutput, len(_srrs))
+	for i := range _srrs {
+		srros[i] = ExposeServiceResourceRelationship(_srrs[i])
 	}
 	return srros
 }

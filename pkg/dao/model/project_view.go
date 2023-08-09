@@ -30,13 +30,13 @@ func (pci *ProjectCreateInput) Model() *Project {
 		return nil
 	}
 
-	p := &Project{
+	_p := &Project{
 		Name:        pci.Name,
 		Description: pci.Description,
 		Labels:      pci.Labels,
 	}
 
-	return p
+	return _p
 }
 
 // Load checks the input.
@@ -80,19 +80,19 @@ func (pci *ProjectCreateInputs) Model() []*Project {
 		return nil
 	}
 
-	ps := make([]*Project, len(pci.Items))
+	_ps := make([]*Project, len(pci.Items))
 
 	for i := range pci.Items {
-		p := &Project{
+		_p := &Project{
 			Name:        pci.Items[i].Name,
 			Description: pci.Items[i].Description,
 			Labels:      pci.Items[i].Labels,
 		}
 
-		ps[i] = p
+		_ps[i] = _p
 	}
 
-	return ps
+	return _ps
 }
 
 // Load checks the input.
@@ -141,13 +141,13 @@ func (pdi *ProjectDeleteInputs) Model() []*Project {
 		return nil
 	}
 
-	ps := make([]*Project, len(pdi.Items))
+	_ps := make([]*Project, len(pdi.Items))
 	for i := range pdi.Items {
-		ps[i] = &Project{
+		_ps[i] = &Project{
 			ID: pdi.Items[i].ID,
 		}
 	}
-	return ps
+	return _ps
 }
 
 // Load checks the input.
@@ -304,14 +304,14 @@ func (pui *ProjectUpdateInput) Model() *Project {
 		return nil
 	}
 
-	p := &Project{
+	_p := &Project{
 		ID:          pui.ID,
 		Name:        pui.Name,
 		Description: pui.Description,
 		Labels:      pui.Labels,
 	}
 
-	return p
+	return _p
 }
 
 // ProjectUpdateInputs holds the modification input item of the Project entities.
@@ -337,20 +337,20 @@ func (pui *ProjectUpdateInputs) Model() []*Project {
 		return nil
 	}
 
-	ps := make([]*Project, len(pui.Items))
+	_ps := make([]*Project, len(pui.Items))
 
 	for i := range pui.Items {
-		p := &Project{
+		_p := &Project{
 			ID:          pui.Items[i].ID,
 			Name:        pui.Items[i].Name,
 			Description: pui.Items[i].Description,
 			Labels:      pui.Items[i].Labels,
 		}
 
-		ps[i] = p
+		_ps[i] = _p
 	}
 
-	return ps
+	return _ps
 }
 
 // Load checks the input.
@@ -416,42 +416,42 @@ type ProjectOutput struct {
 }
 
 // View returns the output of Project.
-func (p *Project) View() *ProjectOutput {
-	return ExposeProject(p)
+func (_p *Project) View() *ProjectOutput {
+	return ExposeProject(_p)
 }
 
 // View returns the output of Projects.
-func (ps Projects) View() []*ProjectOutput {
-	return ExposeProjects(ps)
+func (_ps Projects) View() []*ProjectOutput {
+	return ExposeProjects(_ps)
 }
 
 // ExposeProject converts the Project to ProjectOutput.
-func ExposeProject(p *Project) *ProjectOutput {
-	if p == nil {
+func ExposeProject(_p *Project) *ProjectOutput {
+	if _p == nil {
 		return nil
 	}
 
 	po := &ProjectOutput{
-		ID:          p.ID,
-		Name:        p.Name,
-		Description: p.Description,
-		Labels:      p.Labels,
-		CreateTime:  p.CreateTime,
-		UpdateTime:  p.UpdateTime,
+		ID:          _p.ID,
+		Name:        _p.Name,
+		Description: _p.Description,
+		Labels:      _p.Labels,
+		CreateTime:  _p.CreateTime,
+		UpdateTime:  _p.UpdateTime,
 	}
 
 	return po
 }
 
 // ExposeProjects converts the Project slice to ProjectOutput pointer slice.
-func ExposeProjects(ps []*Project) []*ProjectOutput {
-	if len(ps) == 0 {
+func ExposeProjects(_ps []*Project) []*ProjectOutput {
+	if len(_ps) == 0 {
 		return nil
 	}
 
-	pos := make([]*ProjectOutput, len(ps))
-	for i := range ps {
-		pos[i] = ExposeProject(ps[i])
+	pos := make([]*ProjectOutput, len(_ps))
+	for i := range _ps {
+		pos[i] = ExposeProject(_ps[i])
 	}
 	return pos
 }

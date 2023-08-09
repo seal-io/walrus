@@ -29,11 +29,11 @@ func (sci *SettingCreateInput) Model() *Setting {
 		return nil
 	}
 
-	s := &Setting{
+	_s := &Setting{
 		Value: sci.Value,
 	}
 
-	return s
+	return _s
 }
 
 // Load checks the input.
@@ -75,17 +75,17 @@ func (sci *SettingCreateInputs) Model() []*Setting {
 		return nil
 	}
 
-	ss := make([]*Setting, len(sci.Items))
+	_ss := make([]*Setting, len(sci.Items))
 
 	for i := range sci.Items {
-		s := &Setting{
+		_s := &Setting{
 			Value: sci.Items[i].Value,
 		}
 
-		ss[i] = s
+		_ss[i] = _s
 	}
 
-	return ss
+	return _ss
 }
 
 // Load checks the input.
@@ -134,13 +134,13 @@ func (sdi *SettingDeleteInputs) Model() []*Setting {
 		return nil
 	}
 
-	ss := make([]*Setting, len(sdi.Items))
+	_ss := make([]*Setting, len(sdi.Items))
 	for i := range sdi.Items {
-		ss[i] = &Setting{
+		_ss[i] = &Setting{
 			ID: sdi.Items[i].ID,
 		}
 	}
-	return ss
+	return _ss
 }
 
 // Load checks the input.
@@ -296,13 +296,13 @@ func (sui *SettingUpdateInput) Model() *Setting {
 		return nil
 	}
 
-	s := &Setting{
+	_s := &Setting{
 		ID:    sui.ID,
 		Name:  sui.Name,
 		Value: sui.Value,
 	}
 
-	return s
+	return _s
 }
 
 // SettingUpdateInputs holds the modification input item of the Setting entities.
@@ -327,19 +327,19 @@ func (sui *SettingUpdateInputs) Model() []*Setting {
 		return nil
 	}
 
-	ss := make([]*Setting, len(sui.Items))
+	_ss := make([]*Setting, len(sui.Items))
 
 	for i := range sui.Items {
-		s := &Setting{
+		_s := &Setting{
 			ID:    sui.Items[i].ID,
 			Name:  sui.Items[i].Name,
 			Value: sui.Items[i].Value,
 		}
 
-		ss[i] = s
+		_ss[i] = _s
 	}
 
-	return ss
+	return _ss
 }
 
 // Load checks the input.
@@ -407,44 +407,44 @@ type SettingOutput struct {
 }
 
 // View returns the output of Setting.
-func (s *Setting) View() *SettingOutput {
-	return ExposeSetting(s)
+func (_s *Setting) View() *SettingOutput {
+	return ExposeSetting(_s)
 }
 
 // View returns the output of Settings.
-func (ss Settings) View() []*SettingOutput {
-	return ExposeSettings(ss)
+func (_ss Settings) View() []*SettingOutput {
+	return ExposeSettings(_ss)
 }
 
 // ExposeSetting converts the Setting to SettingOutput.
-func ExposeSetting(s *Setting) *SettingOutput {
-	if s == nil {
+func ExposeSetting(_s *Setting) *SettingOutput {
+	if _s == nil {
 		return nil
 	}
 
 	so := &SettingOutput{
-		ID:         s.ID,
-		CreateTime: s.CreateTime,
-		UpdateTime: s.UpdateTime,
-		Name:       s.Name,
-		Value:      s.Value,
-		Hidden:     s.Hidden,
-		Editable:   s.Editable,
-		Sensitive:  s.Sensitive,
+		ID:         _s.ID,
+		CreateTime: _s.CreateTime,
+		UpdateTime: _s.UpdateTime,
+		Name:       _s.Name,
+		Value:      _s.Value,
+		Hidden:     _s.Hidden,
+		Editable:   _s.Editable,
+		Sensitive:  _s.Sensitive,
 	}
 
 	return so
 }
 
 // ExposeSettings converts the Setting slice to SettingOutput pointer slice.
-func ExposeSettings(ss []*Setting) []*SettingOutput {
-	if len(ss) == 0 {
+func ExposeSettings(_ss []*Setting) []*SettingOutput {
+	if len(_ss) == 0 {
 		return nil
 	}
 
-	sos := make([]*SettingOutput, len(ss))
-	for i := range ss {
-		sos[i] = ExposeSetting(ss[i])
+	sos := make([]*SettingOutput, len(_ss))
+	for i := range _ss {
+		sos[i] = ExposeSetting(_ss[i])
 	}
 	return sos
 }

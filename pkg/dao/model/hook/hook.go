@@ -12,6 +12,18 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 )
 
+// The CatalogFunc type is an adapter to allow the use of ordinary
+// function as Catalog mutator.
+type CatalogFunc func(context.Context, *model.CatalogMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CatalogFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.CatalogMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.CatalogMutation", m)
+}
+
 // The ConnectorFunc type is an adapter to allow the use of ordinary
 // function as Connector mutator.
 type ConnectorFunc func(context.Context, *model.ConnectorMutation) (model.Value, error)

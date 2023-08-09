@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
+	"github.com/seal-io/seal/pkg/dao/model/catalog"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/model/distributelock"
@@ -52,6 +53,7 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
+	TypeCatalog                          = "Catalog"
 	TypeConnector                        = "Connector"
 	TypeCostReport                       = "CostReport"
 	TypeDistributeLock                   = "DistributeLock"
@@ -73,6 +75,1015 @@ const (
 	TypeToken                            = "Token"
 	TypeVariable                         = "Variable"
 )
+
+// CatalogMutation represents an operation that mutates the Catalog nodes in the graph.
+type CatalogMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *object.ID
+	name             *string
+	description      *string
+	labels           *map[string]string
+	annotations      *map[string]string
+	create_time      *time.Time
+	update_time      *time.Time
+	status           *status.Status
+	_type            *string
+	source           *string
+	sync             **types.CatalogSync
+	clearedFields    map[string]struct{}
+	templates        map[object.ID]struct{}
+	removedtemplates map[object.ID]struct{}
+	clearedtemplates bool
+	done             bool
+	oldValue         func(context.Context) (*Catalog, error)
+	predicates       []predicate.Catalog
+}
+
+var _ ent.Mutation = (*CatalogMutation)(nil)
+
+// catalogOption allows management of the mutation configuration using functional options.
+type catalogOption func(*CatalogMutation)
+
+// newCatalogMutation creates new mutation for the Catalog entity.
+func newCatalogMutation(c config, op Op, opts ...catalogOption) *CatalogMutation {
+	m := &CatalogMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCatalog,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCatalogID sets the ID field of the mutation.
+func withCatalogID(id object.ID) catalogOption {
+	return func(m *CatalogMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Catalog
+		)
+		m.oldValue = func(ctx context.Context) (*Catalog, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Catalog.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCatalog sets the old Catalog of the mutation.
+func withCatalog(node *Catalog) catalogOption {
+	return func(m *CatalogMutation) {
+		m.oldValue = func(context.Context) (*Catalog, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CatalogMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CatalogMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("model: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Catalog entities.
+func (m *CatalogMutation) SetID(id object.ID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CatalogMutation) ID() (id object.ID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CatalogMutation) IDs(ctx context.Context) ([]object.ID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []object.ID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Catalog.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *CatalogMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *CatalogMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Catalog entity.
+// If the Catalog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CatalogMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *CatalogMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *CatalogMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *CatalogMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Catalog entity.
+// If the Catalog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CatalogMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *CatalogMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[catalog.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *CatalogMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[catalog.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *CatalogMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, catalog.FieldDescription)
+}
+
+// SetLabels sets the "labels" field.
+func (m *CatalogMutation) SetLabels(value map[string]string) {
+	m.labels = &value
+}
+
+// Labels returns the value of the "labels" field in the mutation.
+func (m *CatalogMutation) Labels() (r map[string]string, exists bool) {
+	v := m.labels
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLabels returns the old "labels" field's value of the Catalog entity.
+// If the Catalog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CatalogMutation) OldLabels(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLabels is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLabels requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLabels: %w", err)
+	}
+	return oldValue.Labels, nil
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (m *CatalogMutation) ClearLabels() {
+	m.labels = nil
+	m.clearedFields[catalog.FieldLabels] = struct{}{}
+}
+
+// LabelsCleared returns if the "labels" field was cleared in this mutation.
+func (m *CatalogMutation) LabelsCleared() bool {
+	_, ok := m.clearedFields[catalog.FieldLabels]
+	return ok
+}
+
+// ResetLabels resets all changes to the "labels" field.
+func (m *CatalogMutation) ResetLabels() {
+	m.labels = nil
+	delete(m.clearedFields, catalog.FieldLabels)
+}
+
+// SetAnnotations sets the "annotations" field.
+func (m *CatalogMutation) SetAnnotations(value map[string]string) {
+	m.annotations = &value
+}
+
+// Annotations returns the value of the "annotations" field in the mutation.
+func (m *CatalogMutation) Annotations() (r map[string]string, exists bool) {
+	v := m.annotations
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAnnotations returns the old "annotations" field's value of the Catalog entity.
+// If the Catalog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CatalogMutation) OldAnnotations(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAnnotations is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAnnotations requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAnnotations: %w", err)
+	}
+	return oldValue.Annotations, nil
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (m *CatalogMutation) ClearAnnotations() {
+	m.annotations = nil
+	m.clearedFields[catalog.FieldAnnotations] = struct{}{}
+}
+
+// AnnotationsCleared returns if the "annotations" field was cleared in this mutation.
+func (m *CatalogMutation) AnnotationsCleared() bool {
+	_, ok := m.clearedFields[catalog.FieldAnnotations]
+	return ok
+}
+
+// ResetAnnotations resets all changes to the "annotations" field.
+func (m *CatalogMutation) ResetAnnotations() {
+	m.annotations = nil
+	delete(m.clearedFields, catalog.FieldAnnotations)
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *CatalogMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *CatalogMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the Catalog entity.
+// If the Catalog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CatalogMutation) OldCreateTime(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *CatalogMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *CatalogMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *CatalogMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the Catalog entity.
+// If the Catalog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CatalogMutation) OldUpdateTime(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *CatalogMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *CatalogMutation) SetStatus(s status.Status) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *CatalogMutation) Status() (r status.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Catalog entity.
+// If the Catalog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CatalogMutation) OldStatus(ctx context.Context) (v status.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ClearStatus clears the value of the "status" field.
+func (m *CatalogMutation) ClearStatus() {
+	m.status = nil
+	m.clearedFields[catalog.FieldStatus] = struct{}{}
+}
+
+// StatusCleared returns if the "status" field was cleared in this mutation.
+func (m *CatalogMutation) StatusCleared() bool {
+	_, ok := m.clearedFields[catalog.FieldStatus]
+	return ok
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *CatalogMutation) ResetStatus() {
+	m.status = nil
+	delete(m.clearedFields, catalog.FieldStatus)
+}
+
+// SetType sets the "type" field.
+func (m *CatalogMutation) SetType(s string) {
+	m._type = &s
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *CatalogMutation) GetType() (r string, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the Catalog entity.
+// If the Catalog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CatalogMutation) OldType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *CatalogMutation) ResetType() {
+	m._type = nil
+}
+
+// SetSource sets the "source" field.
+func (m *CatalogMutation) SetSource(s string) {
+	m.source = &s
+}
+
+// Source returns the value of the "source" field in the mutation.
+func (m *CatalogMutation) Source() (r string, exists bool) {
+	v := m.source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSource returns the old "source" field's value of the Catalog entity.
+// If the Catalog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CatalogMutation) OldSource(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSource: %w", err)
+	}
+	return oldValue.Source, nil
+}
+
+// ResetSource resets all changes to the "source" field.
+func (m *CatalogMutation) ResetSource() {
+	m.source = nil
+}
+
+// SetSync sets the "sync" field.
+func (m *CatalogMutation) SetSync(ts *types.CatalogSync) {
+	m.sync = &ts
+}
+
+// Sync returns the value of the "sync" field in the mutation.
+func (m *CatalogMutation) Sync() (r *types.CatalogSync, exists bool) {
+	v := m.sync
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSync returns the old "sync" field's value of the Catalog entity.
+// If the Catalog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CatalogMutation) OldSync(ctx context.Context) (v *types.CatalogSync, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSync is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSync requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSync: %w", err)
+	}
+	return oldValue.Sync, nil
+}
+
+// ClearSync clears the value of the "sync" field.
+func (m *CatalogMutation) ClearSync() {
+	m.sync = nil
+	m.clearedFields[catalog.FieldSync] = struct{}{}
+}
+
+// SyncCleared returns if the "sync" field was cleared in this mutation.
+func (m *CatalogMutation) SyncCleared() bool {
+	_, ok := m.clearedFields[catalog.FieldSync]
+	return ok
+}
+
+// ResetSync resets all changes to the "sync" field.
+func (m *CatalogMutation) ResetSync() {
+	m.sync = nil
+	delete(m.clearedFields, catalog.FieldSync)
+}
+
+// AddTemplateIDs adds the "templates" edge to the Template entity by ids.
+func (m *CatalogMutation) AddTemplateIDs(ids ...object.ID) {
+	if m.templates == nil {
+		m.templates = make(map[object.ID]struct{})
+	}
+	for i := range ids {
+		m.templates[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTemplates clears the "templates" edge to the Template entity.
+func (m *CatalogMutation) ClearTemplates() {
+	m.clearedtemplates = true
+}
+
+// TemplatesCleared reports if the "templates" edge to the Template entity was cleared.
+func (m *CatalogMutation) TemplatesCleared() bool {
+	return m.clearedtemplates
+}
+
+// RemoveTemplateIDs removes the "templates" edge to the Template entity by IDs.
+func (m *CatalogMutation) RemoveTemplateIDs(ids ...object.ID) {
+	if m.removedtemplates == nil {
+		m.removedtemplates = make(map[object.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.templates, ids[i])
+		m.removedtemplates[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTemplates returns the removed IDs of the "templates" edge to the Template entity.
+func (m *CatalogMutation) RemovedTemplatesIDs() (ids []object.ID) {
+	for id := range m.removedtemplates {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TemplatesIDs returns the "templates" edge IDs in the mutation.
+func (m *CatalogMutation) TemplatesIDs() (ids []object.ID) {
+	for id := range m.templates {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTemplates resets all changes to the "templates" edge.
+func (m *CatalogMutation) ResetTemplates() {
+	m.templates = nil
+	m.clearedtemplates = false
+	m.removedtemplates = nil
+}
+
+// Where appends a list predicates to the CatalogMutation builder.
+func (m *CatalogMutation) Where(ps ...predicate.Catalog) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CatalogMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CatalogMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Catalog, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CatalogMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CatalogMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Catalog).
+func (m *CatalogMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CatalogMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.name != nil {
+		fields = append(fields, catalog.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, catalog.FieldDescription)
+	}
+	if m.labels != nil {
+		fields = append(fields, catalog.FieldLabels)
+	}
+	if m.annotations != nil {
+		fields = append(fields, catalog.FieldAnnotations)
+	}
+	if m.create_time != nil {
+		fields = append(fields, catalog.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, catalog.FieldUpdateTime)
+	}
+	if m.status != nil {
+		fields = append(fields, catalog.FieldStatus)
+	}
+	if m._type != nil {
+		fields = append(fields, catalog.FieldType)
+	}
+	if m.source != nil {
+		fields = append(fields, catalog.FieldSource)
+	}
+	if m.sync != nil {
+		fields = append(fields, catalog.FieldSync)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CatalogMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case catalog.FieldName:
+		return m.Name()
+	case catalog.FieldDescription:
+		return m.Description()
+	case catalog.FieldLabels:
+		return m.Labels()
+	case catalog.FieldAnnotations:
+		return m.Annotations()
+	case catalog.FieldCreateTime:
+		return m.CreateTime()
+	case catalog.FieldUpdateTime:
+		return m.UpdateTime()
+	case catalog.FieldStatus:
+		return m.Status()
+	case catalog.FieldType:
+		return m.GetType()
+	case catalog.FieldSource:
+		return m.Source()
+	case catalog.FieldSync:
+		return m.Sync()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CatalogMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case catalog.FieldName:
+		return m.OldName(ctx)
+	case catalog.FieldDescription:
+		return m.OldDescription(ctx)
+	case catalog.FieldLabels:
+		return m.OldLabels(ctx)
+	case catalog.FieldAnnotations:
+		return m.OldAnnotations(ctx)
+	case catalog.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case catalog.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case catalog.FieldStatus:
+		return m.OldStatus(ctx)
+	case catalog.FieldType:
+		return m.OldType(ctx)
+	case catalog.FieldSource:
+		return m.OldSource(ctx)
+	case catalog.FieldSync:
+		return m.OldSync(ctx)
+	}
+	return nil, fmt.Errorf("unknown Catalog field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CatalogMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case catalog.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case catalog.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case catalog.FieldLabels:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLabels(v)
+		return nil
+	case catalog.FieldAnnotations:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAnnotations(v)
+		return nil
+	case catalog.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case catalog.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case catalog.FieldStatus:
+		v, ok := value.(status.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case catalog.FieldType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	case catalog.FieldSource:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSource(v)
+		return nil
+	case catalog.FieldSync:
+		v, ok := value.(*types.CatalogSync)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSync(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Catalog field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CatalogMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CatalogMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CatalogMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Catalog numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CatalogMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(catalog.FieldDescription) {
+		fields = append(fields, catalog.FieldDescription)
+	}
+	if m.FieldCleared(catalog.FieldLabels) {
+		fields = append(fields, catalog.FieldLabels)
+	}
+	if m.FieldCleared(catalog.FieldAnnotations) {
+		fields = append(fields, catalog.FieldAnnotations)
+	}
+	if m.FieldCleared(catalog.FieldStatus) {
+		fields = append(fields, catalog.FieldStatus)
+	}
+	if m.FieldCleared(catalog.FieldSync) {
+		fields = append(fields, catalog.FieldSync)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CatalogMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CatalogMutation) ClearField(name string) error {
+	switch name {
+	case catalog.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case catalog.FieldLabels:
+		m.ClearLabels()
+		return nil
+	case catalog.FieldAnnotations:
+		m.ClearAnnotations()
+		return nil
+	case catalog.FieldStatus:
+		m.ClearStatus()
+		return nil
+	case catalog.FieldSync:
+		m.ClearSync()
+		return nil
+	}
+	return fmt.Errorf("unknown Catalog nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CatalogMutation) ResetField(name string) error {
+	switch name {
+	case catalog.FieldName:
+		m.ResetName()
+		return nil
+	case catalog.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case catalog.FieldLabels:
+		m.ResetLabels()
+		return nil
+	case catalog.FieldAnnotations:
+		m.ResetAnnotations()
+		return nil
+	case catalog.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case catalog.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case catalog.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case catalog.FieldType:
+		m.ResetType()
+		return nil
+	case catalog.FieldSource:
+		m.ResetSource()
+		return nil
+	case catalog.FieldSync:
+		m.ResetSync()
+		return nil
+	}
+	return fmt.Errorf("unknown Catalog field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CatalogMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.templates != nil {
+		edges = append(edges, catalog.EdgeTemplates)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CatalogMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case catalog.EdgeTemplates:
+		ids := make([]ent.Value, 0, len(m.templates))
+		for id := range m.templates {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CatalogMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedtemplates != nil {
+		edges = append(edges, catalog.EdgeTemplates)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CatalogMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case catalog.EdgeTemplates:
+		ids := make([]ent.Value, 0, len(m.removedtemplates))
+		for id := range m.removedtemplates {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CatalogMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedtemplates {
+		edges = append(edges, catalog.EdgeTemplates)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CatalogMutation) EdgeCleared(name string) bool {
+	switch name {
+	case catalog.EdgeTemplates:
+		return m.clearedtemplates
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CatalogMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Catalog unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CatalogMutation) ResetEdge(name string) error {
+	switch name {
+	case catalog.EdgeTemplates:
+		m.ResetTemplates()
+		return nil
+	}
+	return fmt.Errorf("unknown Catalog edge %s", name)
+}
 
 // ConnectorMutation represents an operation that mutates the Connector nodes in the graph.
 type ConnectorMutation struct {
@@ -16825,6 +17836,8 @@ type TemplateMutation struct {
 	versions        map[object.ID]struct{}
 	removedversions map[object.ID]struct{}
 	clearedversions bool
+	catalog         *object.ID
+	clearedcatalog  bool
 	done            bool
 	oldValue        func(context.Context) (*Template, error)
 	predicates      []predicate.Template
@@ -17274,6 +18287,55 @@ func (m *TemplateMutation) ResetSource() {
 	m.source = nil
 }
 
+// SetCatalogID sets the "catalog_id" field.
+func (m *TemplateMutation) SetCatalogID(o object.ID) {
+	m.catalog = &o
+}
+
+// CatalogID returns the value of the "catalog_id" field in the mutation.
+func (m *TemplateMutation) CatalogID() (r object.ID, exists bool) {
+	v := m.catalog
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCatalogID returns the old "catalog_id" field's value of the Template entity.
+// If the Template object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TemplateMutation) OldCatalogID(ctx context.Context) (v object.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCatalogID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCatalogID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCatalogID: %w", err)
+	}
+	return oldValue.CatalogID, nil
+}
+
+// ClearCatalogID clears the value of the "catalog_id" field.
+func (m *TemplateMutation) ClearCatalogID() {
+	m.catalog = nil
+	m.clearedFields[template.FieldCatalogID] = struct{}{}
+}
+
+// CatalogIDCleared returns if the "catalog_id" field was cleared in this mutation.
+func (m *TemplateMutation) CatalogIDCleared() bool {
+	_, ok := m.clearedFields[template.FieldCatalogID]
+	return ok
+}
+
+// ResetCatalogID resets all changes to the "catalog_id" field.
+func (m *TemplateMutation) ResetCatalogID() {
+	m.catalog = nil
+	delete(m.clearedFields, template.FieldCatalogID)
+}
+
 // AddVersionIDs adds the "versions" edge to the TemplateVersion entity by ids.
 func (m *TemplateMutation) AddVersionIDs(ids ...object.ID) {
 	if m.versions == nil {
@@ -17328,6 +18390,32 @@ func (m *TemplateMutation) ResetVersions() {
 	m.removedversions = nil
 }
 
+// ClearCatalog clears the "catalog" edge to the Catalog entity.
+func (m *TemplateMutation) ClearCatalog() {
+	m.clearedcatalog = true
+}
+
+// CatalogCleared reports if the "catalog" edge to the Catalog entity was cleared.
+func (m *TemplateMutation) CatalogCleared() bool {
+	return m.CatalogIDCleared() || m.clearedcatalog
+}
+
+// CatalogIDs returns the "catalog" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CatalogID instead. It exists only for internal usage by the builders.
+func (m *TemplateMutation) CatalogIDs() (ids []object.ID) {
+	if id := m.catalog; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCatalog resets all changes to the "catalog" edge.
+func (m *TemplateMutation) ResetCatalog() {
+	m.catalog = nil
+	m.clearedcatalog = false
+}
+
 // Where appends a list predicates to the TemplateMutation builder.
 func (m *TemplateMutation) Where(ps ...predicate.Template) {
 	m.predicates = append(m.predicates, ps...)
@@ -17362,7 +18450,7 @@ func (m *TemplateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TemplateMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.name != nil {
 		fields = append(fields, template.FieldName)
 	}
@@ -17386,6 +18474,9 @@ func (m *TemplateMutation) Fields() []string {
 	}
 	if m.source != nil {
 		fields = append(fields, template.FieldSource)
+	}
+	if m.catalog != nil {
+		fields = append(fields, template.FieldCatalogID)
 	}
 	return fields
 }
@@ -17411,6 +18502,8 @@ func (m *TemplateMutation) Field(name string) (ent.Value, bool) {
 		return m.Icon()
 	case template.FieldSource:
 		return m.Source()
+	case template.FieldCatalogID:
+		return m.CatalogID()
 	}
 	return nil, false
 }
@@ -17436,6 +18529,8 @@ func (m *TemplateMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldIcon(ctx)
 	case template.FieldSource:
 		return m.OldSource(ctx)
+	case template.FieldCatalogID:
+		return m.OldCatalogID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Template field %s", name)
 }
@@ -17501,6 +18596,13 @@ func (m *TemplateMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSource(v)
 		return nil
+	case template.FieldCatalogID:
+		v, ok := value.(object.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCatalogID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Template field %s", name)
 }
@@ -17543,6 +18645,9 @@ func (m *TemplateMutation) ClearedFields() []string {
 	if m.FieldCleared(template.FieldIcon) {
 		fields = append(fields, template.FieldIcon)
 	}
+	if m.FieldCleared(template.FieldCatalogID) {
+		fields = append(fields, template.FieldCatalogID)
+	}
 	return fields
 }
 
@@ -17568,6 +18673,9 @@ func (m *TemplateMutation) ClearField(name string) error {
 		return nil
 	case template.FieldIcon:
 		m.ClearIcon()
+		return nil
+	case template.FieldCatalogID:
+		m.ClearCatalogID()
 		return nil
 	}
 	return fmt.Errorf("unknown Template nullable field %s", name)
@@ -17601,15 +18709,21 @@ func (m *TemplateMutation) ResetField(name string) error {
 	case template.FieldSource:
 		m.ResetSource()
 		return nil
+	case template.FieldCatalogID:
+		m.ResetCatalogID()
+		return nil
 	}
 	return fmt.Errorf("unknown Template field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *TemplateMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.versions != nil {
 		edges = append(edges, template.EdgeVersions)
+	}
+	if m.catalog != nil {
+		edges = append(edges, template.EdgeCatalog)
 	}
 	return edges
 }
@@ -17624,13 +18738,17 @@ func (m *TemplateMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case template.EdgeCatalog:
+		if id := m.catalog; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TemplateMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedversions != nil {
 		edges = append(edges, template.EdgeVersions)
 	}
@@ -17653,9 +18771,12 @@ func (m *TemplateMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *TemplateMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedversions {
 		edges = append(edges, template.EdgeVersions)
+	}
+	if m.clearedcatalog {
+		edges = append(edges, template.EdgeCatalog)
 	}
 	return edges
 }
@@ -17666,6 +18787,8 @@ func (m *TemplateMutation) EdgeCleared(name string) bool {
 	switch name {
 	case template.EdgeVersions:
 		return m.clearedversions
+	case template.EdgeCatalog:
+		return m.clearedcatalog
 	}
 	return false
 }
@@ -17674,6 +18797,9 @@ func (m *TemplateMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *TemplateMutation) ClearEdge(name string) error {
 	switch name {
+	case template.EdgeCatalog:
+		m.ClearCatalog()
+		return nil
 	}
 	return fmt.Errorf("unknown Template unique edge %s", name)
 }
@@ -17684,6 +18810,9 @@ func (m *TemplateMutation) ResetEdge(name string) error {
 	switch name {
 	case template.EdgeVersions:
 		m.ResetVersions()
+		return nil
+	case template.EdgeCatalog:
+		m.ResetCatalog()
 		return nil
 	}
 	return fmt.Errorf("unknown Template edge %s", name)

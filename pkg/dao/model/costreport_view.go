@@ -57,7 +57,7 @@ func (crci *CostReportCreateInput) Model() *CostReport {
 		return nil
 	}
 
-	cr := &CostReport{
+	_cr := &CostReport{
 		Fingerprint:         crci.Fingerprint,
 		Name:                crci.Name,
 		Minutes:             crci.Minutes,
@@ -89,7 +89,7 @@ func (crci *CostReportCreateInput) Model() *CostReport {
 		RAMByteUsageMax:     crci.RAMByteUsageMax,
 	}
 
-	return cr
+	return _cr
 }
 
 // Load checks the input.
@@ -159,10 +159,10 @@ func (crci *CostReportCreateInputs) Model() []*CostReport {
 		return nil
 	}
 
-	crs := make([]*CostReport, len(crci.Items))
+	_crs := make([]*CostReport, len(crci.Items))
 
 	for i := range crci.Items {
-		cr := &CostReport{
+		_cr := &CostReport{
 			Fingerprint:         crci.Items[i].Fingerprint,
 			Name:                crci.Items[i].Name,
 			Minutes:             crci.Items[i].Minutes,
@@ -194,10 +194,10 @@ func (crci *CostReportCreateInputs) Model() []*CostReport {
 			RAMByteUsageMax:     crci.Items[i].RAMByteUsageMax,
 		}
 
-		crs[i] = cr
+		_crs[i] = _cr
 	}
 
-	return crs
+	return _crs
 }
 
 // Load checks the input.
@@ -246,13 +246,13 @@ func (crdi *CostReportDeleteInputs) Model() []*CostReport {
 		return nil
 	}
 
-	crs := make([]*CostReport, len(crdi.Items))
+	_crs := make([]*CostReport, len(crdi.Items))
 	for i := range crdi.Items {
-		crs[i] = &CostReport{
+		_crs[i] = &CostReport{
 			ID: crdi.Items[i].ID,
 		}
 	}
-	return crs
+	return _crs
 }
 
 // Load checks the input.
@@ -418,7 +418,7 @@ func (crui *CostReportUpdateInput) Model() *CostReport {
 		return nil
 	}
 
-	cr := &CostReport{
+	_cr := &CostReport{
 		ID:                  crui.ID,
 		TotalCost:           crui.TotalCost,
 		Currency:            crui.Currency,
@@ -434,7 +434,7 @@ func (crui *CostReportUpdateInput) Model() *CostReport {
 		RAMByteUsageMax:     crui.RAMByteUsageMax,
 	}
 
-	return cr
+	return _cr
 }
 
 // CostReportUpdateInputs holds the modification input item of the CostReport entities.
@@ -469,10 +469,10 @@ func (crui *CostReportUpdateInputs) Model() []*CostReport {
 		return nil
 	}
 
-	crs := make([]*CostReport, len(crui.Items))
+	_crs := make([]*CostReport, len(crui.Items))
 
 	for i := range crui.Items {
-		cr := &CostReport{
+		_cr := &CostReport{
 			ID:                  crui.Items[i].ID,
 			TotalCost:           crui.Items[i].TotalCost,
 			Currency:            crui.Items[i].Currency,
@@ -488,10 +488,10 @@ func (crui *CostReportUpdateInputs) Model() []*CostReport {
 			RAMByteUsageMax:     crui.Items[i].RAMByteUsageMax,
 		}
 
-		crs[i] = cr
+		_crs[i] = _cr
 	}
 
-	return crs
+	return _crs
 }
 
 // Load checks the input.
@@ -581,66 +581,66 @@ type CostReportOutput struct {
 }
 
 // View returns the output of CostReport.
-func (cr *CostReport) View() *CostReportOutput {
-	return ExposeCostReport(cr)
+func (_cr *CostReport) View() *CostReportOutput {
+	return ExposeCostReport(_cr)
 }
 
 // View returns the output of CostReports.
-func (crs CostReports) View() []*CostReportOutput {
-	return ExposeCostReports(crs)
+func (_crs CostReports) View() []*CostReportOutput {
+	return ExposeCostReports(_crs)
 }
 
 // ExposeCostReport converts the CostReport to CostReportOutput.
-func ExposeCostReport(cr *CostReport) *CostReportOutput {
-	if cr == nil {
+func ExposeCostReport(_cr *CostReport) *CostReportOutput {
+	if _cr == nil {
 		return nil
 	}
 
 	cro := &CostReportOutput{
-		ID:                  cr.ID,
-		StartTime:           cr.StartTime,
-		EndTime:             cr.EndTime,
-		Minutes:             cr.Minutes,
-		Name:                cr.Name,
-		Fingerprint:         cr.Fingerprint,
-		ClusterName:         cr.ClusterName,
-		Namespace:           cr.Namespace,
-		Node:                cr.Node,
-		Controller:          cr.Controller,
-		ControllerKind:      cr.ControllerKind,
-		Pod:                 cr.Pod,
-		Container:           cr.Container,
-		Pvs:                 cr.Pvs,
-		Labels:              cr.Labels,
-		TotalCost:           cr.TotalCost,
-		Currency:            cr.Currency,
-		CPUCost:             cr.CPUCost,
-		CPUCoreRequest:      cr.CPUCoreRequest,
-		GpuCost:             cr.GpuCost,
-		GpuCount:            cr.GpuCount,
-		RAMCost:             cr.RAMCost,
-		RAMByteRequest:      cr.RAMByteRequest,
-		PvCost:              cr.PvCost,
-		PvBytes:             cr.PvBytes,
-		LoadBalancerCost:    cr.LoadBalancerCost,
-		CPUCoreUsageAverage: cr.CPUCoreUsageAverage,
-		CPUCoreUsageMax:     cr.CPUCoreUsageMax,
-		RAMByteUsageAverage: cr.RAMByteUsageAverage,
-		RAMByteUsageMax:     cr.RAMByteUsageMax,
+		ID:                  _cr.ID,
+		StartTime:           _cr.StartTime,
+		EndTime:             _cr.EndTime,
+		Minutes:             _cr.Minutes,
+		Name:                _cr.Name,
+		Fingerprint:         _cr.Fingerprint,
+		ClusterName:         _cr.ClusterName,
+		Namespace:           _cr.Namespace,
+		Node:                _cr.Node,
+		Controller:          _cr.Controller,
+		ControllerKind:      _cr.ControllerKind,
+		Pod:                 _cr.Pod,
+		Container:           _cr.Container,
+		Pvs:                 _cr.Pvs,
+		Labels:              _cr.Labels,
+		TotalCost:           _cr.TotalCost,
+		Currency:            _cr.Currency,
+		CPUCost:             _cr.CPUCost,
+		CPUCoreRequest:      _cr.CPUCoreRequest,
+		GpuCost:             _cr.GpuCost,
+		GpuCount:            _cr.GpuCount,
+		RAMCost:             _cr.RAMCost,
+		RAMByteRequest:      _cr.RAMByteRequest,
+		PvCost:              _cr.PvCost,
+		PvBytes:             _cr.PvBytes,
+		LoadBalancerCost:    _cr.LoadBalancerCost,
+		CPUCoreUsageAverage: _cr.CPUCoreUsageAverage,
+		CPUCoreUsageMax:     _cr.CPUCoreUsageMax,
+		RAMByteUsageAverage: _cr.RAMByteUsageAverage,
+		RAMByteUsageMax:     _cr.RAMByteUsageMax,
 	}
 
 	return cro
 }
 
 // ExposeCostReports converts the CostReport slice to CostReportOutput pointer slice.
-func ExposeCostReports(crs []*CostReport) []*CostReportOutput {
-	if len(crs) == 0 {
+func ExposeCostReports(_crs []*CostReport) []*CostReportOutput {
+	if len(_crs) == 0 {
 		return nil
 	}
 
-	cros := make([]*CostReportOutput, len(crs))
-	for i := range crs {
-		cros[i] = ExposeCostReport(crs[i])
+	cros := make([]*CostReportOutput, len(_crs))
+	for i := range _crs {
+		cros[i] = ExposeCostReport(_crs[i])
 	}
 	return cros
 }

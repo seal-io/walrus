@@ -9,6 +9,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Catalog is the predicate function for catalog builders.
+type Catalog func(*sql.Selector)
+
 // Connector is the predicate function for connector builders.
 type Connector func(*sql.Selector)
 

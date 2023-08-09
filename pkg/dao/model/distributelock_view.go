@@ -27,11 +27,11 @@ func (dlci *DistributeLockCreateInput) Model() *DistributeLock {
 		return nil
 	}
 
-	dl := &DistributeLock{
+	_dl := &DistributeLock{
 		ExpireAt: dlci.ExpireAt,
 	}
 
-	return dl
+	return _dl
 }
 
 // Load checks the input.
@@ -73,17 +73,17 @@ func (dlci *DistributeLockCreateInputs) Model() []*DistributeLock {
 		return nil
 	}
 
-	dls := make([]*DistributeLock, len(dlci.Items))
+	_dls := make([]*DistributeLock, len(dlci.Items))
 
 	for i := range dlci.Items {
-		dl := &DistributeLock{
+		_dl := &DistributeLock{
 			ExpireAt: dlci.Items[i].ExpireAt,
 		}
 
-		dls[i] = dl
+		_dls[i] = _dl
 	}
 
-	return dls
+	return _dls
 }
 
 // Load checks the input.
@@ -132,13 +132,13 @@ func (dldi *DistributeLockDeleteInputs) Model() []*DistributeLock {
 		return nil
 	}
 
-	dls := make([]*DistributeLock, len(dldi.Items))
+	_dls := make([]*DistributeLock, len(dldi.Items))
 	for i := range dldi.Items {
-		dls[i] = &DistributeLock{
+		_dls[i] = &DistributeLock{
 			ID: dldi.Items[i].ID,
 		}
 	}
-	return dls
+	return _dls
 }
 
 // Load checks the input.
@@ -293,12 +293,12 @@ func (dlui *DistributeLockUpdateInput) Model() *DistributeLock {
 		return nil
 	}
 
-	dl := &DistributeLock{
+	_dl := &DistributeLock{
 		ID:       dlui.ID,
 		ExpireAt: dlui.ExpireAt,
 	}
 
-	return dl
+	return _dl
 }
 
 // DistributeLockUpdateInputs holds the modification input item of the DistributeLock entities.
@@ -322,18 +322,18 @@ func (dlui *DistributeLockUpdateInputs) Model() []*DistributeLock {
 		return nil
 	}
 
-	dls := make([]*DistributeLock, len(dlui.Items))
+	_dls := make([]*DistributeLock, len(dlui.Items))
 
 	for i := range dlui.Items {
-		dl := &DistributeLock{
+		_dl := &DistributeLock{
 			ID:       dlui.Items[i].ID,
 			ExpireAt: dlui.Items[i].ExpireAt,
 		}
 
-		dls[i] = dl
+		_dls[i] = _dl
 	}
 
-	return dls
+	return _dls
 }
 
 // Load checks the input.
@@ -395,38 +395,38 @@ type DistributeLockOutput struct {
 }
 
 // View returns the output of DistributeLock.
-func (dl *DistributeLock) View() *DistributeLockOutput {
-	return ExposeDistributeLock(dl)
+func (_dl *DistributeLock) View() *DistributeLockOutput {
+	return ExposeDistributeLock(_dl)
 }
 
 // View returns the output of DistributeLocks.
-func (dls DistributeLocks) View() []*DistributeLockOutput {
-	return ExposeDistributeLocks(dls)
+func (_dls DistributeLocks) View() []*DistributeLockOutput {
+	return ExposeDistributeLocks(_dls)
 }
 
 // ExposeDistributeLock converts the DistributeLock to DistributeLockOutput.
-func ExposeDistributeLock(dl *DistributeLock) *DistributeLockOutput {
-	if dl == nil {
+func ExposeDistributeLock(_dl *DistributeLock) *DistributeLockOutput {
+	if _dl == nil {
 		return nil
 	}
 
 	dlo := &DistributeLockOutput{
-		ID:       dl.ID,
-		ExpireAt: dl.ExpireAt,
+		ID:       _dl.ID,
+		ExpireAt: _dl.ExpireAt,
 	}
 
 	return dlo
 }
 
 // ExposeDistributeLocks converts the DistributeLock slice to DistributeLockOutput pointer slice.
-func ExposeDistributeLocks(dls []*DistributeLock) []*DistributeLockOutput {
-	if len(dls) == 0 {
+func ExposeDistributeLocks(_dls []*DistributeLock) []*DistributeLockOutput {
+	if len(_dls) == 0 {
 		return nil
 	}
 
-	dlos := make([]*DistributeLockOutput, len(dls))
-	for i := range dls {
-		dlos[i] = ExposeDistributeLock(dls[i])
+	dlos := make([]*DistributeLockOutput, len(_dls))
+	for i := range _dls {
+		dlos[i] = ExposeDistributeLock(_dls[i])
 	}
 	return dlos
 }

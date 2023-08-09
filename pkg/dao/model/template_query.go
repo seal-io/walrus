@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/model/catalog"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/template"
@@ -31,6 +32,7 @@ type TemplateQuery struct {
 	inters       []Interceptor
 	predicates   []predicate.Template
 	withVersions *TemplateVersionQuery
+	withCatalog  *CatalogQuery
 	modifiers    []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -87,6 +89,31 @@ func (tq *TemplateQuery) QueryVersions() *TemplateVersionQuery {
 		schemaConfig := tq.schemaConfig
 		step.To.Schema = schemaConfig.TemplateVersion
 		step.Edge.Schema = schemaConfig.TemplateVersion
+		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCatalog chains the current query on the "catalog" edge.
+func (tq *TemplateQuery) QueryCatalog() *CatalogQuery {
+	query := (&CatalogClient{config: tq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := tq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(template.Table, template.FieldID, selector),
+			sqlgraph.To(catalog.Table, catalog.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, template.CatalogTable, template.CatalogColumn),
+		)
+		schemaConfig := tq.schemaConfig
+		step.To.Schema = schemaConfig.Catalog
+		step.Edge.Schema = schemaConfig.Template
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -286,6 +313,7 @@ func (tq *TemplateQuery) Clone() *TemplateQuery {
 		inters:       append([]Interceptor{}, tq.inters...),
 		predicates:   append([]predicate.Template{}, tq.predicates...),
 		withVersions: tq.withVersions.Clone(),
+		withCatalog:  tq.withCatalog.Clone(),
 		// clone intermediate query.
 		sql:  tq.sql.Clone(),
 		path: tq.path,
@@ -300,6 +328,17 @@ func (tq *TemplateQuery) WithVersions(opts ...func(*TemplateVersionQuery)) *Temp
 		opt(query)
 	}
 	tq.withVersions = query
+	return tq
+}
+
+// WithCatalog tells the query-builder to eager-load the nodes that are connected to
+// the "catalog" edge. The optional arguments are used to configure the query builder of the edge.
+func (tq *TemplateQuery) WithCatalog(opts ...func(*CatalogQuery)) *TemplateQuery {
+	query := (&CatalogClient{config: tq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withCatalog = query
 	return tq
 }
 
@@ -381,8 +420,9 @@ func (tq *TemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tem
 	var (
 		nodes       = []*Template{}
 		_spec       = tq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			tq.withVersions != nil,
+			tq.withCatalog != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -412,6 +452,12 @@ func (tq *TemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tem
 		if err := tq.loadVersions(ctx, query, nodes,
 			func(n *Template) { n.Edges.Versions = []*TemplateVersion{} },
 			func(n *Template, e *TemplateVersion) { n.Edges.Versions = append(n.Edges.Versions, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := tq.withCatalog; query != nil {
+		if err := tq.loadCatalog(ctx, query, nodes, nil,
+			func(n *Template, e *Catalog) { n.Edges.Catalog = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -448,6 +494,35 @@ func (tq *TemplateQuery) loadVersions(ctx context.Context, query *TemplateVersio
 	}
 	return nil
 }
+func (tq *TemplateQuery) loadCatalog(ctx context.Context, query *CatalogQuery, nodes []*Template, init func(*Template), assign func(*Template, *Catalog)) error {
+	ids := make([]object.ID, 0, len(nodes))
+	nodeids := make(map[object.ID][]*Template)
+	for i := range nodes {
+		fk := nodes[i].CatalogID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(catalog.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "catalog_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (tq *TemplateQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := tq.querySpec()
@@ -478,6 +553,9 @@ func (tq *TemplateQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != template.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if tq.withCatalog != nil {
+			_spec.Node.AddColumnOnce(template.FieldCatalogID)
 		}
 	}
 	if ps := tq.predicates; len(ps) > 0 {

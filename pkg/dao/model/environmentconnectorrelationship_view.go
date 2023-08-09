@@ -28,12 +28,12 @@ func (ecrci *EnvironmentConnectorRelationshipCreateInput) Model() *EnvironmentCo
 		return nil
 	}
 
-	ecr := &EnvironmentConnectorRelationship{}
+	_ecr := &EnvironmentConnectorRelationship{}
 
 	if ecrci.Connector != nil {
-		ecr.ConnectorID = ecrci.Connector.ID
+		_ecr.ConnectorID = ecrci.Connector.ID
 	}
-	return ecr
+	return _ecr
 }
 
 // Load checks the input.
@@ -81,19 +81,19 @@ func (ecrci *EnvironmentConnectorRelationshipCreateInputs) Model() []*Environmen
 		return nil
 	}
 
-	ecrs := make([]*EnvironmentConnectorRelationship, len(ecrci.Items))
+	_ecrs := make([]*EnvironmentConnectorRelationship, len(ecrci.Items))
 
 	for i := range ecrci.Items {
-		ecr := &EnvironmentConnectorRelationship{}
+		_ecr := &EnvironmentConnectorRelationship{}
 
 		if ecrci.Items[i].Connector != nil {
-			ecr.ConnectorID = ecrci.Items[i].Connector.ID
+			_ecr.ConnectorID = ecrci.Items[i].Connector.ID
 		}
 
-		ecrs[i] = ecr
+		_ecrs[i] = _ecr
 	}
 
-	return ecrs
+	return _ecrs
 }
 
 // Load checks the input.
@@ -142,13 +142,13 @@ func (ecrdi *EnvironmentConnectorRelationshipDeleteInputs) Model() []*Environmen
 		return nil
 	}
 
-	ecrs := make([]*EnvironmentConnectorRelationship, len(ecrdi.Items))
+	_ecrs := make([]*EnvironmentConnectorRelationship, len(ecrdi.Items))
 	for i := range ecrdi.Items {
-		ecrs[i] = &EnvironmentConnectorRelationship{
+		_ecrs[i] = &EnvironmentConnectorRelationship{
 			ID: ecrdi.Items[i].ID,
 		}
 	}
-	return ecrs
+	return _ecrs
 }
 
 // Load checks the input.
@@ -303,14 +303,14 @@ func (ecrui *EnvironmentConnectorRelationshipUpdateInput) Model() *EnvironmentCo
 		return nil
 	}
 
-	ecr := &EnvironmentConnectorRelationship{
+	_ecr := &EnvironmentConnectorRelationship{
 		ID: ecrui.ID,
 	}
 
 	if ecrui.Connector != nil {
-		ecr.ConnectorID = ecrui.Connector.ID
+		_ecr.ConnectorID = ecrui.Connector.ID
 	}
-	return ecr
+	return _ecr
 }
 
 // EnvironmentConnectorRelationshipUpdateInputs holds the modification input item of the EnvironmentConnectorRelationship entities.
@@ -334,21 +334,21 @@ func (ecrui *EnvironmentConnectorRelationshipUpdateInputs) Model() []*Environmen
 		return nil
 	}
 
-	ecrs := make([]*EnvironmentConnectorRelationship, len(ecrui.Items))
+	_ecrs := make([]*EnvironmentConnectorRelationship, len(ecrui.Items))
 
 	for i := range ecrui.Items {
-		ecr := &EnvironmentConnectorRelationship{
+		_ecr := &EnvironmentConnectorRelationship{
 			ID: ecrui.Items[i].ID,
 		}
 
 		if ecrui.Items[i].Connector != nil {
-			ecr.ConnectorID = ecrui.Items[i].Connector.ID
+			_ecr.ConnectorID = ecrui.Items[i].Connector.ID
 		}
 
-		ecrs[i] = ecr
+		_ecrs[i] = _ecr
 	}
 
-	return ecrs
+	return _ecrs
 }
 
 // Load checks the input.
@@ -412,45 +412,45 @@ type EnvironmentConnectorRelationshipOutput struct {
 }
 
 // View returns the output of EnvironmentConnectorRelationship.
-func (ecr *EnvironmentConnectorRelationship) View() *EnvironmentConnectorRelationshipOutput {
-	return ExposeEnvironmentConnectorRelationship(ecr)
+func (_ecr *EnvironmentConnectorRelationship) View() *EnvironmentConnectorRelationshipOutput {
+	return ExposeEnvironmentConnectorRelationship(_ecr)
 }
 
 // View returns the output of EnvironmentConnectorRelationships.
-func (ecrs EnvironmentConnectorRelationships) View() []*EnvironmentConnectorRelationshipOutput {
-	return ExposeEnvironmentConnectorRelationships(ecrs)
+func (_ecrs EnvironmentConnectorRelationships) View() []*EnvironmentConnectorRelationshipOutput {
+	return ExposeEnvironmentConnectorRelationships(_ecrs)
 }
 
 // ExposeEnvironmentConnectorRelationship converts the EnvironmentConnectorRelationship to EnvironmentConnectorRelationshipOutput.
-func ExposeEnvironmentConnectorRelationship(ecr *EnvironmentConnectorRelationship) *EnvironmentConnectorRelationshipOutput {
-	if ecr == nil {
+func ExposeEnvironmentConnectorRelationship(_ecr *EnvironmentConnectorRelationship) *EnvironmentConnectorRelationshipOutput {
+	if _ecr == nil {
 		return nil
 	}
 
 	ecro := &EnvironmentConnectorRelationshipOutput{
-		ID:         ecr.ID,
-		CreateTime: ecr.CreateTime,
+		ID:         _ecr.ID,
+		CreateTime: _ecr.CreateTime,
 	}
 
-	if ecr.Edges.Connector != nil {
-		ecro.Connector = ExposeConnector(ecr.Edges.Connector)
-	} else if ecr.ConnectorID != "" {
+	if _ecr.Edges.Connector != nil {
+		ecro.Connector = ExposeConnector(_ecr.Edges.Connector)
+	} else if _ecr.ConnectorID != "" {
 		ecro.Connector = &ConnectorOutput{
-			ID: ecr.ConnectorID,
+			ID: _ecr.ConnectorID,
 		}
 	}
 	return ecro
 }
 
 // ExposeEnvironmentConnectorRelationships converts the EnvironmentConnectorRelationship slice to EnvironmentConnectorRelationshipOutput pointer slice.
-func ExposeEnvironmentConnectorRelationships(ecrs []*EnvironmentConnectorRelationship) []*EnvironmentConnectorRelationshipOutput {
-	if len(ecrs) == 0 {
+func ExposeEnvironmentConnectorRelationships(_ecrs []*EnvironmentConnectorRelationship) []*EnvironmentConnectorRelationshipOutput {
+	if len(_ecrs) == 0 {
 		return nil
 	}
 
-	ecros := make([]*EnvironmentConnectorRelationshipOutput, len(ecrs))
-	for i := range ecrs {
-		ecros[i] = ExposeEnvironmentConnectorRelationship(ecrs[i])
+	ecros := make([]*EnvironmentConnectorRelationshipOutput, len(_ecrs))
+	for i := range _ecrs {
+		ecros[i] = ExposeEnvironmentConnectorRelationship(_ecrs[i])
 	}
 	return ecros
 }

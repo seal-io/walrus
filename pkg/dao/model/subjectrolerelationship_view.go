@@ -29,15 +29,15 @@ func (srrci *SubjectRoleRelationshipCreateInput) Model() *SubjectRoleRelationshi
 		return nil
 	}
 
-	srr := &SubjectRoleRelationship{}
+	_srr := &SubjectRoleRelationship{}
 
 	if srrci.Subject != nil {
-		srr.SubjectID = srrci.Subject.ID
+		_srr.SubjectID = srrci.Subject.ID
 	}
 	if srrci.Role != nil {
-		srr.RoleID = srrci.Role.ID
+		_srr.RoleID = srrci.Role.ID
 	}
-	return srr
+	return _srr
 }
 
 // Load checks the input.
@@ -92,22 +92,22 @@ func (srrci *SubjectRoleRelationshipCreateInputs) Model() []*SubjectRoleRelation
 		return nil
 	}
 
-	srrs := make([]*SubjectRoleRelationship, len(srrci.Items))
+	_srrs := make([]*SubjectRoleRelationship, len(srrci.Items))
 
 	for i := range srrci.Items {
-		srr := &SubjectRoleRelationship{}
+		_srr := &SubjectRoleRelationship{}
 
 		if srrci.Items[i].Subject != nil {
-			srr.SubjectID = srrci.Items[i].Subject.ID
+			_srr.SubjectID = srrci.Items[i].Subject.ID
 		}
 		if srrci.Items[i].Role != nil {
-			srr.RoleID = srrci.Items[i].Role.ID
+			_srr.RoleID = srrci.Items[i].Role.ID
 		}
 
-		srrs[i] = srr
+		_srrs[i] = _srr
 	}
 
-	return srrs
+	return _srrs
 }
 
 // Load checks the input.
@@ -156,13 +156,13 @@ func (srrdi *SubjectRoleRelationshipDeleteInputs) Model() []*SubjectRoleRelation
 		return nil
 	}
 
-	srrs := make([]*SubjectRoleRelationship, len(srrdi.Items))
+	_srrs := make([]*SubjectRoleRelationship, len(srrdi.Items))
 	for i := range srrdi.Items {
-		srrs[i] = &SubjectRoleRelationship{
+		_srrs[i] = &SubjectRoleRelationship{
 			ID: srrdi.Items[i].ID,
 		}
 	}
-	return srrs
+	return _srrs
 }
 
 // Load checks the input.
@@ -318,17 +318,17 @@ func (srrui *SubjectRoleRelationshipUpdateInput) Model() *SubjectRoleRelationshi
 		return nil
 	}
 
-	srr := &SubjectRoleRelationship{
+	_srr := &SubjectRoleRelationship{
 		ID: srrui.ID,
 	}
 
 	if srrui.Subject != nil {
-		srr.SubjectID = srrui.Subject.ID
+		_srr.SubjectID = srrui.Subject.ID
 	}
 	if srrui.Role != nil {
-		srr.RoleID = srrui.Role.ID
+		_srr.RoleID = srrui.Role.ID
 	}
-	return srr
+	return _srr
 }
 
 // SubjectRoleRelationshipUpdateInputs holds the modification input item of the SubjectRoleRelationship entities.
@@ -353,24 +353,24 @@ func (srrui *SubjectRoleRelationshipUpdateInputs) Model() []*SubjectRoleRelation
 		return nil
 	}
 
-	srrs := make([]*SubjectRoleRelationship, len(srrui.Items))
+	_srrs := make([]*SubjectRoleRelationship, len(srrui.Items))
 
 	for i := range srrui.Items {
-		srr := &SubjectRoleRelationship{
+		_srr := &SubjectRoleRelationship{
 			ID: srrui.Items[i].ID,
 		}
 
 		if srrui.Items[i].Subject != nil {
-			srr.SubjectID = srrui.Items[i].Subject.ID
+			_srr.SubjectID = srrui.Items[i].Subject.ID
 		}
 		if srrui.Items[i].Role != nil {
-			srr.RoleID = srrui.Items[i].Role.ID
+			_srr.RoleID = srrui.Items[i].Role.ID
 		}
 
-		srrs[i] = srr
+		_srrs[i] = _srr
 	}
 
-	return srrs
+	return _srrs
 }
 
 // Load checks the input.
@@ -436,59 +436,59 @@ type SubjectRoleRelationshipOutput struct {
 }
 
 // View returns the output of SubjectRoleRelationship.
-func (srr *SubjectRoleRelationship) View() *SubjectRoleRelationshipOutput {
-	return ExposeSubjectRoleRelationship(srr)
+func (_srr *SubjectRoleRelationship) View() *SubjectRoleRelationshipOutput {
+	return ExposeSubjectRoleRelationship(_srr)
 }
 
 // View returns the output of SubjectRoleRelationships.
-func (srrs SubjectRoleRelationships) View() []*SubjectRoleRelationshipOutput {
-	return ExposeSubjectRoleRelationships(srrs)
+func (_srrs SubjectRoleRelationships) View() []*SubjectRoleRelationshipOutput {
+	return ExposeSubjectRoleRelationships(_srrs)
 }
 
 // ExposeSubjectRoleRelationship converts the SubjectRoleRelationship to SubjectRoleRelationshipOutput.
-func ExposeSubjectRoleRelationship(srr *SubjectRoleRelationship) *SubjectRoleRelationshipOutput {
-	if srr == nil {
+func ExposeSubjectRoleRelationship(_srr *SubjectRoleRelationship) *SubjectRoleRelationshipOutput {
+	if _srr == nil {
 		return nil
 	}
 
 	srro := &SubjectRoleRelationshipOutput{
-		ID:         srr.ID,
-		CreateTime: srr.CreateTime,
+		ID:         _srr.ID,
+		CreateTime: _srr.CreateTime,
 	}
 
-	if srr.Edges.Project != nil {
-		srro.Project = ExposeProject(srr.Edges.Project)
-	} else if srr.ProjectID != "" {
+	if _srr.Edges.Project != nil {
+		srro.Project = ExposeProject(_srr.Edges.Project)
+	} else if _srr.ProjectID != "" {
 		srro.Project = &ProjectOutput{
-			ID: srr.ProjectID,
+			ID: _srr.ProjectID,
 		}
 	}
-	if srr.Edges.Subject != nil {
-		srro.Subject = ExposeSubject(srr.Edges.Subject)
-	} else if srr.SubjectID != "" {
+	if _srr.Edges.Subject != nil {
+		srro.Subject = ExposeSubject(_srr.Edges.Subject)
+	} else if _srr.SubjectID != "" {
 		srro.Subject = &SubjectOutput{
-			ID: srr.SubjectID,
+			ID: _srr.SubjectID,
 		}
 	}
-	if srr.Edges.Role != nil {
-		srro.Role = ExposeRole(srr.Edges.Role)
-	} else if srr.RoleID != "" {
+	if _srr.Edges.Role != nil {
+		srro.Role = ExposeRole(_srr.Edges.Role)
+	} else if _srr.RoleID != "" {
 		srro.Role = &RoleOutput{
-			ID: srr.RoleID,
+			ID: _srr.RoleID,
 		}
 	}
 	return srro
 }
 
 // ExposeSubjectRoleRelationships converts the SubjectRoleRelationship slice to SubjectRoleRelationshipOutput pointer slice.
-func ExposeSubjectRoleRelationships(srrs []*SubjectRoleRelationship) []*SubjectRoleRelationshipOutput {
-	if len(srrs) == 0 {
+func ExposeSubjectRoleRelationships(_srrs []*SubjectRoleRelationship) []*SubjectRoleRelationshipOutput {
+	if len(_srrs) == 0 {
 		return nil
 	}
 
-	srros := make([]*SubjectRoleRelationshipOutput, len(srrs))
-	for i := range srrs {
-		srros[i] = ExposeSubjectRoleRelationship(srrs[i])
+	srros := make([]*SubjectRoleRelationshipOutput, len(_srrs))
+	for i := range _srrs {
+		srros[i] = ExposeSubjectRoleRelationship(_srrs[i])
 	}
 	return srros
 }

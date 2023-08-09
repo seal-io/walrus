@@ -35,7 +35,7 @@ func (pci *PerspectiveCreateInput) Model() *Perspective {
 		return nil
 	}
 
-	p := &Perspective{
+	_p := &Perspective{
 		EndTime:     pci.EndTime,
 		StartTime:   pci.StartTime,
 		Name:        pci.Name,
@@ -45,7 +45,7 @@ func (pci *PerspectiveCreateInput) Model() *Perspective {
 		CostQueries: pci.CostQueries,
 	}
 
-	return p
+	return _p
 }
 
 // Load checks the input.
@@ -93,10 +93,10 @@ func (pci *PerspectiveCreateInputs) Model() []*Perspective {
 		return nil
 	}
 
-	ps := make([]*Perspective, len(pci.Items))
+	_ps := make([]*Perspective, len(pci.Items))
 
 	for i := range pci.Items {
-		p := &Perspective{
+		_p := &Perspective{
 			EndTime:     pci.Items[i].EndTime,
 			StartTime:   pci.Items[i].StartTime,
 			Name:        pci.Items[i].Name,
@@ -106,10 +106,10 @@ func (pci *PerspectiveCreateInputs) Model() []*Perspective {
 			CostQueries: pci.Items[i].CostQueries,
 		}
 
-		ps[i] = p
+		_ps[i] = _p
 	}
 
-	return ps
+	return _ps
 }
 
 // Load checks the input.
@@ -158,13 +158,13 @@ func (pdi *PerspectiveDeleteInputs) Model() []*Perspective {
 		return nil
 	}
 
-	ps := make([]*Perspective, len(pdi.Items))
+	_ps := make([]*Perspective, len(pdi.Items))
 	for i := range pdi.Items {
-		ps[i] = &Perspective{
+		_ps[i] = &Perspective{
 			ID: pdi.Items[i].ID,
 		}
 	}
-	return ps
+	return _ps
 }
 
 // Load checks the input.
@@ -325,7 +325,7 @@ func (pui *PerspectiveUpdateInput) Model() *Perspective {
 		return nil
 	}
 
-	p := &Perspective{
+	_p := &Perspective{
 		ID:          pui.ID,
 		Name:        pui.Name,
 		Description: pui.Description,
@@ -336,7 +336,7 @@ func (pui *PerspectiveUpdateInput) Model() *Perspective {
 		CostQueries: pui.CostQueries,
 	}
 
-	return p
+	return _p
 }
 
 // PerspectiveUpdateInputs holds the modification input item of the Perspective entities.
@@ -366,10 +366,10 @@ func (pui *PerspectiveUpdateInputs) Model() []*Perspective {
 		return nil
 	}
 
-	ps := make([]*Perspective, len(pui.Items))
+	_ps := make([]*Perspective, len(pui.Items))
 
 	for i := range pui.Items {
-		p := &Perspective{
+		_p := &Perspective{
 			ID:          pui.Items[i].ID,
 			Name:        pui.Items[i].Name,
 			Description: pui.Items[i].Description,
@@ -380,10 +380,10 @@ func (pui *PerspectiveUpdateInputs) Model() []*Perspective {
 			CostQueries: pui.Items[i].CostQueries,
 		}
 
-		ps[i] = p
+		_ps[i] = _p
 	}
 
-	return ps
+	return _ps
 }
 
 // Load checks the input.
@@ -453,46 +453,46 @@ type PerspectiveOutput struct {
 }
 
 // View returns the output of Perspective.
-func (p *Perspective) View() *PerspectiveOutput {
-	return ExposePerspective(p)
+func (_p *Perspective) View() *PerspectiveOutput {
+	return ExposePerspective(_p)
 }
 
 // View returns the output of Perspectives.
-func (ps Perspectives) View() []*PerspectiveOutput {
-	return ExposePerspectives(ps)
+func (_ps Perspectives) View() []*PerspectiveOutput {
+	return ExposePerspectives(_ps)
 }
 
 // ExposePerspective converts the Perspective to PerspectiveOutput.
-func ExposePerspective(p *Perspective) *PerspectiveOutput {
-	if p == nil {
+func ExposePerspective(_p *Perspective) *PerspectiveOutput {
+	if _p == nil {
 		return nil
 	}
 
 	po := &PerspectiveOutput{
-		ID:          p.ID,
-		Name:        p.Name,
-		Description: p.Description,
-		Labels:      p.Labels,
-		CreateTime:  p.CreateTime,
-		UpdateTime:  p.UpdateTime,
-		StartTime:   p.StartTime,
-		EndTime:     p.EndTime,
-		Builtin:     p.Builtin,
-		CostQueries: p.CostQueries,
+		ID:          _p.ID,
+		Name:        _p.Name,
+		Description: _p.Description,
+		Labels:      _p.Labels,
+		CreateTime:  _p.CreateTime,
+		UpdateTime:  _p.UpdateTime,
+		StartTime:   _p.StartTime,
+		EndTime:     _p.EndTime,
+		Builtin:     _p.Builtin,
+		CostQueries: _p.CostQueries,
 	}
 
 	return po
 }
 
 // ExposePerspectives converts the Perspective slice to PerspectiveOutput pointer slice.
-func ExposePerspectives(ps []*Perspective) []*PerspectiveOutput {
-	if len(ps) == 0 {
+func ExposePerspectives(_ps []*Perspective) []*PerspectiveOutput {
+	if len(_ps) == 0 {
 		return nil
 	}
 
-	pos := make([]*PerspectiveOutput, len(ps))
-	for i := range ps {
-		pos[i] = ExposePerspective(ps[i])
+	pos := make([]*PerspectiveOutput, len(_ps))
+	for i := range _ps {
+		pos[i] = ExposePerspective(_ps[i])
 	}
 	return pos
 }

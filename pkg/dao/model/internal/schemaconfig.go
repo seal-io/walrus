@@ -10,6 +10,7 @@ import "context"
 // SchemaConfig represents alternative schema names for all tables
 // that can be passed at runtime.
 type SchemaConfig struct {
+	Catalog                          string // Catalog table.
 	Connector                        string // Connector table.
 	CostReport                       string // CostReport table.
 	DistributeLock                   string // DistributeLock table.

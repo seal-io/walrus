@@ -38,7 +38,7 @@ func (sci *ServiceCreateInput) Model() *Service {
 		return nil
 	}
 
-	s := &Service{
+	_s := &Service{
 		Template:    sci.Template,
 		Name:        sci.Name,
 		Description: sci.Description,
@@ -47,13 +47,13 @@ func (sci *ServiceCreateInput) Model() *Service {
 	}
 
 	if sci.Project != nil {
-		s.ProjectID = sci.Project.ID
+		_s.ProjectID = sci.Project.ID
 	}
 	if sci.Environment != nil {
-		s.EnvironmentID = sci.Environment.ID
+		_s.EnvironmentID = sci.Environment.ID
 	}
 
-	return s
+	return _s
 }
 
 // Load checks the input.
@@ -115,10 +115,10 @@ func (sci *ServiceCreateInputs) Model() []*Service {
 		return nil
 	}
 
-	ss := make([]*Service, len(sci.Items))
+	_ss := make([]*Service, len(sci.Items))
 
 	for i := range sci.Items {
-		s := &Service{
+		_s := &Service{
 			Template:    sci.Items[i].Template,
 			Name:        sci.Items[i].Name,
 			Description: sci.Items[i].Description,
@@ -127,16 +127,16 @@ func (sci *ServiceCreateInputs) Model() []*Service {
 		}
 
 		if sci.Project != nil {
-			s.ProjectID = sci.Project.ID
+			_s.ProjectID = sci.Project.ID
 		}
 		if sci.Environment != nil {
-			s.EnvironmentID = sci.Environment.ID
+			_s.EnvironmentID = sci.Environment.ID
 		}
 
-		ss[i] = s
+		_ss[i] = _s
 	}
 
-	return ss
+	return _ss
 }
 
 // Load checks the input.
@@ -200,13 +200,13 @@ func (sdi *ServiceDeleteInputs) Model() []*Service {
 		return nil
 	}
 
-	ss := make([]*Service, len(sdi.Items))
+	_ss := make([]*Service, len(sdi.Items))
 	for i := range sdi.Items {
-		ss[i] = &Service{
+		_ss[i] = &Service{
 			ID: sdi.Items[i].ID,
 		}
 	}
-	return ss
+	return _ss
 }
 
 // Load checks the input.
@@ -421,7 +421,7 @@ func (sui *ServiceUpdateInput) Model() *Service {
 		return nil
 	}
 
-	s := &Service{
+	_s := &Service{
 		ID:          sui.ID,
 		Name:        sui.Name,
 		Description: sui.Description,
@@ -430,7 +430,7 @@ func (sui *ServiceUpdateInput) Model() *Service {
 		Attributes:  sui.Attributes,
 	}
 
-	return s
+	return _s
 }
 
 // ServiceUpdateInputs holds the modification input item of the Service entities.
@@ -461,10 +461,10 @@ func (sui *ServiceUpdateInputs) Model() []*Service {
 		return nil
 	}
 
-	ss := make([]*Service, len(sui.Items))
+	_ss := make([]*Service, len(sui.Items))
 
 	for i := range sui.Items {
-		s := &Service{
+		_s := &Service{
 			ID:          sui.Items[i].ID,
 			Name:        sui.Items[i].Name,
 			Description: sui.Items[i].Description,
@@ -473,10 +473,10 @@ func (sui *ServiceUpdateInputs) Model() []*Service {
 			Attributes:  sui.Items[i].Attributes,
 		}
 
-		ss[i] = s
+		_ss[i] = _s
 	}
 
-	return ss
+	return _ss
 }
 
 // Load checks the input.
@@ -566,59 +566,59 @@ type ServiceOutput struct {
 }
 
 // View returns the output of Service.
-func (s *Service) View() *ServiceOutput {
-	return ExposeService(s)
+func (_s *Service) View() *ServiceOutput {
+	return ExposeService(_s)
 }
 
 // View returns the output of Services.
-func (ss Services) View() []*ServiceOutput {
-	return ExposeServices(ss)
+func (_ss Services) View() []*ServiceOutput {
+	return ExposeServices(_ss)
 }
 
 // ExposeService converts the Service to ServiceOutput.
-func ExposeService(s *Service) *ServiceOutput {
-	if s == nil {
+func ExposeService(_s *Service) *ServiceOutput {
+	if _s == nil {
 		return nil
 	}
 
 	so := &ServiceOutput{
-		ID:          s.ID,
-		Name:        s.Name,
-		Description: s.Description,
-		Labels:      s.Labels,
-		CreateTime:  s.CreateTime,
-		UpdateTime:  s.UpdateTime,
-		Status:      s.Status,
-		Template:    s.Template,
-		Attributes:  s.Attributes,
+		ID:          _s.ID,
+		Name:        _s.Name,
+		Description: _s.Description,
+		Labels:      _s.Labels,
+		CreateTime:  _s.CreateTime,
+		UpdateTime:  _s.UpdateTime,
+		Status:      _s.Status,
+		Template:    _s.Template,
+		Attributes:  _s.Attributes,
 	}
 
-	if s.Edges.Project != nil {
-		so.Project = ExposeProject(s.Edges.Project)
-	} else if s.ProjectID != "" {
+	if _s.Edges.Project != nil {
+		so.Project = ExposeProject(_s.Edges.Project)
+	} else if _s.ProjectID != "" {
 		so.Project = &ProjectOutput{
-			ID: s.ProjectID,
+			ID: _s.ProjectID,
 		}
 	}
-	if s.Edges.Environment != nil {
-		so.Environment = ExposeEnvironment(s.Edges.Environment)
-	} else if s.EnvironmentID != "" {
+	if _s.Edges.Environment != nil {
+		so.Environment = ExposeEnvironment(_s.Edges.Environment)
+	} else if _s.EnvironmentID != "" {
 		so.Environment = &EnvironmentOutput{
-			ID: s.EnvironmentID,
+			ID: _s.EnvironmentID,
 		}
 	}
 	return so
 }
 
 // ExposeServices converts the Service slice to ServiceOutput pointer slice.
-func ExposeServices(ss []*Service) []*ServiceOutput {
-	if len(ss) == 0 {
+func ExposeServices(_ss []*Service) []*ServiceOutput {
+	if len(_ss) == 0 {
 		return nil
 	}
 
-	sos := make([]*ServiceOutput, len(ss))
-	for i := range ss {
-		sos[i] = ExposeService(ss[i])
+	sos := make([]*ServiceOutput, len(_ss))
+	for i := range _ss {
+		sos[i] = ExposeService(_ss[i])
 	}
 	return sos
 }

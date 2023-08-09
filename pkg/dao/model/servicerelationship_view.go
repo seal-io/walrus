@@ -28,12 +28,12 @@ func (srci *ServiceRelationshipCreateInput) Model() *ServiceRelationship {
 		return nil
 	}
 
-	sr := &ServiceRelationship{}
+	_sr := &ServiceRelationship{}
 
 	if srci.Dependency != nil {
-		sr.DependencyID = srci.Dependency.ID
+		_sr.DependencyID = srci.Dependency.ID
 	}
-	return sr
+	return _sr
 }
 
 // Load checks the input.
@@ -81,19 +81,19 @@ func (srci *ServiceRelationshipCreateInputs) Model() []*ServiceRelationship {
 		return nil
 	}
 
-	srs := make([]*ServiceRelationship, len(srci.Items))
+	_srs := make([]*ServiceRelationship, len(srci.Items))
 
 	for i := range srci.Items {
-		sr := &ServiceRelationship{}
+		_sr := &ServiceRelationship{}
 
 		if srci.Items[i].Dependency != nil {
-			sr.DependencyID = srci.Items[i].Dependency.ID
+			_sr.DependencyID = srci.Items[i].Dependency.ID
 		}
 
-		srs[i] = sr
+		_srs[i] = _sr
 	}
 
-	return srs
+	return _srs
 }
 
 // Load checks the input.
@@ -142,13 +142,13 @@ func (srdi *ServiceRelationshipDeleteInputs) Model() []*ServiceRelationship {
 		return nil
 	}
 
-	srs := make([]*ServiceRelationship, len(srdi.Items))
+	_srs := make([]*ServiceRelationship, len(srdi.Items))
 	for i := range srdi.Items {
-		srs[i] = &ServiceRelationship{
+		_srs[i] = &ServiceRelationship{
 			ID: srdi.Items[i].ID,
 		}
 	}
-	return srs
+	return _srs
 }
 
 // Load checks the input.
@@ -303,14 +303,14 @@ func (srui *ServiceRelationshipUpdateInput) Model() *ServiceRelationship {
 		return nil
 	}
 
-	sr := &ServiceRelationship{
+	_sr := &ServiceRelationship{
 		ID: srui.ID,
 	}
 
 	if srui.Dependency != nil {
-		sr.DependencyID = srui.Dependency.ID
+		_sr.DependencyID = srui.Dependency.ID
 	}
-	return sr
+	return _sr
 }
 
 // ServiceRelationshipUpdateInputs holds the modification input item of the ServiceRelationship entities.
@@ -334,21 +334,21 @@ func (srui *ServiceRelationshipUpdateInputs) Model() []*ServiceRelationship {
 		return nil
 	}
 
-	srs := make([]*ServiceRelationship, len(srui.Items))
+	_srs := make([]*ServiceRelationship, len(srui.Items))
 
 	for i := range srui.Items {
-		sr := &ServiceRelationship{
+		_sr := &ServiceRelationship{
 			ID: srui.Items[i].ID,
 		}
 
 		if srui.Items[i].Dependency != nil {
-			sr.DependencyID = srui.Items[i].Dependency.ID
+			_sr.DependencyID = srui.Items[i].Dependency.ID
 		}
 
-		srs[i] = sr
+		_srs[i] = _sr
 	}
 
-	return srs
+	return _srs
 }
 
 // Load checks the input.
@@ -414,47 +414,47 @@ type ServiceRelationshipOutput struct {
 }
 
 // View returns the output of ServiceRelationship.
-func (sr *ServiceRelationship) View() *ServiceRelationshipOutput {
-	return ExposeServiceRelationship(sr)
+func (_sr *ServiceRelationship) View() *ServiceRelationshipOutput {
+	return ExposeServiceRelationship(_sr)
 }
 
 // View returns the output of ServiceRelationships.
-func (srs ServiceRelationships) View() []*ServiceRelationshipOutput {
-	return ExposeServiceRelationships(srs)
+func (_srs ServiceRelationships) View() []*ServiceRelationshipOutput {
+	return ExposeServiceRelationships(_srs)
 }
 
 // ExposeServiceRelationship converts the ServiceRelationship to ServiceRelationshipOutput.
-func ExposeServiceRelationship(sr *ServiceRelationship) *ServiceRelationshipOutput {
-	if sr == nil {
+func ExposeServiceRelationship(_sr *ServiceRelationship) *ServiceRelationshipOutput {
+	if _sr == nil {
 		return nil
 	}
 
 	sro := &ServiceRelationshipOutput{
-		ID:         sr.ID,
-		CreateTime: sr.CreateTime,
-		Path:       sr.Path,
-		Type:       sr.Type,
+		ID:         _sr.ID,
+		CreateTime: _sr.CreateTime,
+		Path:       _sr.Path,
+		Type:       _sr.Type,
 	}
 
-	if sr.Edges.Dependency != nil {
-		sro.Dependency = ExposeService(sr.Edges.Dependency)
-	} else if sr.DependencyID != "" {
+	if _sr.Edges.Dependency != nil {
+		sro.Dependency = ExposeService(_sr.Edges.Dependency)
+	} else if _sr.DependencyID != "" {
 		sro.Dependency = &ServiceOutput{
-			ID: sr.DependencyID,
+			ID: _sr.DependencyID,
 		}
 	}
 	return sro
 }
 
 // ExposeServiceRelationships converts the ServiceRelationship slice to ServiceRelationshipOutput pointer slice.
-func ExposeServiceRelationships(srs []*ServiceRelationship) []*ServiceRelationshipOutput {
-	if len(srs) == 0 {
+func ExposeServiceRelationships(_srs []*ServiceRelationship) []*ServiceRelationshipOutput {
+	if len(_srs) == 0 {
 		return nil
 	}
 
-	sros := make([]*ServiceRelationshipOutput, len(srs))
-	for i := range srs {
-		sros[i] = ExposeServiceRelationship(srs[i])
+	sros := make([]*ServiceRelationshipOutput, len(_srs))
+	for i := range _srs {
+		sros[i] = ExposeServiceRelationship(_srs[i])
 	}
 	return sros
 }

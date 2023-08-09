@@ -14,14 +14,14 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/catalog"
-	"github.com/seal-io/seal/pkg/dao/model/template"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/json"
 )
 
-// Template is the model entity for the Template schema.
-type Template struct {
+// Catalog is the model entity for the Catalog schema.
+type Catalog struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID object.ID `json:"id,omitempty"`
@@ -31,69 +31,56 @@ type Template struct {
 	Description string `json:"description,omitempty"`
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `json:"labels,omitempty"`
+	// Annotations holds the value of the "annotations" field.
+	Annotations map[string]string `json:"annotations,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime *time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime *time.Time `json:"update_time,omitempty"`
 	// Status holds the value of the "status" field.
 	Status status.Status `json:"status,omitempty"`
-	// A URL to an SVG or PNG image to be used as an icon.
-	Icon string `json:"icon,omitempty"`
-	// Source of the template.
+	// Type of the catalog.
+	Type string `json:"type,omitempty"`
+	// Source of the catalog.
 	Source string `json:"source,omitempty"`
-	// ID of the template catalog.
-	CatalogID object.ID `json:"catalog_id,omitempty"`
+	// Sync information of the catalog.
+	Sync *types.CatalogSync `json:"sync,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the TemplateQuery when eager-loading is set.
-	Edges        TemplateEdges `json:"edges,omitempty"`
+	// The values are being populated by the CatalogQuery when eager-loading is set.
+	Edges        CatalogEdges `json:"edges,omitempty"`
 	selectValues sql.SelectValues
 }
 
-// TemplateEdges holds the relations/edges for other nodes in the graph.
-type TemplateEdges struct {
-	// Versions of the template.
-	Versions []*TemplateVersion `json:"versions,omitempty"`
-	// Catalog to which the template belongs.
-	Catalog *Catalog `json:"catalog,omitempty"`
+// CatalogEdges holds the relations/edges for other nodes in the graph.
+type CatalogEdges struct {
+	// Templates that belong to this catalog.
+	Templates []*Template `json:"templates,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [1]bool
 }
 
-// VersionsOrErr returns the Versions value or an error if the edge
+// TemplatesOrErr returns the Templates value or an error if the edge
 // was not loaded in eager-loading.
-func (e TemplateEdges) VersionsOrErr() ([]*TemplateVersion, error) {
+func (e CatalogEdges) TemplatesOrErr() ([]*Template, error) {
 	if e.loadedTypes[0] {
-		return e.Versions, nil
+		return e.Templates, nil
 	}
-	return nil, &NotLoadedError{edge: "versions"}
-}
-
-// CatalogOrErr returns the Catalog value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e TemplateEdges) CatalogOrErr() (*Catalog, error) {
-	if e.loadedTypes[1] {
-		if e.Catalog == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: catalog.Label}
-		}
-		return e.Catalog, nil
-	}
-	return nil, &NotLoadedError{edge: "catalog"}
+	return nil, &NotLoadedError{edge: "templates"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*Template) scanValues(columns []string) ([]any, error) {
+func (*Catalog) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case template.FieldLabels, template.FieldStatus:
+		case catalog.FieldLabels, catalog.FieldAnnotations, catalog.FieldStatus, catalog.FieldSync:
 			values[i] = new([]byte)
-		case template.FieldID, template.FieldCatalogID:
+		case catalog.FieldID:
 			values[i] = new(object.ID)
-		case template.FieldName, template.FieldDescription, template.FieldIcon, template.FieldSource:
+		case catalog.FieldName, catalog.FieldDescription, catalog.FieldType, catalog.FieldSource:
 			values[i] = new(sql.NullString)
-		case template.FieldCreateTime, template.FieldUpdateTime:
+		case catalog.FieldCreateTime, catalog.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -103,158 +90,166 @@ func (*Template) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the Template fields.
-func (t *Template) assignValues(columns []string, values []any) error {
+// to the Catalog fields.
+func (c *Catalog) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case template.FieldID:
+		case catalog.FieldID:
 			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
-				t.ID = *value
+				c.ID = *value
 			}
-		case template.FieldName:
+		case catalog.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				t.Name = value.String
+				c.Name = value.String
 			}
-		case template.FieldDescription:
+		case catalog.FieldDescription:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
-				t.Description = value.String
+				c.Description = value.String
 			}
-		case template.FieldLabels:
+		case catalog.FieldLabels:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field labels", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &t.Labels); err != nil {
+				if err := json.Unmarshal(*value, &c.Labels); err != nil {
 					return fmt.Errorf("unmarshal field labels: %w", err)
 				}
 			}
-		case template.FieldCreateTime:
+		case catalog.FieldAnnotations:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field annotations", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &c.Annotations); err != nil {
+					return fmt.Errorf("unmarshal field annotations: %w", err)
+				}
+			}
+		case catalog.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field create_time", values[i])
 			} else if value.Valid {
-				t.CreateTime = new(time.Time)
-				*t.CreateTime = value.Time
+				c.CreateTime = new(time.Time)
+				*c.CreateTime = value.Time
 			}
-		case template.FieldUpdateTime:
+		case catalog.FieldUpdateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field update_time", values[i])
 			} else if value.Valid {
-				t.UpdateTime = new(time.Time)
-				*t.UpdateTime = value.Time
+				c.UpdateTime = new(time.Time)
+				*c.UpdateTime = value.Time
 			}
-		case template.FieldStatus:
+		case catalog.FieldStatus:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &t.Status); err != nil {
+				if err := json.Unmarshal(*value, &c.Status); err != nil {
 					return fmt.Errorf("unmarshal field status: %w", err)
 				}
 			}
-		case template.FieldIcon:
+		case catalog.FieldType:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field icon", values[i])
+				return fmt.Errorf("unexpected type %T for field type", values[i])
 			} else if value.Valid {
-				t.Icon = value.String
+				c.Type = value.String
 			}
-		case template.FieldSource:
+		case catalog.FieldSource:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field source", values[i])
 			} else if value.Valid {
-				t.Source = value.String
+				c.Source = value.String
 			}
-		case template.FieldCatalogID:
-			if value, ok := values[i].(*object.ID); !ok {
-				return fmt.Errorf("unexpected type %T for field catalog_id", values[i])
-			} else if value != nil {
-				t.CatalogID = *value
+		case catalog.FieldSync:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field sync", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &c.Sync); err != nil {
+					return fmt.Errorf("unmarshal field sync: %w", err)
+				}
 			}
 		default:
-			t.selectValues.Set(columns[i], values[i])
+			c.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the Template.
+// Value returns the ent.Value that was dynamically selected and assigned to the Catalog.
 // This includes values selected through modifiers, order, etc.
-func (t *Template) Value(name string) (ent.Value, error) {
-	return t.selectValues.Get(name)
+func (c *Catalog) Value(name string) (ent.Value, error) {
+	return c.selectValues.Get(name)
 }
 
-// QueryVersions queries the "versions" edge of the Template entity.
-func (t *Template) QueryVersions() *TemplateVersionQuery {
-	return NewTemplateClient(t.config).QueryVersions(t)
+// QueryTemplates queries the "templates" edge of the Catalog entity.
+func (c *Catalog) QueryTemplates() *TemplateQuery {
+	return NewCatalogClient(c.config).QueryTemplates(c)
 }
 
-// QueryCatalog queries the "catalog" edge of the Template entity.
-func (t *Template) QueryCatalog() *CatalogQuery {
-	return NewTemplateClient(t.config).QueryCatalog(t)
-}
-
-// Update returns a builder for updating this Template.
-// Note that you need to call Template.Unwrap() before calling this method if this Template
+// Update returns a builder for updating this Catalog.
+// Note that you need to call Catalog.Unwrap() before calling this method if this Catalog
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (t *Template) Update() *TemplateUpdateOne {
-	return NewTemplateClient(t.config).UpdateOne(t)
+func (c *Catalog) Update() *CatalogUpdateOne {
+	return NewCatalogClient(c.config).UpdateOne(c)
 }
 
-// Unwrap unwraps the Template entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the Catalog entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (t *Template) Unwrap() *Template {
-	_tx, ok := t.config.driver.(*txDriver)
+func (c *Catalog) Unwrap() *Catalog {
+	_tx, ok := c.config.driver.(*txDriver)
 	if !ok {
-		panic("model: Template is not a transactional entity")
+		panic("model: Catalog is not a transactional entity")
 	}
-	t.config.driver = _tx.drv
-	return t
+	c.config.driver = _tx.drv
+	return c
 }
 
 // String implements the fmt.Stringer.
-func (t *Template) String() string {
+func (c *Catalog) String() string {
 	var builder strings.Builder
-	builder.WriteString("Template(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", t.ID))
+	builder.WriteString("Catalog(")
+	builder.WriteString(fmt.Sprintf("id=%v, ", c.ID))
 	builder.WriteString("name=")
-	builder.WriteString(t.Name)
+	builder.WriteString(c.Name)
 	builder.WriteString(", ")
 	builder.WriteString("description=")
-	builder.WriteString(t.Description)
+	builder.WriteString(c.Description)
 	builder.WriteString(", ")
 	builder.WriteString("labels=")
-	builder.WriteString(fmt.Sprintf("%v", t.Labels))
+	builder.WriteString(fmt.Sprintf("%v", c.Labels))
 	builder.WriteString(", ")
-	if v := t.CreateTime; v != nil {
+	builder.WriteString("annotations=")
+	builder.WriteString(fmt.Sprintf("%v", c.Annotations))
+	builder.WriteString(", ")
+	if v := c.CreateTime; v != nil {
 		builder.WriteString("create_time=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
-	if v := t.UpdateTime; v != nil {
+	if v := c.UpdateTime; v != nil {
 		builder.WriteString("update_time=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
 	builder.WriteString("status=")
-	builder.WriteString(fmt.Sprintf("%v", t.Status))
+	builder.WriteString(fmt.Sprintf("%v", c.Status))
 	builder.WriteString(", ")
-	builder.WriteString("icon=")
-	builder.WriteString(t.Icon)
+	builder.WriteString("type=")
+	builder.WriteString(c.Type)
 	builder.WriteString(", ")
 	builder.WriteString("source=")
-	builder.WriteString(t.Source)
+	builder.WriteString(c.Source)
 	builder.WriteString(", ")
-	builder.WriteString("catalog_id=")
-	builder.WriteString(fmt.Sprintf("%v", t.CatalogID))
+	builder.WriteString("sync=")
+	builder.WriteString(fmt.Sprintf("%v", c.Sync))
 	builder.WriteByte(')')
 	return builder.String()
 }
 
-// Templates is a parsable slice of Template.
-type Templates []*Template
+// Catalogs is a parsable slice of Catalog.
+type Catalogs []*Catalog

@@ -31,13 +31,13 @@ func (rci *RoleCreateInput) Model() *Role {
 		return nil
 	}
 
-	r := &Role{
+	_r := &Role{
 		Kind:        rci.Kind,
 		Description: rci.Description,
 		Policies:    rci.Policies,
 	}
 
-	return r
+	return _r
 }
 
 // Load checks the input.
@@ -81,19 +81,19 @@ func (rci *RoleCreateInputs) Model() []*Role {
 		return nil
 	}
 
-	rs := make([]*Role, len(rci.Items))
+	_rs := make([]*Role, len(rci.Items))
 
 	for i := range rci.Items {
-		r := &Role{
+		_r := &Role{
 			Kind:        rci.Items[i].Kind,
 			Description: rci.Items[i].Description,
 			Policies:    rci.Items[i].Policies,
 		}
 
-		rs[i] = r
+		_rs[i] = _r
 	}
 
-	return rs
+	return _rs
 }
 
 // Load checks the input.
@@ -142,13 +142,13 @@ func (rdi *RoleDeleteInputs) Model() []*Role {
 		return nil
 	}
 
-	rs := make([]*Role, len(rdi.Items))
+	_rs := make([]*Role, len(rdi.Items))
 	for i := range rdi.Items {
-		rs[i] = &Role{
+		_rs[i] = &Role{
 			ID: rdi.Items[i].ID,
 		}
 	}
-	return rs
+	return _rs
 }
 
 // Load checks the input.
@@ -304,13 +304,13 @@ func (rui *RoleUpdateInput) Model() *Role {
 		return nil
 	}
 
-	r := &Role{
+	_r := &Role{
 		ID:          rui.ID,
 		Description: rui.Description,
 		Policies:    rui.Policies,
 	}
 
-	return r
+	return _r
 }
 
 // RoleUpdateInputs holds the modification input item of the Role entities.
@@ -335,19 +335,19 @@ func (rui *RoleUpdateInputs) Model() []*Role {
 		return nil
 	}
 
-	rs := make([]*Role, len(rui.Items))
+	_rs := make([]*Role, len(rui.Items))
 
 	for i := range rui.Items {
-		r := &Role{
+		_r := &Role{
 			ID:          rui.Items[i].ID,
 			Description: rui.Items[i].Description,
 			Policies:    rui.Items[i].Policies,
 		}
 
-		rs[i] = r
+		_rs[i] = _r
 	}
 
-	return rs
+	return _rs
 }
 
 // Load checks the input.
@@ -414,43 +414,43 @@ type RoleOutput struct {
 }
 
 // View returns the output of Role.
-func (r *Role) View() *RoleOutput {
-	return ExposeRole(r)
+func (_r *Role) View() *RoleOutput {
+	return ExposeRole(_r)
 }
 
 // View returns the output of Roles.
-func (rs Roles) View() []*RoleOutput {
-	return ExposeRoles(rs)
+func (_rs Roles) View() []*RoleOutput {
+	return ExposeRoles(_rs)
 }
 
 // ExposeRole converts the Role to RoleOutput.
-func ExposeRole(r *Role) *RoleOutput {
-	if r == nil {
+func ExposeRole(_r *Role) *RoleOutput {
+	if _r == nil {
 		return nil
 	}
 
 	ro := &RoleOutput{
-		ID:          r.ID,
-		CreateTime:  r.CreateTime,
-		UpdateTime:  r.UpdateTime,
-		Kind:        r.Kind,
-		Description: r.Description,
-		Policies:    r.Policies,
-		Builtin:     r.Builtin,
+		ID:          _r.ID,
+		CreateTime:  _r.CreateTime,
+		UpdateTime:  _r.UpdateTime,
+		Kind:        _r.Kind,
+		Description: _r.Description,
+		Policies:    _r.Policies,
+		Builtin:     _r.Builtin,
 	}
 
 	return ro
 }
 
 // ExposeRoles converts the Role slice to RoleOutput pointer slice.
-func ExposeRoles(rs []*Role) []*RoleOutput {
-	if len(rs) == 0 {
+func ExposeRoles(_rs []*Role) []*RoleOutput {
+	if len(_rs) == 0 {
 		return nil
 	}
 
-	ros := make([]*RoleOutput, len(rs))
-	for i := range rs {
-		ros[i] = ExposeRole(rs[i])
+	ros := make([]*RoleOutput, len(_rs))
+	for i := range _rs {
+		ros[i] = ExposeRole(_rs[i])
 	}
 	return ros
 }
