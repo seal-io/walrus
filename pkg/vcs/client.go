@@ -37,3 +37,14 @@ func NewClient(conn *model.Connector) (*scm.Client, error) {
 
 	return client, nil
 }
+
+func NewClientFromURL(driver, url, token string) (*scm.Client, error) {
+	switch driver {
+	case github.Driver:
+		return github.NewClientFromURL(url, token)
+	case gitlab.Driver:
+		return gitlab.NewClientFromURL(url, token)
+	}
+
+	return nil, fmt.Errorf("unsupported SCM driver %q", driver)
+}
