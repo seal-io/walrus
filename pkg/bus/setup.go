@@ -4,11 +4,13 @@ import (
 	"context"
 
 	authstoken "github.com/seal-io/seal/pkg/auths/token"
+	"github.com/seal-io/seal/pkg/bus/catalog"
 	"github.com/seal-io/seal/pkg/bus/environment"
 	"github.com/seal-io/seal/pkg/bus/servicerevision"
 	"github.com/seal-io/seal/pkg/bus/setting"
 	"github.com/seal-io/seal/pkg/bus/template"
 	"github.com/seal-io/seal/pkg/bus/token"
+	pkgcatalog "github.com/seal-io/seal/pkg/catalog"
 	"github.com/seal-io/seal/pkg/cron"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/deployer/terraform"
@@ -52,6 +54,12 @@ func Setup(ctx context.Context, opts SetupOptions) (err error) {
 	// Token.
 	err = token.AddSubscriber("auths-token-delete-cached",
 		authstoken.DelCached)
+	if err != nil {
+		return
+	}
+
+	// Catalog.
+	err = catalog.AddSubscriber("sync-catalog", pkgcatalog.Sync)
 	if err != nil {
 		return
 	}
