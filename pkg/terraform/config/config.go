@@ -24,7 +24,7 @@ type Config struct {
 	// Attr1 = "xxx"
 	// attr2 = 1
 	// attr3 = true.
-	Attributes map[string]interface{}
+	Attributes map[string]any
 
 	// Blocks blocks like terraform, provider, module, etc.
 	/**
@@ -59,13 +59,13 @@ func NewConfig(opts CreateOptions) (*Config, error) {
 	// Terraform block.
 	var (
 		err        error
-		attributes map[string]interface{}
+		attributes map[string]any
 	)
 
 	if opts.Attributes != nil {
 		attributes = opts.Attributes
 	} else {
-		attributes = make(map[string]interface{})
+		attributes = make(map[string]any)
 	}
 
 	blocks, err := loadBlocks(opts)
@@ -240,14 +240,14 @@ func loadTerraformBlock(opts *TerraformOptions) *block.Block {
 	if opts.ProviderRequirements != nil {
 		requiredProviders := &block.Block{
 			Type:       block.TypeRequiredProviders,
-			Attributes: map[string]interface{}{},
+			Attributes: map[string]any{},
 		}
 		for provider, requirement := range opts.ProviderRequirements {
 			if _, ok := requiredProviders.Attributes[provider]; ok {
 				logger.Warnf("provider already exists, skip", "provider", provider)
 				continue
 			}
-			pr := make(map[string]interface{})
+			pr := make(map[string]any)
 
 			if requirement != nil {
 				if requirement != nil && len(requirement.VersionConstraints) != 0 {
@@ -266,7 +266,7 @@ func loadTerraformBlock(opts *TerraformOptions) *block.Block {
 	backendBlock := &block.Block{
 		Type:   block.TypeBackend,
 		Labels: []string{"http"},
-		Attributes: map[string]interface{}{
+		Attributes: map[string]any{
 			"address": opts.Address,
 			// Since the seal server using bearer token and
 			// terraform backend only support basic auth.
@@ -300,7 +300,7 @@ func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers block.Blocks) blo
 	var (
 		logger       = log.WithName("deployer").WithName("tf").WithName("config")
 		blocks       block.Blocks
-		providersMap = make(map[string]interface{})
+		providersMap = make(map[string]any)
 	)
 
 	for _, p := range providers {
@@ -325,7 +325,7 @@ func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers block.Blocks) blo
 		}
 		// Inject providers alias to the module.
 		if mc.Schema != nil {
-			moduleProviders := map[string]interface{}{}
+			moduleProviders := map[string]any{}
 
 			for _, p := range mc.Schema.RequiredProviders {
 				if _, ok := providersMap[p.Name]; !ok {
@@ -352,7 +352,7 @@ func loadVariableBlocks(opts *VariableOptions) block.Blocks {
 		blocks = append(blocks, &block.Block{
 			Type:   block.TypeVariable,
 			Labels: []string{opts.VariablePrefix + name},
-			Attributes: map[string]interface{}{
+			Attributes: map[string]any{
 				"type":      "{{string}}",
 				"sensitive": sensitive,
 			},
@@ -364,7 +364,7 @@ func loadVariableBlocks(opts *VariableOptions) block.Blocks {
 		blocks = append(blocks, &block.Block{
 			Type:   block.TypeVariable,
 			Labels: []string{opts.ServicePrefix + k},
-			Attributes: map[string]interface{}{
+			Attributes: map[string]any{
 				"type":      `{{string}}`,
 				"sensitive": o.Sensitive,
 			},
@@ -392,7 +392,7 @@ func loadOutputBlocks(opts OutputOptions) block.Blocks {
 		blocks = append(blocks, &block.Block{
 			Type:   block.TypeOutput,
 			Labels: []string{label},
-			Attributes: map[string]interface{}{
+			Attributes: map[string]any{
 				"value":     value,
 				"sensitive": o.Sensitive,
 			},
@@ -407,7 +407,7 @@ func ToModuleBlock(mc *ModuleConfig) (*block.Block, error) {
 	var b block.Block
 
 	if mc.Attributes == nil {
-		mc.Attributes = make(map[string]interface{}, 0)
+		mc.Attributes = make(map[string]any, 0)
 	}
 
 	mc.Attributes["source"] = mc.Source

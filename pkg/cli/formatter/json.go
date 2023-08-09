@@ -24,7 +24,7 @@ func (f *JsonFormatter) Format(resp *http.Response) ([]byte, error) {
 		return nil, nil
 	}
 
-	var data interface{}
+	var data any
 
 	err = json.Unmarshal(body, &data)
 	if err != nil {

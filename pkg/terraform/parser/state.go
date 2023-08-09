@@ -32,9 +32,9 @@ type resourceState struct {
 }
 
 type instanceObjectState struct {
-	IndexKey interface{} `json:"index_key,omitempty"`
-	Status   string      `json:"status,omitempty"`
-	Deposed  string      `json:"deposed,omitempty"`
+	IndexKey any    `json:"index_key,omitempty"`
+	Status   string `json:"status,omitempty"`
+	Deposed  string `json:"deposed,omitempty"`
 
 	SchemaVersion           uint64            `json:"schema_version"`
 	Attributes              json.RawMessage   `json:"attributes,omitempty"`

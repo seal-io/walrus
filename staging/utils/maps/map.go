@@ -5,7 +5,7 @@ import (
 )
 
 // RemoveNulls takes a map of type map[string]interface{} and removes all nil values from it.
-func RemoveNulls(m map[string]interface{}) {
+func RemoveNulls(m map[string]any) {
 	val := reflect.ValueOf(m)
 	for _, e := range val.MapKeys() {
 		v := val.MapIndex(e)
@@ -15,15 +15,15 @@ func RemoveNulls(m map[string]interface{}) {
 		}
 
 		switch t := v.Interface().(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			RemoveNulls(t)
-		case []interface{}:
+		case []any:
 			for _, v := range t {
-				if t, ok := v.(map[string]interface{}); ok {
+				if t, ok := v.(map[string]any); ok {
 					RemoveNulls(t)
 				}
 			}
-		case []map[string]interface{}:
+		case []map[string]any:
 			for _, v := range t {
 				RemoveNulls(v)
 			}
@@ -31,18 +31,18 @@ func RemoveNulls(m map[string]interface{}) {
 	}
 }
 
-func RemoveNullsCopy(m map[string]interface{}) map[string]interface{} {
+func RemoveNullsCopy(m map[string]any) map[string]any {
 	newMap := CopyMap(m)
 	RemoveNulls(newMap)
 
 	return newMap
 }
 
-func CopyMap(m map[string]interface{}) map[string]interface{} {
-	cp := make(map[string]interface{})
+func CopyMap(m map[string]any) map[string]any {
+	cp := make(map[string]any)
 
 	for k, v := range m {
-		vm, ok := v.(map[string]interface{})
+		vm, ok := v.(map[string]any)
 		if ok {
 			cp[k] = CopyMap(vm)
 		} else {
@@ -54,7 +54,7 @@ func CopyMap(m map[string]interface{}) map[string]interface{} {
 }
 
 // GetString gets a string value by key from a map of type map[string]interface{}.
-func GetString(m map[string]interface{}, key string) string {
+func GetString(m map[string]any, key string) string {
 	v, exist := m[key]
 	if !exist {
 		return ""

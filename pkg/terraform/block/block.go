@@ -71,7 +71,7 @@ type (
 		Labels []string
 
 		// Attributes the Attributes of the block.
-		Attributes map[string]interface{}
+		Attributes map[string]any
 
 		hclBlock *hclwrite.Block
 
@@ -199,7 +199,7 @@ func SortValueKeys(val cty.Value) []string {
 
 // ConvertToCtyWithJson Converts arbitrary go types that are json serializable to a cty Value
 // by using json as an intermediary representation.
-func ConvertToCtyWithJson(val interface{}) (cty.Value, error) {
+func ConvertToCtyWithJson(val any) (cty.Value, error) {
 	jsonBytes, err := json.Marshal(val)
 	if err != nil {
 		return cty.NilVal, fmt.Errorf("failed to marshal value to json: %w", err)

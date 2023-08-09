@@ -34,7 +34,7 @@ func (in *LabelApplyTask) Name() string {
 	return "resource-label-apply"
 }
 
-func (in *LabelApplyTask) Process(ctx context.Context, args ...interface{}) error {
+func (in *LabelApplyTask) Process(ctx context.Context, args ...any) error {
 	if !in.mu.TryLock() {
 		in.logger.Warn("previous processing is not finished")
 		return nil

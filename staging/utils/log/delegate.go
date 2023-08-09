@@ -5,20 +5,20 @@ type silenceLogger struct{}
 type verboseLogger struct {
 	v             uint64
 	Delegate      Logger
-	KeysAndValues []interface{}
+	KeysAndValues []any
 }
 
 type DelegatedLogger struct {
 	Delegate Logger
 }
 
-func (silenceLogger) Enabled() bool                        { return false }
-func (silenceLogger) Write(p []byte) (int, error)          { return len(p), nil }
-func (silenceLogger) Info(...interface{})                  {}
-func (silenceLogger) Infof(string, ...interface{})         {}
-func (silenceLogger) InfoS(string, ...interface{})         {}
-func (silenceLogger) Error(...interface{})                 {}
-func (silenceLogger) ErrorS(error, string, ...interface{}) {}
+func (silenceLogger) Enabled() bool                { return false }
+func (silenceLogger) Write(p []byte) (int, error)  { return len(p), nil }
+func (silenceLogger) Info(...any)                  {}
+func (silenceLogger) Infof(string, ...any)         {}
+func (silenceLogger) InfoS(string, ...any)         {}
+func (silenceLogger) Error(...any)                 {}
+func (silenceLogger) ErrorS(error, string, ...any) {}
 
 func (l verboseLogger) Enabled() bool {
 	return l.v <= GetVerbosity()
@@ -32,7 +32,7 @@ func (l verboseLogger) Write(p []byte) (int, error) {
 	return l.Delegate.Write(p)
 }
 
-func (l verboseLogger) Info(args ...interface{}) {
+func (l verboseLogger) Info(args ...any) {
 	if !l.Enabled() {
 		return
 	}
@@ -40,7 +40,7 @@ func (l verboseLogger) Info(args ...interface{}) {
 	l.Delegate.Info(args...)
 }
 
-func (l verboseLogger) Infof(format string, args ...interface{}) {
+func (l verboseLogger) Infof(format string, args ...any) {
 	if !l.Enabled() {
 		return
 	}
@@ -48,7 +48,7 @@ func (l verboseLogger) Infof(format string, args ...interface{}) {
 	l.Delegate.Infof(format, args...)
 }
 
-func (l verboseLogger) Error(args ...interface{}) {
+func (l verboseLogger) Error(args ...any) {
 	if !l.Enabled() {
 		return
 	}
@@ -56,7 +56,7 @@ func (l verboseLogger) Error(args ...interface{}) {
 	l.Delegate.Error(args...)
 }
 
-func (l verboseLogger) InfoS(msg string, keyAndValues ...interface{}) {
+func (l verboseLogger) InfoS(msg string, keyAndValues ...any) {
 	if !l.Enabled() {
 		return
 	}
@@ -64,7 +64,7 @@ func (l verboseLogger) InfoS(msg string, keyAndValues ...interface{}) {
 	l.Delegate.InfoS(msg, append(keyAndValues, l.KeysAndValues...)...)
 }
 
-func (l verboseLogger) ErrorS(err error, msg string, keysAndValues ...interface{}) {
+func (l verboseLogger) ErrorS(err error, msg string, keysAndValues ...any) {
 	if !l.Enabled() {
 		return
 	}
@@ -88,7 +88,7 @@ func (l DelegatedLogger) Recovering() {
 	l.Delegate.Recovering()
 }
 
-func (l DelegatedLogger) Recover(p interface{}) {
+func (l DelegatedLogger) Recover(p any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -96,7 +96,7 @@ func (l DelegatedLogger) Recover(p interface{}) {
 	l.Delegate.Recover(p)
 }
 
-func (l DelegatedLogger) Debug(args ...interface{}) {
+func (l DelegatedLogger) Debug(args ...any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -104,7 +104,7 @@ func (l DelegatedLogger) Debug(args ...interface{}) {
 	l.Delegate.Debug(args...)
 }
 
-func (l DelegatedLogger) Info(args ...interface{}) {
+func (l DelegatedLogger) Info(args ...any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -112,7 +112,7 @@ func (l DelegatedLogger) Info(args ...interface{}) {
 	l.Delegate.Info(args...)
 }
 
-func (l DelegatedLogger) Warn(args ...interface{}) {
+func (l DelegatedLogger) Warn(args ...any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -120,7 +120,7 @@ func (l DelegatedLogger) Warn(args ...interface{}) {
 	l.Delegate.Warn(args...)
 }
 
-func (l DelegatedLogger) Error(args ...interface{}) {
+func (l DelegatedLogger) Error(args ...any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -128,7 +128,7 @@ func (l DelegatedLogger) Error(args ...interface{}) {
 	l.Delegate.Error(args...)
 }
 
-func (l DelegatedLogger) Fatal(args ...interface{}) {
+func (l DelegatedLogger) Fatal(args ...any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -136,7 +136,7 @@ func (l DelegatedLogger) Fatal(args ...interface{}) {
 	l.Delegate.Fatal(args...)
 }
 
-func (l DelegatedLogger) Debugf(format string, args ...interface{}) {
+func (l DelegatedLogger) Debugf(format string, args ...any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -144,7 +144,7 @@ func (l DelegatedLogger) Debugf(format string, args ...interface{}) {
 	l.Delegate.Debugf(format, args...)
 }
 
-func (l DelegatedLogger) Infof(format string, args ...interface{}) {
+func (l DelegatedLogger) Infof(format string, args ...any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -152,7 +152,7 @@ func (l DelegatedLogger) Infof(format string, args ...interface{}) {
 	l.Delegate.Infof(format, args...)
 }
 
-func (l DelegatedLogger) Warnf(format string, args ...interface{}) {
+func (l DelegatedLogger) Warnf(format string, args ...any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -160,7 +160,7 @@ func (l DelegatedLogger) Warnf(format string, args ...interface{}) {
 	l.Delegate.Warnf(format, args...)
 }
 
-func (l DelegatedLogger) Errorf(format string, args ...interface{}) {
+func (l DelegatedLogger) Errorf(format string, args ...any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -168,7 +168,7 @@ func (l DelegatedLogger) Errorf(format string, args ...interface{}) {
 	l.Delegate.Errorf(format, args...)
 }
 
-func (l DelegatedLogger) Fatalf(format string, args ...interface{}) {
+func (l DelegatedLogger) Fatalf(format string, args ...any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -176,7 +176,7 @@ func (l DelegatedLogger) Fatalf(format string, args ...interface{}) {
 	l.Delegate.Fatalf(format, args...)
 }
 
-func (l DelegatedLogger) DebugS(msg string, keysAndValues ...interface{}) {
+func (l DelegatedLogger) DebugS(msg string, keysAndValues ...any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -184,7 +184,7 @@ func (l DelegatedLogger) DebugS(msg string, keysAndValues ...interface{}) {
 	l.Delegate.DebugS(msg, keysAndValues...)
 }
 
-func (l DelegatedLogger) InfoS(msg string, keysAndValues ...interface{}) {
+func (l DelegatedLogger) InfoS(msg string, keysAndValues ...any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -192,7 +192,7 @@ func (l DelegatedLogger) InfoS(msg string, keysAndValues ...interface{}) {
 	l.Delegate.InfoS(msg, keysAndValues...)
 }
 
-func (l DelegatedLogger) WarnS(msg string, keysAndValues ...interface{}) {
+func (l DelegatedLogger) WarnS(msg string, keysAndValues ...any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -200,7 +200,7 @@ func (l DelegatedLogger) WarnS(msg string, keysAndValues ...interface{}) {
 	l.Delegate.WarnS(msg, keysAndValues...)
 }
 
-func (l DelegatedLogger) ErrorS(err error, msg string, keysAndValues ...interface{}) {
+func (l DelegatedLogger) ErrorS(err error, msg string, keysAndValues ...any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -208,7 +208,7 @@ func (l DelegatedLogger) ErrorS(err error, msg string, keysAndValues ...interfac
 	l.Delegate.ErrorS(err, msg, keysAndValues...)
 }
 
-func (l DelegatedLogger) FatalS(msg string, keysAndValues ...interface{}) {
+func (l DelegatedLogger) FatalS(msg string, keysAndValues ...any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -216,7 +216,7 @@ func (l DelegatedLogger) FatalS(msg string, keysAndValues ...interface{}) {
 	l.Delegate.FatalS(msg, keysAndValues...)
 }
 
-func (l DelegatedLogger) Print(args ...interface{}) {
+func (l DelegatedLogger) Print(args ...any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -224,7 +224,7 @@ func (l DelegatedLogger) Print(args ...interface{}) {
 	l.Delegate.Print(args...)
 }
 
-func (l DelegatedLogger) Printf(format string, args ...interface{}) {
+func (l DelegatedLogger) Printf(format string, args ...any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -232,7 +232,7 @@ func (l DelegatedLogger) Printf(format string, args ...interface{}) {
 	l.Delegate.Printf(format, args...)
 }
 
-func (l DelegatedLogger) PrintS(msg string, keysAndValues ...interface{}) {
+func (l DelegatedLogger) PrintS(msg string, keysAndValues ...any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -240,7 +240,7 @@ func (l DelegatedLogger) PrintS(msg string, keysAndValues ...interface{}) {
 	l.Delegate.PrintS(msg, keysAndValues...)
 }
 
-func (l DelegatedLogger) Println(args ...interface{}) {
+func (l DelegatedLogger) Println(args ...any) {
 	if l.Delegate == nil {
 		return
 	}
@@ -292,7 +292,7 @@ func (l DelegatedLogger) WithName(name string) Logger {
 	return l.Delegate.WithName(name)
 }
 
-func (l DelegatedLogger) WithValues(keysAndValues ...interface{}) Logger {
+func (l DelegatedLogger) WithValues(keysAndValues ...any) Logger {
 	if l.Delegate == nil {
 		return DelegatedLogger{}
 	}

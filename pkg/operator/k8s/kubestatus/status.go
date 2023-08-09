@@ -490,7 +490,7 @@ func getWebhookConfiguration(
 	// If getService(.spec.webhooks[.clientConfig.service?]) == NotReady, then not ready.
 	specWebhooks, _, _ := unstructured.NestedSlice(o.Object, "spec", "webhooks")
 	for i := range specWebhooks {
-		webhook, ok := specWebhooks[i].(map[string]interface{})
+		webhook, ok := specWebhooks[i].(map[string]any)
 		if !ok {
 			continue
 		}
@@ -531,9 +531,9 @@ func getWebhookConfiguration(
 	return &GeneralStatusReady, nil
 }
 
-func toConditions(statusConds []interface{}) (conds []typestatus.Condition) {
+func toConditions(statusConds []any) (conds []typestatus.Condition) {
 	for i := range statusConds {
-		condition, ok := statusConds[i].(map[string]interface{})
+		condition, ok := statusConds[i].(map[string]any)
 		if !ok {
 			continue
 		}

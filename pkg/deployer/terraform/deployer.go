@@ -1002,7 +1002,7 @@ func SyncServiceRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) (
 // service reference ${service.name.output} replaces it with ${var._servicePrefix+name}
 // and returns variable names and service names.
 func parseAttributeReplace(
-	attributes map[string]interface{},
+	attributes map[string]any,
 	variableNames []string,
 	serviceOutputs []string,
 ) ([]string, []string) {
@@ -1013,12 +1013,12 @@ func parseAttributeReplace(
 
 		switch reflect.TypeOf(value).Kind() {
 		case reflect.Map:
-			if _, ok := value.(map[string]interface{}); !ok {
+			if _, ok := value.(map[string]any); !ok {
 				continue
 			}
 
 			variableNames, serviceOutputs = parseAttributeReplace(
-				value.(map[string]interface{}),
+				value.(map[string]any),
 				variableNames,
 				serviceOutputs,
 			)
@@ -1052,16 +1052,16 @@ func parseAttributeReplace(
 
 			attributes[key] = _serviceReg.ReplaceAllString(str, serviceRepl)
 		case reflect.Slice:
-			if _, ok := value.([]interface{}); !ok {
+			if _, ok := value.([]any); !ok {
 				continue
 			}
 
-			for _, v := range value.([]interface{}) {
-				if _, ok := v.(map[string]interface{}); !ok {
+			for _, v := range value.([]any) {
+				if _, ok := v.(map[string]any); !ok {
 					continue
 				}
 				variableNames, serviceOutputs = parseAttributeReplace(
-					v.(map[string]interface{}),
+					v.(map[string]any),
 					variableNames,
 					serviceOutputs,
 				)
@@ -1074,7 +1074,7 @@ func parseAttributeReplace(
 
 func getVarConfigOptions(variables model.Variables, serviceOutputs map[string]parser.OutputState) config.CreateOptions {
 	varsConfigOpts := config.CreateOptions{
-		Attributes: map[string]interface{}{},
+		Attributes: map[string]any{},
 	}
 
 	for _, v := range variables {

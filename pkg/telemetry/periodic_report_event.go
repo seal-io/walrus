@@ -76,7 +76,7 @@ func (i PeriodicReportEvent) Enqueue(ctx context.Context) error {
 }
 
 func (i PeriodicReportEvent) Capture(ctx context.Context) (*posthog.Capture, error) {
-	type setter = func(context.Context, map[string]interface{}) error
+	type setter = func(context.Context, map[string]any) error
 
 	setters := []setter{
 		i.setConnectorStat,
@@ -113,7 +113,7 @@ func (i PeriodicReportEvent) Capture(ctx context.Context) (*posthog.Capture, err
 	}, nil
 }
 
-func (i PeriodicReportEvent) setConnectorStat(ctx context.Context, props map[string]interface{}) error {
+func (i PeriodicReportEvent) setConnectorStat(ctx context.Context, props map[string]any) error {
 	globalCount, err := i.modelClient.Connectors().Query().Where(connector.ProjectIDIsNil()).Count(ctx)
 	if err != nil {
 		return err
@@ -161,7 +161,7 @@ func (i PeriodicReportEvent) setConnectorStat(ctx context.Context, props map[str
 	return nil
 }
 
-func (i PeriodicReportEvent) setProjectStat(ctx context.Context, props map[string]interface{}) error {
+func (i PeriodicReportEvent) setProjectStat(ctx context.Context, props map[string]any) error {
 	count, err := i.modelClient.Projects().Query().Count(ctx)
 	if err != nil {
 		return err
@@ -172,7 +172,7 @@ func (i PeriodicReportEvent) setProjectStat(ctx context.Context, props map[strin
 	return nil
 }
 
-func (i PeriodicReportEvent) setEnvironmentStat(ctx context.Context, props map[string]interface{}) error {
+func (i PeriodicReportEvent) setEnvironmentStat(ctx context.Context, props map[string]any) error {
 	count, err := i.modelClient.Environments().Query().Count(ctx)
 	if err != nil {
 		return err
@@ -183,7 +183,7 @@ func (i PeriodicReportEvent) setEnvironmentStat(ctx context.Context, props map[s
 	return nil
 }
 
-func (i PeriodicReportEvent) setServiceStat(ctx context.Context, props map[string]interface{}) error {
+func (i PeriodicReportEvent) setServiceStat(ctx context.Context, props map[string]any) error {
 	count, err := i.modelClient.Services().Query().Count(ctx)
 	if err != nil {
 		return err
@@ -194,7 +194,7 @@ func (i PeriodicReportEvent) setServiceStat(ctx context.Context, props map[strin
 	return nil
 }
 
-func (i PeriodicReportEvent) setTemplateStat(ctx context.Context, props map[string]interface{}) error {
+func (i PeriodicReportEvent) setTemplateStat(ctx context.Context, props map[string]any) error {
 	catalogID, err := i.modelClient.Catalogs().Query().
 		Where(
 			catalog.Name(pkgcatalog.BuiltinCatalog().Name),
@@ -219,7 +219,7 @@ func (i PeriodicReportEvent) setTemplateStat(ctx context.Context, props map[stri
 	return nil
 }
 
-func (i PeriodicReportEvent) setFinOpsStat(ctx context.Context, props map[string]interface{}) error {
+func (i PeriodicReportEvent) setFinOpsStat(ctx context.Context, props map[string]any) error {
 	enabledCount, err := i.modelClient.Connectors().Query().Where(connector.EnableFinOps(true)).Count(ctx)
 	if err != nil {
 		return err
@@ -240,7 +240,7 @@ func (i PeriodicReportEvent) setFinOpsStat(ctx context.Context, props map[string
 	return nil
 }
 
-func (i PeriodicReportEvent) setUserStat(ctx context.Context, props map[string]interface{}) error {
+func (i PeriodicReportEvent) setUserStat(ctx context.Context, props map[string]any) error {
 	count, err := i.modelClient.Subjects().Query().Count(ctx)
 	if err != nil {
 		return err

@@ -39,7 +39,7 @@ func (in *TemplateSyncTask) Name() string {
 	return "catalog-template-sync-task"
 }
 
-func (in *TemplateSyncTask) Process(ctx context.Context, args ...interface{}) error {
+func (in *TemplateSyncTask) Process(ctx context.Context, args ...any) error {
 	if !in.mu.TryLock() {
 		in.logger.Warn("previous processing is not finished")
 		return nil

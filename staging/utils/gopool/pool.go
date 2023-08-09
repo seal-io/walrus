@@ -47,7 +47,7 @@ func newPool(factor int) *pond.WorkerPool {
 	return pond.New(maxWorkers, maxCapacity,
 		pond.MinWorkers(minWorkers),
 		pond.Strategy(pond.Eager()),
-		pond.PanicHandler(func(i interface{}) { log.WithName("gopool").Errorf("panic observing: %v", i) }))
+		pond.PanicHandler(func(i any) { log.WithName("gopool").Errorf("panic observing: %v", i) }))
 }
 
 // Reset reconfigures the goroutine pool with a new factor once,

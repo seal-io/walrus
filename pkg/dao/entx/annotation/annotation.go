@@ -50,7 +50,7 @@ func (Annotation) Name() string {
 	return "EntX"
 }
 
-func (a *Annotation) Decode(annotation interface{}) error {
+func (a *Annotation) Decode(annotation any) error {
 	buf, err := json.Marshal(annotation)
 	if err != nil {
 		return err

@@ -191,15 +191,15 @@ func prometheus() (*ChartApp, error) {
 		return nil, err
 	}
 
-	values := map[string]interface{}{
-		"prometheus-pushgateway": map[string]interface{}{
+	values := map[string]any{
+		"prometheus-pushgateway": map[string]any{
 			"enabled": false,
 		},
-		"alertmanager": map[string]interface{}{
+		"alertmanager": map[string]any{
 			"enabled": false,
 		},
-		"server": map[string]interface{}{
-			"persistentVolume": map[string]interface{}{
+		"server": map[string]any{
+			"persistentVolume": map[string]any{
 				"enabled": false,
 			},
 		},

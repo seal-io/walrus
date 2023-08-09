@@ -52,7 +52,7 @@ func TestBus_PublishInterfaceValue(t *testing.T) {
 	})
 	assert.Nil(t, err, "error subscribing")
 
-	var v interface{} = &testMessage{namespace: "ns-abc", name: "n-efg"}
+	var v any = &testMessage{namespace: "ns-abc", name: "n-efg"}
 	err = Publish(context.Background(), v)
 	assert.Nil(t, err, "error publishing")
 

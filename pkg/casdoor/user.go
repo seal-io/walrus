@@ -11,7 +11,7 @@ import (
 
 func SignInUser(ctx context.Context, app, org, usr, pwd string) ([]*req.HttpCookie, error) {
 	loginURL := fmt.Sprintf("%s/api/login", endpoint.Get())
-	loginReq := map[string]interface{}{
+	loginReq := map[string]any{
 		"type":         "login",
 		"application":  app,
 		"organization": org,

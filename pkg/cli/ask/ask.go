@@ -49,7 +49,7 @@ var PasswordQuestionTemplate = `
 {{- if and .Help (not .ShowHelp)}}{{color "cyan"}}[{{ .Config.HelpInput }} for help]{{color "reset"}} {{end}}
 {{- if .Default}}{{color "white"}}({{.DefaultDisplay}}) {{color "reset"}}{{end}}`
 
-func (p *Password) Prompt(config *survey.PromptConfig) (interface{}, error) {
+func (p *Password) Prompt(config *survey.PromptConfig) (any, error) {
 	// Render the question template.
 	userOut, _, err := core.RunTemplate(
 		PasswordQuestionTemplate,
@@ -133,12 +133,12 @@ func (p *Password) Prompt(config *survey.PromptConfig) (interface{}, error) {
 }
 
 // Cleanup hides the string with a fixed number of characters.
-func (p *Password) Cleanup(config *survey.PromptConfig, val interface{}) error {
+func (p *Password) Cleanup(config *survey.PromptConfig, val any) error {
 	return nil
 }
 
 // Required does not allow an empty value.
-func (p *Password) Required(val interface{}) error {
+func (p *Password) Required(val any) error {
 	// The reflect value of the result.
 	value := reflect.ValueOf(val)
 

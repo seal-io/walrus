@@ -135,8 +135,8 @@ func (r *redisDriver) Stats() DriverStats {
 }
 
 // redisLogger implements the redis internal.Logging.
-type redisLogger func(string, ...interface{})
+type redisLogger func(string, ...any)
 
-func (l redisLogger) Printf(ctx context.Context, format string, v ...interface{}) {
+func (l redisLogger) Printf(ctx context.Context, format string, v ...any) {
 	l(format, v...)
 }

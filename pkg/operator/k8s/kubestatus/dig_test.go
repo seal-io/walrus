@@ -135,7 +135,7 @@ func Test_digPodErrorReason(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		// Convert object to map.
-		var given map[string]interface{}
+		var given map[string]any
 		bs, _ := json.Marshal(tc.given)
 		_ = json.Unmarshal(bs, &given)
 

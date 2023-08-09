@@ -22,15 +22,15 @@ func (l logrSinker) Enabled(level int) bool {
 	return l.logger.V(uint64(level)).Enabled()
 }
 
-func (l logrSinker) Info(level int, msg string, keysAndValues ...interface{}) {
+func (l logrSinker) Info(level int, msg string, keysAndValues ...any) {
 	l.logger.V(uint64(level)).InfoS(msg, keysAndValues...)
 }
 
-func (l logrSinker) Error(err error, msg string, keysAndValues ...interface{}) {
+func (l logrSinker) Error(err error, msg string, keysAndValues ...any) {
 	l.logger.ErrorS(err, msg, keysAndValues...)
 }
 
-func (l logrSinker) WithValues(keysAndValues ...interface{}) logr.LogSink {
+func (l logrSinker) WithValues(keysAndValues ...any) logr.LogSink {
 	return logrSinker{
 		logger: l.logger.WithValues(keysAndValues...),
 	}

@@ -62,7 +62,7 @@ func (in *RelationshipCheckTask) Name() string {
 	return "service-relationship-check"
 }
 
-func (in *RelationshipCheckTask) Process(ctx context.Context, args ...interface{}) error {
+func (in *RelationshipCheckTask) Process(ctx context.Context, args ...any) error {
 	if !in.mu.TryLock() {
 		in.logger.Warn("previous processing is not finished")
 		return nil

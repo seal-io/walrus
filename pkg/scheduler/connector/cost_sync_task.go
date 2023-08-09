@@ -32,7 +32,7 @@ func (in *CollectTask) Name() string {
 	return "connector-cost-collect"
 }
 
-func (in *CollectTask) Process(ctx context.Context, args ...interface{}) error {
+func (in *CollectTask) Process(ctx context.Context, args ...any) error {
 	if !in.mu.TryLock() {
 		in.logger.Warn("previous processing is not finished")
 		return nil

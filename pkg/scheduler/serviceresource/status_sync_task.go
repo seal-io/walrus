@@ -40,7 +40,7 @@ func (in *StatusSyncTask) Name() string {
 	return "resource-status-sync"
 }
 
-func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) error {
+func (in *StatusSyncTask) Process(ctx context.Context, args ...any) error {
 	if !in.mu.TryLock() {
 		in.logger.Warn("previous processing is not finished")
 		return nil

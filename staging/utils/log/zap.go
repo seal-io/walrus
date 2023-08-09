@@ -111,63 +111,63 @@ func (z zapLogger) Recovering() {
 	}
 }
 
-func (z zapLogger) Recover(p interface{}) {
+func (z zapLogger) Recover(p any) {
 	z.s.Errorf("observing panic: %v, stack trace: %s", p, string(debug.Stack()))
 }
 
-func (z zapLogger) Debug(args ...interface{}) {
+func (z zapLogger) Debug(args ...any) {
 	z.s.Debug(args...)
 }
 
-func (z zapLogger) Info(args ...interface{}) {
+func (z zapLogger) Info(args ...any) {
 	z.s.Info(args...)
 }
 
-func (z zapLogger) Warn(args ...interface{}) {
+func (z zapLogger) Warn(args ...any) {
 	z.s.Warn(args...)
 }
 
-func (z zapLogger) Error(args ...interface{}) {
+func (z zapLogger) Error(args ...any) {
 	z.s.Error(args...)
 }
 
-func (z zapLogger) Fatal(args ...interface{}) {
+func (z zapLogger) Fatal(args ...any) {
 	z.s.Fatal(args...)
 }
 
-func (z zapLogger) Debugf(format string, args ...interface{}) {
+func (z zapLogger) Debugf(format string, args ...any) {
 	z.s.Debugf(format, args...)
 }
 
-func (z zapLogger) Infof(format string, args ...interface{}) {
+func (z zapLogger) Infof(format string, args ...any) {
 	z.s.Infof(format, args...)
 }
 
-func (z zapLogger) Warnf(format string, args ...interface{}) {
+func (z zapLogger) Warnf(format string, args ...any) {
 	z.s.Warnf(format, args...)
 }
 
-func (z zapLogger) Errorf(format string, args ...interface{}) {
+func (z zapLogger) Errorf(format string, args ...any) {
 	z.s.Errorf(format, args...)
 }
 
-func (z zapLogger) Fatalf(format string, args ...interface{}) {
+func (z zapLogger) Fatalf(format string, args ...any) {
 	z.s.Fatalf(format, args...)
 }
 
-func (z zapLogger) DebugS(msg string, keysAndValues ...interface{}) {
+func (z zapLogger) DebugS(msg string, keysAndValues ...any) {
 	z.s.Debugw(msg, keysAndValues...)
 }
 
-func (z zapLogger) InfoS(msg string, keysAndValues ...interface{}) {
+func (z zapLogger) InfoS(msg string, keysAndValues ...any) {
 	z.s.Infow(msg, keysAndValues...)
 }
 
-func (z zapLogger) WarnS(msg string, keysAndValues ...interface{}) {
+func (z zapLogger) WarnS(msg string, keysAndValues ...any) {
 	z.s.Warnw(msg, keysAndValues...)
 }
 
-func (z zapLogger) ErrorS(err error, msg string, keysAndValues ...interface{}) {
+func (z zapLogger) ErrorS(err error, msg string, keysAndValues ...any) {
 	if err == nil {
 		z.s.Errorw(msg, keysAndValues...)
 		return
@@ -176,23 +176,23 @@ func (z zapLogger) ErrorS(err error, msg string, keysAndValues ...interface{}) {
 	z.s.With(zap.Error(err)).Errorw(msg, keysAndValues...)
 }
 
-func (z zapLogger) FatalS(msg string, keysAndValues ...interface{}) {
+func (z zapLogger) FatalS(msg string, keysAndValues ...any) {
 	z.s.Fatalw(msg, keysAndValues...)
 }
 
-func (z zapLogger) Print(args ...interface{}) {
+func (z zapLogger) Print(args ...any) {
 	z.s.Info(args...)
 }
 
-func (z zapLogger) Printf(format string, args ...interface{}) {
+func (z zapLogger) Printf(format string, args ...any) {
 	z.s.Infof(format, args...)
 }
 
-func (z zapLogger) PrintS(msg string, keysAndValues ...interface{}) {
+func (z zapLogger) PrintS(msg string, keysAndValues ...any) {
 	z.s.Infow(msg, keysAndValues...)
 }
 
-func (z zapLogger) Println(args ...interface{}) {
+func (z zapLogger) Println(args ...any) {
 	z.s.Infoln(args...)
 }
 
@@ -234,14 +234,14 @@ func (z zapLogger) WithName(name string) Logger {
 	}
 }
 
-func (z zapLogger) WithValues(keysAndValues ...interface{}) Logger {
+func (z zapLogger) WithValues(keysAndValues ...any) Logger {
 	return zapLogger{
 		l: z.l.With(handleFields(keysAndValues...)...),
 		s: z.s.With(keysAndValues...),
 	}
 }
 
-func handleFields(args ...interface{}) (fields []zap.Field) {
+func handleFields(args ...any) (fields []zap.Field) {
 	argSize := len(args)
 	if argSize == 0 {
 		return
