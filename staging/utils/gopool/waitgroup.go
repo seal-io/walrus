@@ -11,9 +11,19 @@ import (
 	"github.com/seal-io/seal/utils/log"
 )
 
+type IWaitGroup interface {
+	Wait() error
+	Go(func() error)
+}
+
+type IContextWaitGroup interface {
+	Wait() error
+	Go(func(context.Context) error)
+}
+
 // Group returns a waiting group,
 // which closes at all tasks finishing and aggregates errors from tasks.
-func Group() *waitGroup {
+func Group() IWaitGroup {
 	return &waitGroup{}
 }
 
@@ -67,7 +77,7 @@ func (g *waitGroup) Go(f func() error) {
 // GroupWithContext returns a waiting group and a context derived by the given context.Context.
 // Waiting group notifies closing when any task raises error,
 // any submitting task should use the returning context to receive quiting.
-func GroupWithContext(ctx context.Context) (contextWaitGroup, context.Context) {
+func GroupWithContext(ctx context.Context) (IWaitGroup, context.Context) {
 	g, c := gp.GroupContext(ctx)
 	return contextWaitGroup{g: g}, c
 }
@@ -110,13 +120,15 @@ func (g contextWaitGroup) Go(f func() error) {
 
 // GroupWithContextIn is similar as GroupWithContext but doesn't return a derived context,
 // all tasks can receive the derived context at submitting, a kind of more compact usage.
-func GroupWithContextIn(ctx context.Context) (g embeddedContextWaitGroup) {
+func GroupWithContextIn(ctx context.Context) IContextWaitGroup {
+	var g embeddedContextWaitGroup
 	g.g, g.c = GroupWithContext(ctx)
-	return
+
+	return g
 }
 
 type embeddedContextWaitGroup struct {
-	g contextWaitGroup
+	g IWaitGroup
 	c context.Context
 }
 

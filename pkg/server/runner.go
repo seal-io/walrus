@@ -353,6 +353,12 @@ func (r *Server) Flags(cmd *cli.Command) {
 			Name: "gopool-worker-factor",
 			Usage: "The gopool worker factor determines the number of tasks of the goroutine worker pool," +
 				"it is calculated by the number of CPU cores multiplied by this factor.",
+			Action: func(c *cli.Context, i int) error {
+				if i < 100 {
+					return errors.New("too small gopool-worker-factor: must be greater than 100")
+				}
+				return nil
+			},
 			Destination: &r.GopoolWorkerFactor,
 			Value:       r.GopoolWorkerFactor,
 		},
@@ -585,7 +591,7 @@ func (r *Server) Run(c context.Context) error {
 // configure performs necessary configuration to support the whole server running.
 func (r *Server) configure(_ context.Context) error {
 	// Configure gopool.
-	gopool.ResetPool(r.GopoolWorkerFactor)
+	gopool.Reset(r.GopoolWorkerFactor)
 
 	// Configure data encryption.
 	if r.DataSourceDataEncryptKey != nil {
