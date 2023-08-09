@@ -8,12 +8,13 @@ import (
 
 	"github.com/posthog/posthog-go"
 
+	pkgcatalog "github.com/seal-io/seal/pkg/catalog"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/catalog"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/settings"
-	"github.com/seal-io/seal/pkg/templates"
 	"github.com/seal-io/seal/utils/version"
 )
 
@@ -194,11 +195,21 @@ func (i PeriodicReportEvent) setServiceStat(ctx context.Context, props map[strin
 }
 
 func (i PeriodicReportEvent) setTemplateStat(ctx context.Context, props map[string]interface{}) error {
-	count, err := i.modelClient.Templates().Query().
+	catalogID, err := i.modelClient.Catalogs().Query().
 		Where(
-			template.IDNotIn(templates.BuiltinTemplateNames...),
+			catalog.Name(pkgcatalog.BuiltinCatalog().Name),
 		).
-		Count(ctx)
+		OnlyID(ctx)
+	if err != nil && !model.IsNotFound(err) {
+		return err
+	}
+
+	query := i.modelClient.Templates().Query()
+	if catalogID != "" {
+		query = query.Where(template.CatalogID(catalogID))
+	}
+
+	count, err := query.Count(ctx)
 	if err != nil {
 		return err
 	}

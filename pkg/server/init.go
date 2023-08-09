@@ -45,7 +45,7 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		{name: "rbac", init: r.initRbac},
 	}
 	inits = append(inits,
-		initor{name: "modules", init: r.initTemplates},
+		initor{name: "catalog", init: r.initCatalog},
 		initor{name: "perspective", init: r.initPerspectives},
 		initor{name: "projects", init: r.initProjects},
 	)
