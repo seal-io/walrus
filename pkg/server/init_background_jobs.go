@@ -7,6 +7,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/cron"
 	"github.com/seal-io/seal/pkg/dao/model"
+	catalogskd "github.com/seal-io/seal/pkg/scheduler/catalog"
 	connskd "github.com/seal-io/seal/pkg/scheduler/connector"
 	serviceskd "github.com/seal-io/seal/pkg/scheduler/service"
 	appresskd "github.com/seal-io/seal/pkg/scheduler/serviceresource"
@@ -33,6 +34,7 @@ func (r *Server) initBackgroundJobs(ctx context.Context, opts initOptions) error
 			opts.K8sConfig,
 			opts.SkipTLSVerify,
 		),
+		settings.CatalogTemplateSyncCronExpr.Name(): buildCatalogTemplateSyncJobCreator(opts.ModelClient),
 	}
 
 	return cron.Register(ctx, opts.ModelClient, cs)
@@ -118,6 +120,17 @@ func buildServiceRelationshipCheckJobCreator(mc model.ClientSet, kc *rest.Config
 func buildTelemetryPeriodicReportJobCreator(mc model.ClientSet) cron.JobCreator {
 	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
 		task, err := telemetryskd.NewPeriodicReportTask(mc)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return cron.AwaitedExpr(expr), task, nil
+	}
+}
+
+func buildCatalogTemplateSyncJobCreator(mc model.ClientSet) cron.JobCreator {
+	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
+		task, err := catalogskd.NewCatalogTemplateSyncTask(mc)
 		if err != nil {
 			return nil, nil, err
 		}

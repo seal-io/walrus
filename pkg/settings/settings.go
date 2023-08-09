@@ -123,6 +123,12 @@ var (
 		editable,
 		initializeFrom("true"),
 		modifyWith(notBlank))
+	// EnableSyncCatalog keeps the user config for enable sync catalog or not.
+	EnableSyncCatalog = newValue(
+		"EnableSyncCatalog",
+		editable,
+		initializeFrom("true"),
+		modifyWith(notBlank))
 )
 
 // the built-in settings for server cron jobs.
@@ -190,6 +196,14 @@ var (
 		"TelemetryPeriodicReportCronExpr",
 		private,
 		initializeFrom("0 0 2 * * *"),
+		modifyWith(notBlank, cronExpression),
+	)
+	// CatalogTemplateSyncCronExpr indicates the cron expression of catalog template synchronization event,
+	// default cron expression means sync at 1 o'clock evey day.
+	CatalogTemplateSyncCronExpr = newValue(
+		"CatalogTemplateSyncCronExpr",
+		private,
+		initializeFrom("0 0 1 * * *"),
 		modifyWith(notBlank, cronExpression),
 	)
 )
