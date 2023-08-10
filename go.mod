@@ -140,7 +140,7 @@ require (
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/cloudflare/circl v1.3.3 // indirect
 	github.com/containerd/console v1.0.3 // indirect
-	github.com/containerd/containerd v1.6.15 // indirect
+	github.com/containerd/containerd v1.6.18 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/creack/goselect v0.1.2 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.3 // indirect
