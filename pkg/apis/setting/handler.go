@@ -154,7 +154,7 @@ func (h Handler) CollectionGet(
 	}
 
 	// Get entities.
-	if limit, offset, ok := req.Paging(); !ok {
+	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
 
