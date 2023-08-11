@@ -5,6 +5,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 )
@@ -72,6 +73,7 @@ func (r CollectionDeleteRequest) Validate() error {
 }
 
 type CollectionGetRequest struct {
+	runtime.RequestQuerying[predicate.Subject]                  `query:",inline"`
 	runtime.RequestPagination                                   `query:",inline"`
 	runtime.RequestSorting[subjectrolerelationship.OrderOption] `query:",inline"`
 
