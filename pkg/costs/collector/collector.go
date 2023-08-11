@@ -80,7 +80,7 @@ func (c *Collector) K8sCosts(
 		return nil, err
 	}
 
-	if mgntCost != nil {
+	if mgntCost != nil && mgntCost.TotalCost > 0 {
 		return append(ac, mgntCost), nil
 	}
 

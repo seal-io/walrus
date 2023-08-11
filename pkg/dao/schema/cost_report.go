@@ -89,67 +89,53 @@ func (CostReport) Fields() []ent.Field {
 		// Cost.
 		field.Float("totalCost").
 			Comment("Cost number.").
-			Default(0).
-			Min(0),
+			Default(0),
 		field.Int("currency").
 			Comment("Cost currency.").
 			Optional(),
 		field.Float("cpu_cost").
 			Comment("Cpu cost for current cost.").
-			Default(0).
-			Min(0),
+			Default(0),
 		field.Float("cpu_core_request").
 			Comment("Cpu core requested.").
 			Default(0).
-			Min(0).
 			Immutable(),
 		field.Float("gpu_cost").
 			Comment("GPU cost for current cost.").
-			Default(0).
-			Min(0),
+			Default(0),
 		field.Float("gpu_count").
 			Comment("GPU core count.").
 			Default(0).
-			Min(0).
 			Immutable(),
 		field.Float("ram_cost").
 			Comment("Ram cost for current cost.").
-			Default(0).
-			Min(0),
+			Default(0),
 		field.Float("ram_byte_request").
 			Comment("Ram requested in byte.").
 			Default(0).
-			Min(0).
 			Immutable(),
 		field.Float("pv_cost").
 			Comment("PV cost for current cost linked.").
-			Default(0).
-			Min(0),
+			Default(0),
 		field.Float("pv_bytes").
 			Comment("PV bytes for current cost linked.").
-			Default(0).
-			Min(0),
+			Default(0),
 		field.Float("load_balancer_cost").
 			Comment("LoadBalancer cost for current cost linked.").
-			Default(0).
-			Min(0),
+			Default(0),
 		// Usage.
 		field.Float("cpu_core_usage_average").
 			Comment("CPU core average usage.").
-			Default(0).
-			Min(0),
+			Default(0),
 		field.Float("cpu_core_usage_max").
 			Comment("CPU core max usage.").
-			Default(0).
-			Min(0),
+			Default(0),
 		field.Float("ram_byte_usage_average").
 			Comment("Ram average usage in byte.").
-			Default(0).
-			Min(0),
+			Default(0),
 		field.Float("ram_byte_usage_max").
 			Comment("Ram max usage in byte.").
-			Default(0).
-			Min(0),
+			Default(0),
 	}
 }
 
