@@ -58,11 +58,19 @@ func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteReq
 	})
 }
 
+var subjectQueryFields = []string{
+	subject.FieldName,
+}
+
 func (h Handler) CollectionGet(
 	ctx *gin.Context,
 	req view.CollectionGetRequest,
 ) (view.CollectionGetResponse, int, error) {
 	query := h.modelClient.SubjectRoleRelationships().Query()
+	if queries, ok := req.Querying(subjectQueryFields); ok {
+		query.Where(subjectrolerelationship.HasSubjectWith(queries))
+	}
+
 	if req.ProjectID != "" {
 		// Project scope.
 		query.Where(subjectrolerelationship.ProjectIDIn(req.ProjectID))
