@@ -151,60 +151,32 @@ var (
 	DefaultLabels map[string]string
 	// DefaultTotalCost holds the default value on creation for the "totalCost" field.
 	DefaultTotalCost float64
-	// TotalCostValidator is a validator for the "totalCost" field. It is called by the builders before save.
-	TotalCostValidator func(float64) error
 	// DefaultCPUCost holds the default value on creation for the "cpu_cost" field.
 	DefaultCPUCost float64
-	// CPUCostValidator is a validator for the "cpu_cost" field. It is called by the builders before save.
-	CPUCostValidator func(float64) error
 	// DefaultCPUCoreRequest holds the default value on creation for the "cpu_core_request" field.
 	DefaultCPUCoreRequest float64
-	// CPUCoreRequestValidator is a validator for the "cpu_core_request" field. It is called by the builders before save.
-	CPUCoreRequestValidator func(float64) error
 	// DefaultGpuCost holds the default value on creation for the "gpu_cost" field.
 	DefaultGpuCost float64
-	// GpuCostValidator is a validator for the "gpu_cost" field. It is called by the builders before save.
-	GpuCostValidator func(float64) error
 	// DefaultGpuCount holds the default value on creation for the "gpu_count" field.
 	DefaultGpuCount float64
-	// GpuCountValidator is a validator for the "gpu_count" field. It is called by the builders before save.
-	GpuCountValidator func(float64) error
 	// DefaultRAMCost holds the default value on creation for the "ram_cost" field.
 	DefaultRAMCost float64
-	// RAMCostValidator is a validator for the "ram_cost" field. It is called by the builders before save.
-	RAMCostValidator func(float64) error
 	// DefaultRAMByteRequest holds the default value on creation for the "ram_byte_request" field.
 	DefaultRAMByteRequest float64
-	// RAMByteRequestValidator is a validator for the "ram_byte_request" field. It is called by the builders before save.
-	RAMByteRequestValidator func(float64) error
 	// DefaultPvCost holds the default value on creation for the "pv_cost" field.
 	DefaultPvCost float64
-	// PvCostValidator is a validator for the "pv_cost" field. It is called by the builders before save.
-	PvCostValidator func(float64) error
 	// DefaultPvBytes holds the default value on creation for the "pv_bytes" field.
 	DefaultPvBytes float64
-	// PvBytesValidator is a validator for the "pv_bytes" field. It is called by the builders before save.
-	PvBytesValidator func(float64) error
 	// DefaultLoadBalancerCost holds the default value on creation for the "load_balancer_cost" field.
 	DefaultLoadBalancerCost float64
-	// LoadBalancerCostValidator is a validator for the "load_balancer_cost" field. It is called by the builders before save.
-	LoadBalancerCostValidator func(float64) error
 	// DefaultCPUCoreUsageAverage holds the default value on creation for the "cpu_core_usage_average" field.
 	DefaultCPUCoreUsageAverage float64
-	// CPUCoreUsageAverageValidator is a validator for the "cpu_core_usage_average" field. It is called by the builders before save.
-	CPUCoreUsageAverageValidator func(float64) error
 	// DefaultCPUCoreUsageMax holds the default value on creation for the "cpu_core_usage_max" field.
 	DefaultCPUCoreUsageMax float64
-	// CPUCoreUsageMaxValidator is a validator for the "cpu_core_usage_max" field. It is called by the builders before save.
-	CPUCoreUsageMaxValidator func(float64) error
 	// DefaultRAMByteUsageAverage holds the default value on creation for the "ram_byte_usage_average" field.
 	DefaultRAMByteUsageAverage float64
-	// RAMByteUsageAverageValidator is a validator for the "ram_byte_usage_average" field. It is called by the builders before save.
-	RAMByteUsageAverageValidator func(float64) error
 	// DefaultRAMByteUsageMax holds the default value on creation for the "ram_byte_usage_max" field.
 	DefaultRAMByteUsageMax float64
-	// RAMByteUsageMaxValidator is a validator for the "ram_byte_usage_max" field. It is called by the builders before save.
-	RAMByteUsageMaxValidator func(float64) error
 )
 
 // OrderOption defines the ordering options for the CostReport queries.

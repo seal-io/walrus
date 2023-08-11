@@ -328,61 +328,6 @@ func (cru *CostReportUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (cru *CostReportUpdate) check() error {
-	if v, ok := cru.mutation.TotalCost(); ok {
-		if err := costreport.TotalCostValidator(v); err != nil {
-			return &ValidationError{Name: "totalCost", err: fmt.Errorf(`model: validator failed for field "CostReport.totalCost": %w`, err)}
-		}
-	}
-	if v, ok := cru.mutation.CPUCost(); ok {
-		if err := costreport.CPUCostValidator(v); err != nil {
-			return &ValidationError{Name: "cpu_cost", err: fmt.Errorf(`model: validator failed for field "CostReport.cpu_cost": %w`, err)}
-		}
-	}
-	if v, ok := cru.mutation.GpuCost(); ok {
-		if err := costreport.GpuCostValidator(v); err != nil {
-			return &ValidationError{Name: "gpu_cost", err: fmt.Errorf(`model: validator failed for field "CostReport.gpu_cost": %w`, err)}
-		}
-	}
-	if v, ok := cru.mutation.RAMCost(); ok {
-		if err := costreport.RAMCostValidator(v); err != nil {
-			return &ValidationError{Name: "ram_cost", err: fmt.Errorf(`model: validator failed for field "CostReport.ram_cost": %w`, err)}
-		}
-	}
-	if v, ok := cru.mutation.PvCost(); ok {
-		if err := costreport.PvCostValidator(v); err != nil {
-			return &ValidationError{Name: "pv_cost", err: fmt.Errorf(`model: validator failed for field "CostReport.pv_cost": %w`, err)}
-		}
-	}
-	if v, ok := cru.mutation.PvBytes(); ok {
-		if err := costreport.PvBytesValidator(v); err != nil {
-			return &ValidationError{Name: "pv_bytes", err: fmt.Errorf(`model: validator failed for field "CostReport.pv_bytes": %w`, err)}
-		}
-	}
-	if v, ok := cru.mutation.LoadBalancerCost(); ok {
-		if err := costreport.LoadBalancerCostValidator(v); err != nil {
-			return &ValidationError{Name: "load_balancer_cost", err: fmt.Errorf(`model: validator failed for field "CostReport.load_balancer_cost": %w`, err)}
-		}
-	}
-	if v, ok := cru.mutation.CPUCoreUsageAverage(); ok {
-		if err := costreport.CPUCoreUsageAverageValidator(v); err != nil {
-			return &ValidationError{Name: "cpu_core_usage_average", err: fmt.Errorf(`model: validator failed for field "CostReport.cpu_core_usage_average": %w`, err)}
-		}
-	}
-	if v, ok := cru.mutation.CPUCoreUsageMax(); ok {
-		if err := costreport.CPUCoreUsageMaxValidator(v); err != nil {
-			return &ValidationError{Name: "cpu_core_usage_max", err: fmt.Errorf(`model: validator failed for field "CostReport.cpu_core_usage_max": %w`, err)}
-		}
-	}
-	if v, ok := cru.mutation.RAMByteUsageAverage(); ok {
-		if err := costreport.RAMByteUsageAverageValidator(v); err != nil {
-			return &ValidationError{Name: "ram_byte_usage_average", err: fmt.Errorf(`model: validator failed for field "CostReport.ram_byte_usage_average": %w`, err)}
-		}
-	}
-	if v, ok := cru.mutation.RAMByteUsageMax(); ok {
-		if err := costreport.RAMByteUsageMaxValidator(v); err != nil {
-			return &ValidationError{Name: "ram_byte_usage_max", err: fmt.Errorf(`model: validator failed for field "CostReport.ram_byte_usage_max": %w`, err)}
-		}
-	}
 	if _, ok := cru.mutation.ConnectorID(); cru.mutation.ConnectorCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "CostReport.connector"`)
 	}
@@ -889,61 +834,6 @@ func (cruo *CostReportUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (cruo *CostReportUpdateOne) check() error {
-	if v, ok := cruo.mutation.TotalCost(); ok {
-		if err := costreport.TotalCostValidator(v); err != nil {
-			return &ValidationError{Name: "totalCost", err: fmt.Errorf(`model: validator failed for field "CostReport.totalCost": %w`, err)}
-		}
-	}
-	if v, ok := cruo.mutation.CPUCost(); ok {
-		if err := costreport.CPUCostValidator(v); err != nil {
-			return &ValidationError{Name: "cpu_cost", err: fmt.Errorf(`model: validator failed for field "CostReport.cpu_cost": %w`, err)}
-		}
-	}
-	if v, ok := cruo.mutation.GpuCost(); ok {
-		if err := costreport.GpuCostValidator(v); err != nil {
-			return &ValidationError{Name: "gpu_cost", err: fmt.Errorf(`model: validator failed for field "CostReport.gpu_cost": %w`, err)}
-		}
-	}
-	if v, ok := cruo.mutation.RAMCost(); ok {
-		if err := costreport.RAMCostValidator(v); err != nil {
-			return &ValidationError{Name: "ram_cost", err: fmt.Errorf(`model: validator failed for field "CostReport.ram_cost": %w`, err)}
-		}
-	}
-	if v, ok := cruo.mutation.PvCost(); ok {
-		if err := costreport.PvCostValidator(v); err != nil {
-			return &ValidationError{Name: "pv_cost", err: fmt.Errorf(`model: validator failed for field "CostReport.pv_cost": %w`, err)}
-		}
-	}
-	if v, ok := cruo.mutation.PvBytes(); ok {
-		if err := costreport.PvBytesValidator(v); err != nil {
-			return &ValidationError{Name: "pv_bytes", err: fmt.Errorf(`model: validator failed for field "CostReport.pv_bytes": %w`, err)}
-		}
-	}
-	if v, ok := cruo.mutation.LoadBalancerCost(); ok {
-		if err := costreport.LoadBalancerCostValidator(v); err != nil {
-			return &ValidationError{Name: "load_balancer_cost", err: fmt.Errorf(`model: validator failed for field "CostReport.load_balancer_cost": %w`, err)}
-		}
-	}
-	if v, ok := cruo.mutation.CPUCoreUsageAverage(); ok {
-		if err := costreport.CPUCoreUsageAverageValidator(v); err != nil {
-			return &ValidationError{Name: "cpu_core_usage_average", err: fmt.Errorf(`model: validator failed for field "CostReport.cpu_core_usage_average": %w`, err)}
-		}
-	}
-	if v, ok := cruo.mutation.CPUCoreUsageMax(); ok {
-		if err := costreport.CPUCoreUsageMaxValidator(v); err != nil {
-			return &ValidationError{Name: "cpu_core_usage_max", err: fmt.Errorf(`model: validator failed for field "CostReport.cpu_core_usage_max": %w`, err)}
-		}
-	}
-	if v, ok := cruo.mutation.RAMByteUsageAverage(); ok {
-		if err := costreport.RAMByteUsageAverageValidator(v); err != nil {
-			return &ValidationError{Name: "ram_byte_usage_average", err: fmt.Errorf(`model: validator failed for field "CostReport.ram_byte_usage_average": %w`, err)}
-		}
-	}
-	if v, ok := cruo.mutation.RAMByteUsageMax(); ok {
-		if err := costreport.RAMByteUsageMaxValidator(v); err != nil {
-			return &ValidationError{Name: "ram_byte_usage_max", err: fmt.Errorf(`model: validator failed for field "CostReport.ram_byte_usage_max": %w`, err)}
-		}
-	}
 	if _, ok := cruo.mutation.ConnectorID(); cruo.mutation.ConnectorCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "CostReport.connector"`)
 	}

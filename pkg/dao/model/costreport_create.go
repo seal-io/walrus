@@ -530,114 +530,44 @@ func (crc *CostReportCreate) check() error {
 	if _, ok := crc.mutation.TotalCost(); !ok {
 		return &ValidationError{Name: "totalCost", err: errors.New(`model: missing required field "CostReport.totalCost"`)}
 	}
-	if v, ok := crc.mutation.TotalCost(); ok {
-		if err := costreport.TotalCostValidator(v); err != nil {
-			return &ValidationError{Name: "totalCost", err: fmt.Errorf(`model: validator failed for field "CostReport.totalCost": %w`, err)}
-		}
-	}
 	if _, ok := crc.mutation.CPUCost(); !ok {
 		return &ValidationError{Name: "cpu_cost", err: errors.New(`model: missing required field "CostReport.cpu_cost"`)}
-	}
-	if v, ok := crc.mutation.CPUCost(); ok {
-		if err := costreport.CPUCostValidator(v); err != nil {
-			return &ValidationError{Name: "cpu_cost", err: fmt.Errorf(`model: validator failed for field "CostReport.cpu_cost": %w`, err)}
-		}
 	}
 	if _, ok := crc.mutation.CPUCoreRequest(); !ok {
 		return &ValidationError{Name: "cpu_core_request", err: errors.New(`model: missing required field "CostReport.cpu_core_request"`)}
 	}
-	if v, ok := crc.mutation.CPUCoreRequest(); ok {
-		if err := costreport.CPUCoreRequestValidator(v); err != nil {
-			return &ValidationError{Name: "cpu_core_request", err: fmt.Errorf(`model: validator failed for field "CostReport.cpu_core_request": %w`, err)}
-		}
-	}
 	if _, ok := crc.mutation.GpuCost(); !ok {
 		return &ValidationError{Name: "gpu_cost", err: errors.New(`model: missing required field "CostReport.gpu_cost"`)}
-	}
-	if v, ok := crc.mutation.GpuCost(); ok {
-		if err := costreport.GpuCostValidator(v); err != nil {
-			return &ValidationError{Name: "gpu_cost", err: fmt.Errorf(`model: validator failed for field "CostReport.gpu_cost": %w`, err)}
-		}
 	}
 	if _, ok := crc.mutation.GpuCount(); !ok {
 		return &ValidationError{Name: "gpu_count", err: errors.New(`model: missing required field "CostReport.gpu_count"`)}
 	}
-	if v, ok := crc.mutation.GpuCount(); ok {
-		if err := costreport.GpuCountValidator(v); err != nil {
-			return &ValidationError{Name: "gpu_count", err: fmt.Errorf(`model: validator failed for field "CostReport.gpu_count": %w`, err)}
-		}
-	}
 	if _, ok := crc.mutation.RAMCost(); !ok {
 		return &ValidationError{Name: "ram_cost", err: errors.New(`model: missing required field "CostReport.ram_cost"`)}
-	}
-	if v, ok := crc.mutation.RAMCost(); ok {
-		if err := costreport.RAMCostValidator(v); err != nil {
-			return &ValidationError{Name: "ram_cost", err: fmt.Errorf(`model: validator failed for field "CostReport.ram_cost": %w`, err)}
-		}
 	}
 	if _, ok := crc.mutation.RAMByteRequest(); !ok {
 		return &ValidationError{Name: "ram_byte_request", err: errors.New(`model: missing required field "CostReport.ram_byte_request"`)}
 	}
-	if v, ok := crc.mutation.RAMByteRequest(); ok {
-		if err := costreport.RAMByteRequestValidator(v); err != nil {
-			return &ValidationError{Name: "ram_byte_request", err: fmt.Errorf(`model: validator failed for field "CostReport.ram_byte_request": %w`, err)}
-		}
-	}
 	if _, ok := crc.mutation.PvCost(); !ok {
 		return &ValidationError{Name: "pv_cost", err: errors.New(`model: missing required field "CostReport.pv_cost"`)}
-	}
-	if v, ok := crc.mutation.PvCost(); ok {
-		if err := costreport.PvCostValidator(v); err != nil {
-			return &ValidationError{Name: "pv_cost", err: fmt.Errorf(`model: validator failed for field "CostReport.pv_cost": %w`, err)}
-		}
 	}
 	if _, ok := crc.mutation.PvBytes(); !ok {
 		return &ValidationError{Name: "pv_bytes", err: errors.New(`model: missing required field "CostReport.pv_bytes"`)}
 	}
-	if v, ok := crc.mutation.PvBytes(); ok {
-		if err := costreport.PvBytesValidator(v); err != nil {
-			return &ValidationError{Name: "pv_bytes", err: fmt.Errorf(`model: validator failed for field "CostReport.pv_bytes": %w`, err)}
-		}
-	}
 	if _, ok := crc.mutation.LoadBalancerCost(); !ok {
 		return &ValidationError{Name: "load_balancer_cost", err: errors.New(`model: missing required field "CostReport.load_balancer_cost"`)}
-	}
-	if v, ok := crc.mutation.LoadBalancerCost(); ok {
-		if err := costreport.LoadBalancerCostValidator(v); err != nil {
-			return &ValidationError{Name: "load_balancer_cost", err: fmt.Errorf(`model: validator failed for field "CostReport.load_balancer_cost": %w`, err)}
-		}
 	}
 	if _, ok := crc.mutation.CPUCoreUsageAverage(); !ok {
 		return &ValidationError{Name: "cpu_core_usage_average", err: errors.New(`model: missing required field "CostReport.cpu_core_usage_average"`)}
 	}
-	if v, ok := crc.mutation.CPUCoreUsageAverage(); ok {
-		if err := costreport.CPUCoreUsageAverageValidator(v); err != nil {
-			return &ValidationError{Name: "cpu_core_usage_average", err: fmt.Errorf(`model: validator failed for field "CostReport.cpu_core_usage_average": %w`, err)}
-		}
-	}
 	if _, ok := crc.mutation.CPUCoreUsageMax(); !ok {
 		return &ValidationError{Name: "cpu_core_usage_max", err: errors.New(`model: missing required field "CostReport.cpu_core_usage_max"`)}
-	}
-	if v, ok := crc.mutation.CPUCoreUsageMax(); ok {
-		if err := costreport.CPUCoreUsageMaxValidator(v); err != nil {
-			return &ValidationError{Name: "cpu_core_usage_max", err: fmt.Errorf(`model: validator failed for field "CostReport.cpu_core_usage_max": %w`, err)}
-		}
 	}
 	if _, ok := crc.mutation.RAMByteUsageAverage(); !ok {
 		return &ValidationError{Name: "ram_byte_usage_average", err: errors.New(`model: missing required field "CostReport.ram_byte_usage_average"`)}
 	}
-	if v, ok := crc.mutation.RAMByteUsageAverage(); ok {
-		if err := costreport.RAMByteUsageAverageValidator(v); err != nil {
-			return &ValidationError{Name: "ram_byte_usage_average", err: fmt.Errorf(`model: validator failed for field "CostReport.ram_byte_usage_average": %w`, err)}
-		}
-	}
 	if _, ok := crc.mutation.RAMByteUsageMax(); !ok {
 		return &ValidationError{Name: "ram_byte_usage_max", err: errors.New(`model: missing required field "CostReport.ram_byte_usage_max"`)}
-	}
-	if v, ok := crc.mutation.RAMByteUsageMax(); ok {
-		if err := costreport.RAMByteUsageMaxValidator(v); err != nil {
-			return &ValidationError{Name: "ram_byte_usage_max", err: fmt.Errorf(`model: validator failed for field "CostReport.ram_byte_usage_max": %w`, err)}
-		}
 	}
 	if _, ok := crc.mutation.ConnectorID(); !ok {
 		return &ValidationError{Name: "connector", err: errors.New(`model: missing required edge "CostReport.connector"`)}
