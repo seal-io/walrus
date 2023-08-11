@@ -60,7 +60,7 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 				{
 					Actions: types.RolePolicyFields(http.MethodGet),
 					Resources: types.RolePolicyFields(
-						"variables", "connectors", "environments", "catalog",
+						"variables", "connectors", "environments", "catalogs",
 						"templates", "templateVersions", "templateCompletions",
 						"perspectives", "settings", "roles"),
 				},
@@ -90,7 +90,7 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 				{
 					Actions: types.RolePolicyFields("*"),
 					Resources: types.RolePolicyFields(
-						"variables", "connectors", "catalog", "templates",
+						"variables", "connectors", "catalogs", "templates",
 						"templateVersions", "templateCompletions",
 						"settings"),
 				},
