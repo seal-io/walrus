@@ -82,7 +82,7 @@ func TestParseInstanceID(t *testing.T) {
 	}
 }
 
-func TestParseProvidreString(t *testing.T) {
+func TestParseProviderString(t *testing.T) {
 	testCases := []struct {
 		input          string
 		expectedOutput *AbsProviderConfig

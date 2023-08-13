@@ -59,7 +59,7 @@ type (
 	  	},
 	  }
 	  block2.Print("hcl") will generate the string:
-	  data "lable1" "label2" {
+	  data "label1" "label2" {
 	  	  test = "test"
 	  }
 

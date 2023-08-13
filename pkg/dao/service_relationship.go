@@ -158,7 +158,7 @@ func serviceRelationshipGetDependencies(
 			copy(path, d.Path)
 			path = append(path, entity.ID)
 
-			denpendency := &model.ServiceRelationship{
+			dependency := &model.ServiceRelationship{
 				ServiceID:    entity.ID,
 				DependencyID: d.ServiceID,
 				Type:         types.ServiceRelationshipTypeImplicit,
@@ -166,11 +166,11 @@ func serviceRelationshipGetDependencies(
 			}
 
 			// Check if there is a dependency cycle.
-			if existCycle := ServiceRelationshipCheckCycle(denpendency); existCycle {
+			if existCycle := ServiceRelationshipCheckCycle(dependency); existCycle {
 				return nil, errors.New("service dependency contains cycle")
 			}
 
-			dependencies = append(dependencies, denpendency)
+			dependencies = append(dependencies, dependency)
 		}
 	}
 
