@@ -90,7 +90,7 @@ type CreateJobOptions struct {
 
 // _backendAPI the API path to terraform deploy backend.
 // Terraform will get and update deployment states from this API.
-const _backendAPI = "/v1/projects/%s/environments/%s/services/%s/service-revisions/%s/terraform-states"
+const _backendAPI = "/v1/projects/%s/environments/%s/services/%s/revisions/%s/terraform-states"
 
 // _variablePrefix the prefix of the variable name.
 const _variablePrefix = "_seal_var_"
