@@ -129,7 +129,7 @@ func SetKeys(
 
 		cache[entity.ID] = entity
 
-		if IsOperatable(entity) && entity.Edges.Connector != nil {
+		if IsOperable(entity) && entity.Edges.Connector != nil {
 			var err error
 
 			op, ok := operators[entity.Edges.Connector.ID]
@@ -177,7 +177,7 @@ func GetGraphVertexType(m *model.ServiceResource) string {
 	return types.VertexKindServiceResource
 }
 
-func IsOperatable(m *model.ServiceResource) bool {
+func IsOperable(m *model.ServiceResource) bool {
 	return m.Shape == types.ServiceResourceShapeInstance &&
 		(m.Mode == types.ServiceResourceModeManaged || m.Mode == types.ServiceResourceModeDiscovered)
 }

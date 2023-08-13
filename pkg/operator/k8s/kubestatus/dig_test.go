@@ -82,7 +82,7 @@ func Test_digPodErrorReason(t *testing.T) {
 						Name: "init-volume",
 						State: core.ContainerState{
 							Waiting: &core.ContainerStateWaiting{
-								Message: `Back-off pulling image "volume-path-parser:apline"`,
+								Message: `Back-off pulling image "volume-path-parser:alpine"`,
 								Reason:  "ImagePullBackOff",
 							},
 						},
@@ -97,7 +97,7 @@ func Test_digPodErrorReason(t *testing.T) {
 					},
 				},
 			},
-			expected: `Init Container "init-volume": ImagePullBackOff, Back-off pulling image "volume-path-parser:apline"`,
+			expected: `Init Container "init-volume": ImagePullBackOff, Back-off pulling image "volume-path-parser:alpine"`,
 		},
 		{
 			name: "container terminate by signal",
@@ -123,14 +123,14 @@ func Test_digPodErrorReason(t *testing.T) {
 						Name: "nginx",
 						State: core.ContainerState{
 							Waiting: &core.ContainerStateWaiting{
-								Message: `Back-off pulling image "nginx:apline"`,
+								Message: `Back-off pulling image "nginx:alpine"`,
 								Reason:  "ImagePullBackOff",
 							},
 						},
 					},
 				},
 			},
-			expected: `Container "nginx": ImagePullBackOff, Back-off pulling image "nginx:apline"`,
+			expected: `Container "nginx": ImagePullBackOff, Back-off pulling image "nginx:alpine"`,
 		},
 	}
 	for _, tc := range testCases {
