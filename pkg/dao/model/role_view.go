@@ -147,7 +147,9 @@ func (rci *RoleCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) err
 
 // RoleDeleteInput holds the deletion input of the Role entity,
 // please tags with `path:",inline"` if embedding.
-type RoleDeleteInput = RoleQueryInput
+type RoleDeleteInput struct {
+	RoleQueryInput `path:",inline"`
+}
 
 // RoleDeleteInputs holds the deletion input item of the Role entities.
 type RoleDeleteInputsItem struct {

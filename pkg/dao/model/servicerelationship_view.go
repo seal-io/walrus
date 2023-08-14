@@ -158,7 +158,9 @@ func (srci *ServiceRelationshipCreateInputs) ValidateWith(ctx context.Context, c
 
 // ServiceRelationshipDeleteInput holds the deletion input of the ServiceRelationship entity,
 // please tags with `path:",inline"` if embedding.
-type ServiceRelationshipDeleteInput = ServiceRelationshipQueryInput
+type ServiceRelationshipDeleteInput struct {
+	ServiceRelationshipQueryInput `path:",inline"`
+}
 
 // ServiceRelationshipDeleteInputs holds the deletion input item of the ServiceRelationship entities.
 type ServiceRelationshipDeleteInputsItem struct {

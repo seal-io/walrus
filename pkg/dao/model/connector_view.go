@@ -223,7 +223,9 @@ func (cci *ConnectorCreateInputs) ValidateWith(ctx context.Context, cs ClientSet
 
 // ConnectorDeleteInput holds the deletion input of the Connector entity,
 // please tags with `path:",inline"` if embedding.
-type ConnectorDeleteInput = ConnectorQueryInput
+type ConnectorDeleteInput struct {
+	ConnectorQueryInput `path:",inline"`
+}
 
 // ConnectorDeleteInputs holds the deletion input item of the Connector entities.
 type ConnectorDeleteInputsItem struct {

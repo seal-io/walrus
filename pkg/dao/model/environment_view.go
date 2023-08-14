@@ -275,7 +275,9 @@ func (eci *EnvironmentCreateInputs) ValidateWith(ctx context.Context, cs ClientS
 
 // EnvironmentDeleteInput holds the deletion input of the Environment entity,
 // please tags with `path:",inline"` if embedding.
-type EnvironmentDeleteInput = EnvironmentQueryInput
+type EnvironmentDeleteInput struct {
+	EnvironmentQueryInput `path:",inline"`
+}
 
 // EnvironmentDeleteInputs holds the deletion input item of the Environment entities.
 type EnvironmentDeleteInputsItem struct {

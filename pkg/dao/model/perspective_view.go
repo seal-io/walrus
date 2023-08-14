@@ -172,7 +172,9 @@ func (pci *PerspectiveCreateInputs) ValidateWith(ctx context.Context, cs ClientS
 
 // PerspectiveDeleteInput holds the deletion input of the Perspective entity,
 // please tags with `path:",inline"` if embedding.
-type PerspectiveDeleteInput = PerspectiveQueryInput
+type PerspectiveDeleteInput struct {
+	PerspectiveQueryInput `path:",inline"`
+}
 
 // PerspectiveDeleteInputs holds the deletion input item of the Perspective entities.
 type PerspectiveDeleteInputsItem struct {

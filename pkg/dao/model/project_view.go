@@ -148,7 +148,9 @@ func (pci *ProjectCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 
 // ProjectDeleteInput holds the deletion input of the Project entity,
 // please tags with `path:",inline"` if embedding.
-type ProjectDeleteInput = ProjectQueryInput
+type ProjectDeleteInput struct {
+	ProjectQueryInput `path:",inline"`
+}
 
 // ProjectDeleteInputs holds the deletion input item of the Project entities.
 type ProjectDeleteInputsItem struct {

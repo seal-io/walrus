@@ -303,7 +303,9 @@ func (crci *CostReportCreateInputs) ValidateWith(ctx context.Context, cs ClientS
 
 // CostReportDeleteInput holds the deletion input of the CostReport entity,
 // please tags with `path:",inline"` if embedding.
-type CostReportDeleteInput = CostReportQueryInput
+type CostReportDeleteInput struct {
+	CostReportQueryInput `path:",inline"`
+}
 
 // CostReportDeleteInputs holds the deletion input item of the CostReport entities.
 type CostReportDeleteInputsItem struct {

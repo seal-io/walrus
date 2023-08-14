@@ -220,7 +220,9 @@ func (vci *VariableCreateInputs) ValidateWith(ctx context.Context, cs ClientSet)
 
 // VariableDeleteInput holds the deletion input of the Variable entity,
 // please tags with `path:",inline"` if embedding.
-type VariableDeleteInput = VariableQueryInput
+type VariableDeleteInput struct {
+	VariableQueryInput `path:",inline"`
+}
 
 // VariableDeleteInputs holds the deletion input item of the Variable entities.
 type VariableDeleteInputsItem struct {

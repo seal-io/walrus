@@ -154,7 +154,9 @@ func (tvci *TemplateVersionCreateInputs) ValidateWith(ctx context.Context, cs Cl
 
 // TemplateVersionDeleteInput holds the deletion input of the TemplateVersion entity,
 // please tags with `path:",inline"` if embedding.
-type TemplateVersionDeleteInput = TemplateVersionQueryInput
+type TemplateVersionDeleteInput struct {
+	TemplateVersionQueryInput `path:",inline"`
+}
 
 // TemplateVersionDeleteInputs holds the deletion input item of the TemplateVersion entities.
 type TemplateVersionDeleteInputsItem struct {
