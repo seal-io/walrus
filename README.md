@@ -1,6 +1,16 @@
-# Seal
+<br>
 
-Seal is an open-source platform that simplifies application deployment and management on any infrastructure. 
+<p align="center">
+    <img src="docs/assets/logo.png" width="300"/>
+</p>
+<br>
+
+<p align="center">
+        English&nbsp | &nbsp<a href="docs/README_CN.md">中文</a>&nbsp
+</p>
+<br>
+
+Seal is an open-source application management platform that simplifies application deployment and management on any infrastructure. 
 It helps platform engineers build golden paths for developers and empowers developers with self-service capabilities.
 
 # Quick Start
@@ -17,7 +27,9 @@ Please see [the official docs site](https://seal-io.github.io/docs/) for complet
 
 # Community and Support
 
-If you need any help, please join us at [Discord](https://discord.gg/fXZUKK2baF).
+If you need any help, please join us at
+- [Discord](https://discord.gg/fXZUKK2baF)
+- [WeChat](docs/WECHAT_CN.md)
 
 Feel free to [file an issue](https://github.com/seal-io/seal/issues/new) if you have any feedback or questions.
 
