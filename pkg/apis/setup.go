@@ -67,7 +67,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 			"/metrics",
 			"/debug/version"),
 		runtime.ExposeOpenAPI(),
-		runtime.WithResourceRouteAdviceProviders(provideModelClient(opts.ModelClient)),
+		runtime.WithRouteAdviceProviders(provideModelClient(opts.ModelClient)),
 		runtime.WithResourceAuthorizer(account),
 	}
 
@@ -106,18 +106,18 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		Use(throttler, wsCounter, account.Filter)
 	{
 		r := resourceApis
-		r.Resource(catalog.Handle(opts.ModelClient))
-		r.Resource(connector.Handle(opts.ModelClient))
-		r.Resource(cost.Handle(opts.ModelClient))
-		r.Resource(dashboard.Handle(opts.ModelClient))
-		r.Resource(perspective.Handle(opts.ModelClient))
-		r.Resource(project.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
-		r.Resource(role.Handle(opts.ModelClient))
-		r.Resource(setting.Handle(opts.ModelClient))
-		r.Resource(subject.Handle(opts.ModelClient))
-		r.Resource(template.Handle(opts.ModelClient))
-		r.Resource(templatecompletion.Handle(opts.ModelClient))
-		r.Resource(variable.Handle(opts.ModelClient))
+		r.Routes(catalog.Handle(opts.ModelClient))
+		r.Routes(connector.Handle(opts.ModelClient))
+		r.Routes(cost.Handle(opts.ModelClient))
+		r.Routes(dashboard.Handle(opts.ModelClient))
+		r.Routes(perspective.Handle(opts.ModelClient))
+		r.Routes(project.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
+		r.Routes(role.Handle(opts.ModelClient))
+		r.Routes(setting.Handle(opts.ModelClient))
+		r.Routes(subject.Handle(opts.ModelClient))
+		r.Routes(template.Handle(opts.ModelClient))
+		r.Routes(templatecompletion.Handle(opts.ModelClient))
+		r.Routes(variable.Handle(opts.ModelClient))
 	}
 
 	debugApis := apis.Group("/debug")

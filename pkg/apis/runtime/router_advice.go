@@ -5,21 +5,21 @@ import (
 )
 
 type (
-	// ResourceRouteAdviceReceiver represents the type that can receive advice.
-	ResourceRouteAdviceReceiver any
+	// RouteAdviceReceiver represents the type that can receive advice.
+	RouteAdviceReceiver any
 
-	// ResourceRouteAdviceProvider is a provider to provide advice to the request
+	// RouteAdviceProvider is a provider to provide advice to the request
 	// of the routes belongs to a IResourceHandler.
-	ResourceRouteAdviceProvider interface {
-		// CanSet validates the given ResourceRouteAdviceReceiver can be set or not in prepare phase,
-		// returns true if the given ResourceRouteAdviceReceiver can be injected.
-		// The given ResourceRouteAdviceReceiver is stateless,
+	RouteAdviceProvider interface {
+		// CanSet validates the given RouteAdviceReceiver can be set or not in prepare phase,
+		// returns true if the given RouteAdviceReceiver can be injected.
+		// The given RouteAdviceReceiver is stateless,
 		// please do not perform additional operations on it.
-		CanSet(ResourceRouteAdviceReceiver) bool
+		CanSet(RouteAdviceReceiver) bool
 
-		// Set injects the valid ResourceRouteAdviceReceiver by this provider before validating,
+		// Set injects the valid RouteAdviceReceiver by this provider before validating,
 		// the provider should set the corresponding advice to the target.
-		Set(ResourceRouteAdviceReceiver)
+		Set(RouteAdviceReceiver)
 	}
 )
 
@@ -47,16 +47,16 @@ type (
 	}
 )
 
-// WithResourceRouteAdviceProviders is a RouterOption to configure the advice providers
+// WithRouteAdviceProviders is a RouterOption to configure the advice providers
 // for the routes of IResourceHandler.
-func WithResourceRouteAdviceProviders(providers ...ResourceRouteAdviceProvider) RouterOption {
+func WithRouteAdviceProviders(providers ...RouteAdviceProvider) RouterOption {
 	return routerOption(func(r *Router) {
 		for i := range providers {
 			if providers[i] == nil {
 				continue
 			}
 
-			r.resourceRouteAdviceProviders = append(r.resourceRouteAdviceProviders, providers[i])
+			r.adviceProviders = append(r.adviceProviders, providers[i])
 		}
 	})
 }

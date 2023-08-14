@@ -65,8 +65,8 @@ func (a Account) Filter(c *gin.Context) {
 	c.Next()
 }
 
-// Authorize implements the runtime.ResourceRouteAuthorizer interface.
-func (a Account) Authorize(c *gin.Context, p runtime.ResourceRouteProfile) int {
+// Authorize implements the runtime.RouteAuthorizer interface.
+func (a Account) Authorize(c *gin.Context, p runtime.RouteProfile) int {
 	sj, err := session.GetSubject(c)
 	if err != nil {
 		return http.StatusUnauthorized

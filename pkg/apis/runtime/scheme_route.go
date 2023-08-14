@@ -46,7 +46,7 @@ const (
 	contentInJSON = "json"
 )
 
-func schemeRoute(bp string, r *ResourceRoute) error {
+func schemeRoute(bp string, r *Route) error {
 	// Get operation.
 	op, err := getOperationSchema(r)
 	if err != nil {
@@ -71,7 +71,7 @@ func schemeRoute(bp string, r *ResourceRoute) error {
 	return nil
 }
 
-func getOperationSchema(r *ResourceRoute) (*openapi3.Operation, error) {
+func getOperationSchema(r *Route) (*openapi3.Operation, error) {
 	op := &openapi3.Operation{
 		Tags:        []string{strs.Pluralize(r.Kinds[len(r.Kinds)-1])},
 		OperationID: hash.SumStrings(r.Method, r.Path),
@@ -110,7 +110,7 @@ func getOperationSchema(r *ResourceRoute) (*openapi3.Operation, error) {
 	return op, nil
 }
 
-func getOperationSummaryAndDescription(r *ResourceRoute) (summary, description string) {
+func getOperationSummaryAndDescription(r *Route) (summary, description string) {
 	var sb strings.Builder
 
 	if r.Custom {
@@ -179,7 +179,7 @@ const (
 	stringTypeFormatByte   = "byte"
 )
 
-func getOperationParameters(r *ResourceRoute) (openapi3.Parameters, error) {
+func getOperationParameters(r *Route) (openapi3.Parameters, error) {
 	// Get knowledge of path parameters.
 	pathValidParamIndex := make(map[string]int)
 
@@ -314,7 +314,7 @@ func getOperationWebsocketAdditionalParameters() openapi3.Parameters {
 	}
 }
 
-func getOperationRequestBody(r *ResourceRoute) *openapi3.RequestBodyRef {
+func getOperationRequestBody(r *Route) *openapi3.RequestBodyRef {
 	if r.Method == http.MethodGet {
 		return nil
 	}
@@ -365,7 +365,7 @@ func getOperationRequestBody(r *ResourceRoute) *openapi3.RequestBodyRef {
 	}
 }
 
-func getOperationHTTPResponses(r *ResourceRoute) openapi3.Responses {
+func getOperationHTTPResponses(r *Route) openapi3.Responses {
 	schemaRef := getSchemaOfGoType(r.Kinds, r.ResponseType, contentInJSON, nil)
 
 	contentType := binding.MIMEJSON

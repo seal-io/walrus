@@ -104,13 +104,13 @@ func (x X) SetStream(_ RequestUnidiStream) {}
 func Test_getOperationSummaryAndDescription(t *testing.T) {
 	testCases := []struct {
 		name     string
-		given    ResourceRoute
+		given    Route
 		expected string
 	}{
 		{
 			name: "standard post",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					ResourceProfile: ResourceProfile{
 						Kinds: []string{"Project"},
 					},
@@ -121,8 +121,8 @@ func Test_getOperationSummaryAndDescription(t *testing.T) {
 		},
 		{
 			name: "standard collection get with one prerequisite kinds",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					ResourceProfile: ResourceProfile{
 						Kinds: []string{"Project", "Environment"},
 					},
@@ -134,8 +134,8 @@ func Test_getOperationSummaryAndDescription(t *testing.T) {
 		},
 		{
 			name: "standard update with two prerequisite kinds",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					ResourceProfile: ResourceProfile{
 						Kinds: []string{"Project", "Environment", "Service"},
 					},
@@ -147,8 +147,8 @@ func Test_getOperationSummaryAndDescription(t *testing.T) {
 		},
 		{
 			name: "standard collection delete with three prerequisite kinds",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					ResourceProfile: ResourceProfile{
 						Kinds: []string{"Project", "Environment", "Service", "ServiceRevision"},
 					},
@@ -160,8 +160,8 @@ func Test_getOperationSummaryAndDescription(t *testing.T) {
 		},
 		{
 			name: "long description",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					ResourceProfile: ResourceProfile{
 						Kinds: []string{
 							"Galaxy",
@@ -184,8 +184,8 @@ func Test_getOperationSummaryAndDescription(t *testing.T) {
 		},
 		{
 			name: "skip same prefix",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					ResourceProfile: ResourceProfile{
 						Kinds: []string{
 							"Galaxy",
@@ -208,8 +208,8 @@ func Test_getOperationSummaryAndDescription(t *testing.T) {
 		},
 		{
 			name: "custom get",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					ResourceProfile: ResourceProfile{
 						Kinds: []string{"Dashboard"},
 					},
@@ -222,8 +222,8 @@ func Test_getOperationSummaryAndDescription(t *testing.T) {
 		},
 		{
 			name: "custom post",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					ResourceProfile: ResourceProfile{
 						Kinds: []string{"Connector"},
 					},
@@ -247,13 +247,13 @@ func Test_getOperationSummaryAndDescription(t *testing.T) {
 func Test_getOperationParameters(t *testing.T) {
 	testCases := []struct {
 		name     string
-		given    ResourceRoute
+		given    Route
 		expected openapi3.Parameters
 	}{
 		{
 			name: "general struct",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Method: http.MethodGet,
 					Path:   "/v1/tests/:stringPath",
 				},
@@ -294,8 +294,8 @@ func Test_getOperationParameters(t *testing.T) {
 		},
 		{
 			name: "inline struct",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Path: "/v1/tests/:stringPath",
 				},
 				RequestType: reflect.TypeOf(B{}),
@@ -331,8 +331,8 @@ func Test_getOperationParameters(t *testing.T) {
 		},
 		{
 			name: "inline slice",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Path: "/v1/tests/:stringPath",
 				},
 				RequestType: reflect.TypeOf(C{}),
@@ -343,8 +343,8 @@ func Test_getOperationParameters(t *testing.T) {
 		},
 		{
 			name: "inline map",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Path: "/v1/tests/:stringPath",
 				},
 				RequestType: reflect.TypeOf(D{}),
@@ -355,8 +355,8 @@ func Test_getOperationParameters(t *testing.T) {
 		},
 		{
 			name: "inline basic value",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Path: "/v1/tests/:stringPath",
 				},
 				RequestType: reflect.TypeOf(E{}),
@@ -367,8 +367,8 @@ func Test_getOperationParameters(t *testing.T) {
 		},
 		{
 			name: "inline circular dependency struct",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Path: "/v1/tests/:stringPath",
 				},
 				RequestType: reflect.TypeOf(F{}),
@@ -415,13 +415,13 @@ func Test_getOperationParameters(t *testing.T) {
 func Test_getOperationRequestBody(t *testing.T) {
 	testCases := []struct {
 		name     string
-		given    ResourceRoute
+		given    Route
 		expected *openapi3.RequestBodyRef
 	}{
 		{
 			name: "create general struct",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Method: http.MethodPost,
 					Path:   "/v1/tests",
 				},
@@ -479,8 +479,8 @@ func Test_getOperationRequestBody(t *testing.T) {
 		},
 		{
 			name: "get general struct",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Method: http.MethodGet,
 					Path:   "/v1/tests/:stringPath",
 				},
@@ -490,8 +490,8 @@ func Test_getOperationRequestBody(t *testing.T) {
 		},
 		{
 			name: "update inline struct",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Method: http.MethodPut,
 					Path:   "/v1/tests/:stringPath",
 				},
@@ -540,8 +540,8 @@ func Test_getOperationRequestBody(t *testing.T) {
 		},
 		{
 			name: "delete inline struct",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Method: http.MethodDelete,
 					Path:   "/v1/tests/:stringPath",
 				},
@@ -590,8 +590,8 @@ func Test_getOperationRequestBody(t *testing.T) {
 		},
 		{
 			name: "create inline slice",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Method: http.MethodPost,
 					Path:   "/v1/tests",
 				},
@@ -642,8 +642,8 @@ func Test_getOperationRequestBody(t *testing.T) {
 		},
 		{
 			name: "create inline slice without form tag",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Method: http.MethodPost,
 					Path:   "/v1/tests",
 				},
@@ -705,13 +705,13 @@ func Test_getOperationRequestBody(t *testing.T) {
 func Test_getOperationHTTPResponses(t *testing.T) {
 	testCases := []struct {
 		name     string
-		given    ResourceRoute
+		given    Route
 		expected openapi3.Responses
 	}{
 		{
 			name: "get with generate struct response",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Method: http.MethodGet,
 					Path:   "/v1/tests/:stringPath",
 				},
@@ -767,8 +767,8 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 		},
 		{
 			name: "create with inline struct response",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Method: http.MethodPost,
 					Path:   "/v1/tests",
 				},
@@ -824,8 +824,8 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 		},
 		{
 			name: "get with inline slice response",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Method: http.MethodGet,
 					Path:   "/v1/tests",
 				},
@@ -883,8 +883,8 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 		},
 		{
 			name: "get with inline map response",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Method: http.MethodGet,
 					Path:   "/v1/tests",
 				},
@@ -914,8 +914,8 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 		},
 		{
 			name: "get with inline slice paging response",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Method: http.MethodGet,
 					Path:   "/v1/tests",
 				},
@@ -984,8 +984,8 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 		},
 		{
 			name: "get with binary",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Method: http.MethodGet,
 					Path:   "/v1/tests",
 				},
@@ -1013,8 +1013,8 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 		},
 		{
 			name: "get with bytes",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Method: http.MethodGet,
 					Path:   "/v1/tests",
 				},
@@ -1042,8 +1042,8 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 		},
 		{
 			name: "create without response",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Method: http.MethodPost,
 					Path:   "/v1/tests",
 				},
@@ -1075,8 +1075,8 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 		},
 		{
 			name: "update without response",
-			given: ResourceRoute{
-				ResourceRouteProfile: ResourceRouteProfile{
+			given: Route{
+				RouteProfile: RouteProfile{
 					Method: http.MethodPut,
 					Path:   "/v1/tests",
 				},

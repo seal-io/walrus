@@ -40,7 +40,7 @@ var (
 	}
 )
 
-func extendOperationSchema(r *ResourceRoute, op *openapi3.Operation) {
+func extendOperationSchema(r *Route, op *openapi3.Operation) {
 	if op.Extensions == nil {
 		op.Extensions = make(map[string]any)
 	}

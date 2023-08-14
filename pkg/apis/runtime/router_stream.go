@@ -30,7 +30,7 @@ func IsUnidiStreamRequest(c *gin.Context) bool {
 }
 
 // doUnidiStreamRequest handles the unidirectional stream request.
-func doUnidiStreamRequest(c *gin.Context, route ResourceRoute, routeInput reflect.Value) {
+func doUnidiStreamRequest(c *gin.Context, route Route, routeInput reflect.Value) {
 	logger := log.WithName("api")
 
 	// Ensure chunked request.
@@ -103,7 +103,7 @@ func IsBidiStreamRequest(c *gin.Context) bool {
 }
 
 // doBidiStreamRequest handles the bidirectional stream request.
-func doBidiStreamRequest(c *gin.Context, route ResourceRoute, routeInput reflect.Value) {
+func doBidiStreamRequest(c *gin.Context, route Route, routeInput reflect.Value) {
 	logger := log.WithName("api")
 
 	const (
