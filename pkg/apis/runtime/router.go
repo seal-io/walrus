@@ -50,8 +50,10 @@ type (
 		// Put registers PUT router to serve the handler.
 		Put(string, IHandler) IRouter
 
-		// Routes reflects the function descriptors of the IResourceHandler,
-		// and registers as routers if satisfy the below rules.
+		// Routes registers the reflected routes of a IHandler.
+		//
+		// Routes reflects the function descriptors as the below rules,
+		// if the handler implements IResourceHandler as well.
 		//
 		//	Input : struct type.
 		//	Output: any types.
@@ -66,9 +68,6 @@ type (
 		//	 ->    PUT /<plural>/:id
 		//	func Delete(<Input>) error
 		//	 -> DELETE /<plural>/:id
-		//
-		//	* Batch APIs
-		//
 		//	func CollectionCreate(<Input>) (<Output>, error)
 		//	 ->   POST /<plural>/_/batch
 		//	func CollectionGet(<Input>) (<Output>, (int,) error)
@@ -84,7 +83,16 @@ type (
 		//	 -> method /<plural>/:id/<subpath>(?watch=true)
 		//	func CollectionRoute<Something>(<Input(route:method=subpath)>) ((<Output>), (int,) error)
 		//	 -> method /<plural>/_/<subpath>(?watch=true)
-		Routes(IResourceHandler) IRouter
+		//
+		// Otherwise, Routes tries to reflect the function descriptors as the below rules.
+		//
+		//	Input : struct type.
+		//	Output: any types.
+		//
+		//	func <Anything>(<Input(route:method=path)>) ((<Output>), (int,) error)
+		//	 -> method /<path>(?watch=true)
+		//
+		Routes(IHandler) IRouter
 	}
 )
 

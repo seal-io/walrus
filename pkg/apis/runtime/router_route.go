@@ -20,8 +20,8 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
-func (rt *Router) Routes(handler IResourceHandler) IRouter {
-	routes := routeHandler(rt.GroupRelativePath(), handler, ResourceProfile{}, nil)
+func (rt *Router) Routes(handler IHandler) IRouter {
+	routes := routeHandler(rt.GroupRelativePath(), ResourceProfile{}, handler, nil)
 
 	for i := range routes {
 		route := routes[i]
@@ -267,6 +267,7 @@ const (
 
 // Route holds the information of a resource route.
 type Route struct {
+	// RouteProfile holds the profile of a route.
 	RouteProfile
 
 	// GoCaller holds the reflect.Value of the method to call.
@@ -294,6 +295,9 @@ type Route struct {
 
 // RouteProfile holds the profile of a route.
 type RouteProfile struct {
+	// ResourceProfile holds the resource profile of a route,
+	// if the route is no belong to a IResourceHandler,
+	// the ResourceProfile will be zero.
 	ResourceProfile
 
 	// Summary holds the brief of the route.
@@ -364,8 +368,8 @@ func Alias(handler IResourceHandler, withKind string) IResourceHandler {
 // routeHandler returns the resource handlers of the given resource handler.
 func routeHandler(
 	basePath string,
-	handler IResourceHandler,
-	prerequisiteProf ResourceProfile,
+	baseResourceProf ResourceProfile,
+	handler IHandler,
 	visited sets.Set[string],
 ) []Route {
 	goHandler := reflect.ValueOf(handler)
@@ -376,6 +380,7 @@ func routeHandler(
 	goHandlerType := goHandler.Type()
 	goPackage := goHandlerType.PkgPath()
 	goType := goHandlerType.Name()
+	_, isResourceHandler := handler.(IResourceHandler)
 	logger := log.WithName("api").WithValues("package", goPackage, "type", goType)
 
 	if visited == nil {
@@ -407,8 +412,11 @@ func routeHandler(
 	)
 
 	// Prepend the prerequisite profile.
-	prof := profileResource(handler)
-	prof.Prepend(prerequisiteProf)
+	var prof ResourceProfile
+	if isResourceHandler {
+		prof = profileResource(handler.(IResourceHandler))
+		prof.Prepend(baseResourceProf)
+	}
 
 	// Reflect the resource routes of the handler.
 	standardResourceRouteNames := sets.New[string](
@@ -421,8 +429,11 @@ func routeHandler(
 		resourceRouteNameCollectionUpdate,
 		resourceRouteNameCollectionDelete)
 
-	singularPath := prof.SingularPath()
-	pluralPath := prof.PluralPath()
+	var singularPath, pluralPath string
+	if isResourceHandler {
+		singularPath = prof.SingularPath()
+		pluralPath = prof.PluralPath()
+	}
 
 	var routes []Route
 
@@ -450,37 +461,76 @@ func routeHandler(
 
 		route.RequestType = goCallerType.In(0)
 
-		switch {
-		default:
-			continue
-		case standardResourceRouteNames.Has(route.GoFunc):
+		if isResourceHandler {
 			switch {
-			case strings.HasSuffix(route.GoFunc, resourceRouteNameCreate):
-				route.Method = http.MethodPost
-			case strings.HasSuffix(route.GoFunc, resourceRouteNameGet):
-				route.Method = http.MethodGet
-			case strings.HasSuffix(route.GoFunc, resourceRouteNameUpdate):
-				route.Method = http.MethodPut
-			case strings.HasSuffix(route.GoFunc, resourceRouteNameDelete):
-				route.Method = http.MethodDelete
-			}
-
-			switch {
-			case route.GoFunc == resourceRouteNameCreate:
-				route.Path = pluralPath
-			case !strings.HasPrefix(route.GoFunc, resourceRouteNameCollectionPrefix):
-				route.Path = singularPath
 			default:
-				route.Path = pluralPath
-				if route.GoFunc == resourceRouteNameCollectionCreate {
-					route.Path = path.Join(route.Path, "/_/batch")
+				continue
+			case standardResourceRouteNames.Has(route.GoFunc):
+				switch {
+				case strings.HasSuffix(route.GoFunc, resourceRouteNameCreate):
+					route.Method = http.MethodPost
+				case strings.HasSuffix(route.GoFunc, resourceRouteNameGet):
+					route.Method = http.MethodGet
+				case strings.HasSuffix(route.GoFunc, resourceRouteNameUpdate):
+					route.Method = http.MethodPut
+				case strings.HasSuffix(route.GoFunc, resourceRouteNameDelete):
+					route.Method = http.MethodDelete
 				}
 
+				switch {
+				case route.GoFunc == resourceRouteNameCreate:
+					route.Path = pluralPath
+				case !strings.HasPrefix(route.GoFunc, resourceRouteNameCollectionPrefix):
+					route.Path = singularPath
+				default:
+					route.Path = pluralPath
+					if route.GoFunc == resourceRouteNameCollectionCreate {
+						route.Path = path.Join(route.Path, "/_/batch")
+					}
+
+					route.Collection = true
+				}
+
+			case route.GoFunc != resourceRouteNameRoutePrefix &&
+				strings.HasPrefix(route.GoFunc, resourceRouteNameRoutePrefix):
+				m, p, ok := getCustomRoute(route.RequestType)
+				if !ok {
+					logger.Warn("invalid custom route profile")
+					continue
+				}
+
+				switch p {
+				case "/", "/_/batch":
+					logger.Warn("invalid custom route profile: illegal subpath")
+					continue
+				}
+
+				route.Method = m
+				route.Path = path.Join(singularPath, p)
+				route.Custom = true
+				route.CustomName = route.GoFunc[len(resourceRouteNameRoutePrefix):]
+
+			case route.GoFunc != resourceRouteNameCollectionRoutePrefix &&
+				strings.HasPrefix(route.GoFunc, resourceRouteNameCollectionRoutePrefix):
+				m, p, ok := getCustomRoute(route.RequestType)
+				if !ok {
+					logger.Warn("invalid custom route profile")
+					continue
+				}
+
+				switch p {
+				case "/", "/batch":
+					logger.Warn("invalid custom route profile: illegal subpath")
+					continue
+				}
+
+				route.Method = m
+				route.Path = path.Join(pluralPath, "_", p)
 				route.Collection = true
+				route.Custom = true
+				route.CustomName = route.GoFunc[len(resourceRouteNameCollectionRoutePrefix):]
 			}
-
-		case route.GoFunc != resourceRouteNameRoutePrefix &&
-			strings.HasPrefix(route.GoFunc, resourceRouteNameRoutePrefix):
+		} else {
 			m, p, ok := getCustomRoute(route.RequestType)
 			if !ok {
 				logger.Warn("invalid custom route profile")
@@ -488,35 +538,15 @@ func routeHandler(
 			}
 
 			switch p {
-			case "/", "/_/batch":
-				logger.Warn("invalid custom route profile: illegal subpath")
+			case "/", "/batch", "/_", "/_/batch":
+				logger.Warn("invalid custom route profile: illegal path")
 				continue
 			}
 
 			route.Method = m
-			route.Path = path.Join(singularPath, p)
+			route.Path = p
 			route.Custom = true
-			route.CustomName = route.GoFunc[len(resourceRouteNameRoutePrefix):]
-
-		case route.GoFunc != resourceRouteNameCollectionRoutePrefix &&
-			strings.HasPrefix(route.GoFunc, resourceRouteNameCollectionRoutePrefix):
-			m, p, ok := getCustomRoute(route.RequestType)
-			if !ok {
-				logger.Warn("invalid custom route profile")
-				continue
-			}
-
-			switch p {
-			case "/", "/batch":
-				logger.Warn("invalid custom route profile: illegal subpath")
-				continue
-			}
-
-			route.Method = m
-			route.Path = path.Join(pluralPath, "_", p)
-			route.Collection = true
-			route.Custom = true
-			route.CustomName = route.GoFunc[len(resourceRouteNameCollectionRoutePrefix):]
+			route.CustomName = route.GoFunc
 		}
 
 		// Validate route input.
@@ -586,8 +616,10 @@ func routeHandler(
 				continue
 			case route.Custom && goCallerTypeNumOut <= 2:
 				// For example, the following are valid:
-				// - Route<Something>(Input(route:POST=subpath)) (Output, error)
-				// - Route<Something>(Input(route:POST=subpath)) error.
+				// - For IResourceHandler, Route<Something>(Input(route:POST=subpath)) (Output, error)
+				// - For IResourceHandler, Route<Something>(Input(route:POST=subpath)) error
+				// - <Anything>(Input(route:POST=path)) (Output, error)
+				// - <Anything>(Input(route:POST=path)) error.
 			case !route.Custom && goCallerTypeNumOut == 2:
 				// For example, the following are valid:
 				// - CollectionCreate(Input) (Output, error)
@@ -606,9 +638,12 @@ func routeHandler(
 				continue
 			case route.Custom && goCallerTypeNumOut >= 1:
 				// For example, the following are valid:
-				// - Route<Something>(Input(route:GET=subpath)) (Output, int, error)
-				// - Route<Something>(Input(route:GET=subpath)) (Output, error)
-				// - Route<Something>(Input(route:GET=subpath)) error.
+				// - For IResourceHandler, Route<Something>(Input(route:GET=subpath)) (Output, int, error)
+				// - For IResourceHandler, Route<Something>(Input(route:GET=subpath)) (Output, error)
+				// - For IResourceHandler, Route<Something>(Input(route:GET=subpath)) error
+				// - <Anything>(Input(route:GET=path)) (Output, int, error)
+				// - <Anything>(Input(route:GET=path)) (Output, error)
+				// - <Anything>(Input(route:GET=path)) error.
 			case !route.Custom &&
 				((!route.Collection && goCallerTypeNumOut == 2) || (route.Collection && goCallerTypeNumOut == 3)):
 				// For example, the following are valid:
@@ -623,8 +658,10 @@ func routeHandler(
 				continue
 			case route.Custom && goCallerTypeNumOut <= 2:
 				// For example, the following are valid:
-				// - Route<Something>(Input(route:PUT=subpath)) (Output, error)
-				// - Route<Something>(Input(route:PUT=subpath)) error.
+				// - For IResourceHandler, Route<Something>(Input(route:PUT=subpath)) (Output, error)
+				// - For IResourceHandler, Route<Something>(Input(route:PUT=subpath)) error
+				// - <Anything>(Input(route:PUT=path)) (Output, error)
+				// - <Anything>(Input(route:PUT=path)) error.
 			case !route.Custom && goCallerTypeNumOut == 1:
 				// For example, the following are valid:
 				// - CollectionUpdate(Input) error
@@ -638,8 +675,10 @@ func routeHandler(
 				continue
 			case route.Custom && goCallerTypeNumOut <= 2:
 				// For example, the following are valid:
-				// - Route<Something>(Input(route:DELETE=subpath)) (Output, error)
-				// - Route<Something>(Input(route:DELETE=subpath)) error.
+				// - For IResourceHandler, Route<Something>(Input(route:DELETE=subpath)) (Output, error)
+				// - For IResourceHandler, Route<Something>(Input(route:DELETE=subpath)) error
+				// - <Anything>(Input(route:DELETE=path)) (Output, error)
+				// - <Anything>(Input(route:DELETE=path)) error.
 			case !route.Custom && goCallerTypeNumOut == 1:
 				// For example, the following are valid:
 				// - CollectionDelete(Input) error
@@ -688,9 +727,9 @@ func routeHandler(
 	})
 
 	// Reflect the sub resource handlers of the handler.
-	if isImplementOf(goHandlerType, typeSubResourceHandlersGetter) {
+	if isResourceHandler && isImplementOf(goHandlerType, typeSubResourceHandlersGetter) {
 		for _, subHandler := range handler.(subResourceHandlersGetter).SubResourceHandlers() {
-			subRoutes := routeHandler(basePath, subHandler, prof, visited)
+			subRoutes := routeHandler(basePath, prof, subHandler, visited)
 			for i := range subRoutes {
 				subRoutes[i].Sub = true
 				routes = append(routes, subRoutes[i])

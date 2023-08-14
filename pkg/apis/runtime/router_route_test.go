@@ -244,7 +244,7 @@ func (H5) SubResourceHandlers() []IResourceHandler {
 func Test_routeResourceHandler(t *testing.T) {
 	testCases := []struct {
 		name     string
-		given    IResourceHandler
+		given    IHandler
 		expected []Route
 	}{
 		{
@@ -527,7 +527,7 @@ func Test_routeResourceHandler(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual := routeHandler("", tc.given, ResourceProfile{}, nil)
+			actual := routeHandler("", ResourceProfile{}, tc.given, nil)
 			// Clear out the fields for comparison.
 			for i := range actual {
 				actual[i].RouteProfile.Summary = ""

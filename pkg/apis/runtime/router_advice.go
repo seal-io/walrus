@@ -9,7 +9,7 @@ type (
 	RouteAdviceReceiver any
 
 	// RouteAdviceProvider is a provider to provide advice to the request
-	// of the routes belongs to a IResourceHandler.
+	// of the reflected routes of a IHandler.
 	RouteAdviceProvider interface {
 		// CanSet validates the given RouteAdviceReceiver can be set or not in prepare phase,
 		// returns true if the given RouteAdviceReceiver can be injected.
@@ -48,7 +48,7 @@ type (
 )
 
 // WithRouteAdviceProviders is a RouterOption to configure the advice providers
-// for the routes of IResourceHandler.
+// for the reflected routes of a IHandler.
 func WithRouteAdviceProviders(providers ...RouteAdviceProvider) RouterOption {
 	return routerOption(func(r *Router) {
 		for i := range providers {
