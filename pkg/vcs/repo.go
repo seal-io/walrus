@@ -145,7 +145,7 @@ func CloneGitRepo(link, dir string) (*git.Repository, error) {
 
 	switch endpoint.Protocol {
 	case "http", "https":
-		src = endpoint.Host + endpoint.Path
+		src = strings.TrimLeft(endpoint.String(), endpoint.Protocol+"://")
 	default:
 		src = link
 	}
