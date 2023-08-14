@@ -11,7 +11,8 @@ import (
 	"github.com/seal-io/seal/utils/gopool"
 )
 
-func (r *Server) initMetrics(ctx context.Context, opts initOptions) error {
+// registerMetricCollectors registers the metric collectors into the global metric registry.
+func (r *Server) registerMetricCollectors(ctx context.Context, opts initOptions) error {
 	cs := metric.Collectors{
 		database.NewStatsCollectorWith(opts.DatabaseDriver),
 		gopool.NewStatsCollector(),

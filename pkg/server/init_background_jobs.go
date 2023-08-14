@@ -16,7 +16,8 @@ import (
 	"github.com/seal-io/seal/pkg/settings"
 )
 
-func (r *Server) initBackgroundJobs(ctx context.Context, opts initOptions) error {
+// startBackgroundJobs starts the background jobs by Cron Expression to do something periodically.
+func (r *Server) startBackgroundJobs(ctx context.Context, opts initOptions) error {
 	cs := cron.JobCreators{
 		settings.ConnectorCostCollectCronExpr.Name():    buildConnectorCostCollectJobCreator(opts.ModelClient),
 		settings.ConnectorStatusSyncCronExpr.Name():     buildConnectorStatusSyncJobCreator(opts.ModelClient),

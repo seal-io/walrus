@@ -10,7 +10,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
-func (r *Server) initProjects(ctx context.Context, opts initOptions) error {
+// createBuiltinProjects creates the built-in Project resources.
+func (r *Server) createBuiltinProjects(ctx context.Context, opts initOptions) error {
 	mc := opts.ModelClient
 
 	// Get system admin user.

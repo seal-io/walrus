@@ -8,7 +8,9 @@ import (
 	"github.com/seal-io/seal/pkg/settings"
 )
 
-func (r *Server) initSettings(ctx context.Context, opts initOptions) error {
+// setupSettings creates the global settings into the database,
+// it must be the first step to be executed at initialization.
+func (r *Server) setupSettings(ctx context.Context, opts initOptions) error {
 	return opts.ModelClient.Settings().CreateBulk().
 		Set(settings.All()...).
 		OnConflictColumns(setting.FieldName).

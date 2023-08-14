@@ -12,7 +12,8 @@ import (
 	"github.com/seal-io/seal/utils/log"
 )
 
-func (r *Server) initDispatches(ctx context.Context, opts initOptions) error {
+// configureModelClient enables the mutation hooks or interceptors for the model.Client.
+func (r *Server) configureModelClient(ctx context.Context, opts initOptions) error {
 	opts.ModelClient.Use(
 		dispatchModelChange,
 	)
