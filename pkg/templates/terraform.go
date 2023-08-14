@@ -585,3 +585,7 @@ func getOutputValueFromFile(file *hcl.File) map[string][]byte {
 
 	return outputs
 }
+
+func isValidSchema(ts *types.TemplateSchema) bool {
+	return !(len(ts.Outputs) == 0 && len(ts.RequiredProviders) == 0 && len(ts.Variables) == 0)
+}

@@ -15,6 +15,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/vcs"
 	"github.com/seal-io/seal/pkg/vcs/driver/gitlab"
@@ -28,19 +29,14 @@ func CreateTemplateVersionsFromRepo(
 	ctx context.Context,
 	mc model.ClientSet,
 	entity *model.Template,
-	r *git.Repository,
 	versions []*version.Version,
+	versionSchema map[*version.Version]*types.TemplateSchema,
 ) error {
 	logger := log.WithName("template")
 
-	w, err := r.Worktree()
-	if err != nil {
-		return err
-	}
-
 	var ovs []string
 	// Old versions.
-	err = mc.TemplateVersions().Query().
+	err := mc.TemplateVersions().Query().
 		Select(templateversion.FieldVersion).
 		Where(templateversion.TemplateID(entity.ID)).
 		Modify(func(s *sql.Selector) {
@@ -67,7 +63,7 @@ func CreateTemplateVersionsFromRepo(
 	}
 
 	// Create template versions.
-	templateVersions, err := GetTemplateVersions(entity, w, newVersions)
+	templateVersions, err := GetTemplateVersions(entity, newVersions, versionSchema)
 	if err != nil {
 		return err
 	}
@@ -246,6 +242,11 @@ func SyncTemplateFromGitRepo(
 		return err
 	}
 
+	versions, versionSchema, err := getValidVersions(r, versions)
+	if err != nil {
+		return err
+	}
+
 	if len(versions) == 0 {
 		logger.Warnf("no versions found for %s", repo.Name)
 		return nil
@@ -285,19 +286,19 @@ func SyncTemplateFromGitRepo(
 		}
 	}()
 
-	return CreateTemplateVersionsFromRepo(ctx, mc, entity, r, versions)
+	return CreateTemplateVersionsFromRepo(ctx, mc, entity, versions, versionSchema)
 }
 
 // GetTemplateVersions retrieves template versions from a git repository.
 // It will save images to the database if they are found in the repository.
 func GetTemplateVersions(
 	entity *model.Template,
-	w *git.Worktree,
-	versions []*version.Version,
+	newVersions []*version.Version,
+	versionSchema map[*version.Version]*types.TemplateSchema,
 ) (model.TemplateVersions, error) {
 	var (
 		logger = log.WithName("catalog")
-		tvs    = make(model.TemplateVersions, 0, len(versions))
+		tvs    = make(model.TemplateVersions, 0, len(versionSchema))
 	)
 
 	u, err := transport.NewEndpoint(entity.Source)
@@ -307,29 +308,18 @@ func GetTemplateVersions(
 
 	source := u.Host + u.Path
 
-	for i := range versions {
-		v := versions[i]
+	for i := range newVersions {
+		v := newVersions[i]
 		tag := v.Original()
 
-		err := w.Reset(&git.ResetOptions{
-			Commit: plumbing.NewHash(tag),
-			Mode:   git.HardReset,
-		})
-		if err != nil {
-			logger.Warnf("failed to reset to tag %s: %v", tag, err)
+		schema, ok := versionSchema[v]
+		if !ok {
+			logger.Warnf("version schema not found, version: %s", tag)
 			continue
 		}
 
-		dir := w.Filesystem.Root()
-
-		schema, err := loadTerraformTemplateSchema(dir)
-		if err != nil {
-			logger.Warnf("failed to load terraform template schema: %v", err)
-			continue
-		}
-
-		if schema == nil {
-			logger.Warnf("terraform template schema is nil")
+		if !isValidSchema(schema) {
+			logger.Warnf("schema is invalid template: %s, version: %s", entity.Name, tag)
 			continue
 		}
 
@@ -407,4 +397,51 @@ func GetRepoFileRaw(repo *vcs.Repository, file string, c *model.Catalog) (string
 	}
 
 	return "", nil
+}
+
+// getValidVersions get valid terraform module versions.
+func getValidVersions(
+	r *git.Repository,
+	versions []*version.Version,
+) ([]*version.Version, map[*version.Version]*types.TemplateSchema, error) {
+	logger := log.WithName("template")
+
+	w, err := r.Worktree()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	validVersions := make([]*version.Version, 0, len(versions))
+	versionSchema := make(map[*version.Version]*types.TemplateSchema, 0)
+
+	for i := range versions {
+		v := versions[i]
+		tag := v.Original()
+
+		err := w.Reset(&git.ResetOptions{
+			Commit: plumbing.NewHash(tag),
+			Mode:   git.HardReset,
+		})
+		if err != nil {
+			logger.Warnf("failed to reset to tag %s: %v", tag, err)
+			continue
+		}
+
+		dir := w.Filesystem.Root()
+
+		schema, err := loadTerraformTemplateSchema(dir)
+		if err != nil {
+			logger.Warnf("failed to load terraform template schema: %v", err)
+			continue
+		}
+
+		if !isValidSchema(schema) {
+			continue
+		}
+
+		validVersions = append(validVersions, v)
+		versionSchema[v] = schema
+	}
+
+	return validVersions, versionSchema, nil
 }

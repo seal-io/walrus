@@ -9,7 +9,7 @@ import (
 
 	"github.com/drone/go-scm/scm"
 
-	catalogbus "github.com/seal-io/seal/pkg/bus/catalog"
+	"github.com/seal-io/seal/pkg/bus/catalog"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -77,50 +77,6 @@ func GetRepos(ctx context.Context, c *model.Catalog) ([]*scm.Repository, error) 
 	}
 
 	return repos, nil
-}
-
-// Sync the given catalog, it will create or update templates from the given catalog.
-func Sync(ctx context.Context, busMessage catalogbus.BusMessage) (err error) {
-	var (
-		logger = log.WithName("catalog")
-
-		mc = busMessage.TransactionalModelClient
-		c  = busMessage.Refer
-	)
-
-	gopool.Go(func() {
-		subCtx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-		defer cancel()
-
-		err := SyncTemplates(subCtx, mc, c)
-		if err != nil {
-			status.CatalogStatusInitialized.False(c, err.Error())
-			logger.Errorf("failed to sync catalog %s templates: %v", c.Name, err)
-		} else {
-			status.CatalogStatusReady.Reset(c, "")
-			status.CatalogStatusReady.True(c, "")
-		}
-
-		c.Status.SetSummary(status.WalkCatalog(&c.Status))
-		update := mc.Catalogs().UpdateOne(c).
-			SetStatus(c.Status)
-
-		syncResult, err := getSyncResult(subCtx, mc, c)
-		if err != nil {
-			logger.Errorf("failed to update sync info: %v", err)
-		}
-
-		if syncResult != nil {
-			update.SetSync(syncResult)
-		}
-
-		rerr := update.Exec(subCtx)
-		if rerr != nil {
-			logger.Errorf("failed to update catalog %s status: %v", c.Name, rerr)
-		}
-	})
-
-	return nil
 }
 
 func getSyncResult(ctx context.Context, mc model.ClientSet, c *model.Catalog) (*types.CatalogSync, error) {
@@ -216,4 +172,54 @@ func GetOrgFromGitURL(str string) (string, error) {
 	}
 
 	return "", fmt.Errorf("invalid git url")
+}
+
+type catalogSyncer struct {
+	mc model.ClientSet
+}
+
+func CatalogSync(mc model.ClientSet) catalogSyncer {
+	return catalogSyncer{mc: mc}
+}
+
+// Do Sync the given catalog, it will create or update templates from the given catalog.
+func (cs catalogSyncer) Do(_ context.Context, busMessage catalog.BusMessage) error {
+	var (
+		logger = log.WithName("catalog")
+
+		c = busMessage.Refer
+	)
+
+	gopool.Go(func() {
+		subCtx := context.Background()
+
+		err := SyncTemplates(subCtx, cs.mc, c)
+		if err != nil {
+			status.CatalogStatusInitialized.False(c, err.Error())
+			logger.Errorf("failed to sync catalog %s templates: %v", c.Name, err)
+		} else {
+			status.CatalogStatusReady.Reset(c, "")
+			status.CatalogStatusReady.True(c, "")
+		}
+
+		c.Status.SetSummary(status.WalkCatalog(&c.Status))
+		update := cs.mc.Catalogs().UpdateOne(c).
+			SetStatus(c.Status)
+
+		syncResult, err := getSyncResult(subCtx, cs.mc, c)
+		if err != nil {
+			logger.Errorf("failed to update sync info: %v", err)
+		}
+
+		if syncResult != nil {
+			update.SetSync(syncResult)
+		}
+
+		rerr := update.Exec(subCtx)
+		if rerr != nil {
+			logger.Errorf("failed to update catalog %s status: %v", c.Name, rerr)
+		}
+	})
+
+	return nil
 }
