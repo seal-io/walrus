@@ -208,7 +208,9 @@ func (sci *SubjectCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 
 // SubjectDeleteInput holds the deletion input of the Subject entity,
 // please tags with `path:",inline"` if embedding.
-type SubjectDeleteInput = SubjectQueryInput
+type SubjectDeleteInput struct {
+	SubjectQueryInput `path:",inline"`
+}
 
 // SubjectDeleteInputs holds the deletion input item of the Subject entities.
 type SubjectDeleteInputsItem struct {

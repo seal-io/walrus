@@ -136,7 +136,9 @@ func (sci *SettingCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 
 // SettingDeleteInput holds the deletion input of the Setting entity,
 // please tags with `path:",inline"` if embedding.
-type SettingDeleteInput = SettingQueryInput
+type SettingDeleteInput struct {
+	SettingQueryInput `path:",inline"`
+}
 
 // SettingDeleteInputs holds the deletion input item of the Setting entities.
 type SettingDeleteInputsItem struct {

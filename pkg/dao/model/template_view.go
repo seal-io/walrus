@@ -154,7 +154,9 @@ func (tci *TemplateCreateInputs) ValidateWith(ctx context.Context, cs ClientSet)
 
 // TemplateDeleteInput holds the deletion input of the Template entity,
 // please tags with `path:",inline"` if embedding.
-type TemplateDeleteInput = TemplateQueryInput
+type TemplateDeleteInput struct {
+	TemplateQueryInput `path:",inline"`
+}
 
 // TemplateDeleteInputs holds the deletion input item of the Template entities.
 type TemplateDeleteInputsItem struct {

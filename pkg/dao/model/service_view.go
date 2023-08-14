@@ -247,7 +247,9 @@ func (sci *ServiceCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 
 // ServiceDeleteInput holds the deletion input of the Service entity,
 // please tags with `path:",inline"` if embedding.
-type ServiceDeleteInput = ServiceQueryInput
+type ServiceDeleteInput struct {
+	ServiceQueryInput `path:",inline"`
+}
 
 // ServiceDeleteInputs holds the deletion input item of the Service entities.
 type ServiceDeleteInputsItem struct {

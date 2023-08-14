@@ -133,7 +133,9 @@ func (dlci *DistributeLockCreateInputs) ValidateWith(ctx context.Context, cs Cli
 
 // DistributeLockDeleteInput holds the deletion input of the DistributeLock entity,
 // please tags with `path:",inline"` if embedding.
-type DistributeLockDeleteInput = DistributeLockQueryInput
+type DistributeLockDeleteInput struct {
+	DistributeLockQueryInput `path:",inline"`
+}
 
 // DistributeLockDeleteInputs holds the deletion input item of the DistributeLock entities.
 type DistributeLockDeleteInputsItem struct {

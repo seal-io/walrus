@@ -158,7 +158,9 @@ func (ecrci *EnvironmentConnectorRelationshipCreateInputs) ValidateWith(ctx cont
 
 // EnvironmentConnectorRelationshipDeleteInput holds the deletion input of the EnvironmentConnectorRelationship entity,
 // please tags with `path:",inline"` if embedding.
-type EnvironmentConnectorRelationshipDeleteInput = EnvironmentConnectorRelationshipQueryInput
+type EnvironmentConnectorRelationshipDeleteInput struct {
+	EnvironmentConnectorRelationshipQueryInput `path:",inline"`
+}
 
 // EnvironmentConnectorRelationshipDeleteInputs holds the deletion input item of the EnvironmentConnectorRelationship entities.
 type EnvironmentConnectorRelationshipDeleteInputsItem struct {

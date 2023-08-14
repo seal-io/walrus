@@ -161,7 +161,9 @@ func (cci *CatalogCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 
 // CatalogDeleteInput holds the deletion input of the Catalog entity,
 // please tags with `path:",inline"` if embedding.
-type CatalogDeleteInput = CatalogQueryInput
+type CatalogDeleteInput struct {
+	CatalogQueryInput `path:",inline"`
+}
 
 // CatalogDeleteInputs holds the deletion input item of the Catalog entities.
 type CatalogDeleteInputsItem struct {

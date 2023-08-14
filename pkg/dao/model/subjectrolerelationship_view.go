@@ -225,7 +225,9 @@ func (srrci *SubjectRoleRelationshipCreateInputs) ValidateWith(ctx context.Conte
 
 // SubjectRoleRelationshipDeleteInput holds the deletion input of the SubjectRoleRelationship entity,
 // please tags with `path:",inline"` if embedding.
-type SubjectRoleRelationshipDeleteInput = SubjectRoleRelationshipQueryInput
+type SubjectRoleRelationshipDeleteInput struct {
+	SubjectRoleRelationshipQueryInput `path:",inline"`
+}
 
 // SubjectRoleRelationshipDeleteInputs holds the deletion input item of the SubjectRoleRelationship entities.
 type SubjectRoleRelationshipDeleteInputsItem struct {

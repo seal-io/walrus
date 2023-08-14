@@ -153,7 +153,9 @@ func (tci *TokenCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) er
 
 // TokenDeleteInput holds the deletion input of the Token entity,
 // please tags with `path:",inline"` if embedding.
-type TokenDeleteInput = TokenQueryInput
+type TokenDeleteInput struct {
+	TokenQueryInput `path:",inline"`
+}
 
 // TokenDeleteInputs holds the deletion input item of the Token entities.
 type TokenDeleteInputsItem struct {
