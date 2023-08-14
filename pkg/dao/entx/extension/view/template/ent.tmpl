@@ -361,7 +361,9 @@ func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs Clien
 
 // {{ $singular }} holds the deletion input of the {{ $.Name }} entity,
 // please tags with `path:",inline"` if embedding.
-type {{ $singular }} = {{ printf "%sQueryInput" $.Name }}
+type {{ $singular }} struct {
+    {{ printf "%sQueryInput" $.Name }} `path:",inline"`
+}
 
 {{ $plural := plural $singular }}
 {{ $receiver := receiver $plural }}
