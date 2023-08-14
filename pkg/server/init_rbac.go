@@ -82,14 +82,24 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 						"dashboards"), // POST for larger query body.
 				},
 				{
-					Actions: types.RolePolicyFields(http.MethodGet, http.MethodPost),
+					Actions: types.RolePolicyFields(http.MethodGet, http.MethodPut),
 					Paths: types.RolePolicyFields(
 						"/account/info"),
 				},
 				{
-					Actions: types.RolePolicyFields(http.MethodPost),
+					Actions: types.RolePolicyFields(http.MethodDelete),
 					Paths: types.RolePolicyFields(
 						"/account/logout"),
+				},
+				{
+					Actions: types.RolePolicyFields(http.MethodGet, http.MethodPost),
+					Paths: types.RolePolicyFields(
+						"/account/tokens"),
+				},
+				{
+					Actions: types.RolePolicyFields(http.MethodGet, http.MethodDelete),
+					Paths: types.RolePolicyFields(
+						"/account/tokens/:token"),
 				},
 			},
 			Session: true,

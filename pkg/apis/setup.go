@@ -74,32 +74,11 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 	apis := runtime.NewRouter(apisOpts...).
 		Use(i18n)
 
-	cliApis := apis.Group("")
-	{
-		r := cliApis
-		r.Get("/cli", cli.Index())
-	}
-
-	measureApis := apis.Group("").
-		Use(throttler)
-	{
-		r := measureApis
-		r.Get("/readyz", measure.Readyz())
-		r.Get("/livez", measure.Livez())
-		r.Get("/metrics", measure.Metrics())
-	}
-
 	accountApis := apis.Group("/account").
 		Use(rectifier, account.Filter)
 	{
 		r := accountApis
-		r.Post("/login", account.Login)
-		r.Post("/logout", account.Logout)
-		r.Get("/info", account.GetInfo)
-		r.Post("/info", account.UpdateInfo)
-		r.Post("/tokens", account.CreateToken)
-		r.Delete("/tokens/:token", account.DeleteToken)
-		r.Get("/tokens", account.GetTokens)
+		r.Routes(account)
 	}
 
 	resourceApis := apis.Group("/v1").
@@ -118,6 +97,21 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		r.Routes(template.Handle(opts.ModelClient))
 		r.Routes(templatecompletion.Handle(opts.ModelClient))
 		r.Routes(variable.Handle(opts.ModelClient))
+	}
+
+	cliApis := apis.Group("")
+	{
+		r := cliApis
+		r.Get("/cli", cli.Index())
+	}
+
+	measureApis := apis.Group("").
+		Use(throttler)
+	{
+		r := measureApis
+		r.Get("/readyz", measure.Readyz())
+		r.Get("/livez", measure.Livez())
+		r.Get("/metrics", measure.Metrics())
 	}
 
 	debugApis := apis.Group("/debug")
