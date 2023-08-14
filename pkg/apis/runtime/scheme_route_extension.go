@@ -46,7 +46,7 @@ func extendOperationSchema(r *Route, op *openapi3.Operation) {
 	}
 
 	switch {
-	case slices.Contains(cliIgnoreKinds, r.Kinds[len(r.Kinds)-1]):
+	case len(r.Kinds) != 0 && slices.Contains(cliIgnoreKinds, r.Kinds[len(r.Kinds)-1]):
 		op.Extensions[cliapi.ExtCliIgnore] = true
 	case slices.Contains(cliIgnorePaths, r.Path):
 		op.Extensions[cliapi.ExtCliIgnore] = true

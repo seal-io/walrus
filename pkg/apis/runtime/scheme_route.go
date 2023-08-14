@@ -26,7 +26,7 @@ var openAPISchemas = &openapi3.T{
 	OpenAPI: "3.0.3",
 	Info: &openapi3.Info{
 		Title:       "Restful APIs",
-		Description: "API to manage resources",
+		Description: "Restful APIs to access Seal.",
 		Version:     version.Version,
 	},
 	Security: getSecurityRequirements(),
@@ -73,8 +73,14 @@ func schemeRoute(bp string, r *Route) error {
 
 func getOperationSchema(r *Route) (*openapi3.Operation, error) {
 	op := &openapi3.Operation{
-		Tags:        []string{strs.Pluralize(r.Kinds[len(r.Kinds)-1])},
 		OperationID: hash.SumStrings(r.Method, r.Path),
+	}
+
+	// Tags.
+	if len(r.Kinds) != 0 {
+		op.Tags = []string{strs.Pluralize(r.Kinds[len(r.Kinds)-1])}
+	} else {
+		op.Tags = []string{"None Resources"}
 	}
 
 	// Summary and description.
@@ -115,7 +121,6 @@ func getOperationSummaryAndDescription(r *Route) (summary, description string) {
 
 	if r.Custom {
 		sb.WriteString(strs.Decamelize(r.CustomName, true))
-		sb.WriteString(" for ")
 	} else {
 		switch r.Method {
 		case http.MethodPost:
@@ -127,6 +132,20 @@ func getOperationSummaryAndDescription(r *Route) (summary, description string) {
 		default:
 			sb.WriteString("get ")
 		}
+	}
+
+	if len(r.Kinds) == 0 {
+		s := sb.String() + "."
+
+		bs := strs.ToBytes(&s)
+		bs[0] = bs[0] + byte('A') - byte('a')
+		s = strs.FromBytes(&bs)
+
+		return s, s
+	}
+
+	if r.Custom {
+		sb.WriteString(" for ")
 	}
 
 	subject := strs.Decamelize(r.Kinds[len(r.Kinds)-1], true)
