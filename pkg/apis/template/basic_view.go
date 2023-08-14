@@ -2,7 +2,6 @@ package template
 
 import (
 	"fmt"
-	"net/url"
 
 	"github.com/hashicorp/go-getter"
 
@@ -26,24 +25,22 @@ func (r *CreateRequest) Validate() error {
 		return err
 	}
 
-	return validate(r.Model())
-}
-
-type (
-	GetRequest struct {
-		model.TemplateQueryInput `path:",inline"`
-	}
-
-	GetResponse = *model.TemplateOutput
-)
-
-func (r *GetRequest) Validate() error {
-	if err := r.TemplateQueryInput.Validate(); err != nil {
+	if err := validation.IsDNSLabel(r.Name); err != nil {
 		return err
 	}
 
-	return validation.IsDNSLabel(r.Name)
+	if _, err := getter.Detect(r.Source, "", getter.Detectors); err != nil {
+		return fmt.Errorf("invalid source: %w", err)
+	}
+
+	return nil
 }
+
+type (
+	GetRequest = model.TemplateQueryInput
+
+	GetResponse = *model.TemplateOutput
+)
 
 type UpdateRequest struct {
 	model.TemplateUpdateInput `path:",inline" json:",inline"`
@@ -54,7 +51,11 @@ func (r *UpdateRequest) Validate() error {
 		return err
 	}
 
-	return validate(r.Model())
+	if _, err := getter.Detect(r.Source, "", getter.Detectors); err != nil {
+		return fmt.Errorf("invalid source: %w", err)
+	}
+
+	return nil
 }
 
 type DeleteRequest = model.TemplateDeleteInput
@@ -78,21 +79,3 @@ func (r *CollectionGetRequest) SetStream(stream runtime.RequestUnidiStream) {
 }
 
 type CollectionDeleteRequest = model.TemplateDeleteInputs
-
-func validate(m *model.Template) error {
-	if err := validation.IsDNSLabel(m.Name); err != nil {
-		return err
-	}
-
-	if _, err := getter.Detect(m.Source, "", getter.Detectors); err != nil {
-		return fmt.Errorf("invalid source: %w", err)
-	}
-
-	if m.Icon != "" {
-		if _, err := url.ParseRequestURI(m.Icon); err != nil {
-			return fmt.Errorf("invalid icon URL: %w", err)
-		}
-	}
-
-	return nil
-}
