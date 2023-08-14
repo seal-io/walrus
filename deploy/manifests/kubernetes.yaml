@@ -481,6 +481,7 @@ rules:
       - "secrets"
       - "pods"
       - "pods/log"
+      - "events"
     verbs:
       - "*"
   - apiGroups:
