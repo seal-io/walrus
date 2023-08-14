@@ -159,6 +159,8 @@ func (rt *Router) Resource(handler IResourceHandler) IRouter {
 				if !isGinError(err) {
 					_ = c.Error(err).
 						SetMeta(route.ResourceRouteProfile.Summary)
+				} else {
+					_ = c.Error(err)
 				}
 
 				return
