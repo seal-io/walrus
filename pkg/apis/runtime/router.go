@@ -50,7 +50,7 @@ type (
 		// Put registers PUT router to serve the handler.
 		Put(string, IHandler) IRouter
 
-		// Resource reflects the function descriptors of the handler,
+		// Routes reflects the function descriptors of the IResourceHandler,
 		// and registers as routers if satisfy the below rules.
 		//
 		//	Input : struct type.
@@ -84,7 +84,7 @@ type (
 		//	 -> method /<plural>/:id/<subpath>(?watch=true)
 		//	func CollectionRoute<Something>(<Input(route:method=subpath)>) ((<Output>), (int,) error)
 		//	 -> method /<plural>/_/<subpath>(?watch=true)
-		Resource(IResourceHandler) IRouter
+		Routes(IResourceHandler) IRouter
 	}
 )
 
@@ -100,8 +100,8 @@ type (
 		engine  *gin.Engine
 		router  gin.IRouter
 
-		resourceRouteAdviceProviders []ResourceRouteAdviceProvider
-		resourceRouteAuthorizer      ResourceRouteAuthorizer
+		adviceProviders []RouteAdviceProvider
+		authorizer      RouteAuthorizer
 	}
 )
 

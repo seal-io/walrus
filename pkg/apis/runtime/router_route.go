@@ -20,8 +20,8 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
-func (rt *Router) Resource(handler IResourceHandler) IRouter {
-	routes := routeResourceHandler(rt.GroupRelativePath(), handler, ResourceProfile{}, nil)
+func (rt *Router) Routes(handler IResourceHandler) IRouter {
+	routes := routeHandler(rt.GroupRelativePath(), handler, ResourceProfile{}, nil)
 
 	for i := range routes {
 		route := routes[i]
@@ -36,8 +36,8 @@ func (rt *Router) Resource(handler IResourceHandler) IRouter {
 			}
 
 			inputObj := routeInput.Interface()
-			for j := range rt.resourceRouteAdviceProviders {
-				if rt.resourceRouteAdviceProviders[j].CanSet(inputObj) {
+			for j := range rt.adviceProviders {
+				if rt.adviceProviders[j].CanSet(inputObj) {
 					route.requestAdviceProviders = append(route.requestAdviceProviders, j)
 				}
 			}
@@ -52,8 +52,8 @@ func (rt *Router) Resource(handler IResourceHandler) IRouter {
 			}
 
 			// Authorize.
-			if rt.resourceRouteAuthorizer != nil {
-				authedStatus := rt.resourceRouteAuthorizer.Authorize(c, route.ResourceRouteProfile.DeepCopy())
+			if rt.authorizer != nil {
+				authedStatus := rt.authorizer.Authorize(c, route.RouteProfile.DeepCopy())
 				if authedStatus != http.StatusOK {
 					c.AbortWithStatus(authedStatus)
 					return
@@ -115,7 +115,7 @@ func (rt *Router) Resource(handler IResourceHandler) IRouter {
 
 			// Inject request with advice.
 			for _, j := range route.requestAdviceProviders {
-				rt.resourceRouteAdviceProviders[j].Set(inputObj)
+				rt.adviceProviders[j].Set(inputObj)
 			}
 
 			// Validate request.
@@ -123,7 +123,7 @@ func (rt *Router) Resource(handler IResourceHandler) IRouter {
 				if err := inputObj.(Validator).Validate(); err != nil {
 					_ = c.Error(err).
 						SetType(gin.ErrorTypeBind).
-						SetMeta(route.ResourceRouteProfile.Summary)
+						SetMeta(route.RouteProfile.Summary)
 
 					return
 				}
@@ -158,7 +158,7 @@ func (rt *Router) Resource(handler IResourceHandler) IRouter {
 				err := errObj.(error)
 				if !isGinError(err) {
 					_ = c.Error(err).
-						SetMeta(route.ResourceRouteProfile.Summary)
+						SetMeta(route.RouteProfile.Summary)
 				} else {
 					_ = c.Error(err)
 				}
@@ -265,9 +265,9 @@ const (
 	ResponseWithPage ResponseAttributesType = 1 << iota
 )
 
-// ResourceRoute holds the information of a resource route.
-type ResourceRoute struct {
-	ResourceRouteProfile
+// Route holds the information of a resource route.
+type Route struct {
+	RouteProfile
 
 	// GoCaller holds the reflect.Value of the method to call.
 	GoCaller reflect.Value
@@ -292,8 +292,8 @@ type ResourceRoute struct {
 	requestAdviceProviders []int
 }
 
-// ResourceRouteProfile holds the profile of a resource route.
-type ResourceRouteProfile struct {
+// RouteProfile holds the profile of a route.
+type RouteProfile struct {
 	ResourceProfile
 
 	// Summary holds the brief of the route.
@@ -315,28 +315,28 @@ type ResourceRouteProfile struct {
 }
 
 // DeepCopy returns a deep copy of the resource route profile.
-func (p ResourceRouteProfile) DeepCopy() (o ResourceRouteProfile) {
+func (p RouteProfile) DeepCopy() (o RouteProfile) {
 	o = p
 	o.ResourceProfile = p.ResourceProfile.DeepCopy()
 
 	return
 }
 
-// Collection of route name constants.
+// Collection of resource route name constants.
 const (
-	routeNameCreate = "Create"
-	routeNameGet    = "Get"
-	routeNameUpdate = "Update"
-	routeNameDelete = "Delete"
+	resourceRouteNameCreate = "Create"
+	resourceRouteNameGet    = "Get"
+	resourceRouteNameUpdate = "Update"
+	resourceRouteNameDelete = "Delete"
 
-	routeNameCollectionPrefix = "Collection"
-	routeNameCollectionCreate = routeNameCollectionPrefix + routeNameCreate
-	routeNameCollectionGet    = routeNameCollectionPrefix + routeNameGet
-	routeNameCollectionUpdate = routeNameCollectionPrefix + routeNameUpdate
-	routeNameCollectionDelete = routeNameCollectionPrefix + routeNameDelete
+	resourceRouteNameCollectionPrefix = "Collection"
+	resourceRouteNameCollectionCreate = resourceRouteNameCollectionPrefix + resourceRouteNameCreate
+	resourceRouteNameCollectionGet    = resourceRouteNameCollectionPrefix + resourceRouteNameGet
+	resourceRouteNameCollectionUpdate = resourceRouteNameCollectionPrefix + resourceRouteNameUpdate
+	resourceRouteNameCollectionDelete = resourceRouteNameCollectionPrefix + resourceRouteNameDelete
 
-	routeNameRoutePrefix           = "Route"
-	routeNameCollectionRoutePrefix = routeNameCollectionPrefix + routeNameRoutePrefix
+	resourceRouteNameRoutePrefix           = "Route"
+	resourceRouteNameCollectionRoutePrefix = resourceRouteNameCollectionPrefix + resourceRouteNameRoutePrefix
 )
 
 type (
@@ -361,13 +361,13 @@ func Alias(handler IResourceHandler, withKind string) IResourceHandler {
 	}
 }
 
-// routeResourceHandler returns the resource handlers of the given resource handler.
-func routeResourceHandler(
+// routeHandler returns the resource handlers of the given resource handler.
+func routeHandler(
 	basePath string,
 	handler IResourceHandler,
 	prerequisiteProf ResourceProfile,
 	visited sets.Set[string],
-) []ResourceRoute {
+) []Route {
 	goHandler := reflect.ValueOf(handler)
 	if v, ok := handler.(aliasKindHandler); ok {
 		goHandler = reflect.ValueOf(v.IResourceHandler)
@@ -410,20 +410,21 @@ func routeResourceHandler(
 	prof := profileResource(handler)
 	prof.Prepend(prerequisiteProf)
 
-	// Reflect the routes of the resource handler.
-	standardRouteNames := sets.New[string](
-		routeNameCreate,
-		routeNameGet,
-		routeNameUpdate,
-		routeNameDelete,
-		routeNameCollectionCreate,
-		routeNameCollectionGet,
-		routeNameCollectionUpdate,
-		routeNameCollectionDelete)
+	// Reflect the resource routes of the handler.
+	standardResourceRouteNames := sets.New[string](
+		resourceRouteNameCreate,
+		resourceRouteNameGet,
+		resourceRouteNameUpdate,
+		resourceRouteNameDelete,
+		resourceRouteNameCollectionCreate,
+		resourceRouteNameCollectionGet,
+		resourceRouteNameCollectionUpdate,
+		resourceRouteNameCollectionDelete)
 
 	singularPath := prof.SingularPath()
 	pluralPath := prof.PluralPath()
-	routes := make([]ResourceRoute, 0, standardRouteNames.Len()*2)
+
+	var routes []Route
 
 	for i := 0; i < goHandlerType.NumMethod(); i++ {
 		goCaller := goHandler.Method(i)
@@ -433,8 +434,8 @@ func routeResourceHandler(
 			continue
 		}
 
-		route := ResourceRoute{
-			ResourceRouteProfile: ResourceRouteProfile{
+		route := Route{
+			RouteProfile: RouteProfile{
 				ResourceProfile: prof,
 			},
 			GoCaller:  goCaller,
@@ -452,34 +453,34 @@ func routeResourceHandler(
 		switch {
 		default:
 			continue
-		case standardRouteNames.Has(route.GoFunc):
+		case standardResourceRouteNames.Has(route.GoFunc):
 			switch {
-			case strings.HasSuffix(route.GoFunc, routeNameCreate):
+			case strings.HasSuffix(route.GoFunc, resourceRouteNameCreate):
 				route.Method = http.MethodPost
-			case strings.HasSuffix(route.GoFunc, routeNameGet):
+			case strings.HasSuffix(route.GoFunc, resourceRouteNameGet):
 				route.Method = http.MethodGet
-			case strings.HasSuffix(route.GoFunc, routeNameUpdate):
+			case strings.HasSuffix(route.GoFunc, resourceRouteNameUpdate):
 				route.Method = http.MethodPut
-			case strings.HasSuffix(route.GoFunc, routeNameDelete):
+			case strings.HasSuffix(route.GoFunc, resourceRouteNameDelete):
 				route.Method = http.MethodDelete
 			}
 
 			switch {
-			case route.GoFunc == routeNameCreate:
+			case route.GoFunc == resourceRouteNameCreate:
 				route.Path = pluralPath
-			case !strings.HasPrefix(route.GoFunc, routeNameCollectionPrefix):
+			case !strings.HasPrefix(route.GoFunc, resourceRouteNameCollectionPrefix):
 				route.Path = singularPath
 			default:
 				route.Path = pluralPath
-				if route.GoFunc == routeNameCollectionCreate {
+				if route.GoFunc == resourceRouteNameCollectionCreate {
 					route.Path = path.Join(route.Path, "/_/batch")
 				}
 
 				route.Collection = true
 			}
 
-		case route.GoFunc != routeNameRoutePrefix &&
-			strings.HasPrefix(route.GoFunc, routeNameRoutePrefix):
+		case route.GoFunc != resourceRouteNameRoutePrefix &&
+			strings.HasPrefix(route.GoFunc, resourceRouteNameRoutePrefix):
 			m, p, ok := getCustomRoute(route.RequestType)
 			if !ok {
 				logger.Warn("invalid custom route profile")
@@ -495,10 +496,10 @@ func routeResourceHandler(
 			route.Method = m
 			route.Path = path.Join(singularPath, p)
 			route.Custom = true
-			route.CustomName = route.GoFunc[len(routeNameRoutePrefix):]
+			route.CustomName = route.GoFunc[len(resourceRouteNameRoutePrefix):]
 
-		case route.GoFunc != routeNameCollectionRoutePrefix &&
-			strings.HasPrefix(route.GoFunc, routeNameCollectionRoutePrefix):
+		case route.GoFunc != resourceRouteNameCollectionRoutePrefix &&
+			strings.HasPrefix(route.GoFunc, resourceRouteNameCollectionRoutePrefix):
 			m, p, ok := getCustomRoute(route.RequestType)
 			if !ok {
 				logger.Warn("invalid custom route profile")
@@ -515,7 +516,7 @@ func routeResourceHandler(
 			route.Path = path.Join(pluralPath, "_", p)
 			route.Collection = true
 			route.Custom = true
-			route.CustomName = route.GoFunc[len(routeNameCollectionRoutePrefix):]
+			route.CustomName = route.GoFunc[len(resourceRouteNameCollectionRoutePrefix):]
 		}
 
 		// Validate route input.
@@ -686,10 +687,10 @@ func routeResourceHandler(
 		return ri.Path < rj.Path
 	})
 
-	// Reflect the sub resource handlers of the resource handler.
+	// Reflect the sub resource handlers of the handler.
 	if isImplementOf(goHandlerType, typeSubResourceHandlersGetter) {
 		for _, subHandler := range handler.(subResourceHandlersGetter).SubResourceHandlers() {
-			subRoutes := routeResourceHandler(basePath, subHandler, prof, visited)
+			subRoutes := routeHandler(basePath, subHandler, prof, visited)
 			for i := range subRoutes {
 				subRoutes[i].Sub = true
 				routes = append(routes, subRoutes[i])

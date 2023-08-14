@@ -245,14 +245,14 @@ func Test_routeResourceHandler(t *testing.T) {
 	testCases := []struct {
 		name     string
 		given    IResourceHandler
-		expected []ResourceRoute
+		expected []Route
 	}{
 		{
 			name:  "full",
 			given: H1{},
-			expected: []ResourceRoute{
+			expected: []Route{
 				{
-					ResourceRouteProfile: ResourceRouteProfile{
+					RouteProfile: RouteProfile{
 						ResourceProfile: ResourceProfile{
 							Kinds:              []string{"H1"},
 							Resources:          []string{"h1s"},
@@ -272,7 +272,7 @@ func Test_routeResourceHandler(t *testing.T) {
 					RequestAttributes: RequestWithGinContext,
 				},
 				{
-					ResourceRouteProfile: ResourceRouteProfile{
+					RouteProfile: RouteProfile{
 						ResourceProfile: ResourceProfile{
 							Kinds:              []string{"H1"},
 							Resources:          []string{"h1s"},
@@ -292,7 +292,7 @@ func Test_routeResourceHandler(t *testing.T) {
 					RequestAttributes: RequestWithBindingPath | RequestWithBindingQuery,
 				},
 				{
-					ResourceRouteProfile: ResourceRouteProfile{
+					RouteProfile: RouteProfile{
 						ResourceProfile: ResourceProfile{
 							Kinds:              []string{"H1"},
 							Resources:          []string{"h1s"},
@@ -312,7 +312,7 @@ func Test_routeResourceHandler(t *testing.T) {
 					RequestAttributes: RequestWithBindingJSON,
 				},
 				{
-					ResourceRouteProfile: ResourceRouteProfile{
+					RouteProfile: RouteProfile{
 						ResourceProfile: ResourceProfile{
 							Kinds:              []string{"H1"},
 							Resources:          []string{"h1s"},
@@ -331,7 +331,7 @@ func Test_routeResourceHandler(t *testing.T) {
 					GoFunc:    "Delete",
 				},
 				{
-					ResourceRouteProfile: ResourceRouteProfile{
+					RouteProfile: RouteProfile{
 						ResourceProfile: ResourceProfile{
 							Kinds:              []string{"H1"},
 							Resources:          []string{"h1s"},
@@ -350,7 +350,7 @@ func Test_routeResourceHandler(t *testing.T) {
 					GoFunc:    "CollectionCreate",
 				},
 				{
-					ResourceRouteProfile: ResourceRouteProfile{
+					RouteProfile: RouteProfile{
 						ResourceProfile: ResourceProfile{
 							Kinds:              []string{"H1"},
 							Resources:          []string{"h1s"},
@@ -371,7 +371,7 @@ func Test_routeResourceHandler(t *testing.T) {
 					ResponseAttributes: ResponseWithPage,
 				},
 				{
-					ResourceRouteProfile: ResourceRouteProfile{
+					RouteProfile: RouteProfile{
 						ResourceProfile: ResourceProfile{
 							Kinds:              []string{"H1"},
 							Resources:          []string{"h1s"},
@@ -390,7 +390,7 @@ func Test_routeResourceHandler(t *testing.T) {
 					GoFunc:    "CollectionUpdate",
 				},
 				{
-					ResourceRouteProfile: ResourceRouteProfile{
+					RouteProfile: RouteProfile{
 						ResourceProfile: ResourceProfile{
 							Kinds:              []string{"H1"},
 							Resources:          []string{"h1s"},
@@ -409,7 +409,7 @@ func Test_routeResourceHandler(t *testing.T) {
 					GoFunc:    "CollectionDelete",
 				},
 				{
-					ResourceRouteProfile: ResourceRouteProfile{
+					RouteProfile: RouteProfile{
 						ResourceProfile: ResourceProfile{
 							Kinds:              []string{"H1"},
 							Resources:          []string{"h1s"},
@@ -429,7 +429,7 @@ func Test_routeResourceHandler(t *testing.T) {
 					RequestAttributes: RequestWithBidiStream,
 				},
 				{
-					ResourceRouteProfile: ResourceRouteProfile{
+					RouteProfile: RouteProfile{
 						ResourceProfile: ResourceProfile{
 							Kinds:              []string{"H1"},
 							Resources:          []string{"h1s"},
@@ -448,7 +448,7 @@ func Test_routeResourceHandler(t *testing.T) {
 					GoFunc:    "RouteUpgrade",
 				},
 				{
-					ResourceRouteProfile: ResourceRouteProfile{
+					RouteProfile: RouteProfile{
 						ResourceProfile: ResourceProfile{
 							Kinds:              []string{"H1"},
 							Resources:          []string{"h1s"},
@@ -467,7 +467,7 @@ func Test_routeResourceHandler(t *testing.T) {
 					GoFunc:    "CollectionRouteFields",
 				},
 				{
-					ResourceRouteProfile: ResourceRouteProfile{
+					RouteProfile: RouteProfile{
 						ResourceProfile: ResourceProfile{
 							Kinds:              []string{"H1", "H2"},
 							Resources:          []string{"h1s", "h2s"},
@@ -491,9 +491,9 @@ func Test_routeResourceHandler(t *testing.T) {
 		{
 			name:  "abnormal custom route",
 			given: H3{},
-			expected: []ResourceRoute{
+			expected: []Route{
 				{
-					ResourceRouteProfile: ResourceRouteProfile{
+					RouteProfile: RouteProfile{
 						ResourceProfile: ResourceProfile{
 							Kinds:              []string{"H3"},
 							Resources:          []string{"h3s"},
@@ -527,11 +527,11 @@ func Test_routeResourceHandler(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual := routeResourceHandler("", tc.given, ResourceProfile{}, nil)
+			actual := routeHandler("", tc.given, ResourceProfile{}, nil)
 			// Clear out the fields for comparison.
 			for i := range actual {
-				actual[i].ResourceRouteProfile.Summary = ""
-				actual[i].ResourceRouteProfile.Description = ""
+				actual[i].RouteProfile.Summary = ""
+				actual[i].RouteProfile.Description = ""
 				actual[i].GoCaller = reflect.Value{}
 				actual[i].RequestType = nil
 				actual[i].ResponseType = nil

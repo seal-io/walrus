@@ -18,8 +18,15 @@ import (
 func erroring(c *gin.Context) {
 	c.Next()
 
-	if len(c.Errors) == 0 || c.Writer.Written() {
-		return
+	if len(c.Errors) == 0 {
+		if c.Writer.Status() >= http.StatusBadRequest && c.Writer.Size() == 0 {
+			// Detail the error status message.
+			_ = c.Error(Errorc(c.Writer.Status())).
+				SetType(gin.ErrorTypePublic)
+		} else {
+			// No errors.
+			return
+		}
 	}
 
 	// Log private errors.

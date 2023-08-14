@@ -15,15 +15,15 @@ type (
 	}
 )
 
-func provideModelClient(modelClient *model.Client) runtime.ResourceRouteAdviceProvider {
+func provideModelClient(modelClient *model.Client) runtime.RouteAdviceProvider {
 	return modelClientAdviceProvider{modelClient: modelClient}
 }
 
-func (m modelClientAdviceProvider) CanSet(receiver runtime.ResourceRouteAdviceReceiver) bool {
+func (m modelClientAdviceProvider) CanSet(receiver runtime.RouteAdviceReceiver) bool {
 	_, ok := receiver.(modelClientAdviceReceiver)
 	return ok
 }
 
-func (m modelClientAdviceProvider) Set(receiver runtime.ResourceRouteAdviceReceiver) {
+func (m modelClientAdviceProvider) Set(receiver runtime.RouteAdviceReceiver) {
 	receiver.(modelClientAdviceReceiver).SetModelClient(m.modelClient)
 }
