@@ -37,7 +37,7 @@ func (r *CreateRequest) Validate() error {
 
 type UpdateRequest = model.VariableUpdateInput
 
-type DeleteRequest = model.VariableQueryInput
+type DeleteRequest = model.VariableDeleteInput
 
 type (
 	CollectionGetRequest struct {
