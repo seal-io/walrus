@@ -4,12 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"path/filepath"
+	"reflect"
+	"runtime"
+	"strings"
 
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/seal/pkg/cache"
 	"github.com/seal-io/seal/pkg/dao/migration"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/utils/strs"
 )
 
 type initOptions struct {
@@ -28,39 +33,45 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		return fmt.Errorf("error creating model schemas: %w", err)
 	}
 
-	// Initialize critical resources.
-	type initor struct {
-		name string
-		init func(context.Context, initOptions) error
+	// Initialize data for system.
+	inits := []initiation{
+		r.setupSettings,
+		r.initConfigs,
+		r.configureModelClient,
+		r.registerMetricCollectors,
+		r.registerHealthCheckers,
+		r.startBackgroundJobs,
+		r.setupBusSubscribers,
 	}
-
-	inits := []initor{
-		{name: "settings", init: r.initSettings},
-		{name: "configs", init: r.initConfigs},
-		{name: "dispatches", init: r.initDispatches},
-		{name: "metrics", init: r.initMetrics},
-		{name: "healthCheckers", init: r.initHealthCheckers},
-		{name: "backgroundJobs", init: r.initBackgroundJobs},
-		{name: "subscribers", init: r.initSubscribers},
-		{name: "rbac", init: r.initRbac},
-	}
-	inits = append(inits,
-		initor{name: "catalog", init: r.initCatalog},
-		initor{name: "perspective", init: r.initPerspectives},
-		initor{name: "projects", init: r.initProjects},
-	)
-
 	if r.EnableAuthn {
 		inits = append(inits,
-			initor{name: "casdoor", init: r.initCasdoor},
+			r.configureCasdoor,
 		)
 	}
 
+	// Initialize data for user.
+	inits = append(inits,
+		r.createBuiltinRbac,
+		r.createBuiltinCatalogs,
+		r.createBuiltinPerspectives,
+		r.createBuiltinProjects,
+	)
+
 	for i := range inits {
-		if err = inits[i].init(ctx, opts); err != nil {
-			return fmt.Errorf("%s: %w", inits[i].name, err)
+		if err = inits[i](ctx, opts); err != nil {
+			return fmt.Errorf("failed to %s: %w",
+				loadInitiationName(inits[i]), err)
 		}
 	}
 
 	return nil
+}
+
+type initiation func(context.Context, initOptions) error
+
+func loadInitiationName(i initiation) string {
+	n := runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
+	n = strings.TrimPrefix(strings.TrimSuffix(filepath.Ext(n), "-fm"), ".")
+
+	return strs.Decamelize(n, true)
 }

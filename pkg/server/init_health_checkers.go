@@ -14,7 +14,8 @@ import (
 	"github.com/seal-io/seal/utils/gopool"
 )
 
-func (r *Server) initHealthCheckers(ctx context.Context, opts initOptions) error {
+// registerHealthCheckers registers the health checkers into the global health registry.
+func (r *Server) registerHealthCheckers(ctx context.Context, opts initOptions) error {
 	k8sClientSet, err := kubernetes.NewForConfig(opts.K8sConfig)
 	if err != nil {
 		return err

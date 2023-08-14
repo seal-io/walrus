@@ -10,7 +10,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
-func (r *Server) initCatalog(ctx context.Context, opts initOptions) error {
+// createBuiltinCatalogs creates the built-in Catalog resources.
+func (r *Server) createBuiltinCatalogs(ctx context.Context, opts initOptions) error {
 	builtin := pkgcatalog.BuiltinCatalog()
 
 	c, err := opts.ModelClient.Catalogs().Query().

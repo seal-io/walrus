@@ -22,6 +22,8 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
+// initConfigs configures the system singleton instances at initialization phase,
+// like caches, encryption, auths, etc.
 func (r *Server) initConfigs(ctx context.Context, opts initOptions) (err error) {
 	err = configureCaches(ctx, opts.CacheDriver)
 	if err != nil {

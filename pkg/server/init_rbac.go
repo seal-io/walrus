@@ -11,7 +11,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
-func (r *Server) initRbac(ctx context.Context, opts initOptions) (err error) {
+// createBuiltinRbac creates the built-in RBAC resources.
+func (r *Server) createBuiltinRbac(ctx context.Context, opts initOptions) (err error) {
 	err = createRoles(ctx, opts.ModelClient)
 	if err != nil {
 		return

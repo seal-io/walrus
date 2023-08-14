@@ -12,7 +12,8 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
-func (r *Server) initCasdoor(ctx context.Context, opts initOptions) error {
+// configureCasdoor initializes the builtin Casdoor application and builtin admin user.
+func (r *Server) configureCasdoor(ctx context.Context, opts initOptions) error {
 	// Short circuit for none first-login.
 	var cred casdoor.ApplicationCredential
 	if err := settings.CasdoorCred.ValueJSONUnmarshal(ctx, opts.ModelClient, &cred); err != nil {
@@ -50,7 +51,7 @@ func (r *Server) initCasdoor(ctx context.Context, opts initOptions) error {
 
 	defer func() {
 		// NB(thxCode): revert the token if occurs error,
-		// make the `initCasdoor` idempotent.
+		// make the `configureCasdoor` idempotent.
 		if err != nil {
 			_ = casdoor.DeleteToken(context.Background(), cred.ClientID, cred.ClientSecret,
 				token.Owner, token.Name)
@@ -71,7 +72,7 @@ func (r *Server) initCasdoor(ctx context.Context, opts initOptions) error {
 
 	defer func() {
 		// NB(thxCode): revert the password if occurs error,
-		// make the `initCasdoor` idempotent.
+		// make the `configureCasdoor` idempotent.
 		if err != nil {
 			_ = casdoor.UpdateUserPassword(ctx, cred.ClientID, cred.ClientSecret,
 				casdoor.BuiltinOrg, casdoor.BuiltinAdmin,

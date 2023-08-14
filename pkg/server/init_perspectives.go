@@ -9,7 +9,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 )
 
-func (r *Server) initPerspectives(ctx context.Context, opts initOptions) error {
+// createBuiltinPerspectives creates the built-in Perspective resources.
+func (r *Server) createBuiltinPerspectives(ctx context.Context, opts initOptions) error {
 	builtin := []*model.Perspective{
 		perspectiveAll(),
 		perspectiveCluster(),
