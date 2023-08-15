@@ -16,7 +16,7 @@ import (
 	"golang.org/x/exp/slices"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	cliapi "github.com/seal-io/seal/pkg/cli/api"
+	"github.com/seal-io/seal/pkg/apis/runtime/openapi"
 	"github.com/seal-io/seal/utils/hash"
 	"github.com/seal-io/seal/utils/strs"
 	"github.com/seal-io/seal/utils/version"
@@ -305,6 +305,9 @@ func getOperationParameters(r *Route) (openapi3.Parameters, error) {
 				Name:     "watch",
 				Schema:   openapi3.NewBoolSchema().NewRef(),
 				Required: false,
+				Extensions: map[string]any{
+					openapi.ExtCliIgnore: true,
+				},
 			},
 		})
 	}
@@ -668,7 +671,7 @@ func getSchemaOfGoType(
 			}
 
 			s.Extensions = map[string]any{
-				cliapi.ExtCliSchemaTypeName: "map[string]" + typ.Elem().String(),
+				openapi.ExtCliSchemaTypeName: "map[string]" + typ.Elem().String(),
 			}
 		}
 
@@ -763,7 +766,13 @@ func getSchemaOfGoType(
 					continue
 				}
 
-				fs.Extensions = fa.Extensions()
+				for extK, extV := range fa.Extensions() {
+					if fs.Extensions == nil {
+						fs.Extensions = make(map[string]any)
+					}
+
+					fs.Extensions[extK] = extV
+				}
 				fs.Default = fa.Default()
 				s.WithProperty(fa.Name(), fs)
 			}
