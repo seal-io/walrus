@@ -539,10 +539,10 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 			opts.ServiceRevision.ID))
 
 	// Prepare API token for terraform backend.
-	const _30Min = 1800
+	const _1Day = 60 * 60 * 24
 
 	at, err := auths.CreateAccessToken(ctx,
-		d.modelClient, opts.SubjectID, types.TokenKindDeployment, string(opts.ServiceRevision.ID), pointer.Int(_30Min))
+		d.modelClient, opts.SubjectID, types.TokenKindDeployment, string(opts.ServiceRevision.ID), pointer.Int(_1Day))
 	if err != nil {
 		return nil, err
 	}
