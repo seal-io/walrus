@@ -72,12 +72,12 @@ func (c *Collector) K8sCosts(
 ) ([]*model.CostReport, error) {
 	ac, err := c.allocationResourceCosts(startTime, endTime, step)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error get allocation resource costs: %w", err)
 	}
 
 	mgntCost, err := c.clusterManagementCost(startTime, endTime)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error get cluster management cost: %w", err)
 	}
 
 	if mgntCost != nil && mgntCost.TotalCost > 0 {
@@ -257,6 +257,10 @@ func (c *Collector) getRequest(url string, obj any) error {
 			resp.StatusCode,
 			string(body),
 		)
+	}
+
+	if len(body) == 0 {
+		return nil
 	}
 
 	if err = json.Unmarshal(body, obj); err != nil {
