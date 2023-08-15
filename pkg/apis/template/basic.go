@@ -70,11 +70,11 @@ func (h Handler) Delete(req DeleteRequest) error {
 
 var (
 	queryFields = []string{
-		template.FieldID,
+		template.FieldName,
 	}
 	getFields  = template.WithoutFields()
 	sortFields = []string{
-		template.FieldID,
+		template.FieldName,
 		template.FieldStatus,
 		template.FieldCreateTime,
 	}
