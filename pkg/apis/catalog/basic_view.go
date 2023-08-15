@@ -72,9 +72,15 @@ type (
 		runtime.RequestCollection[
 			predicate.Catalog, catalog.OrderOption,
 		] `query:",inline"`
+
+		Stream *runtime.RequestUnidiStream
 	}
 
 	CollectionGetResponse = []*model.CatalogOutput
 )
+
+func (r *CollectionGetRequest) SetStream(stream runtime.RequestUnidiStream) {
+	r.Stream = &stream
+}
 
 type CollectionDeleteRequest = model.CatalogDeleteInputs

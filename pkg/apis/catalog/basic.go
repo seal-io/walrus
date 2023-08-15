@@ -1,10 +1,14 @@
 package catalog
 
 import (
+	"github.com/seal-io/seal/pkg/apis/runtime"
 	catalogbus "github.com/seal-io/seal/pkg/bus/catalog"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/catalog"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/seal/pkg/topic/datamessage"
+	"github.com/seal-io/seal/utils/topic"
 )
 
 func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
@@ -78,6 +82,71 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 	if queries, ok := req.Querying(queryFields); ok {
 		query = query.Where(queries)
 	}
+
+	if stream := req.Stream; stream != nil {
+		// Handle stream request.
+		if fields, ok := req.Extracting(getFields, getFields...); ok {
+			query.Select(fields...)
+		}
+
+		if orders, ok := req.Sorting(sortFields, model.Desc(catalog.FieldCreateTime)); ok {
+			query.Order(orders...)
+		}
+
+		t, err := topic.Subscribe(datamessage.Catalog)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		defer func() { t.Unsubscribe() }()
+
+		for {
+			var event topic.Event
+
+			event, err = t.Receive(stream)
+			if err != nil {
+				return nil, 0, err
+			}
+
+			dm, ok := event.Data.(datamessage.Message[object.ID])
+			if !ok {
+				continue
+			}
+
+			var items []*model.CatalogOutput
+
+			switch dm.Type {
+			case datamessage.EventCreate, datamessage.EventUpdate:
+				entities, err := query.Clone().
+					Where(catalog.IDIn(dm.Data...)).
+					Unique(false).
+					All(stream)
+				if err != nil {
+					return nil, 0, err
+				}
+
+				items = model.ExposeCatalogs(entities)
+			case datamessage.EventDelete:
+				items = make([]*model.CatalogOutput, len(dm.Data))
+				for i := range dm.Data {
+					items[i] = &model.CatalogOutput{
+						ID: dm.Data[i],
+					}
+				}
+			}
+
+			if len(items) == 0 {
+				continue
+			}
+
+			resp := runtime.TypedResponse(dm.Type.String(), items)
+			if err = stream.SendJSON(resp); err != nil {
+				return nil, 0, err
+			}
+		}
+	}
+
+	// Handle normal request.
 
 	// Get count.
 	count, err := query.Clone().Count(req.Context)

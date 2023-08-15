@@ -11,19 +11,22 @@ import (
 
 // Topics.
 const (
-	// Service is the topic for service.
-	Service topic.Topic = "Service"
-
-	// ServiceRevision is the topic for service revision.
-	ServiceRevision topic.Topic = "ServiceRevision"
-
-	// ServiceResource is the topic for service resource.
-	ServiceResource topic.Topic = "ServiceResource"
+	// Catalog is the topic for catalog.
+	Catalog topic.Topic = "Catalog"
 
 	// Connector is the topic for connector.
 	Connector topic.Topic = "Connector"
 
-	// Template is the topic for module.
+	// Service is the topic for service.
+	Service topic.Topic = "Service"
+
+	// ServiceResource is the topic for service resource.
+	ServiceResource topic.Topic = "ServiceResource"
+
+	// ServiceRevision is the topic for service revision.
+	ServiceRevision topic.Topic = "ServiceRevision"
+
+	// Template is the topic for template.
 	Template topic.Topic = "Template"
 )
 
@@ -33,10 +36,11 @@ type Message[T any] struct {
 }
 
 var allowed = sets.New(
-	ServiceResource,
-	Service,
-	ServiceRevision,
+	Catalog,
 	Connector,
+	Service,
+	ServiceResource,
+	ServiceRevision,
 	Template,
 )
 
