@@ -8,7 +8,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
-// SyncServiceRevisionStatus updates the status of the service according to its recent finished service revision
+// SyncServiceRevisionStatus updates the status of the service according to its recent finished service revision.
 func SyncServiceRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) (err error) {
 	var (
 		mc       = bm.TransactionalModelClient

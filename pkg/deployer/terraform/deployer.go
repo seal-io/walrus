@@ -96,9 +96,9 @@ func (d Deployer) Type() deptypes.Type {
 // and drives the Kubernetes Job to create resources of the service.
 func (d Deployer) Apply(ctx context.Context, service *model.Service, opts deptypes.ApplyOptions) (err error) {
 	revision, err := d.createRevision(ctx, createRevisionOptions{
-		JobType: JobTypeApply,
-		Tags:    opts.Tags,
-		Service: service,
+		ServiceID: service.ID,
+		JobType:   JobTypeApply,
+		Tags:      opts.Tags,
 	})
 	if err != nil {
 		return err
@@ -116,7 +116,6 @@ func (d Deployer) Apply(ctx context.Context, service *model.Service, opts deptyp
 	return d.createK8sJob(ctx, createK8sJobOptions{
 		Type:            JobTypeApply,
 		SkipTLSVerify:   opts.SkipTLSVerify,
-		Service:         service,
 		ServiceRevision: revision,
 	})
 }
@@ -125,8 +124,8 @@ func (d Deployer) Apply(ctx context.Context, service *model.Service, opts deptyp
 // and drives the Kubernetes Job to clean the resources of the service.
 func (d Deployer) Destroy(ctx context.Context, service *model.Service, opts deptypes.DestroyOptions) (err error) {
 	revision, err := d.createRevision(ctx, createRevisionOptions{
-		JobType: JobTypeDestroy,
-		Service: service,
+		ServiceID: service.ID,
+		JobType:   JobTypeDestroy,
 	})
 	if err != nil {
 		return err
@@ -156,7 +155,6 @@ func (d Deployer) Destroy(ctx context.Context, service *model.Service, opts dept
 	return d.createK8sJob(ctx, createK8sJobOptions{
 		Type:            JobTypeDestroy,
 		SkipTLSVerify:   opts.SkipTLSVerify,
-		Service:         service,
 		ServiceRevision: revision,
 	})
 }
@@ -166,25 +164,30 @@ type createK8sJobOptions struct {
 	Type string
 	// SkipTLSVerify indicates to skip TLS verification.
 	SkipTLSVerify bool
-	// Service indicates the service to create the deployment job.
-	Service *model.Service
 	// ServiceRevision indicates the service revision to create the deployment job.
 	ServiceRevision *model.ServiceRevision
 }
 
 // createK8sJob creates a k8s job to deploy, destroy or rollback the service.
 func (d Deployer) createK8sJob(ctx context.Context, opts createK8sJobOptions) error {
-	connectors, err := d.getConnectors(ctx, opts.Service)
+	revision := opts.ServiceRevision
+
+	connectors, err := d.getConnectors(ctx, revision.EnvironmentID)
 	if err != nil {
 		return err
 	}
 
-	project, err := d.modelClient.Projects().Get(ctx, opts.Service.ProjectID)
+	proj, err := d.modelClient.Projects().Get(ctx, revision.ProjectID)
 	if err != nil {
 		return err
 	}
 
-	environment, err := dao.GetEnvironmentByID(ctx, d.modelClient, opts.Service.EnvironmentID)
+	env, err := dao.GetEnvironmentByID(ctx, d.modelClient, revision.EnvironmentID)
+	if err != nil {
+		return err
+	}
+
+	svc, err := d.modelClient.Services().Get(ctx, revision.ServiceID)
 	if err != nil {
 		return err
 	}
@@ -195,7 +198,7 @@ func (d Deployer) createK8sJob(ctx context.Context, opts createK8sJobOptions) er
 	if sj.ID != "" {
 		subjectID = sj.ID
 	} else {
-		subjectID, err = pkgservice.GetSubjectID(opts.Service)
+		subjectID, err = pkgservice.GetSubjectID(svc)
 		if err != nil {
 			return err
 		}
@@ -210,15 +213,15 @@ func (d Deployer) createK8sJob(ctx context.Context, opts createK8sJobOptions) er
 		SkipTLSVerify:   opts.SkipTLSVerify,
 		ServiceRevision: opts.ServiceRevision,
 		Connectors:      connectors,
-		ProjectID:       opts.Service.ProjectID,
-		EnvironmentID:   opts.Service.EnvironmentID,
+		ProjectID:       proj.ID,
+		EnvironmentID:   env.ID,
 		SubjectID:       subjectID,
 		// Metadata.
-		ProjectName:          project.Name,
-		EnvironmentName:      environment.Name,
-		ServiceName:          opts.Service.Name,
-		ServiceID:            opts.Service.ID,
-		ManagedNamespaceName: pkgenv.GetManagedNamespaceName(environment),
+		ProjectName:          proj.Name,
+		EnvironmentName:      env.Name,
+		ServiceName:          svc.Name,
+		ServiceID:            svc.ID,
+		ManagedNamespaceName: pkgenv.GetManagedNamespaceName(env),
 	}
 	if err = d.createK8sSecrets(ctx, secretOpts); err != nil {
 		return err
@@ -370,12 +373,12 @@ func (d Deployer) createK8sSecrets(ctx context.Context, opts createK8sSecretsOpt
 }
 
 type createRevisionOptions struct {
+	// ServiceID indicates the ID of service which is for create the revision.
+	ServiceID object.ID
 	// JobType indicates the type of the job.
 	JobType string
 	// Tags indicates the tags for the revision.
 	Tags []string
-	// Service indicates the service to create the revision.
-	Service *model.Service
 }
 
 // createRevision creates a new service revision.
@@ -386,33 +389,10 @@ func (d Deployer) createRevision(
 	ctx context.Context,
 	opts createRevisionOptions,
 ) (*model.ServiceRevision, error) {
-	tv, err := d.modelClient.TemplateVersions().Query().
-		Where(templateversion.ID(opts.Service.TemplateID)).
-		Select(
-			templateversion.FieldName,
-			templateversion.FieldVersion).
-		Only(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	entity := &model.ServiceRevision{
-		ProjectID:       opts.Service.ProjectID,
-		ServiceID:       opts.Service.ID,
-		EnvironmentID:   opts.Service.EnvironmentID,
-		TemplateName:    tv.Name,
-		TemplateVersion: tv.Version,
-		Attributes:      opts.Service.Attributes,
-		Tags:            opts.Tags,
-		DeployerType:    DeployerType,
-		Status:          status.ServiceRevisionStatusRunning,
-	}
-
-	// Output of the previous revision should be inherited to the new one
-	// when creating a new revision.
+	// Validate if there is a running revision.
 	prevEntity, err := d.modelClient.ServiceRevisions().Query().
 		Where(servicerevision.And(
-			servicerevision.ServiceID(opts.Service.ID),
+			servicerevision.ServiceID(opts.ServiceID),
 			servicerevision.DeployerType(DeployerType))).
 		Order(model.Desc(servicerevision.FieldCreateTime)).
 		First(ctx)
@@ -420,42 +400,79 @@ func (d Deployer) createRevision(
 		return nil, err
 	}
 
+	if prevEntity != nil && prevEntity.Status == status.ServiceRevisionStatusRunning {
+		return nil, errors.New("service deployment is running")
+	}
+
+	// Get the corresponding service and template version.
+	svc, err := d.modelClient.Services().Query().
+		Where(service.ID(opts.ServiceID)).
+		WithTemplate(func(tvq *model.TemplateVersionQuery) {
+			tvq.Select(
+				templateversion.FieldName,
+				templateversion.FieldVersion)
+		}).
+		Select(
+			service.FieldID,
+			service.FieldProjectID,
+			service.FieldEnvironmentID,
+			service.FieldAttributes).
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	entity := &model.ServiceRevision{
+		ProjectID:       svc.ProjectID,
+		EnvironmentID:   svc.EnvironmentID,
+		ServiceID:       svc.ID,
+		TemplateName:    svc.Edges.Template.Name,
+		TemplateVersion: svc.Edges.Template.Version,
+		Attributes:      svc.Attributes,
+		Tags:            opts.Tags,
+		DeployerType:    DeployerType,
+		Status:          status.ServiceRevisionStatusRunning,
+	}
+
+	// Inherit the output of previous revision to create a new one.
 	if prevEntity != nil {
-		if prevEntity.Status == status.ServiceRevisionStatusRunning {
-			return nil, errors.New("service deployment is running")
-		}
-
-		// Inherit the output of previous revision.
 		entity.Output = prevEntity.Output
+	}
 
-		// Get required providers.
-		requiredProviders, err := d.getRequiredProviders(ctx, opts.Service.ID, entity.Output)
+	switch {
+	case opts.JobType == JobTypeApply && entity.Output != "":
+		// Get required providers from the previous output after first deployment.
+		requiredProviders, err := d.getRequiredProviders(ctx, opts.ServiceID, entity.Output)
 		if err != nil {
 			return nil, err
 		}
 		entity.PreviousRequiredProviders = requiredProviders
+	case opts.JobType == JobTypeDestroy && entity.Output != "":
+		if prevEntity.Status == status.ServiceRevisionStatusFailed {
+			// Get required providers from the previous output after first deployment.
+			requiredProviders, err := d.getRequiredProviders(ctx, opts.ServiceID, entity.Output)
+			if err != nil {
+				return nil, err
+			}
+			entity.PreviousRequiredProviders = requiredProviders
+		} else {
+			// Copy required providers from the previous revision.
+			entity.PreviousRequiredProviders = prevEntity.PreviousRequiredProviders
+			// Reuse other fields from the previous revision.
+			entity.TemplateName = prevEntity.TemplateName
+			entity.TemplateVersion = prevEntity.TemplateVersion
+			entity.Attributes = prevEntity.Attributes
+			entity.InputPlan = prevEntity.InputPlan
+		}
 	}
 
-	if opts.JobType == JobTypeDestroy &&
-		prevEntity != nil &&
-		prevEntity.Status == status.ServiceRevisionStatusSucceeded {
-		entity.TemplateName = prevEntity.TemplateName
-		entity.TemplateVersion = prevEntity.TemplateVersion
-		entity.Attributes = prevEntity.Attributes
-		entity.InputPlan = prevEntity.InputPlan
-		entity.Output = prevEntity.Output
-		entity.PreviousRequiredProviders = prevEntity.PreviousRequiredProviders
-	}
-
-	// Create revision, mark status to running.
+	// Create revision.
 	entity, err = d.modelClient.ServiceRevisions().Create().
 		Set(entity).
 		Save(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	entity.Edges.Service = opts.Service
 
 	return entity, nil
 }
@@ -684,9 +701,9 @@ func (d Deployer) getModuleConfig(
 	return mc, requiredProviders, err
 }
 
-func (d Deployer) getConnectors(ctx context.Context, ai *model.Service) (model.Connectors, error) {
+func (d Deployer) getConnectors(ctx context.Context, environmentID object.ID) (model.Connectors, error) {
 	rs, err := d.modelClient.EnvironmentConnectorRelationships().Query().
-		Where(environmentconnectorrelationship.EnvironmentID(ai.EnvironmentID)).
+		Where(environmentconnectorrelationship.EnvironmentID(environmentID)).
 		WithConnector(func(cq *model.ConnectorQuery) {
 			cq.Select(
 				connector.FieldID,
@@ -1060,12 +1077,12 @@ func getVarConfigOptions(variables model.Variables, serviceOutputs map[string]pa
 
 func getModuleConfig(
 	revision *model.ServiceRevision,
-	modVer *model.TemplateVersion,
-	ops createK8sSecretsOptions,
+	template *model.TemplateVersion,
+	opts createK8sSecretsOptions,
 ) (*config.ModuleConfig, error) {
 	var (
 		props              = make(property.Properties, len(revision.Attributes))
-		typesWith          = revision.Attributes.TypesWith(modVer.Schema.Variables)
+		typesWith          = revision.Attributes.TypesWith(template.Schema.Variables)
 		sensitiveVariables = sets.Set[string]{}
 	)
 
@@ -1082,17 +1099,17 @@ func getModuleConfig(
 	}
 
 	mc := &config.ModuleConfig{
-		Name:       revision.Edges.Service.Name,
-		Source:     modVer.Source,
-		Schema:     modVer.Schema,
+		Name:       opts.ServiceName,
+		Source:     template.Source,
+		Schema:     template.Schema,
 		Attributes: attrs,
 	}
 
-	if modVer.Schema == nil {
+	if template.Schema == nil {
 		return mc, nil
 	}
 
-	for _, v := range modVer.Schema.Variables {
+	for _, v := range template.Schema.Variables {
 		// Add sensitive from schema variable.
 		if v.Sensitive {
 			sensitiveVariables.Insert(fmt.Sprintf(`var\.%s`, v.Name))
@@ -1103,19 +1120,19 @@ func getModuleConfig(
 
 		switch v.Name {
 		case SealMetadataProjectName:
-			attrValue = ops.ProjectName
+			attrValue = opts.ProjectName
 		case SealMetadataEnvironmentName:
-			attrValue = ops.EnvironmentName
+			attrValue = opts.EnvironmentName
 		case SealMetadataServiceName:
-			attrValue = ops.ServiceName
+			attrValue = opts.ServiceName
 		case SealMetadataProjectID:
-			attrValue = ops.ProjectID.String()
+			attrValue = opts.ProjectID.String()
 		case SealMetadataEnvironmentID:
-			attrValue = ops.EnvironmentID.String()
+			attrValue = opts.EnvironmentID.String()
 		case SealMetadataServiceID:
-			attrValue = ops.ServiceID.String()
+			attrValue = opts.ServiceID.String()
 		case SealMetadataNamespaceName:
-			attrValue = ops.ManagedNamespaceName
+			attrValue = opts.ManagedNamespaceName
 		}
 
 		if attrValue != "" {
@@ -1128,11 +1145,11 @@ func getModuleConfig(
 		return nil, err
 	}
 
-	mc.Outputs = make([]config.Output, len(modVer.Schema.Outputs))
-	for i, v := range modVer.Schema.Outputs {
+	mc.Outputs = make([]config.Output, len(template.Schema.Outputs))
+	for i, v := range template.Schema.Outputs {
 		mc.Outputs[i].Sensitive = v.Sensitive
 		mc.Outputs[i].Name = v.Name
-		mc.Outputs[i].ServiceName = revision.Edges.Service.Name
+		mc.Outputs[i].ServiceName = opts.ServiceName
 		mc.Outputs[i].Value = v.Value
 
 		if v.Sensitive {
