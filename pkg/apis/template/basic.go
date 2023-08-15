@@ -83,6 +83,10 @@ var (
 func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse, int, error) {
 	query := h.modelClient.Templates().Query()
 
+	if len(req.CatalogIDs) != 0 {
+		query.Where(template.CatalogIDIn(req.CatalogIDs...))
+	}
+
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
 	}
@@ -122,6 +126,8 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 			switch dm.Type {
 			case datamessage.EventCreate, datamessage.EventUpdate:
 				entities, err := query.Clone().
+					// Must extract catalog ID.
+					Select(template.FieldCatalogID).
 					Where(template.IDIn(dm.Data...)).
 					Unique(false).
 					All(stream)
@@ -172,6 +178,8 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 	}
 
 	entities, err := query.
+		// Must extract catalog ID.
+		Select(template.FieldCatalogID).
 		Unique(false).
 		All(req.Context)
 	if err != nil {

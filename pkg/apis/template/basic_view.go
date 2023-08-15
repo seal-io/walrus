@@ -1,6 +1,7 @@
 package template
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-getter"
@@ -9,6 +10,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/template"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/validation"
 )
 
@@ -68,11 +70,29 @@ type (
 			predicate.Template, template.OrderOption,
 		] `query:",inline"`
 
+		CatalogIDs []object.ID `query:"catalogID,omitempty"`
+
 		Stream *runtime.RequestUnidiStream
 	}
 
 	CollectionGetResponse = []*model.TemplateOutput
 )
+
+func (r *CollectionGetRequest) Validate() error {
+	if err := r.TemplateQueryInputs.Validate(); err != nil {
+		return err
+	}
+
+	if r.CatalogIDs != nil {
+		for i := range r.CatalogIDs {
+			if !r.CatalogIDs[i].Valid() {
+				return errors.New("invalid catalog id")
+			}
+		}
+	}
+
+	return nil
+}
 
 func (r *CollectionGetRequest) SetStream(stream runtime.RequestUnidiStream) {
 	r.Stream = &stream
