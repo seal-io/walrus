@@ -62,6 +62,8 @@ func UpdateStatus(
 	mc model.ClientSet,
 	entity *model.Service,
 ) error {
+	entity.Status.SetSummary(status.WalkService(&entity.Status))
+
 	err := mc.Services().UpdateOne(entity).
 		SetStatus(entity.Status).
 		Exec(ctx)
@@ -134,10 +136,6 @@ func Destroy(
 		}
 	}()
 
-	if !status.ServiceStatusDeleted.IsUnknown(entity) {
-		return fmt.Errorf("service status is not deleting, service: %s", entity.ID)
-	}
-
 	if dp == nil {
 		return errors.New("deployer is not set")
 	}
@@ -152,8 +150,9 @@ func Destroy(
 		msg := fmt.Sprintf("Waiting for dependants to be deleted: %s", strs.Join(", ", dependants...))
 		if !status.ServiceStatusProgressing.IsUnknown(entity) ||
 			status.ServiceStatusDeleted.GetMessage(entity) != msg {
+			// Mark status to deleting with dependency message.
+			status.ServiceStatusDeleted.Reset(entity, msg)
 			status.ServiceStatusProgressing.Unknown(entity, "")
-			status.ServiceStatusDeleted.Message(entity, msg)
 
 			if err = UpdateStatus(ctx, mc, entity); err != nil {
 				return fmt.Errorf("failed to update service status: %w", err)
@@ -162,6 +161,8 @@ func Destroy(
 
 		return nil
 	} else {
+		// Mark status to deleting.
+		status.ServiceStatusDeleted.Reset(entity, "")
 		status.ServiceStatusProgressing.True(entity, "Resolved dependencies")
 
 		if err = UpdateStatus(ctx, mc, entity); err != nil {
