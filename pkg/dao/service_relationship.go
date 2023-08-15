@@ -91,7 +91,8 @@ func GetServiceDependantNames(
 			t := sql.Table(service.Table).As("s")
 			s.LeftJoin(t).
 				On(t.C(service.FieldID), servicerelationship.FieldServiceID).
-				Select(service.FieldName)
+				Select(service.FieldName).
+				Distinct()
 		}).
 		Scan(ctx, &names)
 	if err != nil {
