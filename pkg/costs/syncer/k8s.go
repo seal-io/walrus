@@ -95,13 +95,20 @@ func (in *K8sCostSyncer) syncCost(ctx context.Context, conn *model.Connector, st
 		}
 
 		if len(ac) == 0 {
+			in.logger.Debugf("connector: %s, finished step sync within %s, %s, no record found",
+				conn.Name, stepStart.String(), stepEnd.String())
+
 			stepStart = stepEnd
+
 			continue
 		}
 
 		if err = in.batchCreateCostReports(ctx, ac); err != nil {
 			return fmt.Errorf("error creating item costs: %w", err)
 		}
+
+		in.logger.Debugf("connector: %s, finished step sync within %s, %s, created %d record",
+			conn.Name, stepStart.String(), stepEnd.String(), len(ac))
 
 		stepStart = stepEnd
 	}
