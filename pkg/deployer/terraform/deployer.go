@@ -49,54 +49,17 @@ import (
 // DeployerType the type of deployer.
 const DeployerType = types.DeployerTypeTF
 
-// Deployer terraform deployer to deploy the service.
-type Deployer struct {
-	logger      log.Logger
-	modelClient model.ClientSet
-	clientSet   *kubernetes.Clientset
-}
+const (
+	// _backendAPI the API path to terraform deploy backend.
+	// Terraform will get and update deployment states from this API.
+	_backendAPI = "/v1/projects/%s/environments/%s/services/%s/revisions/%s/terraform-states"
 
-type CreateRevisionOptions struct {
-	// JobType indicates the type of the job.
-	JobType string
-	Tags    []string
-	Service *model.Service
-}
+	// _variablePrefix the prefix of the variable name.
+	_variablePrefix = "_seal_var_"
 
-// CreateSecretsOptions options for creating deployment job secrets.
-type CreateSecretsOptions struct {
-	SkipTLSVerify   bool
-	ServiceRevision *model.ServiceRevision
-	Connectors      model.Connectors
-	ProjectID       object.ID
-	EnvironmentID   object.ID
-	SubjectID       object.ID
-	// Metadata.
-	ProjectName          string
-	EnvironmentName      string
-	ServiceName          string
-	ServiceID            object.ID
-	ManagedNamespaceName string
-}
-
-// CreateJobOptions options for do job action.
-type CreateJobOptions struct {
-	Type          string
-	SkipTLSVerify bool
-	Service       *model.Service
-	// ServiceRevision indicates the service revision to create the deploy job.
-	ServiceRevision *model.ServiceRevision
-}
-
-// _backendAPI the API path to terraform deploy backend.
-// Terraform will get and update deployment states from this API.
-const _backendAPI = "/v1/projects/%s/environments/%s/services/%s/revisions/%s/terraform-states"
-
-// _variablePrefix the prefix of the variable name.
-const _variablePrefix = "_seal_var_"
-
-// _servicePrefix the prefix of the service output name.
-const _servicePrefix = "_seal_service_"
+	// _servicePrefix the prefix of the service output name.
+	_servicePrefix = "_seal_service_"
+)
 
 var (
 	// _variableReg the regexp to match the variable.
@@ -104,6 +67,13 @@ var (
 	// _serviceReg the regexp to match the service output.
 	_serviceReg = regexp.MustCompile(`\${service\.([^.}]+)\.([^.}]+)}`)
 )
+
+// Deployer terraform deployer to deploy the service.
+type Deployer struct {
+	logger      log.Logger
+	modelClient model.ClientSet
+	clientSet   *kubernetes.Clientset
+}
 
 func NewDeployer(_ context.Context, opts deptypes.CreateOptions) (deptypes.Deployer, error) {
 	clientSet, err := kubernetes.NewForConfig(opts.KubeConfig)
@@ -122,9 +92,10 @@ func (d Deployer) Type() deptypes.Type {
 	return DeployerType
 }
 
-// Apply deploys the service.
+// Apply creates a new service revision by the given service,
+// and drives the Kubernetes Job to create resources of the service.
 func (d Deployer) Apply(ctx context.Context, service *model.Service, opts deptypes.ApplyOptions) (err error) {
-	revision, err := d.CreateServiceRevision(ctx, CreateRevisionOptions{
+	revision, err := d.createRevision(ctx, createRevisionOptions{
 		JobType: JobTypeApply,
 		Tags:    opts.Tags,
 		Service: service,
@@ -142,7 +113,7 @@ func (d Deployer) Apply(ctx context.Context, service *model.Service, opts deptyp
 		_ = d.updateRevisionStatus(ctx, revision, status.ServiceRevisionStatusFailed, err.Error())
 	}()
 
-	return d.CreateK8sJob(ctx, CreateJobOptions{
+	return d.createK8sJob(ctx, createK8sJobOptions{
 		Type:            JobTypeApply,
 		SkipTLSVerify:   opts.SkipTLSVerify,
 		Service:         service,
@@ -150,15 +121,10 @@ func (d Deployer) Apply(ctx context.Context, service *model.Service, opts deptyp
 	})
 }
 
-// Destroy will destroy the resource of the service.
-// 1. Get the latest revision, and checkAppRevision it if it is running.
-// 2. If not running, then destroy resources.
-func (d Deployer) Destroy(
-	ctx context.Context,
-	service *model.Service,
-	destroyOpts deptypes.DestroyOptions,
-) (err error) {
-	sr, err := d.CreateServiceRevision(ctx, CreateRevisionOptions{
+// Destroy creates a new service revision by the given service,
+// and drives the Kubernetes Job to clean the resources of the service.
+func (d Deployer) Destroy(ctx context.Context, service *model.Service, opts deptypes.DestroyOptions) (err error) {
+	revision, err := d.createRevision(ctx, createRevisionOptions{
 		JobType: JobTypeDestroy,
 		Service: service,
 	})
@@ -170,8 +136,9 @@ func (d Deployer) Destroy(
 		if err == nil {
 			return
 		}
+
 		// Report to service revision.
-		_ = d.updateRevisionStatus(ctx, sr, status.ServiceRevisionStatusFailed, err.Error())
+		_ = d.updateRevisionStatus(ctx, revision, status.ServiceRevisionStatusFailed, err.Error())
 	}()
 
 	// If no resource exists, skip job and set revision status succeed.
@@ -183,19 +150,30 @@ func (d Deployer) Destroy(
 	}
 
 	if !exist {
-		return d.updateRevisionStatus(ctx, sr, status.ServiceRevisionStatusSucceeded, sr.StatusMessage)
+		return d.updateRevisionStatus(ctx, revision, status.ServiceRevisionStatusSucceeded, revision.StatusMessage)
 	}
 
-	return d.CreateK8sJob(ctx, CreateJobOptions{
+	return d.createK8sJob(ctx, createK8sJobOptions{
 		Type:            JobTypeDestroy,
-		SkipTLSVerify:   destroyOpts.SkipTLSVerify,
+		SkipTLSVerify:   opts.SkipTLSVerify,
 		Service:         service,
-		ServiceRevision: sr,
+		ServiceRevision: revision,
 	})
 }
 
-// CreateK8sJob will create a k8s job to deploy、destroy or rollback the service.
-func (d Deployer) CreateK8sJob(ctx context.Context, opts CreateJobOptions) error {
+type createK8sJobOptions struct {
+	// Type indicates the type of the job.
+	Type string
+	// SkipTLSVerify indicates to skip TLS verification.
+	SkipTLSVerify bool
+	// Service indicates the service to create the deployment job.
+	Service *model.Service
+	// ServiceRevision indicates the service revision to create the deployment job.
+	ServiceRevision *model.ServiceRevision
+}
+
+// createK8sJob creates a k8s job to deploy, destroy or rollback the service.
+func (d Deployer) createK8sJob(ctx context.Context, opts createK8sJobOptions) error {
 	connectors, err := d.getConnectors(ctx, opts.Service)
 	if err != nil {
 		return err
@@ -228,7 +206,7 @@ func (d Deployer) CreateK8sJob(ctx context.Context, opts CreateJobOptions) error
 	}
 
 	// Prepare tfConfig for deployment.
-	secretOpts := CreateSecretsOptions{
+	secretOpts := createK8sSecretsOptions{
 		SkipTLSVerify:   opts.SkipTLSVerify,
 		ServiceRevision: opts.ServiceRevision,
 		Connectors:      connectors,
@@ -342,14 +320,29 @@ func (d Deployer) updateRevisionStatus(ctx context.Context, ar *model.ServiceRev
 	return nil
 }
 
-// createK8sSecrets will create the k8s secrets for deployment.
-func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOptions) error {
+type createK8sSecretsOptions struct {
+	SkipTLSVerify   bool
+	ServiceRevision *model.ServiceRevision
+	Connectors      model.Connectors
+	ProjectID       object.ID
+	EnvironmentID   object.ID
+	SubjectID       object.ID
+	// Metadata.
+	ProjectName          string
+	EnvironmentName      string
+	ServiceName          string
+	ServiceID            object.ID
+	ManagedNamespaceName string
+}
+
+// createK8sSecrets creates the k8s secrets for deployment.
+func (d Deployer) createK8sSecrets(ctx context.Context, opts createK8sSecretsOptions) error {
 	secretData := make(map[string][]byte)
 	// SecretName terraform tfConfig name.
 	secretName := _jobSecretPrefix + string(opts.ServiceRevision.ID)
 
 	// Prepare terraform config files bytes for deployment.
-	terraformData, err := d.LoadConfigsBytes(ctx, opts)
+	terraformData, err := d.loadConfigsBytes(ctx, opts)
 	if err != nil {
 		return err
 	}
@@ -359,7 +352,7 @@ func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOption
 	}
 
 	// Mount the provider configs(e.g. kubeconfig) to secret.
-	providerData, err := d.GetProviderSecretData(opts.Connectors)
+	providerData, err := d.getProviderSecretData(opts.Connectors)
 	if err != nil {
 		return err
 	}
@@ -376,13 +369,22 @@ func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOption
 	return nil
 }
 
-// CreateServiceRevision will create a new service revision.
+type createRevisionOptions struct {
+	// JobType indicates the type of the job.
+	JobType string
+	// Tags indicates the tags for the revision.
+	Tags []string
+	// Service indicates the service to create the revision.
+	Service *model.Service
+}
+
+// createRevision creates a new service revision.
 // Get the latest revision, and check it if it is running.
 // If not running, then apply the latest revision.
 // If running, then wait for the latest revision to be applied.
-func (d Deployer) CreateServiceRevision(
+func (d Deployer) createRevision(
 	ctx context.Context,
-	opts CreateRevisionOptions,
+	opts createRevisionOptions,
 ) (*model.ServiceRevision, error) {
 	tv, err := d.modelClient.TemplateVersions().Query().
 		Where(templateversion.ID(opts.Service.TemplateID)).
@@ -488,12 +490,12 @@ func (d Deployer) getRequiredProviders(
 	return requiredProviders, nil
 }
 
-// LoadConfigsBytes returns terraform main.tf and terraform.tfvars for deployment.
-func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOptions) (map[string][]byte, error) {
+// loadConfigsBytes returns terraform main.tf and terraform.tfvars for deployment.
+func (d Deployer) loadConfigsBytes(ctx context.Context, opts createK8sSecretsOptions) (map[string][]byte, error) {
 	logger := log.WithName("deployer").WithName("tf")
 	// Prepare terraform tfConfig.
 	//  get module configs from service revision.
-	moduleConfig, providerRequirements, err := d.GetModuleConfig(ctx, opts)
+	moduleConfig, providerRequirements, err := d.getModuleConfig(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -615,8 +617,8 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 	return secretMaps, nil
 }
 
-// GetProviderSecretData returns provider kubeconfig secret data mount into terraform container.
-func (d Deployer) GetProviderSecretData(connectors model.Connectors) (map[string][]byte, error) {
+// getProviderSecretData returns provider kubeconfig secret data mount into terraform container.
+func (d Deployer) getProviderSecretData(connectors model.Connectors) (map[string][]byte, error) {
 	secretData := make(map[string][]byte)
 
 	for _, c := range connectors {
@@ -638,11 +640,11 @@ func (d Deployer) GetProviderSecretData(connectors model.Connectors) (map[string
 	return secretData, nil
 }
 
-// GetModuleConfig returns module configs and required connectors to
+// getModuleConfig returns module configs and required connectors to
 // get terraform module config block from service revision.
-func (d Deployer) GetModuleConfig(
+func (d Deployer) getModuleConfig(
 	ctx context.Context,
-	opts CreateSecretsOptions,
+	opts createK8sSecretsOptions,
 ) (*config.ModuleConfig, []types.ProviderRequirement, error) {
 	var (
 		requiredProviders = make([]types.ProviderRequirement, 0)
@@ -711,7 +713,7 @@ func (d Deployer) getConnectors(ctx context.Context, ai *model.Service) (model.C
 func (d Deployer) parseModuleAttributes(
 	ctx context.Context,
 	templateConfig *config.ModuleConfig,
-	opts CreateSecretsOptions,
+	opts createK8sSecretsOptions,
 ) (variables model.Variables, outputs map[string]parser.OutputState, err error) {
 	var (
 		templateVariables        []string
@@ -965,50 +967,6 @@ func (d Deployer) getServiceDependencyOutputs(
 	return outputs, nil
 }
 
-func SyncServiceRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) (err error) {
-	var (
-		mc       = bm.TransactionalModelClient
-		revision = bm.Refer
-	)
-
-	// Report to service.
-	entity, err := mc.Services().Query().
-		Where(service.ID(revision.ServiceID)).
-		Select(
-			service.FieldID,
-			service.FieldStatus,
-		).
-		Only(ctx)
-	if err != nil {
-		return err
-	}
-
-	switch revision.Status {
-	case status.ServiceRevisionStatusSucceeded:
-		if status.ServiceStatusDeleted.IsUnknown(entity) {
-			return mc.Services().DeleteOne(entity).
-				Exec(ctx)
-		}
-
-		status.ServiceStatusDeployed.True(entity, "")
-		status.ServiceStatusReady.Unknown(entity, "")
-	case status.ServiceRevisionStatusFailed:
-		if status.ServiceStatusDeleted.IsUnknown(entity) {
-			status.ServiceStatusDeleted.False(entity, "")
-		} else {
-			status.ServiceStatusDeployed.False(entity, "")
-		}
-
-		entity.Status.SummaryStatusMessage = revision.StatusMessage
-	}
-
-	entity.Status.SetSummary(status.WalkService(&entity.Status))
-
-	return mc.Services().UpdateOne(entity).
-		SetStatus(entity.Status).
-		Exec(ctx)
-}
-
 // parseAttributeReplace parses attribute variable ${var.name} replaces it with ${var._variablePrefix+name},
 // service reference ${service.name.output} replaces it with ${var._servicePrefix+name}
 // and returns variable names and service names.
@@ -1103,7 +1061,7 @@ func getVarConfigOptions(variables model.Variables, serviceOutputs map[string]pa
 func getModuleConfig(
 	revision *model.ServiceRevision,
 	modVer *model.TemplateVersion,
-	ops CreateSecretsOptions,
+	ops createK8sSecretsOptions,
 ) (*config.ModuleConfig, error) {
 	var (
 		props              = make(property.Properties, len(revision.Attributes))
