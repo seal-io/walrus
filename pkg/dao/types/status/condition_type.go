@@ -228,7 +228,7 @@ func getCondMessage(obj any, condType ConditionType) string {
 	}
 
 	cond := getCond(st, condType)
-	if cond != nil {
+	if cond == nil {
 		return ""
 	}
 
