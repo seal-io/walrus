@@ -54,13 +54,17 @@ func (tci *TokenCreateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tci.ValidateWith(tci.inputConfig.Context, tci.inputConfig.Client)
+	return tci.ValidateWith(tci.inputConfig.Context, tci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TokenCreateInput entity with the given context and client set.
-func (tci *TokenCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tci *TokenCreateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -79,9 +83,13 @@ type TokenCreateInputsItem struct {
 }
 
 // ValidateWith checks the TokenCreateInputsItem entity with the given context and client set.
-func (tci *TokenCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tci *TokenCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -125,11 +133,11 @@ func (tci *TokenCreateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tci.ValidateWith(tci.inputConfig.Context, tci.inputConfig.Client)
+	return tci.ValidateWith(tci.inputConfig.Context, tci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TokenCreateInputs entity with the given context and client set.
-func (tci *TokenCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tci *TokenCreateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tci == nil {
 		return errors.New("nil receiver")
 	}
@@ -138,12 +146,16 @@ func (tci *TokenCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) er
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	for i := range tci.Items {
 		if tci.Items[i] == nil {
 			continue
 		}
 
-		if err := tci.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := tci.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
@@ -208,17 +220,21 @@ func (tdi *TokenDeleteInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tdi.ValidateWith(tdi.inputConfig.Context, tdi.inputConfig.Client)
+	return tdi.ValidateWith(tdi.inputConfig.Context, tdi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TokenDeleteInputs entity with the given context and client set.
-func (tdi *TokenDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tdi *TokenDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tdi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(tdi.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Tokens().Query()
@@ -283,17 +299,21 @@ func (tqi *TokenQueryInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tqi.ValidateWith(tqi.inputConfig.Context, tqi.inputConfig.Client)
+	return tqi.ValidateWith(tqi.inputConfig.Context, tqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TokenQueryInput entity with the given context and client set.
-func (tqi *TokenQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tqi *TokenQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if tqi.Refer != nil && *tqi.Refer == "" {
 		return fmt.Errorf("model: %s : %w", token.Label, ErrBlankResourceRefer)
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Tokens().Query()
@@ -312,9 +332,31 @@ func (tqi *TokenQueryInput) ValidateWith(ctx context.Context, cs ClientSet) erro
 		return errors.New("invalid identify of token")
 	}
 
-	var err error
-	tqi.ID, err = q.OnlyID(ctx)
-	return err
+	q.Select(
+		token.FieldID,
+	)
+
+	var e *Token
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Token)
+		}
+	}
+
+	tqi.ID = e.ID
+	return nil
 }
 
 // TokenQueryInputs holds the query input of the Token entities,
@@ -329,13 +371,17 @@ func (tqi *TokenQueryInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tqi.ValidateWith(tqi.inputConfig.Context, tqi.inputConfig.Client)
+	return tqi.ValidateWith(tqi.inputConfig.Context, tqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TokenQueryInputs entity with the given context and client set.
-func (tqi *TokenQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tqi *TokenQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tqi == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -367,12 +413,16 @@ func (tui *TokenUpdateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tui.ValidateWith(tui.inputConfig.Context, tui.inputConfig.Client)
+	return tui.ValidateWith(tui.inputConfig.Context, tui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TokenUpdateInput entity with the given context and client set.
-func (tui *TokenUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
-	if err := tui.TokenQueryInput.ValidateWith(ctx, cs); err != nil {
+func (tui *TokenUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := tui.TokenQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -386,9 +436,13 @@ type TokenUpdateInputsItem struct {
 }
 
 // ValidateWith checks the TokenUpdateInputsItem entity with the given context and client set.
-func (tui *TokenUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tui *TokenUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tui == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -443,17 +497,21 @@ func (tui *TokenUpdateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tui.ValidateWith(tui.inputConfig.Context, tui.inputConfig.Client)
+	return tui.ValidateWith(tui.inputConfig.Context, tui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TokenUpdateInputs entity with the given context and client set.
-func (tui *TokenUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tui *TokenUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tui == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(tui.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Tokens().Query()
@@ -491,7 +549,7 @@ func (tui *TokenUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) er
 			continue
 		}
 
-		if err := tui.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := tui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}

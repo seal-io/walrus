@@ -51,13 +51,17 @@ func (rci *RoleCreateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return rci.ValidateWith(rci.inputConfig.Context, rci.inputConfig.Client)
+	return rci.ValidateWith(rci.inputConfig.Context, rci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the RoleCreateInput entity with the given context and client set.
-func (rci *RoleCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (rci *RoleCreateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if rci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -74,9 +78,13 @@ type RoleCreateInputsItem struct {
 }
 
 // ValidateWith checks the RoleCreateInputsItem entity with the given context and client set.
-func (rci *RoleCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (rci *RoleCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if rci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -119,11 +127,11 @@ func (rci *RoleCreateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return rci.ValidateWith(rci.inputConfig.Context, rci.inputConfig.Client)
+	return rci.ValidateWith(rci.inputConfig.Context, rci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the RoleCreateInputs entity with the given context and client set.
-func (rci *RoleCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (rci *RoleCreateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if rci == nil {
 		return errors.New("nil receiver")
 	}
@@ -132,12 +140,16 @@ func (rci *RoleCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) err
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	for i := range rci.Items {
 		if rci.Items[i] == nil {
 			continue
 		}
 
-		if err := rci.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := rci.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
@@ -202,17 +214,21 @@ func (rdi *RoleDeleteInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return rdi.ValidateWith(rdi.inputConfig.Context, rdi.inputConfig.Client)
+	return rdi.ValidateWith(rdi.inputConfig.Context, rdi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the RoleDeleteInputs entity with the given context and client set.
-func (rdi *RoleDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (rdi *RoleDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if rdi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(rdi.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Roles().Query()
@@ -277,17 +293,21 @@ func (rqi *RoleQueryInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return rqi.ValidateWith(rqi.inputConfig.Context, rqi.inputConfig.Client)
+	return rqi.ValidateWith(rqi.inputConfig.Context, rqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the RoleQueryInput entity with the given context and client set.
-func (rqi *RoleQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (rqi *RoleQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if rqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if rqi.Refer != nil && *rqi.Refer == "" {
 		return fmt.Errorf("model: %s : %w", role.Label, ErrBlankResourceRefer)
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Roles().Query()
@@ -306,9 +326,31 @@ func (rqi *RoleQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error
 		return errors.New("invalid identify of role")
 	}
 
-	var err error
-	rqi.ID, err = q.OnlyID(ctx)
-	return err
+	q.Select(
+		role.FieldID,
+	)
+
+	var e *Role
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Role)
+		}
+	}
+
+	rqi.ID = e.ID
+	return nil
 }
 
 // RoleQueryInputs holds the query input of the Role entities,
@@ -323,13 +365,17 @@ func (rqi *RoleQueryInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return rqi.ValidateWith(rqi.inputConfig.Context, rqi.inputConfig.Client)
+	return rqi.ValidateWith(rqi.inputConfig.Context, rqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the RoleQueryInputs entity with the given context and client set.
-func (rqi *RoleQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (rqi *RoleQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if rqi == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -368,12 +414,16 @@ func (rui *RoleUpdateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return rui.ValidateWith(rui.inputConfig.Context, rui.inputConfig.Client)
+	return rui.ValidateWith(rui.inputConfig.Context, rui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the RoleUpdateInput entity with the given context and client set.
-func (rui *RoleUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
-	if err := rui.RoleQueryInput.ValidateWith(ctx, cs); err != nil {
+func (rui *RoleUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := rui.RoleQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -392,9 +442,13 @@ type RoleUpdateInputsItem struct {
 }
 
 // ValidateWith checks the RoleUpdateInputsItem entity with the given context and client set.
-func (rui *RoleUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (rui *RoleUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if rui == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -451,17 +505,21 @@ func (rui *RoleUpdateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return rui.ValidateWith(rui.inputConfig.Context, rui.inputConfig.Client)
+	return rui.ValidateWith(rui.inputConfig.Context, rui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the RoleUpdateInputs entity with the given context and client set.
-func (rui *RoleUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (rui *RoleUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if rui == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(rui.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Roles().Query()
@@ -499,7 +557,7 @@ func (rui *RoleUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) err
 			continue
 		}
 
-		if err := rui.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := rui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}

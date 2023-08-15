@@ -43,13 +43,17 @@ func (dlci *DistributeLockCreateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return dlci.ValidateWith(dlci.inputConfig.Context, dlci.inputConfig.Client)
+	return dlci.ValidateWith(dlci.inputConfig.Context, dlci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the DistributeLockCreateInput entity with the given context and client set.
-func (dlci *DistributeLockCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (dlci *DistributeLockCreateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if dlci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -62,9 +66,13 @@ type DistributeLockCreateInputsItem struct {
 }
 
 // ValidateWith checks the DistributeLockCreateInputsItem entity with the given context and client set.
-func (dlci *DistributeLockCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (dlci *DistributeLockCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if dlci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -105,11 +113,11 @@ func (dlci *DistributeLockCreateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return dlci.ValidateWith(dlci.inputConfig.Context, dlci.inputConfig.Client)
+	return dlci.ValidateWith(dlci.inputConfig.Context, dlci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the DistributeLockCreateInputs entity with the given context and client set.
-func (dlci *DistributeLockCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (dlci *DistributeLockCreateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if dlci == nil {
 		return errors.New("nil receiver")
 	}
@@ -118,12 +126,16 @@ func (dlci *DistributeLockCreateInputs) ValidateWith(ctx context.Context, cs Cli
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	for i := range dlci.Items {
 		if dlci.Items[i] == nil {
 			continue
 		}
 
-		if err := dlci.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := dlci.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
@@ -188,17 +200,21 @@ func (dldi *DistributeLockDeleteInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return dldi.ValidateWith(dldi.inputConfig.Context, dldi.inputConfig.Client)
+	return dldi.ValidateWith(dldi.inputConfig.Context, dldi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the DistributeLockDeleteInputs entity with the given context and client set.
-func (dldi *DistributeLockDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (dldi *DistributeLockDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if dldi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(dldi.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.DistributeLocks().Query()
@@ -263,17 +279,21 @@ func (dlqi *DistributeLockQueryInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return dlqi.ValidateWith(dlqi.inputConfig.Context, dlqi.inputConfig.Client)
+	return dlqi.ValidateWith(dlqi.inputConfig.Context, dlqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the DistributeLockQueryInput entity with the given context and client set.
-func (dlqi *DistributeLockQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (dlqi *DistributeLockQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if dlqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if dlqi.Refer != nil && *dlqi.Refer == "" {
 		return fmt.Errorf("model: %s : %w", distributelock.Label, ErrBlankResourceRefer)
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.DistributeLocks().Query()
@@ -292,9 +312,31 @@ func (dlqi *DistributeLockQueryInput) ValidateWith(ctx context.Context, cs Clien
 		return errors.New("invalid identify of distributelock")
 	}
 
-	var err error
-	dlqi.ID, err = q.OnlyID(ctx)
-	return err
+	q.Select(
+		distributelock.FieldID,
+	)
+
+	var e *DistributeLock
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*DistributeLock)
+		}
+	}
+
+	dlqi.ID = e.ID
+	return nil
 }
 
 // DistributeLockQueryInputs holds the query input of the DistributeLock entities,
@@ -309,13 +351,17 @@ func (dlqi *DistributeLockQueryInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return dlqi.ValidateWith(dlqi.inputConfig.Context, dlqi.inputConfig.Client)
+	return dlqi.ValidateWith(dlqi.inputConfig.Context, dlqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the DistributeLockQueryInputs entity with the given context and client set.
-func (dlqi *DistributeLockQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (dlqi *DistributeLockQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if dlqi == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -351,12 +397,16 @@ func (dlui *DistributeLockUpdateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return dlui.ValidateWith(dlui.inputConfig.Context, dlui.inputConfig.Client)
+	return dlui.ValidateWith(dlui.inputConfig.Context, dlui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the DistributeLockUpdateInput entity with the given context and client set.
-func (dlui *DistributeLockUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
-	if err := dlui.DistributeLockQueryInput.ValidateWith(ctx, cs); err != nil {
+func (dlui *DistributeLockUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := dlui.DistributeLockQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -373,9 +423,13 @@ type DistributeLockUpdateInputsItem struct {
 }
 
 // ValidateWith checks the DistributeLockUpdateInputsItem entity with the given context and client set.
-func (dlui *DistributeLockUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (dlui *DistributeLockUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if dlui == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -431,17 +485,21 @@ func (dlui *DistributeLockUpdateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return dlui.ValidateWith(dlui.inputConfig.Context, dlui.inputConfig.Client)
+	return dlui.ValidateWith(dlui.inputConfig.Context, dlui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the DistributeLockUpdateInputs entity with the given context and client set.
-func (dlui *DistributeLockUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (dlui *DistributeLockUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if dlui == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(dlui.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.DistributeLocks().Query()
@@ -479,7 +537,7 @@ func (dlui *DistributeLockUpdateInputs) ValidateWith(ctx context.Context, cs Cli
 			continue
 		}
 
-		if err := dlui.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := dlui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}

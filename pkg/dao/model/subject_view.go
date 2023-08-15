@@ -67,13 +67,17 @@ func (sci *SubjectCreateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return sci.ValidateWith(sci.inputConfig.Context, sci.inputConfig.Client)
+	return sci.ValidateWith(sci.inputConfig.Context, sci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the SubjectCreateInput entity with the given context and client set.
-func (sci *SubjectCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (sci *SubjectCreateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if sci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	for i := range sci.Roles {
@@ -81,7 +85,7 @@ func (sci *SubjectCreateInput) ValidateWith(ctx context.Context, cs ClientSet) e
 			continue
 		}
 
-		if err := sci.Roles[i].ValidateWith(ctx, cs); err != nil {
+		if err := sci.Roles[i].ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -111,9 +115,13 @@ type SubjectCreateInputsItem struct {
 }
 
 // ValidateWith checks the SubjectCreateInputsItem entity with the given context and client set.
-func (sci *SubjectCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (sci *SubjectCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if sci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	for i := range sci.Roles {
@@ -121,7 +129,7 @@ func (sci *SubjectCreateInputsItem) ValidateWith(ctx context.Context, cs ClientS
 			continue
 		}
 
-		if err := sci.Roles[i].ValidateWith(ctx, cs); err != nil {
+		if err := sci.Roles[i].ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -180,11 +188,11 @@ func (sci *SubjectCreateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return sci.ValidateWith(sci.inputConfig.Context, sci.inputConfig.Client)
+	return sci.ValidateWith(sci.inputConfig.Context, sci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the SubjectCreateInputs entity with the given context and client set.
-func (sci *SubjectCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (sci *SubjectCreateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if sci == nil {
 		return errors.New("nil receiver")
 	}
@@ -193,12 +201,16 @@ func (sci *SubjectCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	for i := range sci.Items {
 		if sci.Items[i] == nil {
 			continue
 		}
 
-		if err := sci.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := sci.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
@@ -269,17 +281,21 @@ func (sdi *SubjectDeleteInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return sdi.ValidateWith(sdi.inputConfig.Context, sdi.inputConfig.Client)
+	return sdi.ValidateWith(sdi.inputConfig.Context, sdi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the SubjectDeleteInputs entity with the given context and client set.
-func (sdi *SubjectDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (sdi *SubjectDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if sdi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(sdi.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Subjects().Query()
@@ -373,17 +389,21 @@ func (sqi *SubjectQueryInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return sqi.ValidateWith(sqi.inputConfig.Context, sqi.inputConfig.Client)
+	return sqi.ValidateWith(sqi.inputConfig.Context, sqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the SubjectQueryInput entity with the given context and client set.
-func (sqi *SubjectQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (sqi *SubjectQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if sqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if sqi.Refer != nil && *sqi.Refer == "" {
 		return fmt.Errorf("model: %s : %w", subject.Label, ErrBlankResourceRefer)
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Subjects().Query()
@@ -410,21 +430,37 @@ func (sqi *SubjectQueryInput) ValidateWith(ctx context.Context, cs ClientSet) er
 		return errors.New("invalid identify of subject")
 	}
 
-	e, err := q.
-		Select(
-			subject.FieldID,
-			subject.FieldKind,
-			subject.FieldDomain,
-			subject.FieldName,
-		).
-		Only(ctx)
-	if err == nil {
-		sqi.ID = e.ID
-		sqi.Kind = e.Kind
-		sqi.Domain = e.Domain
-		sqi.Name = e.Name
+	q.Select(
+		subject.FieldID,
+		subject.FieldKind,
+		subject.FieldDomain,
+		subject.FieldName,
+	)
+
+	var e *Subject
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Subject)
+		}
 	}
-	return err
+
+	sqi.ID = e.ID
+	sqi.Kind = e.Kind
+	sqi.Domain = e.Domain
+	sqi.Name = e.Name
+	return nil
 }
 
 // SubjectQueryInputs holds the query input of the Subject entities,
@@ -439,13 +475,17 @@ func (sqi *SubjectQueryInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return sqi.ValidateWith(sqi.inputConfig.Context, sqi.inputConfig.Client)
+	return sqi.ValidateWith(sqi.inputConfig.Context, sqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the SubjectQueryInputs entity with the given context and client set.
-func (sqi *SubjectQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (sqi *SubjectQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if sqi == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -500,12 +540,16 @@ func (sui *SubjectUpdateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return sui.ValidateWith(sui.inputConfig.Context, sui.inputConfig.Client)
+	return sui.ValidateWith(sui.inputConfig.Context, sui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the SubjectUpdateInput entity with the given context and client set.
-func (sui *SubjectUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
-	if err := sui.SubjectQueryInput.ValidateWith(ctx, cs); err != nil {
+func (sui *SubjectUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := sui.SubjectQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -514,7 +558,7 @@ func (sui *SubjectUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) e
 			continue
 		}
 
-		if err := sui.Roles[i].ValidateWith(ctx, cs); err != nil {
+		if err := sui.Roles[i].ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -545,9 +589,13 @@ type SubjectUpdateInputsItem struct {
 }
 
 // ValidateWith checks the SubjectUpdateInputsItem entity with the given context and client set.
-func (sui *SubjectUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (sui *SubjectUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if sui == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	for i := range sui.Roles {
@@ -555,7 +603,7 @@ func (sui *SubjectUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientS
 			continue
 		}
 
-		if err := sui.Roles[i].ValidateWith(ctx, cs); err != nil {
+		if err := sui.Roles[i].ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -628,17 +676,21 @@ func (sui *SubjectUpdateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return sui.ValidateWith(sui.inputConfig.Context, sui.inputConfig.Client)
+	return sui.ValidateWith(sui.inputConfig.Context, sui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the SubjectUpdateInputs entity with the given context and client set.
-func (sui *SubjectUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (sui *SubjectUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if sui == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(sui.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Subjects().Query()
@@ -696,7 +748,7 @@ func (sui *SubjectUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 			continue
 		}
 
-		if err := sui.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := sui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}

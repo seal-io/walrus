@@ -75,30 +75,34 @@ func (sci *ServiceCreateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return sci.ValidateWith(sci.inputConfig.Context, sci.inputConfig.Client)
+	return sci.ValidateWith(sci.inputConfig.Context, sci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ServiceCreateInput entity with the given context and client set.
-func (sci *ServiceCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (sci *ServiceCreateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if sci == nil {
 		return errors.New("nil receiver")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	// Validate when creating under the Project route.
 	if sci.Project != nil {
-		if err := sci.Project.ValidateWith(ctx, cs); err != nil {
+		if err := sci.Project.ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
 	// Validate when creating under the Environment route.
 	if sci.Environment != nil {
-		if err := sci.Environment.ValidateWith(ctx, cs); err != nil {
+		if err := sci.Environment.ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
 
 	if sci.Template != nil {
-		if err := sci.Template.ValidateWith(ctx, cs); err != nil {
+		if err := sci.Template.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -126,13 +130,17 @@ type ServiceCreateInputsItem struct {
 }
 
 // ValidateWith checks the ServiceCreateInputsItem entity with the given context and client set.
-func (sci *ServiceCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (sci *ServiceCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if sci == nil {
 		return errors.New("nil receiver")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	if sci.Template != nil {
-		if err := sci.Template.ValidateWith(ctx, cs); err != nil {
+		if err := sci.Template.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -198,11 +206,11 @@ func (sci *ServiceCreateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return sci.ValidateWith(sci.inputConfig.Context, sci.inputConfig.Client)
+	return sci.ValidateWith(sci.inputConfig.Context, sci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ServiceCreateInputs entity with the given context and client set.
-func (sci *ServiceCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (sci *ServiceCreateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if sci == nil {
 		return errors.New("nil receiver")
 	}
@@ -211,9 +219,13 @@ func (sci *ServiceCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	// Validate when creating under the Project route.
 	if sci.Project != nil {
-		if err := sci.Project.ValidateWith(ctx, cs); err != nil {
+		if err := sci.Project.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -223,7 +235,7 @@ func (sci *ServiceCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 	}
 	// Validate when creating under the Environment route.
 	if sci.Environment != nil {
-		if err := sci.Environment.ValidateWith(ctx, cs); err != nil {
+		if err := sci.Environment.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -237,7 +249,7 @@ func (sci *ServiceCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 			continue
 		}
 
-		if err := sci.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := sci.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
@@ -309,11 +321,11 @@ func (sdi *ServiceDeleteInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return sdi.ValidateWith(sdi.inputConfig.Context, sdi.inputConfig.Client)
+	return sdi.ValidateWith(sdi.inputConfig.Context, sdi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ServiceDeleteInputs entity with the given context and client set.
-func (sdi *ServiceDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (sdi *ServiceDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if sdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -322,11 +334,15 @@ func (sdi *ServiceDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	q := cs.Services().Query()
 
 	// Validate when deleting under the Project route.
 	if sdi.Project != nil {
-		if err := sdi.Project.ValidateWith(ctx, cs); err != nil {
+		if err := sdi.Project.ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		} else {
 			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
@@ -337,7 +353,7 @@ func (sdi *ServiceDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 
 	// Validate when deleting under the Environment route.
 	if sdi.Environment != nil {
-		if err := sdi.Environment.ValidateWith(ctx, cs); err != nil {
+		if err := sdi.Environment.ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		} else {
 			q.Where(
@@ -429,11 +445,11 @@ func (sqi *ServiceQueryInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return sqi.ValidateWith(sqi.inputConfig.Context, sqi.inputConfig.Client)
+	return sqi.ValidateWith(sqi.inputConfig.Context, sqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ServiceQueryInput entity with the given context and client set.
-func (sqi *ServiceQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (sqi *ServiceQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if sqi == nil {
 		return errors.New("nil receiver")
 	}
@@ -442,11 +458,15 @@ func (sqi *ServiceQueryInput) ValidateWith(ctx context.Context, cs ClientSet) er
 		return fmt.Errorf("model: %s : %w", service.Label, ErrBlankResourceRefer)
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	q := cs.Services().Query()
 
 	// Validate when querying under the Project route.
 	if sqi.Project != nil {
-		if err := sqi.Project.ValidateWith(ctx, cs); err != nil {
+		if err := sqi.Project.ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		} else {
 			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
@@ -457,7 +477,7 @@ func (sqi *ServiceQueryInput) ValidateWith(ctx context.Context, cs ClientSet) er
 
 	// Validate when querying under the Environment route.
 	if sqi.Environment != nil {
-		if err := sqi.Environment.ValidateWith(ctx, cs); err != nil {
+		if err := sqi.Environment.ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		} else {
 			q.Where(
@@ -485,17 +505,33 @@ func (sqi *ServiceQueryInput) ValidateWith(ctx context.Context, cs ClientSet) er
 		return errors.New("invalid identify of service")
 	}
 
-	e, err := q.
-		Select(
-			service.FieldID,
-			service.FieldName,
-		).
-		Only(ctx)
-	if err == nil {
-		sqi.ID = e.ID
-		sqi.Name = e.Name
+	q.Select(
+		service.FieldID,
+		service.FieldName,
+	)
+
+	var e *Service
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Service)
+		}
 	}
-	return err
+
+	sqi.ID = e.ID
+	sqi.Name = e.Name
+	return nil
 }
 
 // ServiceQueryInputs holds the query input of the Service entities,
@@ -515,25 +551,29 @@ func (sqi *ServiceQueryInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return sqi.ValidateWith(sqi.inputConfig.Context, sqi.inputConfig.Client)
+	return sqi.ValidateWith(sqi.inputConfig.Context, sqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ServiceQueryInputs entity with the given context and client set.
-func (sqi *ServiceQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (sqi *ServiceQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if sqi == nil {
 		return errors.New("nil receiver")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	// Validate when querying under the Project route.
 	if sqi.Project != nil {
-		if err := sqi.Project.ValidateWith(ctx, cs); err != nil {
+		if err := sqi.Project.ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
 
 	// Validate when querying under the Environment route.
 	if sqi.Environment != nil {
-		if err := sqi.Environment.ValidateWith(ctx, cs); err != nil {
+		if err := sqi.Environment.ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
@@ -583,17 +623,21 @@ func (sui *ServiceUpdateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return sui.ValidateWith(sui.inputConfig.Context, sui.inputConfig.Client)
+	return sui.ValidateWith(sui.inputConfig.Context, sui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ServiceUpdateInput entity with the given context and client set.
-func (sui *ServiceUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
-	if err := sui.ServiceQueryInput.ValidateWith(ctx, cs); err != nil {
+func (sui *ServiceUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := sui.ServiceQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
 	if sui.Template != nil {
-		if err := sui.Template.ValidateWith(ctx, cs); err != nil {
+		if err := sui.Template.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -624,13 +668,17 @@ type ServiceUpdateInputsItem struct {
 }
 
 // ValidateWith checks the ServiceUpdateInputsItem entity with the given context and client set.
-func (sui *ServiceUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (sui *ServiceUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if sui == nil {
 		return errors.New("nil receiver")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	if sui.Template != nil {
-		if err := sui.Template.ValidateWith(ctx, cs); err != nil {
+		if err := sui.Template.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -703,11 +751,11 @@ func (sui *ServiceUpdateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return sui.ValidateWith(sui.inputConfig.Context, sui.inputConfig.Client)
+	return sui.ValidateWith(sui.inputConfig.Context, sui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ServiceUpdateInputs entity with the given context and client set.
-func (sui *ServiceUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (sui *ServiceUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if sui == nil {
 		return errors.New("nil receiver")
 	}
@@ -716,11 +764,15 @@ func (sui *ServiceUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	q := cs.Services().Query()
 
 	// Validate when updating under the Project route.
 	if sui.Project != nil {
-		if err := sui.Project.ValidateWith(ctx, cs); err != nil {
+		if err := sui.Project.ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		} else {
 			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
@@ -731,7 +783,7 @@ func (sui *ServiceUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 
 	// Validate when updating under the Environment route.
 	if sui.Environment != nil {
-		if err := sui.Environment.ValidateWith(ctx, cs); err != nil {
+		if err := sui.Environment.ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		} else {
 			q.Where(
@@ -788,7 +840,7 @@ func (sui *ServiceUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 			continue
 		}
 
-		if err := sui.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := sui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}

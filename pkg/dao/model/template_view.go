@@ -55,13 +55,17 @@ func (tci *TemplateCreateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tci.ValidateWith(tci.inputConfig.Context, tci.inputConfig.Client)
+	return tci.ValidateWith(tci.inputConfig.Context, tci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TemplateCreateInput entity with the given context and client set.
-func (tci *TemplateCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tci *TemplateCreateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -80,9 +84,13 @@ type TemplateCreateInputsItem struct {
 }
 
 // ValidateWith checks the TemplateCreateInputsItem entity with the given context and client set.
-func (tci *TemplateCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tci *TemplateCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -126,11 +134,11 @@ func (tci *TemplateCreateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tci.ValidateWith(tci.inputConfig.Context, tci.inputConfig.Client)
+	return tci.ValidateWith(tci.inputConfig.Context, tci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TemplateCreateInputs entity with the given context and client set.
-func (tci *TemplateCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tci *TemplateCreateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tci == nil {
 		return errors.New("nil receiver")
 	}
@@ -139,12 +147,16 @@ func (tci *TemplateCreateInputs) ValidateWith(ctx context.Context, cs ClientSet)
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	for i := range tci.Items {
 		if tci.Items[i] == nil {
 			continue
 		}
 
-		if err := tci.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := tci.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
@@ -211,17 +223,21 @@ func (tdi *TemplateDeleteInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tdi.ValidateWith(tdi.inputConfig.Context, tdi.inputConfig.Client)
+	return tdi.ValidateWith(tdi.inputConfig.Context, tdi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TemplateDeleteInputs entity with the given context and client set.
-func (tdi *TemplateDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tdi *TemplateDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tdi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(tdi.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Templates().Query()
@@ -305,17 +321,21 @@ func (tqi *TemplateQueryInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tqi.ValidateWith(tqi.inputConfig.Context, tqi.inputConfig.Client)
+	return tqi.ValidateWith(tqi.inputConfig.Context, tqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TemplateQueryInput entity with the given context and client set.
-func (tqi *TemplateQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tqi *TemplateQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if tqi.Refer != nil && *tqi.Refer == "" {
 		return fmt.Errorf("model: %s : %w", template.Label, ErrBlankResourceRefer)
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Templates().Query()
@@ -340,17 +360,33 @@ func (tqi *TemplateQueryInput) ValidateWith(ctx context.Context, cs ClientSet) e
 		return errors.New("invalid identify of template")
 	}
 
-	e, err := q.
-		Select(
-			template.FieldID,
-			template.FieldName,
-		).
-		Only(ctx)
-	if err == nil {
-		tqi.ID = e.ID
-		tqi.Name = e.Name
+	q.Select(
+		template.FieldID,
+		template.FieldName,
+	)
+
+	var e *Template
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Template)
+		}
 	}
-	return err
+
+	tqi.ID = e.ID
+	tqi.Name = e.Name
+	return nil
 }
 
 // TemplateQueryInputs holds the query input of the Template entities,
@@ -365,13 +401,17 @@ func (tqi *TemplateQueryInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tqi.ValidateWith(tqi.inputConfig.Context, tqi.inputConfig.Client)
+	return tqi.ValidateWith(tqi.inputConfig.Context, tqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TemplateQueryInputs entity with the given context and client set.
-func (tqi *TemplateQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tqi *TemplateQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tqi == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -413,12 +453,16 @@ func (tui *TemplateUpdateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tui.ValidateWith(tui.inputConfig.Context, tui.inputConfig.Client)
+	return tui.ValidateWith(tui.inputConfig.Context, tui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TemplateUpdateInput entity with the given context and client set.
-func (tui *TemplateUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
-	if err := tui.TemplateQueryInput.ValidateWith(ctx, cs); err != nil {
+func (tui *TemplateUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := tui.TemplateQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -441,9 +485,13 @@ type TemplateUpdateInputsItem struct {
 }
 
 // ValidateWith checks the TemplateUpdateInputsItem entity with the given context and client set.
-func (tui *TemplateUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tui *TemplateUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tui == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -501,17 +549,21 @@ func (tui *TemplateUpdateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tui.ValidateWith(tui.inputConfig.Context, tui.inputConfig.Client)
+	return tui.ValidateWith(tui.inputConfig.Context, tui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TemplateUpdateInputs entity with the given context and client set.
-func (tui *TemplateUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tui *TemplateUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tui == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(tui.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Templates().Query()
@@ -565,7 +617,7 @@ func (tui *TemplateUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet)
 			continue
 		}
 
-		if err := tui.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := tui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}

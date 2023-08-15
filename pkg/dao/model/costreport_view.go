@@ -129,13 +129,17 @@ func (crci *CostReportCreateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return crci.ValidateWith(crci.inputConfig.Context, crci.inputConfig.Client)
+	return crci.ValidateWith(crci.inputConfig.Context, crci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the CostReportCreateInput entity with the given context and client set.
-func (crci *CostReportCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (crci *CostReportCreateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if crci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -204,9 +208,13 @@ type CostReportCreateInputsItem struct {
 }
 
 // ValidateWith checks the CostReportCreateInputsItem entity with the given context and client set.
-func (crci *CostReportCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (crci *CostReportCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if crci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -275,11 +283,11 @@ func (crci *CostReportCreateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return crci.ValidateWith(crci.inputConfig.Context, crci.inputConfig.Client)
+	return crci.ValidateWith(crci.inputConfig.Context, crci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the CostReportCreateInputs entity with the given context and client set.
-func (crci *CostReportCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (crci *CostReportCreateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if crci == nil {
 		return errors.New("nil receiver")
 	}
@@ -288,12 +296,16 @@ func (crci *CostReportCreateInputs) ValidateWith(ctx context.Context, cs ClientS
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	for i := range crci.Items {
 		if crci.Items[i] == nil {
 			continue
 		}
 
-		if err := crci.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := crci.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
@@ -358,17 +370,21 @@ func (crdi *CostReportDeleteInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return crdi.ValidateWith(crdi.inputConfig.Context, crdi.inputConfig.Client)
+	return crdi.ValidateWith(crdi.inputConfig.Context, crdi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the CostReportDeleteInputs entity with the given context and client set.
-func (crdi *CostReportDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (crdi *CostReportDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if crdi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(crdi.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.CostReports().Query()
@@ -433,17 +449,21 @@ func (crqi *CostReportQueryInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return crqi.ValidateWith(crqi.inputConfig.Context, crqi.inputConfig.Client)
+	return crqi.ValidateWith(crqi.inputConfig.Context, crqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the CostReportQueryInput entity with the given context and client set.
-func (crqi *CostReportQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (crqi *CostReportQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if crqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if crqi.Refer != nil && *crqi.Refer == "" {
 		return fmt.Errorf("model: %s : %w", costreport.Label, ErrBlankResourceRefer)
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.CostReports().Query()
@@ -462,9 +482,31 @@ func (crqi *CostReportQueryInput) ValidateWith(ctx context.Context, cs ClientSet
 		return errors.New("invalid identify of costreport")
 	}
 
-	var err error
-	crqi.ID, err = q.OnlyID(ctx)
-	return err
+	q.Select(
+		costreport.FieldID,
+	)
+
+	var e *CostReport
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*CostReport)
+		}
+	}
+
+	crqi.ID = e.ID
+	return nil
 }
 
 // CostReportQueryInputs holds the query input of the CostReport entities,
@@ -479,13 +521,17 @@ func (crqi *CostReportQueryInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return crqi.ValidateWith(crqi.inputConfig.Context, crqi.inputConfig.Client)
+	return crqi.ValidateWith(crqi.inputConfig.Context, crqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the CostReportQueryInputs entity with the given context and client set.
-func (crqi *CostReportQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (crqi *CostReportQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if crqi == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -554,12 +600,16 @@ func (crui *CostReportUpdateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return crui.ValidateWith(crui.inputConfig.Context, crui.inputConfig.Client)
+	return crui.ValidateWith(crui.inputConfig.Context, crui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the CostReportUpdateInput entity with the given context and client set.
-func (crui *CostReportUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
-	if err := crui.CostReportQueryInput.ValidateWith(ctx, cs); err != nil {
+func (crui *CostReportUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := crui.CostReportQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -598,9 +648,13 @@ type CostReportUpdateInputsItem struct {
 }
 
 // ValidateWith checks the CostReportUpdateInputsItem entity with the given context and client set.
-func (crui *CostReportUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (crui *CostReportUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if crui == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -667,17 +721,21 @@ func (crui *CostReportUpdateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return crui.ValidateWith(crui.inputConfig.Context, crui.inputConfig.Client)
+	return crui.ValidateWith(crui.inputConfig.Context, crui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the CostReportUpdateInputs entity with the given context and client set.
-func (crui *CostReportUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (crui *CostReportUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if crui == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(crui.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.CostReports().Query()
@@ -715,7 +773,7 @@ func (crui *CostReportUpdateInputs) ValidateWith(ctx context.Context, cs ClientS
 			continue
 		}
 
-		if err := crui.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := crui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
