@@ -249,7 +249,6 @@ func (in *RelationshipCheckTask) setServiceStatusFalse(
 			svc,
 			fmt.Sprintf("Parent service status is false, service name: %s", parentService.Name),
 		)
-		svc.Status.SetSummary(status.WalkService(&svc.Status))
 
 		err = pkgservice.UpdateStatus(ctx, in.modelClient, svc)
 		if err != nil {
@@ -261,7 +260,6 @@ func (in *RelationshipCheckTask) setServiceStatusFalse(
 		status.ServiceStatusProgressing.False(svc,
 			fmt.Sprintf("Parent service status is deleted, service name: %s", parentService.Name),
 		)
-		svc.Status.SetSummary(status.WalkService(&svc.Status))
 
 		err = pkgservice.UpdateStatus(ctx, in.modelClient, svc)
 		if err != nil {

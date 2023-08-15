@@ -10,7 +10,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/deployer"
 	deployertf "github.com/seal-io/seal/pkg/deployer/terraform"
 	deptypes "github.com/seal-io/seal/pkg/deployer/types"
@@ -75,18 +74,6 @@ func (h Handler) Delete(req DeleteRequest) (err error) {
 			Exec(req.Context)
 	}
 
-	// Mark status to deleting.
-	entity := req.Model()
-	status.ServiceStatusDeleted.Reset(entity, "")
-	entity.Status.SetSummary(status.WalkService(&entity.Status))
-
-	entity, err = h.modelClient.Services().UpdateOne(entity).
-		SetStatus(entity.Status).
-		Save(req.Context)
-	if err != nil {
-		return err
-	}
-
 	dp, err := h.getDeployer(req.Context)
 	if err != nil {
 		return err
@@ -100,7 +87,7 @@ func (h Handler) Delete(req DeleteRequest) (err error) {
 		req.Context,
 		h.modelClient,
 		dp,
-		entity,
+		req.Model(),
 		destroyOpts)
 }
 
@@ -282,19 +269,6 @@ func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 			All(req.Context)
 		if err != nil {
 			return err
-		}
-
-		for _, s := range services {
-			// Mark status to deleting.
-			status.ServiceStatusDeleted.Reset(s, "")
-			s.Status.SetSummary(status.WalkService(&s.Status))
-
-			err = tx.Services().UpdateOne(s).
-				SetStatus(s.Status).
-				Exec(req.Context)
-			if err != nil {
-				return err
-			}
 		}
 
 		deployerOpts := deptypes.CreateOptions{
