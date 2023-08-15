@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/seal-io/seal/pkg/apis/runtime/openapi"
 	"github.com/seal-io/seal/utils/json"
 )
 
@@ -261,6 +262,10 @@ func Test_getOperationParameters(t *testing.T) {
 				RequestAttributes: RequestWithUnidiStream,
 			},
 			expected: func() (refs openapi3.Parameters) {
+				pv := openapi3.NewQueryParameter("watch").
+					WithSchema(openapi3.NewBoolSchema())
+				pv.Extensions = map[string]any{openapi.ExtCliIgnore: true}
+
 				refs = append(refs,
 					&openapi3.ParameterRef{
 						Value: openapi3.NewPathParameter("stringPath").
@@ -285,8 +290,7 @@ func Test_getOperationParameters(t *testing.T) {
 							WithSchema(openapi3.NewArraySchema().WithItems(openapi3.NewStringSchema())),
 					},
 					&openapi3.ParameterRef{
-						Value: openapi3.NewQueryParameter("watch").
-							WithSchema(openapi3.NewBoolSchema()),
+						Value: pv,
 					},
 				)
 				return
@@ -438,7 +442,11 @@ func Test_getOperationRequestBody(t *testing.T) {
 				jsonSchema := openapi3.NewObjectSchema()
 
 				bv := openapi3.NewBytesSchema()
-				bv.Extensions = map[string]any{"x-cli-ignore": true}
+				bv.Extensions = map[string]any{openapi.ExtCliIgnore: true}
+
+				mv := openapi3.NewObjectSchema().
+					WithAdditionalProperties(openapi3.NewIntegerSchema().WithFormat("int32"))
+				mv.Extensions = map[string]any{openapi.ExtCliSchemaTypeName: "map[string]int32"}
 
 				jsonSchema.
 					WithProperty("bytesValue", bv).
@@ -457,9 +465,7 @@ func Test_getOperationRequestBody(t *testing.T) {
 						WithItems(openapi3.NewFloat64Schema().WithFormat("double")).
 						WithMinItems(4).
 						WithMaxItems(4)).
-					WithProperty("mapValue", openapi3.NewObjectSchema().
-						WithAdditionalProperties(openapi3.NewIntegerSchema().
-							WithFormat("int32"))).
+					WithProperty("mapValue", mv).
 					WithProperty("setValue", openapi3.NewObjectSchema())
 
 				jsonSchema.Required = []string{"bytesValue", "int64Value"}
@@ -501,7 +507,14 @@ func Test_getOperationRequestBody(t *testing.T) {
 				jsonSchema := openapi3.NewObjectSchema()
 
 				bv := openapi3.NewBytesSchema()
-				bv.Extensions = map[string]any{"x-cli-ignore": true}
+				bv.Extensions = map[string]any{openapi.ExtCliIgnore: true}
+
+				mv := openapi3.NewObjectSchema().
+					WithAdditionalProperties(openapi3.NewIntegerSchema().
+						WithFormat("int32"))
+				mv.Extensions = map[string]any{
+					openapi.ExtCliSchemaTypeName: "map[string]int32",
+				}
 
 				jsonSchema.
 					WithProperty("bytesValue", bv).
@@ -520,9 +533,7 @@ func Test_getOperationRequestBody(t *testing.T) {
 						WithItems(openapi3.NewFloat64Schema().WithFormat("double")).
 						WithMinItems(4).
 						WithMaxItems(4)).
-					WithProperty("mapValue", openapi3.NewObjectSchema().
-						WithAdditionalProperties(openapi3.NewIntegerSchema().
-							WithFormat("int32"))).
+					WithProperty("mapValue", mv).
 					WithProperty("setValue", openapi3.NewObjectSchema())
 
 				jsonSchema.Required = []string{"bytesValue", "int64Value"}
@@ -551,7 +562,14 @@ func Test_getOperationRequestBody(t *testing.T) {
 				jsonSchema := openapi3.NewObjectSchema()
 
 				bv := openapi3.NewBytesSchema()
-				bv.Extensions = map[string]any{"x-cli-ignore": true}
+				bv.Extensions = map[string]any{openapi.ExtCliIgnore: true}
+
+				mv := openapi3.NewObjectSchema().
+					WithAdditionalProperties(openapi3.NewIntegerSchema().
+						WithFormat("int32"))
+				mv.Extensions = map[string]any{
+					openapi.ExtCliSchemaTypeName: "map[string]int32",
+				}
 
 				jsonSchema.
 					WithProperty("bytesValue", bv).
@@ -570,9 +588,7 @@ func Test_getOperationRequestBody(t *testing.T) {
 						WithItems(openapi3.NewFloat64Schema().WithFormat("double")).
 						WithMinItems(4).
 						WithMaxItems(4)).
-					WithProperty("mapValue", openapi3.NewObjectSchema().
-						WithAdditionalProperties(openapi3.NewIntegerSchema().
-							WithFormat("int32"))).
+					WithProperty("mapValue", mv).
 					WithProperty("setValue", openapi3.NewObjectSchema())
 
 				jsonSchema.Required = []string{"bytesValue", "int64Value"}
@@ -601,7 +617,14 @@ func Test_getOperationRequestBody(t *testing.T) {
 				jsonSchema := openapi3.NewObjectSchema()
 
 				bv := openapi3.NewBytesSchema()
-				bv.Extensions = map[string]any{"x-cli-ignore": true}
+				bv.Extensions = map[string]any{openapi.ExtCliIgnore: true}
+
+				mv := openapi3.NewObjectSchema().
+					WithAdditionalProperties(openapi3.NewIntegerSchema().
+						WithFormat("int32"))
+				mv.Extensions = map[string]any{
+					openapi.ExtCliSchemaTypeName: "map[string]int32",
+				}
 
 				jsonSchema.
 					WithProperty("bytesValue", bv).
@@ -621,9 +644,7 @@ func Test_getOperationRequestBody(t *testing.T) {
 						WithItems(openapi3.NewFloat64Schema().WithFormat("double")).
 						WithMinItems(4).
 						WithMaxItems(4)).
-					WithProperty("mapValue", openapi3.NewObjectSchema().
-						WithAdditionalProperties(openapi3.NewIntegerSchema().
-							WithFormat("int32"))).
+					WithProperty("mapValue", mv).
 					WithProperty("setValue", openapi3.NewObjectSchema())
 
 				jsonSchema.Required = []string{"bytesValue", "int64Value"}
@@ -653,7 +674,14 @@ func Test_getOperationRequestBody(t *testing.T) {
 				jsonSchema := openapi3.NewObjectSchema()
 
 				bv := openapi3.NewBytesSchema()
-				bv.Extensions = map[string]any{"x-cli-ignore": true}
+				bv.Extensions = map[string]any{openapi.ExtCliIgnore: true}
+
+				mv := openapi3.NewObjectSchema().
+					WithAdditionalProperties(openapi3.NewIntegerSchema().
+						WithFormat("int32"))
+				mv.Extensions = map[string]any{
+					openapi.ExtCliSchemaTypeName: "map[string]int32",
+				}
 
 				jsonSchema.
 					WithProperty("bytesValue", bv).
@@ -673,9 +701,7 @@ func Test_getOperationRequestBody(t *testing.T) {
 						WithItems(openapi3.NewFloat64Schema().WithFormat("double")).
 						WithMinItems(4).
 						WithMaxItems(4)).
-					WithProperty("mapValue", openapi3.NewObjectSchema().
-						WithAdditionalProperties(openapi3.NewIntegerSchema().
-							WithFormat("int32"))).
+					WithProperty("mapValue", mv).
 					WithProperty("setValue", openapi3.NewObjectSchema())
 
 				jsonSchema.Required = []string{"bytesValue", "int64Value"}
@@ -723,7 +749,14 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 				s := openapi3.NewObjectSchema()
 
 				bv := openapi3.NewBytesSchema()
-				bv.Extensions = map[string]any{"x-cli-ignore": true}
+				bv.Extensions = map[string]any{openapi.ExtCliIgnore: true}
+
+				mv := openapi3.NewObjectSchema().
+					WithAdditionalProperties(openapi3.NewIntegerSchema().
+						WithFormat("int32"))
+				mv.Extensions = map[string]any{
+					openapi.ExtCliSchemaTypeName: "map[string]int32",
+				}
 
 				s.
 					WithProperty("bytesValue", bv).
@@ -743,9 +776,7 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 						WithItems(openapi3.NewFloat64Schema().WithFormat("double")).
 						WithMinItems(4).
 						WithMaxItems(4)).
-					WithProperty("mapValue", openapi3.NewObjectSchema().
-						WithAdditionalProperties(openapi3.NewIntegerSchema().
-							WithFormat("int32"))).
+					WithProperty("mapValue", mv).
 					WithProperty("setValue", openapi3.NewObjectSchema())
 
 				s.Required = []string{"bytesValue", "int64Value"}
@@ -780,7 +811,14 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 				s := openapi3.NewObjectSchema()
 
 				bv := openapi3.NewBytesSchema()
-				bv.Extensions = map[string]any{"x-cli-ignore": true}
+				bv.Extensions = map[string]any{openapi.ExtCliIgnore: true}
+
+				mv := openapi3.NewObjectSchema().
+					WithAdditionalProperties(openapi3.NewIntegerSchema().
+						WithFormat("int32"))
+				mv.Extensions = map[string]any{
+					openapi.ExtCliSchemaTypeName: "map[string]int32",
+				}
 
 				s.
 					WithProperty("bytesValue", bv).
@@ -800,9 +838,7 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 						WithItems(openapi3.NewFloat64Schema().WithFormat("double")).
 						WithMinItems(4).
 						WithMaxItems(4)).
-					WithProperty("mapValue", openapi3.NewObjectSchema().
-						WithAdditionalProperties(openapi3.NewIntegerSchema().
-							WithFormat("int32"))).
+					WithProperty("mapValue", mv).
 					WithProperty("setValue", openapi3.NewObjectSchema())
 
 				s.Required = []string{"bytesValue", "int64Value"}
@@ -837,7 +873,14 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 				s := openapi3.NewObjectSchema()
 
 				bv := openapi3.NewBytesSchema()
-				bv.Extensions = map[string]any{"x-cli-ignore": true}
+				bv.Extensions = map[string]any{openapi.ExtCliIgnore: true}
+
+				mv := openapi3.NewObjectSchema().
+					WithAdditionalProperties(openapi3.NewIntegerSchema().
+						WithFormat("int32"))
+				mv.Extensions = map[string]any{
+					openapi.ExtCliSchemaTypeName: "map[string]int32",
+				}
 
 				s.
 					WithProperty("bytesValue", bv).
@@ -857,9 +900,7 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 						WithItems(openapi3.NewFloat64Schema().WithFormat("double")).
 						WithMinItems(4).
 						WithMaxItems(4)).
-					WithProperty("mapValue", openapi3.NewObjectSchema().
-						WithAdditionalProperties(openapi3.NewIntegerSchema().
-							WithFormat("int32"))).
+					WithProperty("mapValue", mv).
 					WithProperty("setValue", openapi3.NewObjectSchema())
 
 				s.Required = []string{"bytesValue", "int64Value"}
@@ -928,7 +969,14 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 				s := openapi3.NewObjectSchema()
 
 				bv := openapi3.NewBytesSchema()
-				bv.Extensions = map[string]any{"x-cli-ignore": true}
+				bv.Extensions = map[string]any{openapi.ExtCliIgnore: true}
+
+				mv := openapi3.NewObjectSchema().
+					WithAdditionalProperties(openapi3.NewIntegerSchema().
+						WithFormat("int32"))
+				mv.Extensions = map[string]any{
+					openapi.ExtCliSchemaTypeName: "map[string]int32",
+				}
 
 				s.
 					WithProperty("bytesValue", bv).
@@ -948,9 +996,7 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 						WithItems(openapi3.NewFloat64Schema().WithFormat("double")).
 						WithMinItems(4).
 						WithMaxItems(4)).
-					WithProperty("mapValue", openapi3.NewObjectSchema().
-						WithAdditionalProperties(openapi3.NewIntegerSchema().
-							WithFormat("int32"))).
+					WithProperty("mapValue", mv).
 					WithProperty("setValue", openapi3.NewObjectSchema())
 
 				s.Required = []string{"bytesValue", "int64Value"}
@@ -1137,7 +1183,14 @@ func Test_getSchemaOfGoType(t *testing.T) {
 				s := openapi3.NewObjectSchema()
 
 				bv := openapi3.NewBytesSchema()
-				bv.Extensions = map[string]any{"x-cli-ignore": true}
+				bv.Extensions = map[string]any{openapi.ExtCliIgnore: true}
+
+				mv := openapi3.NewObjectSchema().
+					WithAdditionalProperties(openapi3.NewIntegerSchema().
+						WithFormat("int32"))
+				mv.Extensions = map[string]any{
+					openapi.ExtCliSchemaTypeName: "map[string]int32",
+				}
 
 				s.
 					WithProperty("bytesValue", bv).
@@ -1157,9 +1210,7 @@ func Test_getSchemaOfGoType(t *testing.T) {
 						WithItems(openapi3.NewFloat64Schema().WithFormat("double")).
 						WithMinItems(4).
 						WithMaxItems(4)).
-					WithProperty("mapValue", openapi3.NewObjectSchema().
-						WithAdditionalProperties(openapi3.NewIntegerSchema().
-							WithFormat("int32"))).
+					WithProperty("mapValue", mv).
 					WithProperty("setValue", openapi3.NewObjectSchema())
 
 				s.Required = []string{"bytesValue", "int64Value"}
@@ -1177,7 +1228,14 @@ func Test_getSchemaOfGoType(t *testing.T) {
 				s := openapi3.NewObjectSchema()
 
 				bv := openapi3.NewBytesSchema()
-				bv.Extensions = map[string]any{"x-cli-ignore": true}
+				bv.Extensions = map[string]any{openapi.ExtCliIgnore: true}
+
+				mv := openapi3.NewObjectSchema().
+					WithAdditionalProperties(openapi3.NewIntegerSchema().
+						WithFormat("int32"))
+				mv.Extensions = map[string]any{
+					openapi.ExtCliSchemaTypeName: "map[string]int32",
+				}
 
 				s.
 					WithProperty("bytesValue", bv).
@@ -1197,9 +1255,7 @@ func Test_getSchemaOfGoType(t *testing.T) {
 						WithItems(openapi3.NewFloat64Schema().WithFormat("double")).
 						WithMinItems(4).
 						WithMaxItems(4)).
-					WithProperty("mapValue", openapi3.NewObjectSchema().
-						WithAdditionalProperties(openapi3.NewIntegerSchema().
-							WithFormat("int32"))).
+					WithProperty("mapValue", mv).
 					WithProperty("setValue", openapi3.NewObjectSchema())
 
 				s.Required = []string{"bytesValue", "int64Value"}
@@ -1217,7 +1273,14 @@ func Test_getSchemaOfGoType(t *testing.T) {
 				s := openapi3.NewObjectSchema()
 
 				bv := openapi3.NewBytesSchema()
-				bv.Extensions = map[string]any{"x-cli-ignore": true}
+				bv.Extensions = map[string]any{openapi.ExtCliIgnore: true}
+
+				mv := openapi3.NewObjectSchema().
+					WithAdditionalProperties(openapi3.NewIntegerSchema().
+						WithFormat("int32"))
+				mv.Extensions = map[string]any{
+					openapi.ExtCliSchemaTypeName: "map[string]int32",
+				}
 
 				s.
 					WithProperty("bytesValue", bv).
@@ -1237,9 +1300,7 @@ func Test_getSchemaOfGoType(t *testing.T) {
 						WithItems(openapi3.NewFloat64Schema().WithFormat("double")).
 						WithMinItems(4).
 						WithMaxItems(4)).
-					WithProperty("mapValue", openapi3.NewObjectSchema().
-						WithAdditionalProperties(openapi3.NewIntegerSchema().
-							WithFormat("int32"))).
+					WithProperty("mapValue", mv).
 					WithProperty("setValue", openapi3.NewObjectSchema())
 
 				s.Required = []string{"bytesValue", "int64Value"}
