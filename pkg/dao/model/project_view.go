@@ -52,13 +52,17 @@ func (pci *ProjectCreateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return pci.ValidateWith(pci.inputConfig.Context, pci.inputConfig.Client)
+	return pci.ValidateWith(pci.inputConfig.Context, pci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ProjectCreateInput entity with the given context and client set.
-func (pci *ProjectCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (pci *ProjectCreateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if pci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -75,9 +79,13 @@ type ProjectCreateInputsItem struct {
 }
 
 // ValidateWith checks the ProjectCreateInputsItem entity with the given context and client set.
-func (pci *ProjectCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (pci *ProjectCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if pci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -120,11 +128,11 @@ func (pci *ProjectCreateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return pci.ValidateWith(pci.inputConfig.Context, pci.inputConfig.Client)
+	return pci.ValidateWith(pci.inputConfig.Context, pci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ProjectCreateInputs entity with the given context and client set.
-func (pci *ProjectCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (pci *ProjectCreateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if pci == nil {
 		return errors.New("nil receiver")
 	}
@@ -133,12 +141,16 @@ func (pci *ProjectCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	for i := range pci.Items {
 		if pci.Items[i] == nil {
 			continue
 		}
 
-		if err := pci.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := pci.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
@@ -205,17 +217,21 @@ func (pdi *ProjectDeleteInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return pdi.ValidateWith(pdi.inputConfig.Context, pdi.inputConfig.Client)
+	return pdi.ValidateWith(pdi.inputConfig.Context, pdi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ProjectDeleteInputs entity with the given context and client set.
-func (pdi *ProjectDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (pdi *ProjectDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if pdi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(pdi.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Projects().Query()
@@ -301,17 +317,21 @@ func (pqi *ProjectQueryInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return pqi.ValidateWith(pqi.inputConfig.Context, pqi.inputConfig.Client)
+	return pqi.ValidateWith(pqi.inputConfig.Context, pqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ProjectQueryInput entity with the given context and client set.
-func (pqi *ProjectQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (pqi *ProjectQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if pqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if pqi.Refer != nil && *pqi.Refer == "" {
 		return fmt.Errorf("model: %s : %w", project.Label, ErrBlankResourceRefer)
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Projects().Query()
@@ -338,17 +358,33 @@ func (pqi *ProjectQueryInput) ValidateWith(ctx context.Context, cs ClientSet) er
 
 	ctx = valueContext(ctx, intercept.WithProjectInterceptor)
 
-	e, err := q.
-		Select(
-			project.FieldID,
-			project.FieldName,
-		).
-		Only(ctx)
-	if err == nil {
-		pqi.ID = e.ID
-		pqi.Name = e.Name
+	q.Select(
+		project.FieldID,
+		project.FieldName,
+	)
+
+	var e *Project
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Project)
+		}
 	}
-	return err
+
+	pqi.ID = e.ID
+	pqi.Name = e.Name
+	return nil
 }
 
 // ProjectQueryInputs holds the query input of the Project entities,
@@ -363,13 +399,17 @@ func (pqi *ProjectQueryInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return pqi.ValidateWith(pqi.inputConfig.Context, pqi.inputConfig.Client)
+	return pqi.ValidateWith(pqi.inputConfig.Context, pqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ProjectQueryInputs entity with the given context and client set.
-func (pqi *ProjectQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (pqi *ProjectQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if pqi == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -408,12 +448,16 @@ func (pui *ProjectUpdateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return pui.ValidateWith(pui.inputConfig.Context, pui.inputConfig.Client)
+	return pui.ValidateWith(pui.inputConfig.Context, pui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ProjectUpdateInput entity with the given context and client set.
-func (pui *ProjectUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
-	if err := pui.ProjectQueryInput.ValidateWith(ctx, cs); err != nil {
+func (pui *ProjectUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := pui.ProjectQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -434,9 +478,13 @@ type ProjectUpdateInputsItem struct {
 }
 
 // ValidateWith checks the ProjectUpdateInputsItem entity with the given context and client set.
-func (pui *ProjectUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (pui *ProjectUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if pui == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -493,17 +541,21 @@ func (pui *ProjectUpdateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return pui.ValidateWith(pui.inputConfig.Context, pui.inputConfig.Client)
+	return pui.ValidateWith(pui.inputConfig.Context, pui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ProjectUpdateInputs entity with the given context and client set.
-func (pui *ProjectUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (pui *ProjectUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if pui == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(pui.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Projects().Query()
@@ -559,7 +611,7 @@ func (pui *ProjectUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 			continue
 		}
 
-		if err := pui.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := pui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}

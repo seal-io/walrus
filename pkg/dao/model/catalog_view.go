@@ -59,13 +59,17 @@ func (cci *CatalogCreateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return cci.ValidateWith(cci.inputConfig.Context, cci.inputConfig.Client)
+	return cci.ValidateWith(cci.inputConfig.Context, cci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the CatalogCreateInput entity with the given context and client set.
-func (cci *CatalogCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (cci *CatalogCreateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if cci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -86,9 +90,13 @@ type CatalogCreateInputsItem struct {
 }
 
 // ValidateWith checks the CatalogCreateInputsItem entity with the given context and client set.
-func (cci *CatalogCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (cci *CatalogCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if cci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -133,11 +141,11 @@ func (cci *CatalogCreateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return cci.ValidateWith(cci.inputConfig.Context, cci.inputConfig.Client)
+	return cci.ValidateWith(cci.inputConfig.Context, cci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the CatalogCreateInputs entity with the given context and client set.
-func (cci *CatalogCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (cci *CatalogCreateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if cci == nil {
 		return errors.New("nil receiver")
 	}
@@ -146,12 +154,16 @@ func (cci *CatalogCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	for i := range cci.Items {
 		if cci.Items[i] == nil {
 			continue
 		}
 
-		if err := cci.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := cci.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
@@ -218,17 +230,21 @@ func (cdi *CatalogDeleteInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return cdi.ValidateWith(cdi.inputConfig.Context, cdi.inputConfig.Client)
+	return cdi.ValidateWith(cdi.inputConfig.Context, cdi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the CatalogDeleteInputs entity with the given context and client set.
-func (cdi *CatalogDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (cdi *CatalogDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if cdi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(cdi.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Catalogs().Query()
@@ -312,17 +328,21 @@ func (cqi *CatalogQueryInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return cqi.ValidateWith(cqi.inputConfig.Context, cqi.inputConfig.Client)
+	return cqi.ValidateWith(cqi.inputConfig.Context, cqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the CatalogQueryInput entity with the given context and client set.
-func (cqi *CatalogQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (cqi *CatalogQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if cqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if cqi.Refer != nil && *cqi.Refer == "" {
 		return fmt.Errorf("model: %s : %w", catalog.Label, ErrBlankResourceRefer)
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Catalogs().Query()
@@ -347,17 +367,33 @@ func (cqi *CatalogQueryInput) ValidateWith(ctx context.Context, cs ClientSet) er
 		return errors.New("invalid identify of catalog")
 	}
 
-	e, err := q.
-		Select(
-			catalog.FieldID,
-			catalog.FieldName,
-		).
-		Only(ctx)
-	if err == nil {
-		cqi.ID = e.ID
-		cqi.Name = e.Name
+	q.Select(
+		catalog.FieldID,
+		catalog.FieldName,
+	)
+
+	var e *Catalog
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Catalog)
+		}
 	}
-	return err
+
+	cqi.ID = e.ID
+	cqi.Name = e.Name
+	return nil
 }
 
 // CatalogQueryInputs holds the query input of the Catalog entities,
@@ -372,13 +408,17 @@ func (cqi *CatalogQueryInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return cqi.ValidateWith(cqi.inputConfig.Context, cqi.inputConfig.Client)
+	return cqi.ValidateWith(cqi.inputConfig.Context, cqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the CatalogQueryInputs entity with the given context and client set.
-func (cqi *CatalogQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (cqi *CatalogQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if cqi == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -420,12 +460,16 @@ func (cui *CatalogUpdateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return cui.ValidateWith(cui.inputConfig.Context, cui.inputConfig.Client)
+	return cui.ValidateWith(cui.inputConfig.Context, cui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the CatalogUpdateInput entity with the given context and client set.
-func (cui *CatalogUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
-	if err := cui.CatalogQueryInput.ValidateWith(ctx, cs); err != nil {
+func (cui *CatalogUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := cui.CatalogQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -448,9 +492,13 @@ type CatalogUpdateInputsItem struct {
 }
 
 // ValidateWith checks the CatalogUpdateInputsItem entity with the given context and client set.
-func (cui *CatalogUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (cui *CatalogUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if cui == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -508,17 +556,21 @@ func (cui *CatalogUpdateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return cui.ValidateWith(cui.inputConfig.Context, cui.inputConfig.Client)
+	return cui.ValidateWith(cui.inputConfig.Context, cui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the CatalogUpdateInputs entity with the given context and client set.
-func (cui *CatalogUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (cui *CatalogUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if cui == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(cui.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Catalogs().Query()
@@ -572,7 +624,7 @@ func (cui *CatalogUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 			continue
 		}
 
-		if err := cui.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := cui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}

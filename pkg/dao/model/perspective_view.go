@@ -64,13 +64,17 @@ func (pci *PerspectiveCreateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return pci.ValidateWith(pci.inputConfig.Context, pci.inputConfig.Client)
+	return pci.ValidateWith(pci.inputConfig.Context, pci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the PerspectiveCreateInput entity with the given context and client set.
-func (pci *PerspectiveCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (pci *PerspectiveCreateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if pci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -95,9 +99,13 @@ type PerspectiveCreateInputsItem struct {
 }
 
 // ValidateWith checks the PerspectiveCreateInputsItem entity with the given context and client set.
-func (pci *PerspectiveCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (pci *PerspectiveCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if pci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -144,11 +152,11 @@ func (pci *PerspectiveCreateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return pci.ValidateWith(pci.inputConfig.Context, pci.inputConfig.Client)
+	return pci.ValidateWith(pci.inputConfig.Context, pci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the PerspectiveCreateInputs entity with the given context and client set.
-func (pci *PerspectiveCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (pci *PerspectiveCreateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if pci == nil {
 		return errors.New("nil receiver")
 	}
@@ -157,12 +165,16 @@ func (pci *PerspectiveCreateInputs) ValidateWith(ctx context.Context, cs ClientS
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	for i := range pci.Items {
 		if pci.Items[i] == nil {
 			continue
 		}
 
-		if err := pci.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := pci.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
@@ -229,17 +241,21 @@ func (pdi *PerspectiveDeleteInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return pdi.ValidateWith(pdi.inputConfig.Context, pdi.inputConfig.Client)
+	return pdi.ValidateWith(pdi.inputConfig.Context, pdi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the PerspectiveDeleteInputs entity with the given context and client set.
-func (pdi *PerspectiveDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (pdi *PerspectiveDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if pdi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(pdi.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Perspectives().Query()
@@ -323,17 +339,21 @@ func (pqi *PerspectiveQueryInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return pqi.ValidateWith(pqi.inputConfig.Context, pqi.inputConfig.Client)
+	return pqi.ValidateWith(pqi.inputConfig.Context, pqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the PerspectiveQueryInput entity with the given context and client set.
-func (pqi *PerspectiveQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (pqi *PerspectiveQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if pqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if pqi.Refer != nil && *pqi.Refer == "" {
 		return fmt.Errorf("model: %s : %w", perspective.Label, ErrBlankResourceRefer)
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Perspectives().Query()
@@ -358,17 +378,33 @@ func (pqi *PerspectiveQueryInput) ValidateWith(ctx context.Context, cs ClientSet
 		return errors.New("invalid identify of perspective")
 	}
 
-	e, err := q.
-		Select(
-			perspective.FieldID,
-			perspective.FieldName,
-		).
-		Only(ctx)
-	if err == nil {
-		pqi.ID = e.ID
-		pqi.Name = e.Name
+	q.Select(
+		perspective.FieldID,
+		perspective.FieldName,
+	)
+
+	var e *Perspective
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Perspective)
+		}
 	}
-	return err
+
+	pqi.ID = e.ID
+	pqi.Name = e.Name
+	return nil
 }
 
 // PerspectiveQueryInputs holds the query input of the Perspective entities,
@@ -383,13 +419,17 @@ func (pqi *PerspectiveQueryInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return pqi.ValidateWith(pqi.inputConfig.Context, pqi.inputConfig.Client)
+	return pqi.ValidateWith(pqi.inputConfig.Context, pqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the PerspectiveQueryInputs entity with the given context and client set.
-func (pqi *PerspectiveQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (pqi *PerspectiveQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if pqi == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -440,12 +480,16 @@ func (pui *PerspectiveUpdateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return pui.ValidateWith(pui.inputConfig.Context, pui.inputConfig.Client)
+	return pui.ValidateWith(pui.inputConfig.Context, pui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the PerspectiveUpdateInput entity with the given context and client set.
-func (pui *PerspectiveUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
-	if err := pui.PerspectiveQueryInput.ValidateWith(ctx, cs); err != nil {
+func (pui *PerspectiveUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := pui.PerspectiveQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -474,9 +518,13 @@ type PerspectiveUpdateInputsItem struct {
 }
 
 // ValidateWith checks the PerspectiveUpdateInputsItem entity with the given context and client set.
-func (pui *PerspectiveUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (pui *PerspectiveUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if pui == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -537,17 +585,21 @@ func (pui *PerspectiveUpdateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return pui.ValidateWith(pui.inputConfig.Context, pui.inputConfig.Client)
+	return pui.ValidateWith(pui.inputConfig.Context, pui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the PerspectiveUpdateInputs entity with the given context and client set.
-func (pui *PerspectiveUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (pui *PerspectiveUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if pui == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(pui.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.Perspectives().Query()
@@ -601,7 +653,7 @@ func (pui *PerspectiveUpdateInputs) ValidateWith(ctx context.Context, cs ClientS
 			continue
 		}
 
-		if err := pui.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := pui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}

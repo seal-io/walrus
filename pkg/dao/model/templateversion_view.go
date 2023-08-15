@@ -55,13 +55,17 @@ func (tvci *TemplateVersionCreateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tvci.ValidateWith(tvci.inputConfig.Context, tvci.inputConfig.Client)
+	return tvci.ValidateWith(tvci.inputConfig.Context, tvci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TemplateVersionCreateInput entity with the given context and client set.
-func (tvci *TemplateVersionCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tvci *TemplateVersionCreateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tvci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -80,9 +84,13 @@ type TemplateVersionCreateInputsItem struct {
 }
 
 // ValidateWith checks the TemplateVersionCreateInputsItem entity with the given context and client set.
-func (tvci *TemplateVersionCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tvci *TemplateVersionCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tvci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -126,11 +134,11 @@ func (tvci *TemplateVersionCreateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tvci.ValidateWith(tvci.inputConfig.Context, tvci.inputConfig.Client)
+	return tvci.ValidateWith(tvci.inputConfig.Context, tvci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TemplateVersionCreateInputs entity with the given context and client set.
-func (tvci *TemplateVersionCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tvci *TemplateVersionCreateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tvci == nil {
 		return errors.New("nil receiver")
 	}
@@ -139,12 +147,16 @@ func (tvci *TemplateVersionCreateInputs) ValidateWith(ctx context.Context, cs Cl
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	for i := range tvci.Items {
 		if tvci.Items[i] == nil {
 			continue
 		}
 
-		if err := tvci.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := tvci.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
@@ -213,17 +225,21 @@ func (tvdi *TemplateVersionDeleteInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tvdi.ValidateWith(tvdi.inputConfig.Context, tvdi.inputConfig.Client)
+	return tvdi.ValidateWith(tvdi.inputConfig.Context, tvdi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TemplateVersionDeleteInputs entity with the given context and client set.
-func (tvdi *TemplateVersionDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tvdi *TemplateVersionDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tvdi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(tvdi.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.TemplateVersions().Query()
@@ -312,17 +328,21 @@ func (tvqi *TemplateVersionQueryInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tvqi.ValidateWith(tvqi.inputConfig.Context, tvqi.inputConfig.Client)
+	return tvqi.ValidateWith(tvqi.inputConfig.Context, tvqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TemplateVersionQueryInput entity with the given context and client set.
-func (tvqi *TemplateVersionQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tvqi *TemplateVersionQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tvqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if tvqi.Refer != nil && *tvqi.Refer == "" {
 		return fmt.Errorf("model: %s : %w", templateversion.Label, ErrBlankResourceRefer)
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.TemplateVersions().Query()
@@ -348,19 +368,35 @@ func (tvqi *TemplateVersionQueryInput) ValidateWith(ctx context.Context, cs Clie
 		return errors.New("invalid identify of templateversion")
 	}
 
-	e, err := q.
-		Select(
-			templateversion.FieldID,
-			templateversion.FieldName,
-			templateversion.FieldVersion,
-		).
-		Only(ctx)
-	if err == nil {
-		tvqi.ID = e.ID
-		tvqi.Name = e.Name
-		tvqi.Version = e.Version
+	q.Select(
+		templateversion.FieldID,
+		templateversion.FieldName,
+		templateversion.FieldVersion,
+	)
+
+	var e *TemplateVersion
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*TemplateVersion)
+		}
 	}
-	return err
+
+	tvqi.ID = e.ID
+	tvqi.Name = e.Name
+	tvqi.Version = e.Version
+	return nil
 }
 
 // TemplateVersionQueryInputs holds the query input of the TemplateVersion entities,
@@ -375,13 +411,17 @@ func (tvqi *TemplateVersionQueryInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tvqi.ValidateWith(tvqi.inputConfig.Context, tvqi.inputConfig.Client)
+	return tvqi.ValidateWith(tvqi.inputConfig.Context, tvqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TemplateVersionQueryInputs entity with the given context and client set.
-func (tvqi *TemplateVersionQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tvqi *TemplateVersionQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tvqi == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -417,12 +457,16 @@ func (tvui *TemplateVersionUpdateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tvui.ValidateWith(tvui.inputConfig.Context, tvui.inputConfig.Client)
+	return tvui.ValidateWith(tvui.inputConfig.Context, tvui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TemplateVersionUpdateInput entity with the given context and client set.
-func (tvui *TemplateVersionUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
-	if err := tvui.TemplateVersionQueryInput.ValidateWith(ctx, cs); err != nil {
+func (tvui *TemplateVersionUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := tvui.TemplateVersionQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -443,9 +487,13 @@ type TemplateVersionUpdateInputsItem struct {
 }
 
 // ValidateWith checks the TemplateVersionUpdateInputsItem entity with the given context and client set.
-func (tvui *TemplateVersionUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tvui *TemplateVersionUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tvui == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -501,17 +549,21 @@ func (tvui *TemplateVersionUpdateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return tvui.ValidateWith(tvui.inputConfig.Context, tvui.inputConfig.Client)
+	return tvui.ValidateWith(tvui.inputConfig.Context, tvui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the TemplateVersionUpdateInputs entity with the given context and client set.
-func (tvui *TemplateVersionUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (tvui *TemplateVersionUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if tvui == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(tvui.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.TemplateVersions().Query()
@@ -567,7 +619,7 @@ func (tvui *TemplateVersionUpdateInputs) ValidateWith(ctx context.Context, cs Cl
 			continue
 		}
 
-		if err := tvui.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := tvui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}

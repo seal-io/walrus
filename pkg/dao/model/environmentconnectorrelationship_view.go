@@ -45,17 +45,21 @@ func (ecrci *EnvironmentConnectorRelationshipCreateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return ecrci.ValidateWith(ecrci.inputConfig.Context, ecrci.inputConfig.Client)
+	return ecrci.ValidateWith(ecrci.inputConfig.Context, ecrci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the EnvironmentConnectorRelationshipCreateInput entity with the given context and client set.
-func (ecrci *EnvironmentConnectorRelationshipCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (ecrci *EnvironmentConnectorRelationshipCreateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if ecrci == nil {
 		return errors.New("nil receiver")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	if ecrci.Connector != nil {
-		if err := ecrci.Connector.ValidateWith(ctx, cs); err != nil {
+		if err := ecrci.Connector.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -75,13 +79,17 @@ type EnvironmentConnectorRelationshipCreateInputsItem struct {
 }
 
 // ValidateWith checks the EnvironmentConnectorRelationshipCreateInputsItem entity with the given context and client set.
-func (ecrci *EnvironmentConnectorRelationshipCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (ecrci *EnvironmentConnectorRelationshipCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if ecrci == nil {
 		return errors.New("nil receiver")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	if ecrci.Connector != nil {
-		if err := ecrci.Connector.ValidateWith(ctx, cs); err != nil {
+		if err := ecrci.Connector.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -130,11 +138,11 @@ func (ecrci *EnvironmentConnectorRelationshipCreateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return ecrci.ValidateWith(ecrci.inputConfig.Context, ecrci.inputConfig.Client)
+	return ecrci.ValidateWith(ecrci.inputConfig.Context, ecrci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the EnvironmentConnectorRelationshipCreateInputs entity with the given context and client set.
-func (ecrci *EnvironmentConnectorRelationshipCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (ecrci *EnvironmentConnectorRelationshipCreateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if ecrci == nil {
 		return errors.New("nil receiver")
 	}
@@ -143,12 +151,16 @@ func (ecrci *EnvironmentConnectorRelationshipCreateInputs) ValidateWith(ctx cont
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	for i := range ecrci.Items {
 		if ecrci.Items[i] == nil {
 			continue
 		}
 
-		if err := ecrci.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := ecrci.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
@@ -213,17 +225,21 @@ func (ecrdi *EnvironmentConnectorRelationshipDeleteInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return ecrdi.ValidateWith(ecrdi.inputConfig.Context, ecrdi.inputConfig.Client)
+	return ecrdi.ValidateWith(ecrdi.inputConfig.Context, ecrdi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the EnvironmentConnectorRelationshipDeleteInputs entity with the given context and client set.
-func (ecrdi *EnvironmentConnectorRelationshipDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (ecrdi *EnvironmentConnectorRelationshipDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if ecrdi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(ecrdi.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.EnvironmentConnectorRelationships().Query()
@@ -288,17 +304,21 @@ func (ecrqi *EnvironmentConnectorRelationshipQueryInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return ecrqi.ValidateWith(ecrqi.inputConfig.Context, ecrqi.inputConfig.Client)
+	return ecrqi.ValidateWith(ecrqi.inputConfig.Context, ecrqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the EnvironmentConnectorRelationshipQueryInput entity with the given context and client set.
-func (ecrqi *EnvironmentConnectorRelationshipQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (ecrqi *EnvironmentConnectorRelationshipQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if ecrqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if ecrqi.Refer != nil && *ecrqi.Refer == "" {
 		return fmt.Errorf("model: %s : %w", environmentconnectorrelationship.Label, ErrBlankResourceRefer)
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.EnvironmentConnectorRelationships().Query()
@@ -317,9 +337,31 @@ func (ecrqi *EnvironmentConnectorRelationshipQueryInput) ValidateWith(ctx contex
 		return errors.New("invalid identify of environmentconnectorrelationship")
 	}
 
-	var err error
-	ecrqi.ID, err = q.OnlyID(ctx)
-	return err
+	q.Select(
+		environmentconnectorrelationship.FieldID,
+	)
+
+	var e *EnvironmentConnectorRelationship
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*EnvironmentConnectorRelationship)
+		}
+	}
+
+	ecrqi.ID = e.ID
+	return nil
 }
 
 // EnvironmentConnectorRelationshipQueryInputs holds the query input of the EnvironmentConnectorRelationship entities,
@@ -334,13 +376,17 @@ func (ecrqi *EnvironmentConnectorRelationshipQueryInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return ecrqi.ValidateWith(ecrqi.inputConfig.Context, ecrqi.inputConfig.Client)
+	return ecrqi.ValidateWith(ecrqi.inputConfig.Context, ecrqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the EnvironmentConnectorRelationshipQueryInputs entity with the given context and client set.
-func (ecrqi *EnvironmentConnectorRelationshipQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (ecrqi *EnvironmentConnectorRelationshipQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if ecrqi == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -378,17 +424,21 @@ func (ecrui *EnvironmentConnectorRelationshipUpdateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return ecrui.ValidateWith(ecrui.inputConfig.Context, ecrui.inputConfig.Client)
+	return ecrui.ValidateWith(ecrui.inputConfig.Context, ecrui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the EnvironmentConnectorRelationshipUpdateInput entity with the given context and client set.
-func (ecrui *EnvironmentConnectorRelationshipUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
-	if err := ecrui.EnvironmentConnectorRelationshipQueryInput.ValidateWith(ctx, cs); err != nil {
+func (ecrui *EnvironmentConnectorRelationshipUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := ecrui.EnvironmentConnectorRelationshipQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
 	if ecrui.Connector != nil {
-		if err := ecrui.Connector.ValidateWith(ctx, cs); err != nil {
+		if err := ecrui.Connector.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -410,13 +460,17 @@ type EnvironmentConnectorRelationshipUpdateInputsItem struct {
 }
 
 // ValidateWith checks the EnvironmentConnectorRelationshipUpdateInputsItem entity with the given context and client set.
-func (ecrui *EnvironmentConnectorRelationshipUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (ecrui *EnvironmentConnectorRelationshipUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if ecrui == nil {
 		return errors.New("nil receiver")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	if ecrui.Connector != nil {
-		if err := ecrui.Connector.ValidateWith(ctx, cs); err != nil {
+		if err := ecrui.Connector.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -481,17 +535,21 @@ func (ecrui *EnvironmentConnectorRelationshipUpdateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return ecrui.ValidateWith(ecrui.inputConfig.Context, ecrui.inputConfig.Client)
+	return ecrui.ValidateWith(ecrui.inputConfig.Context, ecrui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the EnvironmentConnectorRelationshipUpdateInputs entity with the given context and client set.
-func (ecrui *EnvironmentConnectorRelationshipUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (ecrui *EnvironmentConnectorRelationshipUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if ecrui == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(ecrui.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.EnvironmentConnectorRelationships().Query()
@@ -529,7 +587,7 @@ func (ecrui *EnvironmentConnectorRelationshipUpdateInputs) ValidateWith(ctx cont
 			continue
 		}
 
-		if err := ecrui.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := ecrui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}

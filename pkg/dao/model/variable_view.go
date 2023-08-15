@@ -67,18 +67,22 @@ func (vci *VariableCreateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return vci.ValidateWith(vci.inputConfig.Context, vci.inputConfig.Client)
+	return vci.ValidateWith(vci.inputConfig.Context, vci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the VariableCreateInput entity with the given context and client set.
-func (vci *VariableCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (vci *VariableCreateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if vci == nil {
 		return errors.New("nil receiver")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	// Validate when creating under the Project route.
 	if vci.Project != nil {
-		if err := vci.Project.ValidateWith(ctx, cs); err != nil {
+		if err := vci.Project.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -88,7 +92,7 @@ func (vci *VariableCreateInput) ValidateWith(ctx context.Context, cs ClientSet) 
 	}
 	// Validate when creating under the Environment route.
 	if vci.Environment != nil {
-		if err := vci.Environment.ValidateWith(ctx, cs); err != nil {
+		if err := vci.Environment.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -113,9 +117,13 @@ type VariableCreateInputsItem struct {
 }
 
 // ValidateWith checks the VariableCreateInputsItem entity with the given context and client set.
-func (vci *VariableCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (vci *VariableCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if vci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -171,11 +179,11 @@ func (vci *VariableCreateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return vci.ValidateWith(vci.inputConfig.Context, vci.inputConfig.Client)
+	return vci.ValidateWith(vci.inputConfig.Context, vci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the VariableCreateInputs entity with the given context and client set.
-func (vci *VariableCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (vci *VariableCreateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if vci == nil {
 		return errors.New("nil receiver")
 	}
@@ -184,9 +192,13 @@ func (vci *VariableCreateInputs) ValidateWith(ctx context.Context, cs ClientSet)
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	// Validate when creating under the Project route.
 	if vci.Project != nil {
-		if err := vci.Project.ValidateWith(ctx, cs); err != nil {
+		if err := vci.Project.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -196,7 +208,7 @@ func (vci *VariableCreateInputs) ValidateWith(ctx context.Context, cs ClientSet)
 	}
 	// Validate when creating under the Environment route.
 	if vci.Environment != nil {
-		if err := vci.Environment.ValidateWith(ctx, cs); err != nil {
+		if err := vci.Environment.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -210,7 +222,7 @@ func (vci *VariableCreateInputs) ValidateWith(ctx context.Context, cs ClientSet)
 			continue
 		}
 
-		if err := vci.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := vci.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
@@ -282,11 +294,11 @@ func (vdi *VariableDeleteInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return vdi.ValidateWith(vdi.inputConfig.Context, vdi.inputConfig.Client)
+	return vdi.ValidateWith(vdi.inputConfig.Context, vdi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the VariableDeleteInputs entity with the given context and client set.
-func (vdi *VariableDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (vdi *VariableDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if vdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -295,11 +307,15 @@ func (vdi *VariableDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet)
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	q := cs.Variables().Query()
 
 	// Validate when deleting under the Project route.
 	if vdi.Project != nil {
-		if err := vdi.Project.ValidateWith(ctx, cs); err != nil {
+		if err := vdi.Project.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -318,7 +334,7 @@ func (vdi *VariableDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet)
 
 	// Validate when deleting under the Environment route.
 	if vdi.Environment != nil {
-		if err := vdi.Environment.ValidateWith(ctx, cs); err != nil {
+		if err := vdi.Environment.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -419,11 +435,11 @@ func (vqi *VariableQueryInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return vqi.ValidateWith(vqi.inputConfig.Context, vqi.inputConfig.Client)
+	return vqi.ValidateWith(vqi.inputConfig.Context, vqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the VariableQueryInput entity with the given context and client set.
-func (vqi *VariableQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (vqi *VariableQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if vqi == nil {
 		return errors.New("nil receiver")
 	}
@@ -432,11 +448,15 @@ func (vqi *VariableQueryInput) ValidateWith(ctx context.Context, cs ClientSet) e
 		return fmt.Errorf("model: %s : %w", variable.Label, ErrBlankResourceRefer)
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	q := cs.Variables().Query()
 
 	// Validate when querying under the Project route.
 	if vqi.Project != nil {
-		if err := vqi.Project.ValidateWith(ctx, cs); err != nil {
+		if err := vqi.Project.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -455,7 +475,7 @@ func (vqi *VariableQueryInput) ValidateWith(ctx context.Context, cs ClientSet) e
 
 	// Validate when querying under the Environment route.
 	if vqi.Environment != nil {
-		if err := vqi.Environment.ValidateWith(ctx, cs); err != nil {
+		if err := vqi.Environment.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -492,17 +512,33 @@ func (vqi *VariableQueryInput) ValidateWith(ctx context.Context, cs ClientSet) e
 		return errors.New("invalid identify of variable")
 	}
 
-	e, err := q.
-		Select(
-			variable.FieldID,
-			variable.FieldName,
-		).
-		Only(ctx)
-	if err == nil {
-		vqi.ID = e.ID
-		vqi.Name = e.Name
+	q.Select(
+		variable.FieldID,
+		variable.FieldName,
+	)
+
+	var e *Variable
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Variable)
+		}
 	}
-	return err
+
+	vqi.ID = e.ID
+	vqi.Name = e.Name
+	return nil
 }
 
 // VariableQueryInputs holds the query input of the Variable entities,
@@ -522,18 +558,22 @@ func (vqi *VariableQueryInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return vqi.ValidateWith(vqi.inputConfig.Context, vqi.inputConfig.Client)
+	return vqi.ValidateWith(vqi.inputConfig.Context, vqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the VariableQueryInputs entity with the given context and client set.
-func (vqi *VariableQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (vqi *VariableQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if vqi == nil {
 		return errors.New("nil receiver")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	// Validate when querying under the Project route.
 	if vqi.Project != nil {
-		if err := vqi.Project.ValidateWith(ctx, cs); err != nil {
+		if err := vqi.Project.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -544,7 +584,7 @@ func (vqi *VariableQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) 
 
 	// Validate when querying under the Environment route.
 	if vqi.Environment != nil {
-		if err := vqi.Environment.ValidateWith(ctx, cs); err != nil {
+		if err := vqi.Environment.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -592,12 +632,16 @@ func (vui *VariableUpdateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return vui.ValidateWith(vui.inputConfig.Context, vui.inputConfig.Client)
+	return vui.ValidateWith(vui.inputConfig.Context, vui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the VariableUpdateInput entity with the given context and client set.
-func (vui *VariableUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
-	if err := vui.VariableQueryInput.ValidateWith(ctx, cs); err != nil {
+func (vui *VariableUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := vui.VariableQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -620,9 +664,13 @@ type VariableUpdateInputsItem struct {
 }
 
 // ValidateWith checks the VariableUpdateInputsItem entity with the given context and client set.
-func (vui *VariableUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (vui *VariableUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if vui == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -685,11 +733,11 @@ func (vui *VariableUpdateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return vui.ValidateWith(vui.inputConfig.Context, vui.inputConfig.Client)
+	return vui.ValidateWith(vui.inputConfig.Context, vui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the VariableUpdateInputs entity with the given context and client set.
-func (vui *VariableUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (vui *VariableUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if vui == nil {
 		return errors.New("nil receiver")
 	}
@@ -698,11 +746,15 @@ func (vui *VariableUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet)
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	q := cs.Variables().Query()
 
 	// Validate when updating under the Project route.
 	if vui.Project != nil {
-		if err := vui.Project.ValidateWith(ctx, cs); err != nil {
+		if err := vui.Project.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -721,7 +773,7 @@ func (vui *VariableUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet)
 
 	// Validate when updating under the Environment route.
 	if vui.Environment != nil {
-		if err := vui.Environment.ValidateWith(ctx, cs); err != nil {
+		if err := vui.Environment.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -787,7 +839,7 @@ func (vui *VariableUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet)
 			continue
 		}
 
-		if err := vui.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := vui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}

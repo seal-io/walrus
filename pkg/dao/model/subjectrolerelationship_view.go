@@ -58,18 +58,22 @@ func (srrci *SubjectRoleRelationshipCreateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return srrci.ValidateWith(srrci.inputConfig.Context, srrci.inputConfig.Client)
+	return srrci.ValidateWith(srrci.inputConfig.Context, srrci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the SubjectRoleRelationshipCreateInput entity with the given context and client set.
-func (srrci *SubjectRoleRelationshipCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (srrci *SubjectRoleRelationshipCreateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if srrci == nil {
 		return errors.New("nil receiver")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	// Validate when creating under the Project route.
 	if srrci.Project != nil {
-		if err := srrci.Project.ValidateWith(ctx, cs); err != nil {
+		if err := srrci.Project.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -79,7 +83,7 @@ func (srrci *SubjectRoleRelationshipCreateInput) ValidateWith(ctx context.Contex
 	}
 
 	if srrci.Subject != nil {
-		if err := srrci.Subject.ValidateWith(ctx, cs); err != nil {
+		if err := srrci.Subject.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -89,7 +93,7 @@ func (srrci *SubjectRoleRelationshipCreateInput) ValidateWith(ctx context.Contex
 	}
 
 	if srrci.Role != nil {
-		if err := srrci.Role.ValidateWith(ctx, cs); err != nil {
+		if err := srrci.Role.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -111,13 +115,17 @@ type SubjectRoleRelationshipCreateInputsItem struct {
 }
 
 // ValidateWith checks the SubjectRoleRelationshipCreateInputsItem entity with the given context and client set.
-func (srrci *SubjectRoleRelationshipCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (srrci *SubjectRoleRelationshipCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if srrci == nil {
 		return errors.New("nil receiver")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	if srrci.Subject != nil {
-		if err := srrci.Subject.ValidateWith(ctx, cs); err != nil {
+		if err := srrci.Subject.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -127,7 +135,7 @@ func (srrci *SubjectRoleRelationshipCreateInputsItem) ValidateWith(ctx context.C
 	}
 
 	if srrci.Role != nil {
-		if err := srrci.Role.ValidateWith(ctx, cs); err != nil {
+		if err := srrci.Role.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -186,11 +194,11 @@ func (srrci *SubjectRoleRelationshipCreateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return srrci.ValidateWith(srrci.inputConfig.Context, srrci.inputConfig.Client)
+	return srrci.ValidateWith(srrci.inputConfig.Context, srrci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the SubjectRoleRelationshipCreateInputs entity with the given context and client set.
-func (srrci *SubjectRoleRelationshipCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (srrci *SubjectRoleRelationshipCreateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if srrci == nil {
 		return errors.New("nil receiver")
 	}
@@ -199,9 +207,13 @@ func (srrci *SubjectRoleRelationshipCreateInputs) ValidateWith(ctx context.Conte
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	// Validate when creating under the Project route.
 	if srrci.Project != nil {
-		if err := srrci.Project.ValidateWith(ctx, cs); err != nil {
+		if err := srrci.Project.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -215,7 +227,7 @@ func (srrci *SubjectRoleRelationshipCreateInputs) ValidateWith(ctx context.Conte
 			continue
 		}
 
-		if err := srrci.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := srrci.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
@@ -283,11 +295,11 @@ func (srrdi *SubjectRoleRelationshipDeleteInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return srrdi.ValidateWith(srrdi.inputConfig.Context, srrdi.inputConfig.Client)
+	return srrdi.ValidateWith(srrdi.inputConfig.Context, srrdi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the SubjectRoleRelationshipDeleteInputs entity with the given context and client set.
-func (srrdi *SubjectRoleRelationshipDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (srrdi *SubjectRoleRelationshipDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if srrdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -296,11 +308,15 @@ func (srrdi *SubjectRoleRelationshipDeleteInputs) ValidateWith(ctx context.Conte
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	q := cs.SubjectRoleRelationships().Query()
 
 	// Validate when deleting under the Project route.
 	if srrdi.Project != nil {
-		if err := srrdi.Project.ValidateWith(ctx, cs); err != nil {
+		if err := srrdi.Project.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -381,11 +397,11 @@ func (srrqi *SubjectRoleRelationshipQueryInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return srrqi.ValidateWith(srrqi.inputConfig.Context, srrqi.inputConfig.Client)
+	return srrqi.ValidateWith(srrqi.inputConfig.Context, srrqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the SubjectRoleRelationshipQueryInput entity with the given context and client set.
-func (srrqi *SubjectRoleRelationshipQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (srrqi *SubjectRoleRelationshipQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if srrqi == nil {
 		return errors.New("nil receiver")
 	}
@@ -394,11 +410,15 @@ func (srrqi *SubjectRoleRelationshipQueryInput) ValidateWith(ctx context.Context
 		return fmt.Errorf("model: %s : %w", subjectrolerelationship.Label, ErrBlankResourceRefer)
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	q := cs.SubjectRoleRelationships().Query()
 
 	// Validate when querying under the Project route.
 	if srrqi.Project != nil {
-		if err := srrqi.Project.ValidateWith(ctx, cs); err != nil {
+		if err := srrqi.Project.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -430,9 +450,31 @@ func (srrqi *SubjectRoleRelationshipQueryInput) ValidateWith(ctx context.Context
 		return errors.New("invalid identify of subjectrolerelationship")
 	}
 
-	var err error
-	srrqi.ID, err = q.OnlyID(ctx)
-	return err
+	q.Select(
+		subjectrolerelationship.FieldID,
+	)
+
+	var e *SubjectRoleRelationship
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*SubjectRoleRelationship)
+		}
+	}
+
+	srrqi.ID = e.ID
+	return nil
 }
 
 // SubjectRoleRelationshipQueryInputs holds the query input of the SubjectRoleRelationship entities,
@@ -450,18 +492,22 @@ func (srrqi *SubjectRoleRelationshipQueryInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return srrqi.ValidateWith(srrqi.inputConfig.Context, srrqi.inputConfig.Client)
+	return srrqi.ValidateWith(srrqi.inputConfig.Context, srrqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the SubjectRoleRelationshipQueryInputs entity with the given context and client set.
-func (srrqi *SubjectRoleRelationshipQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (srrqi *SubjectRoleRelationshipQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if srrqi == nil {
 		return errors.New("nil receiver")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	// Validate when querying under the Project route.
 	if srrqi.Project != nil {
-		if err := srrqi.Project.ValidateWith(ctx, cs); err != nil {
+		if err := srrqi.Project.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -510,17 +556,21 @@ func (srrui *SubjectRoleRelationshipUpdateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return srrui.ValidateWith(srrui.inputConfig.Context, srrui.inputConfig.Client)
+	return srrui.ValidateWith(srrui.inputConfig.Context, srrui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the SubjectRoleRelationshipUpdateInput entity with the given context and client set.
-func (srrui *SubjectRoleRelationshipUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
-	if err := srrui.SubjectRoleRelationshipQueryInput.ValidateWith(ctx, cs); err != nil {
+func (srrui *SubjectRoleRelationshipUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := srrui.SubjectRoleRelationshipQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
 	if srrui.Subject != nil {
-		if err := srrui.Subject.ValidateWith(ctx, cs); err != nil {
+		if err := srrui.Subject.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -530,7 +580,7 @@ func (srrui *SubjectRoleRelationshipUpdateInput) ValidateWith(ctx context.Contex
 	}
 
 	if srrui.Role != nil {
-		if err := srrui.Role.ValidateWith(ctx, cs); err != nil {
+		if err := srrui.Role.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -554,13 +604,17 @@ type SubjectRoleRelationshipUpdateInputsItem struct {
 }
 
 // ValidateWith checks the SubjectRoleRelationshipUpdateInputsItem entity with the given context and client set.
-func (srrui *SubjectRoleRelationshipUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (srrui *SubjectRoleRelationshipUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if srrui == nil {
 		return errors.New("nil receiver")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	if srrui.Subject != nil {
-		if err := srrui.Subject.ValidateWith(ctx, cs); err != nil {
+		if err := srrui.Subject.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -570,7 +624,7 @@ func (srrui *SubjectRoleRelationshipUpdateInputsItem) ValidateWith(ctx context.C
 	}
 
 	if srrui.Role != nil {
-		if err := srrui.Role.ValidateWith(ctx, cs); err != nil {
+		if err := srrui.Role.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -641,11 +695,11 @@ func (srrui *SubjectRoleRelationshipUpdateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return srrui.ValidateWith(srrui.inputConfig.Context, srrui.inputConfig.Client)
+	return srrui.ValidateWith(srrui.inputConfig.Context, srrui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the SubjectRoleRelationshipUpdateInputs entity with the given context and client set.
-func (srrui *SubjectRoleRelationshipUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (srrui *SubjectRoleRelationshipUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if srrui == nil {
 		return errors.New("nil receiver")
 	}
@@ -654,11 +708,15 @@ func (srrui *SubjectRoleRelationshipUpdateInputs) ValidateWith(ctx context.Conte
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	q := cs.SubjectRoleRelationships().Query()
 
 	// Validate when updating under the Project route.
 	if srrui.Project != nil {
-		if err := srrui.Project.ValidateWith(ctx, cs); err != nil {
+		if err := srrui.Project.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -709,7 +767,7 @@ func (srrui *SubjectRoleRelationshipUpdateInputs) ValidateWith(ctx context.Conte
 			continue
 		}
 
-		if err := srrui.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := srrui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}

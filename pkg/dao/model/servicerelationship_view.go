@@ -45,17 +45,21 @@ func (srci *ServiceRelationshipCreateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return srci.ValidateWith(srci.inputConfig.Context, srci.inputConfig.Client)
+	return srci.ValidateWith(srci.inputConfig.Context, srci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ServiceRelationshipCreateInput entity with the given context and client set.
-func (srci *ServiceRelationshipCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (srci *ServiceRelationshipCreateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if srci == nil {
 		return errors.New("nil receiver")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	if srci.Dependency != nil {
-		if err := srci.Dependency.ValidateWith(ctx, cs); err != nil {
+		if err := srci.Dependency.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -75,13 +79,17 @@ type ServiceRelationshipCreateInputsItem struct {
 }
 
 // ValidateWith checks the ServiceRelationshipCreateInputsItem entity with the given context and client set.
-func (srci *ServiceRelationshipCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (srci *ServiceRelationshipCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if srci == nil {
 		return errors.New("nil receiver")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	if srci.Dependency != nil {
-		if err := srci.Dependency.ValidateWith(ctx, cs); err != nil {
+		if err := srci.Dependency.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -130,11 +138,11 @@ func (srci *ServiceRelationshipCreateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return srci.ValidateWith(srci.inputConfig.Context, srci.inputConfig.Client)
+	return srci.ValidateWith(srci.inputConfig.Context, srci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ServiceRelationshipCreateInputs entity with the given context and client set.
-func (srci *ServiceRelationshipCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (srci *ServiceRelationshipCreateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if srci == nil {
 		return errors.New("nil receiver")
 	}
@@ -143,12 +151,16 @@ func (srci *ServiceRelationshipCreateInputs) ValidateWith(ctx context.Context, c
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	for i := range srci.Items {
 		if srci.Items[i] == nil {
 			continue
 		}
 
-		if err := srci.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := srci.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
@@ -213,17 +225,21 @@ func (srdi *ServiceRelationshipDeleteInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return srdi.ValidateWith(srdi.inputConfig.Context, srdi.inputConfig.Client)
+	return srdi.ValidateWith(srdi.inputConfig.Context, srdi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ServiceRelationshipDeleteInputs entity with the given context and client set.
-func (srdi *ServiceRelationshipDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (srdi *ServiceRelationshipDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if srdi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(srdi.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.ServiceRelationships().Query()
@@ -288,17 +304,21 @@ func (srqi *ServiceRelationshipQueryInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return srqi.ValidateWith(srqi.inputConfig.Context, srqi.inputConfig.Client)
+	return srqi.ValidateWith(srqi.inputConfig.Context, srqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ServiceRelationshipQueryInput entity with the given context and client set.
-func (srqi *ServiceRelationshipQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (srqi *ServiceRelationshipQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if srqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if srqi.Refer != nil && *srqi.Refer == "" {
 		return fmt.Errorf("model: %s : %w", servicerelationship.Label, ErrBlankResourceRefer)
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.ServiceRelationships().Query()
@@ -317,9 +337,31 @@ func (srqi *ServiceRelationshipQueryInput) ValidateWith(ctx context.Context, cs 
 		return errors.New("invalid identify of servicerelationship")
 	}
 
-	var err error
-	srqi.ID, err = q.OnlyID(ctx)
-	return err
+	q.Select(
+		servicerelationship.FieldID,
+	)
+
+	var e *ServiceRelationship
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*ServiceRelationship)
+		}
+	}
+
+	srqi.ID = e.ID
+	return nil
 }
 
 // ServiceRelationshipQueryInputs holds the query input of the ServiceRelationship entities,
@@ -334,13 +376,17 @@ func (srqi *ServiceRelationshipQueryInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return srqi.ValidateWith(srqi.inputConfig.Context, srqi.inputConfig.Client)
+	return srqi.ValidateWith(srqi.inputConfig.Context, srqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ServiceRelationshipQueryInputs entity with the given context and client set.
-func (srqi *ServiceRelationshipQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (srqi *ServiceRelationshipQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if srqi == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -378,17 +424,21 @@ func (srui *ServiceRelationshipUpdateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return srui.ValidateWith(srui.inputConfig.Context, srui.inputConfig.Client)
+	return srui.ValidateWith(srui.inputConfig.Context, srui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ServiceRelationshipUpdateInput entity with the given context and client set.
-func (srui *ServiceRelationshipUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
-	if err := srui.ServiceRelationshipQueryInput.ValidateWith(ctx, cs); err != nil {
+func (srui *ServiceRelationshipUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := srui.ServiceRelationshipQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
 	if srui.Dependency != nil {
-		if err := srui.Dependency.ValidateWith(ctx, cs); err != nil {
+		if err := srui.Dependency.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -410,13 +460,17 @@ type ServiceRelationshipUpdateInputsItem struct {
 }
 
 // ValidateWith checks the ServiceRelationshipUpdateInputsItem entity with the given context and client set.
-func (srui *ServiceRelationshipUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (srui *ServiceRelationshipUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if srui == nil {
 		return errors.New("nil receiver")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	if srui.Dependency != nil {
-		if err := srui.Dependency.ValidateWith(ctx, cs); err != nil {
+		if err := srui.Dependency.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -481,17 +535,21 @@ func (srui *ServiceRelationshipUpdateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return srui.ValidateWith(srui.inputConfig.Context, srui.inputConfig.Client)
+	return srui.ValidateWith(srui.inputConfig.Context, srui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ServiceRelationshipUpdateInputs entity with the given context and client set.
-func (srui *ServiceRelationshipUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (srui *ServiceRelationshipUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if srui == nil {
 		return errors.New("nil receiver")
 	}
 
 	if len(srui.Items) == 0 {
 		return errors.New("empty items")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	q := cs.ServiceRelationships().Query()
@@ -529,7 +587,7 @@ func (srui *ServiceRelationshipUpdateInputs) ValidateWith(ctx context.Context, c
 			continue
 		}
 
-		if err := srui.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := srui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}

@@ -80,18 +80,22 @@ func (cci *ConnectorCreateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return cci.ValidateWith(cci.inputConfig.Context, cci.inputConfig.Client)
+	return cci.ValidateWith(cci.inputConfig.Context, cci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ConnectorCreateInput entity with the given context and client set.
-func (cci *ConnectorCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (cci *ConnectorCreateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if cci == nil {
 		return errors.New("nil receiver")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	// Validate when creating under the Project route.
 	if cci.Project != nil {
-		if err := cci.Project.ValidateWith(ctx, cs); err != nil {
+		if err := cci.Project.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -126,9 +130,13 @@ type ConnectorCreateInputsItem struct {
 }
 
 // ValidateWith checks the ConnectorCreateInputsItem entity with the given context and client set.
-func (cci *ConnectorCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (cci *ConnectorCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if cci == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -184,11 +192,11 @@ func (cci *ConnectorCreateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return cci.ValidateWith(cci.inputConfig.Context, cci.inputConfig.Client)
+	return cci.ValidateWith(cci.inputConfig.Context, cci.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ConnectorCreateInputs entity with the given context and client set.
-func (cci *ConnectorCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (cci *ConnectorCreateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if cci == nil {
 		return errors.New("nil receiver")
 	}
@@ -197,9 +205,13 @@ func (cci *ConnectorCreateInputs) ValidateWith(ctx context.Context, cs ClientSet
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	// Validate when creating under the Project route.
 	if cci.Project != nil {
-		if err := cci.Project.ValidateWith(ctx, cs); err != nil {
+		if err := cci.Project.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -213,7 +225,7 @@ func (cci *ConnectorCreateInputs) ValidateWith(ctx context.Context, cs ClientSet
 			continue
 		}
 
-		if err := cci.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := cci.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
@@ -283,11 +295,11 @@ func (cdi *ConnectorDeleteInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return cdi.ValidateWith(cdi.inputConfig.Context, cdi.inputConfig.Client)
+	return cdi.ValidateWith(cdi.inputConfig.Context, cdi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ConnectorDeleteInputs entity with the given context and client set.
-func (cdi *ConnectorDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (cdi *ConnectorDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if cdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -296,11 +308,15 @@ func (cdi *ConnectorDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	q := cs.Connectors().Query()
 
 	// Validate when deleting under the Project route.
 	if cdi.Project != nil {
-		if err := cdi.Project.ValidateWith(ctx, cs); err != nil {
+		if err := cdi.Project.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -400,11 +416,11 @@ func (cqi *ConnectorQueryInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return cqi.ValidateWith(cqi.inputConfig.Context, cqi.inputConfig.Client)
+	return cqi.ValidateWith(cqi.inputConfig.Context, cqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ConnectorQueryInput entity with the given context and client set.
-func (cqi *ConnectorQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (cqi *ConnectorQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if cqi == nil {
 		return errors.New("nil receiver")
 	}
@@ -413,11 +429,15 @@ func (cqi *ConnectorQueryInput) ValidateWith(ctx context.Context, cs ClientSet) 
 		return fmt.Errorf("model: %s : %w", connector.Label, ErrBlankResourceRefer)
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	q := cs.Connectors().Query()
 
 	// Validate when querying under the Project route.
 	if cqi.Project != nil {
-		if err := cqi.Project.ValidateWith(ctx, cs); err != nil {
+		if err := cqi.Project.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -455,17 +475,33 @@ func (cqi *ConnectorQueryInput) ValidateWith(ctx context.Context, cs ClientSet) 
 		return errors.New("invalid identify of connector")
 	}
 
-	e, err := q.
-		Select(
-			connector.FieldID,
-			connector.FieldName,
-		).
-		Only(ctx)
-	if err == nil {
-		cqi.ID = e.ID
-		cqi.Name = e.Name
+	q.Select(
+		connector.FieldID,
+		connector.FieldName,
+	)
+
+	var e *Connector
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Connector)
+		}
 	}
-	return err
+
+	cqi.ID = e.ID
+	cqi.Name = e.Name
+	return nil
 }
 
 // ConnectorQueryInputs holds the query input of the Connector entities,
@@ -488,18 +524,22 @@ func (cqi *ConnectorQueryInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return cqi.ValidateWith(cqi.inputConfig.Context, cqi.inputConfig.Client)
+	return cqi.ValidateWith(cqi.inputConfig.Context, cqi.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ConnectorQueryInputs entity with the given context and client set.
-func (cqi *ConnectorQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (cqi *ConnectorQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if cqi == nil {
 		return errors.New("nil receiver")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	// Validate when querying under the Project route.
 	if cqi.Project != nil {
-		if err := cqi.Project.ValidateWith(ctx, cs); err != nil {
+		if err := cqi.Project.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -562,12 +602,16 @@ func (cui *ConnectorUpdateInput) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return cui.ValidateWith(cui.inputConfig.Context, cui.inputConfig.Client)
+	return cui.ValidateWith(cui.inputConfig.Context, cui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ConnectorUpdateInput entity with the given context and client set.
-func (cui *ConnectorUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
-	if err := cui.ConnectorQueryInput.ValidateWith(ctx, cs); err != nil {
+func (cui *ConnectorUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := cui.ConnectorQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -600,9 +644,13 @@ type ConnectorUpdateInputsItem struct {
 }
 
 // ValidateWith checks the ConnectorUpdateInputsItem entity with the given context and client set.
-func (cui *ConnectorUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (cui *ConnectorUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if cui == nil {
 		return errors.New("nil receiver")
+	}
+
+	if cache == nil {
+		cache = map[string]any{}
 	}
 
 	return nil
@@ -668,11 +716,11 @@ func (cui *ConnectorUpdateInputs) Validate() error {
 		return errors.New("nil receiver")
 	}
 
-	return cui.ValidateWith(cui.inputConfig.Context, cui.inputConfig.Client)
+	return cui.ValidateWith(cui.inputConfig.Context, cui.inputConfig.Client, nil)
 }
 
 // ValidateWith checks the ConnectorUpdateInputs entity with the given context and client set.
-func (cui *ConnectorUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
+func (cui *ConnectorUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if cui == nil {
 		return errors.New("nil receiver")
 	}
@@ -681,11 +729,15 @@ func (cui *ConnectorUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet
 		return errors.New("empty items")
 	}
 
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
 	q := cs.Connectors().Query()
 
 	// Validate when updating under the Project route.
 	if cui.Project != nil {
-		if err := cui.Project.ValidateWith(ctx, cs); err != nil {
+		if err := cui.Project.ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
@@ -752,7 +804,7 @@ func (cui *ConnectorUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet
 			continue
 		}
 
-		if err := cui.Items[i].ValidateWith(ctx, cs); err != nil {
+		if err := cui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
