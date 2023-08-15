@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"text/template"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/spf13/cobra"
@@ -28,6 +29,7 @@ type Operation struct {
 	Long          string      `json:"long,omitempty"`
 	Method        string      `json:"method,omitempty"`
 	URITemplate   string      `json:"uriTemplate"`
+	URIParams     []string    `json:"uriParams"`
 	PathParams    []*Param    `json:"pathParams,omitempty"`
 	QueryParams   []*Param    `json:"queryParams,omitempty"`
 	HeaderParams  []*Param    `json:"headerParams,omitempty"`
@@ -45,14 +47,27 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 		flags = map[string]any{}
 	)
 
-	use := o.Name
+	var (
+		use      = o.Name
+		argCount = 0
+	)
+
 	for _, p := range o.PathParams {
+		switch {
+		case p.DataFrom == DataFromContextAndArg && sc.ContextExisted(p.Name):
+			continue
+		case p.DataFrom == DataFromFlag:
+			continue
+		default:
+		}
+
 		use += " " + fmt.Sprintf("<%s>", p.Name)
+		argCount += 1
 	}
 
-	argSpec := cobra.ExactArgs(len(o.PathParams))
+	argSpec := cobra.ExactArgs(argCount)
 	if o.BodyMediaType != "" {
-		argSpec = cobra.MinimumNArgs(len(o.PathParams))
+		argSpec = cobra.MinimumNArgs(argCount)
 	}
 
 	sub := &cobra.Command{
@@ -89,7 +104,7 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 			}
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			req, err := o.Request(cmd, args, flags, body)
+			req, err := o.Request(cmd, args, flags, body, sc.ServerContext)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
@@ -120,6 +135,12 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 		flags[p.Name] = p.AddFlag(sub.Flags())
 	}
 
+	for _, p := range o.PathParams {
+		if p.DataFrom == DataFromFlag {
+			flags[p.Name] = p.AddFlag(sub.Flags())
+		}
+	}
+
 	if o.BodyParams != nil {
 		switch o.BodyParams.Type {
 		case openapi3.TypeArray:
@@ -138,10 +159,6 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 		}
 	}
 
-	for _, v := range sc.InjectFields() {
-		_ = sub.Flags().MarkHidden(v)
-	}
-
 	return sub
 }
 
@@ -151,12 +168,61 @@ func (o Operation) Request(
 	args []string,
 	flags map[string]any,
 	body any,
+	sc config.ServerContext,
 ) (*http.Request, error) {
-	// Replaces URL-encoded `{`+name+`}` in the uri.
-	uri := o.URITemplate
+	// Generate URI template.
+	uriTemplate := o.URITemplate
 
-	for i, param := range o.PathParams {
-		uri = strings.Replace(uri, "{"+param.Name+"}", fmt.Sprintf("%v", args[i]), 1)
+	if len(o.URIParams) != 0 {
+		data := make(map[string]string)
+
+		for _, k := range o.URIParams {
+			if val := flags[k]; val != nil {
+				data[k] = *val.(*string)
+			}
+		}
+
+		var buf bytes.Buffer
+		tmpl := template.Must(
+			template.New("uri").Parse(uriTemplate),
+		)
+
+		err := tmpl.Execute(&buf, data)
+		if err != nil {
+			return nil, err
+		}
+
+		uriTemplate = buf.String()
+	}
+
+	// Replaces URL-encoded `{`+name+`}` in the uri.
+	var argCount int
+
+	for _, param := range o.PathParams {
+		paramPlaceholder := "{" + param.Name + "}"
+
+		switch {
+		case param.DataFrom == DataFromContextAndArg:
+			// Inject from context.
+			uriTemplate = sc.InjectURI(uriTemplate, param.Name)
+
+			// Inject from arg.
+			if argCount < len(args) && strings.Contains(uriTemplate, paramPlaceholder) {
+				uriTemplate = strings.Replace(uriTemplate, paramPlaceholder, fmt.Sprintf("%v", args[argCount]), 1)
+				argCount += 1
+			}
+		case param.DataFrom == DataFromFlag:
+			flag := flags[param.Name]
+
+			se := param.Serialize(flag)
+			if len(se) == 0 {
+				continue
+			}
+			uriTemplate = strings.Replace(uriTemplate, paramPlaceholder, fmt.Sprintf("%v", se[0]), 1)
+		case param.DataFrom == DataFromArg:
+			uriTemplate = strings.Replace(uriTemplate, paramPlaceholder, fmt.Sprintf("%v", args[argCount]), 1)
+			argCount += 1
+		}
 	}
 
 	// Generate URL queries.
@@ -173,12 +239,12 @@ func (o Operation) Request(
 
 	queryEncoded := query.Encode()
 	if queryEncoded != "" {
-		if strings.Contains(uri, "?") {
-			uri += "&"
+		if strings.Contains(uriTemplate, "?") {
+			uriTemplate += "&"
 		} else {
-			uri += "?"
+			uriTemplate += "?"
 		}
-		uri += queryEncoded
+		uriTemplate += queryEncoded
 	}
 
 	// Generate Headers.
@@ -206,7 +272,7 @@ func (o Operation) Request(
 		br = bytes.NewReader(b)
 	}
 
-	req, err := http.NewRequest(o.Method, uri, br)
+	req, err := http.NewRequest(o.Method, uriTemplate, br)
 	if err != nil {
 		return nil, err
 	}

@@ -120,8 +120,16 @@ func AddFlag(name, schemaType, description string, value any, flags *pflag.FlagS
 		return flags.Bool(name, def, description)
 	case openapi3.TypeInteger:
 		def := 0
+
 		if value != nil {
-			def = value.(int)
+			switch v := value.(type) {
+			case float32:
+				def = int(v)
+			case float64:
+				def = int(v)
+			default:
+				def = v.(int)
+			}
 		}
 
 		return flags.Int(name, def, description)

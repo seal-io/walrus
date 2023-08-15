@@ -2,10 +2,13 @@ package config
 
 import (
 	"net/url"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
+
+var InjectFields = []string{"project", "environment"}
 
 // ServerContext contains the server config.
 type ServerContext struct {
@@ -14,13 +17,11 @@ type ServerContext struct {
 	Token    string `json:"token" survey:"token"`
 	Insecure bool   `json:"insecure" survey:"insecure"`
 
-	// Project config.
-	ProjectID   string `json:"projectID,omitempty" survey:"project-id"`
-	ProjectName string `json:"projectName,omitempty" survey:"project-name"`
+	// Project name.
+	Project string `json:"project,omitempty" survey:"project"`
 
-	// Environment config.
-	EnvironmentID   string `json:"environmentID,omitempty" survey:"environment-id"`
-	EnvironmentName string `json:"environmentName,omitempty" survey:"environment-name"`
+	// Environment name.
+	Environment string `json:"environment,omitempty" survey:"environment"`
 }
 
 // OpenAPIURL generate OpenAPI url.
@@ -40,42 +41,77 @@ func (c *ServerContext) OpenAPIURL() (*url.URL, error) {
 
 // InjectFields config the fields need to inject.
 func (c *ServerContext) InjectFields() []string {
-	return []string{"project-id", "environment-id"}
+	return InjectFields
 }
 
 // Inject update the flags base on the context.
 func (c *ServerContext) Inject(cmd *cobra.Command) error {
 	// Skip inject while user set project name to blank.
-	projName := cmd.Flags().Lookup("project-name")
+	projName := cmd.Flags().Lookup("project")
 	if projName != nil && projName.Changed && projName.Value.String() == "" {
 		return nil
 	}
 
-	// Project id flag exist, use current project id to set it.
-	fp := cmd.Flags().Lookup("project-id")
-	if fp != nil && c.ProjectID != "" {
-		err := fp.Value.Set(c.ProjectID)
+	// Project flag exist, use current project to set it.
+	fp := cmd.Flags().Lookup("project")
+	if fp != nil && !fp.Changed && c.Project != "" {
+		err := fp.Value.Set(c.Project)
 		if err != nil {
 			return err
 		}
 	}
 
-	// Skip inject environment user set environment name to blank.
-	fen := cmd.Flags().Lookup("environment-name")
+	// Skip inject environment while user set environment name to blank.
+	fen := cmd.Flags().Lookup("environment")
 	if fen != nil && fen.Changed && fen.Value.String() == "" {
 		return nil
 	}
 
-	// Inject environment id while user doesn't set environment name.
-	fe := cmd.Flags().Lookup("environment-id")
-	if fe != nil && c.EnvironmentID != "" && (fen == nil || !fen.Changed) {
-		err := fe.Value.Set(c.EnvironmentID)
+	// Inject environment while user doesn't set environment name.
+	fe := cmd.Flags().Lookup("environment")
+	if fen != nil && !fen.Changed && c.Environment != "" {
+		err := fe.Value.Set(c.Environment)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+// InjectURI update the uri base on the context.
+func (c *ServerContext) InjectURI(uri, name string) string {
+	const (
+		projectPlaceholder     = "{project}"
+		environmentPlaceholder = "{environment}"
+	)
+
+	switch name {
+	case "project":
+		// Inject project name.
+		if c.Project != "" && !strings.HasSuffix(uri, projectPlaceholder) {
+			uri = strings.Replace(uri, projectPlaceholder, c.Project, 1)
+		}
+	case "environment":
+		// Inject environment name.
+		if c.Environment != "" && !strings.HasSuffix(uri, environmentPlaceholder) {
+			uri = strings.Replace(uri, environmentPlaceholder, c.Environment, 1)
+		}
+	}
+
+	return uri
+}
+
+// ContextExisted check whether the value already existed in the context.
+func (c *ServerContext) ContextExisted(name string) bool {
+	switch {
+	case name == "project" && c.Project != "":
+		return true
+	case name == "environment" && c.Environment != "":
+		return true
+	default:
+		return false
+	}
 }
 
 // Merge generate new server context base on old context, new context and flags.
@@ -94,24 +130,15 @@ func (c *ServerContext) Merge(ns ServerContext, flags *pflag.FlagSet) ServerCont
 		merged.Insecure = ns.Insecure
 	}
 
-	if ns.ProjectID != "" {
-		merged.ProjectID = ns.ProjectID
-	}
-
-	if ns.ProjectName != "" && flags.Changed("project-name") && ns.ProjectName != merged.ProjectName {
-		merged.ProjectName = ns.ProjectName
+	if ns.Project != "" && flags.Changed("project") && ns.Project != merged.Project {
+		merged.Project = ns.Project
 
 		// Reset environment while project changed.
-		merged.EnvironmentID = ""
-		merged.EnvironmentName = ""
+		merged.Environment = ""
 	}
 
-	if ns.EnvironmentID != "" {
-		merged.EnvironmentID = ns.EnvironmentID
-	}
-
-	if ns.EnvironmentName != "" && flags.Changed("environment-name") {
-		merged.EnvironmentName = ns.EnvironmentName
+	if ns.Environment != "" && flags.Changed("environment") {
+		merged.Environment = ns.Environment
 	}
 
 	return merged

@@ -5,26 +5,15 @@ import (
 	"io"
 	"net/http"
 	"path"
+	"sort"
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
+	"golang.org/x/exp/slices"
 
+	"github.com/seal-io/seal/pkg/apis/runtime/openapi"
+	"github.com/seal-io/seal/pkg/cli/config"
 	"github.com/seal-io/seal/utils/strs"
-)
-
-// OpenAPI Extensions.
-const (
-	// ExtCliOperationName define the extension key to set the CLI operation name.
-	ExtCliOperationName = "x-cli-operation-name"
-
-	// ExtCliSchemaTypeName define the extension key to set the CLI operation params schema type.
-	ExtCliSchemaTypeName = "x-cli-schema-type"
-
-	// ExtCliIgnore define the extension key to ignore an operation.
-	ExtCliIgnore = "x-cli-ignore"
-
-	// ExtCliOutputFormat define the output format set the CLI operation command.
-	ExtCliOutputFormat = "x-cli-output-format"
 )
 
 const (
@@ -85,9 +74,93 @@ func LoadOpenAPI(resp *http.Response) (*API, error) {
 
 	api.Short = t.Info.Title
 	api.Long = t.Info.Description
-	api.Operations = operations
+	api.Operations = aggregateOperations(operations)
 
 	return api, nil
+}
+
+func aggregateOperations(operations []Operation) []Operation {
+	var (
+		agg    = make(map[string][]Operation)
+		finals = make([]Operation, 0)
+	)
+
+	for _, op := range operations {
+		key := op.Group + "-" + op.Name
+		agg[key] = append(agg[key], op)
+	}
+
+	for i, ops := range agg {
+		if len(ops) == 1 {
+			finals = append(finals, ops[0])
+			continue
+		}
+
+		sorted := agg[i]
+		sort.SliceStable(sorted, func(x, y int) bool {
+			return len(sorted[x].PathParams) < len(sorted[y].PathParams)
+		})
+
+		var (
+			tmpl  string
+			first = sorted[0]
+			last  = sorted[len(sorted)-1]
+		)
+
+		// Set path params from flag.
+		diff := paramDiff(first.PathParams, last.PathParams, "")
+		for pi := range last.PathParams {
+			if slices.Contains(diff, last.PathParams[pi].Name) {
+				last.PathParams[pi].DataFrom = DataFromFlag
+			}
+		}
+
+		// Generate uri template.
+		for z := len(sorted) - 1; z >= 0; z-- {
+			df := paramDiff(first.PathParams, sorted[z].PathParams, `.`)
+
+			switch {
+			case z == 0:
+				// Last one.
+				tmpl += fmt.Sprintf(`{{ else }}%s{{ end }}`, sorted[z].URITemplate)
+			case z == len(sorted)-1:
+				// First one has the most parameters.
+				tmpl += fmt.Sprintf(`{{ if and %s }}%s`, strings.Join(df, " "), sorted[z].URITemplate)
+			default:
+				tmpl += fmt.Sprintf(`{{ else if and %s }}%s`, strings.Join(df, " "), sorted[z].URITemplate)
+			}
+		}
+
+		last.URITemplate = tmpl
+		last.URIParams = diff
+		last.Long = last.Short
+
+		finals = append(finals, last)
+	}
+
+	return finals
+}
+
+func paramDiff(ps1, ps2 []*Param, prefix string) []string {
+	var diff []string
+
+	for _, p2 := range ps2 {
+		var exist bool
+
+		for _, p1 := range ps1 {
+			if p1.Name == p2.Name {
+				exist = true
+				break
+			}
+		}
+
+		if !exist {
+			n := prefix + p2.Name
+			diff = append(diff, n)
+		}
+	}
+
+	return diff
 }
 
 // toOperation generate operation from OpenAPI operation schema.
@@ -120,7 +193,11 @@ func toOperation(
 	)
 
 	for i, p := range allParams {
-		param := toParam(allParams[i])
+		if p != nil && isIgnore(p.Extensions) {
+			continue
+		}
+
+		param := toParam(allParams[i], basePath)
 
 		switch p.In {
 		case "path":
@@ -146,12 +223,12 @@ func toOperation(
 	}
 
 	name := deGroupedName(tag, op.OperationID)
-	if override := getExt(op.Extensions, ExtCliOperationName, ""); override != "" {
+	if override := getExt(op.Extensions, openapi.ExtCliOperationName, ""); override != "" {
 		name = override
 	}
 
 	var formats []string
-	if efs := getExt(op.Extensions, ExtCliOutputFormat, ""); efs != "" {
+	if efs := getExt(op.Extensions, openapi.ExtCliOutputFormat, ""); efs != "" {
 		formats = strings.Split(efs, ",")
 	}
 
@@ -173,7 +250,7 @@ func toOperation(
 }
 
 // toParam generate param from OpenAPI parameter.
-func toParam(p *openapi3.Parameter) *Param {
+func toParam(p *openapi3.Parameter, uri string) *Param {
 	var (
 		typ = "string"
 		des string
@@ -198,6 +275,22 @@ func toParam(p *openapi3.Parameter) *Param {
 
 	if p.Explode != nil {
 		param.Explode = *p.Explode
+	}
+
+	switch p.In {
+	case "path":
+		param.DataFrom = DataFromArg
+	case "query":
+		param.DataFrom = DataFromFlag
+	case "header":
+		param.DataFrom = DataFromFlag
+	}
+
+	for _, ijf := range config.InjectFields {
+		// Set context param if it's in inject fields and not the id in the uri.
+		if ijf == p.Name && !strings.HasSuffix(uri, fmt.Sprintf("{%s}", ijf)) {
+			param.DataFrom = DataFromContextAndArg
+		}
 	}
 
 	return param
@@ -282,7 +375,7 @@ func schemaType(s *openapi3.Schema) (string, string, any) {
 	)
 
 	if len(s.Extensions) != 0 {
-		tp, ok := s.Extensions[ExtCliSchemaTypeName]
+		tp, ok := s.Extensions[openapi.ExtCliSchemaTypeName]
 		if ok {
 			extType = tp.(string)
 		}
@@ -346,7 +439,7 @@ func isSupportOpenAPI(v string) bool {
 
 // isIgnore check whether it include ignore extension.
 func isIgnore(ext map[string]any) bool {
-	return getExt(ext, ExtCliIgnore, false)
+	return getExt(ext, openapi.ExtCliIgnore, false)
 }
 
 // getExt get extension by key.

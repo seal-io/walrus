@@ -10,14 +10,23 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
+type DataFrom string
+
+const (
+	DataFromContextAndArg DataFrom = "contextAndArg"
+	DataFromArg           DataFrom = "arg"
+	DataFromFlag          DataFrom = "flag"
+)
+
 // Param represents an API operation input parameter.
 type Param struct {
-	Name        string `json:"name"`
-	Type        string `json:"type"`
-	Description string `json:"description,omitempty"`
-	Style       string `json:"style,omitempty"`
-	Explode     bool   `json:"explode,omitempty"`
-	Default     any    `json:"default,omitempty"`
+	Name        string   `json:"name"`
+	Type        string   `json:"type"`
+	Description string   `json:"description,omitempty"`
+	Style       string   `json:"style,omitempty"`
+	Explode     bool     `json:"explode,omitempty"`
+	Default     any      `json:"default,omitempty"`
+	DataFrom    DataFrom `json:"dataFrom,omitempty"`
 }
 
 // AddFlag adds a new option flag to a command's flag set for this parameter.
