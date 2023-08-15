@@ -19,11 +19,11 @@ import (
 )
 
 const (
-	flagNameServer          = "server"
-	flagNameToken           = "token"
-	flagNameInsecure        = "insecure"
-	flagNameProjectName     = "project-name"
-	flagNameEnvironmentName = "environment-name"
+	flagNameServer      = "server"
+	flagNameToken       = "token"
+	flagNameInsecure    = "insecure"
+	flagNameProject     = "project"
+	flagNameEnvironment = "environment"
 )
 
 var (
@@ -72,8 +72,8 @@ func NewConfigCmd() *cobra.Command {
 	setupCmdFlags.StringVarP(&cfg.Server, flagNameServer, "s", "", "Server address, format: scheme://host:port")
 	setupCmdFlags.StringVarP(&cfg.Token, flagNameToken, "", "", "Auth token to communicate to server")
 	setupCmdFlags.BoolVarP(&cfg.Insecure, flagNameInsecure, "", false, "Disable SSL verification")
-	setupCmdFlags.StringVarP(&cfg.ProjectName, flagNameProjectName, "p", "", "Project for default use")
-	setupCmdFlags.StringVarP(&cfg.EnvironmentName, flagNameEnvironmentName, "e", "", "Environment for default use")
+	setupCmdFlags.StringVarP(&cfg.Project, flagNameProject, "p", "", "Project for default use")
+	setupCmdFlags.StringVarP(&cfg.Environment, flagNameEnvironment, "e", "", "Environment for default use")
 
 	// Command config setup.
 	setupCmd := &cobra.Command{
@@ -174,12 +174,12 @@ func setup(sc config.ServerContext, flags *pflag.FlagSet, inputByFlags bool) err
 		}
 	} else {
 		// Ignore empty.
-		if merged.ProjectName == `""` {
-			merged.ProjectName = ""
+		if merged.Project == `""` {
+			merged.Project = ""
 		}
 
-		if merged.EnvironmentName == `""` {
-			merged.EnvironmentName = ""
+		if merged.Environment == `""` {
+			merged.Environment = ""
 		}
 	}
 
@@ -207,13 +207,13 @@ func sync() error {
 
 // currentContext define the function for config current-context command.
 func currentContext() {
-	if serverConfig.ProjectName != "" {
-		name := serverConfig.ProjectName
+	if serverConfig.Project != "" {
+		name := serverConfig.Project
 		if name != "" {
 			fmt.Println("Current Project: " + name)
 		}
 
-		env := serverConfig.EnvironmentName
+		env := serverConfig.Environment
 		if env != "" {
 			fmt.Println("Current Environment: " + env)
 		}
@@ -319,7 +319,7 @@ func questions() []*survey.Question {
 		DefaultDisplay: hiddenPassword(serverConfig.Token),
 	}
 
-	proj := serverConfig.ProjectName
+	proj := serverConfig.Project
 	if proj == "" {
 		proj = "default"
 	}
@@ -346,17 +346,17 @@ func questions() []*survey.Question {
 			},
 		},
 		{
-			Name: flagNameProjectName,
+			Name: flagNameProject,
 			Prompt: &survey.Input{
-				Message: strs.Question(flagNameProjectName),
+				Message: strs.Question(flagNameProject),
 				Default: proj,
 			},
 		},
 		{
-			Name: flagNameEnvironmentName,
+			Name: flagNameEnvironment,
 			Prompt: &survey.Input{
-				Message: strs.Question(flagNameEnvironmentName),
-				Default: serverConfig.EnvironmentName,
+				Message: strs.Question(flagNameEnvironment),
+				Default: serverConfig.Environment,
 			},
 		},
 	}

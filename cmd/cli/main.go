@@ -21,7 +21,7 @@ func main() {
 	}
 
 	if err := Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "error while execute: %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 }

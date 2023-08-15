@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -12,7 +11,7 @@ import (
 
 	"github.com/henvic/httpretty"
 
-	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/seal/utils/strs"
 	"github.com/seal-io/seal/utils/version"
 )
 
@@ -66,12 +65,12 @@ func (c *Config) ValidateAndSetup() error {
 		return errors.New("token is required")
 	}
 
-	err := c.setProjectID()
+	err := c.validateProject()
 	if err != nil {
 		return err
 	}
 
-	err = c.setEnvironmentID()
+	err = c.validateEnvironment()
 	if err != nil {
 		return err
 	}
@@ -130,112 +129,51 @@ const (
 	environmentResource = "environments"
 )
 
-// resourceItems represent the common resource list response.
-type resourceItems struct {
-	Items []resourceItem `json:"items"`
-}
-
-// resourceItem represent the resource.
-type resourceItem struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
-// setProjectID set project id base on server context and project name.
-func (c *Config) setProjectID() error {
-	if c.ProjectName == "" {
+// validateProject validate project name base on server context.
+func (c *Config) validateProject() error {
+	if c.Project == "" {
 		return nil
 	}
 
-	projectQuery := map[string]string{
-		"query": c.ProjectName,
-	}
+	address := path.Join(apiVersion, projectResource, c.Project)
+	err := c.validateResourceItem(projectResource, c.Project, address)
 
-	projectID, err := c.getResourceIDByName(projectResource, c.ProjectName, projectQuery)
-	if err != nil {
-		return err
-	}
-	c.ProjectID = projectID
-
-	return nil
+	return err
 }
 
-// setEnvironmentID set environment id base on server context, project id and environment name.
-func (c *Config) setEnvironmentID() error {
-	if c.EnvironmentName == "" {
+// validateEnvironment validate environment name base on server context, project name.
+func (c *Config) validateEnvironment() error {
+	if c.Environment == "" {
 		return nil
 	}
 
-	envQuery := map[string]string{
-		"projectID": c.ProjectID,
-	}
+	address := path.Join(apiVersion, projectResource, c.Project, environmentResource, c.Environment)
+	err := c.validateResourceItem(environmentResource, c.Environment, address)
 
-	envID, err := c.getResourceIDByName(environmentResource, c.EnvironmentName, envQuery)
+	return err
+}
+
+// validateResourceItem send get resource request to server.
+func (c *Config) validateResourceItem(resource, name, address string) error {
+	req, err := http.NewRequest(http.MethodGet, address, nil)
 	if err != nil {
 		return err
 	}
-
-	c.EnvironmentID = envID
-
-	return nil
-}
-
-// getResourceIDByName send request to server and get resource id by name.
-func (c *Config) getResourceIDByName(resource, resourceName string, queries map[string]string) (string, error) {
-	items, err := c.listResource(resource, queries)
-	if err != nil {
-		return "", err
-	}
-
-	for _, v := range items {
-		if v.Name == resourceName {
-			return v.ID, nil
-		}
-	}
-
-	return "", fmt.Errorf("%s %s not found", resource, resourceName)
-}
-
-// listResource send list resource request to server.
-func (c *Config) listResource(resourceName string, queries map[string]string) ([]resourceItem, error) {
-	req, err := http.NewRequest(http.MethodGet, path.Join(apiVersion, resourceName), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	q := req.URL.Query()
-	for k, v := range queries {
-		q.Add(k, v)
-	}
-	req.URL.RawQuery = q.Encode()
 
 	resp, err := c.DoRequest(req)
 	if err != nil {
-		return nil, err
-	}
-
-	body, err := io.ReadAll(resp.Body)
-
-	defer func() { _ = resp.Body.Close() }()
-
-	if err != nil {
-		return nil, err
+		return err
 	}
 
 	switch {
 	default:
 	case resp.StatusCode == http.StatusUnauthorized:
-		return nil, fmt.Errorf("unauthorized, please check the validity of the token")
+		return fmt.Errorf("unauthorized, please check the validity of the token")
+	case resp.StatusCode == http.StatusNotFound:
+		return fmt.Errorf("%s %s not found", strs.Singularize(resource), name)
 	case resp.StatusCode < 200 || resp.StatusCode >= 300:
-		return nil, fmt.Errorf("unexpected status code %d", resp.StatusCode)
+		return fmt.Errorf("unexpected status code %d", resp.StatusCode)
 	}
 
-	var items resourceItems
-
-	err = json.Unmarshal(body, &items)
-	if err != nil {
-		return nil, err
-	}
-
-	return items.Items, nil
+	return nil
 }
