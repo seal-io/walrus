@@ -25,6 +25,8 @@ const (
 	FieldUpdateTime = "update_time"
 	// FieldProjectID holds the string denoting the project_id field in the database.
 	FieldProjectID = "project_id"
+	// FieldEnvironmentID holds the string denoting the environment_id field in the database.
+	FieldEnvironmentID = "environment_id"
 	// FieldServiceID holds the string denoting the service_id field in the database.
 	FieldServiceID = "service_id"
 	// FieldConnectorID holds the string denoting the connector_id field in the database.
@@ -47,6 +49,8 @@ const (
 	FieldStatus = "status"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
+	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
+	EdgeEnvironment = "environment"
 	// EdgeService holds the string denoting the service edge name in mutations.
 	EdgeService = "service"
 	// EdgeConnector holds the string denoting the connector edge name in mutations.
@@ -70,6 +74,13 @@ const (
 	ProjectInverseTable = "projects"
 	// ProjectColumn is the table column denoting the project relation/edge.
 	ProjectColumn = "project_id"
+	// EnvironmentTable is the table that holds the environment relation/edge.
+	EnvironmentTable = "service_resources"
+	// EnvironmentInverseTable is the table name for the Environment entity.
+	// It exists in this package in order to avoid circular dependency with the "environment" package.
+	EnvironmentInverseTable = "environments"
+	// EnvironmentColumn is the table column denoting the environment relation/edge.
+	EnvironmentColumn = "environment_id"
 	// ServiceTable is the table that holds the service relation/edge.
 	ServiceTable = "service_resources"
 	// ServiceInverseTable is the table name for the Service entity.
@@ -115,6 +126,7 @@ var Columns = []string{
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldProjectID,
+	FieldEnvironmentID,
 	FieldServiceID,
 	FieldConnectorID,
 	FieldCompositionID,
@@ -153,6 +165,8 @@ var (
 	UpdateDefaultUpdateTime func() time.Time
 	// ProjectIDValidator is a validator for the "project_id" field. It is called by the builders before save.
 	ProjectIDValidator func(string) error
+	// EnvironmentIDValidator is a validator for the "environment_id" field. It is called by the builders before save.
+	EnvironmentIDValidator func(string) error
 	// ServiceIDValidator is a validator for the "service_id" field. It is called by the builders before save.
 	ServiceIDValidator func(string) error
 	// ConnectorIDValidator is a validator for the "connector_id" field. It is called by the builders before save.
@@ -190,6 +204,11 @@ func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
 // ByProjectID orders the results by the project_id field.
 func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
+}
+
+// ByEnvironmentID orders the results by the environment_id field.
+func ByEnvironmentID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEnvironmentID, opts...).ToFunc()
 }
 
 // ByServiceID orders the results by the service_id field.
@@ -241,6 +260,13 @@ func ByShape(opts ...sql.OrderTermOption) OrderOption {
 func ByProjectField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newProjectStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByEnvironmentField orders the results by environment field.
+func ByEnvironmentField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEnvironmentStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -318,6 +344,13 @@ func newProjectStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ProjectInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, ProjectTable, ProjectColumn),
+	)
+}
+func newEnvironmentStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EnvironmentInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, EnvironmentTable, EnvironmentColumn),
 	)
 }
 func newServiceStep() *sqlgraph.Step {

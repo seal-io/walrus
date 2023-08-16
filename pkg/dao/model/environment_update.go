@@ -23,6 +23,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/variable"
 	"github.com/seal-io/seal/pkg/dao/types/object"
@@ -138,6 +139,21 @@ func (eu *EnvironmentUpdate) AddServiceRevisions(s ...*ServiceRevision) *Environ
 	return eu.AddServiceRevisionIDs(ids...)
 }
 
+// AddServiceResourceIDs adds the "service_resources" edge to the ServiceResource entity by IDs.
+func (eu *EnvironmentUpdate) AddServiceResourceIDs(ids ...object.ID) *EnvironmentUpdate {
+	eu.mutation.AddServiceResourceIDs(ids...)
+	return eu
+}
+
+// AddServiceResources adds the "service_resources" edges to the ServiceResource entity.
+func (eu *EnvironmentUpdate) AddServiceResources(s ...*ServiceResource) *EnvironmentUpdate {
+	ids := make([]object.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return eu.AddServiceResourceIDs(ids...)
+}
+
 // AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
 func (eu *EnvironmentUpdate) AddVariableIDs(ids ...object.ID) *EnvironmentUpdate {
 	eu.mutation.AddVariableIDs(ids...)
@@ -219,6 +235,27 @@ func (eu *EnvironmentUpdate) RemoveServiceRevisions(s ...*ServiceRevision) *Envi
 		ids[i] = s[i].ID
 	}
 	return eu.RemoveServiceRevisionIDs(ids...)
+}
+
+// ClearServiceResources clears all "service_resources" edges to the ServiceResource entity.
+func (eu *EnvironmentUpdate) ClearServiceResources() *EnvironmentUpdate {
+	eu.mutation.ClearServiceResources()
+	return eu
+}
+
+// RemoveServiceResourceIDs removes the "service_resources" edge to ServiceResource entities by IDs.
+func (eu *EnvironmentUpdate) RemoveServiceResourceIDs(ids ...object.ID) *EnvironmentUpdate {
+	eu.mutation.RemoveServiceResourceIDs(ids...)
+	return eu
+}
+
+// RemoveServiceResources removes "service_resources" edges to ServiceResource entities.
+func (eu *EnvironmentUpdate) RemoveServiceResources(s ...*ServiceResource) *EnvironmentUpdate {
+	ids := make([]object.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return eu.RemoveServiceResourceIDs(ids...)
 }
 
 // ClearVariables clears all "variables" edges to the Variable entity.
@@ -533,6 +570,54 @@ func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if eu.mutation.ServiceResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.ServiceResourcesTable,
+			Columns: []string{environment.ServiceResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = eu.schemaConfig.ServiceResource
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.RemovedServiceResourcesIDs(); len(nodes) > 0 && !eu.mutation.ServiceResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.ServiceResourcesTable,
+			Columns: []string{environment.ServiceResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = eu.schemaConfig.ServiceResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.ServiceResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.ServiceResourcesTable,
+			Columns: []string{environment.ServiceResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = eu.schemaConfig.ServiceResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if eu.mutation.VariablesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -701,6 +786,21 @@ func (euo *EnvironmentUpdateOne) AddServiceRevisions(s ...*ServiceRevision) *Env
 	return euo.AddServiceRevisionIDs(ids...)
 }
 
+// AddServiceResourceIDs adds the "service_resources" edge to the ServiceResource entity by IDs.
+func (euo *EnvironmentUpdateOne) AddServiceResourceIDs(ids ...object.ID) *EnvironmentUpdateOne {
+	euo.mutation.AddServiceResourceIDs(ids...)
+	return euo
+}
+
+// AddServiceResources adds the "service_resources" edges to the ServiceResource entity.
+func (euo *EnvironmentUpdateOne) AddServiceResources(s ...*ServiceResource) *EnvironmentUpdateOne {
+	ids := make([]object.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return euo.AddServiceResourceIDs(ids...)
+}
+
 // AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
 func (euo *EnvironmentUpdateOne) AddVariableIDs(ids ...object.ID) *EnvironmentUpdateOne {
 	euo.mutation.AddVariableIDs(ids...)
@@ -782,6 +882,27 @@ func (euo *EnvironmentUpdateOne) RemoveServiceRevisions(s ...*ServiceRevision) *
 		ids[i] = s[i].ID
 	}
 	return euo.RemoveServiceRevisionIDs(ids...)
+}
+
+// ClearServiceResources clears all "service_resources" edges to the ServiceResource entity.
+func (euo *EnvironmentUpdateOne) ClearServiceResources() *EnvironmentUpdateOne {
+	euo.mutation.ClearServiceResources()
+	return euo
+}
+
+// RemoveServiceResourceIDs removes the "service_resources" edge to ServiceResource entities by IDs.
+func (euo *EnvironmentUpdateOne) RemoveServiceResourceIDs(ids ...object.ID) *EnvironmentUpdateOne {
+	euo.mutation.RemoveServiceResourceIDs(ids...)
+	return euo
+}
+
+// RemoveServiceResources removes "service_resources" edges to ServiceResource entities.
+func (euo *EnvironmentUpdateOne) RemoveServiceResources(s ...*ServiceResource) *EnvironmentUpdateOne {
+	ids := make([]object.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return euo.RemoveServiceResourceIDs(ids...)
 }
 
 // ClearVariables clears all "variables" edges to the Variable entity.
@@ -1219,6 +1340,54 @@ func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environmen
 			},
 		}
 		edge.Schema = euo.schemaConfig.ServiceRevision
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if euo.mutation.ServiceResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.ServiceResourcesTable,
+			Columns: []string{environment.ServiceResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = euo.schemaConfig.ServiceResource
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.RemovedServiceResourcesIDs(); len(nodes) > 0 && !euo.mutation.ServiceResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.ServiceResourcesTable,
+			Columns: []string{environment.ServiceResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = euo.schemaConfig.ServiceResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.ServiceResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.ServiceResourcesTable,
+			Columns: []string{environment.ServiceResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = euo.schemaConfig.ServiceResource
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

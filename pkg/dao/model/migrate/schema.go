@@ -401,6 +401,7 @@ var (
 		{Name: "shape", Type: field.TypeString},
 		{Name: "status", Type: field.TypeJSON, Nullable: true},
 		{Name: "connector_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "service_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "composition_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
@@ -419,26 +420,32 @@ var (
 				OnDelete:   schema.Restrict,
 			},
 			{
-				Symbol:     "service_resources_projects_service_resources",
+				Symbol:     "service_resources_environments_service_resources",
 				Columns:    []*schema.Column{ServiceResourcesColumns[10]},
+				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "service_resources_projects_service_resources",
+				Columns:    []*schema.Column{ServiceResourcesColumns[11]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "service_resources_services_resources",
-				Columns:    []*schema.Column{ServiceResourcesColumns[11]},
+				Columns:    []*schema.Column{ServiceResourcesColumns[12]},
 				RefColumns: []*schema.Column{ServicesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "service_resources_service_resources_components",
-				Columns:    []*schema.Column{ServiceResourcesColumns[12]},
+				Columns:    []*schema.Column{ServiceResourcesColumns[13]},
 				RefColumns: []*schema.Column{ServiceResourcesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "service_resources_service_resources_instances",
-				Columns:    []*schema.Column{ServiceResourcesColumns[13]},
+				Columns:    []*schema.Column{ServiceResourcesColumns[14]},
 				RefColumns: []*schema.Column{ServiceResourcesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -863,10 +870,11 @@ func init() {
 	ServiceRelationshipsTable.ForeignKeys[0].RefTable = ServicesTable
 	ServiceRelationshipsTable.ForeignKeys[1].RefTable = ServicesTable
 	ServiceResourcesTable.ForeignKeys[0].RefTable = ConnectorsTable
-	ServiceResourcesTable.ForeignKeys[1].RefTable = ProjectsTable
-	ServiceResourcesTable.ForeignKeys[2].RefTable = ServicesTable
-	ServiceResourcesTable.ForeignKeys[3].RefTable = ServiceResourcesTable
+	ServiceResourcesTable.ForeignKeys[1].RefTable = EnvironmentsTable
+	ServiceResourcesTable.ForeignKeys[2].RefTable = ProjectsTable
+	ServiceResourcesTable.ForeignKeys[3].RefTable = ServicesTable
 	ServiceResourcesTable.ForeignKeys[4].RefTable = ServiceResourcesTable
+	ServiceResourcesTable.ForeignKeys[5].RefTable = ServiceResourcesTable
 	ServiceResourceRelationshipsTable.ForeignKeys[0].RefTable = ServiceResourcesTable
 	ServiceResourceRelationshipsTable.ForeignKeys[1].RefTable = ServiceResourcesTable
 	ServiceRevisionsTable.ForeignKeys[0].RefTable = EnvironmentsTable

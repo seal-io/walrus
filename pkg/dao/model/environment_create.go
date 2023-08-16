@@ -21,6 +21,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/variable"
 	"github.com/seal-io/seal/pkg/dao/types/object"
@@ -156,6 +157,21 @@ func (ec *EnvironmentCreate) AddServiceRevisions(s ...*ServiceRevision) *Environ
 		ids[i] = s[i].ID
 	}
 	return ec.AddServiceRevisionIDs(ids...)
+}
+
+// AddServiceResourceIDs adds the "service_resources" edge to the ServiceResource entity by IDs.
+func (ec *EnvironmentCreate) AddServiceResourceIDs(ids ...object.ID) *EnvironmentCreate {
+	ec.mutation.AddServiceResourceIDs(ids...)
+	return ec
+}
+
+// AddServiceResources adds the "service_resources" edges to the ServiceResource entity.
+func (ec *EnvironmentCreate) AddServiceResources(s ...*ServiceResource) *EnvironmentCreate {
+	ids := make([]object.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return ec.AddServiceResourceIDs(ids...)
 }
 
 // AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
@@ -387,6 +403,23 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = ec.schemaConfig.ServiceRevision
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ec.mutation.ServiceResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.ServiceResourcesTable,
+			Columns: []string{environment.ServiceResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = ec.schemaConfig.ServiceResource
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

@@ -463,32 +463,36 @@ func init() {
 	serviceresourceDescProjectID := serviceresourceFields[0].Descriptor()
 	// serviceresource.ProjectIDValidator is a validator for the "project_id" field. It is called by the builders before save.
 	serviceresource.ProjectIDValidator = serviceresourceDescProjectID.Validators[0].(func(string) error)
+	// serviceresourceDescEnvironmentID is the schema descriptor for environment_id field.
+	serviceresourceDescEnvironmentID := serviceresourceFields[1].Descriptor()
+	// serviceresource.EnvironmentIDValidator is a validator for the "environment_id" field. It is called by the builders before save.
+	serviceresource.EnvironmentIDValidator = serviceresourceDescEnvironmentID.Validators[0].(func(string) error)
 	// serviceresourceDescServiceID is the schema descriptor for service_id field.
-	serviceresourceDescServiceID := serviceresourceFields[1].Descriptor()
+	serviceresourceDescServiceID := serviceresourceFields[2].Descriptor()
 	// serviceresource.ServiceIDValidator is a validator for the "service_id" field. It is called by the builders before save.
 	serviceresource.ServiceIDValidator = serviceresourceDescServiceID.Validators[0].(func(string) error)
 	// serviceresourceDescConnectorID is the schema descriptor for connector_id field.
-	serviceresourceDescConnectorID := serviceresourceFields[2].Descriptor()
+	serviceresourceDescConnectorID := serviceresourceFields[3].Descriptor()
 	// serviceresource.ConnectorIDValidator is a validator for the "connector_id" field. It is called by the builders before save.
 	serviceresource.ConnectorIDValidator = serviceresourceDescConnectorID.Validators[0].(func(string) error)
 	// serviceresourceDescMode is the schema descriptor for mode field.
-	serviceresourceDescMode := serviceresourceFields[5].Descriptor()
+	serviceresourceDescMode := serviceresourceFields[6].Descriptor()
 	// serviceresource.ModeValidator is a validator for the "mode" field. It is called by the builders before save.
 	serviceresource.ModeValidator = serviceresourceDescMode.Validators[0].(func(string) error)
 	// serviceresourceDescType is the schema descriptor for type field.
-	serviceresourceDescType := serviceresourceFields[6].Descriptor()
+	serviceresourceDescType := serviceresourceFields[7].Descriptor()
 	// serviceresource.TypeValidator is a validator for the "type" field. It is called by the builders before save.
 	serviceresource.TypeValidator = serviceresourceDescType.Validators[0].(func(string) error)
 	// serviceresourceDescName is the schema descriptor for name field.
-	serviceresourceDescName := serviceresourceFields[7].Descriptor()
+	serviceresourceDescName := serviceresourceFields[8].Descriptor()
 	// serviceresource.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	serviceresource.NameValidator = serviceresourceDescName.Validators[0].(func(string) error)
 	// serviceresourceDescDeployerType is the schema descriptor for deployer_type field.
-	serviceresourceDescDeployerType := serviceresourceFields[8].Descriptor()
+	serviceresourceDescDeployerType := serviceresourceFields[9].Descriptor()
 	// serviceresource.DeployerTypeValidator is a validator for the "deployer_type" field. It is called by the builders before save.
 	serviceresource.DeployerTypeValidator = serviceresourceDescDeployerType.Validators[0].(func(string) error)
 	// serviceresourceDescShape is the schema descriptor for shape field.
-	serviceresourceDescShape := serviceresourceFields[9].Descriptor()
+	serviceresourceDescShape := serviceresourceFields[10].Descriptor()
 	// serviceresource.ShapeValidator is a validator for the "shape" field. It is called by the builders before save.
 	serviceresource.ShapeValidator = serviceresourceDescShape.Validators[0].(func(string) error)
 	serviceresourcerelationshipMixin := schema.ServiceResourceRelationship{}.Mixin()
