@@ -119,8 +119,8 @@ func (c *Config) logger() *httpretty.Logger {
 // setHeaders set default headers.
 func (c *Config) setHeaders(req *http.Request) {
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.Token))
-	req.Header.Set("User-Agent", fmt.Sprintf("seal.io/seal-cli; version=%s", version.Get()))
-	req.Header.Set("Content-Type", "application/json; charset=utf-8")
+	req.Header.Set("User-Agent", version.GetUserAgentWith("walrus-cli"))
+	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	req.Header.Set("Accept", "application/json")
 }
 

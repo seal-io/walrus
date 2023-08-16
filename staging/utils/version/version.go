@@ -18,7 +18,11 @@ func Get() string {
 }
 
 func GetUserAgent() string {
-	return "seal.io/seal; version=" + Get()
+	return GetUserAgentWith("walrus")
+}
+
+func GetUserAgentWith(name string) string {
+	return "seal.io/" + name + "; version=" + Get()
 }
 
 func Major() string {
