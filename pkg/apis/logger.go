@@ -1,16 +1,14 @@
 package apis
 
 import (
-	"bufio"
-	"bytes"
 	stdlog "log"
 	"strings"
 
 	"github.com/seal-io/seal/utils/log"
 )
 
-func newStdLogger(delegate log.Logger) *stdlog.Logger {
-	return stdlog.New(logWriter{logger: delegate}, "", stdlog.Lshortfile)
+func newStdErrorLogger(delegate log.Logger) *stdlog.Logger {
+	return stdlog.New(logWriter{logger: delegate}, "", 0)
 }
 
 type logWriter struct {
@@ -18,14 +16,28 @@ type logWriter struct {
 }
 
 func (l logWriter) Write(p []byte) (int, error) {
-	s := bufio.NewScanner(bytes.NewReader(p))
-	for s.Scan() {
-		if strings.HasSuffix(s.Text(), "tls: unknown certificate") {
-			continue
-		}
+	s := string(p)
 
-		l.logger.Info(s.Text())
+	ok := true
+
+	switch {
+	case strings.HasPrefix(s, "http: TLS handshake error from"):
+		switch {
+		case strings.HasSuffix(s, "tls: unknown certificate\n"):
+			// Ignore self-generated certificate errors from client.
+			ok = false
+		case strings.HasSuffix(s, "connection reset by peer\n"):
+			// Reset TLS handshake errors from client.
+			ok = false
+		}
+	case strings.Contains(s, "broken pipe"):
+		// Terminate by client.
+		ok = false
 	}
 
-	return len(p), s.Err()
+	if ok {
+		l.logger.Warn(s)
+	}
+
+	return len(p), nil
 }
