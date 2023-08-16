@@ -5,9 +5,14 @@ import (
 	"errors"
 	"fmt"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqljson"
+
 	"github.com/seal-io/seal/pkg/auths/session"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	deptypes "github.com/seal-io/seal/pkg/deployer/types"
@@ -45,13 +50,21 @@ func Create(
 		return nil, err
 	}
 
-	// Deploy service.
-	err = Apply(ctx, mc, dp, entity, Options{
-		TlsCertified: opts.TlsCertified,
-		Tags:         opts.Tags,
-	})
+	ready, err := CheckDependencyStatus(ctx, mc, entity)
 	if err != nil {
 		return nil, err
+	}
+
+	// Service dependency ready can be applied promptly.
+	if ready {
+		// Deploy service.
+		err = Apply(ctx, mc, dp, entity, Options{
+			TlsCertified: opts.TlsCertified,
+			Tags:         opts.Tags,
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return model.ExposeService(entity), nil
@@ -290,4 +303,61 @@ func IsStatusDeleted(entity *model.Service) bool {
 	}
 
 	return false
+}
+
+const (
+	summaryStatusDeploying   = "Deploying"
+	summaryStatusProgressing = "Progressing"
+)
+
+// CheckDependencyStatus check service dependencies status is ready to apply.
+func CheckDependencyStatus(ctx context.Context, mc model.ClientSet, entity *model.Service) (bool, error) {
+	// Check dependants.
+	dependencies, err := mc.ServiceRelationships().Query().
+		Where(servicerelationship.ServiceID(entity.ID)).
+		QueryDependency().
+		Select(service.FieldID).
+		Where(
+			service.Or(
+				func(s *sql.Selector) {
+					s.Where(sqljson.ValueEQ(
+						service.FieldStatus,
+						summaryStatusDeploying,
+						sqljson.Path("summaryStatus"),
+					))
+				},
+				service.And(
+					func(s *sql.Selector) {
+						s.Where(sqljson.ValueEQ(
+							service.FieldStatus,
+							summaryStatusProgressing,
+							sqljson.Path("summaryStatus"),
+						))
+					},
+					func(s *sql.Selector) {
+						s.Where(sqljson.ValueEQ(
+							service.FieldStatus,
+							true,
+							sqljson.Path("transitioning"),
+						))
+					},
+				),
+			),
+		).
+		All(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	if len(dependencies) > 0 {
+		// If dependency services is in deploying status.
+		err = SetServiceStatusScheduled(ctx, mc, entity)
+		if err != nil {
+			return false, err
+		}
+
+		return false, nil
+	}
+
+	return true, nil
 }

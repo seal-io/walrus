@@ -59,12 +59,21 @@ func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 		Tags:         req.RemarkTags,
 	}
 
-	return pkgservice.Apply(
-		req.Context,
-		h.modelClient,
-		dp,
-		entity,
-		applyOpts)
+	ready, err := pkgservice.CheckDependencyStatus(req.Context, h.modelClient, entity)
+	if err != nil {
+		return err
+	}
+
+	if ready {
+		return pkgservice.Apply(
+			req.Context,
+			h.modelClient,
+			dp,
+			entity,
+			applyOpts)
+	}
+
+	return nil
 }
 
 func (h Handler) RouteRollback(req RouteRollbackRequest) error {
