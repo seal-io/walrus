@@ -11,7 +11,7 @@ import (
 
 var (
 	cliVersion = version.Get()
-	cliName    = "seal"
+	cliName    = "walrus"
 )
 
 func main() {

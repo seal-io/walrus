@@ -15,7 +15,7 @@ import (
 	"github.com/seal-io/walrus/utils/strs"
 )
 
-const defaultDataSourceAddress = "postgres://root@127.0.0.1:5432/seal?sslmode=disable"
+const defaultDataSourceAddress = "postgres://root@127.0.0.1:5432/walrus?sslmode=disable"
 
 type Embedded struct{}
 

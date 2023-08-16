@@ -53,7 +53,7 @@ $ # get init password from console: !!! Bootstrap Admin Password: <here> !!!
 $ https --verify=no POST :/account/login username=admin password=<password>
 
 $ # access with login session.
-$ https --verify=no GET :/settings Cookie:seal_session=<response from above request>
+$ https --verify=no GET :/settings Cookie:walrus_session=<response from above request>
 
 ```
 

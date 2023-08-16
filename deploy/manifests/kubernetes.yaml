@@ -1,40 +1,39 @@
 # Basic
-# - 1.   It's required to configure the password of DockerHub `tryseal` account to pull Seal container image,
-#        ref to https://www.seal.io/trial.
-# - 2.1. By default, the TLS termination is enabling,
-#        please adjust the following `seal` Ingress to adopt the TLS capability from other certificate manager.
-# - 2.2. To disable TLS termination and consume the self-signed certificate of Seal,
+# - 1. Configure TLS termination.
+# - 1.1. By default, the TLS termination is enabling,
+#        please adjust the following `walrus` Ingress to adopt the TLS capability from other certificate manager.
+# - 1.2. To disable TLS termination and consume the self-signed certificate of Walrus,
 #        please adjust as below.
-#        + Comment out the below `seal` Ingress.
-#        + Uncomment the below `seal` Service.
-#        + Configure the value of `enable_tls` of `seal` Secret to `true`.
-# - 2.3. To consume the customized certificate of Seal,
+#        + Comment out the below `walrus` Ingress.
+#        + Uncomment the below `walrus` Service.
+#        + Configure the value of `enable_tls` of `walrus` Secret to `true`.
+# - 1.3. To consume the customized certificate of Walrus,
 #        which is similar to #2.2, but take few more steps.
-#        + Uncomment the below `seal-custom-tls` Secret.
-#        + Fill the `tls.key` and `tls.crt` of `seal-custom-tls` Secret.
-#        + Uncomment the `SERVER_TLS_CERT_FILE` and `SERVER_TLS_KEY_FILE` envs of `app-manager` Deployment.
-# - 3.   It's optional to configure the type/mode/size of `database` PersistentVolumeClaim.
+#        + Uncomment the below `walrus-custom-tls` Secret.
+#        + Fill the `tls.key` and `tls.crt` of `walrus-custom-tls` Secret.
+#        + Uncomment the `SERVER_TLS_CERT_FILE` and `SERVER_TLS_KEY_FILE` envs of `walrus` Deployment.
+# - 2.   It's optional to configure the type/mode/size of `database` PersistentVolumeClaim.
 #
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: seal-system
+  name: walrus-system
   labels:
-    "app.kubernetes.io/part-of": "seal"
+    "app.kubernetes.io/part-of": "walrus"
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  namespace: seal-system
-  name: seal
+  namespace: walrus-system
+  name: walrus
   labels:
-    "app.kubernetes.io/part-of": "seal"
+    "app.kubernetes.io/part-of": "walrus"
     "app.kubernetes.io/component": "entrance"
 spec:
   defaultBackend:
     service:
-      name: app-manager
+      name: walrus
       port:
         number: 80
 # Uncomment the following lines if disabling TLS termination.
@@ -43,15 +42,15 @@ spec:
 #apiVersion: v1
 #kind: Service
 #metadata:
-#  namespace: seal-system
-#  name: seal
+#  namespace: walrus-system
+#  name: walrus
 #  labels:
-#    "app.kubernetes.io/part-of": "seal"
+#    "app.kubernetes.io/part-of": "walrus"
 #    "app.kubernetes.io/component": "entrance"
 #spec:
 #  selector:
-#    "app.kubernetes.io/part-of": "seal"
-#    "app.kubernetes.io/component": "app-manager"
+#    "app.kubernetes.io/part-of": "walrus"
+#    "app.kubernetes.io/component": "walrus"
 #  sessionAffinity: ClientIP
 #  type: LoadBalancer
 #  ports:
@@ -65,23 +64,10 @@ spec:
 apiVersion: v1
 kind: Secret
 metadata:
-  namespace: seal-system
-  name: seal-dockerhub-credential
+  namespace: walrus-system
+  name: walrus
   labels:
-    "app.kubernetes.io/part-of": "seal"
-    "app.kubernetes.io/component": "configuration"
-type: kubernetes.io/dockerconfigjson
-stringData:
-  .dockerconfigjson: |
-    {"auths":{"https://index.docker.io/v1/":{"username":"tryseal","password":"<get from https://www.seal.io/trial>"}}}
----
-apiVersion: v1
-kind: Secret
-metadata:
-  namespace: seal-system
-  name: seal
-  labels:
-    "app.kubernetes.io/part-of": "seal"
+    "app.kubernetes.io/part-of": "walrus"
     "app.kubernetes.io/component": "configuration"
 stringData:
   # Change to `true` if disabling TLS termination.
@@ -90,17 +76,17 @@ stringData:
   db_driver: "postgres"
   db_user: "root"
   db_password: "Root123"
-  db_name: "seal"
+  db_name: "walrus"
 # Uncomment the following lines if consuming custom TLS.
 #
 #---
 #apiVersion: v1
 #kind: Secret
 #metadata:
-#  namespace: seal-system
-#  name: seal-custom-tls
+#  namespace: walrus-system
+#  name: walrus-custom-tls
 #  labels:
-#    "app.kubernetes.io/part-of": "seal"
+#    "app.kubernetes.io/part-of": "walrus"
 #    "app.kubernetes.io/component": "configuration"
 #type: kubernetes.io/tls
 #stringData:
@@ -115,7 +101,7 @@ stringData:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  namespace: seal-system
+  namespace: walrus-system
   name: database-script
 data:
   "init.sh": |
@@ -143,11 +129,11 @@ data:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: seal-system
+  namespace: walrus-system
   name: database
 spec:
   selector:
-    "app.kubernetes.io/part-of": "seal"
+    "app.kubernetes.io/part-of": "walrus"
     "app.kubernetes.io/component": "database"
   ports:
     - name: conn
@@ -157,10 +143,10 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  namespace: seal-system
+  namespace: walrus-system
   name: database
   labels:
-    "app.kubernetes.io/part-of": "seal"
+    "app.kubernetes.io/part-of": "walrus"
     "app.kubernetes.io/component": "database"
 spec:
   storageClassName: standard
@@ -173,10 +159,10 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: seal-system
+  namespace: walrus-system
   name: database
   labels:
-    "app.kubernetes.io/part-of": "seal"
+    "app.kubernetes.io/part-of": "walrus"
     "app.kubernetes.io/component": "database"
     "app.kubernetes.io/name": "postgres"
 spec:
@@ -185,13 +171,13 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      "app.kubernetes.io/part-of": "seal"
+      "app.kubernetes.io/part-of": "walrus"
       "app.kubernetes.io/component": "database"
       "app.kubernetes.io/name": "postgres"
   template:
     metadata:
       labels:
-        "app.kubernetes.io/part-of": "seal"
+        "app.kubernetes.io/part-of": "walrus"
         "app.kubernetes.io/component": "database"
         "app.kubernetes.io/name": "postgres"
     spec:
@@ -231,17 +217,17 @@ spec:
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
-                  name: seal
+                  name: walrus
                   key: db_user
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: seal
+                  name: walrus
                   key: db_password
             - name: POSTGRES_DB
               valueFrom:
                 secretKeyRef:
-                  name: seal
+                  name: walrus
                   key: db_name
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
@@ -287,7 +273,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  namespace: seal-system
+  namespace: walrus-system
   name: identity-access-manager-script
 data:
   "init.sh": |
@@ -324,11 +310,11 @@ data:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: seal-system
+  namespace: walrus-system
   name: identity-access-manager
 spec:
   selector:
-    "app.kubernetes.io/part-of": "seal"
+    "app.kubernetes.io/part-of": "walrus"
     "app.kubernetes.io/component": "identity-access-manager"
   ports:
     - name: http
@@ -338,23 +324,23 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: seal-system
+  namespace: walrus-system
   name: identity-access-manager
   labels:
-    "app.kubernetes.io/part-of": "seal"
+    "app.kubernetes.io/part-of": "walrus"
     "app.kubernetes.io/component": "identity-access-manager"
     "app.kubernetes.io/name": "casdoor"
 spec:
   replicas: 1
   selector:
     matchLabels:
-      "app.kubernetes.io/part-of": "seal"
+      "app.kubernetes.io/part-of": "walrus"
       "app.kubernetes.io/component": "identity-access-manager"
       "app.kubernetes.io/name": "casdoor"
   template:
     metadata:
       labels:
-        "app.kubernetes.io/part-of": "seal"
+        "app.kubernetes.io/part-of": "walrus"
         "app.kubernetes.io/component": "identity-access-manager"
         "app.kubernetes.io/name": "casdoor"
     spec:
@@ -371,22 +357,22 @@ spec:
             - name: DB_DRIVER
               valueFrom:
                 secretKeyRef:
-                  name: seal
+                  name: walrus
                   key: db_driver
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: seal
+                  name: walrus
                   key: db_user
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: seal
+                  name: walrus
                   key: db_password
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
-                  name: seal
+                  name: walrus
                   key: db_name
             - name: DB_SOURCE
               value: $(DB_DRIVER)://$(DB_USER):$(DB_PASSWORD)@database:5432/$(DB_NAME)?sslmode=disable
@@ -454,20 +440,20 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  namespace: seal-system
-  name: app-manager
+  namespace: walrus-system
+  name: walrus
   labels:
-    "app.kubernetes.io/part-of": "seal"
-    "app.kubernetes.io/component": "app-manager"
+    "app.kubernetes.io/part-of": "walrus"
+    "app.kubernetes.io/component": "walrus"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  namespace: seal-system
-  name: app-manager
+  namespace: walrus-system
+  name: walrus
   labels:
-    "app.kubernetes.io/part-of": "seal"
-    "app.kubernetes.io/component": "app-manager"
+    "app.kubernetes.io/part-of": "walrus"
+    "app.kubernetes.io/component": "walrus"
 rules:
   - apiGroups:
       - "batch"
@@ -494,27 +480,27 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  namespace: seal-system
-  name: app-manager
+  namespace: walrus-system
+  name: walrus
   labels:
-    "app.kubernetes.io/part-of": "seal"
-    "app.kubernetes.io/component": "app-manager"
+    "app.kubernetes.io/part-of": "walrus"
+    "app.kubernetes.io/component": "walrus"
 subjects:
   - kind: ServiceAccount
-    name: app-manager
+    name: walrus
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: app-manager
+  name: walrus
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  namespace: seal-system
-  name: app-manager
+  namespace: walrus-system
+  name: walrus
   labels:
-    "app.kubernetes.io/part-of": "seal"
-    "app.kubernetes.io/component": "app-manager"
+    "app.kubernetes.io/part-of": "walrus"
+    "app.kubernetes.io/component": "walrus"
 spec:
   storageClassName: standard
   accessModes:
@@ -526,12 +512,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: seal-system
-  name: app-manager
+  namespace: walrus-system
+  name: walrus
 spec:
   selector:
-    "app.kubernetes.io/part-of": "seal"
-    "app.kubernetes.io/component": "app-manager"
+    "app.kubernetes.io/part-of": "walrus"
+    "app.kubernetes.io/component": "walrus"
   sessionAffinity: ClientIP
   ports:
     - name: http
@@ -541,25 +527,25 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: seal-system
-  name: app-manager
+  namespace: walrus-system
+  name: walrus
   labels:
-    "app.kubernetes.io/part-of": "seal"
-    "app.kubernetes.io/component": "app-manager"
-    "app.kubernetes.io/name": "seal-server"
+    "app.kubernetes.io/part-of": "walrus"
+    "app.kubernetes.io/component": "walrus"
+    "app.kubernetes.io/name": "walrus-server"
 spec:
   replicas: 1
   selector:
     matchLabels:
-      "app.kubernetes.io/part-of": "seal"
-      "app.kubernetes.io/component": "app-manager"
-      "app.kubernetes.io/name": "seal-server"
+      "app.kubernetes.io/part-of": "walrus"
+      "app.kubernetes.io/component": "walrus"
+      "app.kubernetes.io/name": "walrus-server"
   template:
     metadata:
       labels:
-        "app.kubernetes.io/part-of": "seal"
-        "app.kubernetes.io/component": "app-manager"
-        "app.kubernetes.io/name": "seal-server"
+        "app.kubernetes.io/part-of": "walrus"
+        "app.kubernetes.io/component": "walrus"
+        "app.kubernetes.io/name": "walrus-server"
     spec:
       affinity:
         podAntiAffinity:
@@ -572,22 +558,20 @@ spec:
                     - key: "app.kubernetes.io/component"
                       operator: In
                       values:
-                        - "app-manager"
+                        - "walrus"
                     - key: "app.kubernetes.io/part-of"
                       operator: In
                       values:
-                        - "seal"
+                        - "walrus"
                     - key: "app.kubernetes.io/name"
                       operator: In
                       values:
-                        - "seal-server"
+                        - "walrus-server"
       restartPolicy: Always
-      serviceAccountName: app-manager
-      imagePullSecrets:
-        - name: seal-dockerhub-credential
+      serviceAccountName: walrus
       containers:
-        - name: seal-server
-          image: sealio/seal-server:main
+        - name: walrus-server
+          image: sealio/walrus:main
           imagePullPolicy: Always
           resources:
             limits:
@@ -600,34 +584,34 @@ spec:
             - name: DB_DRIVER
               valueFrom:
                 secretKeyRef:
-                  name: seal
+                  name: walrus
                   key: db_driver
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: seal
+                  name: walrus
                   key: db_user
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: seal
+                  name: walrus
                   key: db_password
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
-                  name: seal
+                  name: walrus
                   key: db_name
             - name: SERVER_ENABLE_TLS
               valueFrom:
                 secretKeyRef:
-                  name: seal
+                  name: walrus
                   key: enable_tls
             # Uncomment the following lines if consuming custom TLS.
             #
             #            - name: SERVER_TLS_CERT_FILE
-            #              value: /etc/seal/ssl/tls.crt
+            #              value: /etc/walrus/ssl/tls.crt
             #            - name: SERVER_TLS_PRIVATE_KEY_FILE
-            #              value: /etc/seal/ssl/tls.key
+            #              value: /etc/walrus/ssl/tls.key
             - name: SERVER_DATA_SOURCE_ADDRESS
               value: $(DB_DRIVER)://$(DB_USER):$(DB_PASSWORD)@database:5432/$(DB_NAME)?sslmode=disable
             - name: SERVER_CASDOOR_SERVER
@@ -659,14 +643,14 @@ spec:
               path: /livez
           volumeMounts:
             - name: custom-tls
-              mountPath: /etc/seal/ssl
+              mountPath: /etc/walrus/ssl
             - name: data
-              mountPath: /var/run/seal
+              mountPath: /var/run/walrus
       volumes:
         - name: custom-tls
           secret:
-            secretName: seal-custom-tls
+            secretName: walrus-custom-tls
             optional: true
         - name: data
           persistentVolumeClaim:
-            claimName: app-manager
+            claimName: walrus

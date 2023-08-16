@@ -9,7 +9,7 @@ import (
 
 var (
 	APIKey        = ""
-	APIKeyEnvName = "SEAL_TELEMETRY_API_KEY"
+	APIKeyEnvName = "WALRUS_TELEMETRY_API_KEY"
 	Endpoint      = "https://app.posthog.com"
 )
 

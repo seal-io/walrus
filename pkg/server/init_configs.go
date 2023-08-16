@@ -83,7 +83,7 @@ func configureCaches(ctx context.Context, remoteDrv cache.Driver) error {
 		switch dialect {
 		case cache.DialectRedis, cache.DialectRedisCluster:
 			remoteCfg := cacheutil.RemoteRedisConfig{
-				Namespace:   "seal",
+				Namespace:   "walrus",
 				EntryMaxAge: 5 * time.Minute,
 				Client:      cli.(redis.UniversalClient),
 			}

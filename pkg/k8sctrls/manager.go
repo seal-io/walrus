@@ -18,12 +18,12 @@ func NewManager(opts ManagerOptions) (*Manager, error) {
 	mgr, err := ctrl.NewManager(opts.K8sConfig, ctrl.Options{
 		Scheme:    scheme.Scheme,
 		Logger:    log.AsLogr(logger),
-		Namespace: types.SealSystemNamespace,
+		Namespace: types.WalrusSystemNamespace,
 
 		// Leader election.
 		LeaderElection:          opts.LeaderElection,
-		LeaderElectionID:        "seal-leader-election",
-		LeaderElectionNamespace: types.SealSystemNamespace,
+		LeaderElectionID:        "walrus-leader-election",
+		LeaderElectionNamespace: types.WalrusSystemNamespace,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error creating kubernetes controller manager: %w", err)

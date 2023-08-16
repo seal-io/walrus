@@ -81,7 +81,7 @@ func NewConfigCmd() *cobra.Command {
 		Short: "Connect Seal server and setup cli",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// Configuration value from environment variables.
-			viper.SetEnvPrefix("SEAL")
+			viper.SetEnvPrefix("WALRUS")
 			viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 			viper.AutomaticEnv()
 			bindFlags(cmd)

@@ -82,7 +82,7 @@ func (h Handler) CollectionRouteGetSummaryCosts(
 			s.Where(
 				sql.And(projectCostPs...),
 			).SelectExpr(
-				sql.Expr(fmt.Sprintf(`DISTINCT(labels ->> '%s') AS value`, types.LabelSealProjectName)),
+				sql.Expr(fmt.Sprintf(`DISTINCT(labels ->> '%s') AS value`, types.LabelWalrusProjectName)),
 			)
 		}).Scan(req.Context, &projects)
 	if err != nil {
@@ -227,7 +227,7 @@ func (h Handler) CollectionRouteGetSummaryProjectCosts(
 	ps := []*sql.Predicate{
 		sql.GTE(costreport.FieldStartTime, req.StartTime),
 		sql.LTE(costreport.FieldEndTime, req.EndTime),
-		sqljson.ValueEQ(costreport.FieldLabels, req.Project, sqljson.Path(types.LabelSealProjectName)),
+		sqljson.ValueEQ(costreport.FieldLabels, req.Project, sqljson.Path(types.LabelWalrusProjectName)),
 	}
 
 	totalCost, err := h.modelClient.CostReports().Query().
@@ -263,7 +263,7 @@ func (h Handler) CollectionRouteGetSummaryProjectCosts(
 		timeRange, err = h.itemCostCollectedDataRange(
 			req.Context,
 			req.StartTime.Location(),
-			sqljson.ValueEQ(costreport.FieldLabels, req.Project, sqljson.Path(types.LabelSealProjectName)))
+			sqljson.ValueEQ(costreport.FieldLabels, req.Project, sqljson.Path(types.LabelWalrusProjectName)))
 		if err != nil {
 			return nil, err
 		}

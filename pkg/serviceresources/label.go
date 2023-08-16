@@ -44,9 +44,9 @@ func Label(ctx context.Context, op optypes.Operator, candidates []*model.Service
 
 		ls := map[string]string{
 			// Name.
-			types.LabelSealEnvironmentName: envName,
-			types.LabelSealProjectName:     projectName,
-			types.LabelSealServiceName:     svcName,
+			types.LabelWalrusEnvironmentName: envName,
+			types.LabelWalrusProjectName:     projectName,
+			types.LabelWalrusServiceName:     svcName,
 		}
 
 		err := op.Label(ctx, candidates[i], ls)

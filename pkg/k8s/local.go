@@ -181,7 +181,7 @@ func runK3sWith(ctx context.Context, cmdArgs []string) error {
 func prepareDeployWorkspace(ctx context.Context, cli *kubernetes.Clientset) error {
 	ns := core.Namespace{
 		ObjectMeta: meta.ObjectMeta{
-			Name: types.SealSystemNamespace,
+			Name: types.WalrusSystemNamespace,
 		},
 	}
 
@@ -202,7 +202,7 @@ func prepareDeployPermission(ctx context.Context, cli *kubernetes.Clientset) err
 	//  deployer should use the permission of the configured connectors.
 	sa := core.ServiceAccount{
 		ObjectMeta: meta.ObjectMeta{
-			Namespace: types.SealSystemNamespace,
+			Namespace: types.WalrusSystemNamespace,
 			Name:      types.DeployerServiceAccountName,
 		},
 	}
@@ -216,7 +216,7 @@ func prepareDeployPermission(ctx context.Context, cli *kubernetes.Clientset) err
 
 	r := rbac.Role{
 		ObjectMeta: meta.ObjectMeta{
-			Namespace: types.SealSystemNamespace,
+			Namespace: types.WalrusSystemNamespace,
 			Name:      types.DeployerServiceAccountName,
 		},
 		Rules: []rbac.PolicyRule{
@@ -242,7 +242,7 @@ func prepareDeployPermission(ctx context.Context, cli *kubernetes.Clientset) err
 
 	rb := rbac.RoleBinding{
 		ObjectMeta: meta.ObjectMeta{
-			Namespace: types.SealSystemNamespace,
+			Namespace: types.WalrusSystemNamespace,
 			Name:      types.DeployerServiceAccountName,
 		},
 		Subjects: []rbac.Subject{

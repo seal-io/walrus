@@ -58,7 +58,7 @@ RUN set -eux; \
     \
     gosu postgres /etc/init.d/postgresql start && \
       gosu postgres psql --command "CREATE USER root WITH SUPERUSER PASSWORD 'Root123';" && \
-      gosu postgres createdb -O root seal && \
+      gosu postgres createdb -O root walrus && \
       gosu postgres echo "listen_addresses='*'" >> /etc/postgresql/main/postgresql.conf && \
       gosu postgres echo "local all  postgres            peer" > /etc/postgresql/main/pg_hba.conf && \
       gosu postgres echo "host  all  root  127.0.0.1/32  trust" >> /etc/postgresql/main/pg_hba.conf && \
@@ -143,7 +143,7 @@ RUN set -exo pipefail; \
 # get deployer image
 RUN set -exo pipefail; \
         DEPLOYER_IMAGE="sealio/terraform-deployer:v0.1.4"; \
-        crane pull --platform=${TARGETPLATFORM} ${DEPLOYER_IMAGE} ${K3S_DATA_DIR}/agent/images/seal-terraform-deployer.tar;
+        crane pull --platform=${TARGETPLATFORM} ${DEPLOYER_IMAGE} ${K3S_DATA_DIR}/agent/images/terraform-deployer.tar;
 
 
 # get casdoor
@@ -152,20 +152,20 @@ COPY --from=sealio/casdoor:v1.344.0-seal.1 \
     /casdoor \
     /usr/bin/
 
-# seal cli
+# walrus cli
 RUN set -eux; \
-    mkdir -p /var/lib/seal/cli
-COPY /build/cli* /var/lib/seal/cli/
+    mkdir -p /var/lib/walrus/cli
+COPY /build/cli* /var/lib/walrus/cli/
 
 
-ARG SERVE_UI_INDEX="file:///var/lib/seal/ui"
+ARG SERVE_UI_INDEX="file:///var/lib/walrus/ui"
 ARG SERVE_TEMPLATE_REFER="release"
 ENV SERVER_SETTING_SERVE_URL="" \
     SERVER_SETTING_SERVE_UI_INDEX="${SERVE_UI_INDEX}" \
     SERVER_SETTING_SERVE_TEMPLATE_REFER="${SERVE_TEMPLATE_REFER}"
 EXPOSE 80 443
-VOLUME /var/run/seal
+VOLUME /var/run/walrus
 COPY /image/ /
-COPY /build/server-${TARGETOS}-${TARGETARCH} /usr/bin/seal
+COPY /build/server-${TARGETOS}-${TARGETARCH} /usr/bin/walrus
 ENV _RUNNING_INSIDE_CONTAINER_="true"
-CMD ["seal", "--log-debug", "--log-verbosity=4"]
+CMD ["walrus", "--log-debug", "--log-verbosity=4"]

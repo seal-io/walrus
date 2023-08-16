@@ -20,7 +20,7 @@ import (
 	"github.com/seal-io/walrus/utils/strs"
 )
 
-const annotationSubjectIDName = "seal.io/subject-id"
+const annotationSubjectIDName = "walrus.seal.io/subject-id"
 
 // Options for deploy or destroy.
 type Options struct {

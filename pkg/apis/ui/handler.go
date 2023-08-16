@@ -17,7 +17,7 @@ import (
 )
 
 func Index(ctx context.Context, modelClient model.ClientSet) runtime.Handle {
-	defaultUiIndex, _ := url.Parse("file:///var/lib/seal/ui")
+	defaultUiIndex, _ := url.Parse("file:///var/lib/walrus/ui")
 
 	return func(c *gin.Context) {
 		path := c.Request.URL.Path

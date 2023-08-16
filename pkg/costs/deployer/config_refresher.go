@@ -47,7 +47,7 @@ func updateCustomPricingConfigMap(ctx context.Context, conn *model.Connector, re
 		return fmt.Errorf("error creating kubernetes core client: %w", err)
 	}
 
-	configMaps := corev1Client.ConfigMaps(types.SealSystemNamespace)
+	configMaps := corev1Client.ConfigMaps(types.WalrusSystemNamespace)
 	current := opencostCustomPricingConfigMap(conn)
 
 	existed, err := configMaps.Get(ctx, ConfigMapNameOpencost, metav1.GetOptions{})
@@ -56,13 +56,13 @@ func updateCustomPricingConfigMap(ctx context.Context, conn *model.Connector, re
 			_, err = configMaps.Create(ctx, current, metav1.CreateOptions{})
 			if err != nil && apierrors.IsAlreadyExists(err) {
 				return fmt.Errorf("error create configmap %s:%s, %w",
-					types.SealSystemNamespace, ConfigMapNameOpencost, err)
+					types.WalrusSystemNamespace, ConfigMapNameOpencost, err)
 			}
 
 			return nil
 		}
 
-		return fmt.Errorf("error get configmap %s:%s, %w", types.SealSystemNamespace, ConfigMapNameOpencost, err)
+		return fmt.Errorf("error get configmap %s:%s, %w", types.WalrusSystemNamespace, ConfigMapNameOpencost, err)
 	}
 
 	if reflect.DeepEqual(existed.Data, current.Data) {
@@ -73,7 +73,7 @@ func updateCustomPricingConfigMap(ctx context.Context, conn *model.Connector, re
 
 	_, err = configMaps.Update(ctx, existed, metav1.UpdateOptions{})
 	if err != nil {
-		return fmt.Errorf("error update configmap %s:%s, %w", types.SealSystemNamespace, ConfigMapNameOpencost, err)
+		return fmt.Errorf("error update configmap %s:%s, %w", types.WalrusSystemNamespace, ConfigMapNameOpencost, err)
 	}
 
 	return nil

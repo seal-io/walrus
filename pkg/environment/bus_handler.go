@@ -85,7 +85,7 @@ func createNamespaceIfNotExist(ctx context.Context, connector *model.Connector, 
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 			Labels: map[string]string{
-				types.LabelSealManaged: "true",
+				types.LabelWalrusManaged: "true",
 			},
 		},
 	}
@@ -110,7 +110,7 @@ func deleteNamespace(ctx context.Context, connector *model.Connector, name strin
 	}
 
 	current, err := corev1Client.Namespaces().Get(ctx, name, metav1.GetOptions{})
-	if kerrors.IsNotFound(err) || current.Labels[types.LabelSealManaged] != "true" {
+	if kerrors.IsNotFound(err) || current.Labels[types.LabelWalrusManaged] != "true" {
 		return nil
 	}
 

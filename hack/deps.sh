@@ -43,7 +43,7 @@ function dispatch() {
 seal::log::info "+++ MOD +++"
 
 dispatch "utils" "${ROOT_DIR}/staging/utils" "$@"
-dispatch "seal" "${ROOT_DIR}" "$@"
+dispatch "walrus" "${ROOT_DIR}" "$@"
 
 if [[ "${PARALLELIZE:-true}" == "true" ]]; then
   seal::util::wait_jobs || seal::log::fatal "--- MOD ---"

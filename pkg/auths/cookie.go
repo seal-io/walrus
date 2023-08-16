@@ -9,7 +9,7 @@ import (
 	"github.com/seal-io/walrus/utils/strs"
 )
 
-const SessionCookieName = "seal_session"
+const SessionCookieName = "walrus_session"
 
 func decodeSession(r *http.Request) (subjectID object.ID, domain, value string) {
 	v := getAccessSession(r)

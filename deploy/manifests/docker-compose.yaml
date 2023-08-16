@@ -70,11 +70,11 @@ services:
       - "seal"
       - "--log-debug"
       - "--log-verbosity=4"
-      - "--data-source-address=postgres://root:Root123@postgres:5432/seal?sslmode=disable"
+      - "--data-source-address=postgres://root:Root123@postgres:5432/walrus?sslmode=disable"
       - "--cache-source-address=redis://default:Default123@redis:6379/0"
       - "--casdoor-server=http://casdoor:8000"
     volumes:
-      - seal-data:/var/run/seal
+      - seal-data:/var/run/walrus
     depends_on:
       - postgres
       - casdoor
