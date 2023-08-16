@@ -1282,6 +1282,25 @@ func (c *EnvironmentClient) QueryServiceRevisions(e *Environment) *ServiceRevisi
 	return query
 }
 
+// QueryServiceResources queries the service_resources edge of a Environment.
+func (c *EnvironmentClient) QueryServiceResources(e *Environment) *ServiceResourceQuery {
+	query := (&ServiceResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := e.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(environment.Table, environment.FieldID, id),
+			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, environment.ServiceResourcesTable, environment.ServiceResourcesColumn),
+		)
+		schemaConfig := e.schemaConfig
+		step.To.Schema = schemaConfig.ServiceResource
+		step.Edge.Schema = schemaConfig.ServiceResource
+		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryVariables queries the variables edge of a Environment.
 func (c *EnvironmentClient) QueryVariables(e *Environment) *VariableQuery {
 	query := (&VariableClient{config: c.config}).Query()
@@ -2491,6 +2510,25 @@ func (c *ServiceResourceClient) QueryProject(sr *ServiceResource) *ProjectQuery 
 		)
 		schemaConfig := sr.schemaConfig
 		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.ServiceResource
+		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEnvironment queries the environment edge of a ServiceResource.
+func (c *ServiceResourceClient) QueryEnvironment(sr *ServiceResource) *EnvironmentQuery {
+	query := (&EnvironmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := sr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceresource.Table, serviceresource.FieldID, id),
+			sqlgraph.To(environment.Table, environment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, serviceresource.EnvironmentTable, serviceresource.EnvironmentColumn),
+		)
+		schemaConfig := sr.schemaConfig
+		step.To.Schema = schemaConfig.Environment
 		step.Edge.Schema = schemaConfig.ServiceResource
 		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
 		return fromV, nil

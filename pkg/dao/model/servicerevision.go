@@ -37,7 +37,7 @@ type ServiceRevision struct {
 	StatusMessage string `json:"status_message,omitempty"`
 	// ID of the project to belong.
 	ProjectID object.ID `json:"project_id,omitempty"`
-	// ID of the environment to which the service deploys.
+	// ID of the environment to which the revision belongs.
 	EnvironmentID object.ID `json:"environment_id,omitempty"`
 	// ID of the service to which the revision belongs.
 	ServiceID object.ID `json:"service_id,omitempty"`

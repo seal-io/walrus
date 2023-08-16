@@ -22,6 +22,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/variable"
 	"github.com/seal-io/seal/pkg/dao/types/object"
@@ -38,6 +39,7 @@ type EnvironmentQuery struct {
 	withConnectors       *EnvironmentConnectorRelationshipQuery
 	withServices         *ServiceQuery
 	withServiceRevisions *ServiceRevisionQuery
+	withServiceResources *ServiceResourceQuery
 	withVariables        *VariableQuery
 	modifiers            []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -170,6 +172,31 @@ func (eq *EnvironmentQuery) QueryServiceRevisions() *ServiceRevisionQuery {
 		schemaConfig := eq.schemaConfig
 		step.To.Schema = schemaConfig.ServiceRevision
 		step.Edge.Schema = schemaConfig.ServiceRevision
+		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryServiceResources chains the current query on the "service_resources" edge.
+func (eq *EnvironmentQuery) QueryServiceResources() *ServiceResourceQuery {
+	query := (&ServiceResourceClient{config: eq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := eq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(environment.Table, environment.FieldID, selector),
+			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, environment.ServiceResourcesTable, environment.ServiceResourcesColumn),
+		)
+		schemaConfig := eq.schemaConfig
+		step.To.Schema = schemaConfig.ServiceResource
+		step.Edge.Schema = schemaConfig.ServiceResource
 		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -397,6 +424,7 @@ func (eq *EnvironmentQuery) Clone() *EnvironmentQuery {
 		withConnectors:       eq.withConnectors.Clone(),
 		withServices:         eq.withServices.Clone(),
 		withServiceRevisions: eq.withServiceRevisions.Clone(),
+		withServiceResources: eq.withServiceResources.Clone(),
 		withVariables:        eq.withVariables.Clone(),
 		// clone intermediate query.
 		sql:  eq.sql.Clone(),
@@ -445,6 +473,17 @@ func (eq *EnvironmentQuery) WithServiceRevisions(opts ...func(*ServiceRevisionQu
 		opt(query)
 	}
 	eq.withServiceRevisions = query
+	return eq
+}
+
+// WithServiceResources tells the query-builder to eager-load the nodes that are connected to
+// the "service_resources" edge. The optional arguments are used to configure the query builder of the edge.
+func (eq *EnvironmentQuery) WithServiceResources(opts ...func(*ServiceResourceQuery)) *EnvironmentQuery {
+	query := (&ServiceResourceClient{config: eq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	eq.withServiceResources = query
 	return eq
 }
 
@@ -537,11 +576,12 @@ func (eq *EnvironmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*Environment{}
 		_spec       = eq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			eq.withProject != nil,
 			eq.withConnectors != nil,
 			eq.withServices != nil,
 			eq.withServiceRevisions != nil,
+			eq.withServiceResources != nil,
 			eq.withVariables != nil,
 		}
 	)
@@ -595,6 +635,15 @@ func (eq *EnvironmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			func(n *Environment) { n.Edges.ServiceRevisions = []*ServiceRevision{} },
 			func(n *Environment, e *ServiceRevision) {
 				n.Edges.ServiceRevisions = append(n.Edges.ServiceRevisions, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := eq.withServiceResources; query != nil {
+		if err := eq.loadServiceResources(ctx, query, nodes,
+			func(n *Environment) { n.Edges.ServiceResources = []*ServiceResource{} },
+			func(n *Environment, e *ServiceResource) {
+				n.Edges.ServiceResources = append(n.Edges.ServiceResources, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -713,6 +762,36 @@ func (eq *EnvironmentQuery) loadServiceRevisions(ctx context.Context, query *Ser
 	}
 	query.Where(predicate.ServiceRevision(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(environment.ServiceRevisionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.EnvironmentID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "environment_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (eq *EnvironmentQuery) loadServiceResources(ctx context.Context, query *ServiceResourceQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *ServiceResource)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[object.ID]*Environment)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(serviceresource.FieldEnvironmentID)
+	}
+	query.Where(predicate.ServiceResource(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(environment.ServiceResourcesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

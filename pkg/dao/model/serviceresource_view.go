@@ -24,6 +24,8 @@ type ServiceResourceCreateInput struct {
 
 	// Project indicates to create ServiceResource entity MUST under the Project route.
 	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to create ServiceResource entity MUST under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
 	// Service indicates to create ServiceResource entity MUST under the Service route.
 	Service *ServiceQueryInput `path:",inline" query:"-" json:"-"`
 
@@ -66,6 +68,9 @@ func (srci *ServiceResourceCreateInput) Model() *ServiceResource {
 
 	if srci.Project != nil {
 		_sr.ProjectID = srci.Project.ID
+	}
+	if srci.Environment != nil {
+		_sr.EnvironmentID = srci.Environment.ID
 	}
 	if srci.Service != nil {
 		_sr.ServiceID = srci.Service.ID
@@ -117,6 +122,12 @@ func (srci *ServiceResourceCreateInput) ValidateWith(ctx context.Context, cs Cli
 	// Validate when creating under the Project route.
 	if srci.Project != nil {
 		if err := srci.Project.ValidateWith(ctx, cs, cache); err != nil {
+			return err
+		}
+	}
+	// Validate when creating under the Environment route.
+	if srci.Environment != nil {
+		if err := srci.Environment.ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
@@ -257,6 +268,8 @@ type ServiceResourceCreateInputs struct {
 
 	// Project indicates to create ServiceResource entity MUST under the Project route.
 	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to create ServiceResource entity MUST under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
 	// Service indicates to create ServiceResource entity MUST under the Service route.
 	Service *ServiceQueryInput `path:",inline" query:"-" json:"-"`
 
@@ -285,6 +298,9 @@ func (srci *ServiceResourceCreateInputs) Model() []*ServiceResource {
 
 		if srci.Project != nil {
 			_sr.ProjectID = srci.Project.ID
+		}
+		if srci.Environment != nil {
+			_sr.EnvironmentID = srci.Environment.ID
 		}
 		if srci.Service != nil {
 			_sr.ServiceID = srci.Service.ID
@@ -351,6 +367,16 @@ func (srci *ServiceResourceCreateInputs) ValidateWith(ctx context.Context, cs Cl
 			}
 		}
 	}
+	// Validate when creating under the Environment route.
+	if srci.Environment != nil {
+		if err := srci.Environment.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srci.Environment = nil
+			}
+		}
+	}
 	// Validate when creating under the Service route.
 	if srci.Service != nil {
 		if err := srci.Service.ValidateWith(ctx, cs, cache); err != nil {
@@ -394,6 +420,8 @@ type ServiceResourceDeleteInputs struct {
 
 	// Project indicates to delete ServiceResource entity MUST under the Project route.
 	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to delete ServiceResource entity MUST under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
 	// Service indicates to delete ServiceResource entity MUST under the Service route.
 	Service *ServiceQueryInput `path:",inline" query:"-" json:"-"`
 
@@ -467,6 +495,16 @@ func (srdi *ServiceResourceDeleteInputs) ValidateWith(ctx context.Context, cs Cl
 		}
 	}
 
+	// Validate when deleting under the Environment route.
+	if srdi.Environment != nil {
+		if err := srdi.Environment.ValidateWith(ctx, cs, cache); err != nil {
+			return err
+		} else {
+			q.Where(
+				serviceresource.EnvironmentID(srdi.Environment.ID))
+		}
+	}
+
 	// Validate when deleting under the Service route.
 	if srdi.Service != nil {
 		if err := srdi.Service.ValidateWith(ctx, cs, cache); err != nil {
@@ -515,6 +553,8 @@ type ServiceResourceQueryInput struct {
 
 	// Project indicates to query ServiceResource entity MUST under the Project route.
 	Project *ProjectQueryInput `path:",inline" query:"-" json:"project"`
+	// Environment indicates to query ServiceResource entity MUST under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"environment"`
 	// Service indicates to query ServiceResource entity MUST under the Service route.
 	Service *ServiceQueryInput `path:",inline" query:"-" json:"service"`
 
@@ -569,6 +609,16 @@ func (srqi *ServiceResourceQueryInput) ValidateWith(ctx context.Context, cs Clie
 			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
 			q.Where(
 				serviceresource.ProjectID(srqi.Project.ID))
+		}
+	}
+
+	// Validate when querying under the Environment route.
+	if srqi.Environment != nil {
+		if err := srqi.Environment.ValidateWith(ctx, cs, cache); err != nil {
+			return err
+		} else {
+			q.Where(
+				serviceresource.EnvironmentID(srqi.Environment.ID))
 		}
 	}
 
@@ -630,6 +680,8 @@ type ServiceResourceQueryInputs struct {
 
 	// Project indicates to query ServiceResource entity MUST under the Project route.
 	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to query ServiceResource entity MUST under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
 	// Service indicates to query ServiceResource entity MUST under the Service route.
 	Service *ServiceQueryInput `path:",inline" query:"-" json:"-"`
 }
@@ -656,6 +708,13 @@ func (srqi *ServiceResourceQueryInputs) ValidateWith(ctx context.Context, cs Cli
 	// Validate when querying under the Project route.
 	if srqi.Project != nil {
 		if err := srqi.Project.ValidateWith(ctx, cs, cache); err != nil {
+			return err
+		}
+	}
+
+	// Validate when querying under the Environment route.
+	if srqi.Environment != nil {
+		if err := srqi.Environment.ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
 	}
@@ -864,6 +923,8 @@ type ServiceResourceUpdateInputs struct {
 
 	// Project indicates to update ServiceResource entity MUST under the Project route.
 	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to update ServiceResource entity MUST under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
 	// Service indicates to update ServiceResource entity MUST under the Service route.
 	Service *ServiceQueryInput `path:",inline" query:"-" json:"-"`
 
@@ -964,6 +1025,16 @@ func (srui *ServiceResourceUpdateInputs) ValidateWith(ctx context.Context, cs Cl
 		}
 	}
 
+	// Validate when updating under the Environment route.
+	if srui.Environment != nil {
+		if err := srui.Environment.ValidateWith(ctx, cs, cache); err != nil {
+			return err
+		} else {
+			q.Where(
+				serviceresource.EnvironmentID(srui.Environment.ID))
+		}
+	}
+
 	// Validate when updating under the Service route.
 	if srui.Service != nil {
 		if err := srui.Service.ValidateWith(ctx, cs, cache); err != nil {
@@ -1029,6 +1100,7 @@ type ServiceResourceOutput struct {
 	Keys         *types.ServiceResourceOperationKeys `json:"keys,omitempty"`
 
 	Project      *ProjectOutput                       `json:"project,omitempty"`
+	Environment  *EnvironmentOutput                   `json:"environment,omitempty"`
 	Service      *ServiceOutput                       `json:"service,omitempty"`
 	Connector    *ConnectorOutput                     `json:"connector,omitempty"`
 	Composition  *ServiceResourceOutput               `json:"composition,omitempty"`
@@ -1072,6 +1144,13 @@ func ExposeServiceResource(_sr *ServiceResource) *ServiceResourceOutput {
 	} else if _sr.ProjectID != "" {
 		sro.Project = &ProjectOutput{
 			ID: _sr.ProjectID,
+		}
+	}
+	if _sr.Edges.Environment != nil {
+		sro.Environment = ExposeEnvironment(_sr.Edges.Environment)
+	} else if _sr.EnvironmentID != "" {
+		sro.Environment = &EnvironmentOutput{
+			ID: _sr.EnvironmentID,
 		}
 	}
 	if _sr.Edges.Service != nil {

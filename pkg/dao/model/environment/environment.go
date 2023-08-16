@@ -41,6 +41,8 @@ const (
 	EdgeServices = "services"
 	// EdgeServiceRevisions holds the string denoting the service_revisions edge name in mutations.
 	EdgeServiceRevisions = "service_revisions"
+	// EdgeServiceResources holds the string denoting the service_resources edge name in mutations.
+	EdgeServiceResources = "service_resources"
 	// EdgeVariables holds the string denoting the variables edge name in mutations.
 	EdgeVariables = "variables"
 	// Table holds the table name of the environment in the database.
@@ -73,6 +75,13 @@ const (
 	ServiceRevisionsInverseTable = "service_revisions"
 	// ServiceRevisionsColumn is the table column denoting the service_revisions relation/edge.
 	ServiceRevisionsColumn = "environment_id"
+	// ServiceResourcesTable is the table that holds the service_resources relation/edge.
+	ServiceResourcesTable = "service_resources"
+	// ServiceResourcesInverseTable is the table name for the ServiceResource entity.
+	// It exists in this package in order to avoid circular dependency with the "serviceresource" package.
+	ServiceResourcesInverseTable = "service_resources"
+	// ServiceResourcesColumn is the table column denoting the service_resources relation/edge.
+	ServiceResourcesColumn = "environment_id"
 	// VariablesTable is the table that holds the variables relation/edge.
 	VariablesTable = "variables"
 	// VariablesInverseTable is the table name for the Variable entity.
@@ -210,6 +219,20 @@ func ByServiceRevisions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption 
 	}
 }
 
+// ByServiceResourcesCount orders the results by service_resources count.
+func ByServiceResourcesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newServiceResourcesStep(), opts...)
+	}
+}
+
+// ByServiceResources orders the results by service_resources terms.
+func ByServiceResources(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newServiceResourcesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByVariablesCount orders the results by variables count.
 func ByVariablesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -249,6 +272,13 @@ func newServiceRevisionsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ServiceRevisionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ServiceRevisionsTable, ServiceRevisionsColumn),
+	)
+}
+func newServiceResourcesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ServiceResourcesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ServiceResourcesTable, ServiceResourcesColumn),
 	)
 }
 func newVariablesStep() *sqlgraph.Step {

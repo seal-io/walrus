@@ -18,6 +18,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
@@ -67,6 +68,12 @@ func (src *ServiceResourceCreate) SetNillableUpdateTime(t *time.Time) *ServiceRe
 // SetProjectID sets the "project_id" field.
 func (src *ServiceResourceCreate) SetProjectID(o object.ID) *ServiceResourceCreate {
 	src.mutation.SetProjectID(o)
+	return src
+}
+
+// SetEnvironmentID sets the "environment_id" field.
+func (src *ServiceResourceCreate) SetEnvironmentID(o object.ID) *ServiceResourceCreate {
+	src.mutation.SetEnvironmentID(o)
 	return src
 }
 
@@ -163,6 +170,11 @@ func (src *ServiceResourceCreate) SetID(o object.ID) *ServiceResourceCreate {
 // SetProject sets the "project" edge to the Project entity.
 func (src *ServiceResourceCreate) SetProject(p *Project) *ServiceResourceCreate {
 	return src.SetProjectID(p.ID)
+}
+
+// SetEnvironment sets the "environment" edge to the Environment entity.
+func (src *ServiceResourceCreate) SetEnvironment(e *Environment) *ServiceResourceCreate {
+	return src.SetEnvironmentID(e.ID)
 }
 
 // SetService sets the "service" edge to the Service entity.
@@ -300,6 +312,14 @@ func (src *ServiceResourceCreate) check() error {
 			return &ValidationError{Name: "project_id", err: fmt.Errorf(`model: validator failed for field "ServiceResource.project_id": %w`, err)}
 		}
 	}
+	if _, ok := src.mutation.EnvironmentID(); !ok {
+		return &ValidationError{Name: "environment_id", err: errors.New(`model: missing required field "ServiceResource.environment_id"`)}
+	}
+	if v, ok := src.mutation.EnvironmentID(); ok {
+		if err := serviceresource.EnvironmentIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "environment_id", err: fmt.Errorf(`model: validator failed for field "ServiceResource.environment_id": %w`, err)}
+		}
+	}
 	if _, ok := src.mutation.ServiceID(); !ok {
 		return &ValidationError{Name: "service_id", err: errors.New(`model: missing required field "ServiceResource.service_id"`)}
 	}
@@ -358,6 +378,9 @@ func (src *ServiceResourceCreate) check() error {
 	}
 	if _, ok := src.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "ServiceResource.project"`)}
+	}
+	if _, ok := src.mutation.EnvironmentID(); !ok {
+		return &ValidationError{Name: "environment", err: errors.New(`model: missing required edge "ServiceResource.environment"`)}
 	}
 	if _, ok := src.mutation.ServiceID(); !ok {
 		return &ValidationError{Name: "service", err: errors.New(`model: missing required edge "ServiceResource.service"`)}
@@ -450,6 +473,24 @@ func (src *ServiceResourceCreate) createSpec() (*ServiceResource, *sqlgraph.Crea
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.ProjectID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := src.mutation.EnvironmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   serviceresource.EnvironmentTable,
+			Columns: []string{serviceresource.EnvironmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(environment.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = src.schemaConfig.ServiceResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.EnvironmentID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := src.mutation.ServiceIDs(); len(nodes) > 0 {
@@ -599,6 +640,7 @@ func (src *ServiceResourceCreate) createSpec() (*ServiceResource, *sqlgraph.Crea
 func (src *ServiceResourceCreate) Set(obj *ServiceResource) *ServiceResourceCreate {
 	// Required.
 	src.SetProjectID(obj.ProjectID)
+	src.SetEnvironmentID(obj.EnvironmentID)
 	src.SetServiceID(obj.ServiceID)
 	src.SetConnectorID(obj.ConnectorID)
 	src.SetMode(obj.Mode)
@@ -661,6 +703,9 @@ func (src *ServiceResourceCreate) SaveE(ctx context.Context, cbs ...func(ctx con
 	if x := src.object; x != nil {
 		if _, set := src.mutation.Field(serviceresource.FieldProjectID); set {
 			obj.ProjectID = x.ProjectID
+		}
+		if _, set := src.mutation.Field(serviceresource.FieldEnvironmentID); set {
+			obj.EnvironmentID = x.EnvironmentID
 		}
 		if _, set := src.mutation.Field(serviceresource.FieldServiceID); set {
 			obj.ServiceID = x.ServiceID
@@ -793,6 +838,9 @@ func (srcb *ServiceResourceCreateBulk) SaveE(ctx context.Context, cbs ...func(ct
 		for i := range x {
 			if _, set := srcb.builders[i].mutation.Field(serviceresource.FieldProjectID); set {
 				objs[i].ProjectID = x[i].ProjectID
+			}
+			if _, set := srcb.builders[i].mutation.Field(serviceresource.FieldEnvironmentID); set {
+				objs[i].EnvironmentID = x[i].EnvironmentID
 			}
 			if _, set := srcb.builders[i].mutation.Field(serviceresource.FieldServiceID); set {
 				objs[i].ServiceID = x[i].ServiceID
@@ -1002,6 +1050,9 @@ func (u *ServiceResourceUpsertOne) UpdateNewValues() *ServiceResourceUpsertOne {
 		}
 		if _, exists := u.create.mutation.ProjectID(); exists {
 			s.SetIgnore(serviceresource.FieldProjectID)
+		}
+		if _, exists := u.create.mutation.EnvironmentID(); exists {
+			s.SetIgnore(serviceresource.FieldEnvironmentID)
 		}
 		if _, exists := u.create.mutation.ServiceID(); exists {
 			s.SetIgnore(serviceresource.FieldServiceID)
@@ -1282,6 +1333,9 @@ func (u *ServiceResourceUpsertBulk) UpdateNewValues() *ServiceResourceUpsertBulk
 			}
 			if _, exists := b.mutation.ProjectID(); exists {
 				s.SetIgnore(serviceresource.FieldProjectID)
+			}
+			if _, exists := b.mutation.EnvironmentID(); exists {
+				s.SetIgnore(serviceresource.FieldEnvironmentID)
 			}
 			if _, exists := b.mutation.ServiceID(); exists {
 				s.SetIgnore(serviceresource.FieldServiceID)

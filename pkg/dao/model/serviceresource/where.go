@@ -76,6 +76,11 @@ func ProjectID(v object.ID) predicate.ServiceResource {
 	return predicate.ServiceResource(sql.FieldEQ(FieldProjectID, v))
 }
 
+// EnvironmentID applies equality check predicate on the "environment_id" field. It's identical to EnvironmentIDEQ.
+func EnvironmentID(v object.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldEQ(FieldEnvironmentID, v))
+}
+
 // ServiceID applies equality check predicate on the "service_id" field. It's identical to ServiceIDEQ.
 func ServiceID(v object.ID) predicate.ServiceResource {
 	return predicate.ServiceResource(sql.FieldEQ(FieldServiceID, v))
@@ -269,6 +274,76 @@ func ProjectIDEqualFold(v object.ID) predicate.ServiceResource {
 func ProjectIDContainsFold(v object.ID) predicate.ServiceResource {
 	vc := string(v)
 	return predicate.ServiceResource(sql.FieldContainsFold(FieldProjectID, vc))
+}
+
+// EnvironmentIDEQ applies the EQ predicate on the "environment_id" field.
+func EnvironmentIDEQ(v object.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldEQ(FieldEnvironmentID, v))
+}
+
+// EnvironmentIDNEQ applies the NEQ predicate on the "environment_id" field.
+func EnvironmentIDNEQ(v object.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldNEQ(FieldEnvironmentID, v))
+}
+
+// EnvironmentIDIn applies the In predicate on the "environment_id" field.
+func EnvironmentIDIn(vs ...object.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldIn(FieldEnvironmentID, vs...))
+}
+
+// EnvironmentIDNotIn applies the NotIn predicate on the "environment_id" field.
+func EnvironmentIDNotIn(vs ...object.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldNotIn(FieldEnvironmentID, vs...))
+}
+
+// EnvironmentIDGT applies the GT predicate on the "environment_id" field.
+func EnvironmentIDGT(v object.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldGT(FieldEnvironmentID, v))
+}
+
+// EnvironmentIDGTE applies the GTE predicate on the "environment_id" field.
+func EnvironmentIDGTE(v object.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldGTE(FieldEnvironmentID, v))
+}
+
+// EnvironmentIDLT applies the LT predicate on the "environment_id" field.
+func EnvironmentIDLT(v object.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldLT(FieldEnvironmentID, v))
+}
+
+// EnvironmentIDLTE applies the LTE predicate on the "environment_id" field.
+func EnvironmentIDLTE(v object.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldLTE(FieldEnvironmentID, v))
+}
+
+// EnvironmentIDContains applies the Contains predicate on the "environment_id" field.
+func EnvironmentIDContains(v object.ID) predicate.ServiceResource {
+	vc := string(v)
+	return predicate.ServiceResource(sql.FieldContains(FieldEnvironmentID, vc))
+}
+
+// EnvironmentIDHasPrefix applies the HasPrefix predicate on the "environment_id" field.
+func EnvironmentIDHasPrefix(v object.ID) predicate.ServiceResource {
+	vc := string(v)
+	return predicate.ServiceResource(sql.FieldHasPrefix(FieldEnvironmentID, vc))
+}
+
+// EnvironmentIDHasSuffix applies the HasSuffix predicate on the "environment_id" field.
+func EnvironmentIDHasSuffix(v object.ID) predicate.ServiceResource {
+	vc := string(v)
+	return predicate.ServiceResource(sql.FieldHasSuffix(FieldEnvironmentID, vc))
+}
+
+// EnvironmentIDEqualFold applies the EqualFold predicate on the "environment_id" field.
+func EnvironmentIDEqualFold(v object.ID) predicate.ServiceResource {
+	vc := string(v)
+	return predicate.ServiceResource(sql.FieldEqualFold(FieldEnvironmentID, vc))
+}
+
+// EnvironmentIDContainsFold applies the ContainsFold predicate on the "environment_id" field.
+func EnvironmentIDContainsFold(v object.ID) predicate.ServiceResource {
+	vc := string(v)
+	return predicate.ServiceResource(sql.FieldContainsFold(FieldEnvironmentID, vc))
 }
 
 // ServiceIDEQ applies the EQ predicate on the "service_id" field.
@@ -926,6 +1001,35 @@ func HasProjectWith(preds ...predicate.Project) predicate.ServiceResource {
 		step := newProjectStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.ServiceResource
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasEnvironment applies the HasEdge predicate on the "environment" edge.
+func HasEnvironment() predicate.ServiceResource {
+	return predicate.ServiceResource(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, EnvironmentTable, EnvironmentColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Environment
+		step.Edge.Schema = schemaConfig.ServiceResource
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEnvironmentWith applies the HasEdge predicate on the "environment" edge with a given conditions (other predicates).
+func HasEnvironmentWith(preds ...predicate.Environment) predicate.ServiceResource {
+	return predicate.ServiceResource(func(s *sql.Selector) {
+		step := newEnvironmentStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Environment
 		step.Edge.Schema = schemaConfig.ServiceResource
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

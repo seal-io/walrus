@@ -54,11 +54,13 @@ type EnvironmentEdges struct {
 	Services []*Service `json:"services,omitempty,cli-ignore"`
 	// ServicesRevisions that belong to the environment.
 	ServiceRevisions []*ServiceRevision `json:"service_revisions,omitempty"`
+	// ServiceResources that belong to the environment.
+	ServiceResources []*ServiceResource `json:"service_resources,omitempty"`
 	// Variables that belong to the environment.
 	Variables []*Variable `json:"variables,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // ProjectOrErr returns the Project value or an error if the edge
@@ -101,10 +103,19 @@ func (e EnvironmentEdges) ServiceRevisionsOrErr() ([]*ServiceRevision, error) {
 	return nil, &NotLoadedError{edge: "service_revisions"}
 }
 
+// ServiceResourcesOrErr returns the ServiceResources value or an error if the edge
+// was not loaded in eager-loading.
+func (e EnvironmentEdges) ServiceResourcesOrErr() ([]*ServiceResource, error) {
+	if e.loadedTypes[4] {
+		return e.ServiceResources, nil
+	}
+	return nil, &NotLoadedError{edge: "service_resources"}
+}
+
 // VariablesOrErr returns the Variables value or an error if the edge
 // was not loaded in eager-loading.
 func (e EnvironmentEdges) VariablesOrErr() ([]*Variable, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.Variables, nil
 	}
 	return nil, &NotLoadedError{edge: "variables"}
@@ -223,6 +234,11 @@ func (e *Environment) QueryServices() *ServiceQuery {
 // QueryServiceRevisions queries the "service_revisions" edge of the Environment entity.
 func (e *Environment) QueryServiceRevisions() *ServiceRevisionQuery {
 	return NewEnvironmentClient(e.config).QueryServiceRevisions(e)
+}
+
+// QueryServiceResources queries the "service_resources" edge of the Environment entity.
+func (e *Environment) QueryServiceResources() *ServiceResourceQuery {
+	return NewEnvironmentClient(e.config).QueryServiceResources(e)
 }
 
 // QueryVariables queries the "variables" edge of the Environment entity.

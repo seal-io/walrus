@@ -5583,6 +5583,9 @@ type EnvironmentMutation struct {
 	service_revisions        map[object.ID]struct{}
 	removedservice_revisions map[object.ID]struct{}
 	clearedservice_revisions bool
+	service_resources        map[object.ID]struct{}
+	removedservice_resources map[object.ID]struct{}
+	clearedservice_resources bool
 	variables                map[object.ID]struct{}
 	removedvariables         map[object.ID]struct{}
 	clearedvariables         bool
@@ -6174,6 +6177,60 @@ func (m *EnvironmentMutation) ResetServiceRevisions() {
 	m.removedservice_revisions = nil
 }
 
+// AddServiceResourceIDs adds the "service_resources" edge to the ServiceResource entity by ids.
+func (m *EnvironmentMutation) AddServiceResourceIDs(ids ...object.ID) {
+	if m.service_resources == nil {
+		m.service_resources = make(map[object.ID]struct{})
+	}
+	for i := range ids {
+		m.service_resources[ids[i]] = struct{}{}
+	}
+}
+
+// ClearServiceResources clears the "service_resources" edge to the ServiceResource entity.
+func (m *EnvironmentMutation) ClearServiceResources() {
+	m.clearedservice_resources = true
+}
+
+// ServiceResourcesCleared reports if the "service_resources" edge to the ServiceResource entity was cleared.
+func (m *EnvironmentMutation) ServiceResourcesCleared() bool {
+	return m.clearedservice_resources
+}
+
+// RemoveServiceResourceIDs removes the "service_resources" edge to the ServiceResource entity by IDs.
+func (m *EnvironmentMutation) RemoveServiceResourceIDs(ids ...object.ID) {
+	if m.removedservice_resources == nil {
+		m.removedservice_resources = make(map[object.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.service_resources, ids[i])
+		m.removedservice_resources[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedServiceResources returns the removed IDs of the "service_resources" edge to the ServiceResource entity.
+func (m *EnvironmentMutation) RemovedServiceResourcesIDs() (ids []object.ID) {
+	for id := range m.removedservice_resources {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ServiceResourcesIDs returns the "service_resources" edge IDs in the mutation.
+func (m *EnvironmentMutation) ServiceResourcesIDs() (ids []object.ID) {
+	for id := range m.service_resources {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetServiceResources resets all changes to the "service_resources" edge.
+func (m *EnvironmentMutation) ResetServiceResources() {
+	m.service_resources = nil
+	m.clearedservice_resources = false
+	m.removedservice_resources = nil
+}
+
 // AddVariableIDs adds the "variables" edge to the Variable entity by ids.
 func (m *EnvironmentMutation) AddVariableIDs(ids ...object.ID) {
 	if m.variables == nil {
@@ -6484,7 +6541,7 @@ func (m *EnvironmentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *EnvironmentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.project != nil {
 		edges = append(edges, environment.EdgeProject)
 	}
@@ -6496,6 +6553,9 @@ func (m *EnvironmentMutation) AddedEdges() []string {
 	}
 	if m.service_revisions != nil {
 		edges = append(edges, environment.EdgeServiceRevisions)
+	}
+	if m.service_resources != nil {
+		edges = append(edges, environment.EdgeServiceResources)
 	}
 	if m.variables != nil {
 		edges = append(edges, environment.EdgeVariables)
@@ -6529,6 +6589,12 @@ func (m *EnvironmentMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case environment.EdgeServiceResources:
+		ids := make([]ent.Value, 0, len(m.service_resources))
+		for id := range m.service_resources {
+			ids = append(ids, id)
+		}
+		return ids
 	case environment.EdgeVariables:
 		ids := make([]ent.Value, 0, len(m.variables))
 		for id := range m.variables {
@@ -6541,7 +6607,7 @@ func (m *EnvironmentMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *EnvironmentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.removedconnectors != nil {
 		edges = append(edges, environment.EdgeConnectors)
 	}
@@ -6550,6 +6616,9 @@ func (m *EnvironmentMutation) RemovedEdges() []string {
 	}
 	if m.removedservice_revisions != nil {
 		edges = append(edges, environment.EdgeServiceRevisions)
+	}
+	if m.removedservice_resources != nil {
+		edges = append(edges, environment.EdgeServiceResources)
 	}
 	if m.removedvariables != nil {
 		edges = append(edges, environment.EdgeVariables)
@@ -6579,6 +6648,12 @@ func (m *EnvironmentMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case environment.EdgeServiceResources:
+		ids := make([]ent.Value, 0, len(m.removedservice_resources))
+		for id := range m.removedservice_resources {
+			ids = append(ids, id)
+		}
+		return ids
 	case environment.EdgeVariables:
 		ids := make([]ent.Value, 0, len(m.removedvariables))
 		for id := range m.removedvariables {
@@ -6591,7 +6666,7 @@ func (m *EnvironmentMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *EnvironmentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.clearedproject {
 		edges = append(edges, environment.EdgeProject)
 	}
@@ -6603,6 +6678,9 @@ func (m *EnvironmentMutation) ClearedEdges() []string {
 	}
 	if m.clearedservice_revisions {
 		edges = append(edges, environment.EdgeServiceRevisions)
+	}
+	if m.clearedservice_resources {
+		edges = append(edges, environment.EdgeServiceResources)
 	}
 	if m.clearedvariables {
 		edges = append(edges, environment.EdgeVariables)
@@ -6622,6 +6700,8 @@ func (m *EnvironmentMutation) EdgeCleared(name string) bool {
 		return m.clearedservices
 	case environment.EdgeServiceRevisions:
 		return m.clearedservice_revisions
+	case environment.EdgeServiceResources:
+		return m.clearedservice_resources
 	case environment.EdgeVariables:
 		return m.clearedvariables
 	}
@@ -6654,6 +6734,9 @@ func (m *EnvironmentMutation) ResetEdge(name string) error {
 		return nil
 	case environment.EdgeServiceRevisions:
 		m.ResetServiceRevisions()
+		return nil
+	case environment.EdgeServiceResources:
+		m.ResetServiceResources()
 		return nil
 	case environment.EdgeVariables:
 		m.ResetVariables()
@@ -12177,6 +12260,8 @@ type ServiceResourceMutation struct {
 	clearedFields       map[string]struct{}
 	project             *object.ID
 	clearedproject      bool
+	environment         *object.ID
+	clearedenvironment  bool
 	service             *object.ID
 	clearedservice      bool
 	connector           *object.ID
@@ -12409,6 +12494,42 @@ func (m *ServiceResourceMutation) OldProjectID(ctx context.Context) (v object.ID
 // ResetProjectID resets all changes to the "project_id" field.
 func (m *ServiceResourceMutation) ResetProjectID() {
 	m.project = nil
+}
+
+// SetEnvironmentID sets the "environment_id" field.
+func (m *ServiceResourceMutation) SetEnvironmentID(o object.ID) {
+	m.environment = &o
+}
+
+// EnvironmentID returns the value of the "environment_id" field in the mutation.
+func (m *ServiceResourceMutation) EnvironmentID() (r object.ID, exists bool) {
+	v := m.environment
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnvironmentID returns the old "environment_id" field's value of the ServiceResource entity.
+// If the ServiceResource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ServiceResourceMutation) OldEnvironmentID(ctx context.Context) (v object.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnvironmentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnvironmentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnvironmentID: %w", err)
+	}
+	return oldValue.EnvironmentID, nil
+}
+
+// ResetEnvironmentID resets all changes to the "environment_id" field.
+func (m *ServiceResourceMutation) ResetEnvironmentID() {
+	m.environment = nil
 }
 
 // SetServiceID sets the "service_id" field.
@@ -12836,6 +12957,32 @@ func (m *ServiceResourceMutation) ResetProject() {
 	m.clearedproject = false
 }
 
+// ClearEnvironment clears the "environment" edge to the Environment entity.
+func (m *ServiceResourceMutation) ClearEnvironment() {
+	m.clearedenvironment = true
+}
+
+// EnvironmentCleared reports if the "environment" edge to the Environment entity was cleared.
+func (m *ServiceResourceMutation) EnvironmentCleared() bool {
+	return m.clearedenvironment
+}
+
+// EnvironmentIDs returns the "environment" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// EnvironmentID instead. It exists only for internal usage by the builders.
+func (m *ServiceResourceMutation) EnvironmentIDs() (ids []object.ID) {
+	if id := m.environment; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEnvironment resets all changes to the "environment" edge.
+func (m *ServiceResourceMutation) ResetEnvironment() {
+	m.environment = nil
+	m.clearedenvironment = false
+}
+
 // ClearService clears the "service" edge to the Service entity.
 func (m *ServiceResourceMutation) ClearService() {
 	m.clearedservice = true
@@ -13136,7 +13283,7 @@ func (m *ServiceResourceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ServiceResourceMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.create_time != nil {
 		fields = append(fields, serviceresource.FieldCreateTime)
 	}
@@ -13145,6 +13292,9 @@ func (m *ServiceResourceMutation) Fields() []string {
 	}
 	if m.project != nil {
 		fields = append(fields, serviceresource.FieldProjectID)
+	}
+	if m.environment != nil {
+		fields = append(fields, serviceresource.FieldEnvironmentID)
 	}
 	if m.service != nil {
 		fields = append(fields, serviceresource.FieldServiceID)
@@ -13190,6 +13340,8 @@ func (m *ServiceResourceMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdateTime()
 	case serviceresource.FieldProjectID:
 		return m.ProjectID()
+	case serviceresource.FieldEnvironmentID:
+		return m.EnvironmentID()
 	case serviceresource.FieldServiceID:
 		return m.ServiceID()
 	case serviceresource.FieldConnectorID:
@@ -13225,6 +13377,8 @@ func (m *ServiceResourceMutation) OldField(ctx context.Context, name string) (en
 		return m.OldUpdateTime(ctx)
 	case serviceresource.FieldProjectID:
 		return m.OldProjectID(ctx)
+	case serviceresource.FieldEnvironmentID:
+		return m.OldEnvironmentID(ctx)
 	case serviceresource.FieldServiceID:
 		return m.OldServiceID(ctx)
 	case serviceresource.FieldConnectorID:
@@ -13274,6 +13428,13 @@ func (m *ServiceResourceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetProjectID(v)
+		return nil
+	case serviceresource.FieldEnvironmentID:
+		v, ok := value.(object.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnvironmentID(v)
 		return nil
 	case serviceresource.FieldServiceID:
 		v, ok := value.(object.ID)
@@ -13424,6 +13585,9 @@ func (m *ServiceResourceMutation) ResetField(name string) error {
 	case serviceresource.FieldProjectID:
 		m.ResetProjectID()
 		return nil
+	case serviceresource.FieldEnvironmentID:
+		m.ResetEnvironmentID()
+		return nil
 	case serviceresource.FieldServiceID:
 		m.ResetServiceID()
 		return nil
@@ -13460,9 +13624,12 @@ func (m *ServiceResourceMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ServiceResourceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.project != nil {
 		edges = append(edges, serviceresource.EdgeProject)
+	}
+	if m.environment != nil {
+		edges = append(edges, serviceresource.EdgeEnvironment)
 	}
 	if m.service != nil {
 		edges = append(edges, serviceresource.EdgeService)
@@ -13494,6 +13661,10 @@ func (m *ServiceResourceMutation) AddedIDs(name string) []ent.Value {
 	switch name {
 	case serviceresource.EdgeProject:
 		if id := m.project; id != nil {
+			return []ent.Value{*id}
+		}
+	case serviceresource.EdgeEnvironment:
+		if id := m.environment; id != nil {
 			return []ent.Value{*id}
 		}
 	case serviceresource.EdgeService:
@@ -13536,7 +13707,7 @@ func (m *ServiceResourceMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ServiceResourceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.removedcomponents != nil {
 		edges = append(edges, serviceresource.EdgeComponents)
 	}
@@ -13577,9 +13748,12 @@ func (m *ServiceResourceMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ServiceResourceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.clearedproject {
 		edges = append(edges, serviceresource.EdgeProject)
+	}
+	if m.clearedenvironment {
+		edges = append(edges, serviceresource.EdgeEnvironment)
 	}
 	if m.clearedservice {
 		edges = append(edges, serviceresource.EdgeService)
@@ -13611,6 +13785,8 @@ func (m *ServiceResourceMutation) EdgeCleared(name string) bool {
 	switch name {
 	case serviceresource.EdgeProject:
 		return m.clearedproject
+	case serviceresource.EdgeEnvironment:
+		return m.clearedenvironment
 	case serviceresource.EdgeService:
 		return m.clearedservice
 	case serviceresource.EdgeConnector:
@@ -13636,6 +13812,9 @@ func (m *ServiceResourceMutation) ClearEdge(name string) error {
 	case serviceresource.EdgeProject:
 		m.ClearProject()
 		return nil
+	case serviceresource.EdgeEnvironment:
+		m.ClearEnvironment()
+		return nil
 	case serviceresource.EdgeService:
 		m.ClearService()
 		return nil
@@ -13658,6 +13837,9 @@ func (m *ServiceResourceMutation) ResetEdge(name string) error {
 	switch name {
 	case serviceresource.EdgeProject:
 		m.ResetProject()
+		return nil
+	case serviceresource.EdgeEnvironment:
+		m.ResetEnvironment()
 		return nil
 	case serviceresource.EdgeService:
 		m.ResetService()

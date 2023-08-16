@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
@@ -33,6 +34,8 @@ type ServiceResource struct {
 	UpdateTime *time.Time `json:"update_time,omitempty"`
 	// ID of the project to belong.
 	ProjectID object.ID `json:"project_id,omitempty"`
+	// ID of the environment to which the resource belongs.
+	EnvironmentID object.ID `json:"environment_id,omitempty"`
 	// ID of the service to which the resource belongs.
 	ServiceID object.ID `json:"service_id,omitempty"`
 	// ID of the connector to which the resource deploys.
@@ -67,6 +70,8 @@ type ServiceResource struct {
 type ServiceResourceEdges struct {
 	// Project to which the resource belongs.
 	Project *Project `json:"project,omitempty"`
+	// Environment to which the revision deploys.
+	Environment *Environment `json:"environment,omitempty"`
 	// Service to which the resource belongs.
 	Service *Service `json:"service,omitempty"`
 	// Connector to which the resource deploys.
@@ -83,7 +88,7 @@ type ServiceResourceEdges struct {
 	Dependencies []*ServiceResourceRelationship `json:"dependencies,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [8]bool
+	loadedTypes [9]bool
 }
 
 // ProjectOrErr returns the Project value or an error if the edge
@@ -99,10 +104,23 @@ func (e ServiceResourceEdges) ProjectOrErr() (*Project, error) {
 	return nil, &NotLoadedError{edge: "project"}
 }
 
+// EnvironmentOrErr returns the Environment value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ServiceResourceEdges) EnvironmentOrErr() (*Environment, error) {
+	if e.loadedTypes[1] {
+		if e.Environment == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: environment.Label}
+		}
+		return e.Environment, nil
+	}
+	return nil, &NotLoadedError{edge: "environment"}
+}
+
 // ServiceOrErr returns the Service value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ServiceResourceEdges) ServiceOrErr() (*Service, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		if e.Service == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: service.Label}
@@ -115,7 +133,7 @@ func (e ServiceResourceEdges) ServiceOrErr() (*Service, error) {
 // ConnectorOrErr returns the Connector value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ServiceResourceEdges) ConnectorOrErr() (*Connector, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		if e.Connector == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: connector.Label}
@@ -128,7 +146,7 @@ func (e ServiceResourceEdges) ConnectorOrErr() (*Connector, error) {
 // CompositionOrErr returns the Composition value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ServiceResourceEdges) CompositionOrErr() (*ServiceResource, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		if e.Composition == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: serviceresource.Label}
@@ -141,7 +159,7 @@ func (e ServiceResourceEdges) CompositionOrErr() (*ServiceResource, error) {
 // ComponentsOrErr returns the Components value or an error if the edge
 // was not loaded in eager-loading.
 func (e ServiceResourceEdges) ComponentsOrErr() ([]*ServiceResource, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.Components, nil
 	}
 	return nil, &NotLoadedError{edge: "components"}
@@ -150,7 +168,7 @@ func (e ServiceResourceEdges) ComponentsOrErr() ([]*ServiceResource, error) {
 // ClassOrErr returns the Class value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ServiceResourceEdges) ClassOrErr() (*ServiceResource, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		if e.Class == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: serviceresource.Label}
@@ -163,7 +181,7 @@ func (e ServiceResourceEdges) ClassOrErr() (*ServiceResource, error) {
 // InstancesOrErr returns the Instances value or an error if the edge
 // was not loaded in eager-loading.
 func (e ServiceResourceEdges) InstancesOrErr() ([]*ServiceResource, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[7] {
 		return e.Instances, nil
 	}
 	return nil, &NotLoadedError{edge: "instances"}
@@ -172,7 +190,7 @@ func (e ServiceResourceEdges) InstancesOrErr() ([]*ServiceResource, error) {
 // DependenciesOrErr returns the Dependencies value or an error if the edge
 // was not loaded in eager-loading.
 func (e ServiceResourceEdges) DependenciesOrErr() ([]*ServiceResourceRelationship, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[8] {
 		return e.Dependencies, nil
 	}
 	return nil, &NotLoadedError{edge: "dependencies"}
@@ -185,7 +203,7 @@ func (*ServiceResource) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case serviceresource.FieldStatus:
 			values[i] = new([]byte)
-		case serviceresource.FieldID, serviceresource.FieldProjectID, serviceresource.FieldServiceID, serviceresource.FieldConnectorID, serviceresource.FieldCompositionID, serviceresource.FieldClassID:
+		case serviceresource.FieldID, serviceresource.FieldProjectID, serviceresource.FieldEnvironmentID, serviceresource.FieldServiceID, serviceresource.FieldConnectorID, serviceresource.FieldCompositionID, serviceresource.FieldClassID:
 			values[i] = new(object.ID)
 		case serviceresource.FieldMode, serviceresource.FieldType, serviceresource.FieldName, serviceresource.FieldDeployerType, serviceresource.FieldShape:
 			values[i] = new(sql.NullString)
@@ -231,6 +249,12 @@ func (sr *ServiceResource) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field project_id", values[i])
 			} else if value != nil {
 				sr.ProjectID = *value
+			}
+		case serviceresource.FieldEnvironmentID:
+			if value, ok := values[i].(*object.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field environment_id", values[i])
+			} else if value != nil {
+				sr.EnvironmentID = *value
 			}
 		case serviceresource.FieldServiceID:
 			if value, ok := values[i].(*object.ID); !ok {
@@ -312,6 +336,11 @@ func (sr *ServiceResource) QueryProject() *ProjectQuery {
 	return NewServiceResourceClient(sr.config).QueryProject(sr)
 }
 
+// QueryEnvironment queries the "environment" edge of the ServiceResource entity.
+func (sr *ServiceResource) QueryEnvironment() *EnvironmentQuery {
+	return NewServiceResourceClient(sr.config).QueryEnvironment(sr)
+}
+
 // QueryService queries the "service" edge of the ServiceResource entity.
 func (sr *ServiceResource) QueryService() *ServiceQuery {
 	return NewServiceResourceClient(sr.config).QueryService(sr)
@@ -382,6 +411,9 @@ func (sr *ServiceResource) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("project_id=")
 	builder.WriteString(fmt.Sprintf("%v", sr.ProjectID))
+	builder.WriteString(", ")
+	builder.WriteString("environment_id=")
+	builder.WriteString(fmt.Sprintf("%v", sr.EnvironmentID))
 	builder.WriteString(", ")
 	builder.WriteString("service_id=")
 	builder.WriteString(fmt.Sprintf("%v", sr.ServiceID))
