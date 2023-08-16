@@ -33,7 +33,7 @@ func (ServiceRevision) Fields() []ent.Field {
 			NotEmpty().
 			Immutable(),
 		object.IDField("environment_id").
-			Comment("ID of the environment to which the service deploys.").
+			Comment("ID of the environment to which the revision belongs.").
 			NotEmpty().
 			Immutable(),
 		object.IDField("service_id").
