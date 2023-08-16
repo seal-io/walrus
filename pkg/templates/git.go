@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
@@ -110,7 +111,7 @@ func syncTemplateFromRef(
 	defer os.RemoveAll(tempDir)
 
 	// Clone git repository.
-	r, err := vcs.CloneGitRepo(repo.Link, tempDir)
+	r, err := vcs.CloneGitRepo(ctx, repo.Link, tempDir)
 	if err != nil {
 		return err
 	}
@@ -159,7 +160,7 @@ func syncTemplateFromRef(
 		}
 	}()
 
-	u, err := transport.NewEndpoint(repo.Link)
+	source, err := vcs.GetGitSource(repo.Link)
 	if err != nil {
 		return err
 	}
@@ -174,7 +175,7 @@ func syncTemplateFromRef(
 		TemplateID: entity.ID,
 		Name:       entity.Name,
 		Version:    ref,
-		Source:     u.Host + u.Path + "?ref=" + repo.Reference,
+		Source:     source + "?ref=" + repo.Reference,
 		Schema:     schema,
 	})
 }
@@ -232,7 +233,7 @@ func SyncTemplateFromGitRepo(
 	}
 
 	// Clone git repository.
-	r, err := vcs.CloneGitRepo(u.String(), tempDir)
+	r, err := vcs.CloneGitRepo(ctx, u.String(), tempDir)
 	if err != nil {
 		return err
 	}
@@ -249,7 +250,26 @@ func SyncTemplateFromGitRepo(
 
 	if len(versions) == 0 {
 		logger.Warnf("no versions found for %s", repo.Name)
-		return nil
+
+		// If template exists, update template status.
+		t, err := mc.Templates().Query().
+			Where(template.Name(repo.Name)).
+			Only(ctx)
+		if err != nil {
+			if !model.IsNotFound(err) {
+				return err
+			}
+
+			return nil
+		}
+
+		// When template source contains no valid versions, set template status to initialized.
+		status.TemplateStatusInitialized.True(t, "")
+		t.Status.SetSummary(status.WalkTemplate(&t.Status))
+
+		return mc.Templates().UpdateOne(t).
+			SetStatus(c.Status).
+			Exec(ctx)
 	}
 
 	// Get icon image name.
@@ -301,12 +321,10 @@ func GetTemplateVersions(
 		tvs    = make(model.TemplateVersions, 0, len(versionSchema))
 	)
 
-	u, err := transport.NewEndpoint(entity.Source)
+	source, err := vcs.GetGitSource(entity.Source)
 	if err != nil {
 		return nil, err
 	}
-
-	source := u.Host + u.Path
 
 	for i := range newVersions {
 		v := newVersions[i]

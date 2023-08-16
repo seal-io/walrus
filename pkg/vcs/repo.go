@@ -1,6 +1,7 @@
 package vcs
 
 import (
+	"context"
 	"errors"
 	"sort"
 	"strings"
@@ -133,25 +134,16 @@ func GetGitRepoVersions(r *git.Repository) ([]*version.Version, error) {
 }
 
 // CloneGitRepo clones a git repository to a specific directory.
-func CloneGitRepo(link, dir string) (*git.Repository, error) {
+func CloneGitRepo(ctx context.Context, link, dir string) (*git.Repository, error) {
 	logger := log.WithName("template")
 
-	endpoint, err := transport.NewEndpoint(link)
+	src, err := GetGitSource(link)
 	if err != nil {
 		return nil, err
 	}
 
-	var src string
-
-	switch endpoint.Protocol {
-	case "http", "https":
-		src = strings.TrimLeft(endpoint.String(), endpoint.Protocol+"://")
-	default:
-		src = link
-	}
-
 	// Clone git repository.
-	err = getter.Get(dir, src)
+	err = getter.Get(dir, src, getter.WithContext(ctx))
 	if err != nil {
 		logger.Errorf("failed to get %s: %v", link, err)
 
@@ -159,4 +151,25 @@ func CloneGitRepo(link, dir string) (*git.Repository, error) {
 	}
 
 	return git.PlainOpen(dir)
+}
+
+// GetGitSource get git source for template.
+// When source's protocol is http or https,
+// the prefix git:: will be added for template to use.
+func GetGitSource(link string) (string, error) {
+	endpoint, err := transport.NewEndpoint(link)
+	if err != nil {
+		return "", err
+	}
+
+	var src string
+
+	switch endpoint.Protocol {
+	case "http", "https":
+		src = "git::" + endpoint.String()
+	default:
+		src = link
+	}
+
+	return src, nil
 }
