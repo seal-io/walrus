@@ -3,6 +3,7 @@ package vcs
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sort"
 	"strings"
 
@@ -91,8 +92,13 @@ func HardResetGitRepo(r *git.Repository, ref string) error {
 		return err
 	}
 
+	resetRef, err := GetRepoRef(r, ref)
+	if err != nil {
+		return err
+	}
+
 	err = w.Reset(&git.ResetOptions{
-		Commit: plumbing.NewHash(ref),
+		Commit: resetRef.Hash(),
 		Mode:   git.HardReset,
 	})
 	if err != nil {
@@ -172,4 +178,21 @@ func GetGitSource(link string) (string, error) {
 	}
 
 	return src, nil
+}
+
+// GetRepoRef returns a reference from a git repository.
+func GetRepoRef(r *git.Repository, name string) (*plumbing.Reference, error) {
+	if ref, err := r.Reference(plumbing.NewTagReferenceName(name), true); err == nil {
+		return ref, nil
+	}
+
+	if ref, err := r.Reference(plumbing.NewBranchReferenceName(name), true); err == nil {
+		return ref, nil
+	}
+
+	if ref, err := r.Reference(plumbing.NewNoteReferenceName(name), true); err == nil {
+		return ref, nil
+	}
+
+	return nil, fmt.Errorf("failed to get reference: %s", name)
 }

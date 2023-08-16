@@ -8,7 +8,6 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/hashicorp/go-version"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -436,8 +435,14 @@ func getValidVersions(
 		v := versions[i]
 		tag := v.Original()
 
-		err := w.Reset(&git.ResetOptions{
-			Commit: plumbing.NewHash(tag),
+		resetRef, err := vcs.GetRepoRef(r, tag)
+		if err != nil {
+			logger.Warnf("failed to get tag reference: %v", err)
+			continue
+		}
+
+		err = w.Reset(&git.ResetOptions{
+			Commit: resetRef.Hash(),
 			Mode:   git.HardReset,
 		})
 		if err != nil {
