@@ -8,9 +8,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/seal-io/seal/pkg/cli/api"
-	"github.com/seal-io/seal/pkg/cli/config"
-	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/walrus/pkg/cli/api"
+	"github.com/seal-io/walrus/pkg/cli/config"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 const (

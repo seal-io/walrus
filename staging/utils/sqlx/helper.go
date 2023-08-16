@@ -3,7 +3,7 @@ package sqlx
 import (
 	"fmt"
 
-	"github.com/seal-io/seal/utils/timex"
+	"github.com/seal-io/walrus/utils/timex"
 )
 
 // DateTruncWithZoneOffsetSQL generate the date trunc sql from step and timezone offset,

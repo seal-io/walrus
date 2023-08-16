@@ -3,12 +3,12 @@ package project
 import (
 	"k8s.io/client-go/rest"
 
-	"github.com/seal-io/seal/pkg/apis/connector"
-	"github.com/seal-io/seal/pkg/apis/environment"
-	"github.com/seal-io/seal/pkg/apis/projectsubject"
-	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/apis/variable"
-	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/apis/connector"
+	"github.com/seal-io/walrus/pkg/apis/environment"
+	"github.com/seal-io/walrus/pkg/apis/projectsubject"
+	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/pkg/apis/variable"
+	"github.com/seal-io/walrus/pkg/dao/model"
 )
 
 func Handle(mc model.ClientSet, kc *rest.Config, tc bool) Handler {

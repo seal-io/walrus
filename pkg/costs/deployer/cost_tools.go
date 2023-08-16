@@ -13,10 +13,10 @@ import (
 	appv1 "k8s.io/client-go/kubernetes/typed/apps/v1"
 	"k8s.io/client-go/rest"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
-	opk8s "github.com/seal-io/seal/pkg/operator/k8s"
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	opk8s "github.com/seal-io/walrus/pkg/operator/k8s"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 const (

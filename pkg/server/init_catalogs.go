@@ -3,11 +3,11 @@ package server
 import (
 	"context"
 
-	buscatalog "github.com/seal-io/seal/pkg/bus/catalog"
-	pkgcatalog "github.com/seal-io/seal/pkg/catalog"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/catalog"
-	"github.com/seal-io/seal/pkg/dao/types/status"
+	buscatalog "github.com/seal-io/walrus/pkg/bus/catalog"
+	pkgcatalog "github.com/seal-io/walrus/pkg/catalog"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/catalog"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
 // createBuiltinCatalogs creates the built-in Catalog resources.

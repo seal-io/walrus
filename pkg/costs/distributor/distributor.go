@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
 )
 
 // Distributor support use input condition to query resources costs,

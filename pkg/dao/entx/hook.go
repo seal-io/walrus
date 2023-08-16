@@ -9,8 +9,8 @@ import (
 	"entgo.io/ent/entc/gen"
 	"golang.org/x/exp/slices"
 
-	"github.com/seal-io/seal/pkg/dao/entx/annotation"
-	"github.com/seal-io/seal/pkg/dao/entx/extension/view"
+	"github.com/seal-io/walrus/pkg/dao/entx/annotation"
+	"github.com/seal-io/walrus/pkg/dao/entx/extension/view"
 )
 
 func loadHooks() []gen.Hook {

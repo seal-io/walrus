@@ -3,8 +3,8 @@ package resourcestatus
 import (
 	"fmt"
 
-	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/operator/types"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/operator/types"
 )
 
 func getCsKubernetes(cred types.Credential, resourceType, name string) (*status.Status, error) {

@@ -3,11 +3,11 @@ package convertor
 import (
 	"errors"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
-	opk8s "github.com/seal-io/seal/pkg/operator/k8s"
-	"github.com/seal-io/seal/pkg/terraform/block"
-	"github.com/seal-io/seal/pkg/terraform/util"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	opk8s "github.com/seal-io/walrus/pkg/operator/k8s"
+	"github.com/seal-io/walrus/pkg/terraform/block"
+	"github.com/seal-io/walrus/pkg/terraform/util"
 )
 
 type K8sConvertorOptions struct {

@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/seal-io/seal/pkg/terraform/block"
+	"github.com/seal-io/walrus/pkg/terraform/block"
 )
 
 func TestCreateConfigToBytes(t *testing.T) {

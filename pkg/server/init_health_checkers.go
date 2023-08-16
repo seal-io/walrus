@@ -6,12 +6,12 @@ import (
 
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/seal-io/seal/pkg/cache"
-	"github.com/seal-io/seal/pkg/casdoor"
-	"github.com/seal-io/seal/pkg/database"
-	"github.com/seal-io/seal/pkg/health"
-	"github.com/seal-io/seal/pkg/k8s"
-	"github.com/seal-io/seal/utils/gopool"
+	"github.com/seal-io/walrus/pkg/cache"
+	"github.com/seal-io/walrus/pkg/casdoor"
+	"github.com/seal-io/walrus/pkg/database"
+	"github.com/seal-io/walrus/pkg/health"
+	"github.com/seal-io/walrus/pkg/k8s"
+	"github.com/seal-io/walrus/utils/gopool"
 )
 
 // registerHealthCheckers registers the health checkers into the global health registry.

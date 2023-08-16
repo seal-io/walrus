@@ -4,7 +4,7 @@ import (
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 
-	"github.com/seal-io/seal/pkg/i18n/text"
+	"github.com/seal-io/walrus/pkg/i18n/text"
 )
 
 //go:generate gotext -srclang=en update -out=catalog.go -lang=en,zh

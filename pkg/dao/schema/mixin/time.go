@@ -8,7 +8,7 @@ import (
 	"entgo.io/ent/schema/index"
 	"entgo.io/ent/schema/mixin"
 
-	"github.com/seal-io/seal/pkg/dao/entx"
+	"github.com/seal-io/walrus/pkg/dao/entx"
 )
 
 func Time() time {

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/seal-io/seal/utils/req"
+	"github.com/seal-io/walrus/utils/req"
 )
 
 func SignInUser(ctx context.Context, app, org, usr, pwd string) ([]*req.HttpCookie, error) {

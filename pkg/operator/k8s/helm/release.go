@@ -14,11 +14,11 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/operator/k8s/kube"
-	"github.com/seal-io/seal/pkg/operator/k8s/kubestatus"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/operator/k8s/kube"
+	"github.com/seal-io/walrus/pkg/operator/k8s/kubestatus"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 type (

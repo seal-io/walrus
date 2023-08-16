@@ -5,8 +5,8 @@ import (
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/slb"
 
-	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/operator/types"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/operator/types"
 )
 
 func getSlbLoadBalancer(cred types.Credential, resourceType, name string) (*status.Status, error) {

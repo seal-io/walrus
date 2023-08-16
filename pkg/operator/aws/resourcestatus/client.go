@@ -13,8 +13,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 
-	opawstypes "github.com/seal-io/seal/pkg/operator/aws/types"
-	"github.com/seal-io/seal/pkg/operator/types"
+	opawstypes "github.com/seal-io/walrus/pkg/operator/aws/types"
+	"github.com/seal-io/walrus/pkg/operator/types"
 )
 
 func ec2Client(ctx context.Context) (*ec2.Client, error) {

@@ -3,7 +3,7 @@ package kube
 import (
 	"strings"
 
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 // ParseNamespacedName parses the given string into {namespace, name},

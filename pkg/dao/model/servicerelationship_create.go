@@ -16,9 +16,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
-	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/model/service"
+	"github.com/seal-io/walrus/pkg/dao/model/servicerelationship"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
 // ServiceRelationshipCreate is the builder for creating a ServiceRelationship entity.

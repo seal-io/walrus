@@ -3,7 +3,7 @@ package types
 import (
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
 const (

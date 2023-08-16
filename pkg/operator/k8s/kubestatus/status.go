@@ -14,8 +14,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/dynamic"
 
-	typestatus "github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/operator/k8s/polymorphic"
+	typestatus "github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/operator/k8s/polymorphic"
 )
 
 var (

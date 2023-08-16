@@ -9,10 +9,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/operator/k8s/intercept"
-	"github.com/seal-io/seal/pkg/operator/k8s/kube"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/operator/k8s/intercept"
+	"github.com/seal-io/walrus/pkg/operator/k8s/kube"
 )
 
 // GetComponents implements operator.Operator.

@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 
-	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
 func getEc2Volume(ctx context.Context, resourceType, name string) (*status.Status, error) {

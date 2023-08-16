@@ -3,8 +3,8 @@ package resourcestatus
 import (
 	"fmt"
 
-	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/operator/types"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/operator/types"
 )
 
 // resourceTypes indicate supported resource type and function to get status.

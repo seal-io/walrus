@@ -3,8 +3,8 @@ package config
 import (
 	"fmt"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
 )
 
 // CustomConfig is the config of a custom connector.

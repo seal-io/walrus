@@ -10,10 +10,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/settings"
-	"github.com/seal-io/seal/utils/req"
+	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/settings"
+	"github.com/seal-io/walrus/utils/req"
 )
 
 func Index(ctx context.Context, modelClient model.ClientSet) runtime.Handle {

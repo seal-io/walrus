@@ -5,15 +5,15 @@ import (
 
 	"k8s.io/client-go/rest"
 
-	"github.com/seal-io/seal/pkg/cron"
-	"github.com/seal-io/seal/pkg/dao/model"
-	catalogskd "github.com/seal-io/seal/pkg/scheduler/catalog"
-	connskd "github.com/seal-io/seal/pkg/scheduler/connector"
-	serviceskd "github.com/seal-io/seal/pkg/scheduler/service"
-	appresskd "github.com/seal-io/seal/pkg/scheduler/serviceresource"
-	telemetryskd "github.com/seal-io/seal/pkg/scheduler/telemetry"
-	tokenskd "github.com/seal-io/seal/pkg/scheduler/token"
-	"github.com/seal-io/seal/pkg/settings"
+	"github.com/seal-io/walrus/pkg/cron"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	catalogskd "github.com/seal-io/walrus/pkg/scheduler/catalog"
+	connskd "github.com/seal-io/walrus/pkg/scheduler/connector"
+	serviceskd "github.com/seal-io/walrus/pkg/scheduler/service"
+	appresskd "github.com/seal-io/walrus/pkg/scheduler/serviceresource"
+	telemetryskd "github.com/seal-io/walrus/pkg/scheduler/telemetry"
+	tokenskd "github.com/seal-io/walrus/pkg/scheduler/token"
+	"github.com/seal-io/walrus/pkg/settings"
 )
 
 // startBackgroundJobs starts the background jobs by Cron Expression to do something periodically.

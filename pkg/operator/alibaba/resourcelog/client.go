@@ -6,7 +6,7 @@ import (
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 
-	"github.com/seal-io/seal/pkg/operator/types"
+	"github.com/seal-io/walrus/pkg/operator/types"
 )
 
 func ecsClient(ctx context.Context) (*ecs.Client, error) {

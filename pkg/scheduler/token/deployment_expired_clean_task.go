@@ -6,12 +6,12 @@ import (
 	"sync"
 	"time"
 
-	tokenbus "github.com/seal-io/seal/pkg/bus/token"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/token"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/utils/log"
+	tokenbus "github.com/seal-io/walrus/pkg/bus/token"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/token"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 type DeploymentExpiredCleanTask struct {

@@ -9,7 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/seal-io/seal/pkg/apis/runtime/bind"
+	"github.com/seal-io/walrus/pkg/apis/runtime/bind"
 )
 
 // NoPageResponse returns the given data without pagination.

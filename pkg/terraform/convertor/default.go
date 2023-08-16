@@ -3,10 +3,10 @@ package convertor
 import (
 	"errors"
 
-	"github.com/seal-io/seal/pkg/connectors/config"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/terraform/block"
+	"github.com/seal-io/walrus/pkg/connectors/config"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/terraform/block"
 )
 
 // DefaultConvertor is the convertor for custom category connector.

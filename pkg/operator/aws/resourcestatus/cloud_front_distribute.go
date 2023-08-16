@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
 
-	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
 func getCloudFrontDistribution(ctx context.Context, resourceType, name string) (*status.Status, error) {

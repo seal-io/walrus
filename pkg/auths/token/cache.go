@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	tokenbus "github.com/seal-io/seal/pkg/bus/token"
-	"github.com/seal-io/seal/pkg/caches"
+	tokenbus "github.com/seal-io/walrus/pkg/bus/token"
+	"github.com/seal-io/walrus/pkg/caches"
 )
 
 const cacheKeyPrefix = "auths/authn/token/"

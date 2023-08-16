@@ -31,7 +31,7 @@ If you need any help, please join us at
 - [Discord](https://discord.gg/fXZUKK2baF)
 - [WeChat](docs/WECHAT_CN.md)
 
-Feel free to [file an issue](https://github.com/seal-io/seal/issues/new) if you have any feedback or questions.
+Feel free to [file an issue](https://github.com/seal-io/walrus/issues/new) if you have any feedback or questions.
 
 For security issues, please report by sending an email to <security@seal.io>.
 

@@ -11,16 +11,16 @@ import (
 	"github.com/drone/go-scm/scm"
 	"github.com/sashabaranov/go-openai"
 
-	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/i18n/text"
-	"github.com/seal-io/seal/pkg/settings"
-	"github.com/seal-io/seal/pkg/templates"
-	"github.com/seal-io/seal/pkg/vcs"
-	"github.com/seal-io/seal/utils/json"
-	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/i18n/text"
+	"github.com/seal-io/walrus/pkg/settings"
+	"github.com/seal-io/walrus/pkg/templates"
+	"github.com/seal-io/walrus/pkg/vcs"
+	"github.com/seal-io/walrus/utils/json"
+	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 const gpt35MaxTokens = 4096

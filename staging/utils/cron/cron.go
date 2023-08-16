@@ -9,7 +9,7 @@ import (
 	"github.com/go-co-op/gocron"
 	cronlib "github.com/robfig/cron/v3"
 
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 // Task defines the interface to hold the job executing main logic.

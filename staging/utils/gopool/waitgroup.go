@@ -8,7 +8,7 @@ import (
 	"github.com/alitto/pond"
 	"go.uber.org/multierr"
 
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 type IWaitGroup interface {

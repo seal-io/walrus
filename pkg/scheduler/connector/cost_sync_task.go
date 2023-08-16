@@ -5,12 +5,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/seal-io/seal/pkg/connectors"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/utils/gopool"
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/pkg/connectors"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/connector"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/utils/gopool"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 type CollectTask struct {

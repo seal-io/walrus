@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types/property"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types/property"
 )
 
 func TestTopologicalSortServices(t *testing.T) {

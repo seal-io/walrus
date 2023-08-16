@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/seal-io/seal/pkg/operator/alibaba/key"
-	"github.com/seal-io/seal/pkg/operator/types"
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/pkg/operator/alibaba/key"
+	"github.com/seal-io/walrus/pkg/operator/types"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 // resourceTypes indicate supported resource type and their functions.

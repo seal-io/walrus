@@ -7,7 +7,7 @@ import (
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/entx/annotation"
+	"github.com/seal-io/walrus/pkg/dao/entx/annotation"
 )
 
 //go:embed template/*

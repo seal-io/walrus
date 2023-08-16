@@ -3,7 +3,7 @@ package cron
 import (
 	"golang.org/x/exp/slices"
 
-	"github.com/seal-io/seal/utils/cron"
+	"github.com/seal-io/walrus/utils/cron"
 )
 
 type (

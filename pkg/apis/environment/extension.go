@@ -3,14 +3,14 @@ package environment
 import (
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/seal-io/seal/pkg/dao"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/object"
-	optypes "github.com/seal-io/seal/pkg/operator/types"
-	pkgresource "github.com/seal-io/seal/pkg/serviceresources"
+	"github.com/seal-io/walrus/pkg/dao"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/service"
+	"github.com/seal-io/walrus/pkg/dao/model/servicerelationship"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	optypes "github.com/seal-io/walrus/pkg/operator/types"
+	pkgresource "github.com/seal-io/walrus/pkg/serviceresources"
 )
 
 var getServiceFields = service.WithoutFields(

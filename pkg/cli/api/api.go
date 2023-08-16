@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/seal-io/seal/pkg/cli/config"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/cli/config"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 // API represents an abstracted API description, include details used to build CLI commands.

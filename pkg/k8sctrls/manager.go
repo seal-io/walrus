@@ -8,8 +8,8 @@ import (
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 func NewManager(opts ManagerOptions) (*Manager, error) {

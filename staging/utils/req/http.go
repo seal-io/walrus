@@ -21,10 +21,10 @@ import (
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpproxy"
 
-	"github.com/seal-io/seal/utils/gopool"
-	"github.com/seal-io/seal/utils/json"
-	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/version"
+	"github.com/seal-io/walrus/utils/gopool"
+	"github.com/seal-io/walrus/utils/json"
+	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/version"
 )
 
 // HTTP returns a new http client.

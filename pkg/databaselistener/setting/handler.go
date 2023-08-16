@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	settingbus "github.com/seal-io/seal/pkg/bus/setting"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/pkg/database"
+	settingbus "github.com/seal-io/walrus/pkg/bus/setting"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/database"
 )
 
 const ChannelName = "setting_update"

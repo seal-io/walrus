@@ -5,9 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/auths/session"
-	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/pkg/auths/session"
+	"github.com/seal-io/walrus/pkg/dao/model"
 )
 
 func RequestAccount(mc model.ClientSet, withAuthn bool) Account {

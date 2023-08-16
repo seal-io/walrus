@@ -5,9 +5,9 @@ import (
 
 	"go.uber.org/multierr"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
-	optypes "github.com/seal-io/seal/pkg/operator/types"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	optypes "github.com/seal-io/walrus/pkg/operator/types"
 )
 
 // Label applies the labels to the given model.ServiceResource list with the given operator.Operator.

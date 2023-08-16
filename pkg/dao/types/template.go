@@ -3,7 +3,7 @@ package types
 import (
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
 
-	"github.com/seal-io/seal/pkg/dao/types/property"
+	"github.com/seal-io/walrus/pkg/dao/types/property"
 )
 
 type ProviderRequirement struct {

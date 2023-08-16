@@ -30,7 +30,7 @@ sudo docker run -d --privileged --restart=unless-stopped -p 80:80 -p 443:443 sea
 - [Discord（英文）](https://discord.gg/fXZUKK2baF)
 - [微信群](WECHAT_CN.md)
 
-如果您有任何反馈意见或问题，欢迎通过Github Issues[提交问题](https://github.com/seal-io/seal/issues/new)。
+如果您有任何反馈意见或问题，欢迎通过Github Issues[提交问题](https://github.com/seal-io/walrus/issues/new)。
 
 对于安全问题，请通过发送电子邮件至 <security@seal.io> 进行报告。
 

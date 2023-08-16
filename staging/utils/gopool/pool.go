@@ -6,8 +6,8 @@ import (
 
 	"github.com/alitto/pond"
 
-	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/runtimex"
+	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/runtimex"
 )
 
 var (

@@ -7,15 +7,15 @@ import (
 
 	"golang.org/x/exp/slices"
 
-	"github.com/seal-io/seal/pkg/costs/deployer"
-	"github.com/seal-io/seal/pkg/costs/syncer"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/model/costreport"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/operator"
-	optypes "github.com/seal-io/seal/pkg/operator/types"
+	"github.com/seal-io/walrus/pkg/costs/deployer"
+	"github.com/seal-io/walrus/pkg/costs/syncer"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/connector"
+	"github.com/seal-io/walrus/pkg/dao/model/costreport"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/operator"
+	optypes "github.com/seal-io/walrus/pkg/operator/types"
 )
 
 type StatusSyncer struct {

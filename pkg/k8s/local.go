@@ -20,12 +20,12 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/seal-io/seal/pkg/consts"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/utils/files"
-	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/osx"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/consts"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/utils/files"
+	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/osx"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 var (

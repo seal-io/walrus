@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 
-	"github.com/seal-io/seal/pkg/cron"
+	"github.com/seal-io/walrus/pkg/cron"
 )
 
 // setupCronSpecSyncer set the syncer to sync cronjob spec with setting.

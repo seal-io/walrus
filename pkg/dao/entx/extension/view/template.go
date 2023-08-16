@@ -13,8 +13,8 @@ import (
 	"entgo.io/ent/entc/gen"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/seal-io/seal/pkg/dao/entx/annotation"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/dao/entx/annotation"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 var (

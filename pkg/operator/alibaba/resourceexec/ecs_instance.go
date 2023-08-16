@@ -15,10 +15,10 @@ import (
 	"github.com/aliyun/aliyun_assist_client/agent/session/plugin/message"
 	"github.com/sirupsen/logrus"
 
-	optypes "github.com/seal-io/seal/pkg/operator/types"
-	"github.com/seal-io/seal/utils/bytespool"
-	"github.com/seal-io/seal/utils/gopool"
-	"github.com/seal-io/seal/utils/log"
+	optypes "github.com/seal-io/walrus/pkg/operator/types"
+	"github.com/seal-io/walrus/utils/bytespool"
+	"github.com/seal-io/walrus/utils/gopool"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 const (
@@ -28,7 +28,7 @@ const (
 
 const (
 	// These configs are borrowed from aliyun repo
-	//nolint: lll
+	// nolint: lll
 	// https://github.com/aliyun/aliyun_assist_client/blob/d2b430f3fa8aea1abb376d0e4a08d9888729f1c4/agent/session/plugin/client.go#L34
 	// maxPackageSend in Byte.
 	maxPackageSendSize = 2048

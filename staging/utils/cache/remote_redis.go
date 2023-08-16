@@ -9,7 +9,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 // RemoteRedisConfig holds the configuration of the remote cache.

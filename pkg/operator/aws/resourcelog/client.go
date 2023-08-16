@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 
-	opawstypes "github.com/seal-io/seal/pkg/operator/aws/types"
+	opawstypes "github.com/seal-io/walrus/pkg/operator/aws/types"
 )
 
 func ec2Client(ctx context.Context) (*ec2.Client, error) {

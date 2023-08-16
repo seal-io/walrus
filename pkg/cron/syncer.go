@@ -6,11 +6,11 @@ import (
 	"sync"
 	"time"
 
-	settingbus "github.com/seal-io/seal/pkg/bus/setting"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	cronutil "github.com/seal-io/seal/utils/cron"
-	"github.com/seal-io/seal/utils/log"
+	settingbus "github.com/seal-io/walrus/pkg/bus/setting"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types/crypto"
+	cronutil "github.com/seal-io/walrus/utils/cron"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 type SetupSyncerOptions struct {

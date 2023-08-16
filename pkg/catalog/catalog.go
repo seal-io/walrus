@@ -9,15 +9,15 @@ import (
 
 	"github.com/drone/go-scm/scm"
 
-	"github.com/seal-io/seal/pkg/bus/catalog"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/template"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/templates"
-	"github.com/seal-io/seal/pkg/vcs"
-	"github.com/seal-io/seal/utils/gopool"
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/pkg/bus/catalog"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/template"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/templates"
+	"github.com/seal-io/walrus/pkg/vcs"
+	"github.com/seal-io/walrus/utils/gopool"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 // GetOrgRepos returns full repositories list from the given org.

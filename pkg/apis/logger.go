@@ -4,7 +4,7 @@ import (
 	stdlog "log"
 	"strings"
 
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 func newStdErrorLogger(delegate log.Logger) *stdlog.Logger {

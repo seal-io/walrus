@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/seal-io/seal/utils/req"
+	"github.com/seal-io/walrus/utils/req"
 )
 
 type ApplicationCredential struct {

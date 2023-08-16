@@ -3,9 +3,9 @@ package main
 import (
 	"os"
 
-	"github.com/seal-io/seal/pkg/server"
-	"github.com/seal-io/seal/utils/clis"
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/pkg/server"
+	"github.com/seal-io/walrus/utils/clis"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 func main() {

@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 const SessionCookieName = "seal_session"

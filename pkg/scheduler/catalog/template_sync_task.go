@@ -8,12 +8,12 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
 
-	pkgcatalog "github.com/seal-io/seal/pkg/catalog"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/catalog"
-	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/settings"
-	"github.com/seal-io/seal/utils/log"
+	pkgcatalog "github.com/seal-io/walrus/pkg/catalog"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/catalog"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/settings"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 type TemplateSyncTask struct {

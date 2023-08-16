@@ -9,9 +9,9 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/operator"
-	optypes "github.com/seal-io/seal/pkg/operator/types"
+	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/pkg/operator"
+	optypes "github.com/seal-io/walrus/pkg/operator/types"
 )
 
 func (h Handler) RouteGetKeys(req RouteGetKeysRequest) (RouteGetKeysResponse, error) {

@@ -3,9 +3,9 @@ package terraform
 import (
 	"context"
 
-	revisionbus "github.com/seal-io/seal/pkg/bus/servicerevision"
-	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/types/status"
+	revisionbus "github.com/seal-io/walrus/pkg/bus/servicerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/service"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
 // SyncServiceRevisionStatus updates the status of the service according to its recent finished service revision.

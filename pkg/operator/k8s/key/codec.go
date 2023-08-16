@@ -3,7 +3,7 @@ package key
 import (
 	"strings"
 
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 // Decode parses the given string into {pod namespace, pod name, container type, container name},

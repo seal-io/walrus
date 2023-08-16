@@ -10,10 +10,10 @@ import (
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
 
-	"github.com/seal-io/seal/pkg/operator/k8s/key"
-	"github.com/seal-io/seal/pkg/operator/k8s/kube"
+	"github.com/seal-io/walrus/pkg/operator/k8s/key"
+	"github.com/seal-io/walrus/pkg/operator/k8s/kube"
 
-	optypes "github.com/seal-io/seal/pkg/operator/types"
+	optypes "github.com/seal-io/walrus/pkg/operator/types"
 )
 
 // Log implements operator.Operator.

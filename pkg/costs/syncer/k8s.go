@@ -9,12 +9,12 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
-	"github.com/seal-io/seal/pkg/costs/collector"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/costreport"
-	opk8s "github.com/seal-io/seal/pkg/operator/k8s"
-	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/timex"
+	"github.com/seal-io/walrus/pkg/costs/collector"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/costreport"
+	opk8s "github.com/seal-io/walrus/pkg/operator/k8s"
+	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/timex"
 )
 
 const (

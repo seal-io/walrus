@@ -5,7 +5,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/seal-io/seal/pkg/dao/types/property"
+	"github.com/seal-io/walrus/pkg/dao/types/property"
 )
 
 // Uint64Property wraps uint64 value into a property.

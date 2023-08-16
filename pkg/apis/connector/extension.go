@@ -5,11 +5,11 @@ import (
 
 	"github.com/drone/go-scm/scm"
 
-	"github.com/seal-io/seal/pkg/apis/runtime"
-	pkgconn "github.com/seal-io/seal/pkg/connectors"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/vcs"
+	"github.com/seal-io/walrus/pkg/apis/runtime"
+	pkgconn "github.com/seal-io/walrus/pkg/connectors"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/vcs"
 )
 
 func (h Handler) RouteApplyCostTools(

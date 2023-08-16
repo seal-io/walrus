@@ -6,8 +6,8 @@ import (
 
 	"k8s.io/client-go/rest"
 
-	"github.com/seal-io/seal/pkg/apis"
-	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/apis"
+	"github.com/seal-io/walrus/pkg/dao/model"
 )
 
 type setupApisOptions struct {

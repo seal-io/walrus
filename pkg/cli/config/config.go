@@ -11,8 +11,8 @@ import (
 
 	"github.com/henvic/httpretty"
 
-	"github.com/seal-io/seal/utils/strs"
-	"github.com/seal-io/seal/utils/version"
+	"github.com/seal-io/walrus/utils/strs"
+	"github.com/seal-io/walrus/utils/version"
 )
 
 const (

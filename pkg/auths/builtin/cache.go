@@ -3,8 +3,8 @@ package builtin
 import (
 	"context"
 
-	"github.com/seal-io/seal/pkg/caches"
-	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/walrus/pkg/caches"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 const cacheKeyPrefix = "auths/authn/builtin/"

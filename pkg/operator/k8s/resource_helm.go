@@ -8,11 +8,11 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	"github.com/seal-io/seal/pkg/operator/k8s/helm"
-	"github.com/seal-io/seal/pkg/operator/k8s/polymorphic"
+	"github.com/seal-io/walrus/pkg/operator/k8s/helm"
+	"github.com/seal-io/walrus/pkg/operator/k8s/polymorphic"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 // parseResourcesOfHelm parses the given `helm_release` model.ServiceResource,

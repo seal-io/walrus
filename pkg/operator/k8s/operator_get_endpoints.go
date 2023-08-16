@@ -6,10 +6,10 @@ import (
 
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/operator/k8s/intercept"
-	"github.com/seal-io/seal/pkg/operator/k8s/kubeendpoint"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/operator/k8s/intercept"
+	"github.com/seal-io/walrus/pkg/operator/k8s/kubeendpoint"
 )
 
 // GetEndpoints implements operator.Operator.

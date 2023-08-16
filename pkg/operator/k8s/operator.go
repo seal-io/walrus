@@ -16,11 +16,11 @@ import (
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/k8s"
-	"github.com/seal-io/seal/pkg/operator/k8s/polymorphic"
-	optypes "github.com/seal-io/seal/pkg/operator/types"
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/k8s"
+	"github.com/seal-io/walrus/pkg/operator/k8s/polymorphic"
+	optypes "github.com/seal-io/walrus/pkg/operator/types"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 const OperatorType = types.ConnectorTypeK8s

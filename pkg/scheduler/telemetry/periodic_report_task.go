@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/telemetry"
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/telemetry"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 type PeriodicReportTask struct {

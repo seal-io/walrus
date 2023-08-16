@@ -3,8 +3,8 @@ package template
 import (
 	"context"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/utils/bus"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/utils/bus"
 )
 
 // BusMessage wraps the changed model.Template as a bus.Message.

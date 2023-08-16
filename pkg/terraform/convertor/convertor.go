@@ -1,8 +1,8 @@
 package convertor
 
 import (
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/terraform/block"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/terraform/block"
 )
 
 type (

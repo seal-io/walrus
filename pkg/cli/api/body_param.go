@@ -3,7 +3,7 @@ package api
 import (
 	"github.com/spf13/pflag"
 
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 // BodyParams represent request body and params type.

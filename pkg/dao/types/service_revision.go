@@ -1,6 +1,6 @@
 package types
 
-import "github.com/seal-io/seal/pkg/dao/types/property"
+import "github.com/seal-io/walrus/pkg/dao/types/property"
 
 type OutputValue struct {
 	Name      string         `json:"name,omitempty"`

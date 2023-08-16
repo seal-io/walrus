@@ -5,7 +5,7 @@ import (
 
 	"go.uber.org/automaxprocs/maxprocs"
 
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 func init() {

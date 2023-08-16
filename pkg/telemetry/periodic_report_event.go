@@ -8,14 +8,14 @@ import (
 
 	"github.com/posthog/posthog-go"
 
-	pkgcatalog "github.com/seal-io/seal/pkg/catalog"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/catalog"
-	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/model/perspective"
-	"github.com/seal-io/seal/pkg/dao/model/template"
-	"github.com/seal-io/seal/pkg/settings"
-	"github.com/seal-io/seal/utils/version"
+	pkgcatalog "github.com/seal-io/walrus/pkg/catalog"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/catalog"
+	"github.com/seal-io/walrus/pkg/dao/model/connector"
+	"github.com/seal-io/walrus/pkg/dao/model/perspective"
+	"github.com/seal-io/walrus/pkg/dao/model/template"
+	"github.com/seal-io/walrus/pkg/settings"
+	"github.com/seal-io/walrus/utils/version"
 )
 
 const (

@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/seal-io/seal/pkg/consts"
-	"github.com/seal-io/seal/utils/files"
-	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/consts"
+	"github.com/seal-io/walrus/utils/files"
+	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 const defaultDataSourceAddress = "postgres://root@127.0.0.1:5432/seal?sslmode=disable"

@@ -8,10 +8,10 @@ import (
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 
-	"github.com/seal-io/seal/pkg/terraform/block"
-	"github.com/seal-io/seal/pkg/terraform/convertor"
-	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/terraform/block"
+	"github.com/seal-io/walrus/pkg/terraform/convertor"
+	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 // Config handles the configuration of application to terraform config.

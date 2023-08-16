@@ -1,4 +1,4 @@
-module github.com/seal-io/seal/utils
+module github.com/seal-io/walrus/utils
 
 go 1.19
 

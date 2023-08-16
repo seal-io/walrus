@@ -6,9 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/health"
-	"github.com/seal-io/seal/pkg/metric"
+	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/pkg/health"
+	"github.com/seal-io/walrus/pkg/metric"
 )
 
 func Readyz() runtime.Handle {

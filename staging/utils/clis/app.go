@@ -3,7 +3,7 @@ package clis
 import (
 	"github.com/urfave/cli/v2"
 
-	"github.com/seal-io/seal/utils/version"
+	"github.com/seal-io/walrus/utils/version"
 )
 
 func AsApp(cmd *Command) *App {

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/seal-io/seal/pkg/casdoor"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/settings"
-	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/casdoor"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/settings"
+	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 // configureCasdoor initializes the builtin Casdoor application and builtin admin user.

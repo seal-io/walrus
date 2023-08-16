@@ -10,8 +10,8 @@ import (
 	"github.com/drone/go-scm/scm/driver/github"
 	"github.com/drone/go-scm/scm/transport"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
 )
 
 const (

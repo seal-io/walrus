@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/seal-io/seal/pkg/dao/types/crypto"
+	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 )
 
 type CredentialKeyType string

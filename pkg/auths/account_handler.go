@@ -4,17 +4,17 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/auths/builtin"
-	"github.com/seal-io/seal/pkg/auths/session"
-	tokenbus "github.com/seal-io/seal/pkg/bus/token"
-	"github.com/seal-io/seal/pkg/casdoor"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/model/token"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/settings"
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/pkg/auths/builtin"
+	"github.com/seal-io/walrus/pkg/auths/session"
+	tokenbus "github.com/seal-io/walrus/pkg/bus/token"
+	"github.com/seal-io/walrus/pkg/casdoor"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/subject"
+	"github.com/seal-io/walrus/pkg/dao/model/token"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/settings"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 // Login logins a subject with the given username and password.

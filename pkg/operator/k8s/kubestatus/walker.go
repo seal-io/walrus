@@ -10,7 +10,7 @@ import (
 	policy "k8s.io/api/policy/v1"
 	apiregistration "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1"
 
-	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
 const (

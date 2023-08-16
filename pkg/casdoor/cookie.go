@@ -1,7 +1,7 @@
 package casdoor
 
 import (
-	"github.com/seal-io/seal/utils/req"
+	"github.com/seal-io/walrus/utils/req"
 )
 
 const sessionCookieName = "casdoor_session_id"

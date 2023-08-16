@@ -6,14 +6,14 @@ import (
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/operator/alibaba/key"
-	"github.com/seal-io/seal/pkg/operator/alibaba/resourceexec"
-	"github.com/seal-io/seal/pkg/operator/alibaba/resourcelog"
-	"github.com/seal-io/seal/pkg/operator/alibaba/resourcestatus"
-	optypes "github.com/seal-io/seal/pkg/operator/types"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/operator/alibaba/key"
+	"github.com/seal-io/walrus/pkg/operator/alibaba/resourceexec"
+	"github.com/seal-io/walrus/pkg/operator/alibaba/resourcelog"
+	"github.com/seal-io/walrus/pkg/operator/alibaba/resourcestatus"
+	optypes "github.com/seal-io/walrus/pkg/operator/types"
 )
 
 const OperatorType = "Alibaba"

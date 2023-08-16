@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 
-	"github.com/seal-io/seal/pkg/operator/types"
+	"github.com/seal-io/walrus/pkg/operator/types"
 )
 
 // Credential is a struct use to implement aws credentials.

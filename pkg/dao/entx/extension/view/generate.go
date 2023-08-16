@@ -7,7 +7,7 @@ import (
 
 	"entgo.io/ent/entc/gen"
 
-	"github.com/seal-io/seal/pkg/dao/entx/extension"
+	"github.com/seal-io/walrus/pkg/dao/entx/extension"
 )
 
 func Generate(g *gen.Graph) (err error) {
