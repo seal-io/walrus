@@ -9,8 +9,8 @@ import (
 func BuiltinCatalog() *model.Catalog {
 	return &model.Catalog{
 		Name:        "builtin",
-		Description: "Seal Builtin Catalog",
+		Description: "Walrus Builtin Catalog",
 		Type:        types.GitDriverGithub,
-		Source:      "https://github.com/terraform-seal-modules",
+		Source:      "https://github.com/walrus-catalog",
 	}
 }
