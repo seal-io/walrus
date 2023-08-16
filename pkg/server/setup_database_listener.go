@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 
-	"github.com/seal-io/seal/pkg/databaselistener"
+	"github.com/seal-io/walrus/pkg/databaselistener"
 )
 
 // setupDatabaseListener set the listener to listen database table changes event.

@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slices"
 
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
 type Role struct {

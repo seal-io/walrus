@@ -1,12 +1,12 @@
 package servicerevision
 
 import (
-	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
-	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/pkg/topic/datamessage"
-	"github.com/seal-io/seal/utils/topic"
+	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/topic/datamessage"
+	"github.com/seal-io/walrus/utils/topic"
 )
 
 func (h Handler) Get(req GetRequest) (GetResponse, error) {

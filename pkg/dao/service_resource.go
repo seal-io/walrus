@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
-	"github.com/seal-io/seal/pkg/dao/model/serviceresourcerelationship"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/connector"
+	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
+	"github.com/seal-io/walrus/pkg/dao/model/serviceresourcerelationship"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 // ServiceResourceInstancesEdgeSave saves the edge instances of model.ServiceResource entity.

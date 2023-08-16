@@ -1,15 +1,15 @@
 package environment
 
 import (
-	envbus "github.com/seal-io/seal/pkg/bus/environment"
-	"github.com/seal-io/seal/pkg/dao"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/model/environment"
-	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
-	"github.com/seal-io/seal/pkg/dao/model/project"
-	pkgservice "github.com/seal-io/seal/pkg/service"
-	"github.com/seal-io/seal/utils/log"
+	envbus "github.com/seal-io/walrus/pkg/bus/environment"
+	"github.com/seal-io/walrus/pkg/dao"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/connector"
+	"github.com/seal-io/walrus/pkg/dao/model/environment"
+	"github.com/seal-io/walrus/pkg/dao/model/environmentconnectorrelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/project"
+	pkgservice "github.com/seal-io/walrus/pkg/service"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 func (h Handler) Create(req CreateRequest) (CreateResponse, error) {

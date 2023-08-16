@@ -5,12 +5,12 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/pkg/operator"
-	optypes "github.com/seal-io/seal/pkg/operator/types"
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/operator"
+	optypes "github.com/seal-io/walrus/pkg/operator/types"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 // GetVerticesAndEdges constructs a graph of the given model.ServiceResource entities with DFS algorithm,

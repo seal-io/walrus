@@ -3,8 +3,8 @@ package catalog
 import (
 	"context"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/utils/bus"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/utils/bus"
 )
 
 type BusMessage struct {

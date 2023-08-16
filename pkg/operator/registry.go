@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/seal-io/seal/pkg/operator/alibaba"
-	"github.com/seal-io/seal/pkg/operator/aws"
-	"github.com/seal-io/seal/pkg/operator/k8s"
-	"github.com/seal-io/seal/pkg/operator/types"
-	"github.com/seal-io/seal/pkg/operator/unknown"
-	"github.com/seal-io/seal/pkg/operator/unreachable"
+	"github.com/seal-io/walrus/pkg/operator/alibaba"
+	"github.com/seal-io/walrus/pkg/operator/aws"
+	"github.com/seal-io/walrus/pkg/operator/k8s"
+	"github.com/seal-io/walrus/pkg/operator/types"
+	"github.com/seal-io/walrus/pkg/operator/unknown"
+	"github.com/seal-io/walrus/pkg/operator/unreachable"
 )
 
 var opCreators map[types.Type]types.Creator

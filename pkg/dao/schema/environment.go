@@ -6,10 +6,10 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/index"
 
-	"github.com/seal-io/seal/pkg/dao/entx"
-	"github.com/seal-io/seal/pkg/dao/schema/intercept"
-	"github.com/seal-io/seal/pkg/dao/schema/mixin"
-	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/entx"
+	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
+	"github.com/seal-io/walrus/pkg/dao/schema/mixin"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
 type Environment struct {

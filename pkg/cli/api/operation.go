@@ -15,10 +15,10 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
 
-	"github.com/seal-io/seal/pkg/cli/config"
-	"github.com/seal-io/seal/pkg/cli/formatter"
-	"github.com/seal-io/seal/utils/json"
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/pkg/cli/config"
+	"github.com/seal-io/walrus/pkg/cli/formatter"
+	"github.com/seal-io/walrus/utils/json"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 // Operation represents an API action, e.g. list-things or create-user.

@@ -1,11 +1,11 @@
 package template
 
 import (
-	modbus "github.com/seal-io/seal/pkg/bus/template"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/template"
-	"github.com/seal-io/seal/pkg/dao/model/templateversion"
-	"github.com/seal-io/seal/pkg/dao/types/status"
+	modbus "github.com/seal-io/walrus/pkg/bus/template"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/template"
+	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
 func (h Handler) RouteRefresh(req RouteRefreshRequest) error {

@@ -1,8 +1,8 @@
-module github.com/seal-io/seal
+module github.com/seal-io/walrus
 
 replace (
 	github.com/drone/go-scm => github.com/seal-io/go-scm v0.0.0-20230802090948-168c3edb14ae
-	github.com/seal-io/seal/utils => ./staging/utils
+	github.com/seal-io/walrus/utils => ./staging/utils
 )
 
 go 1.19
@@ -47,7 +47,7 @@ require (
 	github.com/prometheus/client_golang v1.16.0
 	github.com/redis/go-redis/v9 v9.0.5
 	github.com/sashabaranov/go-openai v1.5.4
-	github.com/seal-io/seal/utils v0.0.0-00010101000000-000000000000
+	github.com/seal-io/walrus/utils v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.9.0
 	github.com/sony/sonyflake v1.1.0
 	github.com/spf13/cobra v1.7.0

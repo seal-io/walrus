@@ -3,9 +3,9 @@ package server
 import (
 	"context"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/setting"
-	"github.com/seal-io/seal/pkg/settings"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/setting"
+	"github.com/seal-io/walrus/pkg/settings"
 )
 
 // setupSettings creates the global settings into the database,

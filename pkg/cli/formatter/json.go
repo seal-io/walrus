@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // JsonFormatter use to convert response to json format.

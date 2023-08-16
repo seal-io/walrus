@@ -7,10 +7,10 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 
-	"github.com/seal-io/seal/pkg/dao/entx"
-	"github.com/seal-io/seal/pkg/dao/schema/mixin"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/entx"
+	"github.com/seal-io/walrus/pkg/dao/schema/mixin"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
 type TemplateVersion struct {

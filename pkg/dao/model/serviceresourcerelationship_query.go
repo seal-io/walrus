@@ -15,11 +15,11 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/internal"
-	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
-	"github.com/seal-io/seal/pkg/dao/model/serviceresourcerelationship"
-	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/model/internal"
+	"github.com/seal-io/walrus/pkg/dao/model/predicate"
+	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
+	"github.com/seal-io/walrus/pkg/dao/model/serviceresourcerelationship"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
 // ServiceResourceRelationshipQuery is the builder for querying ServiceResourceRelationship entities.

@@ -6,12 +6,12 @@ import (
 
 	"github.com/hashicorp/go-getter"
 
-	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/model/template"
-	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/utils/validation"
+	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/predicate"
+	"github.com/seal-io/walrus/pkg/dao/model/template"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/validation"
 )
 
 type (

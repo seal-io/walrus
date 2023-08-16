@@ -1,6 +1,6 @@
 package telemetry
 
-import "github.com/seal-io/seal/utils/log"
+import "github.com/seal-io/walrus/utils/log"
 
 var (
 	logger     = log.GetLogger().WithName("telemetry")

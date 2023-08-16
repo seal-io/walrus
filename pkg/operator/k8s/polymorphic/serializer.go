@@ -8,7 +8,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	serializerjson "k8s.io/apimachinery/pkg/runtime/serializer/json"
 
-	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 type metaFactory struct{}

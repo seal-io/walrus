@@ -3,8 +3,8 @@ package environment
 import (
 	"fmt"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
 )
 
 func GetManagedNamespaceName(e *model.Environment) string {

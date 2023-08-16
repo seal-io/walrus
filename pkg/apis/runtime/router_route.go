@@ -15,9 +15,9 @@ import (
 	"golang.org/x/exp/slices"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/seal-io/seal/pkg/apis/runtime/bind"
-	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/apis/runtime/bind"
+	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 func (rt *Router) Routes(handler IHandler) IRouter {

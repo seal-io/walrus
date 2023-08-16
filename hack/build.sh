@@ -16,9 +16,9 @@ function build() {
   local path="$3"
 
   local ldflags=(
-    "-X github.com/seal-io/seal/utils/version.Version=${GIT_VERSION}"
-    "-X github.com/seal-io/seal/utils/version.GitCommit=${GIT_COMMIT}"
-    "-X github.com/seal-io/seal/pkg/telemetry.APIKey=${SEAL_TELEMETRY_API_KEY:-}"
+    "-X github.com/seal-io/walrus/utils/version.Version=${GIT_VERSION}"
+    "-X github.com/seal-io/walrus/utils/version.GitCommit=${GIT_COMMIT}"
+    "-X github.com/seal-io/walrus/pkg/telemetry.APIKey=${SEAL_TELEMETRY_API_KEY:-}"
     "-w -s"
     "-extldflags '-static'"
   )

@@ -3,7 +3,7 @@ package entx
 import (
 	"entgo.io/ent/entc/gen"
 
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 func fixDefaultTemplates() {

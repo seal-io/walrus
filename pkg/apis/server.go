@@ -13,9 +13,9 @@ import (
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
 
-	"github.com/seal-io/seal/utils/dynacert"
-	"github.com/seal-io/seal/utils/gopool"
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/utils/dynacert"
+	"github.com/seal-io/walrus/utils/gopool"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 func NewServer() (*Server, error) {

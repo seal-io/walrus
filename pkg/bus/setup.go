@@ -3,19 +3,19 @@ package bus
 import (
 	"context"
 
-	authstoken "github.com/seal-io/seal/pkg/auths/token"
-	"github.com/seal-io/seal/pkg/bus/catalog"
-	"github.com/seal-io/seal/pkg/bus/environment"
-	"github.com/seal-io/seal/pkg/bus/servicerevision"
-	"github.com/seal-io/seal/pkg/bus/setting"
-	"github.com/seal-io/seal/pkg/bus/template"
-	"github.com/seal-io/seal/pkg/bus/token"
-	pkgcatalog "github.com/seal-io/seal/pkg/catalog"
-	"github.com/seal-io/seal/pkg/cron"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/deployer/terraform"
-	pkgenv "github.com/seal-io/seal/pkg/environment"
-	"github.com/seal-io/seal/pkg/templates"
+	authstoken "github.com/seal-io/walrus/pkg/auths/token"
+	"github.com/seal-io/walrus/pkg/bus/catalog"
+	"github.com/seal-io/walrus/pkg/bus/environment"
+	"github.com/seal-io/walrus/pkg/bus/servicerevision"
+	"github.com/seal-io/walrus/pkg/bus/setting"
+	"github.com/seal-io/walrus/pkg/bus/template"
+	"github.com/seal-io/walrus/pkg/bus/token"
+	pkgcatalog "github.com/seal-io/walrus/pkg/catalog"
+	"github.com/seal-io/walrus/pkg/cron"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/deployer/terraform"
+	pkgenv "github.com/seal-io/walrus/pkg/environment"
+	"github.com/seal-io/walrus/pkg/templates"
 )
 
 type SetupOptions struct {

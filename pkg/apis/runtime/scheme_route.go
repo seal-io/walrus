@@ -16,10 +16,10 @@ import (
 	"golang.org/x/exp/slices"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/seal-io/seal/pkg/apis/runtime/openapi"
-	"github.com/seal-io/seal/utils/hash"
-	"github.com/seal-io/seal/utils/strs"
-	"github.com/seal-io/seal/utils/version"
+	"github.com/seal-io/walrus/pkg/apis/runtime/openapi"
+	"github.com/seal-io/walrus/utils/hash"
+	"github.com/seal-io/walrus/utils/strs"
+	"github.com/seal-io/walrus/utils/version"
 )
 
 var openAPISchemas = &openapi3.T{

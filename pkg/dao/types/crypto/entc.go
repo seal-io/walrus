@@ -4,8 +4,8 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/utils/cryptox"
-	"github.com/seal-io/seal/utils/vars"
+	"github.com/seal-io/walrus/utils/cryptox"
+	"github.com/seal-io/walrus/utils/vars"
 )
 
 // EncryptorConfig holds the config of the String encryption.

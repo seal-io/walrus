@@ -13,9 +13,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
-	"github.com/seal-io/seal/pkg/dao/model/serviceresourcerelationship"
-	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
+	"github.com/seal-io/walrus/pkg/dao/model/serviceresourcerelationship"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
 // ServiceResourceRelationship is the model entity for the ServiceResourceRelationship schema.

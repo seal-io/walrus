@@ -10,7 +10,7 @@ import (
 	_ "github.com/lib/pq" // Db = postgres.
 	"k8s.io/apimachinery/pkg/util/wait"
 
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 const (

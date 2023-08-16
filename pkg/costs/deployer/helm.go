@@ -12,7 +12,7 @@ import (
 	"helm.sh/helm/v3/pkg/release"
 	"helm.sh/helm/v3/pkg/repo"
 
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 const (

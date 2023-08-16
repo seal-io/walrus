@@ -1,7 +1,7 @@
 package perspective
 
 import (
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types"
 )
 
 var (

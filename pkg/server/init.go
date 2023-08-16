@@ -11,10 +11,10 @@ import (
 
 	"k8s.io/client-go/rest"
 
-	"github.com/seal-io/seal/pkg/cache"
-	"github.com/seal-io/seal/pkg/dao/migration"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/cache"
+	"github.com/seal-io/walrus/pkg/dao/migration"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 type initOptions struct {

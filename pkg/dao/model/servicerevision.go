@@ -13,15 +13,15 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/seal-io/seal/pkg/dao/model/environment"
-	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/pkg/dao/types/property"
-	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/walrus/pkg/dao/model/environment"
+	"github.com/seal-io/walrus/pkg/dao/model/project"
+	"github.com/seal-io/walrus/pkg/dao/model/service"
+	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/crypto"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/types/property"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // ServiceRevision is the model entity for the ServiceRevision schema.

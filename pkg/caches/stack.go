@@ -6,9 +6,9 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/seal-io/seal/utils/cache"
-	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/vars"
+	"github.com/seal-io/walrus/utils/cache"
+	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/vars"
 )
 
 var Stack = vars.SetOnce[[]cache.Cache]{}

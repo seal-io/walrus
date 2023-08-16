@@ -7,19 +7,19 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/seal-io/seal/pkg/auths/session"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/model/environment"
-	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
-	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/utils/sqlx"
-	"github.com/seal-io/seal/utils/timex"
+	"github.com/seal-io/walrus/pkg/auths/session"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/connector"
+	"github.com/seal-io/walrus/pkg/dao/model/environment"
+	"github.com/seal-io/walrus/pkg/dao/model/predicate"
+	"github.com/seal-io/walrus/pkg/dao/model/service"
+	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
+	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/utils/sqlx"
+	"github.com/seal-io/walrus/utils/timex"
 )
 
 var getServiceRevisionFields = servicerevision.WithoutFields(

@@ -19,10 +19,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/internal"
-	"github.com/seal-io/seal/pkg/dao/model/perspective"
-	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/model/internal"
+	"github.com/seal-io/walrus/pkg/dao/model/perspective"
+	"github.com/seal-io/walrus/pkg/dao/model/predicate"
+	"github.com/seal-io/walrus/pkg/dao/types"
 )
 
 // PerspectiveUpdate is the builder for updating Perspective entities.

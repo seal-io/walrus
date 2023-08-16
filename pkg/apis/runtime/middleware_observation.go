@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 // SkipLoggingPaths is a RouterOption to ignore logging for the given paths.

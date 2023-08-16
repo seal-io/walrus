@@ -11,10 +11,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/model/environment"
-	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/schema/intercept"
-	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/model/environment"
+	"github.com/seal-io/walrus/pkg/dao/model/predicate"
+	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
 // EnvironmentCreateInput holds the creation input of the Environment entity,

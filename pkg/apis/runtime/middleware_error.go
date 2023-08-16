@@ -9,8 +9,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/gin-gonic/gin"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 // erroring is a gin middleware,

@@ -13,7 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types"
 )
 
 func GetServiceEndpoints(

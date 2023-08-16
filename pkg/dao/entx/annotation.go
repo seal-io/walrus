@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"runtime"
 
-	"github.com/seal-io/seal/pkg/dao/entx/annotation"
+	"github.com/seal-io/walrus/pkg/dao/entx/annotation"
 )
 
 type (

@@ -12,7 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/seal-io/seal/pkg/dao/model/distributelock"
+	"github.com/seal-io/walrus/pkg/dao/model/distributelock"
 )
 
 // DistributeLock is the model entity for the DistributeLock schema.

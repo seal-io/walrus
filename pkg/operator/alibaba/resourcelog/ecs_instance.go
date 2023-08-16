@@ -8,8 +8,8 @@ import (
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 
-	optypes "github.com/seal-io/seal/pkg/operator/types"
-	"github.com/seal-io/seal/utils/strs"
+	optypes "github.com/seal-io/walrus/pkg/operator/types"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 const (

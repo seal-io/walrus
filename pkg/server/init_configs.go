@@ -11,15 +11,15 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/seal-io/seal/pkg/auths"
-	"github.com/seal-io/seal/pkg/cache"
-	"github.com/seal-io/seal/pkg/caches"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/settings"
-	cacheutil "github.com/seal-io/seal/utils/cache"
-	"github.com/seal-io/seal/utils/cryptox"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/auths"
+	"github.com/seal-io/walrus/pkg/cache"
+	"github.com/seal-io/walrus/pkg/caches"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types/crypto"
+	"github.com/seal-io/walrus/pkg/settings"
+	cacheutil "github.com/seal-io/walrus/utils/cache"
+	"github.com/seal-io/walrus/utils/cryptox"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 // initConfigs configures the system singleton instances at initialization phase,

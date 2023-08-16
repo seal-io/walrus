@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/template"
-	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/template"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
 // CreateTemplate creates or updates a template.

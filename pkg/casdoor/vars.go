@@ -1,7 +1,7 @@
 package casdoor
 
 import (
-	"github.com/seal-io/seal/utils/vars"
+	"github.com/seal-io/walrus/utils/vars"
 )
 
 var endpoint = &vars.SetOnce[string]{}

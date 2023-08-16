@@ -3,19 +3,19 @@ package service
 import (
 	"context"
 
-	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/environment"
-	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/model/templateversion"
-	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/pkg/deployer"
-	deployertf "github.com/seal-io/seal/pkg/deployer/terraform"
-	deptypes "github.com/seal-io/seal/pkg/deployer/types"
-	pkgservice "github.com/seal-io/seal/pkg/service"
-	"github.com/seal-io/seal/pkg/topic/datamessage"
-	"github.com/seal-io/seal/utils/topic"
+	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/environment"
+	"github.com/seal-io/walrus/pkg/dao/model/project"
+	"github.com/seal-io/walrus/pkg/dao/model/service"
+	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/deployer"
+	deployertf "github.com/seal-io/walrus/pkg/deployer/terraform"
+	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
+	pkgservice "github.com/seal-io/walrus/pkg/service"
+	"github.com/seal-io/walrus/pkg/topic/datamessage"
+	"github.com/seal-io/walrus/utils/topic"
 )
 
 func (h Handler) Create(req CreateRequest) (CreateResponse, error) {

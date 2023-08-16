@@ -8,10 +8,10 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/utils/strs"
-	"github.com/seal-io/seal/utils/version"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types/crypto"
+	"github.com/seal-io/walrus/utils/strs"
+	"github.com/seal-io/walrus/utils/version"
 )
 
 // ConfigOption holds the modification to modify the return rest.Config.

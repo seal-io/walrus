@@ -16,9 +16,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/setting"
-	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/model/setting"
+	"github.com/seal-io/walrus/pkg/dao/types/crypto"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
 // SettingCreate is the builder for creating a Setting entity.

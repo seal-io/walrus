@@ -10,10 +10,10 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 
-	"github.com/seal-io/seal/pkg/dao/entx"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/dao/entx"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 // CostReport holds the schema definition for the cluster resource item hourly cost.

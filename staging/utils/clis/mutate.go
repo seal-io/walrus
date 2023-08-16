@@ -5,7 +5,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 func MutateAppEnvs(app *App) {

@@ -3,10 +3,10 @@ package databaselistener
 import (
 	"context"
 
-	"github.com/seal-io/seal/pkg/databaselistener/setting"
+	"github.com/seal-io/walrus/pkg/databaselistener/setting"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/database"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/database"
 )
 
 type SetupOptions struct {

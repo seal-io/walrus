@@ -3,10 +3,10 @@ package settings
 import (
 	"k8s.io/utils/pointer"
 
-	"github.com/seal-io/seal/pkg/casdoor"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/casdoor"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types/crypto"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 // the built-in settings for deployer.

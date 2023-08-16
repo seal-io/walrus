@@ -10,12 +10,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
-	envbus "github.com/seal-io/seal/pkg/bus/environment"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/object"
-	opk8s "github.com/seal-io/seal/pkg/operator/k8s"
+	envbus "github.com/seal-io/walrus/pkg/bus/environment"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/connector"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	opk8s "github.com/seal-io/walrus/pkg/operator/k8s"
 )
 
 // SyncManagedKubernetesNamespace creates/deletes Seal managed kubernetes namespace

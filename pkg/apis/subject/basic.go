@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/casdoor"
-	"github.com/seal-io/seal/pkg/dao"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/role"
-	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/settings"
+	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/pkg/casdoor"
+	"github.com/seal-io/walrus/pkg/dao"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/role"
+	"github.com/seal-io/walrus/pkg/dao/model/subject"
+	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/settings"
 )
 
 func (h Handler) Create(req CreateRequest) (CreateResponse, error) {

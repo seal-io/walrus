@@ -16,10 +16,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
-	"github.com/seal-io/seal/pkg/dao/model/token"
-	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/model/subject"
+	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/token"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
 // SubjectCreate is the builder for creating a Subject entity.

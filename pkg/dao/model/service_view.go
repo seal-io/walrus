@@ -11,12 +11,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/schema/intercept"
-	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/pkg/dao/types/property"
-	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/dao/model/predicate"
+	"github.com/seal-io/walrus/pkg/dao/model/service"
+	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/types/property"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
 // ServiceCreateInput holds the creation input of the Service entity,

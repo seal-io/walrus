@@ -9,7 +9,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 // clipRedisAddress tries to normalize the given redis address,

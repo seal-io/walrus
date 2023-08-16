@@ -19,7 +19,7 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/net/idna"
 
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 // HostPolicy specifies which host names the Manager is allowed to respond to.

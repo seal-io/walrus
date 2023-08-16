@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/seal-io/seal/pkg/deployer/terraform"
-	"github.com/seal-io/seal/pkg/deployer/types"
+	"github.com/seal-io/walrus/pkg/deployer/terraform"
+	"github.com/seal-io/walrus/pkg/deployer/types"
 )
 
 var dpCreators map[types.Type]types.Creator

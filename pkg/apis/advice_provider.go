@@ -1,8 +1,8 @@
 package apis
 
 import (
-	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/pkg/dao/model"
 )
 
 type (

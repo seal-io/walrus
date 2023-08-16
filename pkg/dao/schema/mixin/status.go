@@ -8,9 +8,9 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/mixin"
 
-	"github.com/seal-io/seal/pkg/dao/entx"
-	daostatus "github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/dao/entx"
+	daostatus "github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 func Status() status {

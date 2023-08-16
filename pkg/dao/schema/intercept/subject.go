@@ -6,7 +6,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/seal-io/seal/pkg/auths/session"
+	"github.com/seal-io/walrus/pkg/auths/session"
 )
 
 var interceptWithSubject = instructionKey("subject")

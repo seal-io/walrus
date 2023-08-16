@@ -7,7 +7,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
 
-	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // SelectorsForObject returns the Pod label selector for a given object.

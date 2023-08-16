@@ -5,8 +5,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 func asTermStream(proxy runtime.RequestBidiStream, initWidth, initHeight int32) termStream {

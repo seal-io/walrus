@@ -14,8 +14,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 
-	"github.com/seal-io/seal/utils/gopool"
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/utils/gopool"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 // isStreamRequest returns true if the incoming request is a stream request.

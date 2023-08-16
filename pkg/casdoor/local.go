@@ -10,12 +10,12 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/seal-io/seal/pkg/consts"
-	"github.com/seal-io/seal/pkg/database"
-	"github.com/seal-io/seal/utils/bytespool"
-	"github.com/seal-io/seal/utils/files"
-	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/consts"
+	"github.com/seal-io/walrus/pkg/database"
+	"github.com/seal-io/walrus/utils/bytespool"
+	"github.com/seal-io/walrus/utils/files"
+	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 const casdoorConfigPathEnvName = "BEEGO_CONFIG_PATH"

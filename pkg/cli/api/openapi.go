@@ -11,9 +11,9 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"golang.org/x/exp/slices"
 
-	"github.com/seal-io/seal/pkg/apis/runtime/openapi"
-	"github.com/seal-io/seal/pkg/cli/config"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/apis/runtime/openapi"
+	"github.com/seal-io/walrus/pkg/cli/config"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 const (

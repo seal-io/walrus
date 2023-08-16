@@ -9,7 +9,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"k8s.io/apimachinery/pkg/util/wait"
 
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 const (

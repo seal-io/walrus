@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/seal-io/seal/pkg/dao/entx"
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/pkg/dao/entx"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 func main() {
@@ -32,8 +32,8 @@ func generate() error {
 	// Generate.
 	cfg := entx.Config{
 		ProjectDir: pwd,
-		Project:    "github.com/seal-io/seal",
-		Package:    "github.com/seal-io/seal/pkg/dao",
+		Project:    "github.com/seal-io/walrus",
+		Package:    "github.com/seal-io/walrus/pkg/dao",
 		Header:     string(header),
 	}
 

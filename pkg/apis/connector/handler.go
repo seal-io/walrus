@@ -1,6 +1,6 @@
 package connector
 
-import "github.com/seal-io/seal/pkg/dao/model"
+import "github.com/seal-io/walrus/pkg/dao/model"
 
 func Handle(mc model.ClientSet) Handler {
 	return Handler{

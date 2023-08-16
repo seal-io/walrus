@@ -3,8 +3,8 @@ package auths
 import (
 	"time"
 
-	"github.com/seal-io/seal/utils/cryptox"
-	"github.com/seal-io/seal/utils/vars"
+	"github.com/seal-io/walrus/utils/cryptox"
+	"github.com/seal-io/walrus/utils/vars"
 )
 
 var (

@@ -6,10 +6,10 @@ import (
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/operator/k8s/intercept"
-	"github.com/seal-io/seal/pkg/operator/k8s/kube"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/operator/k8s/intercept"
+	"github.com/seal-io/walrus/pkg/operator/k8s/kube"
 )
 
 // resourceParsingError emits if the given model.ServiceResource got deployer error.

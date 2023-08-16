@@ -11,9 +11,9 @@ import (
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/mmmorris1975/ssm-session-client/datachannel"
 
-	opawstypes "github.com/seal-io/seal/pkg/operator/aws/types"
-	optypes "github.com/seal-io/seal/pkg/operator/types"
-	"github.com/seal-io/seal/utils/gopool"
+	opawstypes "github.com/seal-io/walrus/pkg/operator/aws/types"
+	optypes "github.com/seal-io/walrus/pkg/operator/types"
+	"github.com/seal-io/walrus/utils/gopool"
 )
 
 const (

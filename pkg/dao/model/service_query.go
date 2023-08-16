@@ -16,16 +16,16 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/environment"
-	"github.com/seal-io/seal/pkg/dao/model/internal"
-	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
-	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
-	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
-	"github.com/seal-io/seal/pkg/dao/model/templateversion"
-	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/model/environment"
+	"github.com/seal-io/walrus/pkg/dao/model/internal"
+	"github.com/seal-io/walrus/pkg/dao/model/predicate"
+	"github.com/seal-io/walrus/pkg/dao/model/project"
+	"github.com/seal-io/walrus/pkg/dao/model/service"
+	"github.com/seal-io/walrus/pkg/dao/model/servicerelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
+	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
 // ServiceQuery is the builder for querying Service entities.

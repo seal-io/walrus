@@ -13,7 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"golang.org/x/exp/slices"
 
-	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
 const (
@@ -77,7 +77,7 @@ func ValidColumn(column string) bool {
 // package on the initialization of the application. Therefore,
 // it should be imported in the main as follows:
 //
-//	import _ "github.com/seal-io/seal/pkg/dao/model/runtime"
+//	import _ "github.com/seal-io/walrus/pkg/dao/model/runtime"
 var (
 	Hooks [1]ent.Hook
 	// DefaultCreateTime holds the default value on creation for the "create_time" field.

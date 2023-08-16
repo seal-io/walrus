@@ -9,7 +9,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model"
 )
 
 // The CatalogFunc type is an adapter to allow the use of ordinary

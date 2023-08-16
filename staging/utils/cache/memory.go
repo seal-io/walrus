@@ -10,7 +10,7 @@ import (
 	"github.com/allegro/bigcache/v3"
 	"github.com/dustin/go-humanize"
 
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 // MemoryConfig holds the configuration of the in-memory cache,

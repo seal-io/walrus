@@ -8,8 +8,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 
-	optypes "github.com/seal-io/seal/pkg/operator/types"
-	"github.com/seal-io/seal/utils/strs"
+	optypes "github.com/seal-io/walrus/pkg/operator/types"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 const (

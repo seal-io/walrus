@@ -11,9 +11,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
-	"github.com/seal-io/seal/pkg/dao/schema/intercept"
-	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
+	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
 // SubjectRoleRelationshipCreateInput holds the creation input of the SubjectRoleRelationship entity,

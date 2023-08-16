@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"github.com/seal-io/seal/pkg/dao/types/property"
-	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/walrus/pkg/dao/types/property"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 type state struct {

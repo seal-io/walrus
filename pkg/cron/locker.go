@@ -8,10 +8,10 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/distributelock"
-	"github.com/seal-io/seal/utils/cron"
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/distributelock"
+	"github.com/seal-io/walrus/utils/cron"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 const (

@@ -11,12 +11,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/exp/slices"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/enttest"
-	_ "github.com/seal-io/seal/pkg/dao/model/runtime"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/utils/timex"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/enttest"
+	_ "github.com/seal-io/walrus/pkg/dao/model/runtime"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/crypto"
+	"github.com/seal-io/walrus/utils/timex"
 )
 
 const (

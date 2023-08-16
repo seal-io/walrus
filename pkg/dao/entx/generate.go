@@ -12,8 +12,8 @@ import (
 	"golang.org/x/mod/modfile"
 	"golang.org/x/tools/imports"
 
-	"github.com/seal-io/seal/utils/files"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/utils/files"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 func init() {

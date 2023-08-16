@@ -8,18 +8,18 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/dao"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/environment"
-	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/model/templateversion"
-	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/terraform/convertor"
-	"github.com/seal-io/seal/utils/strs"
-	"github.com/seal-io/seal/utils/validation"
+	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/pkg/dao"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/environment"
+	"github.com/seal-io/walrus/pkg/dao/model/predicate"
+	"github.com/seal-io/walrus/pkg/dao/model/service"
+	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/terraform/convertor"
+	"github.com/seal-io/walrus/utils/strs"
+	"github.com/seal-io/walrus/utils/validation"
 )
 
 type (

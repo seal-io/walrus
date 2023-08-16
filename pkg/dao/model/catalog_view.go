@@ -11,11 +11,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/model/catalog"
-	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/dao/model/catalog"
+	"github.com/seal-io/walrus/pkg/dao/model/predicate"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
 // CatalogCreateInput holds the creation input of the Catalog entity,

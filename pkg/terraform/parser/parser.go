@@ -13,13 +13,13 @@ import (
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/seal-io/seal/pkg/dao"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/utils/json"
-	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/dao"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/json"
+	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 // ConnectorSeparator is used to separate the connector id and the instance name.

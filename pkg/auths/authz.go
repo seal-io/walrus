@@ -5,14 +5,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/seal-io/seal/pkg/auths/session"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/model/role"
-	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/auths/session"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/predicate"
+	"github.com/seal-io/walrus/pkg/dao/model/project"
+	"github.com/seal-io/walrus/pkg/dao/model/role"
+	"github.com/seal-io/walrus/pkg/dao/model/subject"
+	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
+	"github.com/seal-io/walrus/pkg/dao/types"
 )
 
 func authz(c *gin.Context, mc model.ClientSet, s session.Subject) (session.Subject, error) {

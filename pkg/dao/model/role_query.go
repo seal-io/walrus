@@ -16,10 +16,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/internal"
-	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/model/role"
-	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/internal"
+	"github.com/seal-io/walrus/pkg/dao/model/predicate"
+	"github.com/seal-io/walrus/pkg/dao/model/role"
+	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
 )
 
 // RoleQuery is the builder for querying Role entities.

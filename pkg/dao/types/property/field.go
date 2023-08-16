@@ -11,7 +11,7 @@ import (
 	ctyjson "github.com/zclconf/go-cty/cty/json"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 type (

@@ -8,13 +8,13 @@ package enttest
 import (
 	"context"
 
-	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model"
 	// required by schema hooks.
-	_ "github.com/seal-io/seal/pkg/dao/model/runtime"
+	_ "github.com/seal-io/walrus/pkg/dao/model/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
 
-	"github.com/seal-io/seal/pkg/dao/model/migrate"
+	"github.com/seal-io/walrus/pkg/dao/model/migrate"
 )
 
 type (

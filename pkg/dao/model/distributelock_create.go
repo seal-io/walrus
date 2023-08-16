@@ -15,7 +15,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/distributelock"
+	"github.com/seal-io/walrus/pkg/dao/model/distributelock"
 )
 
 // DistributeLockCreate is the builder for creating a DistributeLock entity.

@@ -4,11 +4,11 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/seal-io/seal/pkg/dao"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/role"
-	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/role"
+	"github.com/seal-io/walrus/pkg/dao/model/subject"
+	"github.com/seal-io/walrus/pkg/dao/types"
 )
 
 // createBuiltinRbac creates the built-in RBAC resources.

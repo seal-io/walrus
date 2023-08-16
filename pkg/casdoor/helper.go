@@ -7,8 +7,8 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/wait"
 
-	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/req"
+	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/req"
 )
 
 func Wait(ctx context.Context, serverUrl string) (err error) {

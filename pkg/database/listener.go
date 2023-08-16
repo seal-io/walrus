@@ -6,9 +6,9 @@ import (
 
 	"github.com/lib/pq"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/utils/json"
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/utils/json"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 // globalListener is the default global database listener.

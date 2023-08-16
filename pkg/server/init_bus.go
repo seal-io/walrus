@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 
-	"github.com/seal-io/seal/pkg/bus"
+	"github.com/seal-io/walrus/pkg/bus"
 )
 
 // setupBusSubscribers launches the synchronous subscribers provided by the bus.

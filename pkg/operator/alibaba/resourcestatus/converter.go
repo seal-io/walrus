@@ -1,7 +1,7 @@
 package resourcestatus
 
 import (
-	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
 // ecsInstanceStatusConverter generate the summary use following table, other status will be treated as transitioning.

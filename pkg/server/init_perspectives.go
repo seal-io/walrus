@@ -3,10 +3,10 @@ package server
 import (
 	"context"
 
-	"github.com/seal-io/seal/pkg/dao/model/perspective"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/model/perspective"
+	"github.com/seal-io/walrus/pkg/dao/types"
 
-	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model"
 )
 
 // createBuiltinPerspectives creates the built-in Perspective resources.

@@ -12,8 +12,8 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/seal-io/seal/utils/json"
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/utils/json"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 func GetConfig(kubeconfigPath string) (*rest.Config, error) {

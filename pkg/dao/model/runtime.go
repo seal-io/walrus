@@ -5,4 +5,4 @@
 
 package model
 
-// The schema-stitching logic is generated in github.com/seal-io/seal/pkg/dao/model/runtime/runtime.go
+// The schema-stitching logic is generated in github.com/seal-io/walrus/pkg/dao/model/runtime/runtime.go

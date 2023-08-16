@@ -10,8 +10,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/seal-io/seal/pkg/dao/model/distributelock"
-	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/model/distributelock"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
 // DistributeLockCreateInput holds the creation input of the DistributeLock entity,

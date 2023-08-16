@@ -3,9 +3,9 @@ package config
 import (
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/terraform/parser"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/terraform/parser"
 )
 
 const (

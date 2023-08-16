@@ -1,8 +1,8 @@
 package perspective
 
 import (
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/perspective"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/perspective"
 )
 
 func (h Handler) Create(req CreateRequest) (CreateResponse, error) {

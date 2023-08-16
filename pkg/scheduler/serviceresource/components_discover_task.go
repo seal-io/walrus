@@ -10,15 +10,15 @@ import (
 
 	"go.uber.org/multierr"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/pkg/operator"
-	optypes "github.com/seal-io/seal/pkg/operator/types"
-	"github.com/seal-io/seal/utils/gopool"
-	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/operator"
+	optypes "github.com/seal-io/walrus/pkg/operator/types"
+	"github.com/seal-io/walrus/utils/gopool"
+	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 type ComponentsDiscoverTask struct {

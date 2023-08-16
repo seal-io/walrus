@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/seal-io/seal/utils/req"
+	"github.com/seal-io/walrus/utils/req"
 )
 
 const (

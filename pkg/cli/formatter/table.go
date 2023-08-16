@@ -11,7 +11,7 @@ import (
 	"github.com/alexeyco/simpletable"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // watchFields represent the common headers for list response.

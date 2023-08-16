@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/seal-io/seal/utils/json"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/utils/json"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 // initializer defines the stereotype for reading initialized value.

@@ -13,11 +13,11 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/seal-io/seal/pkg/dao/model/environment"
-	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/model/variable"
-	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/model/environment"
+	"github.com/seal-io/walrus/pkg/dao/model/project"
+	"github.com/seal-io/walrus/pkg/dao/model/variable"
+	"github.com/seal-io/walrus/pkg/dao/types/crypto"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
 // Variable is the model entity for the Variable schema.

@@ -15,8 +15,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/seal-io/seal/pkg/apis/runtime/openapi"
-	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/walrus/pkg/apis/runtime/openapi"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 type (

@@ -3,10 +3,10 @@ package service
 import (
 	"k8s.io/client-go/rest"
 
-	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/apis/serviceresource"
-	"github.com/seal-io/seal/pkg/apis/servicerevision"
-	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/pkg/apis/serviceresource"
+	"github.com/seal-io/walrus/pkg/apis/servicerevision"
+	"github.com/seal-io/walrus/pkg/dao/model"
 )
 
 func Handle(mc model.ClientSet, kc *rest.Config, tc bool) Handler {

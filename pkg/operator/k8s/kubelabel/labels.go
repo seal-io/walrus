@@ -13,8 +13,8 @@ import (
 	typesk8s "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 
-	"github.com/seal-io/seal/pkg/operator/k8s/polymorphic"
-	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/walrus/pkg/operator/k8s/polymorphic"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // Apply applies the labels to kubernetes resource.

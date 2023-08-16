@@ -6,8 +6,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 // RequestCollection holds the requesting data of collection,

@@ -13,9 +13,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/seal-io/seal/pkg/dao/model/role"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/walrus/pkg/dao/model/role"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // Role is the model entity for the Role schema.

@@ -22,7 +22,7 @@ import (
 
 	"golang.org/x/crypto/acme/autocert"
 
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 func GenCA() (crypto.Signer, *x509.Certificate, error) {

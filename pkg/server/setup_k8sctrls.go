@@ -6,9 +6,9 @@ import (
 
 	"k8s.io/client-go/rest"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/k8sctrls"
-	"github.com/seal-io/seal/utils/gopool"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/k8sctrls"
+	"github.com/seal-io/walrus/utils/gopool"
 )
 
 type setupK8sCtrlsOptions struct {

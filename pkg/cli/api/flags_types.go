@@ -6,8 +6,8 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/spf13/pflag"
 
-	"github.com/seal-io/seal/utils/json"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/utils/json"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 // ObjectFlag creates a custom flag for map[string]interface{}.

@@ -12,8 +12,8 @@ import (
 	"github.com/zclconf/go-cty/cty/gocty"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/seal-io/seal/utils/json"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/utils/json"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 // TODO(thxCode): support tuple schema?

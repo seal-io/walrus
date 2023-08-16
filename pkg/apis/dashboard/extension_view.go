@@ -6,9 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/utils/timex"
-	"github.com/seal-io/seal/utils/validation"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/utils/timex"
+	"github.com/seal-io/walrus/utils/validation"
 )
 
 type RevisionStatusCount struct {

@@ -18,14 +18,14 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	revisionbus "github.com/seal-io/seal/pkg/bus/servicerevision"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/pkg/dao/types/status"
-	opk8s "github.com/seal-io/seal/pkg/operator/k8s"
-	"github.com/seal-io/seal/pkg/operator/k8s/kube"
-	"github.com/seal-io/seal/utils/log"
+	revisionbus "github.com/seal-io/walrus/pkg/bus/servicerevision"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
+	opk8s "github.com/seal-io/walrus/pkg/operator/k8s"
+	"github.com/seal-io/walrus/pkg/operator/k8s/kube"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 const (

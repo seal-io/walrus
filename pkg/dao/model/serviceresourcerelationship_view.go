@@ -11,9 +11,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/model/serviceresourcerelationship"
-	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/model/predicate"
+	"github.com/seal-io/walrus/pkg/dao/model/serviceresourcerelationship"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
 // ServiceResourceRelationshipCreateInput holds the creation input of the ServiceResourceRelationship entity,

@@ -3,12 +3,12 @@ package setting
 import (
 	"net/http"
 
-	"github.com/seal-io/seal/pkg/apis/runtime"
-	settingbus "github.com/seal-io/seal/pkg/bus/setting"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/model/setting"
-	"github.com/seal-io/seal/pkg/settings"
+	"github.com/seal-io/walrus/pkg/apis/runtime"
+	settingbus "github.com/seal-io/walrus/pkg/bus/setting"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/predicate"
+	"github.com/seal-io/walrus/pkg/dao/model/setting"
+	"github.com/seal-io/walrus/pkg/settings"
 )
 
 func (h Handler) Get(req GetRequest) (GetResponse, error) {

@@ -3,11 +3,11 @@ package servicerevision
 import (
 	"errors"
 
-	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types/property"
-	"github.com/seal-io/seal/pkg/deployer/terraform"
-	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types/property"
+	"github.com/seal-io/walrus/pkg/deployer/terraform"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 type RevisionDiff struct {

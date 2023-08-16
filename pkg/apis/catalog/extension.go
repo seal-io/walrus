@@ -1,10 +1,10 @@
 package catalog
 
 import (
-	catalogbus "github.com/seal-io/seal/pkg/bus/catalog"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/template"
-	"github.com/seal-io/seal/pkg/dao/types/status"
+	catalogbus "github.com/seal-io/walrus/pkg/bus/catalog"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/template"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
 func (h Handler) RouteRefresh(req RouteSyncCatalogRequest) error {

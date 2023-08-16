@@ -9,9 +9,9 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/seal-io/seal/pkg/dao/model/enttest"
-	_ "github.com/seal-io/seal/pkg/dao/model/runtime"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/model/enttest"
+	_ "github.com/seal-io/walrus/pkg/dao/model/runtime"
+	"github.com/seal-io/walrus/pkg/dao/types"
 )
 
 const (

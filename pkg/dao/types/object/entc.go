@@ -9,7 +9,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/sony/sonyflake"
 
-	"github.com/seal-io/seal/utils/vars"
+	"github.com/seal-io/walrus/utils/vars"
 )
 
 // Config holds the config of the object.ID generation.

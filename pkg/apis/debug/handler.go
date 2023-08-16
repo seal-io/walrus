@@ -7,9 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 
-	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/version"
+	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/version"
 )
 
 func Version() runtime.Handle {

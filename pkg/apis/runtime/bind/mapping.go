@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/seal-io/seal/utils/json"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/walrus/utils/json"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 var (

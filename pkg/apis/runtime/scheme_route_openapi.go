@@ -11,8 +11,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/seal-io/seal/utils/bytespool"
-	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/walrus/utils/bytespool"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // ExposeOpenAPI is a RouterOption to add route to serve the OpenAPI schema spec,

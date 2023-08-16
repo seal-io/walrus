@@ -3,12 +3,12 @@ package auths
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/seal-io/seal/pkg/auths/builtin"
-	"github.com/seal-io/seal/pkg/auths/session"
-	"github.com/seal-io/seal/pkg/auths/token"
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/auths/builtin"
+	"github.com/seal-io/walrus/pkg/auths/session"
+	"github.com/seal-io/walrus/pkg/auths/token"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/subject"
+	"github.com/seal-io/walrus/pkg/dao/types"
 )
 
 func authn(c *gin.Context, mc model.ClientSet, s session.Subject) (session.Subject, error) {

@@ -5,8 +5,8 @@ import (
 	"os"
 	"runtime/debug"
 
-	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/version"
+	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/version"
 )
 
 var (

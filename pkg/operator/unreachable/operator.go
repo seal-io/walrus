@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/status"
-	optypes "github.com/seal-io/seal/pkg/operator/types"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
+	optypes "github.com/seal-io/walrus/pkg/operator/types"
 )
 
 const OperatorType = "UnReachable"

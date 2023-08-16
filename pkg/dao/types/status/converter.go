@@ -1,6 +1,6 @@
 package status
 
-import "github.com/seal-io/seal/utils/strs"
+import "github.com/seal-io/walrus/utils/strs"
 
 type (
 	Converter interface {

@@ -6,10 +6,10 @@ import (
 
 	"entgo.io/ent"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/pkg/topic/datamessage"
-	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/topic/datamessage"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 // configureModelClient enables the mutation hooks or interceptors for the model.Client.
@@ -49,7 +49,7 @@ func dispatchModelChange(n model.Mutator) model.Mutator {
 			// e.g. delete error is still a write error, not a read error.
 			// We only warn out the error to prevent change watching breaking the default behavior.
 			logger.Errorf("error getting ids notifier: %v", err)
-			return v, nil //nolint: nilerr
+			return v, nil // nolint: nilerr
 		}
 
 		if notify == nil {

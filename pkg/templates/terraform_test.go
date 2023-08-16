@@ -11,10 +11,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/utils/pointer"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/property"
-	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/property"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 func TestGetTemplateNameByPath(t *testing.T) {

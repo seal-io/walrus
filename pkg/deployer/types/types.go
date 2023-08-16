@@ -3,7 +3,7 @@ package types
 import (
 	"context"
 
-	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model"
 )
 
 // Type indicates the type of Deployer,

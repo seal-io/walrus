@@ -6,15 +6,15 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/operator/aws/key"
-	"github.com/seal-io/seal/pkg/operator/aws/resourceexec"
-	"github.com/seal-io/seal/pkg/operator/aws/resourcelog"
-	"github.com/seal-io/seal/pkg/operator/aws/resourcestatus"
-	opawstypes "github.com/seal-io/seal/pkg/operator/aws/types"
-	optypes "github.com/seal-io/seal/pkg/operator/types"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/operator/aws/key"
+	"github.com/seal-io/walrus/pkg/operator/aws/resourceexec"
+	"github.com/seal-io/walrus/pkg/operator/aws/resourcelog"
+	"github.com/seal-io/walrus/pkg/operator/aws/resourcestatus"
+	opawstypes "github.com/seal-io/walrus/pkg/operator/aws/types"
+	optypes "github.com/seal-io/walrus/pkg/operator/types"
 )
 
 const OperatorType = "AWS"

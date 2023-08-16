@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/seal-io/seal/utils/runtimex"
+	"github.com/seal-io/walrus/utils/runtimex"
 )
 
 type Event struct {
