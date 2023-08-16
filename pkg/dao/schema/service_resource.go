@@ -30,6 +30,10 @@ func (ServiceResource) Fields() []ent.Field {
 			Comment("ID of the project to belong.").
 			NotEmpty().
 			Immutable(),
+		object.IDField("environment_id").
+			Comment("ID of the environment to which the resource belongs.").
+			NotEmpty().
+			Immutable(),
 		object.IDField("service_id").
 			Comment("ID of the service to which the resource belongs.").
 			NotEmpty().
@@ -96,6 +100,14 @@ func (ServiceResource) Edges() []ent.Edge {
 			Immutable().
 			Annotations(
 				entx.ValidateContext(intercept.WithProjectInterceptor)),
+		// Environment 1-* ServiceResources.
+		edge.From("environment", Environment.Type).
+			Ref("service_resources").
+			Field("environment_id").
+			Comment("Environment to which the revision deploys.").
+			Unique().
+			Required().
+			Immutable(),
 		// Service 1-* ServiceResources.
 		edge.From("service", Service.Type).
 			Ref("resources").

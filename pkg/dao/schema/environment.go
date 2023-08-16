@@ -68,6 +68,12 @@ func (Environment) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.NoAction),
 				entx.SkipIO()),
+		// Environment 1-* ServiceResources.
+		edge.To("service_resources", ServiceResource.Type).
+			Comment("ServiceResources that belong to the environment.").
+			Annotations(
+				entsql.OnDelete(entsql.NoAction),
+				entx.SkipIO()),
 		// Environment 1-* Variables.
 		edge.To("variables", Variable.Type).
 			Comment("Variables that belong to the environment.").
