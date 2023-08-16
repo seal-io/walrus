@@ -863,7 +863,7 @@ func (d Deployer) getVariables(
 
 	missingSet := requiredSet.
 		Difference(foundSet).
-		Difference(SealMetadataSet)
+		Difference(WalrusMetadataSet)
 	if missingSet.Len() > 0 {
 		return nil, fmt.Errorf("missing variables: %s", missingSet.List())
 	}
@@ -1119,19 +1119,19 @@ func getModuleConfig(
 		var attrValue string
 
 		switch v.Name {
-		case SealMetadataProjectName:
+		case WalrusMetadataProjectName:
 			attrValue = opts.ProjectName
-		case SealMetadataEnvironmentName:
+		case WalrusMetadataEnvironmentName:
 			attrValue = opts.EnvironmentName
-		case SealMetadataServiceName:
+		case WalrusMetadataServiceName:
 			attrValue = opts.ServiceName
-		case SealMetadataProjectID:
+		case WalrusMetadataProjectID:
 			attrValue = opts.ProjectID.String()
-		case SealMetadataEnvironmentID:
+		case WalrusMetadataEnvironmentID:
 			attrValue = opts.EnvironmentID.String()
-		case SealMetadataServiceID:
+		case WalrusMetadataServiceID:
 			attrValue = opts.ServiceID.String()
-		case SealMetadataNamespaceName:
+		case WalrusMetadataNamespaceName:
 			attrValue = opts.ManagedNamespaceName
 		}
 

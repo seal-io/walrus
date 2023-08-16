@@ -2,25 +2,27 @@ package terraform
 
 import "k8s.io/apimachinery/pkg/util/sets"
 
-// seal metadata indicate seal will set value to these attribute while user module include these attribute.
+// walrus metadata indicate walrus will set value to these attribute while user module include these attribute.
 const (
-	SealMetadataProjectName     = "seal_metadata_project_name"
-	SealMetadataEnvironmentName = "seal_metadata_environment_name"
-	SealMetadataServiceName     = "seal_metadata_service_name"
-	SealMetadataProjectID       = "seal_metadata_project_id"
-	SealMetadataEnvironmentID   = "seal_metadata_environment_id"
-	SealMetadataServiceID       = "seal_metadata_service_id"
-	// SealMetadataNamespaceName is the managed namespace name of an environment,
+	/* TODO coordinate with templates and update the following keys.*/
+
+	WalrusMetadataProjectName     = "seal_metadata_project_name"
+	WalrusMetadataEnvironmentName = "seal_metadata_environment_name"
+	WalrusMetadataServiceName     = "seal_metadata_service_name"
+	WalrusMetadataProjectID       = "seal_metadata_project_id"
+	WalrusMetadataEnvironmentID   = "seal_metadata_environment_id"
+	WalrusMetadataServiceID       = "seal_metadata_service_id"
+	// WalrusMetadataNamespaceName is the managed namespace name of an environment,
 	// valid when Kubernetes connector is used in the environment.
-	SealMetadataNamespaceName = "seal_metadata_namespace_name"
+	WalrusMetadataNamespaceName = "seal_metadata_namespace_name"
 )
 
-var SealMetadataSet = sets.NewString(
-	SealMetadataProjectName,
-	SealMetadataEnvironmentName,
-	SealMetadataServiceName,
-	SealMetadataProjectID,
-	SealMetadataEnvironmentID,
-	SealMetadataServiceID,
-	SealMetadataNamespaceName,
+var WalrusMetadataSet = sets.NewString(
+	WalrusMetadataProjectName,
+	WalrusMetadataEnvironmentName,
+	WalrusMetadataServiceName,
+	WalrusMetadataProjectID,
+	WalrusMetadataEnvironmentID,
+	WalrusMetadataServiceID,
+	WalrusMetadataNamespaceName,
 )
