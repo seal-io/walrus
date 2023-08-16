@@ -114,7 +114,7 @@ func AddFlag(name, schemaType, description string, value any, flags *pflag.FlagS
 	case openapi3.TypeBoolean:
 		var def bool
 		if value != nil {
-			def = value.(bool)
+			def, _ = value.(bool)
 		}
 
 		return flags.Bool(name, def, description)
@@ -127,8 +127,12 @@ func AddFlag(name, schemaType, description string, value any, flags *pflag.FlagS
 				def = int(v)
 			case float64:
 				def = int(v)
+			case int64:
+				def = int(v)
+			case int32:
+				def = int(v)
 			default:
-				def = v.(int)
+				def, _ = v.(int)
 			}
 		}
 
@@ -136,21 +140,21 @@ func AddFlag(name, schemaType, description string, value any, flags *pflag.FlagS
 	case openapi3.TypeNumber:
 		def := 0.0
 		if value != nil {
-			def = value.(float64)
+			def, _ = value.(float64)
 		}
 
 		return flags.Float64(name, def, description)
 	case openapi3.TypeString:
 		def := ""
 		if value != nil {
-			def = value.(string)
+			def, _ = value.(string)
 		}
 
 		return flags.String(name, def, description)
 	case ValueTypeMapStringString:
 		var def map[string]string
 		if value != nil {
-			def = value.(map[string]string)
+			def, _ = value.(map[string]string)
 		}
 
 		return flags.StringToString(name, def, description)
@@ -171,28 +175,28 @@ func AddFlag(name, schemaType, description string, value any, flags *pflag.FlagS
 	case ValueTypeArrayBoolean:
 		var def []bool
 		if value != nil {
-			def = value.([]bool)
+			def, _ = value.([]bool)
 		}
 
 		return flags.BoolSlice(name, def, description)
 	case ValueTypeArrayInt:
 		var def []int
 		if value != nil {
-			def = value.([]int)
+			def, _ = value.([]int)
 		}
 
 		return flags.IntSlice(name, def, description)
 	case ValueTypeArrayNumber:
 		var def []float64
 		if value != nil {
-			def = value.([]float64)
+			def, _ = value.([]float64)
 		}
 
 		return flags.Float64Slice(name, def, description)
 	case ValueTypeArrayString:
 		var def []string
 		if value != nil {
-			def = value.([]string)
+			def, _ = value.([]string)
 		}
 
 		return flags.StringSlice(name, def, description)
