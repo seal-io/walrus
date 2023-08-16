@@ -72,8 +72,9 @@ func (op Operator) GetComponents(
 	for i := range comps {
 		// Copy required field from composition resource.
 		comps[i].ProjectID = res.ProjectID
-		comps[i].CompositionID = res.ID
+		comps[i].EnvironmentID = res.EnvironmentID
 		comps[i].ServiceID = res.ServiceID
+		comps[i].CompositionID = res.ID
 		comps[i].ConnectorID = res.ConnectorID
 		comps[i].Mode = types.ServiceResourceModeDiscovered
 		comps[i].DeployerType = res.DeployerType

@@ -430,31 +430,8 @@ func (h Handler) getServiceOutputs(ctx context.Context, id object.ID, onlySucces
 }
 
 func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse, error) {
-	fields := []string{
-		serviceresource.FieldServiceID,
-		serviceresource.FieldDeployerType,
-		serviceresource.FieldType,
-		serviceresource.FieldID,
-		serviceresource.FieldName,
-		serviceresource.FieldMode,
-		serviceresource.FieldShape,
-		serviceresource.FieldClassID,
-		serviceresource.FieldCreateTime,
-		serviceresource.FieldUpdateTime,
-		serviceresource.FieldStatus,
-	}
-
-	// Fetch entities.
-	query := h.modelClient.ServiceResources().Query().
-		Select(fields...).
-		Order(model.Desc(serviceresource.FieldCreateTime)).
-		Where(
-			serviceresource.ServiceID(req.ID),
-			serviceresource.Mode(types.ServiceResourceModeManaged),
-			serviceresource.Shape(types.ServiceResourceShapeClass),
-		)
-
-	entities, err := dao.ServiceResourceShapeClassQuery(query, fields...).
+	entities, err := dao.ServiceResourceShapeClassQuery(h.modelClient.ServiceResources().Query()).
+		Where(serviceresource.ServiceID(req.ID)).
 		All(req.Context)
 	if err != nil {
 		return nil, err
@@ -481,7 +458,8 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 	)
 
 	pkgresource.SetKeys(req.Context, entities, operators)
-	vertices, edges = pkgresource.GetVerticesAndEdges(entities, vertices, edges)
+	vertices, edges = pkgresource.GetVerticesAndEdges(
+		entities, vertices, edges)
 
 	return &RouteGetGraphResponse{
 		Vertices: vertices,

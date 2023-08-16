@@ -3,6 +3,8 @@ package serviceresources
 import (
 	"context"
 
+	"k8s.io/apimachinery/pkg/util/sets"
+
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/object"
@@ -11,22 +13,24 @@ import (
 	"github.com/seal-io/seal/utils/log"
 )
 
-// GetVerticesAndEdges returns the vertices and edges of the graph with model.ServiceResources.
+// GetVerticesAndEdges constructs a graph of the given model.ServiceResource entities with DFS algorithm,
+// and appends the vertices and edges to the given slices.
 func GetVerticesAndEdges(
 	entities model.ServiceResources,
 	vertices []types.GraphVertex,
 	edges []types.GraphEdge,
 ) ([]types.GraphVertex, []types.GraphEdge) {
-	cache := make(map[object.ID]*model.ServiceResource)
+	var (
+		visited = sets.New[object.ID]()
+		dfs     func(entity *model.ServiceResource)
+	)
 
-	// DFS function to get vertices and edges.
-	var fn func(entity *model.ServiceResource)
-	fn = func(entity *model.ServiceResource) {
-		if _, ok := cache[entity.ID]; ok {
+	dfs = func(entity *model.ServiceResource) {
+		if visited.Has(entity.ID) {
 			return
 		}
 
-		cache[entity.ID] = entity
+		visited.Insert(entity.ID)
 		kind := GetGraphVertexType(entity)
 
 		// Append ServiceResource to vertices.
@@ -40,8 +44,12 @@ func GetVerticesAndEdges(
 			UpdateTime: entity.UpdateTime,
 			Status:     entity.Status.Summary,
 			Extensions: map[string]any{
-				"type": entity.Type,
-				"keys": entity.Keys,
+				"type":          entity.Type,
+				"keys":          entity.Keys,
+				"projectID":     entity.ProjectID,
+				"environmentID": entity.EnvironmentID,
+				"serviceID":     entity.ServiceID,
+				"connectorID":   entity.ConnectorID,
 			},
 		})
 
@@ -59,7 +67,7 @@ func GetVerticesAndEdges(
 				},
 			})
 
-			fn(entity.Edges.Components[i])
+			dfs(entity.Edges.Components[i])
 		}
 
 		for j := 0; j < len(entity.Edges.Instances); j++ {
@@ -76,7 +84,7 @@ func GetVerticesAndEdges(
 				},
 			})
 
-			fn(entity.Edges.Instances[j])
+			dfs(entity.Edges.Instances[j])
 		}
 
 		// Hide instance resources's dependencies.
@@ -101,7 +109,7 @@ func GetVerticesAndEdges(
 	}
 
 	for i := 0; i < len(entities); i++ {
-		fn(entities[i])
+		dfs(entities[i])
 	}
 
 	return vertices, edges

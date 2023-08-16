@@ -8,6 +8,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresourcerelationship"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/utils/strs"
 )
 
@@ -46,9 +47,9 @@ func ServiceResourceInstancesEdgeSave(ctx context.Context, mc model.ClientSet, e
 	return nil
 }
 
-// ServiceResourceShapeClassQuery returns a query that selects a shape class service resource,
-// components and dependencies.
-func ServiceResourceShapeClassQuery(query *model.ServiceResourceQuery, fields ...string) *model.ServiceResourceQuery {
+// ServiceResourceShapeClassQuery wraps the given model.ServiceResource query
+// to select all shape class resources and the owned components and dependencies of them.
+func ServiceResourceShapeClassQuery(query *model.ServiceResourceQuery) *model.ServiceResourceQuery {
 	var (
 		order  = model.Desc(serviceresource.FieldCreateTime)
 		wcOpts = func(q *model.ConnectorQuery) {
@@ -62,21 +63,27 @@ func ServiceResourceShapeClassQuery(query *model.ServiceResourceQuery, fields ..
 		}
 	)
 
-	return query.Select(fields...).
-		WithInstances(func(srq *model.ServiceResourceQuery) {
-			srq.WithConnector(wcOpts).
-				WithComponents(func(q *model.ServiceResourceQuery) {
-					q.Order(order).
-						Select(fields...).
+	return query.
+		Where(
+			serviceresource.Shape(types.ServiceResourceShapeClass),
+			serviceresource.Mode(types.ServiceResourceModeManaged)).
+		Order(order).
+		WithInstances(func(iq *model.ServiceResourceQuery) {
+			iq.
+				Order(order).
+				WithConnector(wcOpts).
+				WithComponents(func(cq *model.ServiceResourceQuery) {
+					cq.
+						Order(order).
 						WithConnector(wcOpts)
 				})
-		}).WithDependencies(func(rrq *model.ServiceResourceRelationshipQuery) {
-		rrq.Select(
-			serviceresourcerelationship.FieldServiceResourceID,
-			serviceresourcerelationship.FieldDependencyID,
-			serviceresourcerelationship.FieldType,
-		)
-	})
+		}).
+		WithDependencies(func(rrq *model.ServiceResourceRelationshipQuery) {
+			rrq.Select(
+				serviceresourcerelationship.FieldServiceResourceID,
+				serviceresourcerelationship.FieldDependencyID,
+				serviceresourcerelationship.FieldType)
+		})
 }
 
 // ServiceResourceToMap recursive set a map of service resources indexed by its unique index.

@@ -7,19 +7,21 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
-	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
 	pkgresource "github.com/seal-io/seal/pkg/serviceresources"
 )
 
+var getServiceFields = service.WithoutFields(
+	service.FieldUpdateTime)
+
 func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse, error) {
 	// Fetch service entities.
 	entities, err := h.modelClient.Services().Query().
 		Where(service.EnvironmentID(req.ID)).
 		Order(model.Desc(service.FieldCreateTime)).
-		Select(getFields...).
+		Select(getServiceFields...).
 		// Must extract dependency.
 		WithDependencies(func(dq *model.ServiceRelationshipQuery) {
 			dq.Select(servicerelationship.FieldDependencyID).
@@ -29,12 +31,7 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 		}).
 		// Must extract resource.
 		WithResources(func(rq *model.ServiceResourceQuery) {
-			dao.ServiceResourceShapeClassQuery(rq).
-				Where(
-					serviceresource.Shape(types.ServiceResourceShapeClass),
-					serviceresource.Mode(types.ServiceResourceModeManaged),
-				).
-				Order(model.Desc(serviceresource.FieldCreateTime))
+			dao.ServiceResourceShapeClassQuery(rq)
 		}).
 		Unique(false).
 		All(req.Context)
@@ -53,6 +50,7 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 
 	for i := 0; i < len(entities); i++ {
 		entity := entities[i]
+
 		// Append Service to vertices.
 		vertices = append(vertices, GraphVertex{
 			GraphVertexID: GraphVertexID{
@@ -65,9 +63,13 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 			CreateTime:  entity.CreateTime,
 			UpdateTime:  entity.UpdateTime,
 			Status:      entity.Status.Summary,
+			Extensions: map[string]any{
+				"projectID":     entity.ProjectID,
+				"environmentID": entity.EnvironmentID,
+			},
 		})
 
-		// Append the edge of Service to Service.
+		// Append the link of related Services to edges.
 		for j := 0; j < len(entity.Edges.Dependencies); j++ {
 			edges = append(edges, GraphEdge{
 				Type: types.EdgeTypeDependency,
@@ -82,15 +84,14 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 			})
 		}
 
+		// Append ServiceResource to vertices,
+		// and append the link of related ServiceResources to edges.
 		pkgresource.SetKeys(req.Context, entity.Edges.Resources, operators)
 		vertices, edges = pkgresource.GetVerticesAndEdges(
-			entity.Edges.Resources,
-			vertices,
-			edges,
-		)
+			entity.Edges.Resources, vertices, edges)
 
 		for j := 0; j < len(entity.Edges.Resources); j++ {
-			// Append the edge of Service to ServiceResource.
+			// Append the link from Service to ServiceResource into edges.
 			edges = append(edges, GraphEdge{
 				Type: types.EdgeTypeComposition,
 				Start: GraphVertexID{
