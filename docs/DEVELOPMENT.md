@@ -12,7 +12,7 @@ $ kind create cluster --name local
 ### Local Postgres via [Docker](https://docs.docker.com/desktop/install/mac-install/)
 
 ```bash
-$ docker run -d -p 5432:5432 -e "POSTGRES_USER=root" -e "POSTGRES_PASSWORD=Root123" -e "POSTGRES_DB=seal" postgres:14.6
+$ docker run -d -p 5432:5432 -e "POSTGRES_USER=root" -e "POSTGRES_PASSWORD=Root123" -e "POSTGRES_DB=walrus" postgres:14.6
 
 ```
 
@@ -35,12 +35,12 @@ $ docker run -d -p 6379:6379 redis:6.2.11 redis-server --save "" --appendonly no
 ```bash
 $ # default.
 $ go run cmd/server/server.go --log-debug \
-  --data-source-address="postgres://root:Root123@127.0.0.1:5432/seal?sslmode=disable" \
+  --data-source-address="postgres://root:Root123@127.0.0.1:5432/walrus?sslmode=disable" \
   --casdoor-server="http://127.0.0.1:8000"
 
 $ # with cache data source.
 $ go run cmd/server/server.go --log-debug \
-  --data-source-address="postgres://root:Root123@127.0.0.1:5432/seal?sslmode=disable" \
+  --data-source-address="postgres://root:Root123@127.0.0.1:5432/walrus?sslmode=disable" \
   --casdoor-server="http://127.0.0.1:8000" \
   --cache-source-address="redis://default:Default123@127.0.0.1:6379/0"
 

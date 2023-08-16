@@ -1,21 +1,19 @@
 <br>
 
-<p align="center">
-    <img src="assets/logo.png" width="300"/>
-</p>
-<br>
+
+<h1 align="center">Walrus</h1>
 
 <p align="center">
         <a href="../README.md">English</a>&nbsp ｜ &nbsp中文&nbsp
 </p>
 <br>
 
-Seal是一个开源的应用管理平台，可以简化在任意基础设施上应用服务的部署和管理。它帮助平台工程师为开发人员构建黄金路径，并赋予开发人员自服务能力。
+Walrus是一个开源的应用管理平台，可以简化在任意基础设施上应用服务的部署和管理。它帮助平台工程师为开发人员构建黄金路径，并赋予开发人员自服务能力。
 
 # 快速入门
 
 ```shell
-sudo docker run -d --privileged --restart=unless-stopped -p 80:80 -p 443:443 sealio/seal-server
+sudo docker run -d --privileged --restart=unless-stopped -p 80:80 -p 443:443 sealio/walrus
 ```
 
 在浏览器中打开 `https://<服务器IP或域名>`
@@ -36,7 +34,7 @@ sudo docker run -d --privileged --restart=unless-stopped -p 80:80 -p 443:443 sea
 
 # 贡献
 
-如果您有兴趣为Seal做出贡献，请阅读我们的[贡献指南](./CONTRIBUTING.md)。
+如果您有兴趣为Walrus做出贡献，请阅读我们的[贡献指南](./CONTRIBUTING.md)。
 
 # 许可证
 

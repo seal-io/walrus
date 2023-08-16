@@ -1,22 +1,19 @@
 <br>
 
-<p align="center">
-    <img src="docs/assets/logo.png" width="300"/>
-</p>
-<br>
+<h1 align="center">Walrus</h1>
 
 <p align="center">
         English&nbsp | &nbsp<a href="docs/README_CN.md">中文</a>&nbsp
 </p>
 <br>
 
-Seal is an open-source application management platform that simplifies application deployment and management on any infrastructure. 
+Walrus is an open-source application management platform that simplifies application deployment and management on any infrastructure. 
 It helps platform engineers build golden paths for developers and empowers developers with self-service capabilities.
 
 # Quick Start
 
 ```shell
-sudo docker run -d --privileged --restart=unless-stopped -p 80:80 -p 443:443 sealio/seal-server
+sudo docker run -d --privileged --restart=unless-stopped -p 80:80 -p 443:443 sealio/walrus
 ```
 
 Open your browser to `https://<server-ip-or-domain>`
@@ -37,7 +34,7 @@ For security issues, please report by sending an email to <security@seal.io>.
 
 # Contributing
 
-Please read our [contributing guide](./docs/CONTRIBUTING.md) if you're interested in contributing to Seal.
+Please read our [contributing guide](./docs/CONTRIBUTING.md) if you're interested in contributing to Walrus.
 
 # License
 
