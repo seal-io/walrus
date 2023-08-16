@@ -31,11 +31,7 @@ var (
 
 func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse, int, error) {
 	query := h.modelClient.ServiceResources().Query().
-		Where(
-			serviceresource.ServiceID(req.Service.ID),
-			serviceresource.Mode(types.ServiceResourceModeManaged),
-			serviceresource.Shape(types.ServiceResourceShapeInstance),
-		)
+		Where(serviceresource.ServiceID(req.Service.ID))
 
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
@@ -50,6 +46,9 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 		if orders, ok := req.Sorting(sortFields, model.Desc(serviceresource.FieldCreateTime)); ok {
 			query.Order(orders...)
 		}
+
+		// Exclude "data" mode resources.
+		query.Where(serviceresource.ModeNEQ(types.ServiceResourceModeData))
 
 		t, err := topic.Subscribe(datamessage.ServiceResource)
 		if err != nil {
@@ -75,9 +74,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 			switch dm.Type {
 			case datamessage.EventCreate, datamessage.EventUpdate:
-				var entities model.ServiceResources
-
-				entities, err = getCollection(
+				entities, err := getCollection(
 					stream, query.Clone().Where(serviceresource.IDIn(dm.Data...)), req.WithoutKeys)
 				if err != nil {
 					return nil, 0, err
@@ -123,6 +120,9 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 		query.Order(orders...)
 	}
 
+	// Only "managed" mode resource.
+	query.Where(serviceresource.ModeEQ(types.ServiceResourceModeManaged))
+
 	entities, err := getCollection(
 		req.Context, query, req.WithoutKeys)
 	if err != nil {
@@ -147,7 +147,9 @@ func getCollection(
 	}
 
 	// Query service resource with its components.
-	entities, err := query.Unique(false).
+	entities, err := query.
+		// Only "instance" type resources.
+		Where(serviceresource.Shape(types.ServiceResourceShapeInstance)).
 		// Must append service ID.
 		Select(serviceresource.FieldServiceID).
 		// Must extract connector.
