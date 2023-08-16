@@ -58,7 +58,7 @@ seal::log::info "+++ GENERATE +++"
 
 validate_gotext
 
-dispatch "seal" "${ROOT_DIR}" "$@"
+dispatch "walrus" "${ROOT_DIR}" "$@"
 
 if [[ "${PARALLELIZE:-true}" == "true" ]]; then
   seal::util::wait_jobs || seal::log::fatal "--- GENERATE ---"

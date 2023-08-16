@@ -20,7 +20,7 @@ const (
 
 func TestStepDistribute(t *testing.T) {
 	// StepDistribute include postgres sql function date_trunc, only test while setting postgres dns.
-	// example: "postgres://seal:seal@localhost:5435/seal?sslmode=disable"
+	// example: "postgres://walrus:walrus@localhost:5435/walrus?sslmode=disable"
 	dsa := os.Getenv(testDSAEnv)
 	if dsa == "" {
 		t.Skip("environment TEST_DATA_SOURCE_ADDRESS isn't provided")

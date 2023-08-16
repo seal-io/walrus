@@ -57,7 +57,7 @@ type JobReconciler struct {
 
 const (
 	// _podName the name of the pod.
-	_podName = "seal-system"
+	_podName = "deployer"
 
 	// _applicationRevisionIDLabel pod template label key for application revision id.
 	_applicationRevisionIDLabel = "seal.io/application-revision-id"
@@ -167,7 +167,7 @@ func (r JobReconciler) getJobPodsLogs(ctx context.Context, jobName string) (stri
 	}
 	ls := "job-name=" + jobName
 
-	pods, err := clientSet.CoreV1().Pods(types.SealSystemNamespace).
+	pods, err := clientSet.CoreV1().Pods(types.WalrusSystemNamespace).
 		List(ctx, metav1.ListOptions{LabelSelector: ls})
 	if err != nil {
 		return "", err
@@ -178,7 +178,7 @@ func (r JobReconciler) getJobPodsLogs(ctx context.Context, jobName string) (stri
 	for _, pod := range pods.Items {
 		var podLogs []byte
 
-		podLogs, err = clientSet.CoreV1().Pods(types.SealSystemNamespace).
+		podLogs, err = clientSet.CoreV1().Pods(types.WalrusSystemNamespace).
 			GetLogs(pod.Name, &corev1.PodLogOptions{}).
 			DoRaw(ctx)
 		if err != nil {
@@ -201,7 +201,7 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 		configName                    = _jobSecretPrefix + opts.ServiceRevisionID
 	)
 
-	secret, err := clientSet.CoreV1().Secrets(types.SealSystemNamespace).Get(ctx, configName, metav1.GetOptions{})
+	secret, err := clientSet.CoreV1().Secrets(types.WalrusSystemNamespace).Get(ctx, configName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -218,7 +218,7 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 		},
 	}
 
-	job, err = clientSet.BatchV1().Jobs(types.SealSystemNamespace).Create(ctx, job, metav1.CreateOptions{})
+	job, err = clientSet.BatchV1().Jobs(types.WalrusSystemNamespace).Create(ctx, job, metav1.CreateOptions{})
 	if err != nil {
 		if kerrors.IsAlreadyExists(err) {
 			logger.Warnf("k8s job %s already exists", name)
@@ -240,7 +240,7 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 		},
 	}
 
-	_, err = clientSet.CoreV1().Secrets(types.SealSystemNamespace).Update(ctx, secret, metav1.UpdateOptions{})
+	_, err = clientSet.CoreV1().Secrets(types.WalrusSystemNamespace).Update(ctx, secret, metav1.UpdateOptions{})
 	if err != nil {
 		return err
 	}
@@ -257,7 +257,7 @@ func CreateSecret(ctx context.Context, clientSet *kubernetes.Clientset, name str
 		Data:       data,
 	}
 
-	_, err := clientSet.CoreV1().Secrets(types.SealSystemNamespace).Create(ctx, secret, metav1.CreateOptions{})
+	_, err := clientSet.CoreV1().Secrets(types.WalrusSystemNamespace).Create(ctx, secret, metav1.CreateOptions{})
 	if err != nil && !kerrors.IsAlreadyExists(err) {
 		return err
 	}
@@ -336,7 +336,7 @@ func StreamJobLogs(ctx context.Context, opts StreamJobLogsOptions) error {
 		labelSelector = "job-name=" + jobName
 	)
 
-	podList, err := opts.Cli.Pods(types.SealSystemNamespace).
+	podList, err := opts.Cli.Pods(types.WalrusSystemNamespace).
 		List(ctx, metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil {
 		return err
@@ -350,7 +350,7 @@ func StreamJobLogs(ctx context.Context, opts StreamJobLogsOptions) error {
 
 	err = wait.PollUntilContextTimeout(ctx, 1*time.Second, 1*time.Minute, true,
 		func(ctx context.Context) (bool, error) {
-			pod, getErr := opts.Cli.Pods(types.SealSystemNamespace).Get(ctx, jobPod.Name, metav1.GetOptions{
+			pod, getErr := opts.Cli.Pods(types.WalrusSystemNamespace).Get(ctx, jobPod.Name, metav1.GetOptions{
 				ResourceVersion: "0",
 			})
 			if getErr != nil {
@@ -380,5 +380,5 @@ func StreamJobLogs(ctx context.Context, opts StreamJobLogsOptions) error {
 		}
 	)
 
-	return opk8s.GetPodLogs(ctx, opts.Cli, types.SealSystemNamespace, jobPod.Name, opts.Out, podLogOpts)
+	return opk8s.GetPodLogs(ctx, opts.Cli, types.WalrusSystemNamespace, jobPod.Name, opts.Out, podLogOpts)
 }

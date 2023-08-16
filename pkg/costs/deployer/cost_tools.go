@@ -34,7 +34,7 @@ const (
 )
 
 var pathServiceProxy = fmt.Sprintf("/api/v1/namespaces/%s/services/http:%s:9003/proxy",
-	types.SealSystemNamespace, NameOpencost)
+	types.WalrusSystemNamespace, NameOpencost)
 
 type input struct {
 	Name               string
@@ -105,15 +105,15 @@ func CostToolsStatus(ctx context.Context, conn *model.Connector) error {
 		name      string
 	}{
 		{
-			namespace: types.SealSystemNamespace,
+			namespace: types.WalrusSystemNamespace,
 			name:      NameOpencost,
 		},
 		{
-			namespace: types.SealSystemNamespace,
+			namespace: types.WalrusSystemNamespace,
 			name:      NameKubeStateMetrics,
 		},
 		{
-			namespace: types.SealSystemNamespace,
+			namespace: types.WalrusSystemNamespace,
 			name:      NamePrometheusServer,
 		},
 	} {
@@ -129,9 +129,9 @@ func CostToolsStatus(ctx context.Context, conn *model.Connector) error {
 func opencost(clusterName string) ([]byte, error) {
 	data := input{
 		Name:               NameOpencost,
-		Namespace:          types.SealSystemNamespace,
+		Namespace:          types.WalrusSystemNamespace,
 		ClusterID:          clusterName,
-		PrometheusEndpoint: fmt.Sprintf("http://%s-server.%s.svc:80", NamePrometheus, types.SealSystemNamespace),
+		PrometheusEndpoint: fmt.Sprintf("http://%s-server.%s.svc:80", NamePrometheus, types.WalrusSystemNamespace),
 	}
 
 	buf := &bytes.Buffer{}
@@ -145,7 +145,7 @@ func opencost(clusterName string) ([]byte, error) {
 func opencostScrape() (string, error) {
 	data := input{
 		Name:      NameOpencost,
-		Namespace: types.SealSystemNamespace,
+		Namespace: types.WalrusSystemNamespace,
 	}
 
 	buf := &bytes.Buffer{}
@@ -213,7 +213,7 @@ func prometheus() (*ChartApp, error) {
 
 	return &ChartApp{
 		Name:         NamePrometheus,
-		Namespace:    types.SealSystemNamespace,
+		Namespace:    types.WalrusSystemNamespace,
 		ChartTgzName: defaultPrometheusChartTgz,
 		Values:       values,
 		Entry:        entry,

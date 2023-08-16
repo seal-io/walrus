@@ -18,7 +18,7 @@ function build() {
   local ldflags=(
     "-X github.com/seal-io/walrus/utils/version.Version=${GIT_VERSION}"
     "-X github.com/seal-io/walrus/utils/version.GitCommit=${GIT_COMMIT}"
-    "-X github.com/seal-io/walrus/pkg/telemetry.APIKey=${SEAL_TELEMETRY_API_KEY:-}"
+    "-X github.com/seal-io/walrus/pkg/telemetry.APIKey=${WALRUS_TELEMETRY_API_KEY:-}"
     "-w -s"
     "-extldflags '-static'"
   )
@@ -75,7 +75,7 @@ function dispatch() {
 
 seal::log::info "+++ BUILD +++" "info: ${GIT_VERSION},${GIT_COMMIT:0:7},${GIT_TREE_STATE},${BUILD_DATE}"
 
-dispatch "seal" "${ROOT_DIR}" "$@"
+dispatch "walrus" "${ROOT_DIR}" "$@"
 
 if [[ "${PARALLELIZE:-true}" == "true" ]]; then
   seal::util::wait_jobs || seal::log::fatal "--- BUILD ---"

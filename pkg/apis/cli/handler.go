@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	cliPath = "/var/lib/seal/cli"
-	cli     = "seal"
+	cliPath = "/var/lib/walrus/cli"
+	cli     = "walrus"
 )
 
 func Index() runtime.Handle {

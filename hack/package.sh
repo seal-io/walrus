@@ -61,10 +61,10 @@ function setup_image_package_context() {
 
   # NB(thxCode): mutate the package context below.
   case "${target}" in
-  seal)
+  walrus)
     case "${task}" in
     server)
-      download_ui "${context}/image/var/lib/seal/ui" "${tag}"
+      download_ui "${context}/image/var/lib/walrus/ui" "${tag}"
       ;;
     esac
     ;;
@@ -79,7 +79,7 @@ function package() {
   local path="$3"
 
   # shellcheck disable=SC2155
-  local tag="${REPO:-sealio}/${target}-${task}:$(seal::image::tag)"
+  local tag="${REPO:-sealio}/${target}:$(seal::image::tag)"
   # shellcheck disable=SC2155
   local platform="$(seal::target::package_platform)"
 
@@ -138,7 +138,7 @@ seal::log::info "+++ PACKAGE +++" "tag: $(seal::image::tag)"
 
 before
 
-dispatch "seal" "${ROOT_DIR}" "$@"
+dispatch "walrus" "${ROOT_DIR}" "$@"
 
 if [[ "${PARALLELIZE:-true}" == "true" ]]; then
   seal::util::wait_jobs || seal::log::fatal "--- PACKAGE ---"

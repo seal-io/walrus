@@ -661,11 +661,11 @@ func testAc(name string, startTime time.Time, totalCost float64, conn *model.Con
 			testLabelEnv: env,
 
 			// Original labels.
-			types.LabelSealServiceName:     name,
-			types.LabelSealEnvironmentName: env,
-			types.LabelSealProjectName:     projName,
-			types.LabelSealServicePath:     fmt.Sprintf("%s/%s/%s", projName, env, name),
-			types.LabelSealEnvironmentPath: fmt.Sprintf("%s/%s", projName, env),
+			types.LabelWalrusServiceName:     name,
+			types.LabelWalrusEnvironmentName: env,
+			types.LabelWalrusProjectName:     projName,
+			types.LabelWalrusServicePath:     fmt.Sprintf("%s/%s/%s", projName, env, name),
+			types.LabelWalrusEnvironmentPath: fmt.Sprintf("%s/%s", projName, env),
 		},
 
 		Fingerprint: "",

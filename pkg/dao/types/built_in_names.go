@@ -1,6 +1,6 @@
 package types
 
 const (
-	SealSystemNamespace        = "seal-system"
-	DeployerServiceAccountName = "app-manager"
+	WalrusSystemNamespace      = "walrus-system"
+	DeployerServiceAccountName = "walrus"
 )

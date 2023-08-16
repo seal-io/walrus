@@ -83,7 +83,7 @@ jobs:
           CI_CHECK: "${{ needs.skip.outputs.should != 'true' }}"
           LINT_DIRTY: "true"
           PACKAGE_BUILD: "false"
-          SEAL_TELEMETRY_API_KEY: "${{ github.event_name != 'pull_request' && secrets.CI_TELEMETRY_API_KEY || '' }}"
+          WALRUS_TELEMETRY_API_KEY: "${{ github.event_name != 'pull_request' && secrets.CI_TELEMETRY_API_KEY || '' }}"
       - name: Archive Publish Result
         uses: actions/cache/save@v3
         with:
@@ -104,7 +104,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - target: seal
+          - target: walrus
             task: server
     steps:
       - name: Checkout
@@ -137,7 +137,7 @@ jobs:
         id: metadata
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.REPO }}/${{ matrix.target }}-${{ matrix.task }}
+          images: ${{ env.REPO }}/${{ matrix.target }}
       - name: Package
         uses: docker/build-push-action@v4
         id: package
@@ -155,7 +155,7 @@ jobs:
           cache-to: |
             ${{ github.event_name != 'pull_request' && format('type=registry,mode=max,oci-mediatypes=false,compression=gzip,ref={0}/build-cache:{1}-{2},ignore-error=true', env.REPO, matrix.target, matrix.task) || '' }}
           build-args: |
-            SERVE_UI_INDEX=${{ startsWith(github.ref, 'refs/tags/') && 'file:///var/lib/seal/ui' || 'https://seal-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html' }}
+            SERVE_UI_INDEX=${{ startsWith(github.ref, 'refs/tags/') && 'file:///var/lib/walrus/ui' || 'https://seal-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html' }}
             SERVE_TEMPLATE_REFER=${{ startsWith(github.ref, 'refs/tags/') && 'release' || 'main' }}
       - name: Setup Cosign
         if: ${{ github.event_name != 'pull_request' }}

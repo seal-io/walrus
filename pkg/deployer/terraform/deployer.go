@@ -55,10 +55,10 @@ const (
 	_backendAPI = "/v1/projects/%s/environments/%s/services/%s/revisions/%s/terraform-states"
 
 	// _variablePrefix the prefix of the variable name.
-	_variablePrefix = "_seal_var_"
+	_variablePrefix = "_walrus_var_"
 
 	// _servicePrefix the prefix of the service output name.
-	_servicePrefix = "_seal_service_"
+	_servicePrefix = "_walrus_service_"
 )
 
 var (

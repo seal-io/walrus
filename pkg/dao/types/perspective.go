@@ -85,13 +85,13 @@ const (
 	FilterFieldName           FilterField = "name"
 
 	// FilterFieldProject is "label:seal.io/project-name".
-	FilterFieldProject = FilterField("label:" + LabelSealProjectName)
+	FilterFieldProject = FilterField("label:" + LabelWalrusProjectName)
 
 	// FilterFieldEnvironmentPath is "label:seal.io/environment-name".
-	FilterFieldEnvironmentPath = FilterField("label:" + LabelSealEnvironmentPath)
+	FilterFieldEnvironmentPath = FilterField("label:" + LabelWalrusEnvironmentPath)
 
 	// FilterFieldServicePath is "label:seal.io/service-name".
-	FilterFieldServicePath = FilterField("label:" + LabelSealServicePath)
+	FilterFieldServicePath = FilterField("label:" + LabelWalrusServicePath)
 )
 
 func (f *FilterField) IsLabel() bool {
@@ -124,11 +124,17 @@ const (
 	GroupByFieldMonth GroupByField = "month"
 
 	// Built-in labels.
-	GroupByFieldProject         = GroupByField("label:" + LabelSealProjectName)     // "label:seal.io/project-name".
-	GroupByFieldEnvironment     = GroupByField("label:" + LabelSealEnvironmentName) // "label:seal.io/environment-name".
-	GroupByFieldService         = GroupByField("label:" + LabelSealServiceName)     // "label:seal.io/service-name".
-	GroupByFieldEnvironmentPath = GroupByField("label:" + LabelSealEnvironmentPath) // "label:seal.io/environment-path".
-	GroupByFieldServicePath     = GroupByField("label:" + LabelSealServicePath)     // "label:seal.io/service-path".
+	GroupByFieldProject     = GroupByField("label:" + LabelWalrusProjectName) // "label:walrus.seal.io/project-name".
+	GroupByFieldEnvironment = GroupByField(
+		"label:" + LabelWalrusEnvironmentName,
+	) // "label:walrus.seal.io/environment-name".
+	GroupByFieldService = GroupByField(
+		"label:" + LabelWalrusServiceName,
+	) // "label:walrus.seal.io/service-name".
+	GroupByFieldEnvironmentPath = GroupByField(
+		"label:" + LabelWalrusEnvironmentPath,
+	) // "label:walrus.seal.io/environment-path".
+	GroupByFieldServicePath = GroupByField("label:" + LabelWalrusServicePath) // "label:walrus.seal.io/service-path".
 )
 
 func (f *GroupByField) IsLabel() bool {
