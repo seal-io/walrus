@@ -43,7 +43,7 @@ func doUnidiStreamRequest(c *gin.Context, route Route, routeInput reflect.Value)
 
 	// Flush response headers.
 	c.Header("Cache-Control", "no-store")
-	c.Header("Content-Type", "application/octet-stream; charset=ISO-8859-1")
+	c.Header("Content-Type", "application/octet-stream; charset=UTF-8")
 	c.Header("X-Content-Type-Options", "nosniff")
 
 	if protoMajor == 1 {
