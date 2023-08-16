@@ -133,10 +133,9 @@ func (in *ComponentsDiscoverTask) buildSyncTask(
 	return func() (berr error) {
 		entities, err := in.modelClient.ServiceResources().Query().
 			Where(
-				serviceresource.ModeNEQ(types.ServiceResourceModeDiscovered),
 				serviceresource.ConnectorID(connectorID),
-				serviceresource.ShapeEQ(types.ServiceResourceShapeInstance),
-			).
+				serviceresource.ModeNEQ(types.ServiceResourceModeDiscovered),
+				serviceresource.ShapeEQ(types.ServiceResourceShapeInstance)).
 			Order(model.Desc(serviceresource.FieldCreateTime)).
 			Offset(offset).
 			Limit(limit).
@@ -144,8 +143,9 @@ func (in *ComponentsDiscoverTask) buildSyncTask(
 			Select(
 				serviceresource.FieldID,
 				serviceresource.FieldProjectID,
-				serviceresource.FieldType,
+				serviceresource.FieldEnvironmentID,
 				serviceresource.FieldServiceID,
+				serviceresource.FieldType,
 				serviceresource.FieldConnectorID,
 				serviceresource.FieldName,
 				serviceresource.FieldDeployerType).

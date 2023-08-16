@@ -115,7 +115,6 @@ var (
 		service.FieldName,
 	}
 	getFields = service.WithoutFields(
-		service.FieldEnvironmentID,
 		service.FieldUpdateTime)
 	sortFields = []string{
 		service.FieldName,

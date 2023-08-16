@@ -93,14 +93,15 @@ func (p Parser) ParseState(
 		}
 
 		classResource := &model.ServiceResource{
-			ProjectID:    revision.ProjectID,
-			ServiceID:    revision.ServiceID,
-			ConnectorID:  object.ID(connectorID),
-			Mode:         rs.Mode,
-			Type:         rs.Type,
-			Name:         rs.Name,
-			DeployerType: revision.DeployerType,
-			Shape:        types.ServiceResourceShapeClass,
+			ProjectID:     revision.ProjectID,
+			EnvironmentID: revision.EnvironmentID,
+			ServiceID:     revision.ServiceID,
+			ConnectorID:   object.ID(connectorID),
+			Mode:          rs.Mode,
+			Type:          rs.Type,
+			Name:          rs.Name,
+			DeployerType:  revision.DeployerType,
+			Shape:         types.ServiceResourceShapeClass,
 		}
 		classResource.Edges.Instances = make(model.ServiceResources, len(rs.Instances))
 
@@ -146,14 +147,15 @@ func (p Parser) ParseState(
 			}
 
 			instanceResource := &model.ServiceResource{
-				ProjectID:    revision.ProjectID,
-				ServiceID:    revision.ServiceID,
-				ConnectorID:  object.ID(connectorID),
-				Mode:         rs.Mode,
-				Type:         rs.Type,
-				Name:         instanceID,
-				Shape:        types.ServiceResourceShapeInstance,
-				DeployerType: revision.DeployerType,
+				ProjectID:     revision.ProjectID,
+				EnvironmentID: revision.EnvironmentID,
+				ServiceID:     revision.ServiceID,
+				ConnectorID:   object.ID(connectorID),
+				Mode:          rs.Mode,
+				Type:          rs.Type,
+				Name:          instanceID,
+				Shape:         types.ServiceResourceShapeInstance,
+				DeployerType:  revision.DeployerType,
 			}
 
 			// Assume that the first instance's dependencies are the dependencies of the class resource.
