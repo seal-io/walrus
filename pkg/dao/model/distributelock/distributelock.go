@@ -17,6 +17,8 @@ const (
 	FieldID = "id"
 	// FieldExpireAt holds the string denoting the expireat field in the database.
 	FieldExpireAt = "expire_at"
+	// FieldHolder holds the string denoting the holder field in the database.
+	FieldHolder = "holder"
 	// Table holds the table name of the distributelock in the database.
 	Table = "distribute_locks"
 )
@@ -25,6 +27,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldExpireAt,
+	FieldHolder,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -38,6 +41,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// HolderValidator is a validator for the "holder" field. It is called by the builders before save.
+	HolderValidator func(string) error
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -53,6 +58,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByExpireAt orders the results by the expireAt field.
 func ByExpireAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldExpireAt, opts...).ToFunc()
+}
+
+// ByHolder orders the results by the holder field.
+func ByHolder(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHolder, opts...).ToFunc()
 }
 
 // WithoutFields returns the fields ignored the given list.

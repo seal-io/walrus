@@ -148,6 +148,7 @@ var (
 	DistributeLocksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
 		{Name: "expire_at", Type: field.TypeInt64},
+		{Name: "holder", Type: field.TypeString},
 	}
 	// DistributeLocksTable holds the schema information for the "distribute_locks" table.
 	DistributeLocksTable = &schema.Table{
