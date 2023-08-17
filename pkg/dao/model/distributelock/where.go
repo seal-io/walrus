@@ -71,6 +71,11 @@ func ExpireAt(v int64) predicate.DistributeLock {
 	return predicate.DistributeLock(sql.FieldEQ(FieldExpireAt, v))
 }
 
+// Holder applies equality check predicate on the "holder" field. It's identical to HolderEQ.
+func Holder(v string) predicate.DistributeLock {
+	return predicate.DistributeLock(sql.FieldEQ(FieldHolder, v))
+}
+
 // ExpireAtEQ applies the EQ predicate on the "expireAt" field.
 func ExpireAtEQ(v int64) predicate.DistributeLock {
 	return predicate.DistributeLock(sql.FieldEQ(FieldExpireAt, v))
@@ -109,6 +114,71 @@ func ExpireAtLT(v int64) predicate.DistributeLock {
 // ExpireAtLTE applies the LTE predicate on the "expireAt" field.
 func ExpireAtLTE(v int64) predicate.DistributeLock {
 	return predicate.DistributeLock(sql.FieldLTE(FieldExpireAt, v))
+}
+
+// HolderEQ applies the EQ predicate on the "holder" field.
+func HolderEQ(v string) predicate.DistributeLock {
+	return predicate.DistributeLock(sql.FieldEQ(FieldHolder, v))
+}
+
+// HolderNEQ applies the NEQ predicate on the "holder" field.
+func HolderNEQ(v string) predicate.DistributeLock {
+	return predicate.DistributeLock(sql.FieldNEQ(FieldHolder, v))
+}
+
+// HolderIn applies the In predicate on the "holder" field.
+func HolderIn(vs ...string) predicate.DistributeLock {
+	return predicate.DistributeLock(sql.FieldIn(FieldHolder, vs...))
+}
+
+// HolderNotIn applies the NotIn predicate on the "holder" field.
+func HolderNotIn(vs ...string) predicate.DistributeLock {
+	return predicate.DistributeLock(sql.FieldNotIn(FieldHolder, vs...))
+}
+
+// HolderGT applies the GT predicate on the "holder" field.
+func HolderGT(v string) predicate.DistributeLock {
+	return predicate.DistributeLock(sql.FieldGT(FieldHolder, v))
+}
+
+// HolderGTE applies the GTE predicate on the "holder" field.
+func HolderGTE(v string) predicate.DistributeLock {
+	return predicate.DistributeLock(sql.FieldGTE(FieldHolder, v))
+}
+
+// HolderLT applies the LT predicate on the "holder" field.
+func HolderLT(v string) predicate.DistributeLock {
+	return predicate.DistributeLock(sql.FieldLT(FieldHolder, v))
+}
+
+// HolderLTE applies the LTE predicate on the "holder" field.
+func HolderLTE(v string) predicate.DistributeLock {
+	return predicate.DistributeLock(sql.FieldLTE(FieldHolder, v))
+}
+
+// HolderContains applies the Contains predicate on the "holder" field.
+func HolderContains(v string) predicate.DistributeLock {
+	return predicate.DistributeLock(sql.FieldContains(FieldHolder, v))
+}
+
+// HolderHasPrefix applies the HasPrefix predicate on the "holder" field.
+func HolderHasPrefix(v string) predicate.DistributeLock {
+	return predicate.DistributeLock(sql.FieldHasPrefix(FieldHolder, v))
+}
+
+// HolderHasSuffix applies the HasSuffix predicate on the "holder" field.
+func HolderHasSuffix(v string) predicate.DistributeLock {
+	return predicate.DistributeLock(sql.FieldHasSuffix(FieldHolder, v))
+}
+
+// HolderEqualFold applies the EqualFold predicate on the "holder" field.
+func HolderEqualFold(v string) predicate.DistributeLock {
+	return predicate.DistributeLock(sql.FieldEqualFold(FieldHolder, v))
+}
+
+// HolderContainsFold applies the ContainsFold predicate on the "holder" field.
+func HolderContainsFold(v string) predicate.DistributeLock {
+	return predicate.DistributeLock(sql.FieldContainsFold(FieldHolder, v))
 }
 
 // And groups predicates with the AND operator between them.

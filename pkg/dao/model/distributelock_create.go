@@ -34,6 +34,12 @@ func (dlc *DistributeLockCreate) SetExpireAt(i int64) *DistributeLockCreate {
 	return dlc
 }
 
+// SetHolder sets the "holder" field.
+func (dlc *DistributeLockCreate) SetHolder(s string) *DistributeLockCreate {
+	dlc.mutation.SetHolder(s)
+	return dlc
+}
+
 // SetID sets the "id" field.
 func (dlc *DistributeLockCreate) SetID(s string) *DistributeLockCreate {
 	dlc.mutation.SetID(s)
@@ -76,6 +82,14 @@ func (dlc *DistributeLockCreate) ExecX(ctx context.Context) {
 func (dlc *DistributeLockCreate) check() error {
 	if _, ok := dlc.mutation.ExpireAt(); !ok {
 		return &ValidationError{Name: "expireAt", err: errors.New(`model: missing required field "DistributeLock.expireAt"`)}
+	}
+	if _, ok := dlc.mutation.Holder(); !ok {
+		return &ValidationError{Name: "holder", err: errors.New(`model: missing required field "DistributeLock.holder"`)}
+	}
+	if v, ok := dlc.mutation.Holder(); ok {
+		if err := distributelock.HolderValidator(v); err != nil {
+			return &ValidationError{Name: "holder", err: fmt.Errorf(`model: validator failed for field "DistributeLock.holder": %w`, err)}
+		}
 	}
 	if v, ok := dlc.mutation.ID(); ok {
 		if err := distributelock.IDValidator(v); err != nil {
@@ -123,6 +137,10 @@ func (dlc *DistributeLockCreate) createSpec() (*DistributeLock, *sqlgraph.Create
 		_spec.SetField(distributelock.FieldExpireAt, field.TypeInt64, value)
 		_node.ExpireAt = value
 	}
+	if value, ok := dlc.mutation.Holder(); ok {
+		_spec.SetField(distributelock.FieldHolder, field.TypeString, value)
+		_node.Holder = value
+	}
 	return _node, _spec
 }
 
@@ -148,6 +166,7 @@ func (dlc *DistributeLockCreate) Set(obj *DistributeLock) *DistributeLockCreate 
 	// Required.
 	dlc.SetID(obj.ID)
 	dlc.SetExpireAt(obj.ExpireAt)
+	dlc.SetHolder(obj.Holder)
 
 	// Optional.
 
@@ -188,6 +207,9 @@ func (dlc *DistributeLockCreate) SaveE(ctx context.Context, cbs ...func(ctx cont
 	if x := dlc.object; x != nil {
 		if _, set := dlc.mutation.Field(distributelock.FieldExpireAt); set {
 			obj.ExpireAt = x.ExpireAt
+		}
+		if _, set := dlc.mutation.Field(distributelock.FieldHolder); set {
+			obj.Holder = x.Holder
 		}
 	}
 
@@ -289,6 +311,9 @@ func (dlcb *DistributeLockCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx
 		for i := range x {
 			if _, set := dlcb.builders[i].mutation.Field(distributelock.FieldExpireAt); set {
 				objs[i].ExpireAt = x[i].ExpireAt
+			}
+			if _, set := dlcb.builders[i].mutation.Field(distributelock.FieldHolder); set {
+				objs[i].Holder = x[i].Holder
 			}
 		}
 	}
@@ -449,6 +474,9 @@ func (u *DistributeLockUpsertOne) UpdateNewValues() *DistributeLockUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(distributelock.FieldID)
+		}
+		if _, exists := u.create.mutation.Holder(); exists {
+			s.SetIgnore(distributelock.FieldHolder)
 		}
 	}))
 	return u
@@ -681,6 +709,9 @@ func (u *DistributeLockUpsertBulk) UpdateNewValues() *DistributeLockUpsertBulk {
 		for _, b := range u.create.builders {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(distributelock.FieldID)
+			}
+			if _, exists := b.mutation.Holder(); exists {
+				s.SetIgnore(distributelock.FieldHolder)
 			}
 		}
 	}))

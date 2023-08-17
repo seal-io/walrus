@@ -19,6 +19,8 @@ import (
 type DistributeLockCreateInput struct {
 	inputConfig `path:"-" query:"-" json:"-"`
 
+	// Holder is the id for current key owner
+	Holder string `path:"-" query:"-" json:"holder"`
 	// Expiration timestamp to prevent the lock be occupied for long time.
 	ExpireAt int64 `path:"-" query:"-" json:"expireAt"`
 }
@@ -31,6 +33,7 @@ func (dlci *DistributeLockCreateInput) Model() *DistributeLock {
 	}
 
 	_dl := &DistributeLock{
+		Holder:   dlci.Holder,
 		ExpireAt: dlci.ExpireAt,
 	}
 
@@ -61,6 +64,8 @@ func (dlci *DistributeLockCreateInput) ValidateWith(ctx context.Context, cs Clie
 
 // DistributeLockCreateInputs holds the creation input item of the DistributeLock entities.
 type DistributeLockCreateInputsItem struct {
+	// Holder is the id for current key owner
+	Holder string `path:"-" query:"-" json:"holder"`
 	// Expiration timestamp to prevent the lock be occupied for long time.
 	ExpireAt int64 `path:"-" query:"-" json:"expireAt"`
 }
@@ -98,6 +103,7 @@ func (dlci *DistributeLockCreateInputs) Model() []*DistributeLock {
 
 	for i := range dlci.Items {
 		_dl := &DistributeLock{
+			Holder:   dlci.Items[i].Holder,
 			ExpireAt: dlci.Items[i].ExpireAt,
 		}
 
@@ -549,6 +555,7 @@ func (dlui *DistributeLockUpdateInputs) ValidateWith(ctx context.Context, cs Cli
 type DistributeLockOutput struct {
 	ID       string `json:"id,omitempty"`
 	ExpireAt int64  `json:"expireAt,omitempty"`
+	Holder   string `json:"holder,omitempty"`
 }
 
 // View returns the output of DistributeLock entity.
@@ -570,6 +577,7 @@ func ExposeDistributeLock(_dl *DistributeLock) *DistributeLockOutput {
 	dlo := &DistributeLockOutput{
 		ID:       _dl.ID,
 		ExpireAt: _dl.ExpireAt,
+		Holder:   _dl.Holder,
 	}
 
 	return dlo

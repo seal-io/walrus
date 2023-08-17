@@ -5199,6 +5199,7 @@ type DistributeLockMutation struct {
 	id            *string
 	expireAt      *int64
 	addexpireAt   *int64
+	holder        *string
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*DistributeLock, error)
@@ -5365,6 +5366,42 @@ func (m *DistributeLockMutation) ResetExpireAt() {
 	m.addexpireAt = nil
 }
 
+// SetHolder sets the "holder" field.
+func (m *DistributeLockMutation) SetHolder(s string) {
+	m.holder = &s
+}
+
+// Holder returns the value of the "holder" field in the mutation.
+func (m *DistributeLockMutation) Holder() (r string, exists bool) {
+	v := m.holder
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHolder returns the old "holder" field's value of the DistributeLock entity.
+// If the DistributeLock object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DistributeLockMutation) OldHolder(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHolder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHolder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHolder: %w", err)
+	}
+	return oldValue.Holder, nil
+}
+
+// ResetHolder resets all changes to the "holder" field.
+func (m *DistributeLockMutation) ResetHolder() {
+	m.holder = nil
+}
+
 // Where appends a list predicates to the DistributeLockMutation builder.
 func (m *DistributeLockMutation) Where(ps ...predicate.DistributeLock) {
 	m.predicates = append(m.predicates, ps...)
@@ -5399,9 +5436,12 @@ func (m *DistributeLockMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *DistributeLockMutation) Fields() []string {
-	fields := make([]string, 0, 1)
+	fields := make([]string, 0, 2)
 	if m.expireAt != nil {
 		fields = append(fields, distributelock.FieldExpireAt)
+	}
+	if m.holder != nil {
+		fields = append(fields, distributelock.FieldHolder)
 	}
 	return fields
 }
@@ -5413,6 +5453,8 @@ func (m *DistributeLockMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case distributelock.FieldExpireAt:
 		return m.ExpireAt()
+	case distributelock.FieldHolder:
+		return m.Holder()
 	}
 	return nil, false
 }
@@ -5424,6 +5466,8 @@ func (m *DistributeLockMutation) OldField(ctx context.Context, name string) (ent
 	switch name {
 	case distributelock.FieldExpireAt:
 		return m.OldExpireAt(ctx)
+	case distributelock.FieldHolder:
+		return m.OldHolder(ctx)
 	}
 	return nil, fmt.Errorf("unknown DistributeLock field %s", name)
 }
@@ -5439,6 +5483,13 @@ func (m *DistributeLockMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetExpireAt(v)
+		return nil
+	case distributelock.FieldHolder:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHolder(v)
 		return nil
 	}
 	return fmt.Errorf("unknown DistributeLock field %s", name)
@@ -5506,6 +5557,9 @@ func (m *DistributeLockMutation) ResetField(name string) error {
 	switch name {
 	case distributelock.FieldExpireAt:
 		m.ResetExpireAt()
+		return nil
+	case distributelock.FieldHolder:
+		m.ResetHolder()
 		return nil
 	}
 	return fmt.Errorf("unknown DistributeLock field %s", name)

@@ -199,6 +199,10 @@ func init() {
 	costreport.DefaultRAMByteUsageMax = costreportDescRAMByteUsageMax.Default.(float64)
 	distributelockFields := schema.DistributeLock{}.Fields()
 	_ = distributelockFields
+	// distributelockDescHolder is the schema descriptor for holder field.
+	distributelockDescHolder := distributelockFields[2].Descriptor()
+	// distributelock.HolderValidator is a validator for the "holder" field. It is called by the builders before save.
+	distributelock.HolderValidator = distributelockDescHolder.Validators[0].(func(string) error)
 	// distributelockDescID is the schema descriptor for id field.
 	distributelockDescID := distributelockFields[0].Descriptor()
 	// distributelock.IDValidator is a validator for the "id" field. It is called by the builders before save.

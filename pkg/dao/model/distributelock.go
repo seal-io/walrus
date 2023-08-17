@@ -22,7 +22,9 @@ type DistributeLock struct {
 	// ID is the lock key.
 	ID string `json:"id,omitempty"`
 	// Expiration timestamp to prevent the lock be occupied for long time.
-	ExpireAt     int64 `json:"expireAt,omitempty"`
+	ExpireAt int64 `json:"expireAt,omitempty"`
+	// Holder is the id for current key owner
+	Holder       string `json:"holder,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -33,7 +35,7 @@ func (*DistributeLock) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case distributelock.FieldExpireAt:
 			values[i] = new(sql.NullInt64)
-		case distributelock.FieldID:
+		case distributelock.FieldID, distributelock.FieldHolder:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -61,6 +63,12 @@ func (dl *DistributeLock) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field expireAt", values[i])
 			} else if value.Valid {
 				dl.ExpireAt = value.Int64
+			}
+		case distributelock.FieldHolder:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field holder", values[i])
+			} else if value.Valid {
+				dl.Holder = value.String
 			}
 		default:
 			dl.selectValues.Set(columns[i], values[i])
@@ -100,6 +108,9 @@ func (dl *DistributeLock) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", dl.ID))
 	builder.WriteString("expireAt=")
 	builder.WriteString(fmt.Sprintf("%v", dl.ExpireAt))
+	builder.WriteString(", ")
+	builder.WriteString("holder=")
+	builder.WriteString(dl.Holder)
 	builder.WriteByte(')')
 	return builder.String()
 }
