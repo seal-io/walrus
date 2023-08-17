@@ -18,7 +18,7 @@ services:
     privileged: true
     container_name: postgres
     ports:
-      # external postgres db of seal(user/password: root:Root123),
+      # external postgres db of Walrus(user/password: root:Root123),
       # expose for local debugging.
       #
       - "25432:5432"
@@ -27,14 +27,14 @@ services:
       #
       - POSTGRES_PASSWORD=Root123
       - POSTGRES_USER=root
-      - POSTGRES_DB=seal
+      - POSTGRES_DB=walrus
 
   redis:
     image: "redis:6.2.11"
     restart: always
     container_name: redis
     ports:
-      # external redis db of seal(user/password: default:Default123),
+      # external redis db of Walrus(user/password: default:Default123),
       # expose for local debugging.
       #
       - "16379:6379"
@@ -55,26 +55,26 @@ services:
       #
       - "Default123"
 
-  seal:
-    image: "sealio/seal-server:main"
+  walrus:
+    image: "sealio/walrus:main"
     restart: always
     # privileged is used for internal k3s.
     #
     privileged: true
-    container_name: seal
+    container_name: walrus
     environment:
       # avoid the impact from docker embedded DNS server.
       #
       - K3S_RESOLV_CONF=
     command:
-      - "seal"
+      - "walrus"
       - "--log-debug"
       - "--log-verbosity=4"
       - "--data-source-address=postgres://root:Root123@postgres:5432/walrus?sslmode=disable"
       - "--cache-source-address=redis://default:Default123@redis:6379/0"
       - "--casdoor-server=http://casdoor:8000"
     volumes:
-      - seal-data:/var/run/walrus
+      - walrus-data:/var/run/walrus
     depends_on:
       - postgres
       - casdoor
@@ -119,6 +119,6 @@ services:
       - "3000:3000"
 
 volumes:
-  seal-data: { }
+  walrus-data: { }
   prometheus-data: { }
   grafana-data: { }
