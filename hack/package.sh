@@ -20,7 +20,7 @@ function download_ui() {
   mkdir -p "${PACKAGE_TMP_DIR}/ui"
 
   mkdir -p "${path}"
-  if ! curl --retry 3 --retry-all-errors --retry-delay 3 -sSfL "https://seal-ui-1303613262.cos.accelerate.myqcloud.com/releases/${tag}.tar.gz" 2>/dev/null |
+  if ! curl --retry 3 --retry-all-errors --retry-delay 3 -sSfL "https://walrus-ui-1303613262.cos.accelerate.myqcloud.com/releases/${tag}.tar.gz" 2>/dev/null |
     tar -xzf - --directory "${PACKAGE_TMP_DIR}/ui" 2>/dev/null; then
 
     if [[ "${tag:-}" =~ ^v([0-9]+)\.([0-9]+)(\.[0-9]+)?(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
@@ -28,7 +28,7 @@ function download_ui() {
     fi
 
     seal::log::warn "failed to download '${tag}' ui archive, fallback to '${default_tag}' ui archive"
-    if ! curl --retry 3 --retry-all-errors --retry-delay 3 -sSfL "https://seal-ui-1303613262.cos.accelerate.myqcloud.com/releases/${default_tag}.tar.gz" |
+    if ! curl --retry 3 --retry-all-errors --retry-delay 3 -sSfL "https://walrus-ui-1303613262.cos.accelerate.myqcloud.com/releases/${default_tag}.tar.gz" |
       tar -xzf - --directory "${PACKAGE_TMP_DIR}/ui" 2>/dev/null; then
       seal::log::fatal "failed to download '${default_tag}' ui archive"
     fi

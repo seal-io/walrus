@@ -83,7 +83,7 @@ var (
 	ServeUiIndex = newValue(
 		"ServeUiIndex",
 		editable|hidden,
-		initializeFromEnv("https://seal-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html"),
+		initializeFromEnv("https://walrus-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html"),
 		modifyWith(notBlank, anyUrl),
 	)
 	// DataEncryptionSentry keeps the sentry for indicating whether enables data encryption.
