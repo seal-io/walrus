@@ -17,5 +17,9 @@ func (DistributeLock) Fields() []ent.Field {
 			Immutable(),
 		field.Int64("expireAt").
 			Comment("Expiration timestamp to prevent the lock be occupied for long time."),
+		field.String("holder").
+			Comment("Holder is the id for current key owner").
+			NotEmpty().
+			Immutable(),
 	}
 }
