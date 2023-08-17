@@ -60,7 +60,7 @@ const (
 	_podName = "deployer"
 
 	// _applicationRevisionIDLabel pod template label key for application revision id.
-	_applicationRevisionIDLabel = "seal.io/application-revision-id"
+	_applicationRevisionIDLabel = "walrus.seal.io/application-revision-id"
 	// _jobNameFormat the format of job name.
 	_jobNameFormat = "tf-job-%s-%s"
 	// _jobSecretPrefix the prefix of secret name.

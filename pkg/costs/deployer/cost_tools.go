@@ -20,11 +20,11 @@ import (
 )
 
 const (
-	NamePrometheus             = "seal-prometheus"
-	NameOpencost               = "seal-opencost"
-	NameKubeStateMetrics       = "seal-prometheus-kube-state-metrics"
-	NamePrometheusServer       = "seal-prometheus-server"
-	ConfigMapNameOpencost      = "seal-opencost"
+	NamePrometheus             = "walrus-prometheus"
+	NameOpencost               = "walrus-opencost"
+	NameKubeStateMetrics       = "walrus-prometheus-kube-state-metrics"
+	NamePrometheusServer       = "walrus-prometheus-server"
+	ConfigMapNameOpencost      = "walrus-opencost"
 	pathOpencostRefreshPricing = "/refreshPricing"
 )
 
