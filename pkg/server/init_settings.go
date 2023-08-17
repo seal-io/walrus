@@ -8,8 +8,7 @@ import (
 	"github.com/seal-io/walrus/pkg/settings"
 )
 
-// setupSettings creates the global settings into the database,
-// it must be the first step to be executed at initialization.
+// setupSettings creates the global settings into the database.
 func (r *Server) setupSettings(ctx context.Context, opts initOptions) error {
 	return opts.ModelClient.Settings().CreateBulk().
 		Set(settings.All()...).

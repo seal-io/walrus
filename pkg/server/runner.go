@@ -30,7 +30,7 @@ import (
 	_ "github.com/seal-io/walrus/pkg/dao/model/runtime" // Default = ent.
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/database"
-	"github.com/seal-io/walrus/pkg/databaselistener"
+	"github.com/seal-io/walrus/pkg/datalisten"
 	"github.com/seal-io/walrus/pkg/k8s"
 	"github.com/seal-io/walrus/utils/clis"
 	"github.com/seal-io/walrus/utils/cryptox"
@@ -515,6 +515,23 @@ func (r *Server) Run(c context.Context) error {
 		return fmt.Errorf("error initializing: %w", err)
 	}
 
+	// Start data listen.
+	startDataListenOpts := datalisten.StartOptions{
+		ModelClient:       modelClient,
+		DataSourceAddress: r.DataSourceAddress,
+	}
+
+	g.Go(func() error {
+		log.Info("starting data listen")
+
+		err = datalisten.Start(ctx, startDataListenOpts)
+		if err != nil {
+			log.Errorf("error starting data listen: %v", err)
+		}
+
+		return err
+	})
+
 	// Setup k8s controllers.
 	setupK8sCtrlsOpts := setupK8sCtrlsOptions{
 		K8sConfig:      k8sCfg,
@@ -529,23 +546,6 @@ func (r *Server) Run(c context.Context) error {
 		err := r.setupK8sCtrls(ctx, setupK8sCtrlsOpts)
 		if err != nil {
 			log.Errorf("error setting up kubernetes controller: %v", err)
-		}
-
-		return err
-	})
-
-	// Setup database listener.
-	setupDatabaseListenerOpts := databaselistener.SetupOptions{
-		ModelClient:       modelClient,
-		DataSourceAddress: r.DataSourceAddress,
-	}
-
-	g.Go(func() error {
-		log.Info("setting up database listener")
-
-		err = r.setupDatabaseListener(ctx, setupDatabaseListenerOpts)
-		if err != nil {
-			log.Errorf("error setting up db listener: %v", err)
 		}
 
 		return err

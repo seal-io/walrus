@@ -12,7 +12,6 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/walrus/pkg/cache"
-	"github.com/seal-io/walrus/pkg/dao/migration"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/utils/strs"
 )
@@ -27,17 +26,11 @@ type initOptions struct {
 }
 
 func (r *Server) init(ctx context.Context, opts initOptions) error {
-	// Create model schema.
-	err := opts.ModelClient.Schema.Create(ctx, migration.Options...)
-	if err != nil {
-		return fmt.Errorf("error creating model schemas: %w", err)
-	}
-
 	// Initialize data for system.
 	inits := []initiation{
+		r.applyModelSchemas,
 		r.setupSettings,
 		r.initConfigs,
-		r.configureModelClient,
 		r.registerMetricCollectors,
 		r.registerHealthCheckers,
 		r.startBackgroundJobs,
@@ -58,7 +51,7 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 	)
 
 	for i := range inits {
-		if err = inits[i](ctx, opts); err != nil {
+		if err := inits[i](ctx, opts); err != nil {
 			return fmt.Errorf("failed to %s: %w",
 				loadInitiationName(inits[i]), err)
 		}

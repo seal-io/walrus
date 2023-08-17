@@ -17,6 +17,7 @@ import (
 )
 
 // startBackgroundJobs starts the background jobs by Cron Expression to do something periodically.
+// StartBackgroundJobs requires the global settings to be initialized.
 func (r *Server) startBackgroundJobs(ctx context.Context, opts initOptions) error {
 	cs := cron.JobCreators{
 		settings.ConnectorCostCollectCronExpr.Name():    buildConnectorCostCollectJobCreator(opts.ModelClient),

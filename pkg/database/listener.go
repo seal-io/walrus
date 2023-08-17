@@ -2,59 +2,56 @@ package database
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/lib/pq"
 
-	"github.com/seal-io/walrus/pkg/dao/model"
-	"github.com/seal-io/walrus/utils/json"
 	"github.com/seal-io/walrus/utils/log"
 )
 
-// globalListener is the default global database listener.
-var globalListener = NewListener()
+type (
+	// ListenHandler holds the operations for the  database listen handler.
+	ListenHandler interface {
+		// Channels returns the name list of multiple channels to establish.
+		Channels() []string
 
-// ListenChannel listen to the channel and add event handler to global database listener.
-func ListenChannel(name string, handler ListenHandler) {
-	globalListener.Listen(name, handler)
-}
-
-// StartListener begin to listen and receive event for global database listener.
-func StartListener(ctx context.Context, dsa string, client model.ClientSet) error {
-	return globalListener.Start(ctx, dsa, client)
-}
-
-// Record is the database change event record.
-type Record struct {
-	TableName string `json:"tableName"`
-	Operation string `json:"operation"`
-	RecordID  uint64 `json:"recordID"`
-}
-
-// ListenHandler is the handler to handle the database table change event.
-type ListenHandler func(ctx context.Context, client model.ClientSet, rd Record) error
-
-// Listener listen to the database table changes.
-type Listener struct {
-	minReconnectInterval time.Duration
-	maxReconnectInterval time.Duration
-
-	handlers map[string]ListenHandler
-}
-
-// NewListener create database listener with options.
-func NewListener(opts ...Option) *Listener {
-	l := &Listener{
-		maxReconnectInterval: 90 * time.Second,
-		minReconnectInterval: 15 * time.Second,
+		// Handle handles the payload according to the given channel.
+		Handle(ctx context.Context, channel, payload string)
 	}
 
+	// Listener subscribes the database listen channel and handle the event.
+	Listener struct {
+		logger               log.Logger
+		minReconnectInterval time.Duration
+		maxReconnectInterval time.Duration
+		dataSourceAddress    string
+		handlers             map[string][]ListenHandler
+	}
+)
+
+// NewListener create database listener with options.
+func NewListener(dataSourceAddress string, opts ...Option) (*Listener, error) {
+	if dataSourceAddress == "" {
+		return nil, errors.New("blank data source address")
+	}
+
+	l := &Listener{
+		logger:               log.WithName("database-listener"),
+		maxReconnectInterval: 90 * time.Second,
+		minReconnectInterval: 15 * time.Second,
+		dataSourceAddress:    dataSourceAddress,
+		handlers:             make(map[string][]ListenHandler),
+	}
 	for _, opt := range opts {
 		opt(l)
 	}
 
-	return l
+	return l, nil
 }
+
+// Option is a function that configures a listener.
+type Option func(*Listener)
 
 // WithReconnectInterval can be used to set the min and max reconnect interval.
 func WithReconnectInterval(min, max time.Duration) Option {
@@ -64,71 +61,61 @@ func WithReconnectInterval(min, max time.Duration) Option {
 	}
 }
 
-// Option is a function that configures a listener.
-type Option func(*Listener)
-
-// Listen the channel and add event handler to listener.
-func (l *Listener) Listen(channelName string, handler ListenHandler) {
-	if l.handlers == nil {
-		l.handlers = make(map[string]ListenHandler)
+// Register listens the channel returns by the given handler
+// and handles by the given handler if event received.
+func (l *Listener) Register(handler ListenHandler) error {
+	if handler == nil {
+		return errors.New("nil handler")
 	}
 
-	l.handlers[channelName] = handler
+	for _, ch := range handler.Channels() {
+		l.handlers[ch] = append(l.handlers[ch], handler)
+	}
+
+	return nil
 }
 
-// Start begin to listen and receive event for database listener.
-func (l *Listener) Start(ctx context.Context, dsa string, client model.ClientSet) error {
-	logger := log.WithName("database-listener")
-
-	// Report error function.
-	reportError := func(ev pq.ListenerEventType, err error) {
-		if err != nil {
-			logger.Errorf("error listen table event, type %s: %v", ev, err)
-		}
+// eventCallBack is the callback function for the database listener.
+func (l *Listener) eventCallBack(ev pq.ListenerEventType, err error) {
+	switch ev {
+	case pq.ListenerEventConnected:
+		l.logger.Info("connected")
+	case pq.ListenerEventDisconnected:
+		l.logger.Errorf("disconnected: %v", err)
+	case pq.ListenerEventReconnected:
+		l.logger.Warnf("reconnected")
+	case pq.ListenerEventConnectionAttemptFailed:
+		l.logger.Errorf("connection attempt failed: %v", err)
 	}
+}
 
+// Start setups a database listener to subscribe the established channels,
+// and stops when the given context is done.
+func (l *Listener) Start(ctx context.Context) error {
 	// Create listener.
-	dl := pq.NewListener(dsa, l.minReconnectInterval, l.maxReconnectInterval, reportError)
+	dl := pq.NewListener(l.dataSourceAddress,
+		l.minReconnectInterval, l.maxReconnectInterval, l.eventCallBack)
 	defer func() {
 		_ = dl.Close()
 	}()
 
 	// Listen channels.
-	for channelName := range l.handlers {
-		err := dl.Listen(channelName)
+	for ch := range l.handlers {
+		err := dl.Listen(ch)
 		if err != nil {
 			return err
 		}
 	}
 
-	// Receive table event.
+	// Receive events.
 	for {
 		select {
 		case msg := <-dl.Notify:
-			if msg.Extra == "" {
-				continue
-			}
+			l.logger.V(5).InfoS("received event",
+				"channel", msg.Channel, "payload", msg.Extra)
 
-			logger.V(5).Infof("received table event, channel %s: %s", msg.Channel, msg.Extra)
-
-			handler, ok := l.handlers[msg.Channel]
-			if !ok {
-				logger.V(5).Infof("received table event for unwatched channel %s, skipped", msg.Channel)
-				continue
-			}
-
-			var rd Record
-
-			err := json.Unmarshal([]byte(msg.Extra), &rd)
-			if err != nil {
-				logger.Warnf("error unmarshal receiving table event, channel %s: %v", msg.Channel, err)
-				continue
-			}
-
-			err = handler(ctx, client, rd)
-			if err != nil {
-				logger.Warnf("error notify table event %s %s %s: %v",
-					rd.TableName, rd.Operation, rd.RecordID, err)
+			for _, h := range l.handlers[msg.Channel] {
+				h.Handle(ctx, msg.Channel, msg.Extra)
 			}
 		case <-ctx.Done():
 			return nil
