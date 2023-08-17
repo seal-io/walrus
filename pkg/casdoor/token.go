@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/req"
 )
 
@@ -62,7 +63,7 @@ func CreateToken(
 		PostWithContext(ctx, createTokenURL).
 		BodyJSON(&createTokenResp)
 	if err != nil {
-		return nil, fmt.Errorf("error creating token: %w", err)
+		return nil, errorx.Errorf("error creating token: %v", err)
 	}
 
 	if createTokenResp.AccessToken == "" {
@@ -96,11 +97,11 @@ func DeleteToken(ctx context.Context, clientID, clientSecret, owner, name string
 		PostWithContext(ctx, deleteTokenURL).
 		BodyJSON(&deleteTokenResp)
 	if err != nil {
-		return fmt.Errorf("error deleting token: %w", err)
+		return errorx.Errorf("error deleting token: %v", err)
 	}
 
 	if deleteTokenResp.Status == statusError {
-		return fmt.Errorf("failed to delete token: %s", deleteTokenResp.Msg)
+		return errorx.Errorf("failed to delete token: %s", deleteTokenResp.Msg)
 	}
 
 	return nil
@@ -131,11 +132,11 @@ func IntrospectToken(ctx context.Context, clientID, clientSecret, token string) 
 		PostWithContext(ctx, introspectTokenURL).
 		BodyJSON(&introspectTokenResp)
 	if err != nil {
-		return nil, fmt.Errorf("error introspecting token: %w", err)
+		return nil, errorx.Errorf("error introspecting token: %v", err)
 	}
 
 	if introspectTokenResp.Status == statusError {
-		return nil, fmt.Errorf("failed to introspect token: %s", introspectTokenResp.Msg)
+		return nil, errorx.Errorf("failed to introspect token: %s", introspectTokenResp.Msg)
 	}
 
 	return &introspectTokenResp.Introspection, nil

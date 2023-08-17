@@ -2,6 +2,7 @@ package setting
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -35,7 +36,7 @@ func (r *UpdateRequest) Validate() error {
 			setting.Editable(true)).
 		Count(r.Context)
 	if err != nil {
-		return runtime.Errorw(err, "failed to get setting")
+		return fmt.Errorf("failed to get setting: %w", err)
 	}
 
 	if cnt != 1 {
@@ -98,7 +99,7 @@ func (r *CollectionUpdateRequest) Validate() error {
 		Select(setting.FieldName).
 		Count(r.Context)
 	if err != nil {
-		return runtime.Errorw(err, "failed to get settings")
+		return fmt.Errorf("failed to get settings: %w", err)
 	}
 
 	if cnt != len(r.Items) {

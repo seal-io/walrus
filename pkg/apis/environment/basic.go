@@ -9,6 +9,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	pkgservice "github.com/seal-io/walrus/pkg/service"
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
 )
 
@@ -48,7 +49,7 @@ func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 		return envbus.NotifyIDs(req.Context, tx, envbus.EventCreate, entity.ID)
 	})
 	if err != nil {
-		return nil, err
+		return nil, errorx.Wrap(err, "failed to create environment")
 	}
 
 	return model.ExposeEnvironment(entity), nil

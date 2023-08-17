@@ -5,11 +5,11 @@ import (
 
 	"github.com/drone/go-scm/scm"
 
-	"github.com/seal-io/walrus/pkg/apis/runtime"
 	pkgconn "github.com/seal-io/walrus/pkg/connectors"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/vcs"
+	"github.com/seal-io/walrus/utils/errorx"
 )
 
 func (h Handler) RouteApplyCostTools(
@@ -62,7 +62,7 @@ func (h Handler) RouteGetRepositories(
 	}
 
 	if conn.Category != types.ConnectorCategoryVersionControl {
-		return nil, runtime.Errorf(http.StatusBadRequest,
+		return nil, errorx.HttpErrorf(http.StatusBadRequest,
 			"%q is not a supported version control driver", conn.Type)
 	}
 
@@ -97,7 +97,7 @@ func (h Handler) RouteGetRepositoryBranches(
 	}
 
 	if conn.Category != types.ConnectorCategoryVersionControl {
-		return nil, runtime.Errorf(http.StatusBadRequest,
+		return nil, errorx.HttpErrorf(http.StatusBadRequest,
 			"%q is not a supported SCM driver", conn.Type)
 	}
 

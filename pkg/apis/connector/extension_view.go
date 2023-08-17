@@ -3,10 +3,10 @@ package connector
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/drone/go-scm/scm"
 
-	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/connector"
 	"github.com/seal-io/walrus/pkg/dao/types"
@@ -76,7 +76,7 @@ func validateConnectorType(ctx context.Context, modelClient model.ClientSet, id 
 		Where(connector.ID(id)).
 		Only(ctx)
 	if err != nil {
-		return runtime.Errorw(err, "failed to get connector")
+		return fmt.Errorf("failed to get connector: %w", err)
 	}
 
 	if conn.Type != types.ConnectorTypeK8s {

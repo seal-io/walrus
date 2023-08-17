@@ -2,6 +2,7 @@ package serviceresource
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -36,7 +37,7 @@ func (r *Request) Validate() error {
 		}).
 		Only(r.Context)
 	if err != nil {
-		return runtime.Errorw(err, "failed to get service resource")
+		return fmt.Errorf("failed to get service resource: %w", err)
 	}
 
 	r.Entity = entity

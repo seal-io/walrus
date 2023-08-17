@@ -2,6 +2,7 @@ package servicerevision
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -48,7 +49,7 @@ func (r *CollectionDeleteRequest) Validate() error {
 		Select(servicerevision.FieldID).
 		First(r.Context)
 	if err != nil {
-		return runtime.Errorw(err, "failed to get latest revision")
+		return fmt.Errorf("failed to get latest revision: %w", err)
 	}
 
 	for i := range r.Items {

@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"entgo.io/ent/dialect/sql"
@@ -16,6 +15,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/strs"
 )
@@ -111,11 +111,11 @@ func Apply(
 	}()
 
 	if !status.ServiceStatusDeployed.IsUnknown(entity) {
-		return fmt.Errorf("service status is not deploying, service: %s", entity.ID)
+		return errorx.Errorf("service status is not deploying, service: %s", entity.ID)
 	}
 
 	if dp == nil {
-		return errors.New("deployer is not set")
+		return errorx.New("deployer is not set")
 	}
 
 	applyOpts := deptypes.ApplyOptions{
@@ -123,7 +123,12 @@ func Apply(
 		Tags:          opts.Tags,
 	}
 
-	return dp.Apply(ctx, entity, applyOpts)
+	err = dp.Apply(ctx, entity, applyOpts)
+	if err != nil {
+		return fmt.Errorf("failed to apply service: %w", err)
+	}
+
+	return nil
 }
 
 func Destroy(
@@ -150,7 +155,7 @@ func Destroy(
 	}()
 
 	if dp == nil {
-		return errors.New("deployer is not set")
+		return errorx.New("deployer is not set")
 	}
 
 	// Check dependants.

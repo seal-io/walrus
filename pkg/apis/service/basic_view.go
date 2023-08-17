@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/terraform/convertor"
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/strs"
 	"github.com/seal-io/walrus/utils/validation"
 )
@@ -50,7 +51,7 @@ func (r *CreateRequest) Validate() error {
 			templateversion.FieldSchema).
 		Only(r.Context)
 	if err != nil {
-		return runtime.Errorw(err, "failed to get template version")
+		return fmt.Errorf("failed to get template version: %w", err)
 	}
 
 	// Get environment.
@@ -65,7 +66,7 @@ func (r *CreateRequest) Validate() error {
 		}).
 		Only(r.Context)
 	if err != nil {
-		return runtime.Errorw(err, "failed to get environment")
+		return fmt.Errorf("failed to get environment: %w", err)
 	}
 
 	// Validate template version whether match the target environment.
@@ -101,16 +102,16 @@ func (r *DeleteRequest) Validate() error {
 
 	ids, err := dao.GetServiceDependantIDs(r.Context, r.Client, r.ID)
 	if err != nil {
-		return runtime.Errorw(err, "failed to get service relationships")
+		return fmt.Errorf("failed to get service relationships: %w", err)
 	}
 
 	if len(ids) > 0 {
 		names, err := dao.GetServiceNamesByIDs(r.Context, r.Client, ids...)
 		if err != nil {
-			return runtime.Errorw(err, "failed to get services")
+			return fmt.Errorf("failed to get services: %w", err)
 		}
 
-		return runtime.Errorf(
+		return errorx.HttpErrorf(
 			http.StatusConflict,
 			"service about to be deleted is the dependency of: %v",
 			strs.Join(", ", names...),
@@ -165,7 +166,7 @@ func (r *CollectionCreateRequest) Validate() error {
 			templateversion.FieldSchema).
 		All(r.Context)
 	if err != nil {
-		return runtime.Errorw(err, "failed to get template version")
+		return fmt.Errorf("failed to get template version: %w", err)
 	}
 
 	// Get environment.
@@ -180,7 +181,7 @@ func (r *CollectionCreateRequest) Validate() error {
 		}).
 		Only(r.Context)
 	if err != nil {
-		return runtime.Errorw(err, "failed to get environment")
+		return fmt.Errorf("failed to get environment: %w", err)
 	}
 
 	tvm := make(map[object.ID]*model.TemplateVersion, len(tvs))
@@ -188,7 +189,7 @@ func (r *CollectionCreateRequest) Validate() error {
 	// Validate template version whether match the target environment.
 	for i := range tvs {
 		if err = validateEnvironment(tvs[i], env); err != nil {
-			return runtime.Errorf(
+			return errorx.HttpErrorf(
 				http.StatusBadRequest, "environment %s missing required connectors", env.Name)
 		}
 
@@ -242,7 +243,7 @@ func (r *CollectionDeleteRequest) Validate() error {
 
 	dependantIDs, err := dao.GetServiceDependantIDs(r.Context, r.Client, ids...)
 	if err != nil {
-		return runtime.Errorw(err, "failed to get service dependencies")
+		return fmt.Errorf("failed to get service dependencies: %w", err)
 	}
 
 	dependantIDSet := sets.New[object.ID](dependantIDs...)
@@ -252,10 +253,10 @@ func (r *CollectionDeleteRequest) Validate() error {
 	if diffIDSet.Len() > 0 {
 		names, err := dao.GetServiceNamesByIDs(r.Context, r.Client, diffIDSet.UnsortedList()...)
 		if err != nil {
-			return runtime.Errorw(err, "failed to get services")
+			return fmt.Errorf("failed to get services: %w", err)
 		}
 
-		return runtime.Errorf(
+		return errorx.HttpErrorf(
 			http.StatusConflict,
 			"service about to be deleted is the dependency of: %v",
 			strs.Join(", ", names...),
@@ -273,7 +274,7 @@ func (r *CollectionDeleteRequest) Validate() error {
 
 func validateEnvironment(tv *model.TemplateVersion, env *model.Environment) error {
 	if len(env.Edges.Connectors) == 0 {
-		return runtime.Error(http.StatusBadRequest, errors.New("no connectors"))
+		return errorx.NewHttpError(http.StatusBadRequest, "no connectors")
 	}
 
 	providers := make([]string, len(tv.Schema.RequiredProviders))
@@ -298,7 +299,7 @@ func validateEnvironment(tv *model.TemplateVersion, env *model.Environment) erro
 func validateRevisionsStatus(ctx context.Context, mc model.ClientSet, ids ...object.ID) error {
 	revisions, err := dao.GetLatestRevisions(ctx, mc, ids...)
 	if err != nil {
-		return runtime.Errorw(err, "failed to get service revisions")
+		return fmt.Errorf("failed to get service revisions: %w", err)
 	}
 
 	for _, r := range revisions {
@@ -306,13 +307,13 @@ func validateRevisionsStatus(ctx context.Context, mc model.ClientSet, ids ...obj
 		case status.ServiceRevisionStatusSucceeded:
 		case status.ServiceRevisionStatusFailed:
 		case status.ServiceRevisionStatusRunning:
-			return runtime.Errorf(
+			return errorx.HttpErrorf(
 				http.StatusBadRequest,
 				"deployment of service %q is running, please wait for it to finish",
 				r.Edges.Service.Name,
 			)
 		default:
-			return runtime.Errorf(
+			return errorx.HttpErrorf(
 				http.StatusBadRequest,
 				"invalid deployment status of service %q: %s",
 				r.Edges.Service.Name,

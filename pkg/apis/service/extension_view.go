@@ -44,7 +44,7 @@ func (r *RouteUpgradeRequest) Validate() error {
 		}).
 		Only(r.Context)
 	if err != nil {
-		return runtime.Errorw(err, "failed to get service")
+		return fmt.Errorf("failed to get service: %w", err)
 	}
 
 	if r.Template.Name != entity.Edges.Template.Name {
@@ -56,7 +56,7 @@ func (r *RouteUpgradeRequest) Validate() error {
 		Select(templateversion.FieldSchema).
 		Only(r.Context)
 	if err != nil {
-		return runtime.Errorw(err, "failed to get template version")
+		return fmt.Errorf("failed to get template version: %w", err)
 	}
 
 	// Verify attributes with variables schema of the template version.
@@ -90,7 +90,7 @@ func (r *RouteRollbackRequest) Validate() error {
 		Select(servicerevision.FieldStatus).
 		First(r.Context)
 	if err != nil && !model.IsNotFound(err) {
-		return runtime.Errorw(err, "failed to get the latest revision")
+		return fmt.Errorf("failed to get the latest revision: %w", err)
 	}
 
 	if latestRevision.Status == status.ServiceRevisionStatusRunning {

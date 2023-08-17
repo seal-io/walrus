@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/version"
 )
@@ -44,7 +45,7 @@ func SetFlags() runtime.ErrorHandle {
 		}
 
 		if err := binding.MapFormWithTag(&input, ctx.Request.URL.Query(), "query"); err != nil {
-			return err
+			return errorx.WrapHttpError(http.StatusBadRequest, err, "invalid query params")
 		}
 
 		resp := map[string]any{}
