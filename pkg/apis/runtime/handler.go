@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
 )
 
@@ -21,8 +22,7 @@ func wrapErrorHandle(f ErrorHandle) Handle {
 
 		err := f(c)
 		if err != nil {
-			_ = c.Error(err).
-				SetType(gin.ErrorTypePublic)
+			_ = c.Error(errorx.Wrap(err, ""))
 
 			c.Abort()
 		}
@@ -57,8 +57,7 @@ func wrapErrorHandler(h ErrorHandler) Handle {
 
 		err := h.Handle(c)
 		if err != nil {
-			_ = c.Error(err).
-				SetType(gin.ErrorTypePublic)
+			_ = c.Error(errorx.Wrap(err, ""))
 
 			c.Abort()
 		}

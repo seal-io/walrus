@@ -16,6 +16,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/walrus/pkg/apis/runtime/bind"
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/strs"
 )
@@ -121,7 +122,10 @@ func (rt *Router) Routes(handler IHandler) IRouter {
 			// Validate request.
 			if route.RequestAttributes.HasAll(RequestWithValidate) {
 				if err := inputObj.(Validator).Validate(); err != nil {
-					_ = c.Error(err).
+					_ = c.
+						Error(
+							errorx.Wrap(err, ""),
+						).
 						SetType(gin.ErrorTypeBind).
 						SetMeta(route.RouteProfile.Summary)
 

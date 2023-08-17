@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
 )
 
@@ -21,16 +22,18 @@ func erroring(c *gin.Context) {
 	if len(c.Errors) == 0 {
 		if c.Writer.Status() >= http.StatusBadRequest && c.Writer.Size() == 0 {
 			// Detail the error status message.
-			_ = c.Error(Errorc(c.Writer.Status())).
-				SetType(gin.ErrorTypePublic)
+			_ = c.Error(errorx.NewHttpError(c.Writer.Status(), ""))
 		} else {
 			// No errors.
 			return
 		}
 	}
 
-	// Log private errors.
-	if me := c.Errors.ByType(gin.ErrorTypePrivate); len(me) != 0 {
+	// Get errors from chain and parse into response.
+	he := getHttpError(c)
+
+	// Log errors.
+	if len(he.errs) != 0 {
 		reqMethod := c.Request.Method
 
 		reqPath := c.Request.URL.Path
@@ -39,41 +42,56 @@ func erroring(c *gin.Context) {
 		}
 
 		log.WithName("api").
-			Errorf("error requesting %s %s: %v", reqMethod, reqPath, me[len(me)-1])
+			Errorf("error requesting %s %s: %v", reqMethod, reqPath, errorx.Format(he.errs))
 	}
 
-	// Get last error from chain and parse into response.
-	he := getHttpError(c)
-	c.AbortWithStatusJSON(he.code, he)
+	c.AbortWithStatusJSON(he.Status, he)
 }
 
-func getHttpError(c *gin.Context) (he httpError) {
-	ge := c.Errors.Last()
+func getHttpError(c *gin.Context) (he ErrorResponse) {
+	var errs []error
 
-	if ge == nil || ge.Err == nil {
-		he.code = http.StatusInternalServerError
-	} else {
-		if !errors.As(ge.Err, &he) {
-			he.code, he.brief = diagnoseError(ge)
-			he.cause = ge.Err
+	for i := range c.Errors {
+		if c.Errors[i].Err != nil {
+			errs = append(errs, c.Errors[i].Err)
 		}
+	}
+	he.errs = errs
 
-		if ge.Type == gin.ErrorTypePrivate {
-			var we wrapError
-			if !errors.As(he.cause, &we) {
-				he.cause = nil // Mute.
-			} else {
-				he.cause = we.external
+	if len(errs) == 0 {
+		he.Status = http.StatusInternalServerError
+	} else {
+		// Get the public error.
+		he.Status, he.Message = errorx.Public(errs)
+
+		// Get the last error.
+		if he.Status == 0 {
+			st, msg := diagnoseError(c.Errors.Last())
+			he.Status = st
+
+			if he.Message == "" {
+				he.Message = msg
 			}
 		}
 	}
 
 	// Correct the code if already write within context.
 	if c.Writer.Written() {
-		he.code = c.Writer.Status()
+		he.Status = c.Writer.Status()
 	}
 
+	he.StatusText = http.StatusText(he.Status)
+
 	return
+}
+
+type ErrorResponse struct {
+	Message    string `json:"message"`
+	Status     int    `json:"status"`
+	StatusText string `json:"statusText"`
+
+	// Errs is the all errors from gin context errors.
+	errs []error
 }
 
 func diagnoseError(ge *gin.Error) (int, string) {
