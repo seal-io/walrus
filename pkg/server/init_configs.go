@@ -24,6 +24,7 @@ import (
 
 // initConfigs configures the system singleton instances at initialization phase,
 // like caches, encryption, auths, etc.
+// initConfigs requires the global settings to be initialized.
 func (r *Server) initConfigs(ctx context.Context, opts initOptions) (err error) {
 	err = configureCaches(ctx, opts.CacheDriver)
 	if err != nil {
