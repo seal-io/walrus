@@ -6,11 +6,14 @@ import (
 	"strings"
 
 	"golang.org/x/mod/semver"
+
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 var (
-	Version   = "dev"
-	GitCommit = "HEAD"
+	Version      = "dev"
+	GitCommit    = "HEAD"
+	instanceUUID = strs.Hex(16)
 )
 
 func Get() string {
@@ -23,6 +26,10 @@ func GetUserAgent() string {
 
 func GetUserAgentWith(name string) string {
 	return "seal.io/" + name + "; version=" + Get()
+}
+
+func GetInstanceUUID() string {
+	return instanceUUID
 }
 
 func Major() string {
