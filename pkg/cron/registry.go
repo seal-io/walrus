@@ -30,7 +30,7 @@ var (
 
 // Register executes all job creators and
 // schedules the returning task with the returning expression.
-func Register(ctx context.Context, mc model.ClientSet, cs JobCreators) (err error) {
+func Register(ctx context.Context, mc *model.Client, cs JobCreators) (err error) {
 	err = errors.New("not allowed duplicated registering")
 
 	o.Do(func() {
@@ -43,7 +43,7 @@ func Register(ctx context.Context, mc model.ClientSet, cs JobCreators) (err erro
 	return
 }
 
-func doRegister(ctx context.Context, mc model.ClientSet) error {
+func doRegister(ctx context.Context, mc *model.Client) error {
 	// Create locker.
 	locker := NewLocker(mc)
 
