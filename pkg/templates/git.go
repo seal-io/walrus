@@ -115,6 +115,17 @@ func syncTemplateFromRef(
 		return err
 	}
 
+	iconFile, err := getGitRepoIcon(r)
+	if err != nil {
+		logger.Errorf("failed to get icon url: %v", err)
+		return err
+	}
+
+	icon, err := GetRepoFileRaw(repo, iconFile, nil)
+	if err != nil {
+		return err
+	}
+
 	w, err := r.Worktree()
 	if err != nil {
 		return err
@@ -126,17 +137,6 @@ func syncTemplateFromRef(
 	}
 
 	schema, err := loadTerraformTemplateSchema(w.Filesystem.Root())
-	if err != nil {
-		return err
-	}
-
-	iconFile, err := getGitRepoIcon(r)
-	if err != nil {
-		logger.Errorf("failed to get icon url: %v", err)
-		return err
-	}
-
-	icon, err := GetRepoFileRaw(repo, iconFile, nil)
 	if err != nil {
 		return err
 	}
@@ -237,6 +237,18 @@ func SyncTemplateFromGitRepo(
 		return err
 	}
 
+	// Get icon image name.
+	iconFile, err := getGitRepoIcon(r)
+	if err != nil {
+		logger.Errorf("failed to get icon url: %v", err)
+		return err
+	}
+
+	icon, err := GetRepoFileRaw(repo, iconFile, c)
+	if err != nil {
+		return err
+	}
+
 	versions, err := vcs.GetGitRepoVersions(r)
 	if err != nil {
 		return err
@@ -269,18 +281,6 @@ func SyncTemplateFromGitRepo(
 		return mc.Templates().UpdateOne(t).
 			SetStatus(c.Status).
 			Exec(ctx)
-	}
-
-	// Get icon image name.
-	iconFile, err := getGitRepoIcon(r)
-	if err != nil {
-		logger.Errorf("failed to get icon url: %v", err)
-		return err
-	}
-
-	icon, err := GetRepoFileRaw(repo, iconFile, c)
-	if err != nil {
-		return err
 	}
 
 	entity := &model.Template{
