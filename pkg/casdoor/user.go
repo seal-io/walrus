@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/req"
 )
 
@@ -30,16 +31,16 @@ func SignInUser(ctx context.Context, app, org, usr, pwd string) ([]*req.HttpCook
 
 	err := loginResp.BodyJSON(&loginRespBody)
 	if err != nil {
-		return nil, fmt.Errorf("error signing in user %s/%s: %w", org, usr, err)
+		return nil, errorx.Errorf("error signing in user %s/%s: %v", org, usr, err)
 	}
 
 	if loginRespBody.Status == statusError {
-		return nil, fmt.Errorf("failed to sign in user %s/%s: %s", org, usr, loginRespBody.Msg)
+		return nil, errorx.Errorf("failed to sign in user %s/%s: %s", org, usr, loginRespBody.Msg)
 	}
 
 	userSession := loginResp.Cookies()
 	if len(userSession) == 0 {
-		return nil, fmt.Errorf("faield to sign in user %s/%s", org, usr)
+		return nil, errorx.Errorf("failed to sign in user %s/%s", org, usr)
 	}
 
 	return userSession, nil
@@ -53,7 +54,7 @@ func SignOutUser(ctx context.Context, userSessions []*req.HttpCookie) error {
 		PostWithContext(ctx, logoutURL).
 		Error()
 	if err != nil {
-		return fmt.Errorf("error signing out out: %w", err)
+		return errorx.Errorf("error signing out out: %v", err)
 	}
 
 	return nil
@@ -83,11 +84,11 @@ func CreateUser(ctx context.Context, clientID, clientSecret, app, org, usr, pwd 
 		PostWithContext(ctx, createUserURL).
 		BodyJSON(&createUserResp)
 	if err != nil {
-		return fmt.Errorf("error creating user %s/%s: %w", org, usr, err)
+		return errorx.Errorf("error creating user %s/%s: %v", org, usr, err)
 	}
 
 	if createUserResp.Status == statusError {
-		return fmt.Errorf("failed to create the user %s/%s: %s", org, usr, createUserResp.Msg)
+		return errorx.Errorf("failed to create the user %s/%s: %s", org, usr, createUserResp.Msg)
 	}
 
 	return nil
@@ -111,11 +112,11 @@ func DeleteUser(ctx context.Context, clientID, clientSecret, org, usr string) er
 		PostWithContext(ctx, deleteUserURL).
 		BodyJSON(&deleteUserResp)
 	if err != nil {
-		return fmt.Errorf("error deleting user %s/%s: %w", org, usr, err)
+		return errorx.Errorf("error deleting user %s/%s: %v", org, usr, err)
 	}
 
 	if deleteUserResp.Status == "error" {
-		return fmt.Errorf("failed to delete user %s/%s: %s", deleteUserResp.Msg, org, usr)
+		return errorx.Errorf("failed to delete user %s/%s: %s", deleteUserResp.Msg, org, usr)
 	}
 
 	return nil
@@ -141,11 +142,11 @@ func UpdateUserPassword(ctx context.Context, clientID, clientSecret, org, usr, o
 		PostWithContext(ctx, setPwdURL).
 		BodyJSON(&setPwdResp)
 	if err != nil {
-		return fmt.Errorf("error setting password: %w", err)
+		return errorx.Errorf("error setting password: %v", err)
 	}
 
 	if setPwdResp.Status == "error" {
-		return fmt.Errorf("failed to set password: %s", setPwdResp.Msg)
+		return errorx.Errorf("failed to set password: %s", setPwdResp.Msg)
 	}
 
 	return nil
@@ -170,11 +171,11 @@ func GetUser(ctx context.Context, clientID, clientSecret, org, usr string) (*Use
 		GetWithContext(ctx, getUserURL).
 		BodyJSON(&user)
 	if err != nil {
-		return nil, fmt.Errorf("error getting user %s/%s: %w", org, usr, err)
+		return nil, errorx.Errorf("error getting user %s/%s: %v", org, usr, err)
 	}
 
 	if user.Owner == "" || user.Name == "" {
-		return nil, fmt.Errorf("failed to get user %s/%s: not found", org, usr)
+		return nil, errorx.Errorf("failed to get user %s/%s: not found", org, usr)
 	}
 
 	return &user, nil
@@ -201,7 +202,7 @@ func GetUserInfo(ctx context.Context, userSessions []*req.HttpCookie) (*UserInfo
 		GetWithContext(ctx, getAccountURL).
 		BodyJSON(&account)
 	if err != nil {
-		return nil, fmt.Errorf("error getting user account: %w", err)
+		return nil, errorx.Errorf("error getting user account: %v", err)
 	}
 
 	if account.Sub == "" {

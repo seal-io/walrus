@@ -3,12 +3,12 @@ package setting
 import (
 	"net/http"
 
-	"github.com/seal-io/walrus/pkg/apis/runtime"
 	settingbus "github.com/seal-io/walrus/pkg/bus/setting"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/setting"
 	"github.com/seal-io/walrus/pkg/settings"
+	"github.com/seal-io/walrus/utils/errorx"
 )
 
 func (h Handler) Get(req GetRequest) (GetResponse, error) {
@@ -29,7 +29,7 @@ func (h Handler) Update(req UpdateRequest) error {
 	return h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
 		s := settings.Index(req.Name)
 		if s == nil {
-			return runtime.Errorc(http.StatusNotFound)
+			return errorx.HttpErrorf(http.StatusNotFound, "setting %s not found", req.Name)
 		}
 
 		changed, err := s.Set(req.Context, tx, req.Value)
@@ -124,7 +124,7 @@ func (h Handler) CollectionUpdate(req CollectionUpdateRequest) error {
 		for i := range req.Items {
 			s := settings.Index(req.Items[i].Name)
 			if s == nil {
-				return runtime.Errorc(http.StatusNotFound)
+				return errorx.HttpErrorf(http.StatusNotFound, "setting %s not found", req.Items[i].Name)
 			}
 
 			changed, err := s.Set(req.Context, tx, req.Items[i].Value)

@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/auths/builtin"
 	"github.com/seal-io/walrus/pkg/auths/session"
 	tokenbus "github.com/seal-io/walrus/pkg/bus/token"
@@ -14,6 +13,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/token"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/settings"
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
 )
 
@@ -40,7 +40,7 @@ func (a Account) Login(req LoginRequest) (LoginResponse, error) {
 	switch d {
 	default:
 		// TODO(thxCode): support other authentication system.
-		return nil, runtime.Errorf(http.StatusBadRequest, "invalid domain: %s", d)
+		return nil, errorx.HttpErrorf(http.StatusBadRequest, "invalid domain: %s", d)
 	case "", types.SubjectDomainBuiltin:
 		sv, err = builtin.Login(req.Context, u, req.Password)
 		if err != nil {
@@ -128,11 +128,11 @@ func (a Account) UpdateInfo(req UpdateInfoRequest) error {
 		casdoor.BuiltinOrg, sj.Name, req.OldPassword, req.Password)
 	if err != nil {
 		if strings.HasSuffix(err.Error(), "not found") {
-			return runtime.Error(http.StatusNotFound,
+			return errorx.NewHttpError(http.StatusNotFound,
 				"invalid user: not found")
 		}
 
-		return runtime.Error(http.StatusBadRequest, err)
+		return errorx.NewHttpError(http.StatusBadRequest, err.Error())
 	}
 
 	if sj.IsAdmin() {

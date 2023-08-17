@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/req"
 )
 
@@ -26,11 +27,11 @@ func GetApplicationCredential(
 		GetWithContext(ctx, getApplicationURL).
 		BodyJSON(&app)
 	if err != nil {
-		return nil, fmt.Errorf("error getting app admin/%s: %w", appz, err)
+		return nil, errorx.Errorf("error getting app admin/%s: %v", appz, err)
 	}
 
 	if app.ClientID == "" || app.ClientSecret == "" {
-		return nil, fmt.Errorf("failed to get app admin/%s: blank client id/secret", appz)
+		return nil, errorx.Errorf("failed to get app admin/%s: blank client id/secret", appz)
 	}
 
 	return &app, nil

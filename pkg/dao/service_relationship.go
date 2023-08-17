@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqljson"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/service"
 	"github.com/seal-io/walrus/pkg/dao/model/servicerelationship"
@@ -96,7 +95,7 @@ func GetServiceDependantNames(
 		}).
 		Scan(ctx, &names)
 	if err != nil {
-		return nil, runtime.Errorw(err, "failed to get service relationships")
+		return nil, fmt.Errorf("failed to get service relationships: %w", err)
 	}
 
 	return names, nil

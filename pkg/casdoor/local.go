@@ -13,6 +13,7 @@ import (
 	"github.com/seal-io/walrus/pkg/consts"
 	"github.com/seal-io/walrus/pkg/database"
 	"github.com/seal-io/walrus/utils/bytespool"
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/files"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/strs"
@@ -60,7 +61,7 @@ func (Embedded) Run(ctx context.Context, dataSourceAddress string) error {
 
 	configPath, err := writeConfig(dataSourceAddress, runDataPath)
 	if err != nil {
-		return err
+		return errorx.Wrap(err, "error writing config")
 	}
 
 	const cmdName = "casdoor"
@@ -77,7 +78,7 @@ func (Embedded) Run(ctx context.Context, dataSourceAddress string) error {
 
 	err = cmd.Run()
 	if err != nil && !errors.Is(err, context.Canceled) {
-		return err
+		return errorx.Wrap(err, "error running")
 	}
 
 	return nil

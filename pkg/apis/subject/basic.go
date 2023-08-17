@@ -1,11 +1,9 @@
 package subject
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/casdoor"
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -14,6 +12,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/settings"
+	"github.com/seal-io/walrus/utils/errorx"
 )
 
 func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
@@ -43,7 +42,7 @@ func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 		err = casdoor.CreateUser(req.Context, cred.ClientID, cred.ClientSecret,
 			casdoor.BuiltinApp, casdoor.BuiltinOrg, req.Name, req.Password)
 		if err != nil {
-			return fmt.Errorf("failed to create user: %w", err)
+			return err
 		}
 
 		return nil
@@ -70,7 +69,7 @@ func (h Handler) Delete(req DeleteRequest) error {
 	}
 
 	if entity.Builtin {
-		return runtime.Error(http.StatusForbidden, "cannot delete builtin subject")
+		return errorx.NewHttpError(http.StatusForbidden, "cannot delete builtin subject")
 	}
 
 	return h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
@@ -97,7 +96,7 @@ func (h Handler) Delete(req DeleteRequest) error {
 			casdoor.BuiltinOrg, entity.Name)
 		if err != nil {
 			if !strings.HasSuffix(err.Error(), "not found") {
-				return fmt.Errorf("failed to delete user from casdoor: %w", err)
+				return err
 			}
 		}
 
@@ -136,7 +135,7 @@ func (h Handler) Update(req UpdateRequest) error {
 		err = casdoor.UpdateUserPassword(req.Context, cred.ClientID, cred.ClientSecret,
 			casdoor.BuiltinOrg, entity.Name, "", req.Password)
 		if err != nil {
-			return fmt.Errorf("failed to update user password to casdoor: %w", err)
+			return err
 		}
 
 		return nil

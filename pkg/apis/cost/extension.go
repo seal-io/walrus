@@ -22,7 +22,7 @@ func (h Handler) CollectionRouteGetCostReports(
 ) (CollectionRouteGetCostReportsResponse, error) {
 	items, count, err := h.distributor.Distribute(req.Context, req.StartTime, req.EndTime, req.QueryCondition)
 	if err != nil {
-		return nil, runtime.Errorw(err, "error query allocation cost")
+		return nil, fmt.Errorf("error query allocation cost: %w", err)
 	}
 
 	return runtime.FullPageResponse(items, count), nil
@@ -287,7 +287,7 @@ func (h Handler) CollectionRouteGetSummaryQueriedCosts(
 
 	items, count, err := h.distributor.Distribute(req.Context, req.StartTime, req.EndTime, cond)
 	if err != nil {
-		return nil, runtime.Errorw(err, "error query item cost")
+		return nil, fmt.Errorf("error query item cost: %w", err)
 	}
 
 	// Days.

@@ -5,10 +5,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/casdoor"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/errorx"
 )
 
 func Login(c *gin.Context, username, password string) (sessionValue string, err error) {
@@ -16,7 +16,7 @@ func Login(c *gin.Context, username, password string) (sessionValue string, err 
 	cs, err := casdoor.SignInUser(c, casdoor.BuiltinApp, casdoor.BuiltinOrg,
 		username, password)
 	if err != nil {
-		return "", runtime.Error(http.StatusUnauthorized, err)
+		return "", errorx.NewHttpError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Extract session value.
@@ -25,7 +25,7 @@ func Login(c *gin.Context, username, password string) (sessionValue string, err 
 		return
 	}
 
-	return "", runtime.Error(http.StatusInternalServerError, "not found login succeeded token")
+	return "", errorx.NewHttpError(http.StatusInternalServerError, "not found login succeeded token")
 }
 
 func Logout(c *gin.Context, sessionValue string) {

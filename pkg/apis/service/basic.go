@@ -15,6 +15,7 @@ import (
 	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
 	pkgservice "github.com/seal-io/walrus/pkg/service"
 	"github.com/seal-io/walrus/pkg/topic/datamessage"
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/topic"
 )
 
@@ -104,7 +105,7 @@ func (h Handler) CollectionCreate(req CollectionCreateRequest) (CollectionCreate
 		return err
 	})
 	if err != nil {
-		return nil, err
+		return nil, errorx.Wrap(err, "failed to create services")
 	}
 
 	return model.ExposeServices(entities), nil

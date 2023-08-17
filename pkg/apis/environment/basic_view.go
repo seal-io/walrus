@@ -68,7 +68,7 @@ func (r *CreateRequest) Validate() error {
 			templateversion.FieldSchema).
 		All(r.Context)
 	if err != nil {
-		return runtime.Errorw(err, "failed to get template version")
+		return fmt.Errorf("failed to get template version: %w", err)
 	}
 
 	// Map template version by ID for service validation.
@@ -154,7 +154,7 @@ func validateConnectors(ctx context.Context, mc model.ClientSet, ids []object.ID
 		Aggregate(model.Count()).
 		Scan(ctx, &typeCount)
 	if err != nil {
-		return runtime.Errorw(err, "failed to get connector type count")
+		return fmt.Errorf("failed to get connector type count: %w", err)
 	}
 
 	// Validate connector type is duplicated,

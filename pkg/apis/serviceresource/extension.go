@@ -9,9 +9,9 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/operator"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
+	"github.com/seal-io/walrus/utils/errorx"
 )
 
 func (h Handler) RouteGetKeys(req RouteGetKeysRequest) (RouteGetKeysResponse, error) {
@@ -74,7 +74,7 @@ func (h Handler) RouteLog(req RouteLogRequest) error {
 func (h Handler) RouteExec(req RouteExecRequest) error {
 	// Only allow stream request.
 	if req.Stream == nil {
-		return runtime.Errorf(http.StatusBadRequest, "stream request required")
+		return errorx.HttpErrorf(http.StatusBadRequest, "stream request required")
 	}
 
 	op, err := operator.Get(req.Stream, optypes.CreateOptions{

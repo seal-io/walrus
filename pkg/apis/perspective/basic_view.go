@@ -71,7 +71,7 @@ func (r *UpdateRequest) Validate() error {
 		Where(perspective.ID(r.ID)).
 		Only(r.Context)
 	if err != nil {
-		return runtime.Errorw(err, "failed to get perspective")
+		return fmt.Errorf("failed to get perspective: %w", err)
 	}
 
 	if r.Name == entity.Name &&

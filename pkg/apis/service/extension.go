@@ -25,6 +25,7 @@ import (
 	pkgresource "github.com/seal-io/walrus/pkg/serviceresources"
 	tfparser "github.com/seal-io/walrus/pkg/terraform/parser"
 	"github.com/seal-io/walrus/pkg/topic/datamessage"
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/strs"
 	"github.com/seal-io/walrus/utils/topic"
 	"github.com/seal-io/walrus/utils/validation"
@@ -223,7 +224,7 @@ func (h Handler) getEndpointsFromOutput(ctx context.Context, id object.ID) ([]Ac
 	}
 
 	var (
-		invalidTypeErr = runtime.Error(http.StatusBadRequest,
+		invalidTypeErr = errorx.NewHttpError(http.StatusBadRequest,
 			"element type of output endpoints should be string")
 		endpoints = make([]AccessEndpoint, 0, len(outputs))
 	)
@@ -245,8 +246,8 @@ func (h Handler) getEndpointsFromOutput(ctx context.Context, id object.ID) ([]Ac
 				return nil, err
 			}
 
-			if err := validation.IsValidEndpoint(ep); err != nil {
-				return nil, runtime.Error(http.StatusBadRequest, err)
+			if err = validation.IsValidEndpoint(ep); err != nil {
+				return nil, errorx.NewHttpError(http.StatusBadRequest, err.Error())
 			}
 
 			endpoints = append(endpoints, AccessEndpoint{
@@ -272,7 +273,7 @@ func (h Handler) getEndpointsFromOutput(ctx context.Context, id object.ID) ([]Ac
 			}
 
 			if err := validation.IsValidEndpoints(eps); err != nil {
-				return nil, runtime.Error(http.StatusBadRequest, err)
+				return nil, err
 			}
 
 			endpoints = append(endpoints, AccessEndpoint{

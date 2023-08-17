@@ -8,11 +8,11 @@ import (
 
 	imgdistref "github.com/distribution/distribution/reference"
 
-	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/setting"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/utils/cron"
+	"github.com/seal-io/walrus/utils/errorx"
 )
 
 // modifier defines the stereotype for writing value.
@@ -27,7 +27,7 @@ func modifyWith(validates ...modifyValidator) modifier {
 		for i := range validates {
 			ok, err := validates[i](ctx, name, oldValue, newValue)
 			if err != nil {
-				return runtime.Errorf(http.StatusBadRequest, "invalid setting %q: %w", name, err)
+				return errorx.HttpErrorf(http.StatusBadRequest, "invalid setting %q: %v", name, err)
 			}
 
 			if !ok {
