@@ -532,8 +532,8 @@ func (r *Server) Run(c context.Context) error {
 		return err
 	})
 
-	// Setup k8s controllers.
-	setupK8sCtrlsOpts := setupK8sCtrlsOptions{
+	// Start k8s controllers.
+	startK8sCtrlsOpts := startK8sCtrlsOptions{
 		K8sConfig:      k8sCfg,
 		K8sCacheReady:  initOpts.K8sCacheReady,
 		ModelClient:    modelClient,
@@ -541,45 +541,45 @@ func (r *Server) Run(c context.Context) error {
 	}
 
 	g.Go(func() error {
-		log.Info("setting up kubernetes controller")
+		log.Info("starting kubernetes controller")
 
-		err := r.setupK8sCtrls(ctx, setupK8sCtrlsOpts)
+		err := r.startK8sCtrls(ctx, startK8sCtrlsOpts)
 		if err != nil {
-			log.Errorf("error setting up kubernetes controller: %v", err)
+			log.Errorf("error starting kubernetes controller: %v", err)
 		}
 
 		return err
 	})
 
-	// Setup apis.
-	setupApisOpts := setupApisOptions{
+	// Start apis.
+	startApisOpts := startApisOptions{
 		ModelClient: modelClient,
 		K8sConfig:   k8sCfg,
 	}
 
 	g.Go(func() error {
-		log.Info("setting up apis")
+		log.Info("starting apis")
 
-		err := r.setupApis(ctx, setupApisOpts)
+		err := r.startApis(ctx, startApisOpts)
 		if err != nil {
-			log.Errorf("error setting up apis: %v", err)
+			log.Errorf("error starting apis: %v", err)
 		}
 
 		return err
 	})
 
-	// Setup cron spec syncer.
-	setupCronSpecSyncerOpts := cron.SetupSyncerOptions{
+	// Start cron spec syncer.
+	startCronSpecSyncerOpts := cron.StartSyncerOptions{
 		ModelClient: modelClient,
 		Interval:    5 * time.Minute,
 	}
 
 	g.Go(func() error {
-		log.Info("setting up cron spec syncer")
+		log.Info("starting cron spec syncer")
 
-		err := r.setupCronSpecSyncer(ctx, setupCronSpecSyncerOpts)
+		err := cron.SetupSyncer(ctx, startCronSpecSyncerOpts)
 		if err != nil {
-			log.Errorf("error cron spec syncer: %v", err)
+			log.Errorf("error starting cron spec syncer: %v", err)
 		}
 
 		return err
