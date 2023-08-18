@@ -10,9 +10,8 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/connector"
 	"github.com/seal-io/walrus/pkg/dao/types"
-	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
-	"github.com/seal-io/walrus/pkg/topic/datamessage"
+	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	"github.com/seal-io/walrus/utils/gopool"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/topic"
@@ -132,7 +131,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 			query.Order(orders...)
 		}
 
-		t, err := topic.Subscribe(datamessage.Connector)
+		t, err := topic.Subscribe(modelchange.Connector)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -147,7 +146,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 				return nil, 0, err
 			}
 
-			dm, ok := event.Data.(datamessage.Message[object.ID])
+			dm, ok := event.Data.(modelchange.Event)
 			if !ok {
 				continue
 			}
@@ -155,9 +154,9 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 			var items []*model.ConnectorOutput
 
 			switch dm.Type {
-			case datamessage.EventCreate, datamessage.EventUpdate:
+			case modelchange.EventTypeCreate, modelchange.EventTypeUpdate:
 				entities, err := query.Clone().
-					Where(connector.IDIn(dm.Data...)).
+					Where(connector.IDIn(dm.IDs...)).
 					// Must append project ID.
 					Select(connector.FieldProjectID).
 					Unique(false).
@@ -167,11 +166,11 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 				}
 
 				items = model.ExposeConnectors(entities)
-			case datamessage.EventDelete:
-				items = make([]*model.ConnectorOutput, len(dm.Data))
-				for i := range dm.Data {
+			case modelchange.EventTypeDelete:
+				items = make([]*model.ConnectorOutput, len(dm.IDs))
+				for i := range dm.IDs {
 					items[i] = &model.ConnectorOutput{
-						ID: dm.Data[i],
+						ID: dm.IDs[i],
 					}
 				}
 			}

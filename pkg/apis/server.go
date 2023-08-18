@@ -87,7 +87,7 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 
 		switch opts.TlsMode {
 		default: // TlsModeSelfGenerated.
-			s.logger.Info("serving in HTTPs with self-generated keypair",
+			s.logger.InfoS("serving in HTTPs with self-generated keypair",
 				"cache", opts.TlsCertDir)
 
 			mgr := &dynacert.Manager{

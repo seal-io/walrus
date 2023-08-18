@@ -29,7 +29,7 @@ type handler struct {
 
 // Handle returns an implementation of database.ListenHandler
 // for handling the data changes.
-func Handle(mc model.ClientSet) database.ListenHandler {
+func Handle(ctx context.Context, mc model.ClientSet) database.ListenHandler {
 	return handler{
 		logger:      log.WithName("model-change"),
 		modelClient: mc,

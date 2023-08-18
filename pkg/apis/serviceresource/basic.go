@@ -9,9 +9,9 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
 	pkgresource "github.com/seal-io/walrus/pkg/serviceresources"
-	"github.com/seal-io/walrus/pkg/topic/datamessage"
 	"github.com/seal-io/walrus/utils/topic"
 )
 
@@ -50,7 +50,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 		// Exclude "data" mode resources.
 		query.Where(serviceresource.ModeNEQ(types.ServiceResourceModeData))
 
-		t, err := topic.Subscribe(datamessage.ServiceResource)
+		t, err := topic.Subscribe(modelchange.ServiceResource)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -65,7 +65,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 				return nil, 0, err
 			}
 
-			dm, ok := event.Data.(datamessage.Message[object.ID])
+			dm, ok := event.Data.(modelchange.Event)
 			if !ok {
 				continue
 			}
@@ -73,19 +73,19 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 			var items []*model.ServiceResourceOutput
 
 			switch dm.Type {
-			case datamessage.EventCreate, datamessage.EventUpdate:
+			case modelchange.EventTypeCreate, modelchange.EventTypeUpdate:
 				entities, err := getCollection(
-					stream, query.Clone().Where(serviceresource.IDIn(dm.Data...)), req.WithoutKeys)
+					stream, query.Clone().Where(serviceresource.IDIn(dm.IDs...)), req.WithoutKeys)
 				if err != nil {
 					return nil, 0, err
 				}
 
 				items = model.ExposeServiceResources(entities)
-			case datamessage.EventDelete:
-				items = make([]*model.ServiceResourceOutput, len(dm.Data))
-				for i := range dm.Data {
+			case modelchange.EventTypeDelete:
+				items = make([]*model.ServiceResourceOutput, len(dm.IDs))
+				for i := range dm.IDs {
 					items[i] = &model.ServiceResourceOutput{
-						ID: dm.Data[i],
+						ID: dm.IDs[i],
 					}
 				}
 			}

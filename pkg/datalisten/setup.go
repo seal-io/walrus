@@ -23,7 +23,7 @@ func Start(ctx context.Context, opts StartOptions) error {
 
 	// Register listen handler.
 	hs := []database.ListenHandler{
-		modelchange.Handle(opts.ModelClient),
+		modelchange.Handle(ctx, opts.ModelClient),
 	}
 	for i := range hs {
 		if err = l.Register(hs[i]); err != nil {

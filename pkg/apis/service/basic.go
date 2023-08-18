@@ -9,12 +9,11 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/service"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
-	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	"github.com/seal-io/walrus/pkg/deployer"
 	deployertf "github.com/seal-io/walrus/pkg/deployer/terraform"
 	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
 	pkgservice "github.com/seal-io/walrus/pkg/service"
-	"github.com/seal-io/walrus/pkg/topic/datamessage"
 	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/topic"
 )
@@ -141,7 +140,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 			query.Order(orders...)
 		}
 
-		t, err := topic.Subscribe(datamessage.Service)
+		t, err := topic.Subscribe(modelchange.Service)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -156,7 +155,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 				return nil, 0, err
 			}
 
-			dm, ok := event.Data.(datamessage.Message[object.ID])
+			dm, ok := event.Data.(modelchange.Event)
 			if !ok {
 				continue
 			}
@@ -164,9 +163,9 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 			var items []*model.ServiceOutput
 
 			switch dm.Type {
-			case datamessage.EventCreate, datamessage.EventUpdate:
+			case modelchange.EventTypeCreate, modelchange.EventTypeUpdate:
 				entities, err := query.Clone().
-					Where(service.IDIn(dm.Data...)).
+					Where(service.IDIn(dm.IDs...)).
 					// Must append environment ID.
 					Select(service.FieldEnvironmentID).
 					// Must extract template.
@@ -187,11 +186,11 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 				}
 
 				items = model.ExposeServices(entities)
-			case datamessage.EventDelete:
-				items = make([]*model.ServiceOutput, len(dm.Data))
-				for i := range dm.Data {
+			case modelchange.EventTypeDelete:
+				items = make([]*model.ServiceOutput, len(dm.IDs))
+				for i := range dm.IDs {
 					items[i] = &model.ServiceOutput{
-						ID: dm.Data[i],
+						ID: dm.IDs[i],
 					}
 				}
 			}
