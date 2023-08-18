@@ -250,17 +250,17 @@ func applyFinOps(mc model.ClientSet, conn *model.Connector, reinstall bool) erro
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 		defer cancel()
 
-		// Update pricing.
-		err := deployer.UpdateCustomPricing(ctx, conn)
-		if err != nil {
-			logger.Errorf("error updating custom pricing to connector %q: %v", conn.ID, err)
-		}
-
 		// Deploy tools.
-		err = deployer.DeployCostTools(ctx, conn, reinstall)
+		err := deployer.DeployCostTools(ctx, conn, reinstall)
 		if err != nil {
 			// Log instead of return error, then continue to sync the final status to connector.
 			logger.Errorf("error ensuring cost tools for connector %q: %v", conn.ID, err)
+		}
+
+		// Update pricing.
+		err = deployer.UpdateCustomPricing(ctx, conn)
+		if err != nil {
+			logger.Errorf("error updating custom pricing to connector %q: %v", conn.ID, err)
 		}
 
 		// Sync status.
