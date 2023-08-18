@@ -54,6 +54,10 @@ func UnwrapErrors(err error) []error {
 
 // Format returns the formatted error message.
 func Format(errs []error) string {
+	if len(errs) == 0 {
+		return ""
+	}
+
 	if len(errs) == 1 {
 		return fmt.Sprintf("1 error occurred:\n\t* %s\n\n", errs[0].Error())
 	}
@@ -70,8 +74,12 @@ func Format(errs []error) string {
 
 // PublicFormat returns the formatted public error message.
 func PublicFormat(errs []PublicError) string {
+	if len(errs) == 0 {
+		return ""
+	}
+
 	if len(errs) == 1 {
-		return fmt.Sprintf("1 error occurred: %s", errs[0].Public())
+		return errs[0].Public()
 	}
 
 	msg := make([]string, len(errs))
