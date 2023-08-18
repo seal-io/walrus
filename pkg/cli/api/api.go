@@ -24,10 +24,6 @@ func (api *API) GenerateCommand(sc *config.Config, root *cobra.Command) {
 		root.Short = api.Short
 	}
 
-	if root.Long == "" {
-		root.Long = api.Long
-	}
-
 	set := make(map[string]*cobra.Command)
 
 	for _, op := range api.Operations {
