@@ -16,6 +16,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/strs"
 )
 
@@ -167,7 +168,7 @@ func serviceRelationshipGetDependencies(
 
 			// Check if there is a dependency cycle.
 			if existCycle := ServiceRelationshipCheckCycle(dependency); existCycle {
-				return nil, errors.New("service dependency contains cycle")
+				return nil, errorx.New("service dependency contains cycle")
 			}
 
 			dependencies = append(dependencies, dependency)
@@ -209,7 +210,7 @@ func serviceRelationshipUpdateDependants(ctx context.Context, mc model.ClientSet
 			}
 
 			if existCycle := ServiceRelationshipCheckCycle(newDependency); existCycle {
-				return errors.New("service dependency contains cycle")
+				return errorx.New("service dependency contains cycle")
 			}
 
 			newPostDependencies = append(newPostDependencies, newDependency)

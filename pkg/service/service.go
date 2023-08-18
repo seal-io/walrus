@@ -125,7 +125,7 @@ func Apply(
 
 	err = dp.Apply(ctx, entity, applyOpts)
 	if err != nil {
-		return fmt.Errorf("failed to apply service: %w", err)
+		return errorx.Errorf("failed to apply service: %v", err)
 	}
 
 	return nil
