@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"strings"
 
 	"github.com/zclconf/go-cty/cty"
@@ -26,7 +27,6 @@ import (
 	tfparser "github.com/seal-io/walrus/pkg/terraform/parser"
 	"github.com/seal-io/walrus/pkg/topic/datamessage"
 	"github.com/seal-io/walrus/utils/errorx"
-	"github.com/seal-io/walrus/utils/strs"
 	"github.com/seal-io/walrus/utils/topic"
 	"github.com/seal-io/walrus/utils/validation"
 )
@@ -312,7 +312,7 @@ func (h Handler) getEndpointsFromResources(ctx context.Context, id object.ID) ([
 	for _, v := range res {
 		for _, eps := range v.Status.ResourceEndpoints {
 			endpoints = append(endpoints, AccessEndpoint{
-				Name:      strs.Join("/", eps.EndpointType, v.Name),
+				Name:      filepath.Join(eps.EndpointType, filepath.Base(v.Name)),
 				Endpoints: eps.Endpoints,
 			})
 		}
