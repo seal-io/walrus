@@ -11,6 +11,6 @@ func BuiltinCatalog() *model.Catalog {
 		Name:        "builtin",
 		Description: "Walrus Builtin Catalog",
 		Type:        types.GitDriverGithub,
-		Source:      "https://github.com/walrus-catalog",
+		Source:      "https://catalog.seal.io/walrus",
 	}
 }

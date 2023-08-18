@@ -2,6 +2,7 @@ package version
 
 import (
 	"fmt"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -22,7 +23,7 @@ func GetUserAgent() string {
 }
 
 func GetUserAgentWith(name string) string {
-	return "seal.io/" + name + "; version=" + Get()
+	return "seal.io/" + name + "; version=" + Get() + "; os=" + runtime.GOOS + "; arch=" + runtime.GOARCH
 }
 
 func Major() string {

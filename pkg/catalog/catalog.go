@@ -2,9 +2,9 @@ package catalog
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
-	"net/url"
-	"strings"
+	"net/http"
 	"time"
 
 	"github.com/drone/go-scm/scm"
@@ -14,51 +14,36 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/settings"
 	"github.com/seal-io/walrus/pkg/templates"
 	"github.com/seal-io/walrus/pkg/vcs"
 	"github.com/seal-io/walrus/utils/gopool"
 	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/version"
 )
 
-// GetOrgRepos returns full repositories list from the given org.
-func GetOrgRepos(ctx context.Context, client *scm.Client, orgName string) ([]*scm.Repository, error) {
-	opts := scm.ListOptions{Size: 100}
-
-	var list []*scm.Repository
-
-	for {
-		repos, meta, err := client.Organizations.ListRepositories(ctx, orgName, opts)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, src := range repos {
-			if src != nil {
-				list = append(list, src)
-			}
-		}
-
-		opts.Page = meta.Page.Next
-		opts.URL = meta.Page.NextURL
-
-		if opts.Page == 0 && opts.URL == "" {
-			break
-		}
-	}
-
-	return list, nil
-}
-
 // GetRepos returns org and a list of repositories from the given catalog.
-func GetRepos(ctx context.Context, c *model.Catalog) ([]*scm.Repository, error) {
+func GetRepos(ctx context.Context, mc model.ClientSet, c *model.Catalog) ([]*vcs.Repository, error) {
 	var (
 		client *scm.Client
 		err    error
 	)
 
+	// Some catalog source url may be redirected, so we need to get the real url.
+	source, err := GetRedirectURL(c.Source,
+		version.GetUserAgent()+"; uuid="+settings.InstallationUUID.ShouldValue(ctx, mc))
+	if err != nil {
+		return nil, err
+	}
+
+	orgName, err := vcs.GetOrgFromGitURL(source)
+	if err != nil {
+		return nil, err
+	}
+
 	switch c.Type {
 	case types.GitDriverGithub, types.GitDriverGitlab:
-		client, err = vcs.NewClientFromURL(c.Type, c.Source, "")
+		client, err = vcs.NewClientFromURL(c.Type, source, "")
 		if err != nil {
 			return nil, err
 		}
@@ -66,17 +51,22 @@ func GetRepos(ctx context.Context, c *model.Catalog) ([]*scm.Repository, error) 
 		return nil, fmt.Errorf("unsupported catalog type %q", c.Type)
 	}
 
-	orgName, err := GetOrgFromGitURL(c.Source)
+	repos, err := vcs.GetOrgRepos(ctx, client, orgName)
 	if err != nil {
 		return nil, err
 	}
 
-	repos, err := GetOrgRepos(ctx, client, orgName)
-	if err != nil {
-		return nil, err
+	list := make([]*vcs.Repository, len(repos))
+	for i := range repos {
+		list[i] = &vcs.Repository{
+			Namespace:   repos[i].Namespace,
+			Name:        repos[i].Name,
+			Description: repos[i].Description,
+			Link:        repos[i].Link,
+		}
 	}
 
-	return repos, nil
+	return list, nil
 }
 
 func getSyncResult(ctx context.Context, mc model.ClientSet, c *model.Catalog) (*types.CatalogSync, error) {
@@ -121,7 +111,7 @@ func getSyncResult(ctx context.Context, mc model.ClientSet, c *model.Catalog) (*
 func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) (err error) {
 	logger := log.WithName("catalog")
 
-	repos, err := GetRepos(ctx, c)
+	repos, err := GetRepos(ctx, mc, c)
 	if err != nil {
 		return err
 	}
@@ -136,12 +126,7 @@ func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) (e
 
 		wg.Go(func() error {
 			for j := s; j < len(repos); j += batchSize {
-				repo := &vcs.Repository{
-					Namespace:   repos[j].Namespace,
-					Name:        repos[j].Name,
-					Description: repos[j].Description,
-					Link:        repos[j].Link,
-				}
+				repo := repos[j]
 
 				logger.Debugf("sync template %s", repo.Name)
 
@@ -155,23 +140,6 @@ func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) (e
 	}
 
 	return wg.Wait()
-}
-
-// GetOrgFromGitURL parses the organization from the given git repository URL.
-func GetOrgFromGitURL(str string) (string, error) {
-	u, err := url.Parse(str)
-	if err != nil {
-		return "", err
-	}
-
-	// https://github.com/<org>/<repo>
-	parts := strings.Split(u.Path, "/")
-
-	if len(parts) >= 2 {
-		return parts[1], nil
-	}
-
-	return "", fmt.Errorf("invalid git url")
 }
 
 type catalogSyncer struct {
@@ -222,4 +190,39 @@ func (cs catalogSyncer) Do(_ context.Context, busMessage catalog.BusMessage) err
 	})
 
 	return nil
+}
+
+func GetRedirectURL(rawURL, userAgent string) (string, error) {
+	client := &http.Client{
+		Timeout: 15 * time.Second,
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS12,
+			},
+		},
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	req, err := http.NewRequest(http.MethodGet, rawURL, nil)
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("User-Agent", userAgent)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	// If the status code is not 301 or 302, it means that the url is not redirected.
+	if resp.StatusCode != http.StatusMovedPermanently && resp.StatusCode != http.StatusFound {
+		return rawURL, nil
+	}
+
+	return resp.Header.Get("Location"), nil
 }

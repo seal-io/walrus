@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"sort"
 	"strings"
 
+	"github.com/drone/go-scm/scm"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
@@ -195,4 +197,48 @@ func GetRepoRef(r *git.Repository, name string) (*plumbing.Reference, error) {
 	}
 
 	return nil, fmt.Errorf("failed to get reference: %s", name)
+}
+
+// GetOrgRepos returns full repositories list from the given org.
+func GetOrgRepos(ctx context.Context, client *scm.Client, orgName string) ([]*scm.Repository, error) {
+	opts := scm.ListOptions{Size: 100}
+
+	var list []*scm.Repository
+
+	for {
+		repos, meta, err := client.Organizations.ListRepositories(ctx, orgName, opts)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, src := range repos {
+			if src != nil {
+				list = append(list, src)
+			}
+		}
+
+		opts.Page = meta.Page.Next
+		opts.URL = meta.Page.NextURL
+
+		if opts.Page == 0 && opts.URL == "" {
+			break
+		}
+	}
+
+	return list, nil
+}
+
+// GetOrgFromGitURL parses the organization from the given URL.
+func GetOrgFromGitURL(source string) (string, error) {
+	u, err := url.Parse(source)
+	if err != nil {
+		return "", err
+	}
+
+	parts := strings.Split(u.Path, "/")
+	if len(parts) < 2 {
+		return "", fmt.Errorf("invalid git url")
+	}
+
+	return strings.TrimPrefix(u.Path, "/"), nil
 }
