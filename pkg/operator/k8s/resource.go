@@ -45,8 +45,11 @@ func parseResources(
 		return nil, resourceParsingError("unknown deployer type: " + res.DeployerType)
 	}
 
-	if res.Type == "helm_release" {
+	switch res.Type {
+	case "helm_release":
 		return parseResourcesOfHelm(ctx, op, res, enforcer.AllowGVK)
+	case "kubectl_manifest":
+		return parseResourcesOfKubectlManifest(res, enforcer.AllowGVR)
 	}
 
 	gvr, ok := intercept.Terraform().GetGVR(res.Type)

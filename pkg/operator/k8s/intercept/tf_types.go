@@ -99,4 +99,7 @@ var TFEndpointsTypes = []string{
 	// Networking.
 	"kubernetes_ingress",
 	"kubernetes_ingress_v1",
+
+	// Kubectl_manifest resources.
+	"kubectl_manifest",
 }
