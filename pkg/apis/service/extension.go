@@ -20,12 +20,12 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	"github.com/seal-io/walrus/pkg/operator/k8s/intercept"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
 	pkgservice "github.com/seal-io/walrus/pkg/service"
 	pkgresource "github.com/seal-io/walrus/pkg/serviceresources"
 	tfparser "github.com/seal-io/walrus/pkg/terraform/parser"
-	"github.com/seal-io/walrus/pkg/topic/datamessage"
 	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/topic"
 	"github.com/seal-io/walrus/utils/validation"
@@ -130,7 +130,7 @@ func (h Handler) RouteRollback(req RouteRollbackRequest) error {
 
 func (h Handler) RouteGetAccessEndpoints(req RouteGetAccessEndpointsRequest) (RouteGetAccessEndpointsResponse, error) {
 	if stream := req.Stream; stream != nil {
-		t, err := topic.Subscribe(datamessage.ServiceRevision)
+		t, err := topic.Subscribe(modelchange.ServiceRevision)
 		if err != nil {
 			return nil, err
 		}
@@ -145,16 +145,16 @@ func (h Handler) RouteGetAccessEndpoints(req RouteGetAccessEndpointsRequest) (Ro
 				return nil, err
 			}
 
-			dm, ok := event.Data.(datamessage.Message[object.ID])
+			dm, ok := event.Data.(modelchange.Event)
 			if !ok {
 				continue
 			}
 
-			if dm.Type == datamessage.EventDelete {
+			if dm.Type == modelchange.EventTypeDelete {
 				continue
 			}
 
-			for _, id := range dm.Data {
+			for _, id := range dm.IDs {
 				ar, err := h.modelClient.ServiceRevisions().Query().
 					Where(servicerevision.ID(id)).
 					Only(stream)
@@ -178,18 +178,18 @@ func (h Handler) RouteGetAccessEndpoints(req RouteGetAccessEndpointsRequest) (Ro
 				var resp *runtime.ResponseCollection
 
 				switch dm.Type {
-				case datamessage.EventCreate:
+				case modelchange.EventTypeCreate:
 					// While create new service revision,
 					// the previous endpoints from outputs and resources need to be deleted.
-					resp = runtime.TypedResponse(datamessage.EventDelete.String(), eps)
-				case datamessage.EventUpdate:
+					resp = runtime.TypedResponse(modelchange.EventTypeDelete.String(), eps)
+				case modelchange.EventTypeUpdate:
 					// While the service revision status is succeeded,
 					// the endpoints is updated to the current revision.
 					if ar.Status != status.ServiceRevisionStatusSucceeded {
 						continue
 					}
 
-					resp = runtime.TypedResponse(datamessage.EventUpdate.String(), eps)
+					resp = runtime.TypedResponse(modelchange.EventTypeUpdate.String(), eps)
 				}
 
 				if err = stream.SendJSON(resp); err != nil {
@@ -323,7 +323,7 @@ func (h Handler) getEndpointsFromResources(ctx context.Context, id object.ID) ([
 
 func (h Handler) RouteGetOutputs(req RouteGetOutputsRequest) (RouteGetOutputsResponse, error) {
 	if stream := req.Stream; stream != nil {
-		t, err := topic.Subscribe(datamessage.ServiceRevision)
+		t, err := topic.Subscribe(modelchange.ServiceRevision)
 		if err != nil {
 			return nil, err
 		}
@@ -338,16 +338,16 @@ func (h Handler) RouteGetOutputs(req RouteGetOutputsRequest) (RouteGetOutputsRes
 				return nil, err
 			}
 
-			dm, ok := event.Data.(datamessage.Message[object.ID])
+			dm, ok := event.Data.(modelchange.Event)
 			if !ok {
 				continue
 			}
 
-			if dm.Type == datamessage.EventDelete {
+			if dm.Type == modelchange.EventTypeDelete {
 				continue
 			}
 
-			for _, id := range dm.Data {
+			for _, id := range dm.IDs {
 				ar, err := h.modelClient.ServiceRevisions().Query().
 					Where(servicerevision.ID(id)).
 					Only(stream)
@@ -371,18 +371,18 @@ func (h Handler) RouteGetOutputs(req RouteGetOutputsRequest) (RouteGetOutputsRes
 				var resp *runtime.ResponseCollection
 
 				switch dm.Type {
-				case datamessage.EventCreate:
+				case modelchange.EventTypeCreate:
 					// While create new service revision,
 					// the outputs of new revision is the previous outputs.
-					resp = runtime.TypedResponse(datamessage.EventDelete.String(), outs)
-				case datamessage.EventUpdate:
+					resp = runtime.TypedResponse(modelchange.EventTypeDelete.String(), outs)
+				case modelchange.EventTypeUpdate:
 					// While the service revision status is succeeded,
 					// the outputs is updated to the current revision.
 					if ar.Status != status.ServiceRevisionStatusSucceeded {
 						continue
 					}
 
-					resp = runtime.TypedResponse(datamessage.EventUpdate.String(), outs)
+					resp = runtime.TypedResponse(modelchange.EventTypeUpdate.String(), outs)
 				}
 
 				if err = stream.SendJSON(resp); err != nil {

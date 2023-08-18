@@ -5,9 +5,8 @@ import (
 	catalogbus "github.com/seal-io/walrus/pkg/bus/catalog"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/catalog"
-	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
-	"github.com/seal-io/walrus/pkg/topic/datamessage"
+	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	"github.com/seal-io/walrus/utils/topic"
 )
 
@@ -93,7 +92,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 			query.Order(orders...)
 		}
 
-		t, err := topic.Subscribe(datamessage.Catalog)
+		t, err := topic.Subscribe(modelchange.Catalog)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -108,7 +107,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 				return nil, 0, err
 			}
 
-			dm, ok := event.Data.(datamessage.Message[object.ID])
+			dm, ok := event.Data.(modelchange.Event)
 			if !ok {
 				continue
 			}
@@ -116,9 +115,9 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 			var items []*model.CatalogOutput
 
 			switch dm.Type {
-			case datamessage.EventCreate, datamessage.EventUpdate:
+			case modelchange.EventTypeCreate, modelchange.EventTypeUpdate:
 				entities, err := query.Clone().
-					Where(catalog.IDIn(dm.Data...)).
+					Where(catalog.IDIn(dm.IDs...)).
 					Unique(false).
 					All(stream)
 				if err != nil {
@@ -126,11 +125,11 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 				}
 
 				items = model.ExposeCatalogs(entities)
-			case datamessage.EventDelete:
-				items = make([]*model.CatalogOutput, len(dm.Data))
-				for i := range dm.Data {
+			case modelchange.EventTypeDelete:
+				items = make([]*model.CatalogOutput, len(dm.IDs))
+				for i := range dm.IDs {
 					items[i] = &model.CatalogOutput{
-						ID: dm.Data[i],
+						ID: dm.IDs[i],
 					}
 				}
 			}

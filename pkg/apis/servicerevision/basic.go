@@ -4,8 +4,7 @@ import (
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
-	"github.com/seal-io/walrus/pkg/dao/types/object"
-	"github.com/seal-io/walrus/pkg/topic/datamessage"
+	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	"github.com/seal-io/walrus/utils/topic"
 )
 
@@ -50,7 +49,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 			query.Order(orders...)
 		}
 
-		t, err := topic.Subscribe(datamessage.ServiceRevision)
+		t, err := topic.Subscribe(modelchange.ServiceRevision)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -65,7 +64,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 				return nil, 0, err
 			}
 
-			dm, ok := event.Data.(datamessage.Message[object.ID])
+			dm, ok := event.Data.(modelchange.Event)
 			if !ok {
 				continue
 			}
@@ -73,9 +72,9 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 			var items []*model.ServiceRevisionOutput
 
 			switch dm.Type {
-			case datamessage.EventCreate, datamessage.EventUpdate:
+			case modelchange.EventTypeCreate, modelchange.EventTypeUpdate:
 				revisions, err := query.Clone().
-					Where(servicerevision.IDIn(dm.Data...)).
+					Where(servicerevision.IDIn(dm.IDs...)).
 					// Must append service ID.
 					Select(servicerevision.FieldServiceID).
 					Unique(false).
@@ -85,11 +84,11 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 				}
 
 				items = model.ExposeServiceRevisions(revisions)
-			case datamessage.EventDelete:
-				items = make([]*model.ServiceRevisionOutput, len(dm.Data))
-				for i := range dm.Data {
+			case modelchange.EventTypeDelete:
+				items = make([]*model.ServiceRevisionOutput, len(dm.IDs))
+				for i := range dm.IDs {
 					items[i] = &model.ServiceRevisionOutput{
-						ID: dm.Data[i],
+						ID: dm.IDs[i],
 					}
 				}
 			}
