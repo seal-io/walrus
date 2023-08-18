@@ -26,3 +26,8 @@ func SumSHA256(bs []byte) string {
 	sum := sha256.Sum256(bs)
 	return hex.EncodeToString(sum[:])
 }
+
+func SumSHA224(bs []byte) string {
+	sum := sha256.Sum224(bs)
+	return hex.EncodeToString(sum[:])
+}

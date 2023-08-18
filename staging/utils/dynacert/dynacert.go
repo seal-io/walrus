@@ -183,7 +183,7 @@ func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, 
 		return tlsCert, nil
 	}
 
-	if !errors.Is(err, autocert.ErrCacheMiss) {
+	if !errors.Is(err, ErrCacheMiss) {
 		return nil, fmt.Errorf("dynacert: error getting cert: %w", err)
 	}
 
@@ -241,7 +241,7 @@ func (m *Manager) getCert(ctx context.Context, ck certKey) (*tls.Certificate, er
 			log.WithName("dynacert").Warn(err)
 			// Treat as miss cache,
 			// so the GetCertificate will regenerate.
-			return nil, autocert.ErrCacheMiss
+			return nil, ErrCacheMiss
 		}
 
 		return tlsCert, nil
@@ -262,7 +262,7 @@ func (m *Manager) getCert(ctx context.Context, ck certKey) (*tls.Certificate, er
 // and decodes private key and certificate.
 func (m *Manager) cacheGet(ctx context.Context, ck certKey) (*tls.Certificate, error) {
 	if m.Cache == nil {
-		return nil, autocert.ErrCacheMiss
+		return nil, ErrCacheMiss
 	}
 
 	bs, err := m.Cache.Get(ctx, ck.String())
@@ -275,7 +275,7 @@ func (m *Manager) cacheGet(ctx context.Context, ck certKey) (*tls.Certificate, e
 		log.WithName("dynacert").Warnf("error decoding tls certificate: %v", err)
 		// Treat as miss cache,
 		// so the GetCertificate will regenerate.
-		return nil, autocert.ErrCacheMiss
+		return nil, ErrCacheMiss
 	}
 
 	return tlsCert, nil

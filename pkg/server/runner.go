@@ -8,7 +8,6 @@ import (
 	"fmt"
 	stdlog "log"
 	"net"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -22,9 +21,9 @@ import (
 	"k8s.io/klog"
 	klogv2 "k8s.io/klog/v2"
 
+	"github.com/seal-io/walrus/pkg/apis"
 	"github.com/seal-io/walrus/pkg/cache"
 	"github.com/seal-io/walrus/pkg/casdoor"
-	"github.com/seal-io/walrus/pkg/consts"
 	"github.com/seal-io/walrus/pkg/cron"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	_ "github.com/seal-io/walrus/pkg/dao/model/runtime" // Default = ent.
@@ -82,7 +81,7 @@ func New() *Server {
 	return &Server{
 		BindAddress:           "0.0.0.0",
 		EnableTls:             true,
-		TlsCertDir:            filepath.FromSlash(filepath.Join(consts.DataDir, "tls")),
+		TlsCertDir:            apis.TlsCertDirByK8sSecrets,
 		ConnQPS:               10,
 		ConnBurst:             20,
 		KubeConnTimeout:       5 * time.Minute,
@@ -150,7 +149,11 @@ func (r *Server) Flags(cmd *cli.Command) {
 			Usage: "The directory where the TLS certs are located. " +
 				"If --tls-cert-file and --tls-private-key-file are provided, this flag will be ignored. " +
 				"If --tls-cert-file and --tls-private-key-file are not provided, " +
-				"the self-signed certificate and key are generated and saved to the directory specified by this flag.",
+				"the certificate and key of auto-signed or self-signed are saved to where this flag specified. " +
+				"By default, the keypair are saved to the hosted Kubernetes cluster with 'k8s:///secrets', " +
+				"which can be shared between multiple instances for high availability. " +
+				"If you wanna saving to the local directory, use '/path/to/save' please, " +
+				"and make sure the directory is writable between multiple instances.",
 			Destination: &r.TlsCertDir,
 			Value:       r.TlsCertDir,
 			Action: func(c *cli.Context, s string) error {

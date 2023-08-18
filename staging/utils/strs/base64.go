@@ -11,6 +11,7 @@ func DecodeBase64(str string) (string, error) {
 	// Normalizes to std encoding format.
 	str = strings.ReplaceAll(str, "-", "+")
 	str = strings.ReplaceAll(str, "_", "/")
+
 	// Normalizes to no padding format.
 	str = strings.TrimRight(str, "=")
 
@@ -41,7 +42,7 @@ func EncodeBase64(src string) string {
 // EncodeBase64Bytes is similar to DecodeBase64,
 // but returns bytes.
 func EncodeBase64Bytes(src []byte) []byte {
-	enc := base64.URLEncoding
+	enc := base64.RawURLEncoding
 	dst := make([]byte, enc.EncodedLen(len(src)))
 	enc.Encode(dst, src)
 

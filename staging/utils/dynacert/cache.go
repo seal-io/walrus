@@ -2,6 +2,9 @@ package dynacert
 
 import "golang.org/x/crypto/acme/autocert"
 
+// ErrCacheMiss is returned when a certificate is not found in cache.
+var ErrCacheMiss = autocert.ErrCacheMiss
+
 // Cache is used by Manager to store and retrieve previously obtained certificates
 // and other account data as opaque blobs.
 //
