@@ -33,7 +33,7 @@ func erroring(c *gin.Context) {
 	he := getHttpError(c)
 
 	// Log errors.
-	if len(he.errs) != 0 {
+	if len(he.errs) != 0 && withinStacktraceStatus(he.Status) {
 		reqMethod := c.Request.Method
 
 		reqPath := c.Request.URL.Path
@@ -214,4 +214,9 @@ func isInternalServerError(err error) string {
 	}
 
 	return ""
+}
+
+func withinStacktraceStatus(status int) bool {
+	return (status < http.StatusOK || status >= http.StatusInternalServerError) &&
+		status != http.StatusSwitchingProtocols
 }
