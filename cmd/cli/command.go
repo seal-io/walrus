@@ -35,7 +35,7 @@ var (
 func NewRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     cliName,
-		Long:    "A client for Seal to manage resources",
+		Short:   "Command line interface for Walrus",
 		Version: cliVersion,
 		Example: configSetupExample,
 		Args:    cobra.MinimumNArgs(1),
@@ -78,7 +78,7 @@ func NewConfigCmd() *cobra.Command {
 	// Command config setup.
 	setupCmd := &cobra.Command{
 		Use:   "setup short-name",
-		Short: "Connect Seal server and setup cli",
+		Short: "Connect Walrus server and setup cli",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// Configuration value from environment variables.
 			viper.SetEnvPrefix("WALRUS")
@@ -271,8 +271,8 @@ func load(sc *config.Config, root *cobra.Command, skipCache bool) error {
 }
 
 var configSetupExample = `
-  # Setup Seal CLI configuration
-  $ seal config setup
+  # Setup Walrus CLI configuration
+  $ walrus config setup
 `
 
 var helpTemplate = `{{if or .Runnable .HasSubCommands}}{{.UsageString}}{{end}}`
