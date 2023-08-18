@@ -10,12 +10,12 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model"
 )
 
-type setupApisOptions struct {
+type startApisOptions struct {
 	K8sConfig   *rest.Config
 	ModelClient *model.Client
 }
 
-func (r *Server) setupApis(ctx context.Context, opts setupApisOptions) error {
+func (r *Server) startApis(ctx context.Context, opts startApisOptions) error {
 	srv, err := apis.NewServer()
 	if err != nil {
 		return err

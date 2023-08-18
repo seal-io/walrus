@@ -11,14 +11,14 @@ import (
 	"github.com/seal-io/walrus/utils/gopool"
 )
 
-type setupK8sCtrlsOptions struct {
+type startK8sCtrlsOptions struct {
 	K8sConfig      *rest.Config
 	K8sCacheReady  chan struct{}
 	ModelClient    *model.Client
 	LeaderElection bool
 }
 
-func (r *Server) setupK8sCtrls(ctx context.Context, opts setupK8sCtrlsOptions) error {
+func (r *Server) startK8sCtrls(ctx context.Context, opts startK8sCtrlsOptions) error {
 	mgr, err := k8sctrls.NewManager(k8sctrls.ManagerOptions{
 		K8sConfig:      opts.K8sConfig,
 		LeaderElection: opts.LeaderElection,

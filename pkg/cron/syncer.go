@@ -13,12 +13,12 @@ import (
 	"github.com/seal-io/walrus/utils/log"
 )
 
-type SetupSyncerOptions struct {
+type StartSyncerOptions struct {
 	ModelClient model.ClientSet
 	Interval    time.Duration
 }
 
-func SetupSyncer(ctx context.Context, opts SetupSyncerOptions) error {
+func SetupSyncer(ctx context.Context, opts StartSyncerOptions) error {
 	syncer := NewSyncer(opts.ModelClient)
 
 	ticker := time.NewTicker(opts.Interval)
