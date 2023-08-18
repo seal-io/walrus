@@ -26,7 +26,7 @@ var openAPISchemas = &openapi3.T{
 	OpenAPI: "3.0.3",
 	Info: &openapi3.Info{
 		Title:       "Restful APIs",
-		Description: "Restful APIs to access Seal.",
+		Description: "Restful APIs to access Walrus.",
 		Version:     version.Version,
 	},
 	Security: getSecurityRequirements(),
