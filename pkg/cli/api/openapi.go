@@ -72,6 +72,7 @@ func LoadOpenAPI(resp *http.Response) (*API, error) {
 		}
 	}
 
+	api.Version = t.Info.Version
 	api.Short = t.Info.Title
 	api.Long = t.Info.Description
 	api.Operations = aggregateOperations(operations)
