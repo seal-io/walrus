@@ -25,14 +25,18 @@ func TableNames() []string {
 type handler struct {
 	logger      log.Logger
 	modelClient model.ClientSet
+	buffer      *eventBuffer
 }
 
 // Handle returns an implementation of database.ListenHandler
 // for handling the data changes.
 func Handle(ctx context.Context, mc model.ClientSet) database.ListenHandler {
+	logger := log.WithName("model-change")
+
 	return handler{
-		logger:      log.WithName("model-change"),
+		logger:      logger,
 		modelClient: mc,
+		buffer:      newEventBuffer(ctx, logger),
 	}
 }
 
@@ -113,12 +117,10 @@ func (h handler) Handle(ctx context.Context, _, payload string) {
 		return
 	}
 
-	// Otherwise, notify the corresponding topic.
-	te := Event{
-		Type: le.Operation.EventType(),
-		IDs:  le.RowIDs,
-	}
-	if err := topic.Publish(ctx, topic.Topic(le.TableName), te); err != nil {
-		logger.Errorf("error notifying topic %s: %v", le.TableName, err)
-	}
+	// Otherwise, write event to the corresponding topic.
+	h.buffer.Write(ctx, topic.Topic(le.TableName),
+		Event{
+			Type: le.Operation.EventType(),
+			IDs:  le.RowIDs,
+		})
 }
