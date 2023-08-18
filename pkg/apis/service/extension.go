@@ -46,7 +46,7 @@ func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 		return err
 	})
 	if err != nil {
-		return err
+		return errorx.Wrap(err, "error updating service")
 	}
 
 	dp, err := h.getDeployer(req.Context)
@@ -62,7 +62,7 @@ func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 
 	ready, err := pkgservice.CheckDependencyStatus(req.Context, h.modelClient, entity)
 	if err != nil {
-		return err
+		return errorx.Wrap(err, "error checking dependency status")
 	}
 
 	if ready {
@@ -108,7 +108,7 @@ func (h Handler) RouteRollback(req RouteRollbackRequest) error {
 		Set(entity).
 		SaveE(req.Context, dao.ServiceDependenciesEdgeSave)
 	if err != nil {
-		return err
+		return errorx.Wrap(err, "error updating service")
 	}
 
 	dp, err := h.getDeployer(req.Context)

@@ -297,9 +297,14 @@ func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 }
 
 func (h Handler) getDeployer(ctx context.Context) (deptypes.Deployer, error) {
-	return deployer.Get(ctx, deptypes.CreateOptions{
+	dep, err := deployer.Get(ctx, deptypes.CreateOptions{
 		Type:        deployertf.DeployerType,
 		ModelClient: h.modelClient,
 		KubeConfig:  h.kubeConfig,
 	})
+	if err != nil {
+		return nil, errorx.Wrap(err, "failed to get deployer")
+	}
+
+	return dep, nil
 }
