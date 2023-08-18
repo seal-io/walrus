@@ -72,6 +72,7 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 						"perspectives",
 						"roles",
 						"settings",
+						"subjects",
 						"templates",
 						"templateCompletions",
 						"variables"),
@@ -209,11 +210,6 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 			Kind:        types.RoleKindProject,
 			Description: "The role who can manage the whole project.",
 			Policies: types.RolePolicies{
-				{
-					Actions: types.RolePolicyFields(http.MethodGet),
-					Resources: types.RolePolicyFields(
-						"subjects"),
-				},
 				{
 					Actions: types.RolePolicyFields("*"),
 					Resources: types.RolePolicyFields(
