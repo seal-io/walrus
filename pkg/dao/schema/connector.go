@@ -144,6 +144,6 @@ func (Connector) Hooks() []ent.Hook {
 
 func (Connector) Interceptors() []ent.Interceptor {
 	return []ent.Interceptor{
-		intercept.ByProject("project_id"),
+		intercept.ByProjectOptional("project_id"),
 	}
 }

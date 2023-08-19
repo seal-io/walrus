@@ -7,6 +7,8 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 
+	"github.com/seal-io/walrus/pkg/dao/entx"
+	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/schema/mixin"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -74,7 +76,9 @@ func (Variable) Edges() []ent.Edge {
 			Field("project_id").
 			Comment("Project to which the variable belongs.").
 			Unique().
-			Immutable(),
+			Immutable().
+			Annotations(
+				entx.ValidateContext(intercept.WithProjectInterceptor)),
 		// Environment 1-* Variables.
 		edge.From("environment", Environment.Type).
 			Ref("variables").
@@ -82,5 +86,11 @@ func (Variable) Edges() []ent.Edge {
 			Comment("Environment to which the variable belongs.").
 			Unique().
 			Immutable(),
+	}
+}
+
+func (Variable) Interceptors() []ent.Interceptor {
+	return []ent.Interceptor{
+		intercept.ByProjectOptional("project_id"),
 	}
 }
