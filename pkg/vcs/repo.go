@@ -190,6 +190,10 @@ func GetRepoRef(r *git.Repository, name string) (*plumbing.Reference, error) {
 		return ref, nil
 	}
 
+	if ref, err := r.Reference(plumbing.NewRemoteReferenceName("origin", name), true); err == nil {
+		return ref, nil
+	}
+
 	if ref, err := r.Reference(plumbing.NewNoteReferenceName(name), true); err == nil {
 		return ref, nil
 	}
