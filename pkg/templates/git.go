@@ -53,9 +53,9 @@ func CreateTemplateVersionsFromRepo(
 	newVersions := make([]*version.Version, 0, len(versions))
 
 	for i := range versions {
-		newSet.Insert(versions[i].String())
+		newSet.Insert(versions[i].Original())
 
-		if oldSet.Has(versions[i].String()) {
+		if oldSet.Has(versions[i].Original()) {
 			continue
 		}
 
@@ -167,7 +167,7 @@ func syncTemplateFromRef(
 	// Try to get version from reference.
 	ref := repo.Reference
 	if v, err := version.NewVersion(repo.Reference); err == nil {
-		ref = v.String()
+		ref = v.Original()
 	}
 
 	return createTemplateVersion(ctx, mc, &model.TemplateVersion{
@@ -343,7 +343,7 @@ func GetTemplateVersions(
 		tvs = append(tvs, &model.TemplateVersion{
 			TemplateID: entity.ID,
 			Name:       entity.Name,
-			Version:    v.String(),
+			Version:    tag,
 			Source:     source + "?ref=" + tag,
 			Schema:     schema,
 		})
