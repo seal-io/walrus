@@ -10,15 +10,17 @@ assignees: ''
 **Describe the bug**
 <!-- A clear and concise description of what the bug is. -->
 
-**To Reproduce**
-Steps to reproduce the behavior:
+**Steps to reproduce**
 1. Go to '...'
 
+**Result**
+<!-- What happened. -->
+
 **Expected behavior**
-<!-- A clear and concise description of what you expected to happen. -->
+<!-- What you expected to happen. -->
 
 **Environment**
-- Seal version:
+- Walrus version:
 
 **Additional context**
 Add any other context about the problem here.
