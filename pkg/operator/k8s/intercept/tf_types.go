@@ -102,4 +102,7 @@ var TFEndpointsTypes = []string{
 
 	// Kubectl_manifest resources.
 	"kubectl_manifest",
+
+	// Helm resources.
+	"helm_release",
 }
