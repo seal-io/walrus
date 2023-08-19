@@ -7,16 +7,13 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/seal-io/walrus/pkg/auths/session"
 	"github.com/seal-io/walrus/pkg/dao/model"
-	"github.com/seal-io/walrus/pkg/dao/model/connector"
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
-	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/service"
 	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
 	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
+	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/types"
-	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/utils/sqlx"
 	"github.com/seal-io/walrus/utils/timex"
@@ -35,6 +32,8 @@ var getServiceRevisionFields = servicerevision.WithoutFields(
 func (h Handler) CollectionRouteGetLatestServiceRevisions(
 	req CollectionRouteGetLatestServiceRevisionsRequest,
 ) (CollectionRouteGetLatestServiceRevisionsResponse, int, error) {
+	ctx := intercept.WithProjectInterceptor(req.Context)
+
 	entities, err := h.modelClient.ServiceRevisions().Query().
 		Order(model.Desc(servicerevision.FieldCreateTime)).
 		Select(getServiceRevisionFields...).
@@ -57,7 +56,7 @@ func (h Handler) CollectionRouteGetLatestServiceRevisions(
 					environment.FieldName)
 			}).
 		Limit(10).
-		All(req.Context)
+		All(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -68,51 +67,32 @@ func (h Handler) CollectionRouteGetLatestServiceRevisions(
 func (h Handler) CollectionRouteGetBasicInformation(
 	req CollectionRouteGetBasicInformationRequest,
 ) (*CollectionRouteGetBasicInformationResponse, error) {
-	s := session.MustGetSubject(req.Context)
-
-	var (
-		isAdmin = s.IsAdmin()
-		ids     []object.ID
-	)
-
-	if !isAdmin {
-		// Get owned project id list.
-		ids = make([]object.ID, len(s.ProjectRoles))
-		for i := range s.ProjectRoles {
-			ids[i] = s.ProjectRoles[i].Project.ID
-		}
-	}
+	ctx := intercept.WithProjectInterceptor(req.Context)
 
 	// Count owned projects.
 	projectNum, err := h.modelClient.Projects().Query().
-		Where(predicateIn[predicate.Project](isAdmin, "id", ids)...).
-		Count(req.Context)
+		Count(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	// Count environments below owned projects.
 	environmentNum, err := h.modelClient.Environments().Query().
-		Where(predicateIn[predicate.Environment](isAdmin, "project_id", ids)...).
-		Count(req.Context)
+		Count(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	// Count connectors below owned projects and global.
 	connectorNum, err := h.modelClient.Connectors().Query().
-		Where(predicateOr(
-			connector.ProjectIDIsNil(), // Nil project id means configuring in global.
-			predicateIn[predicate.Connector](isAdmin, "project_id", ids)...)...).
-		Count(req.Context)
+		Count(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	// Count services below owned projects.
 	serviceNum, err := h.modelClient.Services().Query().
-		Where(predicateIn[predicate.Service](isAdmin, "project_id", ids)...).
-		Count(req.Context)
+		Count(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -122,8 +102,7 @@ func (h Handler) CollectionRouteGetBasicInformation(
 	if req.WithServiceResource {
 		serviceResourceNum, err = h.modelClient.ServiceResources().Query().
 			Where(serviceresource.ModeNEQ(types.ServiceResourceModeData)).
-			Where(predicateIn[predicate.ServiceResource](isAdmin, "project_id", ids)...).
-			Count(req.Context)
+			Count(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -133,8 +112,7 @@ func (h Handler) CollectionRouteGetBasicInformation(
 	var serviceRevisionNum int
 	if req.WithServiceRevision {
 		serviceRevisionNum, err = h.modelClient.ServiceRevisions().Query().
-			Where(predicateIn[predicate.ServiceRevision](isAdmin, "project_id", ids)...).
-			Count(req.Context)
+			Count(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -153,17 +131,19 @@ func (h Handler) CollectionRouteGetBasicInformation(
 func (h Handler) CollectionRouteGetServiceRevisionStatistics(
 	req CollectionRouteGetServiceRevisionStatisticsRequest,
 ) (*CollectionRouteGetServiceRevisionStatisticsResponse, error) {
+	ctx := intercept.WithProjectInterceptor(req.Context)
+
 	query := h.modelClient.Projects().Query().
 		QueryServiceRevisions()
 
-	statusStats, err := getServiceRevisionStatusStats(req.Context,
+	statusStats, err := getServiceRevisionStatusStats(ctx,
 		query.Clone(),
 		req.StartTime, req.EndTime, req.Step)
 	if err != nil {
 		return nil, err
 	}
 
-	statusCount, err := getServiceRevisionStatusCount(req.Context,
+	statusCount, err := getServiceRevisionStatusCount(ctx,
 		query.Clone())
 	if err != nil {
 		return nil, err
