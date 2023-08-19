@@ -76,6 +76,10 @@ func (srci *ServiceResourceCreateInput) Model() *ServiceResource {
 		_sr.ServiceID = srci.Service.ID
 	}
 
+	if srci.Components != nil {
+		// Empty slice is used for clearing the edge.
+		_sr.Edges.Components = make([]*ServiceResource, 0, len(srci.Components))
+	}
 	for j := range srci.Components {
 		if srci.Components[j] == nil {
 			continue
@@ -83,12 +87,20 @@ func (srci *ServiceResourceCreateInput) Model() *ServiceResource {
 		_sr.Edges.Components = append(_sr.Edges.Components,
 			srci.Components[j].Model())
 	}
+	if srci.Instances != nil {
+		// Empty slice is used for clearing the edge.
+		_sr.Edges.Instances = make([]*ServiceResource, 0, len(srci.Instances))
+	}
 	for j := range srci.Instances {
 		if srci.Instances[j] == nil {
 			continue
 		}
 		_sr.Edges.Instances = append(_sr.Edges.Instances,
 			srci.Instances[j].Model())
+	}
+	if srci.Dependencies != nil {
+		// Empty slice is used for clearing the edge.
+		_sr.Edges.Dependencies = make([]*ServiceResourceRelationship, 0, len(srci.Dependencies))
 	}
 	for j := range srci.Dependencies {
 		if srci.Dependencies[j] == nil {
@@ -306,6 +318,10 @@ func (srci *ServiceResourceCreateInputs) Model() []*ServiceResource {
 			_sr.ServiceID = srci.Service.ID
 		}
 
+		if srci.Items[i].Components != nil {
+			// Empty slice is used for clearing the edge.
+			_sr.Edges.Components = make([]*ServiceResource, 0, len(srci.Items[i].Components))
+		}
 		for j := range srci.Items[i].Components {
 			if srci.Items[i].Components[j] == nil {
 				continue
@@ -313,12 +329,20 @@ func (srci *ServiceResourceCreateInputs) Model() []*ServiceResource {
 			_sr.Edges.Components = append(_sr.Edges.Components,
 				srci.Items[i].Components[j].Model())
 		}
+		if srci.Items[i].Instances != nil {
+			// Empty slice is used for clearing the edge.
+			_sr.Edges.Instances = make([]*ServiceResource, 0, len(srci.Items[i].Instances))
+		}
 		for j := range srci.Items[i].Instances {
 			if srci.Items[i].Instances[j] == nil {
 				continue
 			}
 			_sr.Edges.Instances = append(_sr.Edges.Instances,
 				srci.Items[i].Instances[j].Model())
+		}
+		if srci.Items[i].Dependencies != nil {
+			// Empty slice is used for clearing the edge.
+			_sr.Edges.Dependencies = make([]*ServiceResourceRelationship, 0, len(srci.Items[i].Dependencies))
 		}
 		for j := range srci.Items[i].Dependencies {
 			if srci.Items[i].Dependencies[j] == nil {
@@ -757,6 +781,10 @@ func (srui *ServiceResourceUpdateInput) Model() *ServiceResource {
 		Status: srui.Status,
 	}
 
+	if srui.Components != nil {
+		// Empty slice is used for clearing the edge.
+		_sr.Edges.Components = make([]*ServiceResource, 0, len(srui.Components))
+	}
 	for j := range srui.Components {
 		if srui.Components[j] == nil {
 			continue
@@ -764,12 +792,20 @@ func (srui *ServiceResourceUpdateInput) Model() *ServiceResource {
 		_sr.Edges.Components = append(_sr.Edges.Components,
 			srui.Components[j].Model())
 	}
+	if srui.Instances != nil {
+		// Empty slice is used for clearing the edge.
+		_sr.Edges.Instances = make([]*ServiceResource, 0, len(srui.Instances))
+	}
 	for j := range srui.Instances {
 		if srui.Instances[j] == nil {
 			continue
 		}
 		_sr.Edges.Instances = append(_sr.Edges.Instances,
 			srui.Instances[j].Model())
+	}
+	if srui.Dependencies != nil {
+		// Empty slice is used for clearing the edge.
+		_sr.Edges.Dependencies = make([]*ServiceResourceRelationship, 0, len(srui.Dependencies))
 	}
 	for j := range srui.Dependencies {
 		if srui.Dependencies[j] == nil {
@@ -947,6 +983,10 @@ func (srui *ServiceResourceUpdateInputs) Model() []*ServiceResource {
 			Status: srui.Items[i].Status,
 		}
 
+		if srui.Items[i].Components != nil {
+			// Empty slice is used for clearing the edge.
+			_sr.Edges.Components = make([]*ServiceResource, 0, len(srui.Items[i].Components))
+		}
 		for j := range srui.Items[i].Components {
 			if srui.Items[i].Components[j] == nil {
 				continue
@@ -954,12 +994,20 @@ func (srui *ServiceResourceUpdateInputs) Model() []*ServiceResource {
 			_sr.Edges.Components = append(_sr.Edges.Components,
 				srui.Items[i].Components[j].Model())
 		}
+		if srui.Items[i].Instances != nil {
+			// Empty slice is used for clearing the edge.
+			_sr.Edges.Instances = make([]*ServiceResource, 0, len(srui.Items[i].Instances))
+		}
 		for j := range srui.Items[i].Instances {
 			if srui.Items[i].Instances[j] == nil {
 				continue
 			}
 			_sr.Edges.Instances = append(_sr.Edges.Instances,
 				srui.Items[i].Instances[j].Model())
+		}
+		if srui.Items[i].Dependencies != nil {
+			// Empty slice is used for clearing the edge.
+			_sr.Edges.Dependencies = make([]*ServiceResourceRelationship, 0, len(srui.Items[i].Dependencies))
 		}
 		for j := range srui.Items[i].Dependencies {
 			if srui.Items[i].Dependencies[j] == nil {
