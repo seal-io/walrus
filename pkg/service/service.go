@@ -319,7 +319,10 @@ const (
 func CheckDependencyStatus(ctx context.Context, mc model.ClientSet, entity *model.Service) (bool, error) {
 	// Check dependants.
 	dependencies, err := mc.ServiceRelationships().Query().
-		Where(servicerelationship.ServiceID(entity.ID)).
+		Where(
+			servicerelationship.ServiceID(entity.ID),
+			servicerelationship.DependencyIDNEQ(entity.ID),
+		).
 		QueryDependency().
 		Select(service.FieldID).
 		Where(
