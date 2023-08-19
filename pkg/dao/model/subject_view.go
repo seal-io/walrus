@@ -51,6 +51,10 @@ func (sci *SubjectCreateInput) Model() *Subject {
 		Builtin:     sci.Builtin,
 	}
 
+	if sci.Roles != nil {
+		// Empty slice is used for clearing the edge.
+		_s.Edges.Roles = make([]*SubjectRoleRelationship, 0, len(sci.Roles))
+	}
 	for j := range sci.Roles {
 		if sci.Roles[j] == nil {
 			continue
@@ -168,6 +172,10 @@ func (sci *SubjectCreateInputs) Model() []*Subject {
 			Builtin:     sci.Items[i].Builtin,
 		}
 
+		if sci.Items[i].Roles != nil {
+			// Empty slice is used for clearing the edge.
+			_s.Edges.Roles = make([]*SubjectRoleRelationship, 0, len(sci.Items[i].Roles))
+		}
 		for j := range sci.Items[i].Roles {
 			if sci.Items[i].Roles[j] == nil {
 				continue
@@ -524,6 +532,10 @@ func (sui *SubjectUpdateInput) Model() *Subject {
 		Description: sui.Description,
 	}
 
+	if sui.Roles != nil {
+		// Empty slice is used for clearing the edge.
+		_s.Edges.Roles = make([]*SubjectRoleRelationship, 0, len(sui.Roles))
+	}
 	for j := range sui.Roles {
 		if sui.Roles[j] == nil {
 			continue
@@ -642,6 +654,10 @@ func (sui *SubjectUpdateInputs) Model() []*Subject {
 			Description: sui.Items[i].Description,
 		}
 
+		if sui.Items[i].Roles != nil {
+			// Empty slice is used for clearing the edge.
+			_s.Edges.Roles = make([]*SubjectRoleRelationship, 0, len(sui.Items[i].Roles))
+		}
 		for j := range sui.Items[i].Roles {
 			if sui.Items[i].Roles[j] == nil {
 				continue

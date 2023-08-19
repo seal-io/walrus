@@ -55,12 +55,20 @@ func (eci *EnvironmentCreateInput) Model() *Environment {
 		_e.ProjectID = eci.Project.ID
 	}
 
+	if eci.Connectors != nil {
+		// Empty slice is used for clearing the edge.
+		_e.Edges.Connectors = make([]*EnvironmentConnectorRelationship, 0, len(eci.Connectors))
+	}
 	for j := range eci.Connectors {
 		if eci.Connectors[j] == nil {
 			continue
 		}
 		_e.Edges.Connectors = append(_e.Edges.Connectors,
 			eci.Connectors[j].Model())
+	}
+	if eci.Services != nil {
+		// Empty slice is used for clearing the edge.
+		_e.Edges.Services = make([]*Service, 0, len(eci.Services))
 	}
 	for j := range eci.Services {
 		if eci.Services[j] == nil {
@@ -217,12 +225,20 @@ func (eci *EnvironmentCreateInputs) Model() []*Environment {
 			_e.ProjectID = eci.Project.ID
 		}
 
+		if eci.Items[i].Connectors != nil {
+			// Empty slice is used for clearing the edge.
+			_e.Edges.Connectors = make([]*EnvironmentConnectorRelationship, 0, len(eci.Items[i].Connectors))
+		}
 		for j := range eci.Items[i].Connectors {
 			if eci.Items[i].Connectors[j] == nil {
 				continue
 			}
 			_e.Edges.Connectors = append(_e.Edges.Connectors,
 				eci.Items[i].Connectors[j].Model())
+		}
+		if eci.Items[i].Services != nil {
+			// Empty slice is used for clearing the edge.
+			_e.Edges.Services = make([]*Service, 0, len(eci.Items[i].Services))
 		}
 		for j := range eci.Items[i].Services {
 			if eci.Items[i].Services[j] == nil {
@@ -603,6 +619,10 @@ func (eui *EnvironmentUpdateInput) Model() *Environment {
 		Labels:      eui.Labels,
 	}
 
+	if eui.Connectors != nil {
+		// Empty slice is used for clearing the edge.
+		_e.Edges.Connectors = make([]*EnvironmentConnectorRelationship, 0, len(eui.Connectors))
+	}
 	for j := range eui.Connectors {
 		if eui.Connectors[j] == nil {
 			continue
@@ -720,6 +740,10 @@ func (eui *EnvironmentUpdateInputs) Model() []*Environment {
 			Labels:      eui.Items[i].Labels,
 		}
 
+		if eui.Items[i].Connectors != nil {
+			// Empty slice is used for clearing the edge.
+			_e.Edges.Connectors = make([]*EnvironmentConnectorRelationship, 0, len(eui.Items[i].Connectors))
+		}
 		for j := range eui.Items[i].Connectors {
 			if eui.Items[i].Connectors[j] == nil {
 				continue
