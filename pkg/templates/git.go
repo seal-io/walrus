@@ -170,13 +170,23 @@ func syncTemplateFromRef(
 		ref = v.Original()
 	}
 
-	return createTemplateVersion(ctx, mc, &model.TemplateVersion{
-		TemplateID: entity.ID,
-		Name:       entity.Name,
-		Version:    ref,
-		Source:     source + "?ref=" + repo.Reference,
-		Schema:     schema,
-	})
+	// Create or update a template version.
+	return mc.TemplateVersions().Create().
+		Set(&model.TemplateVersion{
+			TemplateID: entity.ID,
+			Name:       entity.Name,
+			Version:    ref,
+			Source:     source + "?ref=" + repo.Reference,
+			Schema:     schema,
+		}).
+		OnConflictColumns(
+			templateversion.FieldName,
+			templateversion.FieldVersion,
+		).
+		Update(func(up *model.TemplateVersionUpsert) {
+			up.UpdateSchema()
+		}).
+		Exec(ctx)
 }
 
 // updateTemplateStatus updates template status.
@@ -193,22 +203,6 @@ func updateTemplateStatus(ctx context.Context, mc model.ClientSet, entity *model
 
 	return mc.Templates().UpdateOne(entity).
 		SetStatus(entity.Status).
-		Exec(ctx)
-}
-
-// createTemplateVersion creates a template version.
-func createTemplateVersion(ctx context.Context, mc model.ClientSet, tv *model.TemplateVersion) error {
-	// Delete old template version.
-	_, err := mc.TemplateVersions().Delete().
-		Where(templateversion.TemplateID(tv.TemplateID)).
-		Exec(ctx)
-	if err != nil {
-		return err
-	}
-
-	// Create new template version.
-	return mc.TemplateVersions().Create().
-		Set(tv).
 		Exec(ctx)
 }
 
