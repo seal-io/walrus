@@ -766,6 +766,8 @@ func init() {
 	variableMixin := schema.Variable{}.Mixin()
 	variableMixinHooks0 := variableMixin[0].Hooks()
 	variable.Hooks[0] = variableMixinHooks0[0]
+	variableInters := schema.Variable{}.Interceptors()
+	variable.Interceptors[0] = variableInters[0]
 	variableMixinFields1 := variableMixin[1].Fields()
 	_ = variableMixinFields1
 	variableFields := schema.Variable{}.Fields()

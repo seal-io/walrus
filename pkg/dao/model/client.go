@@ -4075,7 +4075,8 @@ func (c *VariableClient) Hooks() []Hook {
 
 // Interceptors returns the client interceptors.
 func (c *VariableClient) Interceptors() []Interceptor {
-	return c.inters.Variable
+	inters := c.inters.Variable
+	return append(inters[:len(inters):len(inters)], variable.Interceptors[:]...)
 }
 
 func (c *VariableClient) mutate(ctx context.Context, m *VariableMutation) (Value, error) {

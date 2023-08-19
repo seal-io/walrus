@@ -13,6 +13,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/variable"
+	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
@@ -324,6 +325,7 @@ func (vdi *VariableDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet,
 					variable.ProjectIDIsNil())
 			}
 		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
 			q.Where(
 				variable.ProjectID(vdi.Project.ID))
 		}
@@ -465,6 +467,7 @@ func (vqi *VariableQueryInput) ValidateWith(ctx context.Context, cs ClientSet, c
 					variable.ProjectIDIsNil())
 			}
 		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
 			q.Where(
 				variable.ProjectID(vqi.Project.ID))
 		}
@@ -763,6 +766,7 @@ func (vui *VariableUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet,
 					variable.ProjectIDIsNil())
 			}
 		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
 			q.Where(
 				variable.ProjectID(vui.Project.ID))
 		}
