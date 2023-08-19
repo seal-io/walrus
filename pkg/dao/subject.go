@@ -14,7 +14,8 @@ import (
 	"github.com/seal-io/walrus/utils/strs"
 )
 
-// SubjectRolesEdgeSave saves the edge roles of model.Subject entity.
+// SubjectRolesEdgeSave saves the global scope edge roles of model.Subject entity,
+// the roles must not have project id.
 func SubjectRolesEdgeSave(ctx context.Context, mc model.ClientSet, entity *model.Subject) error {
 	if entity.Edges.Roles == nil {
 		return nil
@@ -30,8 +31,13 @@ func SubjectRolesEdgeSave(ctx context.Context, mc model.ClientSet, entity *model
 		if newItems[i] == nil {
 			return errors.New("invalid input: nil relationship")
 		}
-		newItems[i].SubjectID = entity.ID
 
+		if newItems[i].ProjectID != "" {
+			// Ignore project scope items.
+			continue
+		}
+
+		newItems[i].SubjectID = entity.ID
 		newItemsKeySet.Insert(strs.Join("/", string(newItems[i].SubjectID), newItems[i].RoleID))
 	}
 
@@ -57,7 +63,9 @@ func SubjectRolesEdgeSave(ctx context.Context, mc model.ClientSet, entity *model
 
 	// Delete stale items.
 	oldItems, err := mc.SubjectRoleRelationships().Query().
-		Where(subjectrolerelationship.SubjectID(entity.ID)).
+		Where(
+			subjectrolerelationship.ProjectIDIsNil(),
+			subjectrolerelationship.SubjectID(entity.ID)).
 		All(ctx)
 	if err != nil {
 		return err
@@ -75,7 +83,9 @@ func SubjectRolesEdgeSave(ctx context.Context, mc model.ClientSet, entity *model
 
 	if len(deletedIDs) != 0 {
 		_, err = mc.SubjectRoleRelationships().Delete().
-			Where(subjectrolerelationship.IDIn(deletedIDs...)).
+			Where(
+				subjectrolerelationship.ProjectIDIsNil(),
+				subjectrolerelationship.IDIn(deletedIDs...)).
 			Exec(ctx)
 		if err != nil {
 			return err
