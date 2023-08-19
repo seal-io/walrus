@@ -185,7 +185,7 @@ jobs:
           SLSA_GITHUB_GENERATOR: "slsa-generator-container-linux-amd64"
           SLSA_GITHUB_GENERATOR_VERSION: "v1.5.0"
           GITHUB_CONTEXT: "${{ toJSON(github) }}"
-          UNTRUSTED_IMAGE: "${{ env.REPO }}/${{ matrix.target }}-${{ matrix.task }}"
+          UNTRUSTED_IMAGE: "${{ env.REPO }}/${{ matrix.target }}"
           UNTRUSTED_DIGEST: "${{ steps.package.outputs.digest }}"
           DOCKERHUB_USERNAME: "${{ secrets.CI_DOCKERHUB_USERNAME }}"
           DOCKERHUB_PASSWORD: "${{ secrets.CI_DOCKERHUB_PASSWORD }}"
