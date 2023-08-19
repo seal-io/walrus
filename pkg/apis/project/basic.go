@@ -1,12 +1,15 @@
 package project
 
 import (
+	"net/http"
+
 	"github.com/seal-io/walrus/pkg/auths/session"
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/errorx"
 )
 
 func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
@@ -118,6 +121,16 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 	ids := req.IDs()
+
+	// Validate whether the subject has permission to delete the projects.
+	sj := session.MustGetSubject(req.Context)
+	if !sj.IsAdmin() {
+		for i := range ids {
+			if !sj.Enforce(string(ids[i]), http.MethodDelete, "projects", string(ids[i]), req.Context.FullPath()) {
+				return errorx.NewHttpError(http.StatusForbidden, "")
+			}
+		}
+	}
 
 	return h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
 		_, err := tx.Projects().Delete().
