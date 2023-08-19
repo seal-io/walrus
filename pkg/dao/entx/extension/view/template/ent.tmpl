@@ -81,6 +81,10 @@ func ({{ $receiver }} *{{ $singular }}) Model() *{{ $.Name }} {
     {{ range $e := $input.AdditionalEdges }}
         {{- $en := $e.StructField }}
         {{- if not $e.Unique }}
+		    if {{ $receiver }}.{{ $en }} != nil {
+			    // Empty slice is used for clearing the edge.
+                {{ $modelReceiver }}.Edges.{{ $en }} = make([]*{{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }}, 0 , len({{ $receiver }}.{{ $en }}))
+			}
             for j := range {{ $receiver }}.{{ $en }} {
                 if {{ $receiver }}.{{ $en }}[j] == nil {
                     continue
@@ -285,6 +289,10 @@ func ({{ $receiver }} *{{ $plural }}) Model() []*{{ $.Name }} {
         {{ range $e := $input.AdditionalEdges }}
             {{- $en := $e.StructField }}
             {{- if not $e.Unique }}
+			    if {{ $receiver }}.Items[i].{{ $en }} != nil {
+                    // Empty slice is used for clearing the edge.
+                    {{ $modelReceiver }}.Edges.{{ $en }} = make([]*{{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }}, 0 , len({{ $receiver }}.Items[i].{{ $en }}))
+                }
                 for j := range {{ $receiver }}.Items[i].{{ $en }} {
                     if {{ $receiver }}.Items[i].{{ $en }}[j] == nil {
                         continue
@@ -983,6 +991,10 @@ func ({{ $receiver }} *{{ $singular }}) Model() *{{ $.Name }} {
     {{ range $e := $input.AdditionalEdges }}
         {{- $en := $e.StructField }}
         {{- if not $e.Unique }}
+            if {{ $receiver }}.{{ $en }} != nil {
+                // Empty slice is used for clearing the edge.
+                {{ $modelReceiver }}.Edges.{{ $en }} = make([]*{{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }}, 0 , len({{ $receiver }}.{{ $en }}))
+            }
             for j := range {{ $receiver }}.{{ $en }} {
                 if {{ $receiver }}.{{ $en }}[j] == nil {
                     continue
@@ -1171,6 +1183,10 @@ func ({{ $receiver }} *{{ $plural }}) Model() []*{{ $.Name }} {
         {{ range $e := $input.AdditionalEdges }}
             {{- $en := $e.StructField }}
             {{- if not $e.Unique }}
+                if {{ $receiver }}.Items[i].{{ $en }} != nil {
+                    // Empty slice is used for clearing the edge.
+                    {{ $modelReceiver }}.Edges.{{ $en }} = make([]*{{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }}, 0 , len({{ $receiver }}.Items[i].{{ $en }}))
+                }
                 for j := range {{ $receiver }}.Items[i].{{ $en }} {
                     if {{ $receiver }}.Items[i].{{ $en }}[j] == nil {
                         continue
