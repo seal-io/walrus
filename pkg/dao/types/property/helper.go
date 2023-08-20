@@ -140,12 +140,7 @@ func StringProperty(v string) Property {
 
 // SliceProperty wraps slice value into a property.
 func SliceProperty[T any](v []T) Property {
-	var t T
-
-	ty, err := gocty.ImpliedType(t)
-	if err != nil {
-		panic(fmt.Errorf("error getting implied type: %w", err))
-	}
+	ty := toCtyTyp[T]()
 
 	return Property{
 		Type:  cty.List(ty),
@@ -155,12 +150,7 @@ func SliceProperty[T any](v []T) Property {
 
 // SetProperty wraps set value into a property.
 func SetProperty[T comparable](v sets.Set[T]) Property {
-	var t T
-
-	ty, err := gocty.ImpliedType(t)
-	if err != nil {
-		panic(fmt.Errorf("error getting implied type: %w", err))
-	}
+	ty := toCtyTyp[T]()
 
 	return Property{
 		Type:  cty.Set(ty),
@@ -170,12 +160,7 @@ func SetProperty[T comparable](v sets.Set[T]) Property {
 
 // MapProperty wraps map value into a property.
 func MapProperty[T any](v map[string]T) Property {
-	var t T
-
-	ty, err := gocty.ImpliedType(t)
-	if err != nil {
-		panic(fmt.Errorf("error getting implied type: %w", err))
-	}
+	ty := toCtyTyp[T]()
 
 	return Property{
 		Type:  cty.Map(ty),
@@ -407,12 +392,7 @@ func StringSchema(n string, d *string) Schema {
 
 // SliceSchema returns []T schema.
 func SliceSchema[T any](n string, d []T) Schema {
-	var t T
-
-	ty, err := gocty.ImpliedType(t)
-	if err != nil {
-		panic(fmt.Errorf("error getting implied type: %w", err))
-	}
+	ty := toCtyTyp[T]()
 
 	s := Schema{
 		Type: cty.List(ty),
@@ -427,12 +407,7 @@ func SliceSchema[T any](n string, d []T) Schema {
 
 // SetSchema returns sets.Set[T] schema.
 func SetSchema[T comparable](n string, d []T) Schema {
-	var t T
-
-	ty, err := gocty.ImpliedType(t)
-	if err != nil {
-		panic(fmt.Errorf("error getting implied type: %w", err))
-	}
+	ty := toCtyTyp[T]()
 
 	s := Schema{
 		Type: cty.Set(ty),
@@ -447,12 +422,7 @@ func SetSchema[T comparable](n string, d []T) Schema {
 
 // MapSchema returns map[string]T schema.
 func MapSchema[T any](n string, d map[string]T) Schema {
-	var t T
-
-	ty, err := gocty.ImpliedType(t)
-	if err != nil {
-		panic(fmt.Errorf("error getting implied type: %w", err))
-	}
+	ty := toCtyTyp[T]()
 
 	s := Schema{
 		Type: cty.Map(ty),
@@ -548,4 +518,22 @@ func GuessSchema(n, t string, d any) (Schema, error) {
 		Name:    n,
 		Default: s,
 	}, nil
+}
+
+func toCtyTyp[T any]() (ty cty.Type) {
+	var t T
+
+	if !reflect.ValueOf(t).IsValid() {
+		ty = cty.DynamicPseudoType
+		return
+	}
+
+	var err error
+
+	ty, err = gocty.ImpliedType(t)
+	if err != nil {
+		panic(fmt.Errorf("error getting implied type: %w", err))
+	}
+
+	return
 }

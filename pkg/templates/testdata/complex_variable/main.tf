@@ -3,6 +3,11 @@
 variable "any" {
 }
 
+variable "any_map" {
+  type    = map(any)
+  default = null
+}
+
 variable "string_map" {
   type    = map(string)
   default = {

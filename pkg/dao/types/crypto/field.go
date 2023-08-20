@@ -244,7 +244,7 @@ func (i Properties) Cty() (cty.Type, cty.Value, error) {
 	for x := range i {
 		t, v, err := i[x].Cty()
 		if err != nil {
-			return cty.NilType, cty.NilVal, err
+			return t, v, err
 		}
 		ot[x] = t
 		ov[x] = v
