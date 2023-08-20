@@ -28,6 +28,10 @@ type (
 	//	|                               |                               |
 	//	| bool                          | "bool"                        |
 	//	|                               |                               |
+	//	| map(any)                      | [                             |
+	//	|                               |   "map",                      |
+	//	|                               |   "dynamic"                   |
+	//	|                               | ]                             |
 	//	| map(string)                   | [                             |
 	//	|                               |   "map",                      |
 	//	|                               |   "string"                    |
@@ -420,8 +424,24 @@ func (i Property) Cty() (cty.Type, cty.Value, error) {
 		return i.Type, cty.NilVal, nil
 	}
 
-	if i.Type == cty.NilType || i.Type == cty.DynamicPseudoType {
-		// Guess.
+	switch {
+	// From Terraform expression guide,
+	// https://developer.hashicorp.com/terraform/language/expressions/type-constraints#collection-types,
+	// map(any), list(any), set(any) are the compatible expansions for map, list, set.
+	case (i.Type.IsMapType() && cty.DynamicPseudoType.Equals(*i.Type.MapElementType())) ||
+		(i.Type.IsListType() && cty.DynamicPseudoType.Equals(*i.Type.ListElementType())) ||
+		(i.Type.IsSetType() && cty.DynamicPseudoType.Equals(*i.Type.SetElementType())):
+		// When the property type is very loose,
+		// only perform conversion checks on its value.
+		var v ctyjson.SimpleJSONValue
+		if err := json.Unmarshal(i.Value, &v); err != nil {
+			return i.Type, cty.NilVal, err
+		}
+
+		return i.Type, v.Value, nil
+	case i.Type == cty.NilType || i.Type == cty.DynamicPseudoType:
+		// When the property type is not defined or lost,
+		// guess the property type from its value.
 		var v ctyjson.SimpleJSONValue
 		if err := json.Unmarshal(i.Value, &v); err != nil {
 			return i.Type, cty.NilVal, err
@@ -430,6 +450,7 @@ func (i Property) Cty() (cty.Type, cty.Value, error) {
 		return v.Type(), v.Value, nil
 	}
 
+	// Perform type conversion with the property value.
 	v, err := ctyjson.Unmarshal(i.Value, i.Type)
 
 	return i.Type, v, err
@@ -467,7 +488,7 @@ func (i Properties) Cty() (cty.Type, cty.Value, error) {
 	for x := range i {
 		t, v, err := i[x].Cty()
 		if err != nil {
-			return cty.NilType, cty.NilVal, err
+			return t, v, err
 		}
 		ot[x] = t
 		ov[x] = v

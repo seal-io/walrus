@@ -226,6 +226,8 @@ func TestLoadTerraformSchema(t *testing.T) {
 				Variables: property.Schemas{
 					property.AnySchema("any", nil).
 						WithRequired(),
+					property.MapSchema("any_map",
+						map[string]any(nil)),
 					property.MapSchema("string_map",
 						map[string]string{
 							"a": "a",
