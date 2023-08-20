@@ -48,7 +48,7 @@ type Config struct {
 
 const (
 	// _defaultUsername is the default username in the backend.
-	_defaultUsername = "seal"
+	_defaultUsername = "walrus"
 
 	// _updateMethod is the method to update state in the backend.
 	_updateMethod = "PUT"
