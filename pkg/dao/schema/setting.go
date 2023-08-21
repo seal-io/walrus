@@ -36,8 +36,9 @@ func (Setting) Fields() []ent.Field {
 			NotEmpty().
 			Immutable().
 			Annotations(
-				entx.SkipInput(entx.WithCreate()),
-				entx.Input(entx.WithUpdate())),
+				entx.SkipInput(
+					entx.WithCreate(),
+					entx.WithUpdate())),
 		crypto.StringField("value").
 			Comment("The value of system setting, store in string."),
 		field.Bool("hidden").
