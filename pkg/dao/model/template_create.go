@@ -800,18 +800,6 @@ func (u *TemplateUpsert) ClearIcon() *TemplateUpsert {
 	return u
 }
 
-// SetSource sets the "source" field.
-func (u *TemplateUpsert) SetSource(v string) *TemplateUpsert {
-	u.Set(template.FieldSource, v)
-	return u
-}
-
-// UpdateSource sets the "source" field to the value that was provided on create.
-func (u *TemplateUpsert) UpdateSource() *TemplateUpsert {
-	u.SetExcluded(template.FieldSource)
-	return u
-}
-
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -834,6 +822,9 @@ func (u *TemplateUpsertOne) UpdateNewValues() *TemplateUpsertOne {
 		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(template.FieldCreateTime)
+		}
+		if _, exists := u.create.mutation.Source(); exists {
+			s.SetIgnore(template.FieldSource)
 		}
 		if _, exists := u.create.mutation.CatalogID(); exists {
 			s.SetIgnore(template.FieldCatalogID)
@@ -964,20 +955,6 @@ func (u *TemplateUpsertOne) UpdateIcon() *TemplateUpsertOne {
 func (u *TemplateUpsertOne) ClearIcon() *TemplateUpsertOne {
 	return u.Update(func(s *TemplateUpsert) {
 		s.ClearIcon()
-	})
-}
-
-// SetSource sets the "source" field.
-func (u *TemplateUpsertOne) SetSource(v string) *TemplateUpsertOne {
-	return u.Update(func(s *TemplateUpsert) {
-		s.SetSource(v)
-	})
-}
-
-// UpdateSource sets the "source" field to the value that was provided on create.
-func (u *TemplateUpsertOne) UpdateSource() *TemplateUpsertOne {
-	return u.Update(func(s *TemplateUpsert) {
-		s.UpdateSource()
 	})
 }
 
@@ -1168,6 +1145,9 @@ func (u *TemplateUpsertBulk) UpdateNewValues() *TemplateUpsertBulk {
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(template.FieldCreateTime)
 			}
+			if _, exists := b.mutation.Source(); exists {
+				s.SetIgnore(template.FieldSource)
+			}
 			if _, exists := b.mutation.CatalogID(); exists {
 				s.SetIgnore(template.FieldCatalogID)
 			}
@@ -1298,20 +1278,6 @@ func (u *TemplateUpsertBulk) UpdateIcon() *TemplateUpsertBulk {
 func (u *TemplateUpsertBulk) ClearIcon() *TemplateUpsertBulk {
 	return u.Update(func(s *TemplateUpsert) {
 		s.ClearIcon()
-	})
-}
-
-// SetSource sets the "source" field.
-func (u *TemplateUpsertBulk) SetSource(v string) *TemplateUpsertBulk {
-	return u.Update(func(s *TemplateUpsert) {
-		s.SetSource(v)
-	})
-}
-
-// UpdateSource sets the "source" field to the value that was provided on create.
-func (u *TemplateUpsertBulk) UpdateSource() *TemplateUpsertBulk {
-	return u.Update(func(s *TemplateUpsert) {
-		s.UpdateSource()
 	})
 }
 

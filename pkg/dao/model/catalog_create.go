@@ -788,18 +788,6 @@ func (u *CatalogUpsert) ClearStatus() *CatalogUpsert {
 	return u
 }
 
-// SetSource sets the "source" field.
-func (u *CatalogUpsert) SetSource(v string) *CatalogUpsert {
-	u.Set(catalog.FieldSource, v)
-	return u
-}
-
-// UpdateSource sets the "source" field to the value that was provided on create.
-func (u *CatalogUpsert) UpdateSource() *CatalogUpsert {
-	u.SetExcluded(catalog.FieldSource)
-	return u
-}
-
 // SetSync sets the "sync" field.
 func (u *CatalogUpsert) SetSync(v *types.CatalogSync) *CatalogUpsert {
 	u.Set(catalog.FieldSync, v)
@@ -843,6 +831,9 @@ func (u *CatalogUpsertOne) UpdateNewValues() *CatalogUpsertOne {
 		}
 		if _, exists := u.create.mutation.GetType(); exists {
 			s.SetIgnore(catalog.FieldType)
+		}
+		if _, exists := u.create.mutation.Source(); exists {
+			s.SetIgnore(catalog.FieldSource)
 		}
 	}))
 	return u
@@ -970,20 +961,6 @@ func (u *CatalogUpsertOne) UpdateStatus() *CatalogUpsertOne {
 func (u *CatalogUpsertOne) ClearStatus() *CatalogUpsertOne {
 	return u.Update(func(s *CatalogUpsert) {
 		s.ClearStatus()
-	})
-}
-
-// SetSource sets the "source" field.
-func (u *CatalogUpsertOne) SetSource(v string) *CatalogUpsertOne {
-	return u.Update(func(s *CatalogUpsert) {
-		s.SetSource(v)
-	})
-}
-
-// UpdateSource sets the "source" field to the value that was provided on create.
-func (u *CatalogUpsertOne) UpdateSource() *CatalogUpsertOne {
-	return u.Update(func(s *CatalogUpsert) {
-		s.UpdateSource()
 	})
 }
 
@@ -1198,6 +1175,9 @@ func (u *CatalogUpsertBulk) UpdateNewValues() *CatalogUpsertBulk {
 			if _, exists := b.mutation.GetType(); exists {
 				s.SetIgnore(catalog.FieldType)
 			}
+			if _, exists := b.mutation.Source(); exists {
+				s.SetIgnore(catalog.FieldSource)
+			}
 		}
 	}))
 	return u
@@ -1325,20 +1305,6 @@ func (u *CatalogUpsertBulk) UpdateStatus() *CatalogUpsertBulk {
 func (u *CatalogUpsertBulk) ClearStatus() *CatalogUpsertBulk {
 	return u.Update(func(s *CatalogUpsert) {
 		s.ClearStatus()
-	})
-}
-
-// SetSource sets the "source" field.
-func (u *CatalogUpsertBulk) SetSource(v string) *CatalogUpsertBulk {
-	return u.Update(func(s *CatalogUpsert) {
-		s.SetSource(v)
-	})
-}
-
-// UpdateSource sets the "source" field to the value that was provided on create.
-func (u *CatalogUpsertBulk) UpdateSource() *CatalogUpsertBulk {
-	return u.Update(func(s *CatalogUpsert) {
-		s.UpdateSource()
 	})
 }
 

@@ -112,12 +112,6 @@ func (cu *CatalogUpdate) ClearStatus() *CatalogUpdate {
 	return cu
 }
 
-// SetSource sets the "source" field.
-func (cu *CatalogUpdate) SetSource(s string) *CatalogUpdate {
-	cu.mutation.SetSource(s)
-	return cu
-}
-
 // SetSync sets the "sync" field.
 func (cu *CatalogUpdate) SetSync(ts *types.CatalogSync) *CatalogUpdate {
 	cu.mutation.SetSync(ts)
@@ -213,16 +207,6 @@ func (cu *CatalogUpdate) defaults() error {
 	return nil
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (cu *CatalogUpdate) check() error {
-	if v, ok := cu.mutation.Source(); ok {
-		if err := catalog.SourceValidator(v); err != nil {
-			return &ValidationError{Name: "source", err: fmt.Errorf(`model: validator failed for field "Catalog.source": %w`, err)}
-		}
-	}
-	return nil
-}
-
 // Set is different from other Set* methods,
 // it sets the value by judging the definition of each field within the entire object.
 //
@@ -272,7 +256,6 @@ func (cu *CatalogUpdate) Set(obj *Catalog) *CatalogUpdate {
 	if !reflect.ValueOf(obj.Status).IsZero() {
 		cu.SetStatus(obj.Status)
 	}
-	cu.SetSource(obj.Source)
 	if !reflect.ValueOf(obj.Sync).IsZero() {
 		cu.SetSync(obj.Sync)
 	}
@@ -295,9 +278,6 @@ func (cu *CatalogUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Catalo
 }
 
 func (cu *CatalogUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := cu.check(); err != nil {
-		return n, err
-	}
 	_spec := sqlgraph.NewUpdateSpec(catalog.Table, catalog.Columns, sqlgraph.NewFieldSpec(catalog.FieldID, field.TypeString))
 	if ps := cu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -332,9 +312,6 @@ func (cu *CatalogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if cu.mutation.StatusCleared() {
 		_spec.ClearField(catalog.FieldStatus, field.TypeJSON)
-	}
-	if value, ok := cu.mutation.Source(); ok {
-		_spec.SetField(catalog.FieldSource, field.TypeString, value)
 	}
 	if value, ok := cu.mutation.Sync(); ok {
 		_spec.SetField(catalog.FieldSync, field.TypeJSON, value)
@@ -485,12 +462,6 @@ func (cuo *CatalogUpdateOne) ClearStatus() *CatalogUpdateOne {
 	return cuo
 }
 
-// SetSource sets the "source" field.
-func (cuo *CatalogUpdateOne) SetSource(s string) *CatalogUpdateOne {
-	cuo.mutation.SetSource(s)
-	return cuo
-}
-
 // SetSync sets the "sync" field.
 func (cuo *CatalogUpdateOne) SetSync(ts *types.CatalogSync) *CatalogUpdateOne {
 	cuo.mutation.SetSync(ts)
@@ -599,16 +570,6 @@ func (cuo *CatalogUpdateOne) defaults() error {
 	return nil
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (cuo *CatalogUpdateOne) check() error {
-	if v, ok := cuo.mutation.Source(); ok {
-		if err := catalog.SourceValidator(v); err != nil {
-			return &ValidationError{Name: "source", err: fmt.Errorf(`model: validator failed for field "Catalog.source": %w`, err)}
-		}
-	}
-	return nil
-}
-
 // Set is different from other Set* methods,
 // it sets the value by judging the definition of each field within the entire object.
 //
@@ -675,9 +636,6 @@ func (cuo *CatalogUpdateOne) Set(obj *Catalog) *CatalogUpdateOne {
 				if !db.Status.Equal(obj.Status) {
 					cuo.SetStatus(obj.Status)
 				}
-			}
-			if db.Source != obj.Source {
-				cuo.SetSource(obj.Source)
 			}
 			if !reflect.ValueOf(obj.Sync).IsZero() {
 				if !reflect.DeepEqual(db.Sync, obj.Sync) {
@@ -746,9 +704,6 @@ func (cuo *CatalogUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context.
 		if _, set := cuo.mutation.Field(catalog.FieldStatus); set {
 			obj.Status = x.Status
 		}
-		if _, set := cuo.mutation.Field(catalog.FieldSource); set {
-			obj.Source = x.Source
-		}
 		if _, set := cuo.mutation.Field(catalog.FieldSync); set {
 			obj.Sync = x.Sync
 		}
@@ -794,9 +749,6 @@ func (cuo *CatalogUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Ca
 }
 
 func (cuo *CatalogUpdateOne) sqlSave(ctx context.Context) (_node *Catalog, err error) {
-	if err := cuo.check(); err != nil {
-		return _node, err
-	}
 	_spec := sqlgraph.NewUpdateSpec(catalog.Table, catalog.Columns, sqlgraph.NewFieldSpec(catalog.FieldID, field.TypeString))
 	id, ok := cuo.mutation.ID()
 	if !ok {
@@ -848,9 +800,6 @@ func (cuo *CatalogUpdateOne) sqlSave(ctx context.Context) (_node *Catalog, err e
 	}
 	if cuo.mutation.StatusCleared() {
 		_spec.ClearField(catalog.FieldStatus, field.TypeJSON)
-	}
-	if value, ok := cuo.mutation.Source(); ok {
-		_spec.SetField(catalog.FieldSource, field.TypeString, value)
 	}
 	if value, ok := cuo.mutation.Sync(); ok {
 		_spec.SetField(catalog.FieldSync, field.TypeJSON, value)

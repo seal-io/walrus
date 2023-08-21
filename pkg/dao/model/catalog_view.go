@@ -433,8 +433,6 @@ type CatalogUpdateInput struct {
 	Description string `path:"-" query:"-" json:"description,omitempty"`
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
-	// Source of the catalog.
-	Source string `path:"-" query:"-" json:"source,omitempty"`
 }
 
 // Model returns the Catalog entity for modifying,
@@ -448,7 +446,6 @@ func (cui *CatalogUpdateInput) Model() *Catalog {
 		ID:          cui.ID,
 		Description: cui.Description,
 		Labels:      cui.Labels,
-		Source:      cui.Source,
 	}
 
 	return _c
@@ -487,8 +484,6 @@ type CatalogUpdateInputsItem struct {
 	Description string `path:"-" query:"-" json:"description,omitempty"`
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
-	// Source of the catalog.
-	Source string `path:"-" query:"-" json:"source"`
 }
 
 // ValidateWith checks the CatalogUpdateInputsItem entity with the given context and client set.
@@ -527,7 +522,6 @@ func (cui *CatalogUpdateInputs) Model() []*Catalog {
 			ID:          cui.Items[i].ID,
 			Description: cui.Items[i].Description,
 			Labels:      cui.Items[i].Labels,
-			Source:      cui.Items[i].Source,
 		}
 
 		_cs[i] = _c
