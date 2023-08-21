@@ -426,8 +426,6 @@ type TemplateUpdateInput struct {
 	Description string `path:"-" query:"-" json:"description,omitempty"`
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
-	// Source of the template.
-	Source string `path:"-" query:"-" json:"source,omitempty"`
 }
 
 // Model returns the Template entity for modifying,
@@ -442,7 +440,6 @@ func (tui *TemplateUpdateInput) Model() *Template {
 		Name:        tui.Name,
 		Description: tui.Description,
 		Labels:      tui.Labels,
-		Source:      tui.Source,
 	}
 
 	return _t
@@ -481,8 +478,6 @@ type TemplateUpdateInputsItem struct {
 	Description string `path:"-" query:"-" json:"description,omitempty"`
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
-	// Source of the template.
-	Source string `path:"-" query:"-" json:"source"`
 }
 
 // ValidateWith checks the TemplateUpdateInputsItem entity with the given context and client set.
@@ -522,7 +517,6 @@ func (tui *TemplateUpdateInputs) Model() []*Template {
 			Name:        tui.Items[i].Name,
 			Description: tui.Items[i].Description,
 			Labels:      tui.Items[i].Labels,
-			Source:      tui.Items[i].Source,
 		}
 
 		_ts[i] = _t

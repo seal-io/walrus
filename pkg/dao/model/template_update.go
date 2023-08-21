@@ -119,12 +119,6 @@ func (tu *TemplateUpdate) ClearIcon() *TemplateUpdate {
 	return tu
 }
 
-// SetSource sets the "source" field.
-func (tu *TemplateUpdate) SetSource(s string) *TemplateUpdate {
-	tu.mutation.SetSource(s)
-	return tu
-}
-
 // AddVersionIDs adds the "versions" edge to the TemplateVersion entity by IDs.
 func (tu *TemplateUpdate) AddVersionIDs(ids ...object.ID) *TemplateUpdate {
 	tu.mutation.AddVersionIDs(ids...)
@@ -208,16 +202,6 @@ func (tu *TemplateUpdate) defaults() error {
 	return nil
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (tu *TemplateUpdate) check() error {
-	if v, ok := tu.mutation.Source(); ok {
-		if err := template.SourceValidator(v); err != nil {
-			return &ValidationError{Name: "source", err: fmt.Errorf(`model: validator failed for field "Template.source": %w`, err)}
-		}
-	}
-	return nil
-}
-
 // Set is different from other Set* methods,
 // it sets the value by judging the definition of each field within the entire object.
 //
@@ -267,7 +251,6 @@ func (tu *TemplateUpdate) Set(obj *Template) *TemplateUpdate {
 	if obj.Icon != "" {
 		tu.SetIcon(obj.Icon)
 	}
-	tu.SetSource(obj.Source)
 
 	// With Default.
 	if obj.UpdateTime != nil {
@@ -287,9 +270,6 @@ func (tu *TemplateUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Templ
 }
 
 func (tu *TemplateUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := tu.check(); err != nil {
-		return n, err
-	}
 	_spec := sqlgraph.NewUpdateSpec(template.Table, template.Columns, sqlgraph.NewFieldSpec(template.FieldID, field.TypeString))
 	if ps := tu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -324,9 +304,6 @@ func (tu *TemplateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if tu.mutation.IconCleared() {
 		_spec.ClearField(template.FieldIcon, field.TypeString)
-	}
-	if value, ok := tu.mutation.Source(); ok {
-		_spec.SetField(template.FieldSource, field.TypeString, value)
 	}
 	if tu.mutation.VersionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -479,12 +456,6 @@ func (tuo *TemplateUpdateOne) ClearIcon() *TemplateUpdateOne {
 	return tuo
 }
 
-// SetSource sets the "source" field.
-func (tuo *TemplateUpdateOne) SetSource(s string) *TemplateUpdateOne {
-	tuo.mutation.SetSource(s)
-	return tuo
-}
-
 // AddVersionIDs adds the "versions" edge to the TemplateVersion entity by IDs.
 func (tuo *TemplateUpdateOne) AddVersionIDs(ids ...object.ID) *TemplateUpdateOne {
 	tuo.mutation.AddVersionIDs(ids...)
@@ -581,16 +552,6 @@ func (tuo *TemplateUpdateOne) defaults() error {
 	return nil
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (tuo *TemplateUpdateOne) check() error {
-	if v, ok := tuo.mutation.Source(); ok {
-		if err := template.SourceValidator(v); err != nil {
-			return &ValidationError{Name: "source", err: fmt.Errorf(`model: validator failed for field "Template.source": %w`, err)}
-		}
-	}
-	return nil
-}
-
 // Set is different from other Set* methods,
 // it sets the value by judging the definition of each field within the entire object.
 //
@@ -658,9 +619,6 @@ func (tuo *TemplateUpdateOne) Set(obj *Template) *TemplateUpdateOne {
 					tuo.SetIcon(obj.Icon)
 				}
 			}
-			if db.Source != obj.Source {
-				tuo.SetSource(obj.Source)
-			}
 
 			// With Default.
 			if (obj.UpdateTime != nil) && (!reflect.DeepEqual(db.UpdateTime, obj.UpdateTime)) {
@@ -723,9 +681,6 @@ func (tuo *TemplateUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context
 		if _, set := tuo.mutation.Field(template.FieldIcon); set {
 			obj.Icon = x.Icon
 		}
-		if _, set := tuo.mutation.Field(template.FieldSource); set {
-			obj.Source = x.Source
-		}
 		obj.Edges = x.Edges
 	}
 
@@ -768,9 +723,6 @@ func (tuo *TemplateUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *T
 }
 
 func (tuo *TemplateUpdateOne) sqlSave(ctx context.Context) (_node *Template, err error) {
-	if err := tuo.check(); err != nil {
-		return _node, err
-	}
 	_spec := sqlgraph.NewUpdateSpec(template.Table, template.Columns, sqlgraph.NewFieldSpec(template.FieldID, field.TypeString))
 	id, ok := tuo.mutation.ID()
 	if !ok {
@@ -822,9 +774,6 @@ func (tuo *TemplateUpdateOne) sqlSave(ctx context.Context) (_node *Template, err
 	}
 	if tuo.mutation.IconCleared() {
 		_spec.ClearField(template.FieldIcon, field.TypeString)
-	}
-	if value, ok := tuo.mutation.Source(); ok {
-		_spec.SetField(template.FieldSource, field.TypeString, value)
 	}
 	if tuo.mutation.VersionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
