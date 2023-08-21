@@ -1,6 +1,6 @@
 ---
 name: Question
-about: Question about Seal
+about: Question about Walrus
 title: ''
 labels: 'question'
 assignees: ''

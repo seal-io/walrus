@@ -1,5 +1,4 @@
-**IMPORTANT: Please do not create a Pull Request without creating an issue first.**
-
+<!-- IMPORTANT: Please do not create a Pull Request without creating an issue first. -->
 **Problem:**
 <!-- Explain the problem you are aiming to resolve in this PR. -->
 
