@@ -55,11 +55,6 @@ func (r *UpdateRequest) Validate() error {
 		return err
 	}
 
-	_, err := url.Parse(r.Source)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
