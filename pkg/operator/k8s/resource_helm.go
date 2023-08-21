@@ -63,9 +63,14 @@ func parseResourcesOfHelm(
 		}
 		gvr, _ := meta.UnsafeGuessKindToResource(*gvk)
 
+		ns := obj.GetNamespace()
+		if ns == "" {
+			ns = hr.Namespace
+		}
+
 		rs = append(rs, resource{
 			GroupVersionResource: gvr,
-			Namespace:            obj.GetNamespace(),
+			Namespace:            ns,
 			Name:                 obj.GetName(),
 		})
 	}
