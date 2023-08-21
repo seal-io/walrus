@@ -53,10 +53,6 @@ func (r *UpdateRequest) Validate() error {
 		return err
 	}
 
-	if _, err := getter.Detect(r.Source, "", getter.Detectors); err != nil {
-		return fmt.Errorf("invalid source: %w", err)
-	}
-
 	return nil
 }
 
