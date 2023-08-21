@@ -41,7 +41,8 @@ func (Template) Fields() []ent.Field {
 		// For terraform deployer, this is a superset of terraform module git source.
 		field.String("source").
 			Comment("Source of the template.").
-			NotEmpty(),
+			NotEmpty().
+			Immutable(),
 		object.IDField("catalog_id").
 			Comment("ID of the template catalog.").
 			Optional().

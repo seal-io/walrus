@@ -38,7 +38,8 @@ func (Catalog) Fields() []ent.Field {
 			Immutable(),
 		field.String("source").
 			Comment("Source of the catalog.").
-			NotEmpty(),
+			NotEmpty().
+			Immutable(),
 		field.JSON("sync", &types.CatalogSync{}).
 			Comment("Sync information of the catalog.").
 			Optional().
