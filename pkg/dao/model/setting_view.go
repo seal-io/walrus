@@ -404,8 +404,6 @@ func (sqi *SettingQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, c
 type SettingUpdateInput struct {
 	SettingQueryInput `path:",inline" query:"-" json:"-"`
 
-	// The name of system setting.
-	Name string `path:"-" query:"-" json:"name,omitempty"`
 	// The value of system setting, store in string.
 	Value crypto.String `path:"-" query:"-" json:"value,omitempty"`
 }
@@ -419,7 +417,6 @@ func (sui *SettingUpdateInput) Model() *Setting {
 
 	_s := &Setting{
 		ID:    sui.ID,
-		Name:  sui.Name,
 		Value: sui.Value,
 	}
 
@@ -493,7 +490,6 @@ func (sui *SettingUpdateInputs) Model() []*Setting {
 	for i := range sui.Items {
 		_s := &Setting{
 			ID:    sui.Items[i].ID,
-			Name:  sui.Items[i].Name,
 			Value: sui.Items[i].Value,
 		}
 
