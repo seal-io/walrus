@@ -16,22 +16,26 @@ type logWriter struct {
 }
 
 func (l logWriter) Write(p []byte) (int, error) {
-	s := string(p)
+	// Trim the trailing newline.
+	s := strings.TrimSuffix(string(p), "\n")
 
 	ok := true
 
 	switch {
 	case strings.HasPrefix(s, "http: TLS handshake error from"):
 		switch {
-		case strings.HasSuffix(s, "tls: unknown certificate\n"):
+		case strings.HasSuffix(s, "tls: unknown certificate"):
 			// Ignore self-generated certificate errors from client.
 			ok = false
-		case strings.HasSuffix(s, "connection reset by peer\n"):
+		case strings.HasSuffix(s, "connection reset by peer"):
 			// Reset TLS handshake errors from client.
+			ok = false
+		case strings.HasSuffix(s, "EOF"):
+			// Terminate TLS handshake errors by client.
 			ok = false
 		}
 	case strings.Contains(s, "broken pipe"):
-		// Terminate by client.
+		// Ignore the underlying error of broken pipe.
 		ok = false
 	}
 
