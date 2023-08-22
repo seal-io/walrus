@@ -448,7 +448,8 @@ func (srrui *ServiceResourceRelationshipUpdateInput) Model() *ServiceResourceRel
 	}
 
 	_srr := &ServiceResourceRelationship{
-		ID: srrui.ID,
+		ID:   srrui.ID,
+		Type: srrui.Type,
 	}
 
 	if srrui.Dependency != nil {
@@ -543,7 +544,8 @@ func (srrui *ServiceResourceRelationshipUpdateInputs) Model() []*ServiceResource
 
 	for i := range srrui.Items {
 		_srr := &ServiceResourceRelationship{
-			ID: srrui.Items[i].ID,
+			ID:   srrui.Items[i].ID,
+			Type: srrui.Items[i].Type,
 		}
 
 		if srrui.Items[i].Dependency != nil {

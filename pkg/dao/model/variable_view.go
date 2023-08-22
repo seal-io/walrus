@@ -621,6 +621,7 @@ func (vui *VariableUpdateInput) Model() *Variable {
 
 	_v := &Variable{
 		ID:          vui.ID,
+		Name:        vui.Name,
 		Value:       vui.Value,
 		Sensitive:   vui.Sensitive,
 		Description: vui.Description,
@@ -705,6 +706,7 @@ func (vui *VariableUpdateInputs) Model() []*Variable {
 	for i := range vui.Items {
 		_v := &Variable{
 			ID:          vui.Items[i].ID,
+			Name:        vui.Items[i].Name,
 			Value:       vui.Items[i].Value,
 			Sensitive:   vui.Items[i].Sensitive,
 			Description: vui.Items[i].Description,

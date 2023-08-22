@@ -615,6 +615,7 @@ func (eui *EnvironmentUpdateInput) Model() *Environment {
 
 	_e := &Environment{
 		ID:          eui.ID,
+		Name:        eui.Name,
 		Description: eui.Description,
 		Labels:      eui.Labels,
 	}
@@ -736,6 +737,7 @@ func (eui *EnvironmentUpdateInputs) Model() []*Environment {
 	for i := range eui.Items {
 		_e := &Environment{
 			ID:          eui.Items[i].ID,
+			Name:        eui.Items[i].Name,
 			Description: eui.Items[i].Description,
 			Labels:      eui.Items[i].Labels,
 		}

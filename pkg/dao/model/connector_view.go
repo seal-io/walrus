@@ -583,6 +583,7 @@ func (cui *ConnectorUpdateInput) Model() *Connector {
 
 	_c := &Connector{
 		ID:                  cui.ID,
+		Name:                cui.Name,
 		Description:         cui.Description,
 		Labels:              cui.Labels,
 		Category:            cui.Category,
@@ -680,6 +681,7 @@ func (cui *ConnectorUpdateInputs) Model() []*Connector {
 	for i := range cui.Items {
 		_c := &Connector{
 			ID:                  cui.Items[i].ID,
+			Name:                cui.Items[i].Name,
 			Description:         cui.Items[i].Description,
 			Labels:              cui.Items[i].Labels,
 			Category:            cui.Items[i].Category,
