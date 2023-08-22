@@ -8,6 +8,7 @@ import (
 	stdlog "log"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/acme"
@@ -241,10 +242,17 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	host := r.Host
+	// From Kubernetes probes guide,
+	// https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes,
+	// the `User-Agent: kube-probe/<version>` header identify the incoming request is for Kubelet health check,
+	// in order to avoid stuck in the readiness check, we don't redirect the probes request.
+	if ua := r.Header.Get("User-Agent"); strings.HasPrefix(ua, "kube-probe/") {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 
-	rawHost, _, err := net.SplitHostPort(host)
-	if err == nil {
+	host := r.Host
+	if rawHost, _, err := net.SplitHostPort(host); err == nil {
 		host = net.JoinHostPort(rawHost, "443")
 	}
 
