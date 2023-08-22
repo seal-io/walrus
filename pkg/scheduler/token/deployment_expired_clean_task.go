@@ -27,10 +27,6 @@ func NewDeploymentExpiredCleanTask(logger log.Logger, mc model.ClientSet) (in *D
 	return
 }
 
-func (in *DeploymentExpiredCleanTask) Name() string {
-	return "token-deployment-expired-clean"
-}
-
 func (in *DeploymentExpiredCleanTask) Process(ctx context.Context, args ...any) error {
 	entities, err := in.modelClient.Tokens().Query().
 		Where(

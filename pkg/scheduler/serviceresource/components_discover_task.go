@@ -33,10 +33,6 @@ func NewComponentsDiscoverTask(logger log.Logger, mc model.ClientSet) (in *Compo
 	return
 }
 
-func (in *ComponentsDiscoverTask) Name() string {
-	return "resource-components-discover"
-}
-
 func (in *ComponentsDiscoverTask) Process(ctx context.Context, args ...any) error {
 	// NB(thxCode): connectors are usually less in number,
 	// in case of reuse the connection built from a connector,
@@ -51,6 +47,7 @@ func (in *ComponentsDiscoverTask) Process(ctx context.Context, args ...any) erro
 	if len(cs) == 0 {
 		return nil
 	}
+
 	wg := gopool.Group()
 
 	for i := range cs {
@@ -98,6 +95,7 @@ func (in *ComponentsDiscoverTask) buildSyncTasks(ctx context.Context, c *model.C
 			at := in.buildSyncTask(ctx, op, c.ID, 0, bks)
 			return at()
 		}
+
 		wg := gopool.Group()
 
 		for bk := 0; bk < bkc; bk++ {
@@ -116,7 +114,7 @@ func (in *ComponentsDiscoverTask) buildSyncTask(
 	offset,
 	limit int,
 ) func() error {
-	return func() (berr error) {
+	return func() error {
 		entities, err := in.modelClient.ServiceResources().Query().
 			Where(
 				serviceresource.ConnectorID(connectorID),
@@ -139,6 +137,10 @@ func (in *ComponentsDiscoverTask) buildSyncTask(
 		if err != nil {
 			return err
 		}
+
+		// Merge the errors to return them all at once,
+		// instead of returning the first error.
+		var berr error
 
 		for i := range entities {
 			// Get observed components from remote.

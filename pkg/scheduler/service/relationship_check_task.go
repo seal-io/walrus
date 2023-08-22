@@ -6,6 +6,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
+	"go.uber.org/multierr"
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/walrus/pkg/dao"
@@ -66,11 +67,25 @@ func NewServiceRelationshipCheckTask(
 }
 
 func (in *RelationshipCheckTask) Process(ctx context.Context, args ...any) error {
-	if err := in.applyServices(ctx); err != nil {
-		return err
+	checkers := []func(context.Context) error{
+		in.applyServices,
+		in.destroyServices,
 	}
 
-	return in.destroyServices(ctx)
+	// Merge the errors to return them all at once,
+	// instead of returning the first error.
+	var berr error
+
+	for i := range checkers {
+		berr = multierr.Append(berr, checkers[i](ctx))
+
+		// Give up the loop if the context is canceled.
+		if multierr.AppendInto(&berr, ctx.Err()) {
+			break
+		}
+	}
+
+	return berr
 }
 
 // applyServices applies all services that are in the progressing state.
@@ -143,7 +158,8 @@ func (in *RelationshipCheckTask) destroyServices(ctx context.Context) error {
 			continue
 		}
 
-		if err = pkgservice.Destroy(ctx, in.modelClient, in.deployer, svc, opts); err != nil {
+		err = pkgservice.Destroy(ctx, in.modelClient, in.deployer, svc, opts)
+		if err != nil {
 			return err
 		}
 	}
@@ -192,12 +208,13 @@ func (in *RelationshipCheckTask) checkDependencies(ctx context.Context, svc *mod
 	}
 
 	for _, depSvc := range dependencyServices {
-		if !pkgservice.IsStatusReady(depSvc) {
-			if err := in.setServiceStatusFalse(ctx, svc, depSvc); err != nil {
-				return false, err
-			}
+		if pkgservice.IsStatusReady(depSvc) {
+			continue
+		}
 
-			return false, nil
+		err = in.setServiceStatusFalse(ctx, svc, depSvc)
+		if err != nil {
+			return false, err
 		}
 	}
 
@@ -224,14 +241,14 @@ func (in *RelationshipCheckTask) deployService(ctx context.Context, entity *mode
 func (in *RelationshipCheckTask) setServiceStatusFalse(
 	ctx context.Context,
 	svc, parentService *model.Service,
-) (err error) {
+) error {
 	if pkgservice.IsStatusFalse(parentService) {
 		status.ServiceStatusProgressing.False(
 			svc,
 			fmt.Sprintf("Parent service status is false, service name: %s", parentService.Name),
 		)
 
-		err = pkgservice.UpdateStatus(ctx, in.modelClient, svc)
+		err := pkgservice.UpdateStatus(ctx, in.modelClient, svc)
 		if err != nil {
 			return err
 		}
@@ -242,7 +259,7 @@ func (in *RelationshipCheckTask) setServiceStatusFalse(
 			fmt.Sprintf("Parent service status is deleted, service name: %s", parentService.Name),
 		)
 
-		err = pkgservice.UpdateStatus(ctx, in.modelClient, svc)
+		err := pkgservice.UpdateStatus(ctx, in.modelClient, svc)
 		if err != nil {
 			return err
 		}

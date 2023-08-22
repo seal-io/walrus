@@ -11,10 +11,14 @@ import (
 )
 
 // Label applies the labels to the given model.ServiceResource list with the given operator.Operator.
-func Label(ctx context.Context, op optypes.Operator, candidates []*model.ServiceResource) (berr error) {
+func Label(ctx context.Context, op optypes.Operator, candidates []*model.ServiceResource) error {
 	if op == nil {
-		return
+		return nil
 	}
+
+	// Merge the errors to return them all at once,
+	// instead of returning the first error.
+	var berr error
 
 	for i := range candidates {
 		// Get label values.

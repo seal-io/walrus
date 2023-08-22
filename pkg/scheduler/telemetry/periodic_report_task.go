@@ -23,10 +23,6 @@ func NewPeriodicReportTask(logger log.Logger, mc model.ClientSet) (in *PeriodicR
 	return
 }
 
-func (in *PeriodicReportTask) Name() string {
-	return "telemetry-periodic-report"
-}
-
 func (in *PeriodicReportTask) Process(ctx context.Context, args ...any) error {
 	err := telemetry.EnqueuePeriodicReportEvent(ctx, in.modelClient)
 	if err != nil {
