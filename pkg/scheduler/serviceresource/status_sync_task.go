@@ -3,8 +3,6 @@ package serviceresource
 import (
 	"context"
 	"fmt"
-	"sync"
-	"time"
 
 	"go.uber.org/multierr"
 
@@ -22,18 +20,17 @@ import (
 )
 
 type StatusSyncTask struct {
-	mu sync.Mutex
-
 	modelClient model.ClientSet
 	logger      log.Logger
 }
 
-func NewStatusSyncTask(mc model.ClientSet) (*StatusSyncTask, error) {
-	in := &StatusSyncTask{}
-	in.modelClient = mc
-	in.logger = log.WithName("task").WithName(in.Name())
+func NewStatusSyncTask(mc model.ClientSet) (in *StatusSyncTask, err error) {
+	in = &StatusSyncTask{
+		logger:      log.WithName("task").WithName(in.Name()),
+		modelClient: mc,
+	}
 
-	return in, nil
+	return
 }
 
 func (in *StatusSyncTask) Name() string {
@@ -41,17 +38,6 @@ func (in *StatusSyncTask) Name() string {
 }
 
 func (in *StatusSyncTask) Process(ctx context.Context, args ...any) error {
-	if !in.mu.TryLock() {
-		in.logger.Warn("previous processing is not finished")
-		return nil
-	}
-	startTs := time.Now()
-
-	defer func() {
-		in.mu.Unlock()
-		in.logger.Debugf("processed in %v", time.Since(startTs))
-	}()
-
 	// NB(thxCode): in case of aggregate the status for service,
 	// we group 10 services into one task group,
 	// treat each service as a task unit,

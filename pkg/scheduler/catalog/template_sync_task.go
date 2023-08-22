@@ -2,8 +2,6 @@ package catalog
 
 import (
 	"context"
-	"sync"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
@@ -17,22 +15,19 @@ import (
 )
 
 type TemplateSyncTask struct {
-	mu sync.Mutex
-
 	logger      log.Logger
 	modelClient model.ClientSet
 }
 
 const summaryStatusReady = "Ready"
 
-func NewCatalogTemplateSyncTask(mc model.ClientSet) (*TemplateSyncTask, error) {
-	in := &TemplateSyncTask{
+func NewCatalogTemplateSyncTask(mc model.ClientSet) (in *TemplateSyncTask, err error) {
+	in = &TemplateSyncTask{
+		logger:      log.WithName("task").WithName(in.Name()),
 		modelClient: mc,
 	}
 
-	in.logger = log.WithName("task").WithName(in.Name())
-
-	return in, nil
+	return
 }
 
 func (in *TemplateSyncTask) Name() string {
@@ -40,18 +35,6 @@ func (in *TemplateSyncTask) Name() string {
 }
 
 func (in *TemplateSyncTask) Process(ctx context.Context, args ...any) error {
-	if !in.mu.TryLock() {
-		in.logger.Warn("previous processing is not finished")
-		return nil
-	}
-
-	startTs := time.Now()
-
-	defer func() {
-		in.mu.Unlock()
-		in.logger.Debugf("processed in %v", time.Since(startTs))
-	}()
-
 	return in.syncCatalogTemplates(ctx)
 }
 

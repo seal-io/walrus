@@ -2,8 +2,6 @@ package connector
 
 import (
 	"context"
-	"sync"
-	"time"
 
 	"github.com/seal-io/walrus/pkg/connectors"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -14,18 +12,17 @@ import (
 )
 
 type CollectTask struct {
-	mu sync.Mutex
-
-	modelClient model.ClientSet
 	logger      log.Logger
+	modelClient model.ClientSet
 }
 
-func NewCollectTask(mc model.ClientSet) (*CollectTask, error) {
-	in := &CollectTask{}
-	in.modelClient = mc
-	in.logger = log.WithName("task").WithName(in.Name())
+func NewCollectTask(mc model.ClientSet) (in *CollectTask, err error) {
+	in = &CollectTask{
+		logger:      log.WithName("task").WithName(in.Name()),
+		modelClient: mc,
+	}
 
-	return in, nil
+	return
 }
 
 func (in *CollectTask) Name() string {
@@ -33,17 +30,6 @@ func (in *CollectTask) Name() string {
 }
 
 func (in *CollectTask) Process(ctx context.Context, args ...any) error {
-	if !in.mu.TryLock() {
-		in.logger.Warn("previous processing is not finished")
-		return nil
-	}
-	startTs := time.Now()
-
-	defer func() {
-		in.mu.Unlock()
-		in.logger.Debugf("processed in %v", time.Since(startTs))
-	}()
-
 	conns, err := in.modelClient.Connectors().Query().Where(
 		connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
 	if err != nil {

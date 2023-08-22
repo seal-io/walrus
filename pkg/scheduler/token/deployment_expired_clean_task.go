@@ -3,7 +3,6 @@ package token
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	tokenbus "github.com/seal-io/walrus/pkg/bus/token"
@@ -15,18 +14,17 @@ import (
 )
 
 type DeploymentExpiredCleanTask struct {
-	mu sync.Mutex
-
-	modelClient model.ClientSet
 	logger      log.Logger
+	modelClient model.ClientSet
 }
 
-func NewDeploymentExpiredCleanTask(mc model.ClientSet) (*DeploymentExpiredCleanTask, error) {
-	in := &DeploymentExpiredCleanTask{}
-	in.modelClient = mc
-	in.logger = log.WithName("task").WithName(in.Name())
+func NewDeploymentExpiredCleanTask(mc model.ClientSet) (in *DeploymentExpiredCleanTask, err error) {
+	in = &DeploymentExpiredCleanTask{
+		logger:      log.WithName("task").WithName(in.Name()),
+		modelClient: mc,
+	}
 
-	return in, nil
+	return
 }
 
 func (in *DeploymentExpiredCleanTask) Name() string {
@@ -34,17 +32,6 @@ func (in *DeploymentExpiredCleanTask) Name() string {
 }
 
 func (in *DeploymentExpiredCleanTask) Process(ctx context.Context, args ...any) error {
-	if !in.mu.TryLock() {
-		in.logger.Warn("previous processing is not finished")
-		return nil
-	}
-	startTs := time.Now()
-
-	defer func() {
-		in.mu.Unlock()
-		in.logger.Debugf("processed in %v", time.Since(startTs))
-	}()
-
 	entities, err := in.modelClient.Tokens().Query().
 		Where(
 			token.Kind(types.TokenKindDeployment),
