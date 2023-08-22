@@ -50,7 +50,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...any) error {
 		c := cs[i]
 
 		wg.Go(func() error {
-			err := s.SyncStatus(ctx, c)
+			err := s.SyncStatus(ctx, c, false)
 			if err != nil {
 				return fmt.Errorf("error syncing connector %s: %w",
 					c.ID, err)
