@@ -64,6 +64,12 @@ func (r *RouteUpgradeRequest) Validate() error {
 		return fmt.Errorf("invalid variables: %w", err)
 	}
 
+	// Verify that variables in attributes are valid.
+	err = validateVariable(r.Context, r.Client, r.Attributes, r.Name, r.Project.ID, r.Environment.ID)
+	if err != nil {
+		return err
+	}
+
 	if err = validateRevisionsStatus(r.Context, r.Client, r.ID); err != nil {
 		return err
 	}

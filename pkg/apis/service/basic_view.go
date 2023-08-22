@@ -16,9 +16,12 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/service"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/deployer/terraform"
 	"github.com/seal-io/walrus/pkg/terraform/convertor"
 	"github.com/seal-io/walrus/utils/errorx"
+	"github.com/seal-io/walrus/utils/json"
 	"github.com/seal-io/walrus/utils/strs"
 	"github.com/seal-io/walrus/utils/validation"
 )
@@ -78,6 +81,12 @@ func (r *CreateRequest) Validate() error {
 	err = r.Attributes.ValidateWith(tv.Schema.Variables)
 	if err != nil {
 		return fmt.Errorf("invalid variables: %w", err)
+	}
+
+	// Verify that variables in attributes are valid.
+	err = validateVariable(r.Context, r.Client, r.Attributes, r.Name, r.Project.ID, r.Environment.ID)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -197,11 +206,17 @@ func (r *CollectionCreateRequest) Validate() error {
 		tvm[tvs[i].ID] = tvs[i]
 	}
 
-	// Verify service's variables with variables schema that defined on the template version.
 	for _, svc := range r.Items {
+		// Verify service's variables with variables schema that defined on the template version.
 		err = svc.Attributes.ValidateWith(tvm[svc.Template.ID].Schema.Variables)
 		if err != nil {
 			return fmt.Errorf("invalid variables: %w", err)
+		}
+
+		// Verify that variables in attributes are valid.
+		err = validateVariable(r.Context, r.Client, svc.Attributes, svc.Name, r.Project.ID, r.Environment.ID)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -323,4 +338,27 @@ func validateRevisionsStatus(ctx context.Context, mc model.ClientSet, ids ...obj
 	}
 
 	return nil
+}
+
+func validateVariable(
+	ctx context.Context,
+	mc model.ClientSet,
+	attributes property.Values,
+	serviceName string,
+	projectID object.ID,
+	environmentID object.ID,
+) error {
+	attrs := make(map[string]any, len(attributes))
+	for k, v := range attributes {
+		attrs[k] = string(json.ShouldMarshal(v))
+	}
+
+	opts := terraform.ServiceOpts{
+		ServiceName:   serviceName,
+		ProjectID:     projectID,
+		EnvironmentID: environmentID,
+	}
+	_, _, err := terraform.ParseModuleAttributes(ctx, mc, attrs, true, opts)
+
+	return err
 }

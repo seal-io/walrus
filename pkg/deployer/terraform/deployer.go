@@ -4,11 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"reflect"
 	"regexp"
 	"strings"
 
-	"entgo.io/ent/dialect/sql"
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -24,11 +22,9 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/service"
-	"github.com/seal-io/walrus/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
 	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
-	"github.com/seal-io/walrus/pkg/dao/model/variable"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -529,8 +525,20 @@ func (d Deployer) loadConfigsBytes(ctx context.Context, opts createK8sSecretsOpt
 		}
 	}
 
+	serviceOpts := ServiceOpts{
+		ServiceRevision: opts.ServiceRevision,
+		ServiceName:     opts.ServiceName,
+		ProjectID:       opts.ProjectID,
+		EnvironmentID:   opts.EnvironmentID,
+	}
 	// Parse module attributes.
-	variables, dependencyOutputs, err := d.parseModuleAttributes(ctx, moduleConfig, opts)
+	variables, dependencyOutputs, err := ParseModuleAttributes(
+		ctx,
+		d.modelClient,
+		moduleConfig.Attributes,
+		false,
+		serviceOpts,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -726,151 +734,6 @@ func (d Deployer) getConnectors(ctx context.Context, environmentID object.ID) (m
 	return cs, nil
 }
 
-// parseModuleAttributes parse module variables and dependencies, return matched model.Variables and service output.
-func (d Deployer) parseModuleAttributes(
-	ctx context.Context,
-	templateConfig *config.ModuleConfig,
-	opts createK8sSecretsOptions,
-) (variables model.Variables, outputs map[string]parser.OutputState, err error) {
-	var (
-		templateVariables        []string
-		dependencyServiceOutputs []string
-	)
-
-	templateVariables, dependencyServiceOutputs = parseAttributeReplace(
-		templateConfig.Attributes,
-		templateVariables,
-		dependencyServiceOutputs,
-	)
-
-	// If service revision has variables that inherit from cloned revision, use them directly.
-	if len(opts.ServiceRevision.Variables) > 0 {
-		for k, v := range opts.ServiceRevision.Variables {
-			variables = append(variables, &model.Variable{
-				Name:  k,
-				Value: crypto.String(v),
-			})
-		}
-	} else {
-		variables, err = d.getVariables(ctx, templateVariables, opts.ProjectID, opts.EnvironmentID)
-		if err != nil {
-			return nil, nil, err
-		}
-	}
-
-	outputs, err = d.getServiceDependencyOutputs(ctx, opts.ServiceRevision.ServiceID, dependencyServiceOutputs)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// Check if all dependency service outputs are found.
-	for _, o := range dependencyServiceOutputs {
-		if _, ok := outputs[o]; !ok {
-			return nil, nil, fmt.Errorf("service %s dependency output %s not found", opts.ServiceName, o)
-		}
-	}
-
-	return variables, outputs, nil
-}
-
-func (d Deployer) getVariables(
-	ctx context.Context,
-	variableNames []string,
-	projectID, environmentID object.ID,
-) (model.Variables, error) {
-	nameIn := make([]any, len(variableNames))
-	for i, name := range variableNames {
-		nameIn[i] = name
-	}
-
-	type scanVariable struct {
-		Name      string        `json:"name"`
-		Value     crypto.String `json:"value"`
-		Sensitive bool          `json:"sensitive"`
-		Scope     int           `json:"scope"`
-	}
-
-	var vars []scanVariable
-
-	err := d.modelClient.Variables().Query().
-		Modify(func(s *sql.Selector) {
-			var (
-				envPs = sql.And(
-					sql.EQ(variable.FieldProjectID, projectID),
-					sql.EQ(variable.FieldEnvironmentID, environmentID),
-				)
-
-				projPs = sql.And(
-					sql.EQ(variable.FieldProjectID, projectID),
-					sql.IsNull(variable.FieldEnvironmentID),
-				)
-
-				globalPs = sql.IsNull(variable.FieldProjectID)
-			)
-
-			s.Where(
-				sql.And(
-					sql.In(variable.FieldName, nameIn...),
-					sql.Or(
-						envPs,
-						projPs,
-						globalPs,
-					),
-				),
-			).SelectExpr(
-				sql.Expr("CASE "+
-					"WHEN project_id IS NOT NULL AND environment_id IS NOT NULL THEN 3 "+
-					"WHEN project_id IS NOT NULL AND environment_id IS NULL THEN 2 "+
-					"ELSE 1 "+
-					"END AS scope"),
-			).AppendSelect(
-				variable.FieldName,
-				variable.FieldValue,
-				variable.FieldSensitive,
-			)
-		}).
-		Scan(ctx, &vars)
-	if err != nil {
-		return nil, err
-	}
-
-	found := make(map[string]scanVariable)
-	for _, v := range vars {
-		ev, ok := found[v.Name]
-		if !ok {
-			found[v.Name] = v
-			continue
-		}
-
-		if v.Scope > ev.Scope {
-			found[v.Name] = v
-		}
-	}
-
-	var variables model.Variables
-
-	// Validate module variable are all exist.
-	foundSet := sets.NewString()
-	for n, e := range found {
-		foundSet.Insert(n)
-		variables = append(variables, &model.Variable{
-			Name:      n,
-			Value:     e.Value,
-			Sensitive: e.Sensitive,
-		})
-	}
-	requiredSet := sets.NewString(variableNames...)
-
-	missingSet := requiredSet.
-		Difference(foundSet).
-		Difference(WalrusMetadataSet)
-	if missingSet.Len() > 0 {
-		return nil, fmt.Errorf("missing variables: %s", missingSet.List())
-	}
-
-	return variables, nil
-}
-
 // getPreviousRequiredProviders get previous succeed revision required providers.
 // NB(alex): the previous revision may be failed, the failed revision may not contain required providers of states.
 func (d Deployer) getPreviousRequiredProviders(
@@ -906,156 +769,6 @@ func (d Deployer) getPreviousRequiredProviders(
 	}
 
 	return prevRequiredProviders, nil
-}
-
-// getServiceDependencyOutputs gets the dependency outputs of the service.
-func (d Deployer) getServiceDependencyOutputs(
-	ctx context.Context,
-	serviceID object.ID,
-	dependOutputs []string,
-) (map[string]parser.OutputState, error) {
-	entity, err := d.modelClient.Services().Query().
-		Where(service.ID(serviceID)).
-		WithDependencies(func(sq *model.ServiceRelationshipQuery) {
-			sq.Where(func(s *sql.Selector) {
-				s.Where(sql.ColumnsNEQ(servicerelationship.FieldServiceID, servicerelationship.FieldDependencyID))
-			})
-		}).
-		Only(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	dependencyServiceIDs := make([]object.ID, 0, len(entity.Edges.Dependencies))
-
-	for _, d := range entity.Edges.Dependencies {
-		if d.Type != types.ServiceRelationshipTypeImplicit {
-			continue
-		}
-
-		dependencyServiceIDs = append(dependencyServiceIDs, d.DependencyID)
-	}
-
-	dependencyRevisions, err := d.modelClient.ServiceRevisions().Query().
-		Select(
-			servicerevision.FieldID,
-			servicerevision.FieldAttributes,
-			servicerevision.FieldOutput,
-			servicerevision.FieldServiceID,
-			servicerevision.FieldProjectID,
-		).
-		Where(func(s *sql.Selector) {
-			sq := s.Clone().
-				AppendSelectExprAs(
-					sql.RowNumber().
-						PartitionBy(servicerevision.FieldServiceID).
-						OrderBy(sql.Desc(servicerevision.FieldCreateTime)),
-					"row_number",
-				).
-				Where(s.P()).
-				From(s.Table()).
-				As(servicerevision.Table)
-
-			// Query the latest revision of the service.
-			s.Where(sql.EQ(s.C("row_number"), 1)).
-				From(sq)
-		}).Where(servicerevision.ServiceIDIn(dependencyServiceIDs...)).
-		All(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	outputs := make(map[string]parser.OutputState, 0)
-	dependSets := sets.NewString(dependOutputs...)
-
-	for _, r := range dependencyRevisions {
-		revisionOutput, err := parser.ParseStateOutputRawMap(r)
-		if err != nil {
-			return nil, err
-		}
-
-		for n, o := range revisionOutput {
-			if dependSets.Has(n) {
-				outputs[n] = o
-			}
-		}
-	}
-
-	return outputs, nil
-}
-
-// parseAttributeReplace parses attribute variable ${var.name} replaces it with ${var._variablePrefix+name},
-// service reference ${service.name.output} replaces it with ${var._servicePrefix+name}
-// and returns variable names and service names.
-func parseAttributeReplace(
-	attributes map[string]any,
-	variableNames []string,
-	serviceOutputs []string,
-) ([]string, []string) {
-	for key, value := range attributes {
-		if value == nil {
-			continue
-		}
-
-		switch reflect.TypeOf(value).Kind() {
-		case reflect.Map:
-			if _, ok := value.(map[string]any); !ok {
-				continue
-			}
-
-			variableNames, serviceOutputs = parseAttributeReplace(
-				value.(map[string]any),
-				variableNames,
-				serviceOutputs,
-			)
-		case reflect.String:
-			str := value.(string)
-			matches := _variableReg.FindAllStringSubmatch(str, -1)
-			serviceMatches := _serviceReg.FindAllStringSubmatch(str, -1)
-
-			var matched []string
-
-			for _, match := range matches {
-				if len(match) > 1 {
-					matched = append(matched, match[1])
-				}
-			}
-
-			var serviceMatched []string
-
-			for _, match := range serviceMatches {
-				if len(match) > 1 {
-					serviceMatched = append(serviceMatched, match[1]+"_"+match[2])
-				}
-			}
-
-			variableNames = append(variableNames, matched...)
-			variableRepl := "${var." + _variablePrefix + "${1}}"
-			str = _variableReg.ReplaceAllString(str, variableRepl)
-
-			serviceOutputs = append(serviceOutputs, serviceMatched...)
-			serviceRepl := "${var." + _servicePrefix + "${1}_${2}}"
-
-			attributes[key] = _serviceReg.ReplaceAllString(str, serviceRepl)
-		case reflect.Slice:
-			if _, ok := value.([]any); !ok {
-				continue
-			}
-
-			for _, v := range value.([]any) {
-				if _, ok := v.(map[string]any); !ok {
-					continue
-				}
-				variableNames, serviceOutputs = parseAttributeReplace(
-					v.(map[string]any),
-					variableNames,
-					serviceOutputs,
-				)
-			}
-		}
-	}
-
-	return variableNames, serviceOutputs
 }
 
 func getVarConfigOptions(variables model.Variables, serviceOutputs map[string]parser.OutputState) config.CreateOptions {
