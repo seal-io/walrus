@@ -639,6 +639,10 @@ spec:
             timeoutSeconds: 5
             periodSeconds: 10
             httpGet:
+              # Redirect the liveness probe request.
+              httpHeaders:
+                - name: "User-Agent"
+                  value: ""
               port: 80
               path: /livez
           volumeMounts:
