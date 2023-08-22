@@ -16,17 +16,13 @@ type CollectTask struct {
 	modelClient model.ClientSet
 }
 
-func NewCollectTask(mc model.ClientSet) (in *CollectTask, err error) {
+func NewCollectTask(logger log.Logger, mc model.ClientSet) (in *CollectTask, err error) {
 	in = &CollectTask{
-		logger:      log.WithName("task").WithName(in.Name()),
+		logger:      logger,
 		modelClient: mc,
 	}
 
 	return
-}
-
-func (in *CollectTask) Name() string {
-	return "connector-cost-collect"
 }
 
 func (in *CollectTask) Process(ctx context.Context, args ...any) error {

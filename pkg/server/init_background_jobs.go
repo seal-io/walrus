@@ -3,140 +3,169 @@ package server
 import (
 	"context"
 
-	"k8s.io/client-go/rest"
-
 	"github.com/seal-io/walrus/pkg/cron"
-	"github.com/seal-io/walrus/pkg/dao/model"
 	catalogskd "github.com/seal-io/walrus/pkg/scheduler/catalog"
 	connskd "github.com/seal-io/walrus/pkg/scheduler/connector"
-	serviceskd "github.com/seal-io/walrus/pkg/scheduler/service"
-	appresskd "github.com/seal-io/walrus/pkg/scheduler/serviceresource"
+	svcskd "github.com/seal-io/walrus/pkg/scheduler/service"
+	svcresskd "github.com/seal-io/walrus/pkg/scheduler/serviceresource"
 	telemetryskd "github.com/seal-io/walrus/pkg/scheduler/telemetry"
 	tokenskd "github.com/seal-io/walrus/pkg/scheduler/token"
 	"github.com/seal-io/walrus/pkg/settings"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 // startBackgroundJobs starts the background jobs by Cron Expression to do something periodically.
 // StartBackgroundJobs requires the global settings to be initialized.
 func (r *Server) startBackgroundJobs(ctx context.Context, opts initOptions) error {
-	cs := cron.JobCreators{
-		settings.ConnectorCostCollectCronExpr.Name():    buildConnectorCostCollectJobCreator(opts.ModelClient),
-		settings.ConnectorStatusSyncCronExpr.Name():     buildConnectorStatusSyncJobCreator(opts.ModelClient),
-		settings.ResourceStatusSyncCronExpr.Name():      buildResourceStatusSyncJobCreator(opts.ModelClient),
-		settings.ResourceLabelApplyCronExpr.Name():      buildResourceLabelApplyJobCreator(opts.ModelClient),
-		settings.TelemetryPeriodicReportCronExpr.Name(): buildTelemetryPeriodicReportJobCreator(opts.ModelClient),
-		settings.ResourceComponentsDiscoverCronExpr.Name(): buildResourceComponentsDiscoverJobCreator(
-			opts.ModelClient,
-		),
-		settings.TokenDeploymentExpiredCleanCronExpr.Name(): buildTokenDeploymentExpireCleanJobCreator(
-			opts.ModelClient,
-		),
-		settings.ServiceRelationshipCheckCronExpr.Name(): buildServiceRelationshipCheckJobCreator(
-			opts.ModelClient,
-			opts.K8sConfig,
-			opts.SkipTLSVerify,
-		),
-		settings.CatalogTemplateSyncCronExpr.Name(): buildCatalogTemplateSyncJobCreator(opts.ModelClient),
+	bjs := []jobCreatorBuilder{
+		buildCatalogTemplateSyncJobCreator,
+		buildConnectorCostCollectJobCreator,
+		buildConnectorStatusSyncJobCreator,
+		buildResourceComponentsDiscoverJobCreator,
+		buildResourceLabelApplyJobCreator,
+		buildResourceStatusSyncJobCreator,
+		buildServiceRelationshipCheckJobCreator,
+		buildTelemetryPeriodicReportJobCreator,
+		buildTokenDeploymentExpireCleanJobCreator,
 	}
 
-	return cron.Register(ctx, opts.ModelClient, cs)
-}
+	js := cron.JobCreators{}
 
-func buildConnectorCostCollectJobCreator(mc model.ClientSet) cron.JobCreator {
-	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		task, err := connskd.NewCollectTask(mc)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		return cron.ImmediateExpr(expr), task, nil
+	for i := range bjs {
+		expr, j := bjs[i](opts)
+		js[expr.Name()] = j
 	}
+
+	return cron.Register(ctx, opts.ModelClient, js)
 }
 
-func buildConnectorStatusSyncJobCreator(mc model.ClientSet) cron.JobCreator {
-	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		task, err := connskd.NewStatusSyncTask(mc)
-		if err != nil {
-			return nil, nil, err
-		}
+// jobCreatorBuilder is the stereotype of a function that creates a cron.JobCreator,
+// must return the expression setting and the job creator.
+type jobCreatorBuilder func(initOptions) (exprSetting settings.Value, jobCreator cron.JobCreator)
 
-		return cron.ImmediateExpr(expr), task, nil
-	}
-}
-
-func buildResourceStatusSyncJobCreator(mc model.ClientSet) cron.JobCreator {
-	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		task, err := appresskd.NewStatusSyncTask(mc)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		return cron.ImmediateExpr(expr), task, nil
-	}
-}
-
-func buildResourceLabelApplyJobCreator(mc model.ClientSet) cron.JobCreator {
-	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		task, err := appresskd.NewLabelApplyTask(mc)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		return cron.ImmediateExpr(expr), task, nil
-	}
-}
-
-func buildResourceComponentsDiscoverJobCreator(mc model.ClientSet) cron.JobCreator {
-	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		task, err := appresskd.NewComponentsDiscoverTask(mc)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		return cron.ImmediateExpr(expr), task, nil
-	}
-}
-
-func buildTokenDeploymentExpireCleanJobCreator(mc model.ClientSet) cron.JobCreator {
-	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		task, err := tokenskd.NewDeploymentExpiredCleanTask(mc)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		return cron.ImmediateExpr(expr), task, nil
-	}
-}
-
-func buildServiceRelationshipCheckJobCreator(mc model.ClientSet, kc *rest.Config, skipTLSVerify bool) cron.JobCreator {
-	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		task, err := serviceskd.NewServiceRelationshipCheckTask(mc, kc, skipTLSVerify)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		return cron.ImmediateExpr(expr), task, nil
-	}
-}
-
-func buildTelemetryPeriodicReportJobCreator(mc model.ClientSet) cron.JobCreator {
-	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		task, err := telemetryskd.NewPeriodicReportTask(mc)
+func buildCatalogTemplateSyncJobCreator(opts initOptions) (es settings.Value, jc cron.JobCreator) {
+	es = settings.CatalogTemplateSyncCronExpr
+	jc = func(logger log.Logger, expr string) (cron.Expr, cron.Task, error) {
+		task, err := catalogskd.NewCatalogTemplateSyncTask(logger, opts.ModelClient)
 		if err != nil {
 			return nil, nil, err
 		}
 
 		return cron.AwaitedExpr(expr), task, nil
 	}
+
+	return
 }
 
-func buildCatalogTemplateSyncJobCreator(mc model.ClientSet) cron.JobCreator {
-	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		task, err := catalogskd.NewCatalogTemplateSyncTask(mc)
+func buildConnectorCostCollectJobCreator(opts initOptions) (es settings.Value, jc cron.JobCreator) {
+	es = settings.ConnectorCostCollectCronExpr
+	jc = func(logger log.Logger, expr string) (cron.Expr, cron.Task, error) {
+		task, err := connskd.NewCollectTask(logger, opts.ModelClient)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return cron.ImmediateExpr(expr), task, nil
+	}
+
+	return
+}
+
+func buildConnectorStatusSyncJobCreator(opts initOptions) (es settings.Value, jc cron.JobCreator) {
+	es = settings.ConnectorStatusSyncCronExpr
+	jc = func(logger log.Logger, expr string) (cron.Expr, cron.Task, error) {
+		task, err := connskd.NewStatusSyncTask(logger, opts.ModelClient)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return cron.ImmediateExpr(expr), task, nil
+	}
+
+	return
+}
+
+func buildResourceComponentsDiscoverJobCreator(opts initOptions) (es settings.Value, jc cron.JobCreator) {
+	es = settings.ResourceComponentsDiscoverCronExpr
+	jc = func(logger log.Logger, expr string) (cron.Expr, cron.Task, error) {
+		task, err := svcresskd.NewComponentsDiscoverTask(logger, opts.ModelClient)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return cron.ImmediateExpr(expr), task, nil
+	}
+
+	return
+}
+
+func buildResourceLabelApplyJobCreator(opts initOptions) (es settings.Value, jc cron.JobCreator) {
+	es = settings.ResourceLabelApplyCronExpr
+	jc = func(logger log.Logger, expr string) (cron.Expr, cron.Task, error) {
+		task, err := svcresskd.NewLabelApplyTask(logger, opts.ModelClient)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return cron.ImmediateExpr(expr), task, nil
+	}
+
+	return
+}
+
+func buildResourceStatusSyncJobCreator(opts initOptions) (es settings.Value, jc cron.JobCreator) {
+	es = settings.ResourceStatusSyncCronExpr
+	jc = func(logger log.Logger, expr string) (cron.Expr, cron.Task, error) {
+		task, err := svcresskd.NewStatusSyncTask(logger, opts.ModelClient)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return cron.ImmediateExpr(expr), task, nil
+	}
+
+	return
+}
+
+func buildServiceRelationshipCheckJobCreator(opts initOptions) (es settings.Value, jc cron.JobCreator) {
+	es = settings.ServiceRelationshipCheckCronExpr
+	jc = func(logger log.Logger, expr string) (cron.Expr, cron.Task, error) {
+		task, err := svcskd.NewServiceRelationshipCheckTask(logger,
+			opts.ModelClient, opts.K8sConfig, opts.SkipTLSVerify)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return cron.ImmediateExpr(expr), task, nil
+	}
+
+	return
+}
+
+func buildTelemetryPeriodicReportJobCreator(opts initOptions) (es settings.Value, jc cron.JobCreator) {
+	es = settings.TelemetryPeriodicReportCronExpr
+	jc = func(logger log.Logger, expr string) (cron.Expr, cron.Task, error) {
+		task, err := telemetryskd.NewPeriodicReportTask(logger, opts.ModelClient)
 		if err != nil {
 			return nil, nil, err
 		}
 
 		return cron.AwaitedExpr(expr), task, nil
 	}
+
+	return
+}
+
+func buildTokenDeploymentExpireCleanJobCreator(opts initOptions) (es settings.Value, jc cron.JobCreator) {
+	es = settings.TokenDeploymentExpiredCleanCronExpr
+	jc = func(logger log.Logger, expr string) (cron.Expr, cron.Task, error) {
+		task, err := tokenskd.NewDeploymentExpiredCleanTask(logger, opts.ModelClient)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return cron.ImmediateExpr(expr), task, nil
+	}
+
+	return
 }

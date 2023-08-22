@@ -38,6 +38,7 @@ type RelationshipCheckTask struct {
 }
 
 func NewServiceRelationshipCheckTask(
+	logger log.Logger,
 	mc model.ClientSet,
 	kc *rest.Config,
 	skipTLSVerify bool,
@@ -55,17 +56,13 @@ func NewServiceRelationshipCheckTask(
 	}
 
 	in = &RelationshipCheckTask{
-		logger:        log.WithName("task").WithName(in.Name()),
+		logger:        logger,
 		modelClient:   mc,
 		skipTLSVerify: skipTLSVerify,
 		deployer:      dp,
 	}
 
 	return
-}
-
-func (in *RelationshipCheckTask) Name() string {
-	return "service-relationship-check"
 }
 
 func (in *RelationshipCheckTask) Process(ctx context.Context, args ...any) error {

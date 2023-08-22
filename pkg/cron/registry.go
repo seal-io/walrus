@@ -14,13 +14,14 @@ import (
 )
 
 type (
-	// JobCreator is the creator for creating {cron.Expr, cron.Task} tuple,
-	// the life of given context.Context ends by this creation,
-	// do not use the long-term processing with this context.Context.
-	JobCreator func(ctx context.Context, name, expr string) (Expr, Task, error)
+	// JobCreator is the creator for creating {cron.Expr, cron.Task} tuple.
+	JobCreator func(logger log.Logger, expr string) (Expr, Task, error)
 
-	// JobCreators holds JobCreator with its name.
-	JobCreators map[string]JobCreator
+	// JobExpressionName holds the name of the cron.Expr.
+	JobExpressionName = string
+
+	// JobCreators holds JobCreator with its expression name.
+	JobCreators map[JobExpressionName]JobCreator
 )
 
 var (
@@ -37,6 +38,7 @@ func Register(ctx context.Context, mc *model.Client, cs JobCreators) (err error)
 		for n, c := range cs {
 			js[n] = c
 		}
+
 		err = doRegister(ctx, mc)
 	})
 
@@ -44,6 +46,8 @@ func Register(ctx context.Context, mc *model.Client, cs JobCreators) (err error)
 }
 
 func doRegister(ctx context.Context, mc *model.Client) error {
+	logger := log.WithName("task")
+
 	// Create locker.
 	locker := NewLocker(mc)
 
@@ -54,7 +58,7 @@ func doRegister(ctx context.Context, mc *model.Client) error {
 	}
 
 	for n, c := range js {
-		if c == nil {
+		if n == "" || c == nil {
 			continue
 		}
 
@@ -62,6 +66,7 @@ func doRegister(ctx context.Context, mc *model.Client) error {
 		if s == nil {
 			continue
 		}
+
 		// Get cron expr of the job from global model client.
 		var v string
 
@@ -70,7 +75,7 @@ func doRegister(ctx context.Context, mc *model.Client) error {
 			return fmt.Errorf("error gettting job cron expr: %w", err)
 		}
 
-		ce, ct, err := c(ctx, n, v)
+		ce, ct, err := c(logger.WithValues("createdBy", n), v)
 		if err != nil {
 			return fmt.Errorf("error creating %s job: %w", n, err)
 		}
@@ -97,7 +102,7 @@ func Sync(ctx context.Context, m settingbus.BusMessage) error {
 	var jobs []job
 
 	for i := 0; i < len(m.Refers); i++ {
-		if m.Refers[i] == nil {
+		if m.Refers[i] == nil || m.Refers[i].Name == "" {
 			continue
 		}
 
@@ -112,6 +117,7 @@ func Sync(ctx context.Context, m settingbus.BusMessage) error {
 		if s == nil {
 			continue
 		}
+
 		// Get cron expr of the job from transactional model client.
 		v, err := s.Value(ctx, m.TransactionalModelClient)
 		if err != nil {
@@ -120,9 +126,9 @@ func Sync(ctx context.Context, m settingbus.BusMessage) error {
 
 		j := job{Name: n}
 
-		j.Expr, j.Task, err = c(ctx, n, v)
+		j.Expr, j.Task, err = c(logger.WithValues("createdBy", n), v)
 		if err != nil {
-			return fmt.Errorf("error creating %s job: %w", n, err)
+			return fmt.Errorf("error creating job for %s: %w", n, err)
 		}
 
 		jobs = append(jobs, j)
@@ -135,7 +141,7 @@ func Sync(ctx context.Context, m settingbus.BusMessage) error {
 		if err != nil {
 			// NB(thxCode): raising error cannot roll back successfully scheduled job in the same for-loop,
 			// so just warn out here.
-			logger.Errorf("error scheduling %s job: %v", j.Name, err)
+			logger.Errorf("error scheduling job for: %v", j.Name, err)
 		}
 		// TODO(thxCode): support rolling back successfully scheduled job.
 	}

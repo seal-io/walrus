@@ -14,9 +14,9 @@ type PeriodicReportTask struct {
 	modelClient model.ClientSet
 }
 
-func NewPeriodicReportTask(mc model.ClientSet) (in *PeriodicReportTask, err error) {
+func NewPeriodicReportTask(logger log.Logger, mc model.ClientSet) (in *PeriodicReportTask, err error) {
 	in = &PeriodicReportTask{
-		logger:      log.WithName("task").WithName(in.Name()),
+		logger:      logger,
 		modelClient: mc,
 	}
 
