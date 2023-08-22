@@ -266,7 +266,7 @@ func applyFinOps(mc model.ClientSet, conn *model.Connector, reinstall bool) erro
 		// Sync status.
 		syncer := pkgconn.NewStatusSyncer(mc)
 
-		err = syncer.SyncStatus(ctx, conn)
+		err = syncer.SyncStatus(ctx, conn, true)
 		if err != nil {
 			logger.Errorf("error syncing status of connector %q: %v", conn.ID, err)
 		}
