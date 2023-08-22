@@ -18,9 +18,9 @@ type DeploymentExpiredCleanTask struct {
 	modelClient model.ClientSet
 }
 
-func NewDeploymentExpiredCleanTask(mc model.ClientSet) (in *DeploymentExpiredCleanTask, err error) {
+func NewDeploymentExpiredCleanTask(logger log.Logger, mc model.ClientSet) (in *DeploymentExpiredCleanTask, err error) {
 	in = &DeploymentExpiredCleanTask{
-		logger:      log.WithName("task").WithName(in.Name()),
+		logger:      logger,
 		modelClient: mc,
 	}
 

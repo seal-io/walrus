@@ -18,9 +18,9 @@ type LabelApplyTask struct {
 	modelClient model.ClientSet
 }
 
-func NewLabelApplyTask(mc model.ClientSet) (in *LabelApplyTask, err error) {
+func NewLabelApplyTask(logger log.Logger, mc model.ClientSet) (in *LabelApplyTask, err error) {
 	in = &LabelApplyTask{
-		logger:      log.WithName("task").WithName(in.Name()),
+		logger:      logger,
 		modelClient: mc,
 	}
 

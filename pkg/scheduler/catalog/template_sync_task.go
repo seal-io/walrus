@@ -21,17 +21,13 @@ type TemplateSyncTask struct {
 
 const summaryStatusReady = "Ready"
 
-func NewCatalogTemplateSyncTask(mc model.ClientSet) (in *TemplateSyncTask, err error) {
+func NewCatalogTemplateSyncTask(logger log.Logger, mc model.ClientSet) (in *TemplateSyncTask, err error) {
 	in = &TemplateSyncTask{
-		logger:      log.WithName("task").WithName(in.Name()),
+		logger:      logger,
 		modelClient: mc,
 	}
 
 	return
-}
-
-func (in *TemplateSyncTask) Name() string {
-	return "catalog-template-sync-task"
 }
 
 func (in *TemplateSyncTask) Process(ctx context.Context, args ...any) error {

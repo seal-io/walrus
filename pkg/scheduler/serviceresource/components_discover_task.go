@@ -24,9 +24,9 @@ type ComponentsDiscoverTask struct {
 	modelClient model.ClientSet
 }
 
-func NewComponentsDiscoverTask(mc model.ClientSet) (in *ComponentsDiscoverTask, err error) {
+func NewComponentsDiscoverTask(logger log.Logger, mc model.ClientSet) (in *ComponentsDiscoverTask, err error) {
 	in = &ComponentsDiscoverTask{
-		logger:      log.WithName("task").WithName(in.Name()),
+		logger:      logger,
 		modelClient: mc,
 	}
 

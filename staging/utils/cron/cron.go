@@ -14,8 +14,6 @@ import (
 
 // Task defines the interface to hold the job executing main logic.
 type Task interface {
-	// Name return name for task.
-	Name() string
 	// Process executes the task main logic.
 	Process(ctx context.Context, args ...any) error
 }
@@ -121,29 +119,29 @@ type scheduler struct {
 
 type timeoutTask struct {
 	timeout time.Duration
-	name    string
+	jobName string
 	task    Task
 }
 
 func (in timeoutTask) Process(ctx context.Context, args ...any) error {
-	logger := log.WithName("task")
+	logger := log.WithName("task").WithValues("createBy", in.jobName)
 
 	ctx, cancel := context.WithTimeout(ctx, in.timeout)
 	defer cancel()
 
 	// Record scheduled task.
 	_statsCollector.scheduledTasks.
-		WithLabelValues(in.name).
+		WithLabelValues(in.jobName).
 		Inc()
 
 	// Record processing task.
 	_statsCollector.processingTasks.
-		WithLabelValues(in.name).
+		WithLabelValues(in.jobName).
 		Inc()
 
 	defer func() {
 		_statsCollector.processingTasks.
-			WithLabelValues(in.name).
+			WithLabelValues(in.jobName).
 			Dec()
 	}()
 
@@ -163,21 +161,21 @@ func (in timeoutTask) Process(ctx context.Context, args ...any) error {
 
 	// Record task consumption.
 	_statsCollector.taskDurations.
-		WithLabelValues(in.name).
+		WithLabelValues(in.jobName).
 		Observe(time.Since(start).Seconds())
 
 	if err != nil {
 		// Record failed task.
 		_statsCollector.failedTasks.
-			WithLabelValues(in.name).
+			WithLabelValues(in.jobName).
 			Inc()
-		logger.Errorf("error executing task: %s: %v", in.task.Name(), err)
+		logger.Errorf("error executing task: %v", err)
 	} else {
 		// Record succeeded task.
 		_statsCollector.succeededTasks.
-			WithLabelValues(in.name).
+			WithLabelValues(in.jobName).
 			Inc()
-		logger.Debugf("executed task: %s", in.task.Name())
+		logger.Debugf("executed task")
 	}
 
 	// NB(thxCode): always return nil as there is no way to restart the job at present.
@@ -186,7 +184,7 @@ func (in timeoutTask) Process(ctx context.Context, args ...any) error {
 
 type emptyVariadicList struct{}
 
-func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...any) (err error) {
+func (in *scheduler) Schedule(jobName string, cron Expr, task Task, taskArgs ...any) (err error) {
 	ce := cron.String()
 
 	ceParsed, err := ParseCronExpr(ce, false)
@@ -194,14 +192,14 @@ func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...any
 		return
 	}
 
-	err = in.s.RemoveByTag(name)
+	err = in.s.RemoveByTag(jobName)
 	if err != nil && !errors.Is(err, gocron.ErrJobNotFoundWithTag) {
 		return
 	}
 
 	// Record scheduled job.
 	_statsCollector.schedulingJobs.
-		WithLabelValues(name).
+		WithLabelValues(jobName).
 		Set(0)
 
 	defer func() {
@@ -210,7 +208,7 @@ func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...any
 		}
 
 		_statsCollector.schedulingJobs.
-			WithLabelValues(name).
+			WithLabelValues(jobName).
 			Set(1)
 	}()
 
@@ -234,7 +232,7 @@ func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...any
 	}
 	tt := timeoutTask{
 		timeout: next,
-		name:    name,
+		jobName: jobName,
 		task:    task,
 	}
 
@@ -246,8 +244,8 @@ func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...any
 	}
 
 	s := in.s.CronWithSeconds(ce).
-		Tag(name).
-		Name(name)
+		Tag(jobName).
+		Name(jobName)
 	if cron.runImmediately() {
 		s.StartImmediately()
 	}

@@ -24,9 +24,9 @@ type StatusSyncTask struct {
 	logger      log.Logger
 }
 
-func NewStatusSyncTask(mc model.ClientSet) (in *StatusSyncTask, err error) {
+func NewStatusSyncTask(logger log.Logger, mc model.ClientSet) (in *StatusSyncTask, err error) {
 	in = &StatusSyncTask{
-		logger:      log.WithName("task").WithName(in.Name()),
+		logger:      logger,
 		modelClient: mc,
 	}
 
