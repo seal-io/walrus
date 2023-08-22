@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"sync"
-	"time"
 
 	"go.uber.org/multierr"
 
@@ -22,18 +20,17 @@ import (
 )
 
 type ComponentsDiscoverTask struct {
-	mu sync.Mutex
-
-	modelClient model.ClientSet
 	logger      log.Logger
+	modelClient model.ClientSet
 }
 
-func NewComponentsDiscoverTask(mc model.ClientSet) (*ComponentsDiscoverTask, error) {
-	in := &ComponentsDiscoverTask{}
-	in.modelClient = mc
-	in.logger = log.WithName("task").WithName(in.Name())
+func NewComponentsDiscoverTask(mc model.ClientSet) (in *ComponentsDiscoverTask, err error) {
+	in = &ComponentsDiscoverTask{
+		logger:      log.WithName("task").WithName(in.Name()),
+		modelClient: mc,
+	}
 
-	return in, nil
+	return
 }
 
 func (in *ComponentsDiscoverTask) Name() string {
@@ -41,17 +38,6 @@ func (in *ComponentsDiscoverTask) Name() string {
 }
 
 func (in *ComponentsDiscoverTask) Process(ctx context.Context, args ...any) error {
-	if !in.mu.TryLock() {
-		in.logger.Warn("previous processing is not finished")
-		return nil
-	}
-	startTs := time.Now()
-
-	defer func() {
-		in.mu.Unlock()
-		in.logger.Debugf("processed in %v", time.Since(startTs))
-	}()
-
 	// NB(thxCode): connectors are usually less in number,
 	// in case of reuse the connection built from a connector,
 	// we can treat each connector as a task group,

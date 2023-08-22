@@ -3,8 +3,6 @@ package connector
 import (
 	"context"
 	"fmt"
-	"sync"
-	"time"
 
 	"github.com/seal-io/walrus/pkg/connectors"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -15,18 +13,17 @@ import (
 )
 
 type StatusSyncTask struct {
-	mu sync.Mutex
-
-	modelClient model.ClientSet
 	logger      log.Logger
+	modelClient model.ClientSet
 }
 
-func NewStatusSyncTask(mc model.ClientSet) (*StatusSyncTask, error) {
-	in := &StatusSyncTask{}
-	in.modelClient = mc
-	in.logger = log.WithName("task").WithName(in.Name())
+func NewStatusSyncTask(mc model.ClientSet) (in *StatusSyncTask, err error) {
+	in = &StatusSyncTask{
+		logger:      log.WithName("task").WithName(in.Name()),
+		modelClient: mc,
+	}
 
-	return in, nil
+	return
 }
 
 func (in *StatusSyncTask) Name() string {
@@ -34,17 +31,6 @@ func (in *StatusSyncTask) Name() string {
 }
 
 func (in *StatusSyncTask) Process(ctx context.Context, args ...any) error {
-	if !in.mu.TryLock() {
-		in.logger.Warn("previous processing is not finished")
-		return nil
-	}
-	startTs := time.Now()
-
-	defer func() {
-		in.mu.Unlock()
-		in.logger.Debugf("processed in %v", time.Since(startTs))
-	}()
-
 	conns, err := in.modelClient.Connectors().Query().Where(
 		connector.CategoryIn(
 			types.ConnectorCategoryKubernetes,

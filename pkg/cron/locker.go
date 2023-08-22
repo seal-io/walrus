@@ -127,6 +127,9 @@ func (l *Locker) createLock(ctx context.Context, key string) error {
 					return err
 				}
 			} else {
+				if current.Holder == version.GetInstanceUUID() {
+					l.logger.Warnf("previous %s processing is not finished", key)
+				}
 				// Key locked, will auto release after expired.
 				return fmt.Errorf("key %s is locked", key)
 			}

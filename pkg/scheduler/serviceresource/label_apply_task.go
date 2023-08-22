@@ -3,8 +3,6 @@ package serviceresource
 import (
 	"context"
 	"fmt"
-	"sync"
-	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -16,18 +14,17 @@ import (
 )
 
 type LabelApplyTask struct {
-	mu sync.Mutex
-
-	modelClient model.ClientSet
 	logger      log.Logger
+	modelClient model.ClientSet
 }
 
-func NewLabelApplyTask(mc model.ClientSet) (*LabelApplyTask, error) {
-	in := &LabelApplyTask{}
-	in.modelClient = mc
-	in.logger = log.WithName("task").WithName(in.Name())
+func NewLabelApplyTask(mc model.ClientSet) (in *LabelApplyTask, err error) {
+	in = &LabelApplyTask{
+		logger:      log.WithName("task").WithName(in.Name()),
+		modelClient: mc,
+	}
 
-	return in, nil
+	return
 }
 
 func (in *LabelApplyTask) Name() string {
@@ -35,17 +32,6 @@ func (in *LabelApplyTask) Name() string {
 }
 
 func (in *LabelApplyTask) Process(ctx context.Context, args ...any) error {
-	if !in.mu.TryLock() {
-		in.logger.Warn("previous processing is not finished")
-		return nil
-	}
-	startTs := time.Now()
-
-	defer func() {
-		in.mu.Unlock()
-		in.logger.Debugf("processed in %v", time.Since(startTs))
-	}()
-
 	// NB(thxCode): connectors are usually less in number,
 	// in case of reuse the connection built from a connector,
 	// we can treat each connector as a task group,

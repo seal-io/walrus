@@ -3,8 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"sync"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
@@ -33,12 +31,9 @@ const (
 // RelationshipCheckTask checks services pending on relationships and
 // proceeds applying/destroying services when the check pass.
 type RelationshipCheckTask struct {
-	mu sync.Mutex
-
-	skipTLSVerify bool
 	logger        log.Logger
 	modelClient   model.ClientSet
-	kubeConfig    *rest.Config
+	skipTLSVerify bool
 	deployer      deptypes.Deployer
 }
 
@@ -46,16 +41,27 @@ func NewServiceRelationshipCheckTask(
 	mc model.ClientSet,
 	kc *rest.Config,
 	skipTLSVerify bool,
-) (*RelationshipCheckTask, error) {
-	in := &RelationshipCheckTask{
-		modelClient:   mc,
-		kubeConfig:    kc,
-		skipTLSVerify: skipTLSVerify,
+) (in *RelationshipCheckTask, err error) {
+	// Create deployer.
+	opts := deptypes.CreateOptions{
+		Type:        deployertf.DeployerType,
+		ModelClient: mc,
+		KubeConfig:  kc,
 	}
 
-	in.logger = log.WithName("task").WithName(in.Name())
+	dp, err := deployer.Get(context.Background(), opts)
+	if err != nil {
+		return nil, err
+	}
 
-	return in, nil
+	in = &RelationshipCheckTask{
+		logger:        log.WithName("task").WithName(in.Name()),
+		modelClient:   mc,
+		skipTLSVerify: skipTLSVerify,
+		deployer:      dp,
+	}
+
+	return
 }
 
 func (in *RelationshipCheckTask) Name() string {
@@ -63,18 +69,6 @@ func (in *RelationshipCheckTask) Name() string {
 }
 
 func (in *RelationshipCheckTask) Process(ctx context.Context, args ...any) error {
-	if !in.mu.TryLock() {
-		in.logger.Warn("previous processing is not finished")
-		return nil
-	}
-
-	startTs := time.Now()
-
-	defer func() {
-		in.mu.Unlock()
-		in.logger.Debugf("processed in %v", time.Since(startTs))
-	}()
-
 	if err := in.applyServices(ctx); err != nil {
 		return err
 	}
@@ -142,12 +136,7 @@ func (in *RelationshipCheckTask) destroyServices(ctx context.Context) error {
 		return err
 	}
 
-	dp, err := in.getDeployer(ctx)
-	if err != nil {
-		return err
-	}
-
-	destroyOpts := pkgservice.Options{
+	opts := pkgservice.Options{
 		TlsCertified: in.skipTLSVerify,
 	}
 
@@ -157,7 +146,7 @@ func (in *RelationshipCheckTask) destroyServices(ctx context.Context) error {
 			continue
 		}
 
-		if err = pkgservice.Destroy(ctx, in.modelClient, dp, svc, destroyOpts); err != nil {
+		if err = pkgservice.Destroy(ctx, in.modelClient, in.deployer, svc, opts); err != nil {
 			return err
 		}
 	}
@@ -227,16 +216,11 @@ func (in *RelationshipCheckTask) deployService(ctx context.Context, entity *mode
 		return err
 	}
 
-	dp, err := in.getDeployer(ctx)
-	if err != nil {
-		return err
-	}
-
-	deployOpts := pkgservice.Options{
+	opts := pkgservice.Options{
 		TlsCertified: in.skipTLSVerify,
 	}
 
-	return pkgservice.Apply(ctx, in.modelClient, dp, entity, deployOpts)
+	return pkgservice.Apply(ctx, in.modelClient, in.deployer, entity, opts)
 }
 
 // setServiceStatusFalse sets a service status to false if parent dependencies statuses are false or deleted.
@@ -270,23 +254,4 @@ func (in *RelationshipCheckTask) setServiceStatusFalse(
 	}
 
 	return nil
-}
-
-func (in *RelationshipCheckTask) getDeployer(ctx context.Context) (deptypes.Deployer, error) {
-	if in.deployer != nil {
-		return in.deployer, nil
-	}
-
-	createOpts := deptypes.CreateOptions{
-		Type:        deployertf.DeployerType,
-		ModelClient: in.modelClient,
-		KubeConfig:  in.kubeConfig,
-	}
-
-	dp, err := deployer.Get(ctx, createOpts)
-	if err != nil {
-		return nil, err
-	}
-
-	return dp, nil
 }
