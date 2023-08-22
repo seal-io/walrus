@@ -446,6 +446,7 @@ func (cui *CatalogUpdateInput) Model() *Catalog {
 
 	_c := &Catalog{
 		ID:          cui.ID,
+		Name:        cui.Name,
 		Description: cui.Description,
 		Labels:      cui.Labels,
 		Source:      cui.Source,
@@ -525,6 +526,7 @@ func (cui *CatalogUpdateInputs) Model() []*Catalog {
 	for i := range cui.Items {
 		_c := &Catalog{
 			ID:          cui.Items[i].ID,
+			Name:        cui.Items[i].Name,
 			Description: cui.Items[i].Description,
 			Labels:      cui.Items[i].Labels,
 			Source:      cui.Items[i].Source,

@@ -417,6 +417,7 @@ func (sui *SettingUpdateInput) Model() *Setting {
 
 	_s := &Setting{
 		ID:    sui.ID,
+		Name:  sui.Name,
 		Value: sui.Value,
 	}
 
@@ -490,6 +491,7 @@ func (sui *SettingUpdateInputs) Model() []*Setting {
 	for i := range sui.Items {
 		_s := &Setting{
 			ID:    sui.Items[i].ID,
+			Name:  sui.Items[i].Name,
 			Value: sui.Items[i].Value,
 		}
 

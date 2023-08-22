@@ -439,6 +439,7 @@ func (tui *TemplateUpdateInput) Model() *Template {
 
 	_t := &Template{
 		ID:          tui.ID,
+		Name:        tui.Name,
 		Description: tui.Description,
 		Labels:      tui.Labels,
 		Source:      tui.Source,
@@ -518,6 +519,7 @@ func (tui *TemplateUpdateInputs) Model() []*Template {
 	for i := range tui.Items {
 		_t := &Template{
 			ID:          tui.Items[i].ID,
+			Name:        tui.Items[i].Name,
 			Description: tui.Items[i].Description,
 			Labels:      tui.Items[i].Labels,
 			Source:      tui.Items[i].Source,

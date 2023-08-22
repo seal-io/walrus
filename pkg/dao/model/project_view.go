@@ -435,6 +435,7 @@ func (pui *ProjectUpdateInput) Model() *Project {
 
 	_p := &Project{
 		ID:          pui.ID,
+		Name:        pui.Name,
 		Description: pui.Description,
 		Labels:      pui.Labels,
 	}
@@ -511,6 +512,7 @@ func (pui *ProjectUpdateInputs) Model() []*Project {
 	for i := range pui.Items {
 		_p := &Project{
 			ID:          pui.Items[i].ID,
+			Name:        pui.Items[i].Name,
 			Description: pui.Items[i].Description,
 			Labels:      pui.Items[i].Labels,
 		}

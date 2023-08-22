@@ -463,6 +463,7 @@ func (pui *PerspectiveUpdateInput) Model() *Perspective {
 
 	_p := &Perspective{
 		ID:          pui.ID,
+		Name:        pui.Name,
 		Description: pui.Description,
 		Labels:      pui.Labels,
 		StartTime:   pui.StartTime,
@@ -551,6 +552,7 @@ func (pui *PerspectiveUpdateInputs) Model() []*Perspective {
 	for i := range pui.Items {
 		_p := &Perspective{
 			ID:          pui.Items[i].ID,
+			Name:        pui.Items[i].Name,
 			Description: pui.Items[i].Description,
 			Labels:      pui.Items[i].Labels,
 			StartTime:   pui.Items[i].StartTime,

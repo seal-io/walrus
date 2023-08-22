@@ -606,6 +606,7 @@ func (sui *ServiceUpdateInput) Model() *Service {
 
 	_s := &Service{
 		ID:          sui.ID,
+		Name:        sui.Name,
 		Description: sui.Description,
 		Labels:      sui.Labels,
 		Attributes:  sui.Attributes,
@@ -716,6 +717,7 @@ func (sui *ServiceUpdateInputs) Model() []*Service {
 	for i := range sui.Items {
 		_s := &Service{
 			ID:          sui.Items[i].ID,
+			Name:        sui.Items[i].Name,
 			Description: sui.Items[i].Description,
 			Labels:      sui.Items[i].Labels,
 			Attributes:  sui.Items[i].Attributes,

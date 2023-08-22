@@ -444,8 +444,10 @@ func (tvui *TemplateVersionUpdateInput) Model() *TemplateVersion {
 	}
 
 	_tv := &TemplateVersion{
-		ID:     tvui.ID,
-		Schema: tvui.Schema,
+		ID:      tvui.ID,
+		Name:    tvui.Name,
+		Version: tvui.Version,
+		Schema:  tvui.Schema,
 	}
 
 	return _tv
@@ -519,8 +521,10 @@ func (tvui *TemplateVersionUpdateInputs) Model() []*TemplateVersion {
 
 	for i := range tvui.Items {
 		_tv := &TemplateVersion{
-			ID:     tvui.Items[i].ID,
-			Schema: tvui.Items[i].Schema,
+			ID:      tvui.Items[i].ID,
+			Name:    tvui.Items[i].Name,
+			Version: tvui.Items[i].Version,
+			Schema:  tvui.Items[i].Schema,
 		}
 
 		_tvs[i] = _tv
