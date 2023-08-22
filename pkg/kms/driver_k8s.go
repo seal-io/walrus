@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	stdpath "path"
+	"reflect"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -27,8 +28,12 @@ import (
 type KubernetesOptions struct {
 	// Namespace indicates the working namespace.
 	Namespace string
-	// Config indicates the kubernetes rest config.
+	// Config indicates the rest config.
 	Config *rest.Config
+	// Group indicates the groups to place the data,
+	// the key must be unique under the one group,
+	// but we can hold the same key under different groups.
+	Group string
 	// Logger indicates the logger used by the driver,
 	// uses default logger if not set.
 	Logger log.Logger
@@ -40,10 +45,11 @@ type KubernetesOptions struct {
 const (
 	k8sManagedLabel = "walrus.seal.io/kms"
 
-	k8sManagedKeyLabel       = "walrus.seal.io/kms-key"
-	k8sManagedKeyHashLabel   = "walrus.seal.io/kms-key-hash"
-	k8sManagedValueHashLabel = "walrus.seal.io/kms-value-hash"
-	k8sManagedValueKey       = "value"
+	k8sManagedGroupAnno     = "walrus.seal.io/kms-group"
+	k8sManagedKeyAnno       = "walrus.seal.io/kms-key"
+	k8sManagedKeyHashAnno   = "walrus.seal.io/kms-key-hash"
+	k8sManagedValueHashAnno = "walrus.seal.io/kms-value-hash"
+	k8sManagedValueKey      = "value"
 )
 
 func NewKubernetes(ctx context.Context, opts KubernetesOptions) (*KubernetesDriver, error) {
@@ -98,28 +104,26 @@ func NewKubernetes(ctx context.Context, opts KubernetesOptions) (*KubernetesDriv
 
 				if s.DeletionTimestamp != nil ||
 					s.Type != core.SecretTypeOpaque ||
-					s.Labels == nil || s.Data == nil {
+					s.Annotations == nil || s.Data == nil {
 					return nil, nil
 				}
 
-				if s.Labels[k8sManagedKeyLabel] == "" || s.Labels[k8sManagedKeyHashLabel] == "" ||
-					s.Data[k8sManagedValueKey] == nil || s.Labels[k8sManagedValueHashLabel] == "" {
+				annos, data := s.Annotations, s.Data
+
+				if annos[k8sManagedGroupAnno] != opts.Group ||
+					annos[k8sManagedKeyAnno] == "" || annos[k8sManagedKeyHashAnno] == "" ||
+					data[k8sManagedValueKey] == nil || annos[k8sManagedValueHashAnno] == "" {
 					return nil, nil
 				}
 
-				key, err := decodeK8sKey(s.Labels[k8sManagedKeyLabel])
-				if err != nil {
-					logger.Warnf("failed to decode key %q: %v", s.Labels[k8sManagedKeyLabel], err)
+				if hashK8sKey(annos[k8sManagedKeyAnno]) != annos[k8sManagedKeyHashAnno] ||
+					hashK8sValue(data[k8sManagedValueKey]) != annos[k8sManagedValueHashAnno] {
+					logger.Warnf("invalid key %q of group %q",
+						annos[k8sManagedKeyAnno], annos[k8sManagedGroupAnno])
 					return nil, nil
 				}
 
-				if hashK8sKey(key) != s.Labels[k8sManagedKeyHashLabel] ||
-					hashK8sValue(s.Data[k8sManagedValueKey]) != s.Labels[k8sManagedValueHashLabel] {
-					logger.Warnf("invalid key %q", key)
-					return nil, nil
-				}
-
-				ps := []string{stdpath.Join("/", key)}
+				ps := []string{stdpath.Join("/", annos[k8sManagedKeyAnno])}
 				for p := stdpath.Dir(ps[len(ps)-1]); p != "/"; p = stdpath.Dir(p) {
 					ps = append(ps, p)
 				}
@@ -133,16 +137,20 @@ func NewKubernetes(ctx context.Context, opts KubernetesOptions) (*KubernetesDriv
 		sInf.Run(ctx.Done())
 	})
 
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
+	// Wait for the informer to sync.
+	{
+		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		defer cancel()
 
-	if !cache.WaitForCacheSync(ctx.Done(), sInf.HasSynced) {
-		return nil, fmt.Errorf("failed to sync informer: %w", err)
+		if !cache.WaitForCacheSync(ctx.Done(), sInf.HasSynced) {
+			return nil, fmt.Errorf("failed to sync informer: %w", err)
+		}
 	}
 
 	return &KubernetesDriver{
 		cli:           sCli,
 		inf:           sInf,
+		group:         opts.Group,
 		logger:        logger,
 		raiseNotFound: raiseNotFound,
 	}, nil
@@ -151,6 +159,7 @@ func NewKubernetes(ctx context.Context, opts KubernetesOptions) (*KubernetesDriv
 type KubernetesDriver struct {
 	cli           coreclient.SecretInterface
 	inf           cache.SharedIndexInformer
+	group         string
 	logger        log.Logger
 	raiseNotFound func(key string) error
 }
@@ -234,9 +243,15 @@ func (d KubernetesDriver) put(ctx context.Context, key string, v []byte) error {
 			sec.Labels = map[string]string{}
 		}
 		sec.Labels[k8sManagedLabel] = "true"
-		sec.Labels[k8sManagedKeyLabel] = encodeK8sKey(key)
-		sec.Labels[k8sManagedKeyHashLabel] = hashK8sKey(key)
-		sec.Labels[k8sManagedValueHashLabel] = hashK8sValue(value)
+
+		// Configure annotations.
+		if sec.Annotations == nil {
+			sec.Annotations = map[string]string{}
+		}
+		sec.Annotations[k8sManagedGroupAnno] = d.group
+		sec.Annotations[k8sManagedKeyAnno] = key
+		sec.Annotations[k8sManagedKeyHashAnno] = hashK8sKey(key)
+		sec.Annotations[k8sManagedValueHashAnno] = hashK8sValue(value)
 
 		// Configure data.
 		if sec.Data == nil {
@@ -254,7 +269,12 @@ func (d KubernetesDriver) put(ctx context.Context, key string, v []byte) error {
 
 	// Update existed secret.
 	if sec != nil && sec.DeletionTimestamp == nil {
-		sec, err = d.cli.Update(ctx, store(key, v, sec), meta.UpdateOptions{})
+		usec := store(key, v, sec.DeepCopy())
+		if reflect.DeepEqual(usec, sec) {
+			return nil
+		}
+
+		sec, err = d.cli.Update(ctx, usec, meta.UpdateOptions{})
 		if err != nil {
 			if !kerrors.IsConflict(err) && !kerrors.IsNotAcceptable(err) {
 				return fmt.Errorf("error updating secret: %w", err)
@@ -341,38 +361,25 @@ func (d KubernetesDriver) List(_ context.Context, path string) ([]KeyValue, erro
 	for i := range secs {
 		s := secs[i].(*core.Secret)
 
-		key, err := decodeK8sKey(s.Labels[k8sManagedKeyLabel])
-		if err != nil {
-			d.logger.WarnS("found cached secret with invalid key",
-				"name", getK8sNamespacedName(s))
-			continue
-		}
+		annos, data := s.Annotations, s.Data
 
 		kvs = append(kvs, KeyValue{
-			Path:      stdpath.Dir(key),
-			Key:       stdpath.Base(key),
-			ValueHash: s.Labels[k8sManagedValueHashLabel],
-			ValueSize: humanize.Bytes(uint64(len(s.Data[k8sManagedValueKey]))),
+			Path:      stdpath.Dir(annos[k8sManagedKeyAnno]),
+			Key:       stdpath.Base(annos[k8sManagedKeyAnno]),
+			ValueHash: annos[k8sManagedValueHashAnno],
+			ValueSize: humanize.Bytes(uint64(len(data[k8sManagedValueKey]))),
 		})
 	}
 
 	return kvs, nil
 }
 
-func encodeK8sKey(k string) string {
-	return strs.EncodeBase64(k)
-}
-
-func decodeK8sKey(k string) (string, error) {
-	return strs.DecodeBase64(k)
-}
-
 func hashK8sKey(k string) string {
-	return "fnv64a_" + hash.SumFnv64a(strs.ToBytes(&k))
+	return "fnv64a:" + hash.SumFnv64a(strs.ToBytes(&k))
 }
 
 func hashK8sValue(v []byte) string {
-	return "sha224_" + hash.SumSHA224(v)
+	return "sha224:" + hash.SumSHA224(v)
 }
 
 func getK8sNamespacedName(objs ...any) any {

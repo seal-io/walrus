@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/walrus/utils/dynacert"
 	"github.com/seal-io/walrus/utils/gopool"
 	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 func NewServer() (*Server, error) {
@@ -100,6 +101,7 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 				cache, err = kms.NewKubernetes(ctx, kms.KubernetesOptions{
 					Namespace: types.WalrusSystemNamespace,
 					Config:    opts.K8sConfig,
+					Group:     "dynacert",
 					Logger:    s.logger.WithName("https"),
 					RaiseNotFound: func(_ string) error {
 						return dynacert.ErrCacheMiss
@@ -127,6 +129,7 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 				cache, err = kms.NewKubernetes(ctx, kms.KubernetesOptions{
 					Namespace: types.WalrusSystemNamespace,
 					Config:    opts.K8sConfig,
+					Group:     "autocert:" + strs.Join(",", opts.TlsAutoCertDomains...),
 					Logger:    s.logger.WithName("https"),
 					RaiseNotFound: func(_ string) error {
 						return autocert.ErrCacheMiss
