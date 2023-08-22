@@ -27,10 +27,6 @@ func NewLabelApplyTask(logger log.Logger, mc model.ClientSet) (in *LabelApplyTas
 	return
 }
 
-func (in *LabelApplyTask) Name() string {
-	return "resource-label-apply"
-}
-
 func (in *LabelApplyTask) Process(ctx context.Context, args ...any) error {
 	// NB(thxCode): connectors are usually less in number,
 	// in case of reuse the connection built from a connector,
@@ -45,6 +41,7 @@ func (in *LabelApplyTask) Process(ctx context.Context, args ...any) error {
 	if len(cs) == 0 {
 		return nil
 	}
+
 	wg := gopool.Group()
 
 	for i := range cs {
@@ -88,6 +85,7 @@ func (in *LabelApplyTask) buildApplyTasks(ctx context.Context, c *model.Connecto
 			at := in.buildApplyTask(ctx, op, c.ID, 0, bks)
 			return at()
 		}
+
 		wg := gopool.Group()
 
 		for bk := 0; bk < bkc; bk++ {

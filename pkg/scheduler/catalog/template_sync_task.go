@@ -2,9 +2,11 @@ package catalog
 
 import (
 	"context"
+	"fmt"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
+	"go.uber.org/multierr"
 
 	pkgcatalog "github.com/seal-io/walrus/pkg/catalog"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -31,12 +33,8 @@ func NewCatalogTemplateSyncTask(logger log.Logger, mc model.ClientSet) (in *Temp
 }
 
 func (in *TemplateSyncTask) Process(ctx context.Context, args ...any) error {
-	return in.syncCatalogTemplates(ctx)
-}
-
-func (in *TemplateSyncTask) syncCatalogTemplates(ctx context.Context) error {
+	// Disable sync catalog.
 	if !settings.EnableSyncCatalog.ShouldValueBool(ctx, in.modelClient) {
-		// Disable sync catalog.
 		return nil
 	}
 
@@ -54,21 +52,35 @@ func (in *TemplateSyncTask) syncCatalogTemplates(ctx context.Context) error {
 		return err
 	}
 
-	for _, c := range catalogs {
+	if len(catalogs) == 0 {
+		return nil
+	}
+
+	// Merge the errors to return them all at once,
+	// instead of returning the first error.
+	var berr error
+
+	for i := range catalogs {
+		c := catalogs[i]
+		in.logger.Debugf("syncing templates of catalog %q", c.ID)
+
 		status.CatalogStatusInitialized.Reset(c, "Initializing catalog templates")
 		c.Status.SetSummary(status.WalkCatalog(&c.Status))
 
-		err := in.modelClient.Catalogs().UpdateOne(c).
+		uerr := in.modelClient.Catalogs().UpdateOne(c).
 			SetStatus(c.Status).
 			Exec(ctx)
-		if err != nil {
-			return err
+		if multierr.AppendInto(&berr, uerr) {
+			continue
 		}
 
-		if err := pkgcatalog.SyncTemplates(ctx, in.modelClient, c); err != nil {
-			in.logger.Errorf("failed to sync templates for catalog %s: %v", catalog.Name, err)
+		uerr = pkgcatalog.SyncTemplates(ctx, in.modelClient, c)
+		if uerr != nil {
+			berr = multierr.Append(berr,
+				fmt.Errorf("error syncing templates of catalog %s: %w",
+					c.ID, uerr))
 		}
 	}
 
-	return nil
+	return berr
 }

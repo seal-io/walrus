@@ -33,10 +33,6 @@ func NewStatusSyncTask(logger log.Logger, mc model.ClientSet) (in *StatusSyncTas
 	return
 }
 
-func (in *StatusSyncTask) Name() string {
-	return "resource-status-sync"
-}
-
 func (in *StatusSyncTask) Process(ctx context.Context, args ...any) error {
 	// NB(thxCode): in case of aggregate the status for service,
 	// we group 10 services into one task group,
@@ -51,6 +47,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...any) error {
 	if cnt == 0 {
 		return nil
 	}
+
 	// Index none custom connectors for reusing.
 	cs, err := listCandidateConnectors(ctx, in.modelClient)
 	if err != nil {
@@ -60,6 +57,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...any) error {
 	if len(cs) == 0 {
 		return nil
 	}
+
 	ops := make(map[object.ID]optypes.Operator, len(cs))
 
 	for i := range cs {
@@ -80,6 +78,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...any) error {
 		}
 		ops[cs[i].ID] = op
 	}
+
 	// Execute tasks.
 	const bks = 10
 
@@ -88,6 +87,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...any) error {
 		st := in.buildStateTasks(ctx, 0, bks, ops)
 		return st()
 	}
+
 	wg := gopool.Group()
 
 	for bk := 0; bk < bkc; bk++ {
@@ -105,7 +105,7 @@ func (in *StatusSyncTask) buildStateTasks(
 	ops map[object.ID]optypes.Operator,
 ) func() error {
 	return func() error {
-		is, err := in.modelClient.Services().Query().
+		svcs, err := in.modelClient.Services().Query().
 			Order(model.Desc(service.FieldCreateTime)).
 			Offset(offset).
 			Limit(limit).
@@ -118,10 +118,11 @@ func (in *StatusSyncTask) buildStateTasks(
 			return fmt.Errorf("error listing services in pagination %d,%d: %w",
 				offset, limit, err)
 		}
+
 		wg := gopool.Group()
 
-		for i := range is {
-			at := in.buildStateTask(ctx, is[i], ops)
+		for i := range svcs {
+			at := in.buildStateTask(ctx, svcs[i], ops)
 			wg.Go(at)
 		}
 
@@ -131,11 +132,11 @@ func (in *StatusSyncTask) buildStateTasks(
 
 func (in *StatusSyncTask) buildStateTask(
 	ctx context.Context,
-	i *model.Service,
+	svc *model.Service,
 	ops map[object.ID]optypes.Operator,
 ) func() error {
-	return func() (berr error) {
-		rs, err := i.QueryResources().
+	return func() error {
+		rs, err := svc.QueryResources().
 			Order(model.Desc(serviceresource.FieldCreateTime)).
 			Unique(false).
 			Select(
@@ -152,16 +153,19 @@ func (in *StatusSyncTask) buildStateTask(
 			return fmt.Errorf("error listing service resources: %w", err)
 		}
 
-		ids := make(map[object.ID][]*model.ServiceResource)
+		// Group resources by connector ID.
+		connRess := make(map[object.ID][]*model.ServiceResource)
 		for y := range rs {
-			// Group resources by connector.
-			ids[rs[y].ConnectorID] = append(ids[rs[y].ConnectorID],
-				rs[y])
+			connRess[rs[y].ConnectorID] = append(connRess[rs[y].ConnectorID], rs[y])
 		}
 
 		var sr serviceresources.StateResult
 
-		for cid, crs := range ids {
+		// Merge the errors to return them all at once,
+		// instead of returning the first error.
+		var berr error
+
+		for cid, crs := range connRess {
 			op, exist := ops[cid]
 			if !exist {
 				// Ignore if not found operator.
@@ -179,29 +183,29 @@ func (in *StatusSyncTask) buildStateTask(
 		}
 
 		// State service.
-		if status.ServiceStatusDeleted.Exist(i) {
+		if status.ServiceStatusDeleted.Exist(svc) {
 			// Skip if the service is on deleting.
-			return
+			return berr
 		}
 
 		switch {
 		case sr.Error:
-			status.ServiceStatusReady.False(i, "")
+			status.ServiceStatusReady.False(svc, "")
 		case sr.Transitioning:
-			status.ServiceStatusReady.Unknown(i, "")
+			status.ServiceStatusReady.Unknown(svc, "")
 		default:
-			status.ServiceStatusReady.True(i, "")
+			status.ServiceStatusReady.True(svc, "")
 		}
 
-		i.Status.SetSummary(status.WalkService(&i.Status))
+		svc.Status.SetSummary(status.WalkService(&svc.Status))
 
-		err = in.modelClient.Services().UpdateOne(i).
-			SetStatus(i.Status).
+		err = in.modelClient.Services().UpdateOne(svc).
+			SetStatus(svc.Status).
 			Exec(ctx)
 		if err != nil {
 			berr = multierr.Append(berr, err)
 		}
 
-		return
+		return berr
 	}
 }

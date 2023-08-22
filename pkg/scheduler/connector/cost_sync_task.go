@@ -2,6 +2,7 @@ package connector
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/seal-io/walrus/pkg/connectors"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -26,28 +27,35 @@ func NewCollectTask(logger log.Logger, mc model.ClientSet) (in *CollectTask, err
 }
 
 func (in *CollectTask) Process(ctx context.Context, args ...any) error {
-	conns, err := in.modelClient.Connectors().Query().Where(
-		connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
+	cs, err := in.modelClient.Connectors().Query().
+		Where(
+			connector.TypeEQ(types.ConnectorTypeK8s),
+			connector.EnableFinOps(true)).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	syncer := connectors.NewStatusSyncer(in.modelClient)
-
-	if err != nil {
-		return err
+	if len(cs) == 0 {
+		return nil
 	}
 
-	wg := gopool.Group()
+	var (
+		s  = connectors.NewStatusSyncer(in.modelClient)
+		wg = gopool.Group()
+	)
 
-	for i := range conns {
-		conn := conns[i]
-		if !conn.EnableFinOps {
-			continue
-		}
+	for i := range cs {
+		c := cs[i]
 
 		wg.Go(func() error {
-			return syncer.SyncFinOpsStatus(ctx, conn)
+			err := s.SyncFinOpsStatus(ctx, c)
+			if err != nil {
+				return fmt.Errorf("error syncing cost of connector %s: %w",
+					c.ID, err)
+			}
+
+			return nil
 		})
 	}
 

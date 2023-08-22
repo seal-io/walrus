@@ -35,10 +35,16 @@ func State(
 	ctx context.Context, op optypes.Operator,
 	modelClient model.ClientSet,
 	candidates []*model.ServiceResource,
-) (sr StateResult, berr error) {
+) (StateResult, error) {
+	var sr StateResult
+
 	if op == nil {
-		return
+		return sr, nil
 	}
+
+	// Merge the errors to return them all at once,
+	// instead of returning the first error.
+	var berr error
 
 	for i := range candidates {
 		// Get status of the application resource.

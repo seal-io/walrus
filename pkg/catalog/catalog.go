@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/drone/go-scm/scm"
+	"go.uber.org/multierr"
 
 	"github.com/seal-io/walrus/pkg/bus/catalog"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -87,10 +88,10 @@ func getSyncResult(ctx context.Context, mc model.ClientSet, c *model.Catalog) (*
 			Failed:    0,
 			Time:      time.Now(),
 		}
-		counts = []*struct {
+		counts []*struct {
 			Status status.Status `json:"status"`
 			Count  int           `json:"count"`
-		}{}
+		}
 	)
 
 	err := mc.Templates().Query().
@@ -118,7 +119,7 @@ func getSyncResult(ctx context.Context, mc model.ClientSet, c *model.Catalog) (*
 }
 
 // SyncTemplates fetch and update catalog templates.
-func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) (err error) {
+func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) error {
 	logger := log.WithName("catalog")
 
 	repos, err := GetRepos(ctx, c)
@@ -135,6 +136,10 @@ func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) (e
 		s := i
 
 		wg.Go(func() error {
+			// Merge the errors to return them all at once,
+			// instead of returning the first error.
+			var berr error
+
 			for j := s; j < len(repos); j += batchSize {
 				repo := &vcs.Repository{
 					Namespace:   repos[j].Namespace,
@@ -143,14 +148,18 @@ func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) (e
 					Link:        repos[j].Link,
 				}
 
-				logger.Debugf("sync template %s", repo.Name)
+				logger.Debugf("syncing template %s of catalog %s",
+					repo.Name, c.ID)
 
-				if err := templates.SyncTemplateFromGitRepo(ctx, mc, c, repo); err != nil {
-					logger.Warnf("failed to sync template %s: %v", repo.Name, err)
+				serr := templates.SyncTemplateFromGitRepo(ctx, mc, c, repo)
+				if serr != nil {
+					berr = multierr.Append(berr,
+						fmt.Errorf("error syncing template %s: %w",
+							repo.Name, serr))
 				}
 			}
 
-			return nil
+			return berr
 		})
 	}
 
