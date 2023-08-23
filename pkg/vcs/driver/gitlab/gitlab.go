@@ -1,88 +1,62 @@
 package gitlab
 
 import (
-	"errors"
 	"fmt"
-	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/drone/go-scm/scm"
 	"github.com/drone/go-scm/scm/driver/gitlab"
-	"github.com/drone/go-scm/scm/transport"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/vcs/driver"
+	"github.com/seal-io/walrus/pkg/vcs/options"
 )
 
 const (
 	Driver = types.GitDriverGitlab
 )
 
-func NewClient(conn *model.Connector) (*scm.Client, error) {
+// NewClient creates a new gitlab client.
+// Options connector token will overwrite options.WithToken in the client.
+func NewClient(conn *model.Connector, opts ...options.ClientOption) (*scm.Client, error) {
 	var (
 		client *scm.Client
 		err    error
 	)
 
-	switch conn.ConfigVersion {
-	default:
-		return nil, fmt.Errorf("unknown config version: %v", conn.ConfigVersion)
-	case "v1":
-	}
-
-	url, ok, err := conn.ConfigData["base_url"].GetString()
+	rawURL, token, _, err := driver.ParseConnector(conn)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get base url: %w", err)
+		return nil, err
 	}
 
-	if url == "" || !ok {
+	if rawURL == "" {
 		client = gitlab.NewDefault()
 	} else {
-		client, err = gitlab.New(url)
+		client, err = gitlab.New(rawURL)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create github client: %w", err)
 		}
 	}
 
-	token, ok, err := conn.ConfigData["token"].GetString()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get token: %w", err)
-	}
-
-	if token == "" || !ok {
-		return nil, errors.New("token not found")
-	}
-	client.Client = &http.Client{
-		Timeout: time.Second * 15,
-		Transport: &transport.BearerToken{
-			Token: token,
-		},
-	}
+	options.SetClientOptions(client, append(opts, options.WithToken(token))...)
 
 	return client, nil
 }
 
-func NewClientFromURL(rawURL, token string) (*scm.Client, error) {
-	u, err := url.Parse(rawURL)
+// NewClientFromURL creates a new gitlab client from url.
+func NewClientFromURL(rawURL string, opts ...options.ClientOption) (*scm.Client, error) {
+	_, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, err
 	}
 
-	client, err := gitlab.New(u.Scheme + "://" + u.Host)
+	client, err := gitlab.New(rawURL)
 	if err != nil {
 		return nil, err
 	}
 
-	client.Client = &http.Client{
-		Timeout: time.Second * 15,
-	}
-
-	if token != "" {
-		client.Client.Transport = &transport.BearerToken{
-			Token: token,
-		}
-	}
+	options.SetClientOptions(client, opts...)
 
 	return client, nil
 }

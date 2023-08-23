@@ -2,15 +2,17 @@ package vcs
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/drone/go-scm/scm"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/vcs/driver/github"
 	"github.com/seal-io/walrus/pkg/vcs/driver/gitlab"
+	"github.com/seal-io/walrus/pkg/vcs/options"
 )
 
-func NewClient(conn *model.Connector) (*scm.Client, error) {
+func NewClient(conn *model.Connector, opts ...options.ClientOption) (*scm.Client, error) {
 	var (
 		client *scm.Client
 		err    error
@@ -18,12 +20,12 @@ func NewClient(conn *model.Connector) (*scm.Client, error) {
 
 	switch conn.Type {
 	case github.Driver:
-		client, err = github.NewClient(conn)
+		client, err = github.NewClient(conn, opts...)
 		if err != nil {
 			return nil, err
 		}
 	case gitlab.Driver:
-		client, err = gitlab.NewClient(conn)
+		client, err = gitlab.NewClient(conn, opts...)
 		if err != nil {
 			return nil, err
 		}
@@ -38,12 +40,23 @@ func NewClient(conn *model.Connector) (*scm.Client, error) {
 	return client, nil
 }
 
-func NewClientFromURL(driver, url, token string) (*scm.Client, error) {
+func NewClientFromURL(driver, rawURL string, opts ...options.ClientOption) (*scm.Client, error) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, err
+	}
+	// TODO support reverse proxy for self-hosted server.
+	server := u.Scheme + "://" + u.Host
+
 	switch driver {
 	case github.Driver:
-		return github.NewClientFromURL(url, token)
+		return github.NewClientFromURL(server, opts...)
 	case gitlab.Driver:
-		return gitlab.NewClientFromURL(url, token)
+		return gitlab.NewClientFromURL(server, opts...)
+	}
+
+	if err != nil {
+		return nil, err
 	}
 
 	return nil, fmt.Errorf("unsupported SCM driver %q", driver)
