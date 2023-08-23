@@ -1,78 +1,70 @@
 package github
 
 import (
-	"errors"
 	"fmt"
-	"net/http"
-	"time"
+	"net/url"
 
 	"github.com/drone/go-scm/scm"
 	"github.com/drone/go-scm/scm/driver/github"
-	"github.com/drone/go-scm/scm/transport"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/vcs/driver"
+	"github.com/seal-io/walrus/pkg/vcs/options"
 )
 
 const (
 	Driver = types.GitDriverGithub
 )
 
-func NewClient(conn *model.Connector) (*scm.Client, error) {
+// NewClient creates a new github client.
+// Options connector token will overwrite options.WithToken in the client.
+func NewClient(conn *model.Connector, opts ...options.ClientOption) (*scm.Client, error) {
 	var (
 		client *scm.Client
 		err    error
 	)
 
-	switch conn.ConfigVersion {
-	default:
-		return nil, fmt.Errorf("unknown config version: %v", conn.ConfigVersion)
-	case "v1":
-	}
-
-	url, ok, err := conn.ConfigData["base_url"].GetString()
+	rawURL, token, _, err := driver.ParseConnector(conn)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get base url: %w", err)
+		return nil, err
 	}
 
-	if url == "" || !ok {
+	if rawURL == "" {
 		client = github.NewDefault()
 	} else {
-		client, err = github.New(url)
+		client, err = github.New(rawURL)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create github client: %w", err)
 		}
 	}
 
-	token, ok, err := conn.ConfigData["token"].GetString()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get token: %w", err)
-	}
-
-	if token == "" || !ok {
-		return nil, errors.New("token not found")
-	}
-	client.Client = &http.Client{
-		Timeout: time.Second * 15,
-		Transport: &transport.BearerToken{
-			Token: token,
-		},
-	}
+	options.SetClientOptions(client, append(opts, options.WithToken(token))...)
 
 	return client, nil
 }
 
-func NewClientFromURL(_, token string) (*scm.Client, error) {
-	client := github.NewDefault()
-	client.Client = &http.Client{
-		Timeout: time.Second * 15,
+// NewClientFromURL creates a new github client from url.
+func NewClientFromURL(rawURL string, opts ...options.ClientOption) (*scm.Client, error) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, err
 	}
 
-	if token != "" {
-		client.Client.Transport = &transport.BearerToken{
-			Token: token,
+	var client *scm.Client
+
+	switch u.Host {
+	case "github.com":
+		client = github.NewDefault()
+
+	default:
+		client, err = github.New(rawURL)
+		if err != nil {
+			return nil, err
 		}
 	}
+
+	options.SetClientOptions(client, opts...)
 
 	return client, nil
 }

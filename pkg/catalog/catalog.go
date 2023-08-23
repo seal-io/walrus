@@ -20,37 +20,8 @@ import (
 	"github.com/seal-io/walrus/utils/log"
 )
 
-// GetOrgRepos returns full repositories list from the given org.
-func GetOrgRepos(ctx context.Context, client *scm.Client, orgName string) ([]*scm.Repository, error) {
-	opts := scm.ListOptions{Size: 100}
-
-	var list []*scm.Repository
-
-	for {
-		repos, meta, err := client.Organizations.ListRepositories(ctx, orgName, opts)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, src := range repos {
-			if src != nil {
-				list = append(list, src)
-			}
-		}
-
-		opts.Page = meta.Page.Next
-		opts.URL = meta.Page.NextURL
-
-		if opts.Page == 0 && opts.URL == "" {
-			break
-		}
-	}
-
-	return list, nil
-}
-
-// GetRepos returns org and a list of repositories from the given catalog.
-func GetRepos(ctx context.Context, c *model.Catalog) ([]*scm.Repository, error) {
+// getRepos returns org and a list of repositories from the given catalog.
+func getRepos(ctx context.Context, c *model.Catalog, ua string) ([]*vcs.Repository, error) {
 	var (
 		client *scm.Client
 		err    error
@@ -58,7 +29,7 @@ func GetRepos(ctx context.Context, c *model.Catalog) ([]*scm.Repository, error) 
 
 	switch c.Type {
 	case types.GitDriverGithub, types.GitDriverGitlab:
-		client, err = vcs.NewClientFromURL(c.Type, c.Source, "")
+		client, err = vcs.NewClientFromURL(c.Type, c.Source, options.WithUserAgent(ua))
 		if err != nil {
 			return nil, err
 		}
@@ -121,7 +92,9 @@ func getSyncResult(ctx context.Context, mc model.ClientSet, c *model.Catalog) (*
 func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) (err error) {
 	logger := log.WithName("catalog")
 
-	repos, err := GetRepos(ctx, c)
+	ua := version.GetUserAgent() + "; uuid=" + settings.InstallationUUID.ShouldValue(ctx, mc)
+
+	repos, err := getRepos(ctx, c, ua)
 	if err != nil {
 		return err
 	}
