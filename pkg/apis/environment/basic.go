@@ -71,7 +71,8 @@ func (h Handler) Get(req GetRequest) (GetResponse, error) {
 						cq.Select(
 							connector.FieldID,
 							connector.FieldType,
-							connector.FieldName)
+							connector.FieldName,
+							connector.FieldProjectID)
 					})
 		}).
 		Only(req.Context)
@@ -170,7 +171,8 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 					cq.Select(
 						connector.FieldID,
 						connector.FieldType,
-						connector.FieldName)
+						connector.FieldName,
+						connector.FieldProjectID)
 				})
 		}).
 		Unique(false).
