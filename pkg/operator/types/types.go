@@ -25,18 +25,29 @@ type Operator interface {
 	Burst() int
 
 	// GetKeys returns keys from the given resource.
+	//
+	// The given model.ServiceResource item must specify the following fields:
+	// ID, DeployerType, Type and Name.
 	GetKeys(context.Context, *model.ServiceResource) (*types.ServiceResourceOperationKeys, error)
 
-	// GetStatus gets status of the given resource,
-	// must returns GeneralStatusError if raises error.
+	// GetStatus gets status of the given resource.
+	//
+	// The given model.ServiceResource item must specify the following fields:
+	// ID, DeployerType, Type and Name.
 	GetStatus(context.Context, *model.ServiceResource) (*status.Status, error)
 
 	// GetEndpoints gets endpoints of the given resource.
+	//
+	// The given model.ServiceResource item must specify the following fields:
+	// ID, DeployerType, Type and Name.
 	GetEndpoints(context.Context, *model.ServiceResource) ([]types.ServiceResourceEndpoint, error)
 
 	// GetComponents gets components of the given resource,
 	// returns list must not be `nil` unless unexpected input or raising error,
 	// it can be used to clean stale items safety if got an empty list.
+	//
+	// The given model.ServiceResource item must specify the following fields:
+	// ID, DeployerType, Type, Name, ProjectID, EnvironmentID, ServiceID and ConnectorID.
 	GetComponents(context.Context, *model.ServiceResource) ([]*model.ServiceResource, error)
 
 	// Log gets logs from the given key.
@@ -46,6 +57,9 @@ type Operator interface {
 	Exec(context.Context, string, ExecOptions) error
 
 	// Label apply labels to the resource.
+	//
+	// The given model.ServiceResource item must specify the following fields:
+	// ID, DeployerType, Type and Name.
 	Label(context.Context, *model.ServiceResource, map[string]string) error
 }
 

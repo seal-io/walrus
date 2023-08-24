@@ -31,8 +31,14 @@ func (r *StateResult) merge(isError, isTransitioning bool) {
 
 // State gets status of the given model.ServiceResource list with the given operator.Operator,
 // and represents is ready if both `Error` and `Transitioning` of StateResult are false.
+//
+// The given model.ServiceResource item must be instance shape and not data mode.
+//
+// The given model.ServiceResource item must specify the following fields:
+// Shape, Mode, Status, ID, DeployerType, Type and Name.
 func State(
-	ctx context.Context, op optypes.Operator,
+	ctx context.Context,
+	op optypes.Operator,
 	modelClient model.ClientSet,
 	candidates []*model.ServiceResource,
 ) (StateResult, error) {
@@ -47,7 +53,18 @@ func State(
 	var berr error
 
 	for i := range candidates {
-		// Get status of the application resource.
+		// Give up the loop if the context is canceled.
+		if multierr.AppendInto(&berr, ctx.Err()) {
+			break
+		}
+
+		// Skip the resource if it is not instance shape or data mode.
+		if candidates[i].Shape != types.ServiceResourceShapeInstance ||
+			candidates[i].Mode == types.ServiceResourceModeData {
+			continue
+		}
+
+		// Get status of the service resource.
 		st, err := op.GetStatus(ctx, candidates[i])
 		if err != nil {
 			berr = multierr.Append(berr, err)
@@ -55,13 +72,13 @@ func State(
 			sr.merge(st.Error, st.Transitioning)
 		}
 
-		// Get endpoints of the application resource.
+		// Get endpoints of the service resource.
 		eps, err := op.GetEndpoints(ctx, candidates[i])
 		if err != nil {
 			berr = multierr.Append(berr, err)
 		}
 
-		// New application resource status.
+		// New service resource status.
 		newStatus := types.ServiceResourceStatus{
 			Status:            *st,
 			ResourceEndpoints: eps,
@@ -76,7 +93,7 @@ func State(
 			Exec(ctx)
 		if err != nil {
 			if model.IsNotFound(err) {
-				// Application resource has been deleted by other thread processing.
+				// Service resource has been deleted by other thread processing.
 				continue
 			}
 			berr = multierr.Append(berr, err)

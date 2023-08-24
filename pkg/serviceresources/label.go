@@ -10,8 +10,19 @@ import (
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
 )
 
-// Label applies the labels to the given model.ServiceResource list with the given operator.Operator.
-func Label(ctx context.Context, op optypes.Operator, candidates []*model.ServiceResource) error {
+// Label labels the given model.ServiceResource list with the given operator.Operator.
+//
+// The given model.ServiceResource item must be instance shape and managed mode.
+//
+// The given model.ServiceResource item must specify the following fields:
+// Shape, Mode, ID, DeployerType, Type and Name,
+// and the following edges:
+// Project, Environment and Service.
+func Label(
+	ctx context.Context,
+	op optypes.Operator,
+	candidates []*model.ServiceResource,
+) error {
 	if op == nil {
 		return nil
 	}
@@ -21,36 +32,28 @@ func Label(ctx context.Context, op optypes.Operator, candidates []*model.Service
 	var berr error
 
 	for i := range candidates {
-		// Get label values.
-		var (
-			// Name.
-			svcName     string
-			projectName string
-			envName     string
-		)
+		// Give up the loop if the context is canceled.
+		if multierr.AppendInto(&berr, ctx.Err()) {
+			break
+		}
 
-		if ins := candidates[i].Edges.Service; ins == nil {
+		// Skip the resource if it is not instance shape or not managed mode.
+		if candidates[i].Shape != types.ServiceResourceShapeInstance ||
+			candidates[i].Mode != types.ServiceResourceModeManaged {
 			continue
-		} else {
-			// Service name.
-			svcName = ins.Name
+		}
 
-			// Project name.
-			if proj := ins.Edges.Project; proj != nil {
-				projectName = proj.Name
-			}
-
-			// Environment name.
-			if env := ins.Edges.Environment; env != nil {
-				envName = env.Name
-			}
+		edges := candidates[i].Edges
+		if edges.Project == nil || edges.Project.Name == "" ||
+			edges.Environment == nil || edges.Environment.Name == "" ||
+			edges.Service == nil || edges.Service.Name == "" {
+			continue
 		}
 
 		ls := map[string]string{
-			// Name.
-			types.LabelWalrusEnvironmentName: envName,
-			types.LabelWalrusProjectName:     projectName,
-			types.LabelWalrusServiceName:     svcName,
+			types.LabelWalrusProjectName:     edges.Project.Name,
+			types.LabelWalrusEnvironmentName: edges.Environment.Name,
+			types.LabelWalrusServiceName:     edges.Service.Name,
 		}
 
 		err := op.Label(ctx, candidates[i], ls)

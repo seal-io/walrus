@@ -137,17 +137,21 @@ func (in *StatusSyncTask) buildStateTask(
 ) func() error {
 	return func() error {
 		rs, err := svc.QueryResources().
+			Where(
+				serviceresource.Shape(types.ServiceResourceShapeInstance),
+				serviceresource.ModeNEQ(types.ServiceResourceModeData)).
 			Order(model.Desc(serviceresource.FieldCreateTime)).
 			Unique(false).
 			Select(
-				serviceresource.FieldID,
-				serviceresource.FieldStatus,
 				serviceresource.FieldServiceID,
 				serviceresource.FieldConnectorID,
+				serviceresource.FieldShape,
+				serviceresource.FieldMode,
+				serviceresource.FieldStatus,
+				serviceresource.FieldID,
+				serviceresource.FieldDeployerType,
 				serviceresource.FieldType,
-				serviceresource.FieldName,
-				serviceresource.FieldDeployerType).
-			Where(serviceresource.Shape(types.ServiceResourceShapeInstance)).
+				serviceresource.FieldName).
 			All(ctx)
 		if err != nil {
 			return fmt.Errorf("error listing service resources: %w", err)

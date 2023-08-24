@@ -2,11 +2,7 @@ package serviceresource
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"fmt"
-
-	"go.uber.org/multierr"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
@@ -14,9 +10,9 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/operator"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
+	"github.com/seal-io/walrus/pkg/serviceresources"
 	"github.com/seal-io/walrus/utils/gopool"
 	"github.com/seal-io/walrus/utils/log"
-	"github.com/seal-io/walrus/utils/strs"
 )
 
 type ComponentsDiscoverTask struct {
@@ -115,100 +111,33 @@ func (in *ComponentsDiscoverTask) buildSyncTask(
 	limit int,
 ) func() error {
 	return func() error {
-		entities, err := in.modelClient.ServiceResources().Query().
+		rs, err := in.modelClient.ServiceResources().Query().
 			Where(
 				serviceresource.ConnectorID(connectorID),
-				serviceresource.ModeNEQ(types.ServiceResourceModeDiscovered),
-				serviceresource.ShapeEQ(types.ServiceResourceShapeInstance)).
+				serviceresource.Shape(types.ServiceResourceShapeInstance),
+				serviceresource.Mode(types.ServiceResourceModeManaged)).
 			Order(model.Desc(serviceresource.FieldCreateTime)).
+			Unique(false).
 			Offset(offset).
 			Limit(limit).
-			Unique(false).
 			Select(
+				serviceresource.FieldShape,
+				serviceresource.FieldMode,
 				serviceresource.FieldID,
+				serviceresource.FieldDeployerType,
+				serviceresource.FieldType,
+				serviceresource.FieldName,
 				serviceresource.FieldProjectID,
 				serviceresource.FieldEnvironmentID,
 				serviceresource.FieldServiceID,
-				serviceresource.FieldType,
-				serviceresource.FieldConnectorID,
-				serviceresource.FieldName,
-				serviceresource.FieldDeployerType).
+				serviceresource.FieldConnectorID).
 			All(ctx)
 		if err != nil {
-			return err
+			return fmt.Errorf("error listing service resources: %w", err)
 		}
 
-		// Merge the errors to return them all at once,
-		// instead of returning the first error.
-		var berr error
+		_, err = serviceresources.Discover(ctx, op, in.modelClient, rs)
 
-		for i := range entities {
-			// Get observed components from remote.
-			observedComps, err := op.GetComponents(ctx, entities[i])
-			if multierr.AppendInto(&berr, err) {
-				continue
-			}
-
-			if observedComps == nil {
-				continue
-			}
-
-			// Get record components from local.
-			recordComps, err := in.modelClient.ServiceResources().Query().
-				Where(serviceresource.CompositionID(entities[i].ID)).
-				All(ctx)
-			if err != nil {
-				return berr
-			}
-
-			// Calculate creating list and deleting list.
-			observedCompsIndex := make(map[string]*model.ServiceResource, len(observedComps))
-
-			for j := range observedComps {
-				c := observedComps[j]
-				observedCompsIndex[strs.Join("/", c.Type, c.Name)] = c
-			}
-
-			deleteCompIDs := make([]object.ID, 0, len(recordComps))
-
-			for _, c := range recordComps {
-				k := strs.Join("/", c.Type, c.Name)
-				if observedCompsIndex[k] != nil {
-					delete(observedCompsIndex, k)
-					continue
-				}
-
-				deleteCompIDs = append(deleteCompIDs, c.ID)
-			}
-
-			createComps := make([]*model.ServiceResource, 0, len(observedCompsIndex))
-
-			for k := range observedCompsIndex {
-				observedCompsIndex[k].Shape = types.ServiceResourceShapeInstance
-				createComps = append(createComps, observedCompsIndex[k])
-			}
-
-			// Create new components.
-			if len(createComps) != 0 {
-				err = in.modelClient.ServiceResources().CreateBulk().
-					Set(createComps...).
-					Exec(ctx)
-				if err != nil {
-					berr = multierr.Append(berr, err)
-				}
-			}
-
-			// Delete stale components.
-			if len(deleteCompIDs) != 0 {
-				_, err = in.modelClient.ServiceResources().Delete().
-					Where(serviceresource.IDIn(deleteCompIDs...)).
-					Exec(ctx)
-				if err != nil && !errors.Is(err, sql.ErrNoRows) {
-					berr = multierr.Append(berr, err)
-				}
-			}
-		}
-
-		return berr
+		return err
 	}
 }
