@@ -76,6 +76,7 @@ func (op Operator) GetComponents(
 		comps[i].CompositionID = res.ID
 		comps[i].ConnectorID = res.ConnectorID
 		comps[i].Mode = types.ServiceResourceModeDiscovered
+		comps[i].Shape = types.ServiceResourceShapeInstance
 		comps[i].DeployerType = res.DeployerType
 	}
 

@@ -5,6 +5,11 @@ import (
 	"fmt"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/environment"
+	"github.com/seal-io/walrus/pkg/dao/model/project"
+	"github.com/seal-io/walrus/pkg/dao/model/service"
+	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/operator"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
@@ -105,12 +110,42 @@ func (in *LabelApplyTask) buildApplyTask(
 	limit int,
 ) func() error {
 	return func() error {
-		entities, err := serviceresources.ListCandidatesPageByConnector(
-			ctx, in.modelClient, connectorID, offset, limit)
+		rs, err := in.modelClient.ServiceResources().Query().
+			Where(
+				serviceresource.ConnectorID(connectorID),
+				serviceresource.Shape(types.ServiceResourceShapeInstance),
+				serviceresource.Mode(types.ServiceResourceModeManaged)).
+			Order(model.Desc(serviceresource.FieldCreateTime)).
+			Unique(false).
+			Offset(offset).
+			Limit(limit).
+			Select(
+				serviceresource.FieldShape,
+				serviceresource.FieldMode,
+				serviceresource.FieldID,
+				serviceresource.FieldDeployerType,
+				serviceresource.FieldType,
+				serviceresource.FieldName).
+			WithProject(func(pq *model.ProjectQuery) {
+				pq.Select(
+					project.FieldID,
+					project.FieldName)
+			}).
+			WithEnvironment(func(eq *model.EnvironmentQuery) {
+				eq.Select(
+					environment.FieldID,
+					environment.FieldName)
+			}).
+			WithService(func(sq *model.ServiceQuery) {
+				sq.Select(
+					service.FieldID,
+					service.FieldName)
+			}).
+			All(ctx)
 		if err != nil {
-			return fmt.Errorf("error listing label candidates: %w", err)
+			return fmt.Errorf("error listing service resources: %w", err)
 		}
 
-		return serviceresources.Label(ctx, op, entities)
+		return serviceresources.Label(ctx, op, rs)
 	}
 }

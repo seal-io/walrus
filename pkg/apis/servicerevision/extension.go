@@ -15,6 +15,8 @@ import (
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/connector"
+	"github.com/seal-io/walrus/pkg/dao/model/environment"
+	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/service"
 	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
 	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
@@ -55,7 +57,32 @@ func (h Handler) RouteUpdateTerraformStates(
 ) (err error) {
 	logger := log.WithName("api").WithName("service-revision")
 
-	entity, err := h.modelClient.ServiceRevisions().Get(req.Context, req.ID)
+	entity, err := h.modelClient.ServiceRevisions().Query().
+		Where(servicerevision.ID(req.ID)).
+		Select(
+			servicerevision.FieldID,
+			servicerevision.FieldProjectID,
+			servicerevision.FieldEnvironmentID,
+			servicerevision.FieldServiceID,
+			servicerevision.FieldStatus,
+			servicerevision.FieldStatusMessage,
+			servicerevision.FieldDeployerType).
+		WithProject(func(pq *model.ProjectQuery) {
+			pq.Select(
+				project.FieldID,
+				project.FieldName)
+		}).
+		WithEnvironment(func(eq *model.EnvironmentQuery) {
+			eq.Select(
+				environment.FieldID,
+				environment.FieldName)
+		}).
+		WithService(func(sq *model.ServiceQuery) {
+			sq.Select(
+				service.FieldID,
+				service.FieldName)
+		}).
+		Only(req.Context)
 	if err != nil {
 		return err
 	}
@@ -98,12 +125,18 @@ func (h Handler) RouteUpdateTerraformStates(
 		return err
 	}
 
-	return h.manageResources(req.Context, entity)
+	return manageResources(req.Context, h.modelClient, entity)
 }
 
-// manageResources manages the resources of the given revision,
-// and states/labels the resources within 3 minutes in the background.
-func (h Handler) manageResources(ctx context.Context, entity *model.ServiceRevision) error {
+// manageResources parses the resources from the given revision,
+// removes the stale resources from the database,
+// creates the new resources to the database,
+// and then execute reconcileResources for the new created resources.
+func manageResources(
+	ctx context.Context,
+	modelClient model.ClientSet,
+	entity *model.ServiceRevision,
+) error {
 	var p tfparser.Parser
 
 	observedRess, dependencies, err := p.ParseServiceRevision(entity)
@@ -116,7 +149,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ServiceRevis
 	}
 
 	// Get record resources from local.
-	recordRess, err := h.modelClient.ServiceResources().Query().
+	recordRess, err := modelClient.ServiceResources().Query().
 		Where(serviceresource.ServiceID(entity.ServiceID)).
 		All(ctx)
 	if err != nil {
@@ -150,7 +183,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ServiceRevis
 	}
 
 	// Diff by transactional session.
-	err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
+	err = modelClient.WithTx(ctx, func(tx *model.Tx) error {
 		// Create new resources.
 		if len(createRess) != 0 {
 			createRess, err = tx.ServiceResources().CreateBulk().
@@ -188,16 +221,23 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ServiceRevis
 		return nil
 	}
 
-	// State/label the new resources async.
-	ids := make(map[object.ID][]object.ID)
 	createRessIndex := dao.ServiceResourceToMap(createRess)
 
-	for _, ress := range createRessIndex {
-		if ress.Shape != types.ServiceResourceShapeInstance {
+	// Group resources by connector ID,
+	// and decorate them with the project/environment/service for latter labeling.
+	connRess := make(map[object.ID][]*model.ServiceResource)
+
+	for k := range createRessIndex {
+		if createRessIndex[k].Shape != types.ServiceResourceShapeInstance {
 			continue
 		}
-		// Group resources by connector.
-		ids[ress.ConnectorID] = append(ids[ress.ConnectorID], ress.ID)
+
+		createRessIndex[k].Edges.Project = entity.Edges.Project
+		createRessIndex[k].Edges.Environment = entity.Edges.Environment
+		createRessIndex[k].Edges.Service = entity.Edges.Service
+
+		connRess[createRessIndex[k].ConnectorID] = append(connRess[createRessIndex[k].ConnectorID],
+			createRessIndex[k])
 	}
 
 	gopool.Go(func() {
@@ -206,7 +246,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ServiceRevis
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 		defer cancel()
 
-		if err = h.syncServiceStatusAndResourceLabel(ctx, entity, ids); err != nil {
+		if err = reconcileResources(ctx, modelClient, entity.ServiceID, connRess); err != nil {
 			logger.Errorf("sync service status and resource label failed: %v", err)
 		}
 	})
@@ -214,16 +254,19 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ServiceRevis
 	return nil
 }
 
-func (h Handler) syncServiceStatusAndResourceLabel(
+// reconcileResources reconciles the resources,
+// including states resources/labels resources/composes resources.
+func reconcileResources(
 	ctx context.Context,
-	entity *model.ServiceRevision,
-	ids map[object.ID][]object.ID,
+	modelClient model.ClientSet,
+	serviceID object.ID,
+	connRess map[object.ID][]*model.ServiceResource,
 ) error {
 	logger := log.WithName("api").WithName("service-revision")
 
 	// Fetch related connectors at once,
 	// and then index these connectors by its id.
-	cs, err := h.modelClient.Connectors().Query().
+	cs, err := modelClient.Connectors().Query().
 		Select(
 			connector.FieldID,
 			connector.FieldName,
@@ -231,47 +274,52 @@ func (h Handler) syncServiceStatusAndResourceLabel(
 			connector.FieldCategory,
 			connector.FieldConfigVersion,
 			connector.FieldConfigData).
-		Where(connector.IDIn(sets.KeySet(ids).UnsortedList()...)).
+		Where(connector.IDIn(sets.KeySet(connRess).UnsortedList()...)).
 		All(ctx)
 	if err != nil {
 		return fmt.Errorf("cannot list connectors: %w", err)
 	}
 
-	csidx := make(map[object.ID]*model.Connector, len(cs))
+	ops := make(map[object.ID]optypes.Operator, len(cs))
+
 	for i := range cs {
-		csidx[cs[i].ID] = cs[i]
+		op, err := operator.Get(ctx, optypes.CreateOptions{
+			Connector: *cs[i],
+		})
+		if err != nil {
+			// Warn out without breaking the whole syncing.
+			logger.Warnf("cannot get operator of connector %q: %v", cs[i].ID, err)
+			continue
+		}
+
+		if err = op.IsConnected(ctx); err != nil {
+			// Warn out without breaking the whole syncing.
+			logger.Warnf("unreachable connector %q", cs[i].ID)
+			// Replace disconnected connector with unknown connector.
+			op = operator.UnReachable()
+		}
+		ops[cs[i].ID] = op
 	}
 
 	var sr serviceresources.StateResult
 
-	for cid, crids := range ids {
-		entities, err := serviceresources.ListCandidatesByIDs(ctx, h.modelClient, crids)
-		if err != nil {
-			logger.Errorf("error listing candidates: %v", err)
-			continue
-		}
-
-		if len(entities) == 0 {
-			continue
-		}
-
-		c, exist := csidx[cid]
+	for cid, crs := range connRess {
+		op, exist := ops[cid]
 		if !exist {
+			// Ignore if not found operator.
 			continue
 		}
 
-		op, err := operator.Get(ctx, optypes.CreateOptions{
-			Connector: *c,
-		})
+		// Discover resources.
+		ncrs, err := serviceresources.Discover(ctx, op, modelClient, crs)
 		if err != nil {
-			logger.Errorf("error getting operator of connector %s: %v",
-				c.ID, err)
-			continue
+			logger.Errorf("error discovering component resources: %v", err)
 		}
 
-		nsr, err := serviceresources.State(ctx, op, h.modelClient, entities)
+		// State resources.
+		nsr, err := serviceresources.State(ctx, op, modelClient, append(crs, ncrs...))
 		if err != nil {
-			logger.Errorf("error stating entities: %v", err)
+			logger.Errorf("error stating resources: %v", err)
 			// Mark error as transitioning,
 			// which doesn't flip the status.
 			nsr.Transitioning = true
@@ -279,15 +327,16 @@ func (h Handler) syncServiceStatusAndResourceLabel(
 
 		sr.Merge(nsr)
 
-		err = serviceresources.Label(ctx, op, entities)
+		// Label resources.
+		err = serviceresources.Label(ctx, op, crs)
 		if err != nil {
-			logger.Errorf("error labeling entities: %v", err)
+			logger.Errorf("error labeling resources: %v", err)
 		}
 	}
 
 	// State service.
-	i, err := h.modelClient.Services().Query().
-		Where(service.ID(entity.ServiceID)).
+	svc, err := modelClient.Services().Query().
+		Where(service.ID(serviceID)).
 		Select(
 			service.FieldID,
 			service.FieldStatus).
@@ -296,24 +345,24 @@ func (h Handler) syncServiceStatusAndResourceLabel(
 		return fmt.Errorf("cannot get service: %w", err)
 	}
 
-	if status.ServiceStatusDeleted.Exist(i) {
+	if status.ServiceStatusDeleted.Exist(svc) {
 		// Skip if the service is on deleting.
 		return nil
 	}
 
 	switch {
 	case sr.Error:
-		status.ServiceStatusReady.False(i, "")
+		status.ServiceStatusReady.False(svc, "")
 	case sr.Transitioning:
-		status.ServiceStatusReady.Unknown(i, "")
+		status.ServiceStatusReady.Unknown(svc, "")
 	default:
-		status.ServiceStatusReady.True(i, "")
+		status.ServiceStatusReady.True(svc, "")
 	}
 
-	i.Status.SetSummary(status.WalkService(&i.Status))
+	svc.Status.SetSummary(status.WalkService(&svc.Status))
 
-	return h.modelClient.Services().UpdateOne(i).
-		SetStatus(i.Status).
+	return modelClient.Services().UpdateOne(svc).
+		SetStatus(svc.Status).
 		Exec(ctx)
 }
 
