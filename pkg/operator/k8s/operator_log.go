@@ -25,12 +25,7 @@ func (op Operator) Log(ctx context.Context, k string, opts optypes.LogOptions) e
 	}
 
 	// Confirm.
-	cli, err := coreclient.NewForConfig(op.RestConfig)
-	if err != nil {
-		return fmt.Errorf("error creating kubernetes client: %w", err)
-	}
-
-	p, err := cli.Pods(ns).
+	p, err := op.CoreCli.Pods(ns).
 		Get(ctx, pn, meta.GetOptions{ResourceVersion: "0"}) // Non quorum read.
 	if err != nil {
 		return fmt.Errorf("error getting kubernetes pod %s/%s: %w", ns, pn, err)
@@ -50,7 +45,7 @@ func (op Operator) Log(ctx context.Context, k string, opts optypes.LogOptions) e
 		TailLines:    opts.TailLines,
 	}
 
-	return GetPodLogs(ctx, cli, ns, pn, opts.Out, stmOpts)
+	return GetPodLogs(ctx, op.CoreCli, ns, pn, opts.Out, stmOpts)
 }
 
 // GetPodLogs get the logs of a pod.

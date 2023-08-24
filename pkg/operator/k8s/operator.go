@@ -14,6 +14,7 @@ import (
 	dynamicclient "k8s.io/client-go/dynamic"
 	batchclient "k8s.io/client-go/kubernetes/typed/batch/v1"
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
+	networkingclient "k8s.io/client-go/kubernetes/typed/networking/v1"
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/walrus/pkg/dao/types"
@@ -33,17 +34,53 @@ func New(ctx context.Context, opts optypes.CreateOptions) (optypes.Operator, err
 	if err != nil {
 		return nil, err
 	}
+
+	// NB(thxCode): since we rely on fewer APIs,
+	// we don't need to initialize the nanny via kubernetes.NewForConfig.
+	restCli, err := rest.HTTPClientFor(restConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	coreCli, err := coreclient.NewForConfigAndClient(restConfig, restCli)
+	if err != nil {
+		return nil, err
+	}
+
+	batchCli, err := batchclient.NewForConfigAndClient(restConfig, restCli)
+	if err != nil {
+		return nil, err
+	}
+
+	networkingCli, err := networkingclient.NewForConfigAndClient(restConfig, restCli)
+	if err != nil {
+		return nil, err
+	}
+
+	dynamicCli, err := dynamicclient.NewForConfigAndClient(restConfig, restCli)
+	if err != nil {
+		return nil, err
+	}
+
 	op := Operator{
-		Logger:     log.WithName("operator").WithName("k8s"),
-		RestConfig: restConfig,
+		Logger:        log.WithName("operator").WithName("k8s"),
+		RestConfig:    restConfig,
+		CoreCli:       coreCli,
+		BatchCli:      batchCli,
+		NetworkingCli: networkingCli,
+		DynamicCli:    dynamicCli,
 	}
 
 	return op, nil
 }
 
 type Operator struct {
-	Logger     log.Logger
-	RestConfig *rest.Config
+	Logger        log.Logger
+	RestConfig    *rest.Config
+	CoreCli       *coreclient.CoreV1Client
+	BatchCli      *batchclient.BatchV1Client
+	NetworkingCli *networkingclient.NetworkingV1Client
+	DynamicCli    *dynamicclient.DynamicClient
 }
 
 // Type implements operator.Operator.
@@ -61,12 +98,7 @@ func (op Operator) IsConnected(ctx context.Context) error {
 
 func (op Operator) getPod(ctx context.Context, ns, n string) (*core.Pod, error) {
 	// Fetch pod with name.
-	coreCli, err := coreclient.NewForConfig(op.RestConfig)
-	if err != nil {
-		return nil, fmt.Errorf("error creating kubernetes core client: %w", err)
-	}
-
-	p, err := coreCli.Pods(ns).
+	p, err := op.CoreCli.Pods(ns).
 		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // Non quorum read.
 	if err != nil {
 		if !kerrors.IsNotFound(err) {
@@ -82,12 +114,7 @@ func (op Operator) getPod(ctx context.Context, ns, n string) (*core.Pod, error) 
 
 func (op Operator) getPodsOfCronJob(ctx context.Context, ns, n string) (*[]core.Pod, error) {
 	// Fetch controlled cronjob with name.
-	batchCli, err := batchclient.NewForConfig(op.RestConfig)
-	if err != nil {
-		return nil, fmt.Errorf("error creating kuberentes batch client: %w", err)
-	}
-
-	cj, err := batchCli.CronJobs(ns).
+	cj, err := op.BatchCli.CronJobs(ns).
 		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // Non quorum read.
 	if err != nil {
 		if !kerrors.IsNotFound(err) {
@@ -105,7 +132,7 @@ func (op Operator) getPodsOfCronJob(ctx context.Context, ns, n string) (*[]core.
 	for {
 		var jl *batch.JobList
 
-		jl, err = batchCli.Jobs(ns).List(ctx, jlo)
+		jl, err = op.BatchCli.Jobs(ns).List(ctx, jlo)
 		if err != nil {
 			return nil, fmt.Errorf("error listing kubernetes %s jobs: %w",
 				ns, err)
@@ -174,12 +201,7 @@ func (op Operator) getPodsOfAny(
 	ns, n string,
 ) (*[]core.Pod, error) {
 	// Fetch label selector with dynamic client.
-	dynamicCli, err := dynamicclient.NewForConfig(op.RestConfig)
-	if err != nil {
-		return nil, fmt.Errorf("error creating kubernetes dynamic client: %w", err)
-	}
-
-	o, err := dynamicCli.Resource(gvr).Namespace(ns).
+	o, err := op.DynamicCli.Resource(gvr).Namespace(ns).
 		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // Non quorum read.
 	if err != nil {
 		if !kerrors.IsNotFound(err) {
@@ -199,12 +221,7 @@ func (op Operator) getPodsOfAny(
 	// Fetch pods with label selector.
 	ss := s.String()
 
-	coreCli, err := coreclient.NewForConfig(op.RestConfig)
-	if err != nil {
-		return nil, fmt.Errorf("error creating kubernetes core client: %w", err)
-	}
-
-	pl, err := coreCli.Pods(ns).
+	pl, err := op.CoreCli.Pods(ns).
 		List(ctx, meta.ListOptions{ResourceVersion: "0", LabelSelector: ss}) // Non quorum read.
 	if err != nil {
 		return nil, fmt.Errorf("error listing kubernetes %s pods with %s: %w",

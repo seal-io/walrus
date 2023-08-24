@@ -12,7 +12,6 @@ import (
 	core "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
-	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/remotecommand"
 
 	"github.com/seal-io/walrus/pkg/operator/k8s/key"
@@ -29,12 +28,7 @@ func (op Operator) Exec(ctx context.Context, k string, opts optypes.ExecOptions)
 	}
 
 	// Confirm.
-	cli, err := coreclient.NewForConfig(op.RestConfig)
-	if err != nil {
-		return fmt.Errorf("error creating kubernetes client: %w", err)
-	}
-
-	p, err := cli.Pods(ns).
+	p, err := op.CoreCli.Pods(ns).
 		Get(ctx, pn, meta.GetOptions{ResourceVersion: "0"}) // Non quorum read.
 	if err != nil {
 		return fmt.Errorf("error getting kubernetes pod %s/%s: %w", ns, pn, err)
@@ -49,7 +43,7 @@ func (op Operator) Exec(ctx context.Context, k string, opts optypes.ExecOptions)
 	}
 
 	// Stream.
-	stmURL := cli.RESTClient().Post().
+	stmURL := op.CoreCli.RESTClient().Post().
 		Resource("pods").
 		Name(pn).
 		Namespace(ns).

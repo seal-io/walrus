@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"k8s.io/client-go/kubernetes"
-
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/operator/k8s/intercept"
@@ -32,11 +30,6 @@ func (op Operator) GetEndpoints(
 		return nil, nil
 	}
 
-	client, err := kubernetes.NewForConfig(op.RestConfig)
-	if err != nil {
-		return nil, fmt.Errorf("error creating kubernetes core client: %w", err)
-	}
-
 	var eps []types.ServiceResourceEndpoint
 
 	for _, r := range rs {
@@ -44,7 +37,7 @@ func (op Operator) GetEndpoints(
 		case "services":
 			endpoints, err := kubeendpoint.GetServiceEndpoints(
 				ctx,
-				client,
+				op.CoreCli,
 				r.Namespace,
 				r.Name,
 			)
@@ -57,7 +50,7 @@ func (op Operator) GetEndpoints(
 		case "ingresses":
 			endpoints, err := kubeendpoint.GetIngressEndpoints(
 				ctx,
-				client,
+				op.NetworkingCli,
 				r.Namespace,
 				r.Name,
 			)

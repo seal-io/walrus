@@ -7,7 +7,6 @@ import (
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
@@ -89,12 +88,7 @@ func (op Operator) getComponentOfPersistentVolumeClaim(
 	n string,
 ) (*model.ServiceResource, error) {
 	// Fetch controlled persistent volume claim.
-	coreCli, err := coreclient.NewForConfig(op.RestConfig)
-	if err != nil {
-		return nil, fmt.Errorf("error creating kubernetes core client: %w", err)
-	}
-
-	pvc, err := coreCli.PersistentVolumeClaims(ns).
+	pvc, err := op.CoreCli.PersistentVolumeClaims(ns).
 		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // Non quorum read.
 	if err != nil {
 		if !kerrors.IsNotFound(err) {
