@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-getter"
 	"github.com/hashicorp/go-version"
 
+	"github.com/seal-io/walrus/pkg/vcs/driver/github"
 	"github.com/seal-io/walrus/utils/log"
 )
 
@@ -22,8 +23,12 @@ type Repository struct {
 	Namespace   string `json:"namespace"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	Link        string `json:"link"`
-	Reference   string `json:"reference"`
+	// Link is the link of the repository.
+	Link string `json:"link"`
+	// Reference is the reference of the repository. E.G: main, dev, v0.0.1.
+	Reference string `json:"reference"`
+	// Driver is the driver of the repository. E.G: github.
+	Driver string `json:"driver"`
 }
 
 // ParseURLToGit parses a raw URL to a git repository.
@@ -79,11 +84,21 @@ func ParseURLToRepo(rawURL string) (*Repository, error) {
 		namespace = strings.Join(parts[:len(parts)-1], "/")
 	}
 
+	var driver string
+
+	switch endpoint.Host {
+	case "github.com":
+		driver = github.Driver
+	case "gitlab.com":
+		driver = github.Driver
+	}
+
 	return &Repository{
 		Namespace: namespace,
 		Name:      name,
 		Link:      rawURL,
 		Reference: ref,
+		Driver:    driver,
 	}, nil
 }
 

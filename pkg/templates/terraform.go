@@ -139,23 +139,21 @@ func syncSchema(ctx context.Context, mc model.ClientSet, t *model.Template) erro
 		return err
 	}
 
-	if t.Name != "" {
-		repo.Name = t.Name
-	}
-
-	var c *model.Catalog
 	if t.CatalogID.Valid() {
-		c, err = mc.Catalogs().Get(ctx, t.CatalogID)
+		c, err := mc.Catalogs().Get(ctx, t.CatalogID)
 		if err != nil {
 			return err
 		}
+
+		// Use the catalog type as the vcs repository type.
+		repo.Driver = c.Type
 	}
 
 	if repo.Reference != "" {
-		return syncTemplateFromRef(ctx, mc, repo)
+		return syncTemplateFromRef(ctx, mc, t, repo)
 	}
 
-	return SyncTemplateFromGitRepo(ctx, mc, c, repo)
+	return SyncTemplateFromGitRepo(ctx, mc, t, repo)
 }
 
 func loadTerraformTemplateVersions(t *model.Template) ([]*model.TemplateVersion, error) {

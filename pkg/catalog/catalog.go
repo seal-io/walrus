@@ -126,11 +126,19 @@ func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) er
 
 			for j := s; j < len(repos); j += batchSize {
 				repo := repos[j]
+				repo.Driver = c.Type
+
+				t := &model.Template{
+					Name:        repo.Name,
+					Description: repo.Description,
+					Source:      repo.Link,
+					CatalogID:   c.ID,
+				}
 
 				logger.Debugf("syncing template %s of catalog %s",
 					repo.Name, c.ID)
 
-				serr := templates.SyncTemplateFromGitRepo(ctx, mc, c, repo)
+				serr := templates.SyncTemplateFromGitRepo(ctx, mc, t, repo)
 				if serr != nil {
 					berr = multierr.Append(berr,
 						fmt.Errorf("error syncing template %s: %w",
