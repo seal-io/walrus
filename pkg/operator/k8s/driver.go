@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
@@ -58,6 +59,7 @@ func GetConfig(conn model.Connector, opts ...ConfigOption) (restConfig *rest.Con
 	restConfig.Timeout = 15 * time.Second
 	restConfig.QPS = 16
 	restConfig.Burst = 64
+	restConfig.ContentType = runtime.ContentTypeProtobuf
 	restConfig.UserAgent = version.GetUserAgent()
 
 	for i := range opts {

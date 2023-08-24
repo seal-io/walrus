@@ -15,6 +15,7 @@ import (
 	_ "github.com/lib/pq" // Db = postgres.
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/client-go/rest"
@@ -627,6 +628,7 @@ func (r *Server) setKubernetesConfig(cfg *rest.Config) {
 	cfg.Timeout = r.KubeConnTimeout
 	cfg.QPS = float32(r.KubeConnQPS)
 	cfg.Burst = r.KubeConnBurst
+	cfg.ContentType = runtime.ContentTypeProtobuf
 	cfg.UserAgent = version.GetUserAgent()
 }
 

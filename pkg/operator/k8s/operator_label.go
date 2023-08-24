@@ -6,7 +6,6 @@ import (
 
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
-	dynamicclient "k8s.io/client-go/dynamic"
 
 	"github.com/seal-io/walrus/pkg/operator/k8s/intercept"
 	"github.com/seal-io/walrus/pkg/operator/k8s/kube"
@@ -32,14 +31,9 @@ func (op Operator) Label(ctx context.Context, res *model.ServiceResource, labels
 		return nil
 	}
 
-	client, err := dynamicclient.NewForConfig(op.RestConfig)
-	if err != nil {
-		return fmt.Errorf("error creating kubernetes core client: %w", err)
-	}
-
 	ns, n := kube.ParseNamespacedName(res.Name)
 
-	obj, err := client.Resource(gvr).Namespace(ns).
+	obj, err := op.DynamicCli.Resource(gvr).Namespace(ns).
 		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"})
 	if err != nil {
 		if !kerrors.IsNotFound(err) {
@@ -50,5 +44,5 @@ func (op Operator) Label(ctx context.Context, res *model.ServiceResource, labels
 		return nil
 	}
 
-	return kubelabel.Apply(ctx, client, obj, labels)
+	return kubelabel.Apply(ctx, op.DynamicCli, obj, labels)
 }

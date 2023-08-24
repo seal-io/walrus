@@ -7,23 +7,23 @@ import (
 	"net/url"
 	"strconv"
 
-	apicorev1 "k8s.io/api/core/v1"
-	apinetworkingv1 "k8s.io/api/networking/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	core "k8s.io/api/core/v1"
+	networking "k8s.io/api/networking/v1"
+	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/client-go/kubernetes"
+	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
+	networkingclient "k8s.io/client-go/kubernetes/typed/networking/v1"
 
 	"github.com/seal-io/walrus/pkg/dao/types"
 )
 
 func GetServiceEndpoints(
 	ctx context.Context,
-	kubeCli *kubernetes.Clientset,
-	ns,
-	n string,
+	coreCli *coreclient.CoreV1Client,
+	ns, n string,
 ) ([]types.ServiceResourceEndpoint, error) {
-	svc, err := kubeCli.CoreV1().Services(ns).
-		Get(ctx, n, metav1.GetOptions{ResourceVersion: "0"})
+	svc, err := coreCli.Services(ns).
+		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"})
 	if err != nil {
 		return nil, err
 	}
@@ -34,8 +34,8 @@ func GetServiceEndpoints(
 	)
 
 	switch svc.Spec.Type {
-	case apicorev1.ServiceTypeNodePort:
-		accessIP, err := nodeIP(ctx, kubeCli, svc)
+	case core.ServiceTypeNodePort:
+		accessIP, err := nodeIP(ctx, coreCli, svc)
 		if err != nil {
 			return nil, err
 		}
@@ -44,7 +44,7 @@ func GetServiceEndpoints(
 			nodePort := strconv.FormatInt(int64(port.NodePort), 10)
 			endpoints = append(endpoints, net.JoinHostPort(accessIP, nodePort))
 		}
-	case apicorev1.ServiceTypeLoadBalancer:
+	case core.ServiceTypeLoadBalancer:
 		accessIP := serviceLoadBalancerIP(*svc)
 		if accessIP != "" {
 			for _, port := range svc.Spec.Ports {
@@ -66,9 +66,9 @@ func GetServiceEndpoints(
 	}, nil
 }
 
-func nodeIP(ctx context.Context, kubeCli *kubernetes.Clientset, svc *apicorev1.Service) (string, error) {
-	list, err := kubeCli.CoreV1().Nodes().
-		List(ctx, metav1.ListOptions{ResourceVersion: "0"})
+func nodeIP(ctx context.Context, coreCli *coreclient.CoreV1Client, svc *core.Service) (string, error) {
+	list, err := coreCli.Nodes().
+		List(ctx, meta.ListOptions{ResourceVersion: "0"})
 	if err != nil {
 		return "", err
 	}
@@ -79,9 +79,9 @@ func nodeIP(ctx context.Context, kubeCli *kubernetes.Clientset, svc *apicorev1.S
 
 	nodes := list.Items
 
-	if svc.Spec.ExternalTrafficPolicy == apicorev1.ServiceExternalTrafficPolicyTypeLocal {
-		k8sEndpoints, err := kubeCli.CoreV1().Endpoints(svc.Namespace).
-			Get(ctx, svc.Name, metav1.GetOptions{ResourceVersion: "0"})
+	if svc.Spec.ExternalTrafficPolicy == core.ServiceExternalTrafficPolicyTypeLocal {
+		k8sEndpoints, err := coreCli.Endpoints(svc.Namespace).
+			Get(ctx, svc.Name, meta.GetOptions{ResourceVersion: "0"})
 		if err != nil {
 			return "", err
 		}
@@ -94,7 +94,7 @@ func nodeIP(ctx context.Context, kubeCli *kubernetes.Clientset, svc *apicorev1.S
 			}
 		}
 
-		var filtered []apicorev1.Node
+		var filtered []core.Node
 
 		for _, node := range nodes {
 			if nameSet.Has(node.Name) {
@@ -132,7 +132,7 @@ func nodeIP(ctx context.Context, kubeCli *kubernetes.Clientset, svc *apicorev1.S
 	return internalIP, nil
 }
 
-func serviceLoadBalancerIP(svc apicorev1.Service) string {
+func serviceLoadBalancerIP(svc core.Service) string {
 	for _, ing := range svc.Status.LoadBalancer.Ingress {
 		if ing.Hostname != "" {
 			return ing.Hostname
@@ -147,10 +147,12 @@ func serviceLoadBalancerIP(svc apicorev1.Service) string {
 }
 
 func GetIngressEndpoints(
-	ctx context.Context, kubeCli *kubernetes.Clientset, ns, n string,
+	ctx context.Context,
+	networkCli *networkingclient.NetworkingV1Client,
+	ns, n string,
 ) ([]types.ServiceResourceEndpoint, error) {
-	ing, err := kubeCli.NetworkingV1().Ingresses(ns).
-		Get(ctx, n, metav1.GetOptions{ResourceVersion: "0"})
+	ing, err := networkCli.Ingresses(ns).
+		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"})
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +164,7 @@ func GetIngressEndpoints(
 	}, nil
 }
 
-func ingressEndpoints(ing apinetworkingv1.Ingress) []string {
+func ingressEndpoints(ing networking.Ingress) []string {
 	var lbAddr string
 	for _, ig := range ing.Status.LoadBalancer.Ingress {
 		lbAddr = ig.Hostname

@@ -60,14 +60,15 @@ func parseResources(
 	if !enforcer.AllowGVR(gvr) {
 		return nil, nil
 	}
-	ns, n := kube.ParseNamespacedName(res.Name)
 
-	rs := make([]resource, 0, 1)
-	rs = append(rs, resource{
-		GroupVersionResource: gvr,
-		Namespace:            ns,
-		Name:                 n,
-	})
+	ns, n := kube.ParseNamespacedName(res.Name)
+	rs := []resource{
+		{
+			GroupVersionResource: gvr,
+			Namespace:            ns,
+			Name:                 n,
+		},
+	}
 
 	return rs, nil
 }

@@ -69,10 +69,7 @@ func NewKubernetes(ctx context.Context, opts KubernetesOptions) (*KubernetesDriv
 		raiseNotFound = opts.RaiseNotFound
 	}
 
-	cfg := rest.CopyConfig(opts.Config)
-	cfg.ContentType = "application/vnd.kubernetes.protobuf"
-
-	cli, err := coreclient.NewForConfig(cfg)
+	cli, err := coreclient.NewForConfig(opts.Config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create client: %w", err)
 	}

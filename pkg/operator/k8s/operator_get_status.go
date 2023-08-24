@@ -6,7 +6,6 @@ import (
 
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
-	dynamicclient "k8s.io/client-go/dynamic"
 
 	"github.com/seal-io/walrus/pkg/operator/k8s/helm"
 	"github.com/seal-io/walrus/pkg/operator/k8s/intercept"
@@ -46,13 +45,7 @@ func (op Operator) GetStatus(ctx context.Context, res *model.ServiceResource) (*
 	ns, n := kube.ParseNamespacedName(res.Name)
 
 	// Fetch label selector with dynamic client.
-	dynamicCli, err := dynamicclient.NewForConfig(op.RestConfig)
-	if err != nil {
-		err = fmt.Errorf("error creating kubernetes dynamic client: %w", err)
-		return kubestatus.StatusError(err.Error()), err
-	}
-
-	o, err := dynamicCli.Resource(gvr).Namespace(ns).
+	o, err := op.DynamicCli.Resource(gvr).Namespace(ns).
 		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // Non quorum read.
 	if err != nil {
 		if !kerrors.IsNotFound(err) {
@@ -63,7 +56,7 @@ func (op Operator) GetStatus(ctx context.Context, res *model.ServiceResource) (*
 		return kubestatus.StatusError("resource not found"), nil
 	}
 
-	os, err := kubestatus.Get(ctx, dynamicCli, o)
+	os, err := kubestatus.Get(ctx, op.DynamicCli, o)
 	if err != nil {
 		err = fmt.Errorf("error stating status of kubernetes %s %s/%s: %w", gvr.Resource, ns, n, err)
 		return kubestatus.StatusError(err.Error()), err
