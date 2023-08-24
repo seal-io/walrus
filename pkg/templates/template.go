@@ -15,31 +15,23 @@ func CreateTemplate(ctx context.Context, mc model.ClientSet, entity *model.Templ
 		return nil, errors.New("template is nil")
 	}
 
-	q := mc.Templates().Query().
-		Where(template.Name(entity.Name))
-
-	if entity.CatalogID.Valid() {
-		q.Where(template.CatalogID(entity.CatalogID))
-	}
-
-	find, err := q.Only(ctx)
-	if err != nil && !model.IsNotFound(err) {
-		return nil, err
-	}
-
-	if find != nil {
-		return find, nil
-	}
-
 	status.TemplateStatusInitialized.Unknown(entity, "Initializing template")
 	entity.Status.SetSummary(status.WalkTemplate(&entity.Status))
 
-	entity, err = mc.Templates().Create().
+	id, err := mc.Templates().Create().
 		Set(entity).
-		Save(ctx)
+		OnConflictColumns(template.FieldName).
+		Update(func(up *model.TemplateUpsert) {
+			up.UpdateStatus().
+				UpdateDescription().
+				UpdateIcon()
+		}).
+		ID(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	entity.ID = id
 
 	return entity, nil
 }

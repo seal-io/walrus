@@ -102,6 +102,7 @@ func CreateTemplateVersionsFromRepo(
 func syncTemplateFromRef(
 	ctx context.Context,
 	mc model.ClientSet,
+	entity *model.Template,
 	repo *vcs.Repository,
 ) (err error) {
 	logger := log.WithName("template")
@@ -121,7 +122,7 @@ func syncTemplateFromRef(
 		return err
 	}
 
-	icon, err := GetRepoFileRaw(repo, iconFile, nil)
+	icon, err := GetRepoFileRaw(repo, iconFile)
 	if err != nil {
 		return err
 	}
@@ -141,13 +142,10 @@ func syncTemplateFromRef(
 		return err
 	}
 
+	entity.Icon = icon
+
 	// Create template.
-	entity, err := CreateTemplate(ctx, mc, &model.Template{
-		Name:        repo.Name,
-		Source:      repo.Link,
-		Description: repo.Description,
-		Icon:        icon,
-	})
+	entity, err = CreateTemplate(ctx, mc, entity)
 	if err != nil {
 		return err
 	}
@@ -212,7 +210,7 @@ func updateTemplateStatus(ctx context.Context, mc model.ClientSet, entity *model
 func SyncTemplateFromGitRepo(
 	ctx context.Context,
 	mc model.ClientSet,
-	c *model.Catalog,
+	entity *model.Template,
 	repo *vcs.Repository,
 ) (err error) {
 	logger := log.WithName("template")
@@ -238,7 +236,7 @@ func SyncTemplateFromGitRepo(
 		return err
 	}
 
-	icon, err := GetRepoFileRaw(repo, iconFile, c)
+	icon, err := GetRepoFileRaw(repo, iconFile)
 	if err != nil {
 		return err
 	}
@@ -273,19 +271,12 @@ func SyncTemplateFromGitRepo(
 		t.Status.SetSummary(status.WalkTemplate(&t.Status))
 
 		return mc.Templates().UpdateOne(t).
-			SetStatus(c.Status).
+			SetStatus(t.Status).
 			Exec(ctx)
 	}
 
-	entity := &model.Template{
-		Name:        repo.Name,
-		Source:      repo.Link,
-		Description: repo.Description,
-		Icon:        icon,
-	}
-	if c != nil {
-		entity.CatalogID = c.ID
-	}
+	entity.Icon = icon
+
 	// Create template.
 	entity, err = CreateTemplate(ctx, mc, entity)
 	if err != nil {
@@ -376,7 +367,7 @@ func getGitRepoIcon(repoLocal *git.Repository) (string, error) {
 }
 
 // GetRepoFileRaw returns raw URL of a file in a git repository.
-func GetRepoFileRaw(repo *vcs.Repository, file string, c *model.Catalog) (string, error) {
+func GetRepoFileRaw(repo *vcs.Repository, file string) (string, error) {
 	if file == "" {
 		return "", nil
 	}
@@ -403,7 +394,7 @@ func GetRepoFileRaw(repo *vcs.Repository, file string, c *model.Catalog) (string
 		return fmt.Sprintf("https://%s/%s/%s/-/raw/%s/%s", gitlabRawHost, repo.Namespace, repo.Name, ref, file), nil
 	}
 
-	if c != nil && c.Type == gitlab.Driver {
+	if repo.Driver == gitlab.Driver {
 		return fmt.Sprintf("https://%s/%s/%s/-/raw/%s/%s", endpoint.Host, repo.Namespace, repo.Name, ref, file), nil
 	}
 
