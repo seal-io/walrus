@@ -24,6 +24,18 @@ type Operator interface {
 	// Burst returns the maximum number of operations that can be called at once.
 	Burst() int
 
+	// ID returns an operation identifier of the operator.
+	//
+	// The result is not a unique notation of in the traditional sense,
+	// which means we can't use it to identify the only operator,
+	// but rather a generalization of the characteristics of the operator.
+	//
+	// If two operators have the same ID,
+	// we can group them together for some operations.
+	//
+	// ID returns a blank string if no that kind of identifier.
+	ID() string
+
 	// GetKeys returns keys from the given resource.
 	//
 	// The given model.ServiceResource item must specify the following fields:

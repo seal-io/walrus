@@ -12,8 +12,6 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
-	"github.com/seal-io/walrus/pkg/operator"
-	optypes "github.com/seal-io/walrus/pkg/operator/types"
 	"github.com/seal-io/walrus/pkg/serviceresources"
 	"github.com/seal-io/walrus/utils/gopool"
 	"github.com/seal-io/walrus/utils/log"
@@ -34,75 +32,39 @@ func NewStatusSyncTask(logger log.Logger, mc model.ClientSet) (in *StatusSyncTas
 }
 
 func (in *StatusSyncTask) Process(ctx context.Context, args ...any) error {
-	// NB(thxCode): in case of aggregate the status for service,
-	// we group 10 services into one task group,
-	// treat each service as a task unit,
-	// and then process resources stating in task unit.
-	cnt, err := in.modelClient.Services().Query().
+	// Retrieve operators.
+	opIndexer, opLimiter, err := retrieveOperators(ctx, in.modelClient, in.logger)
+	if err != nil || len(opIndexer) == 0 {
+		return err
+	}
+
+	// Count the total size of the services,
+	// skip if no services or error raising.
+	total, err := in.modelClient.Services().Query().
 		Count(ctx)
-	if err != nil {
-		return fmt.Errorf("cannot count services: %w", err)
-	}
-
-	if cnt == 0 {
-		return nil
-	}
-
-	// Index none custom connectors for reusing.
-	cs, err := listCandidateConnectors(ctx, in.modelClient)
-	if err != nil {
-		return fmt.Errorf("cannot list connectors: %w", err)
-	}
-
-	if len(cs) == 0 {
-		return nil
-	}
-
-	ops := make(map[object.ID]optypes.Operator, len(cs))
-
-	for i := range cs {
-		op, err := operator.Get(ctx, optypes.CreateOptions{
-			Connector: *cs[i],
-		})
-		if err != nil {
-			// Warn out without breaking the whole syncing.
-			in.logger.Warnf("cannot get operator of connector %q: %v", cs[i].ID, err)
-			continue
-		}
-
-		if err = op.IsConnected(ctx); err != nil {
-			// Warn out without breaking the whole syncing.
-			in.logger.Warnf("unreachable connector %q", cs[i].ID)
-			// NB(thxCode): replace disconnected connector with unknown connector.
-			op = operator.UnReachable()
-		}
-		ops[cs[i].ID] = op
-	}
-
-	// Execute tasks.
-	const bks = 10
-
-	bkc := cnt/bks + 1
-	if bkc == 1 {
-		st := in.buildStateTasks(ctx, 0, bks, ops)
-		return st()
+	if err != nil || total == 0 {
+		return err
 	}
 
 	wg := gopool.Group()
 
-	for bk := 0; bk < bkc; bk++ {
-		st := in.buildStateTasks(ctx, bk*bks, bks, ops)
-		wg.Go(st)
+	// Divide the services in multiple batches according to the gopool burst size.
+	bs, bc := getBatches(total, gopool.Burst(), 10)
+	// Process the resources in batches concurrently.
+	for b := 0; b < bc; b++ {
+		p := in.buildProcess(ctx, opIndexer, opLimiter, b*bs, bs)
+		wg.Go(p)
 	}
 
 	return wg.Wait()
 }
 
-func (in *StatusSyncTask) buildStateTasks(
+func (in *StatusSyncTask) buildProcess(
 	ctx context.Context,
+	opIndexer operatorIndexer,
+	opLimiter operatorLimiter,
 	offset,
 	limit int,
-	ops map[object.ID]optypes.Operator,
 ) func() error {
 	return func() error {
 		svcs, err := in.modelClient.Services().Query().
@@ -115,101 +77,107 @@ func (in *StatusSyncTask) buildStateTasks(
 				service.FieldStatus).
 			All(ctx)
 		if err != nil {
-			return fmt.Errorf("error listing services in pagination %d,%d: %w",
+			return fmt.Errorf("error listing services with offset %d, limit %d: %w",
 				offset, limit, err)
 		}
-
-		wg := gopool.Group()
-
-		for i := range svcs {
-			at := in.buildStateTask(ctx, svcs[i], ops)
-			wg.Go(at)
-		}
-
-		return wg.Wait()
-	}
-}
-
-func (in *StatusSyncTask) buildStateTask(
-	ctx context.Context,
-	svc *model.Service,
-	ops map[object.ID]optypes.Operator,
-) func() error {
-	return func() error {
-		rs, err := svc.QueryResources().
-			Where(
-				serviceresource.Shape(types.ServiceResourceShapeInstance),
-				serviceresource.ModeNEQ(types.ServiceResourceModeData)).
-			Order(model.Desc(serviceresource.FieldCreateTime)).
-			Unique(false).
-			Select(
-				serviceresource.FieldServiceID,
-				serviceresource.FieldConnectorID,
-				serviceresource.FieldShape,
-				serviceresource.FieldMode,
-				serviceresource.FieldStatus,
-				serviceresource.FieldID,
-				serviceresource.FieldDeployerType,
-				serviceresource.FieldType,
-				serviceresource.FieldName).
-			All(ctx)
-		if err != nil {
-			return fmt.Errorf("error listing service resources: %w", err)
-		}
-
-		// Group resources by connector ID.
-		connRess := make(map[object.ID][]*model.ServiceResource)
-		for y := range rs {
-			connRess[rs[y].ConnectorID] = append(connRess[rs[y].ConnectorID], rs[y])
-		}
-
-		var sr serviceresources.StateResult
 
 		// Merge the errors to return them all at once,
 		// instead of returning the first error.
 		var berr error
 
-		for cid, crs := range connRess {
-			op, exist := ops[cid]
-			if !exist {
-				// Ignore if not found operator.
-				continue
-			}
-
-			nsr, err := serviceresources.State(ctx, op, in.modelClient, crs)
-			if multierr.AppendInto(&berr, err) {
-				// Mark error as transitioning,
-				// which doesn't flip the status.
-				nsr.Transitioning = true
-			}
-
-			sr.Merge(nsr)
-		}
-
-		// State service.
-		if status.ServiceStatusDeleted.Exist(svc) {
-			// Skip if the service is on deleting.
-			return berr
-		}
-
-		switch {
-		case sr.Error:
-			status.ServiceStatusReady.False(svc, "")
-		case sr.Transitioning:
-			status.ServiceStatusReady.Unknown(svc, "")
-		default:
-			status.ServiceStatusReady.True(svc, "")
-		}
-
-		svc.Status.SetSummary(status.WalkService(&svc.Status))
-
-		err = in.modelClient.Services().UpdateOne(svc).
-			SetStatus(svc.Status).
-			Exec(ctx)
-		if err != nil {
-			berr = multierr.Append(berr, err)
+		for i := range svcs {
+			berr = multierr.Append(berr, in.process(ctx, svcs[i], opIndexer, opLimiter))
 		}
 
 		return berr
 	}
+}
+
+func (in *StatusSyncTask) process(
+	ctx context.Context,
+	svc *model.Service,
+	opIndexer operatorIndexer,
+	opLimiter operatorLimiter,
+) error {
+	rs, err := svc.QueryResources().
+		Where(
+			serviceresource.Shape(types.ServiceResourceShapeInstance),
+			serviceresource.ModeNEQ(types.ServiceResourceModeData)).
+		Order(model.Desc(serviceresource.FieldCreateTime)).
+		Unique(false).
+		Select(
+			serviceresource.FieldServiceID,
+			serviceresource.FieldConnectorID,
+			serviceresource.FieldShape,
+			serviceresource.FieldMode,
+			serviceresource.FieldStatus,
+			serviceresource.FieldID,
+			serviceresource.FieldDeployerType,
+			serviceresource.FieldType,
+			serviceresource.FieldName).
+		All(ctx)
+	if err != nil {
+		return fmt.Errorf("error listing service resources: %w", err)
+	}
+
+	// Group resources by connector ID.
+	connRess := make(map[object.ID][]*model.ServiceResource)
+	for y := range rs {
+		connRess[rs[y].ConnectorID] = append(connRess[rs[y].ConnectorID], rs[y])
+	}
+
+	var sr serviceresources.StateResult
+
+	// Merge the errors to return them all at once,
+	// instead of returning the first error.
+	var berr error
+
+	for cid, crs := range connRess {
+		op, exist := opIndexer[cid]
+		if !exist {
+			// Ignore if not found operator.
+			continue
+		}
+
+		// Controls the concurrency of operators with the same ID,
+		// avoids server instability or throttling caused by creating too many client connections.
+		opLimiter.Acquire(op.ID())
+
+		nsr, err := serviceresources.State(ctx, op, in.modelClient, crs)
+		if multierr.AppendInto(&berr, err) {
+			// Mark error as transitioning,
+			// which doesn't flip the status.
+			nsr.Transitioning = true
+		}
+
+		sr.Merge(nsr)
+
+		opLimiter.Release(op.ID())
+	}
+
+	// State service.
+	if status.ServiceStatusDeleted.Exist(svc) {
+		// Skip if the service is on deleting.
+		return berr
+	}
+
+	switch {
+	case sr.Error:
+		status.ServiceStatusReady.False(svc, "")
+	case sr.Transitioning:
+		status.ServiceStatusReady.Unknown(svc, "")
+	default:
+		status.ServiceStatusReady.True(svc, "")
+	}
+
+	svc.Status.SetSummary(status.WalkService(&svc.Status))
+
+	err = in.modelClient.Services().UpdateOne(svc).
+		SetStatus(svc.Status).
+		Exec(ctx)
+	if err != nil {
+		berr = multierr.Append(berr, err)
+	}
+
+	return berr
 }

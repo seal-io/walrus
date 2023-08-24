@@ -21,6 +21,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/operator/k8s/polymorphic"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
+	"github.com/seal-io/walrus/utils/hash"
 	"github.com/seal-io/walrus/utils/log"
 )
 
@@ -64,6 +65,7 @@ func New(ctx context.Context, opts optypes.CreateOptions) (optypes.Operator, err
 
 	op := Operator{
 		Logger:        log.WithName("operator").WithName("k8s"),
+		Identifier:    hash.SumStrings("k8s:", restConfig.Host, restConfig.APIPath),
 		RestConfig:    restConfig,
 		CoreCli:       coreCli,
 		BatchCli:      batchCli,
@@ -77,6 +79,7 @@ func New(ctx context.Context, opts optypes.CreateOptions) (optypes.Operator, err
 type Operator struct {
 	Logger        log.Logger
 	RestConfig    *rest.Config
+	Identifier    string
 	CoreCli       *coreclient.CoreV1Client
 	BatchCli      *batchclient.BatchV1Client
 	NetworkingCli *networkingclient.NetworkingV1Client
@@ -113,6 +116,11 @@ func (op Operator) Burst() int {
 	}
 
 	return op.RestConfig.Burst
+}
+
+// ID implements operator.Operator.
+func (op Operator) ID() string {
+	return op.Identifier
 }
 
 func (op Operator) getPod(ctx context.Context, ns, n string) (*core.Pod, error) {

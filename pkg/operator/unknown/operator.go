@@ -35,6 +35,10 @@ func (op Operator) Burst() int {
 	return 100
 }
 
+func (op Operator) ID() string {
+	return ""
+}
+
 func (Operator) GetKeys(
 	ctx context.Context,
 	resource *model.ServiceResource,

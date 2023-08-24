@@ -91,3 +91,13 @@ func IsHealthy(atLeast ...int) error {
 
 	return errors.New("goroutine pool full")
 }
+
+// Burst returns the maximum number of goroutines to submit at the same moment.
+func Burst() int {
+	l, r := gp.IdleWorkers(), gp.MaxCapacity()
+	if l > r {
+		return r
+	}
+
+	return l
+}

@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"go.uber.org/multierr"
+
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
-	"github.com/seal-io/walrus/pkg/operator"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
 	"github.com/seal-io/walrus/pkg/serviceresources"
 	"github.com/seal-io/walrus/utils/gopool"
@@ -29,91 +30,69 @@ func NewComponentsDiscoverTask(logger log.Logger, mc model.ClientSet) (in *Compo
 	return
 }
 
+// Process implements the Task interface,
+// it will discover the components of managed instance resources.
+//
+// Process fetches all connectors at first,
+// and constructs the operator related to each connector.
+// Then it will query the resources belong to each connector,
+// and process the resources in batches concurrently according to the operator burst size.
 func (in *ComponentsDiscoverTask) Process(ctx context.Context, args ...any) error {
-	// NB(thxCode): connectors are usually less in number,
-	// in case of reuse the connection built from a connector,
-	// we can treat each connector as a task group,
-	// group 100 resources of each connector into one task unit,
-	// and then process sub resources syncing in task unit.
-	cs, err := listCandidateConnectors(ctx, in.modelClient)
-	if err != nil {
-		return fmt.Errorf("cannot list all connectors: %w", err)
+	// Retrieve operators.
+	opIndexer, opLimiter, err := retrieveOperators(ctx, in.modelClient, in.logger)
+	if err != nil || len(opIndexer) == 0 {
+		return err
 	}
 
-	if len(cs) == 0 {
-		return nil
-	}
+	// Merge the errors to return them all at once,
+	// instead of returning the first error.
+	var berr error
 
 	wg := gopool.Group()
 
-	for i := range cs {
-		st := in.buildSyncTasks(ctx, cs[i])
-		wg.Go(st)
-	}
-
-	return wg.Wait()
-}
-
-func (in *ComponentsDiscoverTask) buildSyncTasks(ctx context.Context, c *model.Connector) func() error {
-	return func() error {
-		op, err := operator.Get(ctx, optypes.CreateOptions{
-			Connector: *c,
-		})
-		if err != nil {
-			return err
-		}
-
-		if err = op.IsConnected(ctx); err != nil {
-			// Warn out without breaking the whole syncing.
-			in.logger.Warnf("unreachable connector %q", c.ID)
-			// NB(thxCode): replace disconnected connector with unknown connector.
-			op = operator.UnReachable()
-		}
-
-		cnt, err := c.QueryResources().
+	for cid := range opIndexer {
+		// Count the total size of resources belong to the connector,
+		// skip if no resources or error raising.
+		total, err := in.modelClient.ServiceResources().Query().
 			Where(
-				serviceresource.ModeNEQ(types.ServiceResourceModeDiscovered),
+				serviceresource.ConnectorID(cid),
 				serviceresource.Shape(types.ServiceResourceShapeInstance),
-			).
+				serviceresource.Mode(types.ServiceResourceModeManaged)).
 			Count(ctx)
-		if err != nil {
-			return fmt.Errorf("cannot count not discovered resources of connector %q: %w", c.ID, err)
+		if multierr.AppendInto(&berr, err) || total == 0 {
+			continue
 		}
 
-		if cnt == 0 {
-			return nil
+		op := opIndexer[cid]
+
+		// Divide the resources in multiple batches according to the operator burst size.
+		bs, bc := getBatches(total, op.Burst(), 10)
+		for b := 0; b < bc; b++ {
+			// Process the resources in batches concurrently.
+			p := in.buildProcess(ctx, cid, op, opLimiter, b*bs, bs)
+			wg.Go(p)
 		}
-
-		const bks = 100
-
-		bkc := cnt/bks + 1
-		if bkc == 1 {
-			at := in.buildSyncTask(ctx, op, c.ID, 0, bks)
-			return at()
-		}
-
-		wg := gopool.Group()
-
-		for bk := 0; bk < bkc; bk++ {
-			at := in.buildSyncTask(ctx, op, c.ID, bk*bks, bks)
-			wg.Go(at)
-		}
-
-		return wg.Wait()
 	}
+
+	return multierr.Append(berr, wg.Wait())
 }
 
-func (in *ComponentsDiscoverTask) buildSyncTask(
+func (in *ComponentsDiscoverTask) buildProcess(
 	ctx context.Context,
+	cid object.ID,
 	op optypes.Operator,
-	connectorID object.ID,
-	offset,
-	limit int,
+	opLimiter operatorLimiter,
+	offset, limit int,
 ) func() error {
 	return func() error {
+		// Controls the concurrency of operators with the same ID,
+		// avoids server instability or throttling caused by creating too many client connections.
+		opLimiter.Acquire(op.ID())
+		defer opLimiter.Release(op.ID())
+
 		rs, err := in.modelClient.ServiceResources().Query().
 			Where(
-				serviceresource.ConnectorID(connectorID),
+				serviceresource.ConnectorID(cid),
 				serviceresource.Shape(types.ServiceResourceShapeInstance),
 				serviceresource.Mode(types.ServiceResourceModeManaged)).
 			Order(model.Desc(serviceresource.FieldCreateTime)).
@@ -133,7 +112,8 @@ func (in *ComponentsDiscoverTask) buildSyncTask(
 				serviceresource.FieldConnectorID).
 			All(ctx)
 		if err != nil {
-			return fmt.Errorf("error listing service resources: %w", err)
+			return fmt.Errorf("error listing service resources with offset %d, limit %d: %w",
+				offset, limit, err)
 		}
 
 		_, err = serviceresources.Discover(ctx, op, in.modelClient, rs)

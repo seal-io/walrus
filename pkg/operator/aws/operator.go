@@ -15,6 +15,7 @@ import (
 	"github.com/seal-io/walrus/pkg/operator/aws/resourcestatus"
 	opawstypes "github.com/seal-io/walrus/pkg/operator/aws/types"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
+	"github.com/seal-io/walrus/utils/hash"
 )
 
 const OperatorType = "AWS"
@@ -29,14 +30,16 @@ func New(ctx context.Context, opts optypes.CreateOptions) (optypes.Operator, err
 	}
 
 	return Operator{
-		name: name,
-		cred: cred,
+		name:       name,
+		cred:       cred,
+		identifier: hash.SumStrings("aws:", cred.AccessKey, cred.AccessSecret),
 	}, nil
 }
 
 type Operator struct {
-	name string
-	cred *optypes.Credential
+	name       string
+	cred       *optypes.Credential
+	identifier string
 }
 
 func (o Operator) Type() optypes.Type {
@@ -66,6 +69,10 @@ func (o Operator) Burst() int {
 	// Take from API request throttling of EC2,
 	// https://docs.aws.amazon.com/AWSEC2/latest/APIReference/throttling.html#throttling-limits.
 	return 100
+}
+
+func (o Operator) ID() string {
+	return o.identifier
 }
 
 func (o Operator) GetStatus(ctx context.Context, resource *model.ServiceResource) (*status.Status, error) {
