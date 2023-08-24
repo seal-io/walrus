@@ -3,8 +3,6 @@ package catalog
 import (
 	"context"
 	"fmt"
-	"net/url"
-	"strings"
 	"time"
 
 	"github.com/drone/go-scm/scm"
@@ -15,10 +13,13 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/settings"
 	"github.com/seal-io/walrus/pkg/templates"
 	"github.com/seal-io/walrus/pkg/vcs"
+	"github.com/seal-io/walrus/pkg/vcs/options"
 	"github.com/seal-io/walrus/utils/gopool"
 	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/version"
 )
 
 // getRepos returns org and a list of repositories from the given catalog.
@@ -27,6 +28,11 @@ func getRepos(ctx context.Context, c *model.Catalog, ua string) ([]*vcs.Reposito
 		client *scm.Client
 		err    error
 	)
+
+	orgName, err := vcs.GetOrgFromGitURL(c.Source)
+	if err != nil {
+		return nil, err
+	}
 
 	switch c.Type {
 	case types.GitDriverGithub, types.GitDriverGitlab:
@@ -38,17 +44,22 @@ func getRepos(ctx context.Context, c *model.Catalog, ua string) ([]*vcs.Reposito
 		return nil, fmt.Errorf("unsupported catalog type %q", c.Type)
 	}
 
-	orgName, err := GetOrgFromGitURL(c.Source)
+	repos, err := vcs.GetOrgRepos(ctx, client, orgName)
 	if err != nil {
 		return nil, err
 	}
 
-	repos, err := GetOrgRepos(ctx, client, orgName)
-	if err != nil {
-		return nil, err
+	list := make([]*vcs.Repository, len(repos))
+	for i := range repos {
+		list[i] = &vcs.Repository{
+			Namespace:   repos[i].Namespace,
+			Name:        repos[i].Name,
+			Description: repos[i].Description,
+			Link:        repos[i].Link,
+		}
 	}
 
-	return repos, nil
+	return list, nil
 }
 
 func getSyncResult(ctx context.Context, mc model.ClientSet, c *model.Catalog) (*types.CatalogSync, error) {
@@ -114,12 +125,7 @@ func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) er
 			var berr error
 
 			for j := s; j < len(repos); j += batchSize {
-				repo := &vcs.Repository{
-					Namespace:   repos[j].Namespace,
-					Name:        repos[j].Name,
-					Description: repos[j].Description,
-					Link:        repos[j].Link,
-				}
+				repo := repos[j]
 
 				logger.Debugf("syncing template %s of catalog %s",
 					repo.Name, c.ID)
@@ -137,23 +143,6 @@ func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) er
 	}
 
 	return wg.Wait()
-}
-
-// GetOrgFromGitURL parses the organization from the given git repository URL.
-func GetOrgFromGitURL(str string) (string, error) {
-	u, err := url.Parse(str)
-	if err != nil {
-		return "", err
-	}
-
-	// https://github.com/<org>/<repo>
-	parts := strings.Split(u.Path, "/")
-
-	if len(parts) >= 2 {
-		return parts[1], nil
-	}
-
-	return "", fmt.Errorf("invalid git url")
 }
 
 type catalogSyncer struct {
