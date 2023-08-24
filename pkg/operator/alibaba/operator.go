@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/walrus/pkg/operator/alibaba/resourcelog"
 	"github.com/seal-io/walrus/pkg/operator/alibaba/resourcestatus"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
+	"github.com/seal-io/walrus/utils/hash"
 )
 
 const OperatorType = "Alibaba"
@@ -28,14 +29,16 @@ func New(ctx context.Context, opts optypes.CreateOptions) (optypes.Operator, err
 	}
 
 	return Operator{
-		name: name,
-		cred: cred,
+		name:       name,
+		cred:       cred,
+		identifier: hash.SumStrings("alibaba:", cred.AccessKey, cred.AccessSecret),
 	}, nil
 }
 
 type Operator struct {
-	name string
-	cred *optypes.Credential
+	name       string
+	cred       *optypes.Credential
+	identifier string
 }
 
 func (o Operator) Type() optypes.Type {
@@ -70,6 +73,10 @@ func (o Operator) Burst() int {
 	// https://www.alibabacloud.com/help/en/ecs/developer-reference/api-throttling,
 	// so we set it to 200 temporarily.
 	return 200
+}
+
+func (o Operator) ID() string {
+	return o.identifier
 }
 
 func (o Operator) GetStatus(_ context.Context, resource *model.ServiceResource) (*status.Status, error) {
