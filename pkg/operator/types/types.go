@@ -21,6 +21,9 @@ type Operator interface {
 	// IsConnected validates whether is connected.
 	IsConnected(context.Context) error
 
+	// Burst returns the maximum number of operations that can be called at once.
+	Burst() int
+
 	// GetKeys returns keys from the given resource.
 	GetKeys(context.Context, *model.ServiceResource) (*types.ServiceResourceOperationKeys, error)
 

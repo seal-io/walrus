@@ -53,7 +53,10 @@ users:
 		})
 		if assert.NoError(t, err, "unexpected error") {
 			assert.Equal(t, &rest.Config{
-				Host:      "https://127.0.0.1:6443",
+				Host: "https://127.0.0.1:6443",
+				ContentConfig: rest.ContentConfig{
+					ContentType: runtime.ContentTypeProtobuf,
+				},
 				Timeout:   15 * time.Second,
 				QPS:       16,
 				Burst:     64,

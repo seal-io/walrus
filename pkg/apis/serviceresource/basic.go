@@ -5,13 +5,11 @@ import (
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
-	"github.com/seal-io/walrus/pkg/dao/model/connector"
 	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
 	"github.com/seal-io/walrus/pkg/dao/types"
-	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
-	optypes "github.com/seal-io/walrus/pkg/operator/types"
 	pkgresource "github.com/seal-io/walrus/pkg/serviceresources"
+	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/topic"
 )
 
@@ -75,7 +73,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 			switch dm.Type {
 			case modelchange.EventTypeCreate, modelchange.EventTypeUpdate:
 				entities, err := getCollection(
-					stream, query.Clone().Where(serviceresource.IDIn(dm.IDs...)), req.WithoutKeys)
+					stream, h.modelClient, query.Clone().Where(serviceresource.IDIn(dm.IDs...)), req.WithoutKeys)
 				if err != nil {
 					return nil, 0, err
 				}
@@ -124,7 +122,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 	query.Where(serviceresource.ModeEQ(types.ServiceResourceModeManaged))
 
 	entities, err := getCollection(
-		req.Context, query, req.WithoutKeys)
+		req.Context, h.modelClient, query, req.WithoutKeys)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -134,33 +132,23 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 func getCollection(
 	ctx context.Context,
+	modelClient model.ClientSet,
 	query *model.ServiceResourceQuery,
 	withoutKeys bool,
 ) (model.ServiceResources, error) {
-	wcOpts := func(cq *model.ConnectorQuery) {
-		cq.Select(
-			connector.FieldName,
-			connector.FieldType,
-			connector.FieldCategory,
-			connector.FieldConfigVersion,
-			connector.FieldConfigData)
-	}
-
 	// Query service resource with its components.
 	entities, err := query.
 		// Only "instance" type resources.
 		Where(serviceresource.Shape(types.ServiceResourceShapeInstance)).
-		// Must append service ID.
-		Select(serviceresource.FieldServiceID).
-		// Must extract connector.
-		Select(serviceresource.FieldConnectorID).
-		WithConnector(wcOpts).
+		// Must append the following IDs.
+		Select(
+			serviceresource.FieldServiceID,
+			serviceresource.FieldConnectorID).
 		// Must extract components.
 		WithComponents(func(rq *model.ServiceResourceQuery) {
 			rq.Select(getFields...).
 				Order(model.Desc(serviceresource.FieldCreateTime)).
-				Where(serviceresource.Mode(types.ServiceResourceModeDiscovered)).
-				WithConnector(wcOpts)
+				Where(serviceresource.Mode(types.ServiceResourceModeDiscovered))
 		}).
 		Unique(false).
 		All(ctx)
@@ -168,13 +156,15 @@ func getCollection(
 		return nil, err
 	}
 
-	// Return directly if no need next operations, e.g. Log, Exec and so on.
-	if withoutKeys {
-		return entities, nil
+	// Set keys for next operations, e.g. Log, Exec and so on.
+	if !withoutKeys {
+		pkgresource.SetKeys(
+			ctx,
+			log.WithName("api").WithName("service-resource"),
+			modelClient,
+			entities,
+			nil)
 	}
-
-	operators := make(map[object.ID]optypes.Operator)
-	entities = pkgresource.SetKeys(ctx, entities, operators)
 
 	return entities, nil
 }

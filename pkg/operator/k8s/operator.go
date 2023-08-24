@@ -11,6 +11,7 @@ import (
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/wait"
 	dynamicclient "k8s.io/client-go/dynamic"
 	batchclient "k8s.io/client-go/kubernetes/typed/batch/v1"
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -18,7 +19,6 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/walrus/pkg/dao/types"
-	"github.com/seal-io/walrus/pkg/k8s"
 	"github.com/seal-io/walrus/pkg/operator/k8s/polymorphic"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
 	"github.com/seal-io/walrus/utils/log"
@@ -93,7 +93,26 @@ func (op Operator) IsConnected(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	return k8s.Wait(ctx, op.RestConfig)
+	return wait.PollUntilContextCancel(ctx, time.Second, true,
+		func(ctx context.Context) (bool, error) {
+			_, err := op.CoreCli.RESTClient().
+				Get().
+				AbsPath("/version").
+				Do(ctx).
+				Raw()
+
+			return err == nil, ctx.Err()
+		},
+	)
+}
+
+// Burst implements operator.Operator.
+func (op Operator) Burst() int {
+	if op.RestConfig.Burst == 0 {
+		return rest.DefaultBurst
+	}
+
+	return op.RestConfig.Burst
 }
 
 func (op Operator) getPod(ctx context.Context, ns, n string) (*core.Pod, error) {

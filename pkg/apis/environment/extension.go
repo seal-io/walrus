@@ -11,6 +11,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
 	pkgresource "github.com/seal-io/walrus/pkg/serviceresources"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 var getServiceFields = service.WithoutFields(
@@ -84,9 +85,18 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 			})
 		}
 
+		// Set keys for next operations, e.g. Log, Exec and so on.
+		if !req.WithoutKeys {
+			pkgresource.SetKeys(
+				req.Context,
+				log.WithName("api").WithName("environment"),
+				h.modelClient,
+				entity.Edges.Resources,
+				operators)
+		}
+
 		// Append ServiceResource to vertices,
 		// and append the link of related ServiceResources to edges.
-		pkgresource.SetKeys(req.Context, entity.Edges.Resources, operators)
 		vertices, edges = pkgresource.GetVerticesAndEdges(
 			entity.Edges.Resources, vertices, edges)
 

@@ -62,6 +62,12 @@ func (o Operator) IsConnected(ctx context.Context) error {
 	return nil
 }
 
+func (o Operator) Burst() int {
+	// Take from API request throttling of EC2,
+	// https://docs.aws.amazon.com/AWSEC2/latest/APIReference/throttling.html#throttling-limits.
+	return 100
+}
+
 func (o Operator) GetStatus(ctx context.Context, resource *model.ServiceResource) (*status.Status, error) {
 	st := &status.Status{}
 	if !resourcestatus.IsSupported(resource.Type) {
