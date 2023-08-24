@@ -65,6 +65,13 @@ func (o Operator) IsConnected(_ context.Context) error {
 	return nil
 }
 
+func (o Operator) Burst() int {
+	// NB(thxCode): We cannot find a certain number from the API request throttling of ECS,
+	// https://www.alibabacloud.com/help/en/ecs/developer-reference/api-throttling,
+	// so we set it to 200 temporarily.
+	return 200
+}
+
 func (o Operator) GetStatus(_ context.Context, resource *model.ServiceResource) (*status.Status, error) {
 	st := &status.Status{}
 

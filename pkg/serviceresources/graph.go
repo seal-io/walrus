@@ -1,16 +1,11 @@
 package serviceresources
 
 import (
-	"context"
-
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
-	"github.com/seal-io/walrus/pkg/operator"
-	optypes "github.com/seal-io/walrus/pkg/operator/types"
-	"github.com/seal-io/walrus/utils/log"
 )
 
 // GetVerticesAndEdges constructs a graph of the given model.ServiceResource entities with DFS algorithm,
@@ -87,7 +82,7 @@ func GetVerticesAndEdges(
 			dfs(entity.Edges.Instances[j])
 		}
 
-		// Hide instance resources's dependencies.
+		// Hide service resource's dependencies.
 		if entity.Shape == types.ServiceResourceShapeInstance {
 			return
 		}
@@ -115,77 +110,10 @@ func GetVerticesAndEdges(
 	return vertices, edges
 }
 
-// SetKeys sets the keys of the resources for operations like log and exec.
-func SetKeys(
-	ctx context.Context,
-	entities model.ServiceResources,
-	operators map[object.ID]optypes.Operator,
-) model.ServiceResources {
-	logger := log.WithName("service-resource")
-	cache := make(map[object.ID]*model.ServiceResource)
-
-	if operators == nil {
-		operators = make(map[object.ID]optypes.Operator)
-	}
-
-	// DFS function to get resource keys.
-	var fn func(entity *model.ServiceResource)
-	fn = func(entity *model.ServiceResource) {
-		if _, ok := cache[entity.ID]; ok {
-			return
-		}
-
-		cache[entity.ID] = entity
-
-		if IsOperable(entity) && entity.Edges.Connector != nil {
-			var err error
-
-			op, ok := operators[entity.Edges.Connector.ID]
-			if !ok {
-				op, err = operator.Get(ctx, optypes.CreateOptions{Connector: *entity.Edges.Connector})
-				if err != nil {
-					logger.Warnf("cannot get operator of connector: %v", err)
-					return
-				}
-				operators[entity.Edges.Connector.ID] = op
-			}
-
-			entity.Keys, err = op.GetKeys(ctx, entity)
-			if err != nil {
-				logger.Errorf("error getting keys for %q: %v", entity.ID, err)
-				return
-			}
-		}
-
-		for i := 0; i < len(entity.Edges.Components); i++ {
-			fn(entity.Edges.Components[i])
-		}
-
-		for j := 0; j < len(entity.Edges.Instances); j++ {
-			fn(entity.Edges.Instances[j])
-		}
-	}
-
-	if operators == nil {
-		operators = make(map[object.ID]optypes.Operator)
-	}
-
-	for i := 0; i < len(entities); i++ {
-		fn(entities[i])
-	}
-
-	return entities
-}
-
 func GetGraphVertexType(m *model.ServiceResource) string {
 	if m.Shape == types.ServiceResourceShapeClass {
 		return types.VertexKindServiceResourceGroup
 	}
 
 	return types.VertexKindServiceResource
-}
-
-func IsOperable(m *model.ServiceResource) bool {
-	return m.Shape == types.ServiceResourceShapeInstance &&
-		(m.Mode == types.ServiceResourceModeManaged || m.Mode == types.ServiceResourceModeDiscovered)
 }

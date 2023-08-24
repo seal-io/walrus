@@ -31,6 +31,10 @@ func (Operator) IsConnected(ctx context.Context) error {
 	return nil
 }
 
+func (op Operator) Burst() int {
+	return 100
+}
+
 func (Operator) GetKeys(
 	ctx context.Context,
 	resource *model.ServiceResource,

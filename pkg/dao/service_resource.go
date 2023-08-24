@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
-	"github.com/seal-io/walrus/pkg/dao/model/connector"
 	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
 	"github.com/seal-io/walrus/pkg/dao/model/serviceresourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/types"
@@ -50,18 +49,7 @@ func ServiceResourceInstancesEdgeSave(ctx context.Context, mc model.ClientSet, e
 // ServiceResourceShapeClassQuery wraps the given model.ServiceResource query
 // to select all shape class resources and the owned components and dependencies of them.
 func ServiceResourceShapeClassQuery(query *model.ServiceResourceQuery) *model.ServiceResourceQuery {
-	var (
-		order  = model.Desc(serviceresource.FieldCreateTime)
-		wcOpts = func(q *model.ConnectorQuery) {
-			q.Select(
-				connector.FieldName,
-				connector.FieldType,
-				connector.FieldCategory,
-				connector.FieldConfigVersion,
-				connector.FieldConfigData,
-			)
-		}
-	)
+	order := model.Desc(serviceresource.FieldCreateTime)
 
 	return query.
 		Where(
@@ -71,11 +59,9 @@ func ServiceResourceShapeClassQuery(query *model.ServiceResourceQuery) *model.Se
 		WithInstances(func(iq *model.ServiceResourceQuery) {
 			iq.
 				Order(order).
-				WithConnector(wcOpts).
 				WithComponents(func(cq *model.ServiceResourceQuery) {
 					cq.
-						Order(order).
-						WithConnector(wcOpts)
+						Order(order)
 				})
 		}).
 		WithDependencies(func(rrq *model.ServiceResourceRelationshipQuery) {

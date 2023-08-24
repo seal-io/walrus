@@ -22,11 +22,11 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	"github.com/seal-io/walrus/pkg/operator/k8s/intercept"
-	optypes "github.com/seal-io/walrus/pkg/operator/types"
 	pkgservice "github.com/seal-io/walrus/pkg/service"
 	pkgresource "github.com/seal-io/walrus/pkg/serviceresources"
 	tfparser "github.com/seal-io/walrus/pkg/terraform/parser"
 	"github.com/seal-io/walrus/utils/errorx"
+	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/topic"
 	"github.com/seal-io/walrus/utils/validation"
 )
@@ -453,12 +453,20 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 
 	// Construct response.
 	var (
-		vertices  = make([]GraphVertex, 0, verticesCap)
-		edges     = make([]GraphEdge, 0, edgesCap)
-		operators = make(map[object.ID]optypes.Operator)
+		vertices = make([]GraphVertex, 0, verticesCap)
+		edges    = make([]GraphEdge, 0, edgesCap)
 	)
 
-	pkgresource.SetKeys(req.Context, entities, operators)
+	// Set keys for next operations, e.g. Log, Exec and so on.
+	if !req.WithoutKeys {
+		pkgresource.SetKeys(
+			req.Context,
+			log.WithName("api").WithName("service"),
+			h.modelClient,
+			entities,
+			nil)
+	}
+
 	vertices, edges = pkgresource.GetVerticesAndEdges(
 		entities, vertices, edges)
 

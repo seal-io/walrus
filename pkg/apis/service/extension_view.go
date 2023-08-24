@@ -151,6 +151,8 @@ type (
 		_ struct{} `route:"GET=/graph"`
 
 		model.ServiceQueryInput `path:",inline"`
+
+		WithoutKeys bool `query:"withoutKeys,omitempty"`
 	}
 
 	RouteGetGraphResponse struct {
