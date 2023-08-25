@@ -44,6 +44,7 @@ type Server struct {
 	Logger clis.Logger
 
 	BindAddress        string
+	BindWithDualStack  bool
 	EnableTls          bool
 	TlsCertFile        string
 	TlsPrivateKeyFile  string
@@ -80,6 +81,7 @@ type Server struct {
 func New() *Server {
 	return &Server{
 		BindAddress:           "0.0.0.0",
+		BindWithDualStack:     true,
 		EnableTls:             true,
 		TlsCertDir:            apis.TlsCertDirByK8sSecrets,
 		ConnQPS:               10,
@@ -110,6 +112,12 @@ func (r *Server) Flags(cmd *cli.Command) {
 				}
 				return nil
 			},
+		},
+		&cli.BoolFlag{
+			Name:        "bind-with-dual-stack",
+			Usage:       "Enable dual stack socket listening.",
+			Destination: &r.BindWithDualStack,
+			Value:       r.BindWithDualStack,
 		},
 		&cli.BoolFlag{
 			Name:        "enable-tls",
@@ -194,7 +202,7 @@ func (r *Server) Flags(cmd *cli.Command) {
 			Usage: "The password to bootstrap instead of random generating.",
 			Action: func(c *cli.Context, s string) error {
 				if strs.StringWidth(s) < 6 {
-					return errors.New("invalid bootstrap-password: too short")
+					return errors.New("invalid --bootstrap-password: too short")
 				}
 				return nil
 			},
@@ -277,22 +285,22 @@ func (r *Server) Flags(cmd *cli.Command) {
 			Action: func(c *cli.Context, s string) error {
 				ss := strings.SplitN(s, ":", 2)
 				if len(ss) != 2 {
-					return errors.New("invalid data-source-data-encryption: illegal format")
+					return errors.New("invalid --data-source-data-encryption: illegal format")
 				}
 				alg := ss[0]
 				key, err := hex.DecodeString(ss[1])
 				if err != nil {
-					return errors.New("invalid data-source-data-encryption: must in hex string")
+					return errors.New("invalid --data-source-data-encryption: must in hex string")
 				}
 				switch alg {
 				default:
 					return errors.New(
-						"invalid data-source-data-encryption: unknown algorithm " + alg,
+						"invalid --data-source-data-encryption: unknown algorithm " + alg,
 					)
 				case "aesgcm":
 					if ks := len(key); ks != 16 && ks != 32 {
 						return errors.New(
-							"invalid data-source-data-encryption: must in 16 bytes or 32 bytes",
+							"invalid --data-source-data-encryption: must in 16 bytes or 32 bytes",
 						)
 					}
 				}
@@ -339,7 +347,7 @@ func (r *Server) Flags(cmd *cli.Command) {
 				"it represents the max-age of authenticated cookie.",
 			Action: func(c *cli.Context, d time.Duration) error {
 				if d < 0 {
-					return errors.New("invalid authn-session-max-idle: negative")
+					return errors.New("invalid --authn-session-max-idle: negative")
 				}
 				return nil
 			},
@@ -358,7 +366,7 @@ func (r *Server) Flags(cmd *cli.Command) {
 				"it is calculated by the number of CPU cores multiplied by this factor.",
 			Action: func(c *cli.Context, i int) error {
 				if i < 100 {
-					return errors.New("too small gopool-worker-factor: must be greater than 100")
+					return errors.New("too small --gopool-worker-factor: must be greater than 100")
 				}
 				return nil
 			},

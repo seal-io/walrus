@@ -29,7 +29,8 @@ func (r *Server) startApis(ctx context.Context, opts startApisOptions) error {
 			K8sConfig:   opts.K8sConfig,
 			ModelClient: opts.ModelClient,
 		},
-		BindAddress: r.BindAddress,
+		BindAddress:       r.BindAddress,
+		BindWithDualStack: r.BindWithDualStack,
 	}
 
 	switch {
