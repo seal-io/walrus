@@ -38,6 +38,7 @@ type ServeOptions struct {
 	SetupOptions
 
 	BindAddress        string
+	BindWithDualStack  bool
 	TlsMode            TlsMode
 	TlsCertFile        string
 	TlsPrivateKeyFile  string
@@ -84,12 +85,18 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 		h := handler
 		lg := newStdErrorLogger(s.logger.WithName("https"))
 
-		ls, err := newTcpListener(ctx, opts.BindAddress, 443)
+		nw, addr, err := parseBindAddress(opts.BindAddress, 443, opts.BindWithDualStack)
+		if err != nil {
+			return err
+		}
+
+		ls, err := newTcpListener(ctx, nw, addr)
 		if err != nil {
 			return err
 		}
 
 		defer func() { _ = ls.Close() }()
+
 		tlsConfig := &tls.Config{
 			NextProtos: []string{"h2", "http/1.1"},
 			MinVersion: tls.VersionTLS12,
@@ -178,7 +185,7 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 			httpHandler <- http.HandlerFunc(redirectHandler)
 		}
 
-		s.logger.Info("serving https")
+		s.logger.Infof("serving https on %q by %q", addr, nw)
 
 		return serve(ctx, h, lg, ls)
 	})
@@ -188,13 +195,19 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 		h := <-httpHandler
 		lg := newStdErrorLogger(s.logger.WithName("http"))
 
-		ls, err := newTcpListener(ctx, opts.BindAddress, 80)
+		nw, addr, err := parseBindAddress(opts.BindAddress, 80, opts.BindWithDualStack)
+		if err != nil {
+			return err
+		}
+
+		ls, err := newTcpListener(ctx, nw, addr)
 		if err != nil {
 			return err
 		}
 
 		defer func() { _ = ls.Close() }()
-		s.logger.Info("serving http")
+
+		s.logger.Infof("serving http on %q by %q", addr, nw)
 
 		return serve(ctx, h, lg, ls)
 	})
@@ -222,15 +235,39 @@ func serve(ctx context.Context, handler http.Handler, errorLog *stdlog.Logger, l
 	return nil
 }
 
-func newTcpListener(ctx context.Context, ip string, port int) (net.Listener, error) {
-	address := fmt.Sprintf("%s:%d", ip, port)
+func parseBindAddress(ip string, port int, dual bool) (network, address string, err error) {
+	p := net.ParseIP(ip)
+	if p == nil {
+		return "", "", fmt.Errorf("invalid IP address: %s", ip)
+	}
+
+	nw := "tcp"
+
+	p = p.To4()
+	if p != nil {
+		if !dual {
+			nw = "tcp4"
+		}
+
+		return nw, fmt.Sprintf("%s:%d", p.String(), port), nil
+	}
+
+	if !dual {
+		nw = "tcp6"
+	}
+
+	return nw, fmt.Sprintf("[%s]:%d", ip, port), nil
+}
+
+func newTcpListener(ctx context.Context, network, address string) (net.Listener, error) {
 	lc := net.ListenConfig{
 		KeepAlive: 3 * time.Minute,
 	}
 
-	ls, err := lc.Listen(ctx, "tcp", address)
+	ls, err := lc.Listen(ctx, network, address)
 	if err != nil {
-		return nil, fmt.Errorf("error creating tcp listener for %s: %w", address, err)
+		return nil, fmt.Errorf("error creating %s listener for %s: %w",
+			network, address, err)
 	}
 
 	return ls, nil
