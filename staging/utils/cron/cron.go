@@ -169,13 +169,13 @@ func (in timeoutTask) Process(ctx context.Context, args ...any) error {
 		_statsCollector.failedTasks.
 			WithLabelValues(in.jobName).
 			Inc()
-		logger.Errorf("error executing task: %v", err)
+		logger.Warnf("error executing: %v", err)
 	} else {
 		// Record succeeded task.
 		_statsCollector.succeededTasks.
 			WithLabelValues(in.jobName).
 			Inc()
-		logger.Debugf("executed task")
+		logger.DebugS("executed", "duration", time.Since(start))
 	}
 
 	// NB(thxCode): always return nil as there is no way to restart the job at present.
@@ -230,6 +230,7 @@ func (in *scheduler) Schedule(jobName string, cron Expr, task Task, taskArgs ...
 	if next < atLeast {
 		next = atLeast
 	}
+
 	tt := timeoutTask{
 		timeout: next,
 		jobName: jobName,

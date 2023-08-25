@@ -49,7 +49,7 @@ func doRegister(ctx context.Context, mc *model.Client) error {
 	logger := log.WithName("task")
 
 	// Create locker.
-	locker := NewLocker(mc)
+	locker := NewLocker(logger, mc)
 
 	// NB(thxCode): don't stop the core cron scheduler.
 	err := cron.Start(ctx, locker)
