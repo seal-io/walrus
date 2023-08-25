@@ -6,11 +6,12 @@ permissions:
   actions: read
 
 env:
-  REPO: "sealio"
+  REPO: "${{ vars.REPO || 'sealio' }}"
   VERSION: "${{ github.ref_name }}"
   BUILD_PLATFORMS: "linux/amd64,linux/arm64"
   PARALLELIZE: "false"
   GO_VERSION: "1.19.12"
+  CI_CHECK: "${{ vars.CI_CHECK || 'true' }}"
 
 defaults:
   run:

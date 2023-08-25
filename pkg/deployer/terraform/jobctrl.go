@@ -72,8 +72,10 @@ const (
 )
 
 const (
+	// # 998 https://github.com/seal-io/walrus/issues/998
+	_clearKanikoStates = `for s in $(terraform state list 2>&1|grep 'kaniko_image\.');do terraform state rm $s;done`
 	// _applyCommands the commands to apply deployment of the application.
-	_applyCommands = "terraform init -no-color && terraform apply -auto-approve -no-color"
+	_applyCommands = "terraform init -no-color && " + _clearKanikoStates + " && terraform apply -auto-approve -no-color"
 	// _destroyCommands the commands to destroy deployment of the application.
 	_destroyCommands = "terraform init -no-color && terraform destroy -auto-approve -no-color"
 )
