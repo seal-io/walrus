@@ -4,7 +4,6 @@ import (
 	"context"
 	stdsql "database/sql"
 	"errors"
-	"fmt"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
@@ -15,7 +14,6 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
-	"github.com/seal-io/walrus/utils/strs"
 )
 
 // ServiceDependenciesEdgeSave saves the edge dependencies of model.Service entity.
@@ -68,12 +66,10 @@ func ServiceDependenciesEdgeSave(ctx context.Context, mc model.ClientSet, entity
 			continue
 		}
 
-		prefixPath := fmt.Sprintf(`["%s"]`, strs.Join(`","`, oldItems[i].Path...))
-
 		_, err = mc.ServiceRelationships().Delete().
 			Where(
 				func(s *sql.Selector) {
-					s.Where(sqljson.ValueContains(servicerelationship.FieldPath, prefixPath))
+					s.Where(sqljson.ValueContains(servicerelationship.FieldPath, oldItems[i].Path))
 				}).
 			Exec(ctx)
 		if err != nil {
