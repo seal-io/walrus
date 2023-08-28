@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/seal-io/walrus/pkg/caches"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/setting"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
@@ -57,9 +56,8 @@ type Value interface {
 	// it's good for error-insensitive cases and nice for chain calls.
 	ShouldValueURL(context.Context, model.ClientSet) *url.URL
 
-	// Set configures the value of the setting,
-	// returns true if accept the new value change.
-	Set(context.Context, model.ClientSet, any) (bool, error)
+	// Set configures the value of the setting.
+	Set(context.Context, model.ClientSet, any) error
 
 	// Cas configures the value of setting with CAS operation.
 	Cas(context.Context, model.ClientSet, func(oldVal string) (newVal string, err error)) error
@@ -79,23 +77,12 @@ func (v value) Name() string {
 
 // Value implements the Value interface.
 func (v value) Value(ctx context.Context, client model.ClientSet) (string, error) {
-	cachedValue, err := caches.Get(ctx, v.refer.Name)
-	if err == nil {
-		return string(cachedValue), nil
-	}
-
 	dbValue, err := client.Settings().Query().
 		Select(setting.FieldValue).
 		Where(setting.Name(v.refer.Name)).
 		Only(ctx)
 	if err != nil {
 		return "", fmt.Errorf("error getting %s: %w",
-			v.refer.Name, err)
-	}
-
-	err = caches.Set(ctx, v.refer.Name, []byte(dbValue.Value))
-	if err != nil {
-		logger.Warnf("error caching %s: %v",
 			v.refer.Name, err)
 	}
 
@@ -238,10 +225,10 @@ func (v value) Set(
 	ctx context.Context,
 	client model.ClientSet,
 	newValueRaw any,
-) (bool, error) {
+) error {
 	oldVal, err := v.Value(ctx, client)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	var newVal string
@@ -253,28 +240,17 @@ func (v value) Set(
 	default:
 		b, err := json.Marshal(newValueRaw)
 		if err != nil {
-			return false, err
+			return err
 		}
 		newVal = string(b)
 	}
 
 	if oldVal == newVal {
 		// Nothing to do if same as previous.
-		return false, nil
+		return nil
 	}
 
-	err = v.modify(ctx, client, v.refer.Name, oldVal, newVal)
-	if err != nil {
-		return false, err
-	}
-
-	err = caches.Delete(ctx, v.refer.Name)
-	if err != nil {
-		logger.Warnf("error discaching %s: %v",
-			v.refer.Name, err)
-	}
-
-	return true, nil
+	return v.modify(ctx, client, v.refer.Name, oldVal, newVal)
 }
 
 // Cas implements the Value interface.
@@ -296,6 +272,7 @@ func (v value) Cas(
 		if err != nil {
 			return err
 		}
+
 		oldVal := dbValue.Value
 
 		newVal, err := op(string(oldVal))
@@ -303,17 +280,6 @@ func (v value) Cas(
 			return err
 		}
 
-		err = v.modify(ctx, tx, v.refer.Name, string(oldVal), newVal)
-		if err != nil {
-			return err
-		}
-
-		err = caches.Set(ctx, v.refer.Name, []byte(newVal))
-		if err != nil {
-			logger.Warnf("error caching %s: %v",
-				v.refer.Name, err)
-		}
-
-		return nil
+		return v.modify(ctx, tx, v.refer.Name, string(oldVal), newVal)
 	})
 }
