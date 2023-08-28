@@ -395,6 +395,7 @@ func (edi *EnvironmentDeleteInputs) ValidateWith(ctx context.Context, cs ClientS
 
 	ids := make([]object.ID, 0, len(edi.Items))
 	ors := make([]predicate.Environment, 0, len(edi.Items))
+	indexers := make(map[any][]int)
 
 	for i := range edi.Items {
 		if edi.Items[i] == nil {
@@ -404,9 +405,12 @@ func (edi *EnvironmentDeleteInputs) ValidateWith(ctx context.Context, cs ClientS
 		if edi.Items[i].ID != "" {
 			ids = append(ids, edi.Items[i].ID)
 			ors = append(ors, environment.ID(edi.Items[i].ID))
+			indexers[edi.Items[i].ID] = append(indexers[edi.Items[i].ID], i)
 		} else if edi.Items[i].Name != "" {
 			ors = append(ors, environment.And(
 				environment.Name(edi.Items[i].Name)))
+			indexerKey := fmt.Sprint("/", edi.Items[i].Name)
+			indexers[indexerKey] = append(indexers[indexerKey], i)
 		} else {
 			return errors.New("found item hasn't identify")
 		}
@@ -433,8 +437,15 @@ func (edi *EnvironmentDeleteInputs) ValidateWith(ctx context.Context, cs ClientS
 	}
 
 	for i := range es {
-		edi.Items[i].ID = es[i].ID
-		edi.Items[i].Name = es[i].Name
+		indexer := indexers[es[i].ID]
+		if indexer == nil {
+			indexerKey := fmt.Sprint("/", edi.Items[i].Name)
+			indexer = indexers[indexerKey]
+		}
+		for _, j := range indexer {
+			edi.Items[j].ID = es[i].ID
+			edi.Items[j].Name = es[i].Name
+		}
 	}
 
 	return nil
@@ -812,6 +823,7 @@ func (eui *EnvironmentUpdateInputs) ValidateWith(ctx context.Context, cs ClientS
 
 	ids := make([]object.ID, 0, len(eui.Items))
 	ors := make([]predicate.Environment, 0, len(eui.Items))
+	indexers := make(map[any][]int)
 
 	for i := range eui.Items {
 		if eui.Items[i] == nil {
@@ -821,9 +833,12 @@ func (eui *EnvironmentUpdateInputs) ValidateWith(ctx context.Context, cs ClientS
 		if eui.Items[i].ID != "" {
 			ids = append(ids, eui.Items[i].ID)
 			ors = append(ors, environment.ID(eui.Items[i].ID))
+			indexers[eui.Items[i].ID] = append(indexers[eui.Items[i].ID], i)
 		} else if eui.Items[i].Name != "" {
 			ors = append(ors, environment.And(
 				environment.Name(eui.Items[i].Name)))
+			indexerKey := fmt.Sprint("/", eui.Items[i].Name)
+			indexers[indexerKey] = append(indexers[indexerKey], i)
 		} else {
 			return errors.New("found item hasn't identify")
 		}
@@ -850,15 +865,18 @@ func (eui *EnvironmentUpdateInputs) ValidateWith(ctx context.Context, cs ClientS
 	}
 
 	for i := range es {
-		eui.Items[i].ID = es[i].ID
-		eui.Items[i].Name = es[i].Name
+		indexer := indexers[es[i].ID]
+		if indexer == nil {
+			indexerKey := fmt.Sprint("/", eui.Items[i].Name)
+			indexer = indexers[indexerKey]
+		}
+		for _, j := range indexer {
+			eui.Items[j].ID = es[i].ID
+			eui.Items[j].Name = es[i].Name
+		}
 	}
 
 	for i := range eui.Items {
-		if eui.Items[i] == nil {
-			continue
-		}
-
 		if err := eui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}

@@ -553,10 +553,6 @@ func (rui *RoleUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, cac
 	}
 
 	for i := range rui.Items {
-		if rui.Items[i] == nil {
-			continue
-		}
-
 		if err := rui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}

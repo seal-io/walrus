@@ -539,10 +539,6 @@ func (dlui *DistributeLockUpdateInputs) ValidateWith(ctx context.Context, cs Cli
 	}
 
 	for i := range dlui.Items {
-		if dlui.Items[i] == nil {
-			continue
-		}
-
 		if err := dlui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}

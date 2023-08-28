@@ -336,6 +336,7 @@ func (cdi *ConnectorDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet
 
 	ids := make([]object.ID, 0, len(cdi.Items))
 	ors := make([]predicate.Connector, 0, len(cdi.Items))
+	indexers := make(map[any][]int)
 
 	for i := range cdi.Items {
 		if cdi.Items[i] == nil {
@@ -345,9 +346,12 @@ func (cdi *ConnectorDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet
 		if cdi.Items[i].ID != "" {
 			ids = append(ids, cdi.Items[i].ID)
 			ors = append(ors, connector.ID(cdi.Items[i].ID))
+			indexers[cdi.Items[i].ID] = append(indexers[cdi.Items[i].ID], i)
 		} else if cdi.Items[i].Name != "" {
 			ors = append(ors, connector.And(
 				connector.Name(cdi.Items[i].Name)))
+			indexerKey := fmt.Sprint("/", cdi.Items[i].Name)
+			indexers[indexerKey] = append(indexers[indexerKey], i)
 		} else {
 			return errors.New("found item hasn't identify")
 		}
@@ -374,8 +378,15 @@ func (cdi *ConnectorDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet
 	}
 
 	for i := range es {
-		cdi.Items[i].ID = es[i].ID
-		cdi.Items[i].Name = es[i].Name
+		indexer := indexers[es[i].ID]
+		if indexer == nil {
+			indexerKey := fmt.Sprint("/", cdi.Items[i].Name)
+			indexer = indexers[indexerKey]
+		}
+		for _, j := range indexer {
+			cdi.Items[j].ID = es[i].ID
+			cdi.Items[j].Name = es[i].Name
+		}
 	}
 
 	return nil
@@ -759,6 +770,7 @@ func (cui *ConnectorUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet
 
 	ids := make([]object.ID, 0, len(cui.Items))
 	ors := make([]predicate.Connector, 0, len(cui.Items))
+	indexers := make(map[any][]int)
 
 	for i := range cui.Items {
 		if cui.Items[i] == nil {
@@ -768,9 +780,12 @@ func (cui *ConnectorUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet
 		if cui.Items[i].ID != "" {
 			ids = append(ids, cui.Items[i].ID)
 			ors = append(ors, connector.ID(cui.Items[i].ID))
+			indexers[cui.Items[i].ID] = append(indexers[cui.Items[i].ID], i)
 		} else if cui.Items[i].Name != "" {
 			ors = append(ors, connector.And(
 				connector.Name(cui.Items[i].Name)))
+			indexerKey := fmt.Sprint("/", cui.Items[i].Name)
+			indexers[indexerKey] = append(indexers[indexerKey], i)
 		} else {
 			return errors.New("found item hasn't identify")
 		}
@@ -797,15 +812,18 @@ func (cui *ConnectorUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet
 	}
 
 	for i := range es {
-		cui.Items[i].ID = es[i].ID
-		cui.Items[i].Name = es[i].Name
+		indexer := indexers[es[i].ID]
+		if indexer == nil {
+			indexerKey := fmt.Sprint("/", cui.Items[i].Name)
+			indexer = indexers[indexerKey]
+		}
+		for _, j := range indexer {
+			cui.Items[j].ID = es[i].ID
+			cui.Items[j].Name = es[i].Name
+		}
 	}
 
 	for i := range cui.Items {
-		if cui.Items[i] == nil {
-			continue
-		}
-
 		if err := cui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}

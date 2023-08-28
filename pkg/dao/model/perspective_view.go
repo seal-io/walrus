@@ -262,6 +262,7 @@ func (pdi *PerspectiveDeleteInputs) ValidateWith(ctx context.Context, cs ClientS
 
 	ids := make([]object.ID, 0, len(pdi.Items))
 	ors := make([]predicate.Perspective, 0, len(pdi.Items))
+	indexers := make(map[any][]int)
 
 	for i := range pdi.Items {
 		if pdi.Items[i] == nil {
@@ -271,9 +272,12 @@ func (pdi *PerspectiveDeleteInputs) ValidateWith(ctx context.Context, cs ClientS
 		if pdi.Items[i].ID != "" {
 			ids = append(ids, pdi.Items[i].ID)
 			ors = append(ors, perspective.ID(pdi.Items[i].ID))
+			indexers[pdi.Items[i].ID] = append(indexers[pdi.Items[i].ID], i)
 		} else if pdi.Items[i].Name != "" {
 			ors = append(ors, perspective.And(
 				perspective.Name(pdi.Items[i].Name)))
+			indexerKey := fmt.Sprint("/", pdi.Items[i].Name)
+			indexers[indexerKey] = append(indexers[indexerKey], i)
 		} else {
 			return errors.New("found item hasn't identify")
 		}
@@ -300,8 +304,15 @@ func (pdi *PerspectiveDeleteInputs) ValidateWith(ctx context.Context, cs ClientS
 	}
 
 	for i := range es {
-		pdi.Items[i].ID = es[i].ID
-		pdi.Items[i].Name = es[i].Name
+		indexer := indexers[es[i].ID]
+		if indexer == nil {
+			indexerKey := fmt.Sprint("/", pdi.Items[i].Name)
+			indexer = indexers[indexerKey]
+		}
+		for _, j := range indexer {
+			pdi.Items[j].ID = es[i].ID
+			pdi.Items[j].Name = es[i].Name
+		}
 	}
 
 	return nil
@@ -608,6 +619,7 @@ func (pui *PerspectiveUpdateInputs) ValidateWith(ctx context.Context, cs ClientS
 
 	ids := make([]object.ID, 0, len(pui.Items))
 	ors := make([]predicate.Perspective, 0, len(pui.Items))
+	indexers := make(map[any][]int)
 
 	for i := range pui.Items {
 		if pui.Items[i] == nil {
@@ -617,9 +629,12 @@ func (pui *PerspectiveUpdateInputs) ValidateWith(ctx context.Context, cs ClientS
 		if pui.Items[i].ID != "" {
 			ids = append(ids, pui.Items[i].ID)
 			ors = append(ors, perspective.ID(pui.Items[i].ID))
+			indexers[pui.Items[i].ID] = append(indexers[pui.Items[i].ID], i)
 		} else if pui.Items[i].Name != "" {
 			ors = append(ors, perspective.And(
 				perspective.Name(pui.Items[i].Name)))
+			indexerKey := fmt.Sprint("/", pui.Items[i].Name)
+			indexers[indexerKey] = append(indexers[indexerKey], i)
 		} else {
 			return errors.New("found item hasn't identify")
 		}
@@ -646,15 +661,18 @@ func (pui *PerspectiveUpdateInputs) ValidateWith(ctx context.Context, cs ClientS
 	}
 
 	for i := range es {
-		pui.Items[i].ID = es[i].ID
-		pui.Items[i].Name = es[i].Name
+		indexer := indexers[es[i].ID]
+		if indexer == nil {
+			indexerKey := fmt.Sprint("/", pui.Items[i].Name)
+			indexer = indexers[indexerKey]
+		}
+		for _, j := range indexer {
+			pui.Items[j].ID = es[i].ID
+			pui.Items[j].Name = es[i].Name
+		}
 	}
 
 	for i := range pui.Items {
-		if pui.Items[i] == nil {
-			continue
-		}
-
 		if err := pui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}

@@ -545,10 +545,6 @@ func (tui *TokenUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, ca
 	}
 
 	for i := range tui.Items {
-		if tui.Items[i] == nil {
-			continue
-		}
-
 		if err := tui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
