@@ -3,7 +3,6 @@ package setting
 import (
 	"net/http"
 
-	settingbus "github.com/seal-io/walrus/pkg/bus/setting"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/setting"
@@ -32,21 +31,9 @@ func (h Handler) Update(req UpdateRequest) error {
 			return errorx.HttpErrorf(http.StatusNotFound, "setting %s not found", req.Name)
 		}
 
-		changed, err := s.Set(req.Context, tx, req.Value)
-		if err != nil {
-			return err
-		}
+		_, err := s.Set(req.Context, tx, req.Value)
 
-		if !changed {
-			return nil
-		}
-
-		return settingbus.Notify(req.Context, tx, model.Settings{
-			&model.Setting{
-				Name:  req.Name,
-				Value: req.Value,
-			},
-		})
+		return err
 	})
 }
 
@@ -119,33 +106,18 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 func (h Handler) CollectionUpdate(req CollectionUpdateRequest) error {
 	// Bypass the validations or cascade works to settings definition.
 	return h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
-		list := make([]*model.Setting, 0, len(req.Items))
-
 		for i := range req.Items {
 			s := settings.Index(req.Items[i].Name)
 			if s == nil {
 				return errorx.HttpErrorf(http.StatusNotFound, "setting %s not found", req.Items[i].Name)
 			}
 
-			changed, err := s.Set(req.Context, tx, req.Items[i].Value)
+			_, err := s.Set(req.Context, tx, req.Items[i].Value)
 			if err != nil {
 				return err
 			}
-
-			if !changed {
-				continue
-			}
-
-			list = append(list, &model.Setting{
-				Name:  req.Items[i].Name,
-				Value: req.Items[i].Value,
-			})
 		}
 
-		if len(list) == 0 {
-			return nil
-		}
-
-		return settingbus.Notify(req.Context, tx, list)
+		return nil
 	})
 }
