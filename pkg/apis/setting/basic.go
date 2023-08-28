@@ -31,9 +31,7 @@ func (h Handler) Update(req UpdateRequest) error {
 			return errorx.HttpErrorf(http.StatusNotFound, "setting %s not found", req.Name)
 		}
 
-		_, err := s.Set(req.Context, tx, req.Value)
-
-		return err
+		return s.Set(req.Context, tx, req.Value)
 	})
 }
 
@@ -112,7 +110,7 @@ func (h Handler) CollectionUpdate(req CollectionUpdateRequest) error {
 				return errorx.HttpErrorf(http.StatusNotFound, "setting %s not found", req.Items[i].Name)
 			}
 
-			_, err := s.Set(req.Context, tx, req.Items[i].Value)
+			err := s.Set(req.Context, tx, req.Items[i].Value)
 			if err != nil {
 				return err
 			}

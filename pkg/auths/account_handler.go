@@ -138,8 +138,7 @@ func (a Account) UpdateInfo(req UpdateInfoRequest) error {
 	if sj.IsAdmin() {
 		// Nullify the bootstrap password gain source.
 		if settings.BootPwdGainSource.ShouldValue(req.Context, a.modelClient) != "Invalid" {
-			_, err = settings.BootPwdGainSource.Set(req.Context, a.modelClient, "Invalid")
-			return err
+			return settings.BootPwdGainSource.Set(req.Context, a.modelClient, "Invalid")
 		}
 	}
 

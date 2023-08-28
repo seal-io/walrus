@@ -82,15 +82,11 @@ func (r *Server) configureCasdoor(ctx context.Context, opts initOptions) error {
 
 	// Record the application credential.
 	err = opts.ModelClient.WithTx(ctx, func(tx *model.Tx) error {
-		if _, err = settings.CasdoorCred.Set(ctx, tx, cred); err != nil {
+		if err := settings.CasdoorCred.Set(ctx, tx, cred); err != nil {
 			return err
 		}
 
-		if _, err = settings.CasdoorApiToken.Set(ctx, tx, token.AccessToken); err != nil {
-			return err
-		}
-
-		return nil
+		return settings.CasdoorApiToken.Set(ctx, tx, token.AccessToken)
 	})
 	if err != nil {
 		return err
@@ -111,7 +107,7 @@ func (r *Server) configureCasdoor(ctx context.Context, opts initOptions) error {
 			fl = "Process"
 		}
 
-		_, err = settings.BootPwdGainSource.Set(ctx, opts.ModelClient, fl)
+		err = settings.BootPwdGainSource.Set(ctx, opts.ModelClient, fl)
 		if err != nil {
 			return err
 		}
