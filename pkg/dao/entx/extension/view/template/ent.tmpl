@@ -529,6 +529,7 @@ func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs Clien
 
     {{- if gt (len $input.IndexFields) 0 }}
     ors := make([]predicate.{{ $.Name }}, 0, len({{ $receiver }}.Items))
+    indexers := make(map[any][]int)
     {{- end }}
 
     for i := range {{ $receiver }}.Items {
@@ -544,6 +545,7 @@ func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs Clien
             ids = append(ids, {{ $receiver }}.Items[i].ID)
         {{- if gt (len $input.IndexFields) 0 }}
             ors = append(ors, {{ $util }}.ID({{ $receiver }}.Items[i].ID))
+            indexers[{{ $receiver }}.Items[i].ID] = append(indexers[{{ $receiver }}.Items[i].ID], i)
         } else if
         {{- $idx := 0 -}}
         {{- range $idx, $f := $input.IndexFields -}}
@@ -561,13 +563,13 @@ func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs Clien
         {{- end -}}
         {
             ors = append(ors, {{ $util }}.And(
-                    {{ range $f := $input.IndexFields }}
+                    {{- range $f := $input.IndexFields -}}
                         {{- $fn := $f.StructField }}
-                        {{- if not $f.IsEdgeField -}}
-                            {{ $util }}.{{ $fn }}({{ $receiver }}.Items[i].{{ $fn }}),
-                        {{- end -}}
+                        {{ $util }}.{{ $fn }}({{ $receiver }}.Items[i].{{ $fn }}),
                     {{- end -}}
                 ))
+            indexerKey := fmt.Sprint({{ range $f := $input.IndexFields }}"/",{{ $receiver }}.Items[i].{{ $f.StructField }},{{ end }})
+            indexers[indexerKey] = append(indexers[indexerKey], i)
         {{- end }}
         } else {
             return errors.New("found item hasn't identify")
@@ -601,11 +603,18 @@ func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs Clien
     }
 
     for i := range es {
-        {{ $receiver }}.Items[i].ID = es[i].ID
-        {{- range $idx, $f := $input.IndexFields }}
-            {{- $fn := $f.StructField }}
-            {{ $receiver }}.Items[i].{{ $fn }} = es[i].{{ $fn }}
-        {{- end }}
+        indexer := indexers[es[i].ID]
+        if indexer == nil {
+            indexerKey := fmt.Sprint({{ range $f := $input.IndexFields }}"/",{{ $receiver }}.Items[i].{{ $f.StructField }},{{ end }})
+            indexer = indexers[indexerKey]
+        }
+        for _, j := range indexer {
+            {{ $receiver }}.Items[j].ID = es[i].ID
+            {{- range $idx, $f := $input.IndexFields -}}
+                {{- $fn := $f.StructField }}
+                {{ $receiver }}.Items[j].{{ $fn }} = es[i].{{ $fn }}
+            {{- end }}
+        }
     }
     {{- else }}
     if len(ids) != cap(ids) {
@@ -819,11 +828,9 @@ func ({{ $receiver }} *{{ $singular }}) ValidateWith(ctx context.Context, cs Cli
     {{- end -}}
     {
         q.Where(
-            {{ range $f := $input.IndexFields }}
+            {{- range $f := $input.IndexFields -}}
                 {{- $fn := $f.StructField }}
-                {{- if not $f.IsEdgeField -}}
-                    {{ $util }}.{{ $fn }}({{ $receiver }}.{{ $fn }}),
-                {{- end -}}
+                {{ $util }}.{{ $fn }}({{ $receiver }}.{{ $fn }}),
             {{- end -}}
         )
     {{- end }}
@@ -1317,6 +1324,7 @@ func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs Clien
 
     {{- if gt (len $input.IndexFields) 0 }}
     ors := make([]predicate.{{ $.Name }}, 0, len({{ $receiver }}.Items))
+    indexers := make(map[any][]int)
     {{- end }}
 
     for i := range {{ $receiver }}.Items {
@@ -1332,6 +1340,7 @@ func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs Clien
             ids = append(ids, {{ $receiver }}.Items[i].ID)
         {{- if gt (len $input.IndexFields) 0 }}
             ors = append(ors, {{ $util }}.ID({{ $receiver }}.Items[i].ID))
+            indexers[{{ $receiver }}.Items[i].ID] = append(indexers[{{ $receiver }}.Items[i].ID], i)
         } else if
         {{- $idx := 0 -}}
         {{- range $idx, $f := $input.IndexFields -}}
@@ -1349,13 +1358,13 @@ func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs Clien
         {{- end -}}
         {
             ors = append(ors, {{ $util }}.And(
-                    {{ range $f := $input.IndexFields }}
+                    {{- range $f := $input.IndexFields -}}
                         {{- $fn := $f.StructField }}
-                        {{- if not $f.IsEdgeField -}}
-                            {{ $util }}.{{ $fn }}({{ $receiver }}.Items[i].{{ $fn }}),
-                        {{- end -}}
+                        {{ $util }}.{{ $fn }}({{ $receiver }}.Items[i].{{ $fn }}),
                     {{- end -}}
                 ))
+            indexerKey := fmt.Sprint({{ range $f := $input.IndexFields }}"/",{{ $receiver }}.Items[i].{{ $f.StructField }},{{ end }})
+            indexers[indexerKey] = append(indexers[indexerKey], i)
         {{- end }}
         } else {
             return errors.New("found item hasn't identify")
@@ -1389,11 +1398,18 @@ func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs Clien
     }
 
     for i := range es {
-        {{ $receiver }}.Items[i].ID = es[i].ID
-        {{- range $idx, $f := $input.IndexFields }}
-            {{- $fn := $f.StructField }}
-            {{ $receiver }}.Items[i].{{ $fn }} = es[i].{{ $fn }}
-        {{- end }}
+        indexer := indexers[es[i].ID]
+        if indexer == nil {
+            indexerKey := fmt.Sprint({{ range $f := $input.IndexFields }}"/",{{ $receiver }}.Items[i].{{ $f.StructField }},{{ end }})
+            indexer = indexers[indexerKey]
+        }
+        for _, j := range indexer {
+            {{ $receiver }}.Items[j].ID = es[i].ID
+            {{- range $idx, $f := $input.IndexFields }}
+                {{- $fn := $f.StructField }}
+                {{ $receiver }}.Items[j].{{ $fn }} = es[i].{{ $fn }}
+            {{- end }}
+        }
     }
     {{- else }}
     if len(ids) != cap(ids) {
@@ -1412,10 +1428,6 @@ func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs Clien
     {{- end }}
 
     for i := range {{ $receiver }}.Items {
-        if {{ $receiver }}.Items[i] == nil {
-            continue
-        }
-
         if err := {{ $receiver }}.Items[i].ValidateWith(ctx, cs, cache); err != nil {
             return err
         }
