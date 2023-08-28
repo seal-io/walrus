@@ -108,8 +108,8 @@ type Scheduler interface {
 	Start(ctx context.Context, lc Locker) error
 	// Stop stops scheduling.
 	Stop() error
-	// Jobs current running.
-	Jobs() []Job
+	// State returns an indexer that index the running job status by its name.
+	State() map[string]JobStatus
 }
 
 type scheduler struct {
@@ -274,43 +274,32 @@ func (in *scheduler) Stop() error {
 	return nil
 }
 
-func (in *scheduler) Jobs() []Job {
+func (in *scheduler) State() map[string]JobStatus {
 	var (
-		sj   = in.s.Jobs()
-		jobs = make([]Job, len(sj))
+		sj = in.s.Jobs()
+		js = make(map[string]JobStatus, len(sj))
 	)
 
 	for i := range sj {
-		jobs[i] = &job{j: sj[i]}
+		if !sj[i].IsRunning() {
+			continue
+		}
+
+		js[sj[i].Tags()[0]] = JobStatus{
+			LastRun: sj[i].LastRun(),
+			NextRun: sj[i].NextRun(),
+		}
 	}
 
-	return jobs
+	return js
 }
 
-// Job represent a cronjob.
-type Job interface {
-	// LastRun return the time job last run.
-	LastRun() time.Time
-	// NextRun return the next time job should be schedule.
-	NextRun() time.Time
-	// Tags return the job tags.
-	Tags() []string
-}
-
-type job struct {
-	j *gocron.Job
-}
-
-func (j *job) Tags() []string {
-	return j.j.Tags()
-}
-
-func (j *job) LastRun() time.Time {
-	return j.j.LastRun()
-}
-
-func (j *job) NextRun() time.Time {
-	return j.j.NextRun()
+// JobStatus holds the status of a running job.
+type JobStatus struct {
+	// LastRun observes the time job last run.
+	LastRun time.Time
+	// NextRun observes the next time job should be schedule.
+	NextRun time.Time
 }
 
 // New returns a new Scheduler.
@@ -345,7 +334,7 @@ func Stop() error {
 	return globalScheduler.Stop()
 }
 
-// Jobs return the current running schedule jobs.
-func Jobs() []Job {
-	return globalScheduler.Jobs()
+// State returns an indexer that index the running job status by its name.
+func State() map[string]JobStatus {
+	return globalScheduler.State()
 }

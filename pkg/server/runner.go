@@ -581,17 +581,17 @@ func (r *Server) Run(c context.Context) error {
 	})
 
 	// Start cron spec syncer.
-	startCronSpecSyncerOpts := cron.StartSyncerOptions{
+	startCronSpecSyncerOpts := cron.StartCorrecterOptions{
 		ModelClient: modelClient,
 		Interval:    5 * time.Minute,
 	}
 
 	g.Go(func() error {
-		log.Info("starting cron spec syncer")
+		log.Info("starting cron expression correcter")
 
-		err := cron.SetupSyncer(ctx, startCronSpecSyncerOpts)
+		err := cron.StartCorrecter(ctx, startCronSpecSyncerOpts)
 		if err != nil {
-			log.Errorf("error starting cron spec syncer: %v", err)
+			log.Errorf("error starting cron expression correcter: %v", err)
 		}
 
 		return err
