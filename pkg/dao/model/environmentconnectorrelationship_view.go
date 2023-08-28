@@ -583,10 +583,6 @@ func (ecrui *EnvironmentConnectorRelationshipUpdateInputs) ValidateWith(ctx cont
 	}
 
 	for i := range ecrui.Items {
-		if ecrui.Items[i] == nil {
-			continue
-		}
-
 		if err := ecrui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}

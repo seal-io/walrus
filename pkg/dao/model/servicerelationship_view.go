@@ -583,10 +583,6 @@ func (srui *ServiceRelationshipUpdateInputs) ValidateWith(ctx context.Context, c
 	}
 
 	for i := range srui.Items {
-		if srui.Items[i] == nil {
-			continue
-		}
-
 		if err := srui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}

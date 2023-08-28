@@ -238,6 +238,7 @@ func (pdi *ProjectDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 
 	ids := make([]object.ID, 0, len(pdi.Items))
 	ors := make([]predicate.Project, 0, len(pdi.Items))
+	indexers := make(map[any][]int)
 
 	for i := range pdi.Items {
 		if pdi.Items[i] == nil {
@@ -247,9 +248,12 @@ func (pdi *ProjectDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 		if pdi.Items[i].ID != "" {
 			ids = append(ids, pdi.Items[i].ID)
 			ors = append(ors, project.ID(pdi.Items[i].ID))
+			indexers[pdi.Items[i].ID] = append(indexers[pdi.Items[i].ID], i)
 		} else if pdi.Items[i].Name != "" {
 			ors = append(ors, project.And(
 				project.Name(pdi.Items[i].Name)))
+			indexerKey := fmt.Sprint("/", pdi.Items[i].Name)
+			indexers[indexerKey] = append(indexers[indexerKey], i)
 		} else {
 			return errors.New("found item hasn't identify")
 		}
@@ -278,8 +282,15 @@ func (pdi *ProjectDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 	}
 
 	for i := range es {
-		pdi.Items[i].ID = es[i].ID
-		pdi.Items[i].Name = es[i].Name
+		indexer := indexers[es[i].ID]
+		if indexer == nil {
+			indexerKey := fmt.Sprint("/", pdi.Items[i].Name)
+			indexer = indexers[indexerKey]
+		}
+		for _, j := range indexer {
+			pdi.Items[j].ID = es[i].ID
+			pdi.Items[j].Name = es[i].Name
+		}
 	}
 
 	return nil
@@ -564,6 +575,7 @@ func (pui *ProjectUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 
 	ids := make([]object.ID, 0, len(pui.Items))
 	ors := make([]predicate.Project, 0, len(pui.Items))
+	indexers := make(map[any][]int)
 
 	for i := range pui.Items {
 		if pui.Items[i] == nil {
@@ -573,9 +585,12 @@ func (pui *ProjectUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 		if pui.Items[i].ID != "" {
 			ids = append(ids, pui.Items[i].ID)
 			ors = append(ors, project.ID(pui.Items[i].ID))
+			indexers[pui.Items[i].ID] = append(indexers[pui.Items[i].ID], i)
 		} else if pui.Items[i].Name != "" {
 			ors = append(ors, project.And(
 				project.Name(pui.Items[i].Name)))
+			indexerKey := fmt.Sprint("/", pui.Items[i].Name)
+			indexers[indexerKey] = append(indexers[indexerKey], i)
 		} else {
 			return errors.New("found item hasn't identify")
 		}
@@ -604,15 +619,18 @@ func (pui *ProjectUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 	}
 
 	for i := range es {
-		pui.Items[i].ID = es[i].ID
-		pui.Items[i].Name = es[i].Name
+		indexer := indexers[es[i].ID]
+		if indexer == nil {
+			indexerKey := fmt.Sprint("/", pui.Items[i].Name)
+			indexer = indexers[indexerKey]
+		}
+		for _, j := range indexer {
+			pui.Items[j].ID = es[i].ID
+			pui.Items[j].Name = es[i].Name
+		}
 	}
 
 	for i := range pui.Items {
-		if pui.Items[i] == nil {
-			continue
-		}
-
 		if err := pui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}

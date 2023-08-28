@@ -763,10 +763,6 @@ func (srrui *SubjectRoleRelationshipUpdateInputs) ValidateWith(ctx context.Conte
 	}
 
 	for i := range srrui.Items {
-		if srrui.Items[i] == nil {
-			continue
-		}
-
 		if err := srrui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}

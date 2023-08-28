@@ -258,6 +258,7 @@ func (srrdi *ServiceResourceRelationshipDeleteInputs) ValidateWith(ctx context.C
 
 	ids := make([]object.ID, 0, len(srrdi.Items))
 	ors := make([]predicate.ServiceResourceRelationship, 0, len(srrdi.Items))
+	indexers := make(map[any][]int)
 
 	for i := range srrdi.Items {
 		if srrdi.Items[i] == nil {
@@ -267,9 +268,12 @@ func (srrdi *ServiceResourceRelationshipDeleteInputs) ValidateWith(ctx context.C
 		if srrdi.Items[i].ID != "" {
 			ids = append(ids, srrdi.Items[i].ID)
 			ors = append(ors, serviceresourcerelationship.ID(srrdi.Items[i].ID))
+			indexers[srrdi.Items[i].ID] = append(indexers[srrdi.Items[i].ID], i)
 		} else if srrdi.Items[i].Type != "" {
 			ors = append(ors, serviceresourcerelationship.And(
 				serviceresourcerelationship.Type(srrdi.Items[i].Type)))
+			indexerKey := fmt.Sprint("/", srrdi.Items[i].Type)
+			indexers[indexerKey] = append(indexers[indexerKey], i)
 		} else {
 			return errors.New("found item hasn't identify")
 		}
@@ -296,8 +300,15 @@ func (srrdi *ServiceResourceRelationshipDeleteInputs) ValidateWith(ctx context.C
 	}
 
 	for i := range es {
-		srrdi.Items[i].ID = es[i].ID
-		srrdi.Items[i].Type = es[i].Type
+		indexer := indexers[es[i].ID]
+		if indexer == nil {
+			indexerKey := fmt.Sprint("/", srrdi.Items[i].Type)
+			indexer = indexers[indexerKey]
+		}
+		for _, j := range indexer {
+			srrdi.Items[j].ID = es[i].ID
+			srrdi.Items[j].Type = es[i].Type
+		}
 	}
 
 	return nil
@@ -599,6 +610,7 @@ func (srrui *ServiceResourceRelationshipUpdateInputs) ValidateWith(ctx context.C
 
 	ids := make([]object.ID, 0, len(srrui.Items))
 	ors := make([]predicate.ServiceResourceRelationship, 0, len(srrui.Items))
+	indexers := make(map[any][]int)
 
 	for i := range srrui.Items {
 		if srrui.Items[i] == nil {
@@ -608,9 +620,12 @@ func (srrui *ServiceResourceRelationshipUpdateInputs) ValidateWith(ctx context.C
 		if srrui.Items[i].ID != "" {
 			ids = append(ids, srrui.Items[i].ID)
 			ors = append(ors, serviceresourcerelationship.ID(srrui.Items[i].ID))
+			indexers[srrui.Items[i].ID] = append(indexers[srrui.Items[i].ID], i)
 		} else if srrui.Items[i].Type != "" {
 			ors = append(ors, serviceresourcerelationship.And(
 				serviceresourcerelationship.Type(srrui.Items[i].Type)))
+			indexerKey := fmt.Sprint("/", srrui.Items[i].Type)
+			indexers[indexerKey] = append(indexers[indexerKey], i)
 		} else {
 			return errors.New("found item hasn't identify")
 		}
@@ -637,15 +652,18 @@ func (srrui *ServiceResourceRelationshipUpdateInputs) ValidateWith(ctx context.C
 	}
 
 	for i := range es {
-		srrui.Items[i].ID = es[i].ID
-		srrui.Items[i].Type = es[i].Type
+		indexer := indexers[es[i].ID]
+		if indexer == nil {
+			indexerKey := fmt.Sprint("/", srrui.Items[i].Type)
+			indexer = indexers[indexerKey]
+		}
+		for _, j := range indexer {
+			srrui.Items[j].ID = es[i].ID
+			srrui.Items[j].Type = es[i].Type
+		}
 	}
 
 	for i := range srrui.Items {
-		if srrui.Items[i] == nil {
-			continue
-		}
-
 		if err := srrui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}

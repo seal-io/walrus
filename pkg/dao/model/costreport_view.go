@@ -769,10 +769,6 @@ func (crui *CostReportUpdateInputs) ValidateWith(ctx context.Context, cs ClientS
 	}
 
 	for i := range crui.Items {
-		if crui.Items[i] == nil {
-			continue
-		}
-
 		if err := crui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}

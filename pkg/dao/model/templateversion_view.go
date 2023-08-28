@@ -246,6 +246,7 @@ func (tvdi *TemplateVersionDeleteInputs) ValidateWith(ctx context.Context, cs Cl
 
 	ids := make([]object.ID, 0, len(tvdi.Items))
 	ors := make([]predicate.TemplateVersion, 0, len(tvdi.Items))
+	indexers := make(map[any][]int)
 
 	for i := range tvdi.Items {
 		if tvdi.Items[i] == nil {
@@ -255,9 +256,13 @@ func (tvdi *TemplateVersionDeleteInputs) ValidateWith(ctx context.Context, cs Cl
 		if tvdi.Items[i].ID != "" {
 			ids = append(ids, tvdi.Items[i].ID)
 			ors = append(ors, templateversion.ID(tvdi.Items[i].ID))
+			indexers[tvdi.Items[i].ID] = append(indexers[tvdi.Items[i].ID], i)
 		} else if (tvdi.Items[i].Name != "") && (tvdi.Items[i].Version != "") {
 			ors = append(ors, templateversion.And(
-				templateversion.Name(tvdi.Items[i].Name), templateversion.Version(tvdi.Items[i].Version)))
+				templateversion.Name(tvdi.Items[i].Name),
+				templateversion.Version(tvdi.Items[i].Version)))
+			indexerKey := fmt.Sprint("/", tvdi.Items[i].Name, "/", tvdi.Items[i].Version)
+			indexers[indexerKey] = append(indexers[indexerKey], i)
 		} else {
 			return errors.New("found item hasn't identify")
 		}
@@ -285,9 +290,16 @@ func (tvdi *TemplateVersionDeleteInputs) ValidateWith(ctx context.Context, cs Cl
 	}
 
 	for i := range es {
-		tvdi.Items[i].ID = es[i].ID
-		tvdi.Items[i].Name = es[i].Name
-		tvdi.Items[i].Version = es[i].Version
+		indexer := indexers[es[i].ID]
+		if indexer == nil {
+			indexerKey := fmt.Sprint("/", tvdi.Items[i].Name, "/", tvdi.Items[i].Version)
+			indexer = indexers[indexerKey]
+		}
+		for _, j := range indexer {
+			tvdi.Items[j].ID = es[i].ID
+			tvdi.Items[j].Name = es[i].Name
+			tvdi.Items[j].Version = es[i].Version
+		}
 	}
 
 	return nil
@@ -363,7 +375,8 @@ func (tvqi *TemplateVersionQueryInput) ValidateWith(ctx context.Context, cs Clie
 			templateversion.ID(tvqi.ID))
 	} else if (tvqi.Name != "") && (tvqi.Version != "") {
 		q.Where(
-			templateversion.Name(tvqi.Name), templateversion.Version(tvqi.Version))
+			templateversion.Name(tvqi.Name),
+			templateversion.Version(tvqi.Version))
 	} else {
 		return errors.New("invalid identify of templateversion")
 	}
@@ -574,6 +587,7 @@ func (tvui *TemplateVersionUpdateInputs) ValidateWith(ctx context.Context, cs Cl
 
 	ids := make([]object.ID, 0, len(tvui.Items))
 	ors := make([]predicate.TemplateVersion, 0, len(tvui.Items))
+	indexers := make(map[any][]int)
 
 	for i := range tvui.Items {
 		if tvui.Items[i] == nil {
@@ -583,9 +597,13 @@ func (tvui *TemplateVersionUpdateInputs) ValidateWith(ctx context.Context, cs Cl
 		if tvui.Items[i].ID != "" {
 			ids = append(ids, tvui.Items[i].ID)
 			ors = append(ors, templateversion.ID(tvui.Items[i].ID))
+			indexers[tvui.Items[i].ID] = append(indexers[tvui.Items[i].ID], i)
 		} else if (tvui.Items[i].Name != "") && (tvui.Items[i].Version != "") {
 			ors = append(ors, templateversion.And(
-				templateversion.Name(tvui.Items[i].Name), templateversion.Version(tvui.Items[i].Version)))
+				templateversion.Name(tvui.Items[i].Name),
+				templateversion.Version(tvui.Items[i].Version)))
+			indexerKey := fmt.Sprint("/", tvui.Items[i].Name, "/", tvui.Items[i].Version)
+			indexers[indexerKey] = append(indexers[indexerKey], i)
 		} else {
 			return errors.New("found item hasn't identify")
 		}
@@ -613,16 +631,19 @@ func (tvui *TemplateVersionUpdateInputs) ValidateWith(ctx context.Context, cs Cl
 	}
 
 	for i := range es {
-		tvui.Items[i].ID = es[i].ID
-		tvui.Items[i].Name = es[i].Name
-		tvui.Items[i].Version = es[i].Version
+		indexer := indexers[es[i].ID]
+		if indexer == nil {
+			indexerKey := fmt.Sprint("/", tvui.Items[i].Name, "/", tvui.Items[i].Version)
+			indexer = indexers[indexerKey]
+		}
+		for _, j := range indexer {
+			tvui.Items[j].ID = es[i].ID
+			tvui.Items[j].Name = es[i].Name
+			tvui.Items[j].Version = es[i].Version
+		}
 	}
 
 	for i := range tvui.Items {
-		if tvui.Items[i] == nil {
-			continue
-		}
-
 		if err := tvui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}

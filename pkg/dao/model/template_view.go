@@ -244,6 +244,7 @@ func (tdi *TemplateDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet,
 
 	ids := make([]object.ID, 0, len(tdi.Items))
 	ors := make([]predicate.Template, 0, len(tdi.Items))
+	indexers := make(map[any][]int)
 
 	for i := range tdi.Items {
 		if tdi.Items[i] == nil {
@@ -253,9 +254,12 @@ func (tdi *TemplateDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet,
 		if tdi.Items[i].ID != "" {
 			ids = append(ids, tdi.Items[i].ID)
 			ors = append(ors, template.ID(tdi.Items[i].ID))
+			indexers[tdi.Items[i].ID] = append(indexers[tdi.Items[i].ID], i)
 		} else if tdi.Items[i].Name != "" {
 			ors = append(ors, template.And(
 				template.Name(tdi.Items[i].Name)))
+			indexerKey := fmt.Sprint("/", tdi.Items[i].Name)
+			indexers[indexerKey] = append(indexers[indexerKey], i)
 		} else {
 			return errors.New("found item hasn't identify")
 		}
@@ -282,8 +286,15 @@ func (tdi *TemplateDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet,
 	}
 
 	for i := range es {
-		tdi.Items[i].ID = es[i].ID
-		tdi.Items[i].Name = es[i].Name
+		indexer := indexers[es[i].ID]
+		if indexer == nil {
+			indexerKey := fmt.Sprint("/", tdi.Items[i].Name)
+			indexer = indexers[indexerKey]
+		}
+		for _, j := range indexer {
+			tdi.Items[j].ID = es[i].ID
+			tdi.Items[j].Name = es[i].Name
+		}
 	}
 
 	return nil
@@ -566,6 +577,7 @@ func (tui *TemplateUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet,
 
 	ids := make([]object.ID, 0, len(tui.Items))
 	ors := make([]predicate.Template, 0, len(tui.Items))
+	indexers := make(map[any][]int)
 
 	for i := range tui.Items {
 		if tui.Items[i] == nil {
@@ -575,9 +587,12 @@ func (tui *TemplateUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet,
 		if tui.Items[i].ID != "" {
 			ids = append(ids, tui.Items[i].ID)
 			ors = append(ors, template.ID(tui.Items[i].ID))
+			indexers[tui.Items[i].ID] = append(indexers[tui.Items[i].ID], i)
 		} else if tui.Items[i].Name != "" {
 			ors = append(ors, template.And(
 				template.Name(tui.Items[i].Name)))
+			indexerKey := fmt.Sprint("/", tui.Items[i].Name)
+			indexers[indexerKey] = append(indexers[indexerKey], i)
 		} else {
 			return errors.New("found item hasn't identify")
 		}
@@ -604,15 +619,18 @@ func (tui *TemplateUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet,
 	}
 
 	for i := range es {
-		tui.Items[i].ID = es[i].ID
-		tui.Items[i].Name = es[i].Name
+		indexer := indexers[es[i].ID]
+		if indexer == nil {
+			indexerKey := fmt.Sprint("/", tui.Items[i].Name)
+			indexer = indexers[indexerKey]
+		}
+		for _, j := range indexer {
+			tui.Items[j].ID = es[i].ID
+			tui.Items[j].Name = es[i].Name
+		}
 	}
 
 	for i := range tui.Items {
-		if tui.Items[i] == nil {
-			continue
-		}
-
 		if err := tui.Items[i].ValidateWith(ctx, cs, cache); err != nil {
 			return err
 		}
