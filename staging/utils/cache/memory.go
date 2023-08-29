@@ -220,8 +220,11 @@ func (c memoryCache) Delete(ctx context.Context, keys ...string) (err error) {
 		wk := c.wrapKey(&keys[i])
 
 		err = c.underlay.Delete(*wk)
-		if err != nil && !errors.Is(err, bigcache.ErrEntryNotFound) {
-			return
+		if err != nil {
+			if !errors.Is(err, bigcache.ErrEntryNotFound) {
+				return
+			}
+			err = nil
 		}
 	}
 
