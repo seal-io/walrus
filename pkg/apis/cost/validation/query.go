@@ -104,6 +104,10 @@ func ValidateCostQuery(query types.QueryCondition) error {
 }
 
 func ValidateShareCostFilters(options *types.SharedCostOptions) error {
+	if options == nil {
+		return nil
+	}
+
 	isValidStrategy := func(strategy types.SharingStrategy) bool {
 		return slices.Contains([]types.SharingStrategy{
 			types.SharingStrategyProportionally,
