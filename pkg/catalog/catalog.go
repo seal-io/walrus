@@ -172,33 +172,46 @@ func (cs catalogSyncer) Do(_ context.Context, busMessage catalog.BusMessage) err
 	gopool.Go(func() {
 		subCtx := context.Background()
 
-		err := SyncTemplates(subCtx, cs.mc, c)
-		if err != nil {
-			status.CatalogStatusInitialized.False(c, err.Error())
-			logger.Errorf("failed to sync catalog %s templates: %v", c.Name, err)
-		} else {
-			status.CatalogStatusReady.Reset(c, "")
-			status.CatalogStatusReady.True(c, "")
-		}
+		serr := SyncTemplates(subCtx, cs.mc, c)
 
-		c.Status.SetSummary(status.WalkCatalog(&c.Status))
-		update := cs.mc.Catalogs().UpdateOne(c).
-			SetStatus(c.Status)
-
-		syncResult, err := getSyncResult(subCtx, cs.mc, c)
-		if err != nil {
-			logger.Errorf("failed to update sync info: %v", err)
-		}
-
-		if syncResult != nil {
-			update.SetSync(syncResult)
-		}
-
-		rerr := update.Exec(subCtx)
-		if rerr != nil {
-			logger.Errorf("failed to update catalog %s status: %v", c.Name, rerr)
+		uerr := UpdateStatusWithSyncErr(
+			subCtx,
+			cs.mc,
+			c,
+			serr,
+		)
+		if uerr != nil {
+			logger.Errorf("failed to update catalog %s status: %v", c.Name, uerr)
 		}
 	})
 
 	return nil
+}
+
+// UpdateStatusWithSyncErr update catalog status with sync error.
+func UpdateStatusWithSyncErr(ctx context.Context, mc model.ClientSet, c *model.Catalog, syncErr error) error {
+	logger := log.WithName("catalog")
+
+	if syncErr != nil {
+		status.CatalogStatusInitialized.False(c, syncErr.Error())
+		logger.Errorf("failed to sync catalog %s templates: %v", c.Name, syncErr)
+	} else {
+		status.CatalogStatusReady.Reset(c, "")
+		status.CatalogStatusReady.True(c, "")
+	}
+
+	c.Status.SetSummary(status.WalkCatalog(&c.Status))
+	update := mc.Catalogs().UpdateOne(c).
+		SetStatus(c.Status)
+
+	syncResult, err := getSyncResult(ctx, mc, c)
+	if err != nil {
+		return fmt.Errorf("failed to update sync info: %w", err)
+	}
+
+	if syncResult != nil {
+		update.SetSync(syncResult)
+	}
+
+	return update.Exec(ctx)
 }
