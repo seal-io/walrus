@@ -302,7 +302,7 @@ func (srrdi *ServiceResourceRelationshipDeleteInputs) ValidateWith(ctx context.C
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", srrdi.Items[i].Type)
+			indexerKey := fmt.Sprint("/", es[i].Type)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {
@@ -654,7 +654,7 @@ func (srrui *ServiceResourceRelationshipUpdateInputs) ValidateWith(ctx context.C
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", srrui.Items[i].Type)
+			indexerKey := fmt.Sprint("/", es[i].Type)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {

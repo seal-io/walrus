@@ -407,7 +407,7 @@ func (sdi *ServiceDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", sdi.Items[i].Name)
+			indexerKey := fmt.Sprint("/", es[i].Name)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {
@@ -850,7 +850,7 @@ func (sui *ServiceUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", sui.Items[i].Name)
+			indexerKey := fmt.Sprint("/", es[i].Name)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {

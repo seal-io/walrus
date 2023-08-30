@@ -292,7 +292,7 @@ func (tvdi *TemplateVersionDeleteInputs) ValidateWith(ctx context.Context, cs Cl
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", tvdi.Items[i].Name, "/", tvdi.Items[i].Version)
+			indexerKey := fmt.Sprint("/", es[i].Name, "/", es[i].Version)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {
@@ -633,7 +633,7 @@ func (tvui *TemplateVersionUpdateInputs) ValidateWith(ctx context.Context, cs Cl
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", tvui.Items[i].Name, "/", tvui.Items[i].Version)
+			indexerKey := fmt.Sprint("/", es[i].Name, "/", es[i].Version)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {
