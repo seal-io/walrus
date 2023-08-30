@@ -8,10 +8,16 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/catalog"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/settings"
 )
 
 // createBuiltinCatalogs creates the built-in Catalog resources.
 func (r *Server) createBuiltinCatalogs(ctx context.Context, opts initOptions) error {
+	enableBuiltinCatalog := settings.EnableBuiltinCatalog.ShouldValueBool(ctx, opts.ModelClient)
+	if !enableBuiltinCatalog {
+		return nil
+	}
+
 	builtin := pkgcatalog.BuiltinCatalog()
 
 	c, err := opts.ModelClient.Catalogs().Query().
