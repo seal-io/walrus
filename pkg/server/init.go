@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+	"sync/atomic"
 
 	"k8s.io/client-go/rest"
 
@@ -17,12 +18,12 @@ import (
 )
 
 type initOptions struct {
-	K8sConfig      *rest.Config
-	K8sCacheReady  chan struct{}
-	ModelClient    *model.Client
-	SkipTLSVerify  bool
-	DatabaseDriver *sql.DB
-	CacheDriver    cache.Driver
+	K8sConfig         *rest.Config
+	K8sCtrlMgrIsReady *atomic.Bool
+	ModelClient       *model.Client
+	SkipTLSVerify     bool
+	DatabaseDriver    *sql.DB
+	CacheDriver       cache.Driver
 }
 
 func (r *Server) init(ctx context.Context, opts initOptions) error {

@@ -3,6 +3,8 @@ package server
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"sync/atomic"
 
 	"k8s.io/client-go/kubernetes"
 
@@ -23,7 +25,7 @@ func (r *Server) registerHealthCheckers(ctx context.Context, opts initOptions) e
 
 	cs := health.Checkers{
 		health.CheckerFunc("k8s", getKubernetesHealthChecker(k8sClientSet)),
-		health.CheckerFunc("k8sctrl", getKubernetesControllerHealthChecker(opts.K8sCacheReady)),
+		health.CheckerFunc("k8sctrl", getKubernetesControllerHealthChecker(opts.K8sCtrlMgrIsReady)),
 		health.CheckerFunc("database", getDatabaseHealthChecker(opts.DatabaseDriver)),
 		health.CheckerFunc("gopool", getGoPoolHealthChecker()),
 	}
@@ -45,14 +47,13 @@ func getKubernetesHealthChecker(cs *kubernetes.Clientset) health.Check {
 	}
 }
 
-func getKubernetesControllerHealthChecker(done <-chan struct{}) health.Check {
+func getKubernetesControllerHealthChecker(ready *atomic.Bool) health.Check {
 	return func(ctx context.Context) error {
-		select {
-		case <-done:
-			return nil
-		case <-ctx.Done():
-			return ctx.Err()
+		if !ready.Load() {
+			return errors.New("k8s controller is not ready")
 		}
+
+		return nil
 	}
 }
 
