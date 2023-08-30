@@ -74,7 +74,14 @@ func (in *TemplateSyncTask) Process(ctx context.Context, args ...any) error {
 			continue
 		}
 
-		uerr = pkgcatalog.SyncTemplates(ctx, in.modelClient, c)
+		serr := pkgcatalog.SyncTemplates(ctx, in.modelClient, c)
+
+		uerr = pkgcatalog.UpdateStatusWithSyncErr(
+			ctx,
+			in.modelClient,
+			c,
+			serr,
+		)
 		if uerr != nil {
 			berr = multierr.Append(berr,
 				fmt.Errorf("error syncing templates of catalog %s: %w",
