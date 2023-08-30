@@ -129,6 +129,11 @@ var (
 		editable,
 		initializeFrom("docker.io"),
 		modifyWith(notBlank))
+	EnableBuiltinCatalog = newValue(
+		"EnableBuiltinCatalog",
+		editable,
+		initializeFrom("true"),
+		modifyWith(notBlank))
 )
 
 // the built-in settings for server cron jobs.
