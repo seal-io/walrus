@@ -568,7 +568,7 @@ func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs Clien
                         {{ $util }}.{{ $fn }}({{ $receiver }}.Items[i].{{ $fn }}),
                     {{- end -}}
                 ))
-            indexerKey := fmt.Sprint({{ range $f := $input.IndexFields }}"/",{{ $receiver }}.Items[i].{{ $f.StructField }},{{ end }})
+            indexerKey := fmt.Sprint({{ range $f := $input.IndexFields }}"/",{{ if $f.NillableValue }}*{{ end }}{{ $receiver }}.Items[i].{{ $f.StructField }},{{ end }})
             indexers[indexerKey] = append(indexers[indexerKey], i)
         {{- end }}
         } else {
@@ -605,7 +605,7 @@ func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs Clien
     for i := range es {
         indexer := indexers[es[i].ID]
         if indexer == nil {
-            indexerKey := fmt.Sprint({{ range $f := $input.IndexFields }}"/",{{ $receiver }}.Items[i].{{ $f.StructField }},{{ end }})
+            indexerKey := fmt.Sprint({{ range $f := $input.IndexFields }}"/",{{ if $f.NillableValue }}*{{ end }}es[i].{{ $f.StructField }},{{ end }})
             indexer = indexers[indexerKey]
         }
         for _, j := range indexer {
@@ -1363,7 +1363,7 @@ func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs Clien
                         {{ $util }}.{{ $fn }}({{ $receiver }}.Items[i].{{ $fn }}),
                     {{- end -}}
                 ))
-            indexerKey := fmt.Sprint({{ range $f := $input.IndexFields }}"/",{{ $receiver }}.Items[i].{{ $f.StructField }},{{ end }})
+            indexerKey := fmt.Sprint({{ range $f := $input.IndexFields }}"/",{{ if $f.NillableValue }}*{{ end }}{{ $receiver }}.Items[i].{{ $f.StructField }},{{ end }})
             indexers[indexerKey] = append(indexers[indexerKey], i)
         {{- end }}
         } else {
@@ -1400,7 +1400,7 @@ func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs Clien
     for i := range es {
         indexer := indexers[es[i].ID]
         if indexer == nil {
-            indexerKey := fmt.Sprint({{ range $f := $input.IndexFields }}"/",{{ $receiver }}.Items[i].{{ $f.StructField }},{{ end }})
+            indexerKey := fmt.Sprint({{ range $f := $input.IndexFields }}"/",{{ if $f.NillableValue }}*{{ end }}es[i].{{ $f.StructField }},{{ end }})
             indexer = indexers[indexerKey]
         }
         for _, j := range indexer {
