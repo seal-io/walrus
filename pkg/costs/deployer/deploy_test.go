@@ -24,10 +24,10 @@ func TestHelm(t *testing.T) {
 	deployer, err := New(string(kubeConfigContentByte))
 	assert.Nil(t, err, "error create helm")
 
-	yaml, err := opencost("test")
+	yaml, err := opencost("test", "docker.io")
 	assert.Nil(t, err, "error create opencost yaml")
 
-	app, err := prometheus()
+	app, err := prometheus("docker.io")
 	assert.Nil(t, err, "error create prometheus app")
 
 	err = deployer.EnsureChart(app, true)

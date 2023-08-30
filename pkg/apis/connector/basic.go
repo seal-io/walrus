@@ -251,7 +251,7 @@ func applyFinOps(mc model.ClientSet, conn *model.Connector, reinstall bool) erro
 		defer cancel()
 
 		// Deploy tools.
-		err := deployer.DeployCostTools(ctx, conn, reinstall)
+		err := deployer.DeployCostTools(ctx, mc, conn, reinstall)
 		if err != nil {
 			// Log instead of return error, then continue to sync the final status to connector.
 			logger.Errorf("error ensuring cost tools for connector %q: %v", conn.ID, err)
