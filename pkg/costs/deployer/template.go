@@ -172,6 +172,8 @@ spec:
               value: {{.Name}}
             - name: KUBECOST_NAMESPACE
               value: {{.Namespace}}
+            - name: MAX_QUERY_CONCURRENCY
+              value: "2"
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false

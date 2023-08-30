@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
+	"golang.org/x/time/rate"
 
 	"github.com/seal-io/walrus/pkg/costs/collector"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -70,7 +68,7 @@ func (in *K8sCostSyncer) syncCost(ctx context.Context, conn *model.Connector, st
 		return err
 	}
 
-	startTime, endTime, err = in.timeRange(ctx, restCfg, conn, startTime, endTime)
+	startTime, endTime, err = in.timeRange(ctx, conn, startTime, endTime)
 	if err != nil {
 		return err
 	}
@@ -84,33 +82,37 @@ func (in *K8sCostSyncer) syncCost(ctx context.Context, conn *model.Connector, st
 		maxTimeRange = curTimeRange
 	}
 
+	limiter := rate.NewLimiter(rate.Every(2*time.Second), 1)
+
 	stepStart := *startTime
 	for endTime.After(stepStart) {
-		stepEnd := stepStart.Add(maxTimeRange)
-		in.logger.Debugf("connector: %s, step sync within %s, %s", conn.Name, stepStart.String(), stepEnd.String())
+		if limiter.Allow() {
+			stepEnd := stepStart.Add(maxTimeRange)
+			in.logger.Debugf("connector: %s, step sync within %s, %s", conn.Name, stepStart.String(), stepEnd.String())
 
-		ac, err := collect.K8sCosts(&stepStart, &stepEnd, defaultStep)
-		if err != nil {
-			return err
-		}
+			ac, err := collect.K8sCosts(&stepStart, &stepEnd, defaultStep)
+			if err != nil {
+				return err
+			}
 
-		if len(ac) == 0 {
-			in.logger.Debugf("connector: %s, finished step sync within %s, %s, no record found",
-				conn.Name, stepStart.String(), stepEnd.String())
+			if len(ac) == 0 {
+				in.logger.Debugf("connector: %s, finished step sync within %s, %s, no record found",
+					conn.Name, stepStart.String(), stepEnd.String())
+
+				stepStart = stepEnd
+
+				continue
+			}
+
+			if err = in.batchCreateCostReports(ctx, ac); err != nil {
+				return fmt.Errorf("error creating item costs: %w", err)
+			}
+
+			in.logger.Debugf("connector: %s, finished step sync within %s, %s, created %d record",
+				conn.Name, stepStart.String(), stepEnd.String(), len(ac))
 
 			stepStart = stepEnd
-
-			continue
 		}
-
-		if err = in.batchCreateCostReports(ctx, ac); err != nil {
-			return fmt.Errorf("error creating item costs: %w", err)
-		}
-
-		in.logger.Debugf("connector: %s, finished step sync within %s, %s, created %d record",
-			conn.Name, stepStart.String(), stepEnd.String(), len(ac))
-
-		stepStart = stepEnd
 	}
 
 	return nil
@@ -152,7 +154,6 @@ func (in *K8sCostSyncer) batchCreateCostReports(ctx context.Context, costs []*mo
 
 func (in *K8sCostSyncer) timeRange(
 	ctx context.Context,
-	restCfg *rest.Config,
 	conn *model.Connector,
 	startTime,
 	endTime *time.Time,
@@ -162,25 +163,7 @@ func (in *K8sCostSyncer) timeRange(
 		return startTime, endTime, nil
 	}
 
-	// Time range from cluster.
-	clientSet, err := kubernetes.NewForConfig(restCfg)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	nodes, err := clientSet.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
-	if err != nil {
-		return nil, nil, err
-	}
-
-	clusterEarliestTime := time.Now()
-	for _, v := range nodes.Items {
-		if v.CreationTimestamp.Time.Before(clusterEarliestTime) {
-			clusterEarliestTime = v.CreationTimestamp.Time
-		}
-	}
-
-	s := timex.StartTimeOfHour(clusterEarliestTime, time.UTC)
+	s := timex.StartTimeOfHour(*conn.CreateTime, time.UTC)
 	e := timex.StartTimeOfHour(time.Now(), time.UTC)
 	startTime = &s
 	endTime = &e
