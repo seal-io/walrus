@@ -162,12 +162,9 @@ func (d *Deployer) EnsureChart(app *ChartApp, replace bool) error {
 		}
 	}
 
-	chartTgzPath := path.Join(helm.repoCache, app.ChartTgzName)
+	chartTgzPath := path.Join(helm.chartsDir, app.ChartTgzName)
 	if _, err = os.Stat(chartTgzPath); err != nil {
-		chartTgzPath, err = helm.Download(app.Entry.URL, app.Entry.Name)
-		if err != nil {
-			return err
-		}
+		return err
 	}
 
 	if err = helm.Install(app.Name, chartTgzPath, app.Values); err != nil {

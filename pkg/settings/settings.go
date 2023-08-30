@@ -123,6 +123,12 @@ var (
 		editable,
 		initializeFrom("true"),
 		modifyWith(notBlank))
+	// ImageRegistry config the image registry for seal tools, like finOps tools.
+	ImageRegistry = newValue(
+		"ImageRegistry",
+		editable,
+		initializeFrom("docker.io"),
+		modifyWith(notBlank))
 )
 
 // the built-in settings for server cron jobs.

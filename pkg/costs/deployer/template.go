@@ -10,18 +10,26 @@ var (
 		template.New("prometheusScrapeJob").Parse(tmplPrometheusScrapeJobContent))
 )
 
-// source: https://github.com/opencost/opencost/blob/v1.100.2/kubernetes/opencost.yaml
-var tmplOpencostContent = `apiVersion: v1
+// source: https://github.com/opencost/opencost/blob/v1.105.2/kubernetes/opencost.yaml.
+var tmplOpencostContent = `---
+
+# The namespace OpenCost will run in.
+apiVersion: v1
 kind: Namespace
 metadata:
     name: {{.Namespace}}
 ---
+
+# Service account for permissions.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: {{.Name}}
   namespace: {{.Namespace}}
 ---
+
+# Cluster role giving OpenCost to get, list, watch required resources
+# No write permissions are required.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -99,7 +107,10 @@ rules:
       - get
       - list
       - watch
+
 ---
+
+# Bind the role to the service account.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -113,6 +124,8 @@ subjects:
     name: {{.Name}}
     namespace: {{.Namespace}}
 ---
+
+# Create a deployment for a single cost model pod.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -138,7 +151,7 @@ spec:
       restartPolicy: Always
       serviceAccountName: {{.Name}}
       containers:
-        - image: quay.io/kubecost1/kubecost-cost-model:latest
+        - image: {{.Image}}
           name: opencost
           resources:
             requests:
@@ -159,7 +172,15 @@ spec:
               value: {{.Name}}
             - name: KUBECOST_NAMESPACE
               value: {{.Namespace}}
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsUser: 1001
 ---
 kind: Service
 apiVersion: v1
@@ -173,7 +194,8 @@ spec:
   ports:
     - name: {{.Name}}
       port: 9003
-      targetPort: 9003`
+      targetPort: 9003
+---`
 
 // source: https://github.com/opencost/opencost/blob/v1.100.2/kubernetes/prometheus/extraScrapeConfigs.yaml
 var tmplPrometheusScrapeJobContent = `- job_name: {{.Name}}

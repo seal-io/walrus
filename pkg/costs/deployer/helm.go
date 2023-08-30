@@ -10,7 +10,6 @@ import (
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/cli"
 	"helm.sh/helm/v3/pkg/release"
-	"helm.sh/helm/v3/pkg/repo"
 
 	"github.com/seal-io/walrus/utils/log"
 )
@@ -19,12 +18,13 @@ const (
 	timeout = 5 * time.Minute
 )
 
+var chartsDir = os.Getenv("CHARTS_DIR")
+
 type ChartApp struct {
 	Name         string
 	Namespace    string
 	ChartTgzName string
 	Values       map[string]any
-	Entry        *repo.Entry
 }
 
 type Helm struct {
@@ -32,7 +32,7 @@ type Helm struct {
 	actionConfig *action.Configuration
 	kubeCfgFile  *os.File
 	namespace    string
-	repoCache    string
+	chartsDir    string
 	logger       log.Logger
 }
 
@@ -47,16 +47,6 @@ func NewHelm(namespace, kubeconfig string) (*Helm, error) {
 		return nil, err
 	}
 
-	repoPath := path.Join(storeBaseDir, "repository")
-	if err := os.MkdirAll(repoPath, 0o777); err != nil {
-		return nil, err
-	}
-
-	repoCachePath := path.Join(storeBaseDir, "repository-cache")
-	if err := os.MkdirAll(repoCachePath, 0o777); err != nil {
-		return nil, err
-	}
-
 	kubeconfigFile, err := os.CreateTemp(storeBaseDir, "kubeconfig")
 	if err != nil {
 		return nil, err
@@ -67,8 +57,6 @@ func NewHelm(namespace, kubeconfig string) (*Helm, error) {
 	}
 
 	settings := cli.New()
-	settings.RepositoryConfig = path.Join(repoPath, "repositories.yaml")
-	settings.RepositoryCache = repoCachePath
 	settings.KubeConfig = kubeconfigFile.Name()
 
 	config := action.Configuration{}
@@ -85,27 +73,9 @@ func NewHelm(namespace, kubeconfig string) (*Helm, error) {
 		actionConfig: &config,
 		kubeCfgFile:  kubeconfigFile,
 		namespace:    namespace,
-		repoCache:    repoCachePath,
+		chartsDir:    chartsDir,
 		logger:       logger,
 	}, nil
-}
-
-func (h *Helm) ChartCacheDir() string {
-	return h.repoCache
-}
-
-func (h *Helm) Download(repoURL, chartName string) (string, error) {
-	h.logger.Debugf("downloading %s from %s", chartName, repoURL)
-	chartOps := action.ChartPathOptions{
-		RepoURL: repoURL,
-	}
-
-	outputPath, err := chartOps.LocateChart(chartName, h.settings)
-	if err != nil {
-		return "", fmt.Errorf("error download chart %s:%s, %w", repoURL, chartName, err)
-	}
-
-	return outputPath, nil
 }
 
 func (h *Helm) Install(name, chartPath string, values map[string]any) error {

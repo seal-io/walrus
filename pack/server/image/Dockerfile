@@ -152,6 +152,12 @@ COPY --from=sealio/casdoor:v1.344.0-seal.1 \
     /casdoor \
     /usr/bin/
 
+# finops tools
+ENV IMAGE_OPENCOST="sealio/mirrored-kubecost-cost-model:v1.105.2" \
+    CHARTS_DIR="/var/lib/walrus/manifests/charts"
+RUN mkdir -p ${CHARTS_DIR}
+ADD https://github.com/prometheus-community/helm-charts/releases/download/prometheus-24.0.0/prometheus-24.0.0.tgz ${CHARTS_DIR}/prometheus.tgz
+
 # walrus cli
 RUN set -eux; \
     mkdir -p /var/lib/walrus/cli
