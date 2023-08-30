@@ -140,7 +140,7 @@ func NewKubernetes(ctx context.Context, opts KubernetesOptions) (*KubernetesDriv
 		defer cancel()
 
 		if !cache.WaitForCacheSync(ctx.Done(), sInf.HasSynced) {
-			return nil, fmt.Errorf("failed to sync informer: %w", err)
+			return nil, errors.New("failed to sync informer")
 		}
 	}
 

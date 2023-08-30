@@ -22,8 +22,10 @@ func init() {
 	// Utilruntime.Must(something.AddToScheme(scheme.Scheme)).
 }
 
+// SetupOptions holds the options for creating the controller.
 type SetupOptions struct {
 	ReconcileHelper
+
 	ModelClient *model.Client
 }
 
