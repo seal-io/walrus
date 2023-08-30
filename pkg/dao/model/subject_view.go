@@ -358,7 +358,7 @@ func (sdi *SubjectDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", sdi.Items[i].Kind, "/", sdi.Items[i].Domain, "/", sdi.Items[i].Name)
+			indexerKey := fmt.Sprint("/", es[i].Kind, "/", es[i].Domain, "/", es[i].Name)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {
@@ -776,7 +776,7 @@ func (sui *SubjectUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", sui.Items[i].Kind, "/", sui.Items[i].Domain, "/", sui.Items[i].Name)
+			indexerKey := fmt.Sprint("/", es[i].Kind, "/", es[i].Domain, "/", es[i].Name)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {

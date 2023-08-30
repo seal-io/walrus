@@ -284,7 +284,7 @@ func (pdi *ProjectDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", pdi.Items[i].Name)
+			indexerKey := fmt.Sprint("/", es[i].Name)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {
@@ -621,7 +621,7 @@ func (pui *ProjectUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", pui.Items[i].Name)
+			indexerKey := fmt.Sprint("/", es[i].Name)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {

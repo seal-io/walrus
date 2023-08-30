@@ -439,7 +439,7 @@ func (edi *EnvironmentDeleteInputs) ValidateWith(ctx context.Context, cs ClientS
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", edi.Items[i].Name)
+			indexerKey := fmt.Sprint("/", es[i].Name)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {
@@ -867,7 +867,7 @@ func (eui *EnvironmentUpdateInputs) ValidateWith(ctx context.Context, cs ClientS
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", eui.Items[i].Name)
+			indexerKey := fmt.Sprint("/", es[i].Name)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {

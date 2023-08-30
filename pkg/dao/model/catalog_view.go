@@ -295,7 +295,7 @@ func (cdi *CatalogDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", cdi.Items[i].Name)
+			indexerKey := fmt.Sprint("/", es[i].Name)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {
@@ -628,7 +628,7 @@ func (cui *CatalogUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", cui.Items[i].Name)
+			indexerKey := fmt.Sprint("/", es[i].Name)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {

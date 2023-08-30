@@ -399,7 +399,7 @@ func (vdi *VariableDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet,
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", vdi.Items[i].Name)
+			indexerKey := fmt.Sprint("/", es[i].Name)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {
@@ -853,7 +853,7 @@ func (vui *VariableUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet,
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", vui.Items[i].Name)
+			indexerKey := fmt.Sprint("/", es[i].Name)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {

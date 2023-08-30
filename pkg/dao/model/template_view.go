@@ -288,7 +288,7 @@ func (tdi *TemplateDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet,
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", tdi.Items[i].Name)
+			indexerKey := fmt.Sprint("/", es[i].Name)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {
@@ -621,7 +621,7 @@ func (tui *TemplateUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet,
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", tui.Items[i].Name)
+			indexerKey := fmt.Sprint("/", es[i].Name)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {
