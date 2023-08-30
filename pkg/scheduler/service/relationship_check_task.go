@@ -216,6 +216,8 @@ func (in *RelationshipCheckTask) checkDependencies(ctx context.Context, svc *mod
 		if err != nil {
 			return false, err
 		}
+
+		return false, nil
 	}
 
 	return true, nil
