@@ -2,6 +2,7 @@ package deployer
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"time"
@@ -12,27 +13,18 @@ import (
 	"helm.sh/helm/v3/pkg/release"
 
 	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/req"
 )
 
 const (
 	timeout = 5 * time.Minute
 )
 
-var chartsDir = os.Getenv("CHARTS_DIR")
-
-type ChartApp struct {
-	Name         string
-	Namespace    string
-	ChartTgzName string
-	Values       map[string]any
-}
-
 type Helm struct {
 	settings     *cli.EnvSettings
 	actionConfig *action.Configuration
 	kubeCfgFile  *os.File
 	namespace    string
-	chartsDir    string
 	logger       log.Logger
 }
 
@@ -73,7 +65,6 @@ func NewHelm(namespace, kubeconfig string) (*Helm, error) {
 		actionConfig: &config,
 		kubeCfgFile:  kubeconfigFile,
 		namespace:    namespace,
-		chartsDir:    chartsDir,
 		logger:       logger,
 	}, nil
 }
@@ -116,6 +107,37 @@ func (h *Helm) Uninstall(name string) error {
 	}
 
 	h.logger.Infof("finished chart uninstall %s:%s", h.namespace, name)
+
+	return nil
+}
+
+func (h *Helm) Download(chartURL, dest string) error {
+	h.logger.Debugf("downloading %s", chartURL)
+
+	httpClient := req.HTTP().
+		Request().
+		WithRedirect()
+
+	resp := httpClient.Get(chartURL)
+	if resp.Error() != nil {
+		return fmt.Errorf("error download chart %s: %w", chartURL, resp.Error())
+	}
+
+	if resp.StatusCode() != 200 {
+		errMsg, _ := resp.BodyString()
+		return fmt.Errorf("error download chart, http status: %d, body: %s", resp.StatusCode(), errMsg)
+	}
+
+	outputFile, err := os.Create(dest)
+	if err != nil {
+		return fmt.Errorf("error create file %s: %w", dest, err)
+	}
+	defer outputFile.Close()
+
+	_, err = io.Copy(outputFile, resp.BodyOnly())
+	if err != nil {
+		return fmt.Errorf("error write file %s: %w", dest, err)
+	}
 
 	return nil
 }

@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
-	"path"
 	"strings"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -17,6 +15,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
+	"github.com/seal-io/walrus/utils/files"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/version"
 )
@@ -162,12 +161,15 @@ func (d *Deployer) EnsureChart(app *ChartApp, replace bool) error {
 		}
 	}
 
-	chartTgzPath := path.Join(helm.chartsDir, app.ChartTgzName)
-	if _, err = os.Stat(chartTgzPath); err != nil {
-		return err
+	// Download chart if isn't existed.
+	if !files.Exists(app.ChartPath) {
+		err = helm.Download(app.ChartURL, app.ChartPath)
+		if err != nil {
+			return err
+		}
 	}
 
-	if err = helm.Install(app.Name, chartTgzPath, app.Values); err != nil {
+	if err = helm.Install(app.Name, app.ChartPath, app.Values); err != nil {
 		return err
 	}
 

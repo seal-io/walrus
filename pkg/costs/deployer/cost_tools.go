@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"os"
 	"path"
 
 	v1 "k8s.io/api/core/v1"
@@ -29,28 +28,8 @@ const (
 	pathOpencostRefreshPricing = "/refreshPricing"
 )
 
-var (
-	prometheusChartTgz = "prometheus.tgz"
-	imageOpencost      = path.Join(os.Getenv("IMAGE_OPENCOST"))
-)
-
-const (
-	repositoryServer       = "sealio/mirrored-prometheus"
-	repositoryNodeExporter = "sealio/mirrored-node-exporter"
-	repositoryKubeState    = "sealio/mirrored-kube-state-metrics"
-	repositoryReload       = "sealio/mirrored-prometheus-config-reloader"
-)
-
 var pathServiceProxy = fmt.Sprintf("/api/v1/namespaces/%s/services/http:%s:9003/proxy",
 	types.WalrusSystemNamespace, NameOpencost)
-
-type input struct {
-	Name               string
-	Namespace          string
-	ClusterID          string
-	PrometheusEndpoint string
-	Image              string
-}
 
 func DeployCostTools(ctx context.Context, mc model.ClientSet, conn *model.Connector, replace bool) error {
 	log.WithName("cost").Debugf("deploying cost tools for connector %s", conn.Name)
@@ -141,7 +120,13 @@ func CostToolsStatus(ctx context.Context, conn *model.Connector) error {
 func opencost(clusterName, imageRegistry string) ([]byte, error) {
 	image := path.Join(imageRegistry, imageOpencost)
 
-	data := input{
+	data := struct {
+		Name               string
+		Namespace          string
+		ClusterID          string
+		PrometheusEndpoint string
+		Image              string
+	}{
 		Name:               NameOpencost,
 		Namespace:          types.WalrusSystemNamespace,
 		ClusterID:          clusterName,
@@ -158,7 +143,10 @@ func opencost(clusterName, imageRegistry string) ([]byte, error) {
 }
 
 func opencostScrape() (string, error) {
-	data := input{
+	data := struct {
+		Name      string
+		Namespace string
+	}{
 		Name:      NameOpencost,
 		Namespace: types.WalrusSystemNamespace,
 	}
@@ -200,6 +188,14 @@ func opencostRefreshPricingURL(restCfg *rest.Config) (string, error) {
 	return u.String(), nil
 }
 
+type ChartApp struct {
+	Name      string
+	Namespace string
+	ChartPath string
+	ChartURL  string
+	Values    map[string]any
+}
+
 func prometheus(imageRegistry string) (*ChartApp, error) {
 	scrape, err := opencostScrape()
 	if err != nil {
@@ -227,10 +223,10 @@ func prometheus(imageRegistry string) (*ChartApp, error) {
 		},
 
 		"kube-state-metrics": map[string]any{
-			"image": imageConfig(repositoryKubeState),
+			"image": imageConfig(imageRepositoryKubeState),
 		},
 		"prometheus-node-exporter": map[string]any{
-			"image": imageConfig(repositoryNodeExporter),
+			"image": imageConfig(imageRepositoryNodeExporter),
 		},
 		"extraScrapeConfigs": scrape,
 
@@ -238,7 +234,7 @@ func prometheus(imageRegistry string) (*ChartApp, error) {
 		"configmapReload": map[string]any{
 			"prometheus": map[string]any{
 				"image": map[string]any{
-					"repository": path.Join(imageRegistry, repositoryReload),
+					"repository": path.Join(imageRegistry, imageRepositoryReload),
 				},
 			},
 		},
@@ -247,15 +243,16 @@ func prometheus(imageRegistry string) (*ChartApp, error) {
 				"enabled": false,
 			},
 			"image": map[string]any{
-				"repository": path.Join(imageRegistry, repositoryServer),
+				"repository": path.Join(imageRegistry, imageRepositoryServer),
 			},
 		},
 	}
 
 	return &ChartApp{
-		Name:         NamePrometheus,
-		Namespace:    types.WalrusSystemNamespace,
-		ChartTgzName: prometheusChartTgz,
-		Values:       values,
+		Name:      NamePrometheus,
+		Namespace: types.WalrusSystemNamespace,
+		ChartPath: defaultPrometheusChartPath,
+		ChartURL:  defaultPrometheusChartURL,
+		Values:    values,
 	}, nil
 }
