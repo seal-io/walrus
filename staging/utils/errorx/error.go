@@ -3,9 +3,6 @@ package errorx
 import (
 	"errors"
 	"fmt"
-	"net/http"
-	"reflect"
-	"strconv"
 	"strings"
 )
 
@@ -210,33 +207,6 @@ func WrapfHttpError(status int, err error, format string, args ...any) HttpError
 type HttpError struct {
 	Status int
 	ErrorX
-}
-
-// Error returns the error message.
-func (e HttpError) Error() string {
-	var sb strings.Builder
-
-	sb.WriteString(strconv.Itoa(e.Status))
-	sb.WriteString(" ")
-	sb.WriteString(http.StatusText(e.Status))
-
-	if e.Cause != nil {
-		ev := reflect.ValueOf(e.Cause)
-		switch ev.Kind() {
-		case reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
-			if ev.IsNil() {
-				return sb.String()
-			}
-		}
-
-		sb.WriteString(": ")
-		sb.WriteString(e.Cause.Error())
-	} else if e.Message != "" {
-		sb.WriteString(": ")
-		sb.WriteString(e.Message)
-	}
-
-	return sb.String()
 }
 
 // Unwrap returns the cause error.
