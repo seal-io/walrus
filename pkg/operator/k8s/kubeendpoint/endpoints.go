@@ -157,9 +157,14 @@ func GetIngressEndpoints(
 		return nil, err
 	}
 
+	eps := ingressEndpoints(*ing)
+	if len(eps) == 0 {
+		return nil, nil
+	}
+
 	return []types.ServiceResourceEndpoint{
 		{
-			Endpoints: ingressEndpoints(*ing),
+			Endpoints: eps,
 		},
 	}, nil
 }
