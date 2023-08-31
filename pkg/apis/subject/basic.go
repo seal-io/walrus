@@ -135,7 +135,7 @@ func (h Handler) Update(req UpdateRequest) error {
 		err = casdoor.UpdateUserPassword(req.Context, cred.ClientID, cred.ClientSecret,
 			casdoor.BuiltinOrg, entity.Name, "", req.Password)
 		if err != nil {
-			return err
+			return errorx.NewHttpError(http.StatusBadRequest, err.Error())
 		}
 
 		return nil
