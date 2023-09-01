@@ -32,6 +32,7 @@ func NewZapper(asJSON, inProduction, toStdout bool) (*zap.Logger, zap.AtomicLeve
 		zapLevel.SetLevel(zap.InfoLevel)
 		zapEncoderConfig = zap.NewProductionEncoderConfig()
 		zapOptions = append(zapOptions,
+			zap.AddStacktrace(zap.FatalLevel+1), // Disable the stacktrace.
 			zap.WrapCore(func(core zapcore.Core) zapcore.Core {
 				return zapcore.NewSamplerWithOptions(core, time.Second, 100, 100)
 			}),
