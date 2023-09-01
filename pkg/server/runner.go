@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"errors"
+	"flag"
 	"fmt"
 	stdlog "log"
 	"net"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -21,8 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/leaderelection"
-	"k8s.io/klog"
-	klogv2 "k8s.io/klog/v2"
+	"k8s.io/klog/v2"
 
 	"github.com/seal-io/walrus/pkg/apis"
 	"github.com/seal-io/walrus/pkg/cache"
@@ -428,13 +429,37 @@ func (r *Server) Flags(cmd *cli.Command) {
 }
 
 func (r *Server) Before(cmd *cli.Command) {
+	pb := cmd.Before
+	cmd.Before = func(c *cli.Context) error {
+		l := log.GetLogger()
+
+		// Sink the output of standard logger to util logger.
+		stdlog.SetOutput(l)
+
+		// Turn on the logrus logger
+		// and sink the output to util logger.
+		logrus.SetLevel(logrus.TraceLevel)
+		logrus.SetFormatter(log.AsLogrusFormatter(l))
+
+		// Turn on klog logger according to the verbosity,
+		// and sink the output to util logger.
+		{
+			var flags flag.FlagSet
+
+			klog.InitFlags(&flags)
+			_ = flags.Set("v", strconv.FormatUint(log.GetVerbosity(), 10))
+			_ = flags.Set("skip_headers", "true")
+		}
+		klog.SetLogger(log.AsLogr(l))
+
+		if pb != nil {
+			return pb(c)
+		}
+
+		return nil
+	}
+
 	r.Logger.Before(cmd)
-	// Compatible with other loggers.
-	logger := log.GetLogger()
-	stdlog.SetOutput(logger)
-	logrus.SetOutput(logger)
-	klog.SetOutput(logger)
-	klogv2.SetLogger(log.AsLogr(logger))
 }
 
 func (r *Server) Action(cmd *cli.Command) {
