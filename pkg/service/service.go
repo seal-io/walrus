@@ -96,26 +96,8 @@ func Apply(
 ) (err error) {
 	logger := log.WithName("service")
 
-	defer func() {
-		if err == nil {
-			return
-		}
-		// Update a failure status.
-		status.ServiceStatusDeployed.False(entity, err.Error())
-
-		uerr := UpdateStatus(ctx, mc, entity)
-		if uerr != nil {
-			logger.Errorf("error updating status of service %s: %v",
-				entity.ID, uerr)
-		}
-	}()
-
 	if !status.ServiceStatusDeployed.IsUnknown(entity) {
 		return errorx.Errorf("service status is not deploying, service: %s", entity.ID)
-	}
-
-	if dp == nil {
-		return errorx.New("deployer is not set")
 	}
 
 	applyOpts := deptypes.ApplyOptions{
@@ -125,7 +107,16 @@ func Apply(
 
 	err = dp.Apply(ctx, entity, applyOpts)
 	if err != nil {
-		return errorx.Errorf("failed to apply service: %v", err)
+		err = fmt.Errorf("failed to apply service: %w", err)
+		logger.Error(err)
+
+		// Update a failure status.
+		status.ServiceStatusDeployed.False(entity, err.Error())
+
+		err = UpdateStatus(ctx, mc, entity)
+		if err != nil {
+			logger.Errorf("error updating status of service %s: %v", entity.ID, err)
+		}
 	}
 
 	return nil
@@ -140,27 +131,19 @@ func Destroy(
 ) (err error) {
 	logger := log.WithName("service")
 
-	defer func() {
-		if err == nil {
-			return
-		}
-		// Update a failure status.
+	updateFailedStatus := func(err error) {
 		status.ServiceStatusDeleted.False(entity, err.Error())
 
-		uerr := UpdateStatus(ctx, mc, entity)
-		if uerr != nil {
-			logger.Errorf("error updating status of service %s: %v",
-				entity.ID, uerr)
+		err = UpdateStatus(ctx, mc, entity)
+		if err != nil {
+			logger.Errorf("error updating status of service %s: %v", entity.ID, err)
 		}
-	}()
-
-	if dp == nil {
-		return errorx.New("deployer is not set")
 	}
 
 	// Check dependants.
 	dependants, err := dao.GetServiceDependantNames(ctx, mc, entity)
 	if err != nil {
+		updateFailedStatus(err)
 		return err
 	}
 
@@ -192,7 +175,14 @@ func Destroy(
 		SkipTLSVerify: !opts.TlsCertified,
 	}
 
-	return dp.Destroy(ctx, entity, destroyOpts)
+	err = dp.Destroy(ctx, entity, destroyOpts)
+	if err != nil {
+		log.Errorf("fail to destroy service: %w", err)
+
+		updateFailedStatus(err)
+	}
+
+	return nil
 }
 
 func GetSubjectID(entity *model.Service) (object.ID, error) {
