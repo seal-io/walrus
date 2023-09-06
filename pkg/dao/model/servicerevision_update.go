@@ -24,6 +24,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
 // ServiceRevisionUpdate is the builder for updating ServiceRevision entities.
@@ -42,13 +43,13 @@ func (sru *ServiceRevisionUpdate) Where(ps ...predicate.ServiceRevision) *Servic
 }
 
 // SetStatus sets the "status" field.
-func (sru *ServiceRevisionUpdate) SetStatus(s string) *ServiceRevisionUpdate {
+func (sru *ServiceRevisionUpdate) SetStatus(s status.Status) *ServiceRevisionUpdate {
 	sru.mutation.SetStatus(s)
 	return sru
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (sru *ServiceRevisionUpdate) SetNillableStatus(s *string) *ServiceRevisionUpdate {
+func (sru *ServiceRevisionUpdate) SetNillableStatus(s *status.Status) *ServiceRevisionUpdate {
 	if s != nil {
 		sru.SetStatus(*s)
 	}
@@ -58,26 +59,6 @@ func (sru *ServiceRevisionUpdate) SetNillableStatus(s *string) *ServiceRevisionU
 // ClearStatus clears the value of the "status" field.
 func (sru *ServiceRevisionUpdate) ClearStatus() *ServiceRevisionUpdate {
 	sru.mutation.ClearStatus()
-	return sru
-}
-
-// SetStatusMessage sets the "status_message" field.
-func (sru *ServiceRevisionUpdate) SetStatusMessage(s string) *ServiceRevisionUpdate {
-	sru.mutation.SetStatusMessage(s)
-	return sru
-}
-
-// SetNillableStatusMessage sets the "status_message" field if the given value is not nil.
-func (sru *ServiceRevisionUpdate) SetNillableStatusMessage(s *string) *ServiceRevisionUpdate {
-	if s != nil {
-		sru.SetStatusMessage(*s)
-	}
-	return sru
-}
-
-// ClearStatusMessage clears the value of the "status_message" field.
-func (sru *ServiceRevisionUpdate) ClearStatusMessage() *ServiceRevisionUpdate {
-	sru.mutation.ClearStatusMessage()
 	return sru
 }
 
@@ -176,6 +157,26 @@ func (sru *ServiceRevisionUpdate) AppendTags(s []string) *ServiceRevisionUpdate 
 	return sru
 }
 
+// SetRecord sets the "record" field.
+func (sru *ServiceRevisionUpdate) SetRecord(s string) *ServiceRevisionUpdate {
+	sru.mutation.SetRecord(s)
+	return sru
+}
+
+// SetNillableRecord sets the "record" field if the given value is not nil.
+func (sru *ServiceRevisionUpdate) SetNillableRecord(s *string) *ServiceRevisionUpdate {
+	if s != nil {
+		sru.SetRecord(*s)
+	}
+	return sru
+}
+
+// ClearRecord clears the value of the "record" field.
+func (sru *ServiceRevisionUpdate) ClearRecord() *ServiceRevisionUpdate {
+	sru.mutation.ClearRecord()
+	return sru
+}
+
 // Mutation returns the ServiceRevisionMutation object of the builder.
 func (sru *ServiceRevisionUpdate) Mutation() *ServiceRevisionMutation {
 	return sru.mutation
@@ -260,11 +261,8 @@ func (sru *ServiceRevisionUpdate) check() error {
 //	}
 func (sru *ServiceRevisionUpdate) Set(obj *ServiceRevision) *ServiceRevisionUpdate {
 	// Without Default.
-	if obj.Status != "" {
+	if !reflect.ValueOf(obj.Status).IsZero() {
 		sru.SetStatus(obj.Status)
-	}
-	if obj.StatusMessage != "" {
-		sru.SetStatusMessage(obj.StatusMessage)
 	}
 	sru.SetTemplateVersion(obj.TemplateVersion)
 	if !reflect.ValueOf(obj.Attributes).IsZero() {
@@ -279,6 +277,11 @@ func (sru *ServiceRevisionUpdate) Set(obj *ServiceRevision) *ServiceRevisionUpda
 	sru.SetDuration(obj.Duration)
 	sru.SetPreviousRequiredProviders(obj.PreviousRequiredProviders)
 	sru.SetTags(obj.Tags)
+	if obj.Record != "" {
+		sru.SetRecord(obj.Record)
+	} else {
+		sru.ClearRecord()
+	}
 
 	// With Default.
 
@@ -307,16 +310,10 @@ func (sru *ServiceRevisionUpdate) sqlSave(ctx context.Context) (n int, err error
 		}
 	}
 	if value, ok := sru.mutation.Status(); ok {
-		_spec.SetField(servicerevision.FieldStatus, field.TypeString, value)
+		_spec.SetField(servicerevision.FieldStatus, field.TypeJSON, value)
 	}
 	if sru.mutation.StatusCleared() {
-		_spec.ClearField(servicerevision.FieldStatus, field.TypeString)
-	}
-	if value, ok := sru.mutation.StatusMessage(); ok {
-		_spec.SetField(servicerevision.FieldStatusMessage, field.TypeString, value)
-	}
-	if sru.mutation.StatusMessageCleared() {
-		_spec.ClearField(servicerevision.FieldStatusMessage, field.TypeString)
+		_spec.ClearField(servicerevision.FieldStatus, field.TypeJSON)
 	}
 	if value, ok := sru.mutation.TemplateVersion(); ok {
 		_spec.SetField(servicerevision.FieldTemplateVersion, field.TypeString, value)
@@ -361,6 +358,12 @@ func (sru *ServiceRevisionUpdate) sqlSave(ctx context.Context) (n int, err error
 			sqljson.Append(u, servicerevision.FieldTags, value)
 		})
 	}
+	if value, ok := sru.mutation.Record(); ok {
+		_spec.SetField(servicerevision.FieldRecord, field.TypeString, value)
+	}
+	if sru.mutation.RecordCleared() {
+		_spec.ClearField(servicerevision.FieldRecord, field.TypeString)
+	}
 	_spec.Node.Schema = sru.schemaConfig.ServiceRevision
 	ctx = internal.NewSchemaConfigContext(ctx, sru.schemaConfig)
 	_spec.AddModifiers(sru.modifiers...)
@@ -387,13 +390,13 @@ type ServiceRevisionUpdateOne struct {
 }
 
 // SetStatus sets the "status" field.
-func (sruo *ServiceRevisionUpdateOne) SetStatus(s string) *ServiceRevisionUpdateOne {
+func (sruo *ServiceRevisionUpdateOne) SetStatus(s status.Status) *ServiceRevisionUpdateOne {
 	sruo.mutation.SetStatus(s)
 	return sruo
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (sruo *ServiceRevisionUpdateOne) SetNillableStatus(s *string) *ServiceRevisionUpdateOne {
+func (sruo *ServiceRevisionUpdateOne) SetNillableStatus(s *status.Status) *ServiceRevisionUpdateOne {
 	if s != nil {
 		sruo.SetStatus(*s)
 	}
@@ -403,26 +406,6 @@ func (sruo *ServiceRevisionUpdateOne) SetNillableStatus(s *string) *ServiceRevis
 // ClearStatus clears the value of the "status" field.
 func (sruo *ServiceRevisionUpdateOne) ClearStatus() *ServiceRevisionUpdateOne {
 	sruo.mutation.ClearStatus()
-	return sruo
-}
-
-// SetStatusMessage sets the "status_message" field.
-func (sruo *ServiceRevisionUpdateOne) SetStatusMessage(s string) *ServiceRevisionUpdateOne {
-	sruo.mutation.SetStatusMessage(s)
-	return sruo
-}
-
-// SetNillableStatusMessage sets the "status_message" field if the given value is not nil.
-func (sruo *ServiceRevisionUpdateOne) SetNillableStatusMessage(s *string) *ServiceRevisionUpdateOne {
-	if s != nil {
-		sruo.SetStatusMessage(*s)
-	}
-	return sruo
-}
-
-// ClearStatusMessage clears the value of the "status_message" field.
-func (sruo *ServiceRevisionUpdateOne) ClearStatusMessage() *ServiceRevisionUpdateOne {
-	sruo.mutation.ClearStatusMessage()
 	return sruo
 }
 
@@ -518,6 +501,26 @@ func (sruo *ServiceRevisionUpdateOne) SetTags(s []string) *ServiceRevisionUpdate
 // AppendTags appends s to the "tags" field.
 func (sruo *ServiceRevisionUpdateOne) AppendTags(s []string) *ServiceRevisionUpdateOne {
 	sruo.mutation.AppendTags(s)
+	return sruo
+}
+
+// SetRecord sets the "record" field.
+func (sruo *ServiceRevisionUpdateOne) SetRecord(s string) *ServiceRevisionUpdateOne {
+	sruo.mutation.SetRecord(s)
+	return sruo
+}
+
+// SetNillableRecord sets the "record" field if the given value is not nil.
+func (sruo *ServiceRevisionUpdateOne) SetNillableRecord(s *string) *ServiceRevisionUpdateOne {
+	if s != nil {
+		sruo.SetRecord(*s)
+	}
+	return sruo
+}
+
+// ClearRecord clears the value of the "record" field.
+func (sruo *ServiceRevisionUpdateOne) ClearRecord() *ServiceRevisionUpdateOne {
+	sruo.mutation.ClearRecord()
 	return sruo
 }
 
@@ -628,14 +631,9 @@ func (sruo *ServiceRevisionUpdateOne) Set(obj *ServiceRevision) *ServiceRevision
 			}
 
 			// Without Default.
-			if obj.Status != "" {
-				if db.Status != obj.Status {
+			if !reflect.ValueOf(obj.Status).IsZero() {
+				if !db.Status.Equal(obj.Status) {
 					sruo.SetStatus(obj.Status)
-				}
-			}
-			if obj.StatusMessage != "" {
-				if db.StatusMessage != obj.StatusMessage {
-					sruo.SetStatusMessage(obj.StatusMessage)
 				}
 			}
 			if db.TemplateVersion != obj.TemplateVersion {
@@ -668,6 +666,13 @@ func (sruo *ServiceRevisionUpdateOne) Set(obj *ServiceRevision) *ServiceRevision
 			}
 			if !reflect.DeepEqual(db.Tags, obj.Tags) {
 				sruo.SetTags(obj.Tags)
+			}
+			if obj.Record != "" {
+				if db.Record != obj.Record {
+					sruo.SetRecord(obj.Record)
+				}
+			} else {
+				sruo.ClearRecord()
 			}
 
 			// With Default.
@@ -719,9 +724,6 @@ func (sruo *ServiceRevisionUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx
 		if _, set := sruo.mutation.Field(servicerevision.FieldStatus); set {
 			obj.Status = x.Status
 		}
-		if _, set := sruo.mutation.Field(servicerevision.FieldStatusMessage); set {
-			obj.StatusMessage = x.StatusMessage
-		}
 		if _, set := sruo.mutation.Field(servicerevision.FieldTemplateVersion); set {
 			obj.TemplateVersion = x.TemplateVersion
 		}
@@ -748,6 +750,9 @@ func (sruo *ServiceRevisionUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx
 		}
 		if _, set := sruo.mutation.Field(servicerevision.FieldTags); set {
 			obj.Tags = x.Tags
+		}
+		if _, set := sruo.mutation.Field(servicerevision.FieldRecord); set {
+			obj.Record = x.Record
 		}
 		obj.Edges = x.Edges
 	}
@@ -820,16 +825,10 @@ func (sruo *ServiceRevisionUpdateOne) sqlSave(ctx context.Context) (_node *Servi
 		}
 	}
 	if value, ok := sruo.mutation.Status(); ok {
-		_spec.SetField(servicerevision.FieldStatus, field.TypeString, value)
+		_spec.SetField(servicerevision.FieldStatus, field.TypeJSON, value)
 	}
 	if sruo.mutation.StatusCleared() {
-		_spec.ClearField(servicerevision.FieldStatus, field.TypeString)
-	}
-	if value, ok := sruo.mutation.StatusMessage(); ok {
-		_spec.SetField(servicerevision.FieldStatusMessage, field.TypeString, value)
-	}
-	if sruo.mutation.StatusMessageCleared() {
-		_spec.ClearField(servicerevision.FieldStatusMessage, field.TypeString)
+		_spec.ClearField(servicerevision.FieldStatus, field.TypeJSON)
 	}
 	if value, ok := sruo.mutation.TemplateVersion(); ok {
 		_spec.SetField(servicerevision.FieldTemplateVersion, field.TypeString, value)
@@ -873,6 +872,12 @@ func (sruo *ServiceRevisionUpdateOne) sqlSave(ctx context.Context) (_node *Servi
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, servicerevision.FieldTags, value)
 		})
+	}
+	if value, ok := sruo.mutation.Record(); ok {
+		_spec.SetField(servicerevision.FieldRecord, field.TypeString, value)
+	}
+	if sruo.mutation.RecordCleared() {
+		_spec.ClearField(servicerevision.FieldRecord, field.TypeString)
 	}
 	_spec.Node.Schema = sruo.schemaConfig.ServiceRevision
 	ctx = internal.NewSchemaConfigContext(ctx, sruo.schemaConfig)

@@ -25,6 +25,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
 // ServiceRevisionCreate is the builder for creating a ServiceRevision entity.
@@ -52,29 +53,15 @@ func (src *ServiceRevisionCreate) SetNillableCreateTime(t *time.Time) *ServiceRe
 }
 
 // SetStatus sets the "status" field.
-func (src *ServiceRevisionCreate) SetStatus(s string) *ServiceRevisionCreate {
+func (src *ServiceRevisionCreate) SetStatus(s status.Status) *ServiceRevisionCreate {
 	src.mutation.SetStatus(s)
 	return src
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (src *ServiceRevisionCreate) SetNillableStatus(s *string) *ServiceRevisionCreate {
+func (src *ServiceRevisionCreate) SetNillableStatus(s *status.Status) *ServiceRevisionCreate {
 	if s != nil {
 		src.SetStatus(*s)
-	}
-	return src
-}
-
-// SetStatusMessage sets the "status_message" field.
-func (src *ServiceRevisionCreate) SetStatusMessage(s string) *ServiceRevisionCreate {
-	src.mutation.SetStatusMessage(s)
-	return src
-}
-
-// SetNillableStatusMessage sets the "status_message" field if the given value is not nil.
-func (src *ServiceRevisionCreate) SetNillableStatusMessage(s *string) *ServiceRevisionCreate {
-	if s != nil {
-		src.SetStatusMessage(*s)
 	}
 	return src
 }
@@ -170,6 +157,20 @@ func (src *ServiceRevisionCreate) SetPreviousRequiredProviders(tr []types.Provid
 // SetTags sets the "tags" field.
 func (src *ServiceRevisionCreate) SetTags(s []string) *ServiceRevisionCreate {
 	src.mutation.SetTags(s)
+	return src
+}
+
+// SetRecord sets the "record" field.
+func (src *ServiceRevisionCreate) SetRecord(s string) *ServiceRevisionCreate {
+	src.mutation.SetRecord(s)
+	return src
+}
+
+// SetNillableRecord sets the "record" field if the given value is not nil.
+func (src *ServiceRevisionCreate) SetNillableRecord(s *string) *ServiceRevisionCreate {
+	if s != nil {
+		src.SetRecord(*s)
+	}
 	return src
 }
 
@@ -378,12 +379,8 @@ func (src *ServiceRevisionCreate) createSpec() (*ServiceRevision, *sqlgraph.Crea
 		_node.CreateTime = &value
 	}
 	if value, ok := src.mutation.Status(); ok {
-		_spec.SetField(servicerevision.FieldStatus, field.TypeString, value)
+		_spec.SetField(servicerevision.FieldStatus, field.TypeJSON, value)
 		_node.Status = value
-	}
-	if value, ok := src.mutation.StatusMessage(); ok {
-		_spec.SetField(servicerevision.FieldStatusMessage, field.TypeString, value)
-		_node.StatusMessage = value
 	}
 	if value, ok := src.mutation.TemplateName(); ok {
 		_spec.SetField(servicerevision.FieldTemplateName, field.TypeString, value)
@@ -424,6 +421,10 @@ func (src *ServiceRevisionCreate) createSpec() (*ServiceRevision, *sqlgraph.Crea
 	if value, ok := src.mutation.Tags(); ok {
 		_spec.SetField(servicerevision.FieldTags, field.TypeJSON, value)
 		_node.Tags = value
+	}
+	if value, ok := src.mutation.Record(); ok {
+		_spec.SetField(servicerevision.FieldRecord, field.TypeString, value)
+		_node.Record = value
 	}
 	if nodes := src.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -519,14 +520,14 @@ func (src *ServiceRevisionCreate) Set(obj *ServiceRevision) *ServiceRevisionCrea
 	if obj.CreateTime != nil {
 		src.SetCreateTime(*obj.CreateTime)
 	}
-	if obj.Status != "" {
+	if !reflect.ValueOf(obj.Status).IsZero() {
 		src.SetStatus(obj.Status)
-	}
-	if obj.StatusMessage != "" {
-		src.SetStatusMessage(obj.StatusMessage)
 	}
 	if !reflect.ValueOf(obj.Attributes).IsZero() {
 		src.SetAttributes(obj.Attributes)
+	}
+	if obj.Record != "" {
+		src.SetRecord(obj.Record)
 	}
 
 	// Record the given object.
@@ -567,9 +568,6 @@ func (src *ServiceRevisionCreate) SaveE(ctx context.Context, cbs ...func(ctx con
 		if _, set := src.mutation.Field(servicerevision.FieldStatus); set {
 			obj.Status = x.Status
 		}
-		if _, set := src.mutation.Field(servicerevision.FieldStatusMessage); set {
-			obj.StatusMessage = x.StatusMessage
-		}
 		if _, set := src.mutation.Field(servicerevision.FieldProjectID); set {
 			obj.ProjectID = x.ProjectID
 		}
@@ -593,6 +591,9 @@ func (src *ServiceRevisionCreate) SaveE(ctx context.Context, cbs ...func(ctx con
 		}
 		if _, set := src.mutation.Field(servicerevision.FieldOutput); set {
 			obj.Output = x.Output
+		}
+		if _, set := src.mutation.Field(servicerevision.FieldRecord); set {
+			obj.Record = x.Record
 		}
 		obj.Edges = x.Edges
 	}
@@ -696,9 +697,6 @@ func (srcb *ServiceRevisionCreateBulk) SaveE(ctx context.Context, cbs ...func(ct
 			if _, set := srcb.builders[i].mutation.Field(servicerevision.FieldStatus); set {
 				objs[i].Status = x[i].Status
 			}
-			if _, set := srcb.builders[i].mutation.Field(servicerevision.FieldStatusMessage); set {
-				objs[i].StatusMessage = x[i].StatusMessage
-			}
 			if _, set := srcb.builders[i].mutation.Field(servicerevision.FieldProjectID); set {
 				objs[i].ProjectID = x[i].ProjectID
 			}
@@ -722,6 +720,9 @@ func (srcb *ServiceRevisionCreateBulk) SaveE(ctx context.Context, cbs ...func(ct
 			}
 			if _, set := srcb.builders[i].mutation.Field(servicerevision.FieldOutput); set {
 				objs[i].Output = x[i].Output
+			}
+			if _, set := srcb.builders[i].mutation.Field(servicerevision.FieldRecord); set {
+				objs[i].Record = x[i].Record
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -850,7 +851,7 @@ type (
 )
 
 // SetStatus sets the "status" field.
-func (u *ServiceRevisionUpsert) SetStatus(v string) *ServiceRevisionUpsert {
+func (u *ServiceRevisionUpsert) SetStatus(v status.Status) *ServiceRevisionUpsert {
 	u.Set(servicerevision.FieldStatus, v)
 	return u
 }
@@ -864,24 +865,6 @@ func (u *ServiceRevisionUpsert) UpdateStatus() *ServiceRevisionUpsert {
 // ClearStatus clears the value of the "status" field.
 func (u *ServiceRevisionUpsert) ClearStatus() *ServiceRevisionUpsert {
 	u.SetNull(servicerevision.FieldStatus)
-	return u
-}
-
-// SetStatusMessage sets the "status_message" field.
-func (u *ServiceRevisionUpsert) SetStatusMessage(v string) *ServiceRevisionUpsert {
-	u.Set(servicerevision.FieldStatusMessage, v)
-	return u
-}
-
-// UpdateStatusMessage sets the "status_message" field to the value that was provided on create.
-func (u *ServiceRevisionUpsert) UpdateStatusMessage() *ServiceRevisionUpsert {
-	u.SetExcluded(servicerevision.FieldStatusMessage)
-	return u
-}
-
-// ClearStatusMessage clears the value of the "status_message" field.
-func (u *ServiceRevisionUpsert) ClearStatusMessage() *ServiceRevisionUpsert {
-	u.SetNull(servicerevision.FieldStatusMessage)
 	return u
 }
 
@@ -1005,6 +988,24 @@ func (u *ServiceRevisionUpsert) UpdateTags() *ServiceRevisionUpsert {
 	return u
 }
 
+// SetRecord sets the "record" field.
+func (u *ServiceRevisionUpsert) SetRecord(v string) *ServiceRevisionUpsert {
+	u.Set(servicerevision.FieldRecord, v)
+	return u
+}
+
+// UpdateRecord sets the "record" field to the value that was provided on create.
+func (u *ServiceRevisionUpsert) UpdateRecord() *ServiceRevisionUpsert {
+	u.SetExcluded(servicerevision.FieldRecord)
+	return u
+}
+
+// ClearRecord clears the value of the "record" field.
+func (u *ServiceRevisionUpsert) ClearRecord() *ServiceRevisionUpsert {
+	u.SetNull(servicerevision.FieldRecord)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -1069,7 +1070,7 @@ func (u *ServiceRevisionUpsertOne) Update(set func(*ServiceRevisionUpsert)) *Ser
 }
 
 // SetStatus sets the "status" field.
-func (u *ServiceRevisionUpsertOne) SetStatus(v string) *ServiceRevisionUpsertOne {
+func (u *ServiceRevisionUpsertOne) SetStatus(v status.Status) *ServiceRevisionUpsertOne {
 	return u.Update(func(s *ServiceRevisionUpsert) {
 		s.SetStatus(v)
 	})
@@ -1086,27 +1087,6 @@ func (u *ServiceRevisionUpsertOne) UpdateStatus() *ServiceRevisionUpsertOne {
 func (u *ServiceRevisionUpsertOne) ClearStatus() *ServiceRevisionUpsertOne {
 	return u.Update(func(s *ServiceRevisionUpsert) {
 		s.ClearStatus()
-	})
-}
-
-// SetStatusMessage sets the "status_message" field.
-func (u *ServiceRevisionUpsertOne) SetStatusMessage(v string) *ServiceRevisionUpsertOne {
-	return u.Update(func(s *ServiceRevisionUpsert) {
-		s.SetStatusMessage(v)
-	})
-}
-
-// UpdateStatusMessage sets the "status_message" field to the value that was provided on create.
-func (u *ServiceRevisionUpsertOne) UpdateStatusMessage() *ServiceRevisionUpsertOne {
-	return u.Update(func(s *ServiceRevisionUpsert) {
-		s.UpdateStatusMessage()
-	})
-}
-
-// ClearStatusMessage clears the value of the "status_message" field.
-func (u *ServiceRevisionUpsertOne) ClearStatusMessage() *ServiceRevisionUpsertOne {
-	return u.Update(func(s *ServiceRevisionUpsert) {
-		s.ClearStatusMessage()
 	})
 }
 
@@ -1247,6 +1227,27 @@ func (u *ServiceRevisionUpsertOne) SetTags(v []string) *ServiceRevisionUpsertOne
 func (u *ServiceRevisionUpsertOne) UpdateTags() *ServiceRevisionUpsertOne {
 	return u.Update(func(s *ServiceRevisionUpsert) {
 		s.UpdateTags()
+	})
+}
+
+// SetRecord sets the "record" field.
+func (u *ServiceRevisionUpsertOne) SetRecord(v string) *ServiceRevisionUpsertOne {
+	return u.Update(func(s *ServiceRevisionUpsert) {
+		s.SetRecord(v)
+	})
+}
+
+// UpdateRecord sets the "record" field to the value that was provided on create.
+func (u *ServiceRevisionUpsertOne) UpdateRecord() *ServiceRevisionUpsertOne {
+	return u.Update(func(s *ServiceRevisionUpsert) {
+		s.UpdateRecord()
+	})
+}
+
+// ClearRecord clears the value of the "record" field.
+func (u *ServiceRevisionUpsertOne) ClearRecord() *ServiceRevisionUpsertOne {
+	return u.Update(func(s *ServiceRevisionUpsert) {
+		s.ClearRecord()
 	})
 }
 
@@ -1479,7 +1480,7 @@ func (u *ServiceRevisionUpsertBulk) Update(set func(*ServiceRevisionUpsert)) *Se
 }
 
 // SetStatus sets the "status" field.
-func (u *ServiceRevisionUpsertBulk) SetStatus(v string) *ServiceRevisionUpsertBulk {
+func (u *ServiceRevisionUpsertBulk) SetStatus(v status.Status) *ServiceRevisionUpsertBulk {
 	return u.Update(func(s *ServiceRevisionUpsert) {
 		s.SetStatus(v)
 	})
@@ -1496,27 +1497,6 @@ func (u *ServiceRevisionUpsertBulk) UpdateStatus() *ServiceRevisionUpsertBulk {
 func (u *ServiceRevisionUpsertBulk) ClearStatus() *ServiceRevisionUpsertBulk {
 	return u.Update(func(s *ServiceRevisionUpsert) {
 		s.ClearStatus()
-	})
-}
-
-// SetStatusMessage sets the "status_message" field.
-func (u *ServiceRevisionUpsertBulk) SetStatusMessage(v string) *ServiceRevisionUpsertBulk {
-	return u.Update(func(s *ServiceRevisionUpsert) {
-		s.SetStatusMessage(v)
-	})
-}
-
-// UpdateStatusMessage sets the "status_message" field to the value that was provided on create.
-func (u *ServiceRevisionUpsertBulk) UpdateStatusMessage() *ServiceRevisionUpsertBulk {
-	return u.Update(func(s *ServiceRevisionUpsert) {
-		s.UpdateStatusMessage()
-	})
-}
-
-// ClearStatusMessage clears the value of the "status_message" field.
-func (u *ServiceRevisionUpsertBulk) ClearStatusMessage() *ServiceRevisionUpsertBulk {
-	return u.Update(func(s *ServiceRevisionUpsert) {
-		s.ClearStatusMessage()
 	})
 }
 
@@ -1657,6 +1637,27 @@ func (u *ServiceRevisionUpsertBulk) SetTags(v []string) *ServiceRevisionUpsertBu
 func (u *ServiceRevisionUpsertBulk) UpdateTags() *ServiceRevisionUpsertBulk {
 	return u.Update(func(s *ServiceRevisionUpsert) {
 		s.UpdateTags()
+	})
+}
+
+// SetRecord sets the "record" field.
+func (u *ServiceRevisionUpsertBulk) SetRecord(v string) *ServiceRevisionUpsertBulk {
+	return u.Update(func(s *ServiceRevisionUpsert) {
+		s.SetRecord(v)
+	})
+}
+
+// UpdateRecord sets the "record" field to the value that was provided on create.
+func (u *ServiceRevisionUpsertBulk) UpdateRecord() *ServiceRevisionUpsertBulk {
+	return u.Update(func(s *ServiceRevisionUpsert) {
+		s.UpdateRecord()
+	})
+}
+
+// ClearRecord clears the value of the "record" field.
+func (u *ServiceRevisionUpsertBulk) ClearRecord() *ServiceRevisionUpsertBulk {
+	return u.Update(func(s *ServiceRevisionUpsert) {
+		s.ClearRecord()
 	})
 }
 

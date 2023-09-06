@@ -524,9 +524,7 @@ func init() {
 	serviceresourcerelationship.TypeValidator = serviceresourcerelationshipDescType.Validators[0].(func(string) error)
 	servicerevisionMixin := schema.ServiceRevision{}.Mixin()
 	servicerevisionMixinHooks0 := servicerevisionMixin[0].Hooks()
-	servicerevisionMixinHooks2 := servicerevisionMixin[2].Hooks()
 	servicerevision.Hooks[0] = servicerevisionMixinHooks0[0]
-	servicerevision.Hooks[1] = servicerevisionMixinHooks2[0]
 	servicerevisionInters := schema.ServiceRevision{}.Interceptors()
 	servicerevision.Interceptors[0] = servicerevisionInters[0]
 	servicerevisionMixinFields1 := servicerevisionMixin[1].Fields()

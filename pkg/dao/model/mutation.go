@@ -14519,8 +14519,7 @@ type ServiceRevisionMutation struct {
 	typ                               string
 	id                                *object.ID
 	create_time                       *time.Time
-	status                            *string
-	status_message                    *string
+	status                            *status.Status
 	template_name                     *string
 	template_version                  *string
 	attributes                        *property.Values
@@ -14534,6 +14533,7 @@ type ServiceRevisionMutation struct {
 	appendprevious_required_providers []types.ProviderRequirement
 	tags                              *[]string
 	appendtags                        []string
+	record                            *string
 	clearedFields                     map[string]struct{}
 	project                           *object.ID
 	clearedproject                    bool
@@ -14687,12 +14687,12 @@ func (m *ServiceRevisionMutation) ResetCreateTime() {
 }
 
 // SetStatus sets the "status" field.
-func (m *ServiceRevisionMutation) SetStatus(s string) {
+func (m *ServiceRevisionMutation) SetStatus(s status.Status) {
 	m.status = &s
 }
 
 // Status returns the value of the "status" field in the mutation.
-func (m *ServiceRevisionMutation) Status() (r string, exists bool) {
+func (m *ServiceRevisionMutation) Status() (r status.Status, exists bool) {
 	v := m.status
 	if v == nil {
 		return
@@ -14703,7 +14703,7 @@ func (m *ServiceRevisionMutation) Status() (r string, exists bool) {
 // OldStatus returns the old "status" field's value of the ServiceRevision entity.
 // If the ServiceRevision object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceRevisionMutation) OldStatus(ctx context.Context) (v string, err error) {
+func (m *ServiceRevisionMutation) OldStatus(ctx context.Context) (v status.Status, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
 	}
@@ -14733,55 +14733,6 @@ func (m *ServiceRevisionMutation) StatusCleared() bool {
 func (m *ServiceRevisionMutation) ResetStatus() {
 	m.status = nil
 	delete(m.clearedFields, servicerevision.FieldStatus)
-}
-
-// SetStatusMessage sets the "status_message" field.
-func (m *ServiceRevisionMutation) SetStatusMessage(s string) {
-	m.status_message = &s
-}
-
-// StatusMessage returns the value of the "status_message" field in the mutation.
-func (m *ServiceRevisionMutation) StatusMessage() (r string, exists bool) {
-	v := m.status_message
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStatusMessage returns the old "status_message" field's value of the ServiceRevision entity.
-// If the ServiceRevision object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceRevisionMutation) OldStatusMessage(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatusMessage is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatusMessage requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatusMessage: %w", err)
-	}
-	return oldValue.StatusMessage, nil
-}
-
-// ClearStatusMessage clears the value of the "status_message" field.
-func (m *ServiceRevisionMutation) ClearStatusMessage() {
-	m.status_message = nil
-	m.clearedFields[servicerevision.FieldStatusMessage] = struct{}{}
-}
-
-// StatusMessageCleared returns if the "status_message" field was cleared in this mutation.
-func (m *ServiceRevisionMutation) StatusMessageCleared() bool {
-	_, ok := m.clearedFields[servicerevision.FieldStatusMessage]
-	return ok
-}
-
-// ResetStatusMessage resets all changes to the "status_message" field.
-func (m *ServiceRevisionMutation) ResetStatusMessage() {
-	m.status_message = nil
-	delete(m.clearedFields, servicerevision.FieldStatusMessage)
 }
 
 // SetProjectID sets the "project_id" field.
@@ -15315,6 +15266,55 @@ func (m *ServiceRevisionMutation) ResetTags() {
 	m.appendtags = nil
 }
 
+// SetRecord sets the "record" field.
+func (m *ServiceRevisionMutation) SetRecord(s string) {
+	m.record = &s
+}
+
+// Record returns the value of the "record" field in the mutation.
+func (m *ServiceRevisionMutation) Record() (r string, exists bool) {
+	v := m.record
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRecord returns the old "record" field's value of the ServiceRevision entity.
+// If the ServiceRevision object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ServiceRevisionMutation) OldRecord(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRecord is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRecord requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRecord: %w", err)
+	}
+	return oldValue.Record, nil
+}
+
+// ClearRecord clears the value of the "record" field.
+func (m *ServiceRevisionMutation) ClearRecord() {
+	m.record = nil
+	m.clearedFields[servicerevision.FieldRecord] = struct{}{}
+}
+
+// RecordCleared returns if the "record" field was cleared in this mutation.
+func (m *ServiceRevisionMutation) RecordCleared() bool {
+	_, ok := m.clearedFields[servicerevision.FieldRecord]
+	return ok
+}
+
+// ResetRecord resets all changes to the "record" field.
+func (m *ServiceRevisionMutation) ResetRecord() {
+	m.record = nil
+	delete(m.clearedFields, servicerevision.FieldRecord)
+}
+
 // ClearProject clears the "project" edge to the Project entity.
 func (m *ServiceRevisionMutation) ClearProject() {
 	m.clearedproject = true
@@ -15434,9 +15434,6 @@ func (m *ServiceRevisionMutation) Fields() []string {
 	if m.status != nil {
 		fields = append(fields, servicerevision.FieldStatus)
 	}
-	if m.status_message != nil {
-		fields = append(fields, servicerevision.FieldStatusMessage)
-	}
 	if m.project != nil {
 		fields = append(fields, servicerevision.FieldProjectID)
 	}
@@ -15476,6 +15473,9 @@ func (m *ServiceRevisionMutation) Fields() []string {
 	if m.tags != nil {
 		fields = append(fields, servicerevision.FieldTags)
 	}
+	if m.record != nil {
+		fields = append(fields, servicerevision.FieldRecord)
+	}
 	return fields
 }
 
@@ -15488,8 +15488,6 @@ func (m *ServiceRevisionMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case servicerevision.FieldStatus:
 		return m.Status()
-	case servicerevision.FieldStatusMessage:
-		return m.StatusMessage()
 	case servicerevision.FieldProjectID:
 		return m.ProjectID()
 	case servicerevision.FieldEnvironmentID:
@@ -15516,6 +15514,8 @@ func (m *ServiceRevisionMutation) Field(name string) (ent.Value, bool) {
 		return m.PreviousRequiredProviders()
 	case servicerevision.FieldTags:
 		return m.Tags()
+	case servicerevision.FieldRecord:
+		return m.Record()
 	}
 	return nil, false
 }
@@ -15529,8 +15529,6 @@ func (m *ServiceRevisionMutation) OldField(ctx context.Context, name string) (en
 		return m.OldCreateTime(ctx)
 	case servicerevision.FieldStatus:
 		return m.OldStatus(ctx)
-	case servicerevision.FieldStatusMessage:
-		return m.OldStatusMessage(ctx)
 	case servicerevision.FieldProjectID:
 		return m.OldProjectID(ctx)
 	case servicerevision.FieldEnvironmentID:
@@ -15557,6 +15555,8 @@ func (m *ServiceRevisionMutation) OldField(ctx context.Context, name string) (en
 		return m.OldPreviousRequiredProviders(ctx)
 	case servicerevision.FieldTags:
 		return m.OldTags(ctx)
+	case servicerevision.FieldRecord:
+		return m.OldRecord(ctx)
 	}
 	return nil, fmt.Errorf("unknown ServiceRevision field %s", name)
 }
@@ -15574,18 +15574,11 @@ func (m *ServiceRevisionMutation) SetField(name string, value ent.Value) error {
 		m.SetCreateTime(v)
 		return nil
 	case servicerevision.FieldStatus:
-		v, ok := value.(string)
+		v, ok := value.(status.Status)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStatus(v)
-		return nil
-	case servicerevision.FieldStatusMessage:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatusMessage(v)
 		return nil
 	case servicerevision.FieldProjectID:
 		v, ok := value.(object.ID)
@@ -15678,6 +15671,13 @@ func (m *ServiceRevisionMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTags(v)
 		return nil
+	case servicerevision.FieldRecord:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRecord(v)
+		return nil
 	}
 	return fmt.Errorf("unknown ServiceRevision field %s", name)
 }
@@ -15726,11 +15726,11 @@ func (m *ServiceRevisionMutation) ClearedFields() []string {
 	if m.FieldCleared(servicerevision.FieldStatus) {
 		fields = append(fields, servicerevision.FieldStatus)
 	}
-	if m.FieldCleared(servicerevision.FieldStatusMessage) {
-		fields = append(fields, servicerevision.FieldStatusMessage)
-	}
 	if m.FieldCleared(servicerevision.FieldAttributes) {
 		fields = append(fields, servicerevision.FieldAttributes)
+	}
+	if m.FieldCleared(servicerevision.FieldRecord) {
+		fields = append(fields, servicerevision.FieldRecord)
 	}
 	return fields
 }
@@ -15749,11 +15749,11 @@ func (m *ServiceRevisionMutation) ClearField(name string) error {
 	case servicerevision.FieldStatus:
 		m.ClearStatus()
 		return nil
-	case servicerevision.FieldStatusMessage:
-		m.ClearStatusMessage()
-		return nil
 	case servicerevision.FieldAttributes:
 		m.ClearAttributes()
+		return nil
+	case servicerevision.FieldRecord:
+		m.ClearRecord()
 		return nil
 	}
 	return fmt.Errorf("unknown ServiceRevision nullable field %s", name)
@@ -15768,9 +15768,6 @@ func (m *ServiceRevisionMutation) ResetField(name string) error {
 		return nil
 	case servicerevision.FieldStatus:
 		m.ResetStatus()
-		return nil
-	case servicerevision.FieldStatusMessage:
-		m.ResetStatusMessage()
 		return nil
 	case servicerevision.FieldProjectID:
 		m.ResetProjectID()
@@ -15810,6 +15807,9 @@ func (m *ServiceRevisionMutation) ResetField(name string) error {
 		return nil
 	case servicerevision.FieldTags:
 		m.ResetTags()
+		return nil
+	case servicerevision.FieldRecord:
+		m.ResetRecord()
 		return nil
 	}
 	return fmt.Errorf("unknown ServiceRevision field %s", name)
