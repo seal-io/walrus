@@ -50,8 +50,6 @@ const (
 	FieldDuration = "duration"
 	// FieldPreviousRequiredProviders holds the string denoting the previous_required_providers field in the database.
 	FieldPreviousRequiredProviders = "previous_required_providers"
-	// FieldTags holds the string denoting the tags field in the database.
-	FieldTags = "tags"
 	// FieldRecord holds the string denoting the record field in the database.
 	FieldRecord = "record"
 	// EdgeProject holds the string denoting the project edge name in mutations.
@@ -102,7 +100,6 @@ var Columns = []string{
 	FieldDeployerType,
 	FieldDuration,
 	FieldPreviousRequiredProviders,
-	FieldTags,
 	FieldRecord,
 }
 
@@ -122,7 +119,7 @@ func ValidColumn(column string) bool {
 //
 //	import _ "github.com/seal-io/walrus/pkg/dao/model/runtime"
 var (
-	Hooks        [1]ent.Hook
+	Hooks        [2]ent.Hook
 	Interceptors [1]ent.Interceptor
 	// DefaultCreateTime holds the default value on creation for the "create_time" field.
 	DefaultCreateTime func() time.Time
@@ -144,8 +141,6 @@ var (
 	DefaultDuration int
 	// DefaultPreviousRequiredProviders holds the default value on creation for the "previous_required_providers" field.
 	DefaultPreviousRequiredProviders []types.ProviderRequirement
-	// DefaultTags holds the default value on creation for the "tags" field.
-	DefaultTags []string
 )
 
 // OrderOption defines the ordering options for the ServiceRevision queries.

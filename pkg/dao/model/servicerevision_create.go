@@ -154,12 +154,6 @@ func (src *ServiceRevisionCreate) SetPreviousRequiredProviders(tr []types.Provid
 	return src
 }
 
-// SetTags sets the "tags" field.
-func (src *ServiceRevisionCreate) SetTags(s []string) *ServiceRevisionCreate {
-	src.mutation.SetTags(s)
-	return src
-}
-
 // SetRecord sets the "record" field.
 func (src *ServiceRevisionCreate) SetRecord(s string) *ServiceRevisionCreate {
 	src.mutation.SetRecord(s)
@@ -255,10 +249,6 @@ func (src *ServiceRevisionCreate) defaults() error {
 		v := servicerevision.DefaultPreviousRequiredProviders
 		src.mutation.SetPreviousRequiredProviders(v)
 	}
-	if _, ok := src.mutation.Tags(); !ok {
-		v := servicerevision.DefaultTags
-		src.mutation.SetTags(v)
-	}
 	return nil
 }
 
@@ -324,9 +314,6 @@ func (src *ServiceRevisionCreate) check() error {
 	}
 	if _, ok := src.mutation.PreviousRequiredProviders(); !ok {
 		return &ValidationError{Name: "previous_required_providers", err: errors.New(`model: missing required field "ServiceRevision.previous_required_providers"`)}
-	}
-	if _, ok := src.mutation.Tags(); !ok {
-		return &ValidationError{Name: "tags", err: errors.New(`model: missing required field "ServiceRevision.tags"`)}
 	}
 	if _, ok := src.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "ServiceRevision.project"`)}
@@ -417,10 +404,6 @@ func (src *ServiceRevisionCreate) createSpec() (*ServiceRevision, *sqlgraph.Crea
 	if value, ok := src.mutation.PreviousRequiredProviders(); ok {
 		_spec.SetField(servicerevision.FieldPreviousRequiredProviders, field.TypeJSON, value)
 		_node.PreviousRequiredProviders = value
-	}
-	if value, ok := src.mutation.Tags(); ok {
-		_spec.SetField(servicerevision.FieldTags, field.TypeJSON, value)
-		_node.Tags = value
 	}
 	if value, ok := src.mutation.Record(); ok {
 		_spec.SetField(servicerevision.FieldRecord, field.TypeString, value)
@@ -514,7 +497,6 @@ func (src *ServiceRevisionCreate) Set(obj *ServiceRevision) *ServiceRevisionCrea
 	src.SetDeployerType(obj.DeployerType)
 	src.SetDuration(obj.Duration)
 	src.SetPreviousRequiredProviders(obj.PreviousRequiredProviders)
-	src.SetTags(obj.Tags)
 
 	// Optional.
 	if obj.CreateTime != nil {
@@ -976,18 +958,6 @@ func (u *ServiceRevisionUpsert) UpdatePreviousRequiredProviders() *ServiceRevisi
 	return u
 }
 
-// SetTags sets the "tags" field.
-func (u *ServiceRevisionUpsert) SetTags(v []string) *ServiceRevisionUpsert {
-	u.Set(servicerevision.FieldTags, v)
-	return u
-}
-
-// UpdateTags sets the "tags" field to the value that was provided on create.
-func (u *ServiceRevisionUpsert) UpdateTags() *ServiceRevisionUpsert {
-	u.SetExcluded(servicerevision.FieldTags)
-	return u
-}
-
 // SetRecord sets the "record" field.
 func (u *ServiceRevisionUpsert) SetRecord(v string) *ServiceRevisionUpsert {
 	u.Set(servicerevision.FieldRecord, v)
@@ -1213,20 +1183,6 @@ func (u *ServiceRevisionUpsertOne) SetPreviousRequiredProviders(v []types.Provid
 func (u *ServiceRevisionUpsertOne) UpdatePreviousRequiredProviders() *ServiceRevisionUpsertOne {
 	return u.Update(func(s *ServiceRevisionUpsert) {
 		s.UpdatePreviousRequiredProviders()
-	})
-}
-
-// SetTags sets the "tags" field.
-func (u *ServiceRevisionUpsertOne) SetTags(v []string) *ServiceRevisionUpsertOne {
-	return u.Update(func(s *ServiceRevisionUpsert) {
-		s.SetTags(v)
-	})
-}
-
-// UpdateTags sets the "tags" field to the value that was provided on create.
-func (u *ServiceRevisionUpsertOne) UpdateTags() *ServiceRevisionUpsertOne {
-	return u.Update(func(s *ServiceRevisionUpsert) {
-		s.UpdateTags()
 	})
 }
 
@@ -1623,20 +1579,6 @@ func (u *ServiceRevisionUpsertBulk) SetPreviousRequiredProviders(v []types.Provi
 func (u *ServiceRevisionUpsertBulk) UpdatePreviousRequiredProviders() *ServiceRevisionUpsertBulk {
 	return u.Update(func(s *ServiceRevisionUpsert) {
 		s.UpdatePreviousRequiredProviders()
-	})
-}
-
-// SetTags sets the "tags" field.
-func (u *ServiceRevisionUpsertBulk) SetTags(v []string) *ServiceRevisionUpsertBulk {
-	return u.Update(func(s *ServiceRevisionUpsert) {
-		s.SetTags(v)
-	})
-}
-
-// UpdateTags sets the "tags" field to the value that was provided on create.
-func (u *ServiceRevisionUpsertBulk) UpdateTags() *ServiceRevisionUpsertBulk {
-	return u.Update(func(s *ServiceRevisionUpsert) {
-		s.UpdateTags()
 	})
 }
 

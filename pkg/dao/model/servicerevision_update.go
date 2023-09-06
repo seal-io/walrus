@@ -145,18 +145,6 @@ func (sru *ServiceRevisionUpdate) AppendPreviousRequiredProviders(tr []types.Pro
 	return sru
 }
 
-// SetTags sets the "tags" field.
-func (sru *ServiceRevisionUpdate) SetTags(s []string) *ServiceRevisionUpdate {
-	sru.mutation.SetTags(s)
-	return sru
-}
-
-// AppendTags appends s to the "tags" field.
-func (sru *ServiceRevisionUpdate) AppendTags(s []string) *ServiceRevisionUpdate {
-	sru.mutation.AppendTags(s)
-	return sru
-}
-
 // SetRecord sets the "record" field.
 func (sru *ServiceRevisionUpdate) SetRecord(s string) *ServiceRevisionUpdate {
 	sru.mutation.SetRecord(s)
@@ -276,7 +264,6 @@ func (sru *ServiceRevisionUpdate) Set(obj *ServiceRevision) *ServiceRevisionUpda
 	sru.SetDeployerType(obj.DeployerType)
 	sru.SetDuration(obj.Duration)
 	sru.SetPreviousRequiredProviders(obj.PreviousRequiredProviders)
-	sru.SetTags(obj.Tags)
 	if obj.Record != "" {
 		sru.SetRecord(obj.Record)
 	} else {
@@ -348,14 +335,6 @@ func (sru *ServiceRevisionUpdate) sqlSave(ctx context.Context) (n int, err error
 	if value, ok := sru.mutation.AppendedPreviousRequiredProviders(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, servicerevision.FieldPreviousRequiredProviders, value)
-		})
-	}
-	if value, ok := sru.mutation.Tags(); ok {
-		_spec.SetField(servicerevision.FieldTags, field.TypeJSON, value)
-	}
-	if value, ok := sru.mutation.AppendedTags(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, servicerevision.FieldTags, value)
 		})
 	}
 	if value, ok := sru.mutation.Record(); ok {
@@ -489,18 +468,6 @@ func (sruo *ServiceRevisionUpdateOne) SetPreviousRequiredProviders(tr []types.Pr
 // AppendPreviousRequiredProviders appends tr to the "previous_required_providers" field.
 func (sruo *ServiceRevisionUpdateOne) AppendPreviousRequiredProviders(tr []types.ProviderRequirement) *ServiceRevisionUpdateOne {
 	sruo.mutation.AppendPreviousRequiredProviders(tr)
-	return sruo
-}
-
-// SetTags sets the "tags" field.
-func (sruo *ServiceRevisionUpdateOne) SetTags(s []string) *ServiceRevisionUpdateOne {
-	sruo.mutation.SetTags(s)
-	return sruo
-}
-
-// AppendTags appends s to the "tags" field.
-func (sruo *ServiceRevisionUpdateOne) AppendTags(s []string) *ServiceRevisionUpdateOne {
-	sruo.mutation.AppendTags(s)
 	return sruo
 }
 
@@ -664,9 +631,6 @@ func (sruo *ServiceRevisionUpdateOne) Set(obj *ServiceRevision) *ServiceRevision
 			if !reflect.DeepEqual(db.PreviousRequiredProviders, obj.PreviousRequiredProviders) {
 				sruo.SetPreviousRequiredProviders(obj.PreviousRequiredProviders)
 			}
-			if !reflect.DeepEqual(db.Tags, obj.Tags) {
-				sruo.SetTags(obj.Tags)
-			}
 			if obj.Record != "" {
 				if db.Record != obj.Record {
 					sruo.SetRecord(obj.Record)
@@ -747,9 +711,6 @@ func (sruo *ServiceRevisionUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx
 		}
 		if _, set := sruo.mutation.Field(servicerevision.FieldPreviousRequiredProviders); set {
 			obj.PreviousRequiredProviders = x.PreviousRequiredProviders
-		}
-		if _, set := sruo.mutation.Field(servicerevision.FieldTags); set {
-			obj.Tags = x.Tags
 		}
 		if _, set := sruo.mutation.Field(servicerevision.FieldRecord); set {
 			obj.Record = x.Record
@@ -863,14 +824,6 @@ func (sruo *ServiceRevisionUpdateOne) sqlSave(ctx context.Context) (_node *Servi
 	if value, ok := sruo.mutation.AppendedPreviousRequiredProviders(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, servicerevision.FieldPreviousRequiredProviders, value)
-		})
-	}
-	if value, ok := sruo.mutation.Tags(); ok {
-		_spec.SetField(servicerevision.FieldTags, field.TypeJSON, value)
-	}
-	if value, ok := sruo.mutation.AppendedTags(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, servicerevision.FieldTags, value)
 		})
 	}
 	if value, ok := sruo.mutation.Record(); ok {
