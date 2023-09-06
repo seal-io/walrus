@@ -65,7 +65,7 @@ func (h Handler) RouteUpdateTerraformStates(
 			servicerevision.FieldEnvironmentID,
 			servicerevision.FieldServiceID,
 			servicerevision.FieldStatus,
-			servicerevision.FieldStatusMessage,
+			servicerevision.FieldRecord,
 			servicerevision.FieldDeployerType).
 		WithProject(func(pq *model.ProjectQuery) {
 			pq.Select(
@@ -104,12 +104,11 @@ func (h Handler) RouteUpdateTerraformStates(
 		updateCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		entity.Status = status.ServiceRevisionStatusFailed
-		entity.StatusMessage = err.Error()
+		status.ServiceRevisionStatusReady.False(entity, err.Error())
+		entity.Status.SetSummary(status.WalkServiceRevision(&entity.Status))
 
 		uerr := h.modelClient.ServiceRevisions().UpdateOne(entity).
 			SetStatus(entity.Status).
-			SetStatusMessage(entity.StatusMessage).
 			Exec(updateCtx)
 		if uerr != nil {
 			logger.Errorf("update status failed: %v", err)

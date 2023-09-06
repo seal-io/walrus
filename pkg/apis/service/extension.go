@@ -185,7 +185,7 @@ func (h Handler) RouteGetAccessEndpoints(req RouteGetAccessEndpointsRequest) (Ro
 				case modelchange.EventTypeUpdate:
 					// While the service revision status is succeeded,
 					// the endpoints is updated to the current revision.
-					if ar.Status != status.ServiceRevisionStatusSucceeded {
+					if status.ServiceRevisionStatusReady.IsTrue(ar) {
 						continue
 					}
 
@@ -378,7 +378,7 @@ func (h Handler) RouteGetOutputs(req RouteGetOutputsRequest) (RouteGetOutputsRes
 				case modelchange.EventTypeUpdate:
 					// While the service revision status is succeeded,
 					// the outputs is updated to the current revision.
-					if ar.Status != status.ServiceRevisionStatusSucceeded {
+					if status.ServiceRevisionStatusReady.IsTrue(ar) {
 						continue
 					}
 
@@ -418,7 +418,7 @@ func (h Handler) getServiceOutputs(ctx context.Context, id object.ID, onlySucces
 		return nil, nil
 	}
 
-	if onlySuccess && sr.Status != status.ServiceRevisionStatusSucceeded {
+	if onlySuccess && !status.ServiceRevisionStatusReady.IsTrue(sr) {
 		return nil, nil
 	}
 

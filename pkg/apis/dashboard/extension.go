@@ -20,7 +20,7 @@ import (
 )
 
 var getServiceRevisionFields = servicerevision.WithoutFields(
-	servicerevision.FieldStatusMessage,
+	servicerevision.FieldRecord,
 	servicerevision.FieldInputPlan,
 	servicerevision.FieldOutput,
 	servicerevision.FieldTemplateName,
@@ -28,6 +28,8 @@ var getServiceRevisionFields = servicerevision.WithoutFields(
 	servicerevision.FieldAttributes,
 	servicerevision.FieldVariables,
 )
+
+const summaryStatus = "(status ->> 'summaryStatus')"
 
 func (h Handler) CollectionRouteGetLatestServiceRevisions(
 	req CollectionRouteGetLatestServiceRevisionsRequest,
@@ -173,11 +175,10 @@ func getServiceRevisionStatusStats(
 
 	// Count by the time series and status group.
 	var counts []struct {
-		Count      int       `json:"count"`
-		CreateTime time.Time `json:"create_time"`
-		Status     string    `json:"status"`
+		Count         int       `json:"count"`
+		CreateTime    time.Time `json:"create_time"`
+		SummaryStatus string    `json:"summary_status"`
 	}
-
 	_, offset := startTime.Zone()
 
 	groupBy, err := sqlx.DateTruncWithZoneOffsetSQL(servicerevision.FieldCreateTime, step, offset)
@@ -193,12 +194,12 @@ func getServiceRevisionStatusStats(
 			// Count.
 			q.
 				Select(
-					sql.As(sql.Count(servicerevision.FieldStatus), "count"),
+					sql.As(sql.Count(summaryStatus), "count"),
 					sql.As(groupBy, servicerevision.FieldCreateTime),
-					servicerevision.FieldStatus).
+					sql.As(summaryStatus, "summary_status")).
 				GroupBy(
 					groupBy,
-					servicerevision.FieldStatus)
+					"summary_status")
 		}).
 		Scan(ctx, &counts)
 	if err != nil {
@@ -229,12 +230,12 @@ func getServiceRevisionStatusStats(
 			statMap[t] = &RevisionStatusStats{}
 		}
 
-		switch c.Status {
-		case status.ServiceRevisionStatusFailed:
+		switch c.SummaryStatus {
+		case status.ServiceRevisionSummaryStatusFailed:
 			statMap[t].Failed = c.Count
-		case status.ServiceRevisionStatusSucceeded:
+		case status.ServiceRevisionSummaryStatusSucceed:
 			statMap[t].Succeed = c.Count
-		case status.ServiceRevisionStatusRunning:
+		case status.ServiceRevisionSummaryStatusRunning:
 			statMap[t].Running = c.Count
 		}
 	}
@@ -268,13 +269,18 @@ func getServiceRevisionStatusCount(
 ) (*RevisionStatusCount, error) {
 	// Count by the status group.
 	var counts []struct {
-		Status string `json:"status"`
-		Count  int    `json:"count"`
+		SummaryStatus string `json:"summary_status"`
+		Count         int    `json:"count"`
 	}
 
 	err := query.
-		GroupBy(servicerevision.FieldStatus).
-		Aggregate(model.Count()).
+		Modify(func(q *sql.Selector) {
+			q.
+				Select(
+					sql.As(sql.Count(summaryStatus), "count"),
+					sql.As(summaryStatus, "summary_status")).
+				GroupBy("summary_status")
+		}).
 		Scan(ctx, &counts)
 	if err != nil {
 		return nil, err
@@ -284,12 +290,12 @@ func getServiceRevisionStatusCount(
 	var r RevisionStatusCount
 
 	for _, sc := range counts {
-		switch sc.Status {
-		case status.ServiceRevisionStatusFailed:
+		switch sc.SummaryStatus {
+		case status.ServiceRevisionSummaryStatusFailed:
 			r.Failed = sc.Count
-		case status.ServiceRevisionStatusSucceeded:
+		case status.ServiceRevisionSummaryStatusSucceed:
 			r.Succeed = sc.Count
-		case status.ServiceRevisionStatusRunning:
+		case status.ServiceRevisionSummaryStatusRunning:
 			r.Running = sc.Count
 		}
 	}

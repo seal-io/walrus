@@ -116,8 +116,9 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 	if err != nil {
 		return err
 	}
+
 	// If the application revision status is not running, then skip it.
-	if appRevision.Status != status.ServiceRevisionStatusRunning {
+	if !status.ServiceRevisionStatusReady.IsUnknown(appRevision) {
 		return nil
 	}
 
@@ -125,12 +126,13 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 		return nil
 	}
 
-	revisionStatus := status.ServiceRevisionStatusSucceeded
+	status.ServiceRevisionStatusReady.True(appRevision, "")
+
 	// Get job pods logs.
-	revisionStatusMessage, rerr := r.getJobPodsLogs(ctx, job.Name)
-	if rerr != nil {
-		r.Logger.Error(rerr, "failed to get job pod logs", "application-revision", appRevisionID)
-		revisionStatusMessage = rerr.Error()
+	record, err := r.getJobPodsLogs(ctx, job.Name)
+	if err != nil {
+		r.Logger.Error(err, "failed to get job pod logs", "application-revision", appRevisionID)
+		record = err.Error()
 	}
 
 	if job.Status.Succeeded > 0 {
@@ -139,17 +141,17 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 
 	if job.Status.Failed > 0 {
 		r.Logger.Info("failed", "application-revision", appRevisionID)
-		revisionStatus = status.ServiceRevisionStatusFailed
+		status.ServiceRevisionStatusReady.False(appRevision, "")
 	}
 
 	// Report to application revision.
-	appRevision.Status = revisionStatus
-	appRevision.StatusMessage = revisionStatusMessage
+	appRevision.Record = record
+	appRevision.Status.SetSummary(status.WalkServiceRevision(&appRevision.Status))
 	appRevision.Duration = int(time.Since(*appRevision.CreateTime).Seconds())
 
 	appRevision, err = r.ModelClient.ServiceRevisions().UpdateOne(appRevision).
 		SetStatus(appRevision.Status).
-		SetStatusMessage(appRevision.StatusMessage).
+		SetRecord(appRevision.Record).
 		SetDuration(appRevision.Duration).
 		Save(ctx)
 	if err != nil {
