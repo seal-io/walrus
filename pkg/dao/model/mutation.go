@@ -14531,8 +14531,6 @@ type ServiceRevisionMutation struct {
 	addduration                       *int
 	previous_required_providers       *[]types.ProviderRequirement
 	appendprevious_required_providers []types.ProviderRequirement
-	tags                              *[]string
-	appendtags                        []string
 	record                            *string
 	clearedFields                     map[string]struct{}
 	project                           *object.ID
@@ -15215,57 +15213,6 @@ func (m *ServiceRevisionMutation) ResetPreviousRequiredProviders() {
 	m.appendprevious_required_providers = nil
 }
 
-// SetTags sets the "tags" field.
-func (m *ServiceRevisionMutation) SetTags(s []string) {
-	m.tags = &s
-	m.appendtags = nil
-}
-
-// Tags returns the value of the "tags" field in the mutation.
-func (m *ServiceRevisionMutation) Tags() (r []string, exists bool) {
-	v := m.tags
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTags returns the old "tags" field's value of the ServiceRevision entity.
-// If the ServiceRevision object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceRevisionMutation) OldTags(ctx context.Context) (v []string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTags is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTags requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTags: %w", err)
-	}
-	return oldValue.Tags, nil
-}
-
-// AppendTags adds s to the "tags" field.
-func (m *ServiceRevisionMutation) AppendTags(s []string) {
-	m.appendtags = append(m.appendtags, s...)
-}
-
-// AppendedTags returns the list of values that were appended to the "tags" field in this mutation.
-func (m *ServiceRevisionMutation) AppendedTags() ([]string, bool) {
-	if len(m.appendtags) == 0 {
-		return nil, false
-	}
-	return m.appendtags, true
-}
-
-// ResetTags resets all changes to the "tags" field.
-func (m *ServiceRevisionMutation) ResetTags() {
-	m.tags = nil
-	m.appendtags = nil
-}
-
 // SetRecord sets the "record" field.
 func (m *ServiceRevisionMutation) SetRecord(s string) {
 	m.record = &s
@@ -15427,7 +15374,7 @@ func (m *ServiceRevisionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ServiceRevisionMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 15)
 	if m.create_time != nil {
 		fields = append(fields, servicerevision.FieldCreateTime)
 	}
@@ -15470,9 +15417,6 @@ func (m *ServiceRevisionMutation) Fields() []string {
 	if m.previous_required_providers != nil {
 		fields = append(fields, servicerevision.FieldPreviousRequiredProviders)
 	}
-	if m.tags != nil {
-		fields = append(fields, servicerevision.FieldTags)
-	}
 	if m.record != nil {
 		fields = append(fields, servicerevision.FieldRecord)
 	}
@@ -15512,8 +15456,6 @@ func (m *ServiceRevisionMutation) Field(name string) (ent.Value, bool) {
 		return m.Duration()
 	case servicerevision.FieldPreviousRequiredProviders:
 		return m.PreviousRequiredProviders()
-	case servicerevision.FieldTags:
-		return m.Tags()
 	case servicerevision.FieldRecord:
 		return m.Record()
 	}
@@ -15553,8 +15495,6 @@ func (m *ServiceRevisionMutation) OldField(ctx context.Context, name string) (en
 		return m.OldDuration(ctx)
 	case servicerevision.FieldPreviousRequiredProviders:
 		return m.OldPreviousRequiredProviders(ctx)
-	case servicerevision.FieldTags:
-		return m.OldTags(ctx)
 	case servicerevision.FieldRecord:
 		return m.OldRecord(ctx)
 	}
@@ -15663,13 +15603,6 @@ func (m *ServiceRevisionMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPreviousRequiredProviders(v)
-		return nil
-	case servicerevision.FieldTags:
-		v, ok := value.([]string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTags(v)
 		return nil
 	case servicerevision.FieldRecord:
 		v, ok := value.(string)
@@ -15804,9 +15737,6 @@ func (m *ServiceRevisionMutation) ResetField(name string) error {
 		return nil
 	case servicerevision.FieldPreviousRequiredProviders:
 		m.ResetPreviousRequiredProviders()
-		return nil
-	case servicerevision.FieldTags:
-		m.ResetTags()
 		return nil
 	case servicerevision.FieldRecord:
 		m.ResetRecord()

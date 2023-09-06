@@ -50,8 +50,6 @@ type ServiceRevisionCreateInput struct {
 	Duration int `path:"-" query:"-" json:"duration,omitempty"`
 	// Previous provider requirement of the revision.
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
-	// Tags of the revision.
-	Tags []string `path:"-" query:"-" json:"tags,omitempty"`
 	// Record of the revision.
 	Record string `path:"-" query:"-" json:"record,omitempty"`
 }
@@ -73,7 +71,6 @@ func (srci *ServiceRevisionCreateInput) Model() *ServiceRevision {
 		DeployerType:              srci.DeployerType,
 		Duration:                  srci.Duration,
 		PreviousRequiredProviders: srci.PreviousRequiredProviders,
-		Tags:                      srci.Tags,
 		Record:                    srci.Record,
 	}
 
@@ -151,8 +148,6 @@ type ServiceRevisionCreateInputsItem struct {
 	Duration int `path:"-" query:"-" json:"duration,omitempty"`
 	// Previous provider requirement of the revision.
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
-	// Tags of the revision.
-	Tags []string `path:"-" query:"-" json:"tags,omitempty"`
 	// Record of the revision.
 	Record string `path:"-" query:"-" json:"record,omitempty"`
 }
@@ -206,7 +201,6 @@ func (srci *ServiceRevisionCreateInputs) Model() []*ServiceRevision {
 			DeployerType:              srci.Items[i].DeployerType,
 			Duration:                  srci.Items[i].Duration,
 			PreviousRequiredProviders: srci.Items[i].PreviousRequiredProviders,
-			Tags:                      srci.Items[i].Tags,
 			Record:                    srci.Items[i].Record,
 		}
 
@@ -642,8 +636,6 @@ type ServiceRevisionUpdateInput struct {
 	Duration int `path:"-" query:"-" json:"duration,omitempty"`
 	// Previous provider requirement of the revision.
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
-	// Tags of the revision.
-	Tags []string `path:"-" query:"-" json:"tags,omitempty"`
 	// Record of the revision.
 	Record string `path:"-" query:"-" json:"record,omitempty"`
 }
@@ -665,7 +657,6 @@ func (srui *ServiceRevisionUpdateInput) Model() *ServiceRevision {
 		DeployerType:              srui.DeployerType,
 		Duration:                  srui.Duration,
 		PreviousRequiredProviders: srui.PreviousRequiredProviders,
-		Tags:                      srui.Tags,
 		Record:                    srui.Record,
 	}
 
@@ -715,8 +706,6 @@ type ServiceRevisionUpdateInputsItem struct {
 	Duration int `path:"-" query:"-" json:"duration"`
 	// Previous provider requirement of the revision.
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders"`
-	// Tags of the revision.
-	Tags []string `path:"-" query:"-" json:"tags"`
 	// Record of the revision.
 	Record string `path:"-" query:"-" json:"record,omitempty"`
 }
@@ -770,7 +759,6 @@ func (srui *ServiceRevisionUpdateInputs) Model() []*ServiceRevision {
 			DeployerType:              srui.Items[i].DeployerType,
 			Duration:                  srui.Items[i].Duration,
 			PreviousRequiredProviders: srui.Items[i].PreviousRequiredProviders,
-			Tags:                      srui.Items[i].Tags,
 			Record:                    srui.Items[i].Record,
 		}
 
@@ -899,7 +887,6 @@ type ServiceRevisionOutput struct {
 	DeployerType              string                      `json:"deployerType,omitempty"`
 	Duration                  int                         `json:"duration,omitempty"`
 	PreviousRequiredProviders []types.ProviderRequirement `json:"previousRequiredProviders,omitempty"`
-	Tags                      []string                    `json:"tags,omitempty"`
 	Record                    string                      `json:"record,omitempty"`
 
 	Project     *ProjectOutput     `json:"project,omitempty"`
@@ -934,7 +921,6 @@ func ExposeServiceRevision(_sr *ServiceRevision) *ServiceRevisionOutput {
 		DeployerType:              _sr.DeployerType,
 		Duration:                  _sr.Duration,
 		PreviousRequiredProviders: _sr.PreviousRequiredProviders,
-		Tags:                      _sr.Tags,
 		Record:                    _sr.Record,
 	}
 

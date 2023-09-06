@@ -58,8 +58,6 @@ type ServiceRevision struct {
 	Duration int `json:"duration,omitempty"`
 	// Previous provider requirement of the revision.
 	PreviousRequiredProviders []types.ProviderRequirement `json:"previous_required_providers,omitempty"`
-	// Tags of the revision.
-	Tags []string `json:"tags,omitempty"`
 	// Record of the revision.
 	Record string `json:"record,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -125,7 +123,7 @@ func (*ServiceRevision) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case servicerevision.FieldStatus, servicerevision.FieldPreviousRequiredProviders, servicerevision.FieldTags:
+		case servicerevision.FieldStatus, servicerevision.FieldPreviousRequiredProviders:
 			values[i] = new([]byte)
 		case servicerevision.FieldVariables:
 			values[i] = new(crypto.Map[string, string])
@@ -249,14 +247,6 @@ func (sr *ServiceRevision) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field previous_required_providers: %w", err)
 				}
 			}
-		case servicerevision.FieldTags:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field tags", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &sr.Tags); err != nil {
-					return fmt.Errorf("unmarshal field tags: %w", err)
-				}
-			}
 		case servicerevision.FieldRecord:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field record", values[i])
@@ -355,9 +345,6 @@ func (sr *ServiceRevision) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("previous_required_providers=")
 	builder.WriteString(fmt.Sprintf("%v", sr.PreviousRequiredProviders))
-	builder.WriteString(", ")
-	builder.WriteString("tags=")
-	builder.WriteString(fmt.Sprintf("%v", sr.Tags))
 	builder.WriteString(", ")
 	builder.WriteString("record=")
 	builder.WriteString(sr.Record)

@@ -524,7 +524,9 @@ func init() {
 	serviceresourcerelationship.TypeValidator = serviceresourcerelationshipDescType.Validators[0].(func(string) error)
 	servicerevisionMixin := schema.ServiceRevision{}.Mixin()
 	servicerevisionMixinHooks0 := servicerevisionMixin[0].Hooks()
+	servicerevisionHooks := schema.ServiceRevision{}.Hooks()
 	servicerevision.Hooks[0] = servicerevisionMixinHooks0[0]
+	servicerevision.Hooks[1] = servicerevisionHooks[0]
 	servicerevisionInters := schema.ServiceRevision{}.Interceptors()
 	servicerevision.Interceptors[0] = servicerevisionInters[0]
 	servicerevisionMixinFields1 := servicerevisionMixin[1].Fields()
@@ -571,10 +573,6 @@ func init() {
 	servicerevisionDescPreviousRequiredProviders := servicerevisionFields[11].Descriptor()
 	// servicerevision.DefaultPreviousRequiredProviders holds the default value on creation for the previous_required_providers field.
 	servicerevision.DefaultPreviousRequiredProviders = servicerevisionDescPreviousRequiredProviders.Default.([]types.ProviderRequirement)
-	// servicerevisionDescTags is the schema descriptor for tags field.
-	servicerevisionDescTags := servicerevisionFields[12].Descriptor()
-	// servicerevision.DefaultTags holds the default value on creation for the tags field.
-	servicerevision.DefaultTags = servicerevisionDescTags.Default.([]string)
 	settingMixin := schema.Setting{}.Mixin()
 	settingMixinHooks0 := settingMixin[0].Hooks()
 	setting.Hooks[0] = settingMixinHooks0[0]
