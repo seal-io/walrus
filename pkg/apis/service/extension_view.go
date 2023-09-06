@@ -99,7 +99,7 @@ func (r *RouteRollbackRequest) Validate() error {
 		return fmt.Errorf("failed to get the latest revision: %w", err)
 	}
 
-	if latestRevision.Status == status.ServiceRevisionStatusRunning {
+	if status.ServiceRevisionStatusReady.IsUnknown(latestRevision) {
 		return errors.New("latest revision is running")
 	}
 

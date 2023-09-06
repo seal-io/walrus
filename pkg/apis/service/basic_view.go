@@ -318,10 +318,10 @@ func validateRevisionsStatus(ctx context.Context, mc model.ClientSet, ids ...obj
 	}
 
 	for _, r := range revisions {
-		switch r.Status {
-		case status.ServiceRevisionStatusSucceeded:
-		case status.ServiceRevisionStatusFailed:
-		case status.ServiceRevisionStatusRunning:
+		switch r.Status.SummaryStatus {
+		case status.ServiceRevisionSummaryStatusSucceed:
+		case status.ServiceRevisionSummaryStatusFailed:
+		case status.ServiceRevisionSummaryStatusRunning:
 			return errorx.HttpErrorf(
 				http.StatusBadRequest,
 				"deployment of service %q is running, please wait for it to finish",
@@ -332,7 +332,7 @@ func validateRevisionsStatus(ctx context.Context, mc model.ClientSet, ids ...obj
 				http.StatusBadRequest,
 				"invalid deployment status of service %q: %s",
 				r.Edges.Service.Name,
-				r.Status,
+				r.Status.SummaryStatus,
 			)
 		}
 	}

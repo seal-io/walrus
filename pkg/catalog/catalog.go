@@ -87,11 +87,11 @@ func getSyncResult(ctx context.Context, mc model.ClientSet, c *model.Catalog) (*
 	}
 
 	for _, v := range counts {
-		if status.CatalogStatusInitialized.IsTrue(v.Status) || status.CatalogStatusReady.IsTrue(v.Status) {
+		if status.CatalogStatusInitialized.IsTrue(v) || status.CatalogStatusReady.IsTrue(v) {
 			catalogSync.Succeeded += v.Count
 		}
 
-		if status.CatalogStatusInitialized.IsFalse(v.Status) || status.CatalogStatusReady.IsFalse(v.Status) {
+		if status.CatalogStatusInitialized.IsFalse(v) || status.CatalogStatusReady.IsFalse(v) {
 			catalogSync.Failed += v.Count
 		}
 		catalogSync.Total += v.Count

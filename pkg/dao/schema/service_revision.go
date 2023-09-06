@@ -1,6 +1,9 @@
 package schema
 
 import (
+	"context"
+	"fmt"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -12,6 +15,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 type ServiceRevision struct {
@@ -22,7 +26,7 @@ func (ServiceRevision) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID(),
 		mixin.Time().WithoutUpdateTime(),
-		mixin.LegacyStatus(),
+		mixin.Status(),
 	}
 }
 
@@ -71,6 +75,9 @@ func (ServiceRevision) Fields() []ent.Field {
 		field.Strings("tags").
 			Comment("Tags of the revision.").
 			Default([]string{}),
+		field.Text("record").
+			Comment("Record of the revision.").
+			Optional(),
 	}
 }
 
@@ -108,5 +115,29 @@ func (ServiceRevision) Edges() []ent.Edge {
 func (ServiceRevision) Interceptors() []ent.Interceptor {
 	return []ent.Interceptor{
 		intercept.ByProject("project_id"),
+	}
+}
+
+func (ServiceRevision) Hooks() []ent.Hook {
+	// Normalize special chars in status message.
+	normalizeStatusMessage := func(n ent.Mutator) ent.Mutator {
+		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+			if !m.Op().Is(ent.OpCreate | ent.OpUpdate | ent.OpUpdateOne) {
+				return n.Mutate(ctx, m)
+			}
+
+			if v, ok := m.Field("record"); ok && v.(string) != "" {
+				err := m.SetField("record", strs.NormalizeSpecialChars(v.(string)))
+				if err != nil {
+					return nil, fmt.Errorf("error normalizing record: %w", err)
+				}
+			}
+
+			return n.Mutate(ctx, m)
+		})
+	}
+
+	return []ent.Hook{
+		normalizeStatusMessage,
 	}
 }

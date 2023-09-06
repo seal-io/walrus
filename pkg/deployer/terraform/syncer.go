@@ -26,8 +26,7 @@ func SyncServiceRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) (
 		return err
 	}
 
-	switch revision.Status {
-	case status.ServiceRevisionStatusSucceeded:
+	if status.ServiceRevisionStatusReady.IsTrue(revision) {
 		if status.ServiceStatusDeleted.IsUnknown(entity) {
 			return mc.Services().DeleteOne(entity).
 				Exec(ctx)
@@ -35,14 +34,14 @@ func SyncServiceRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) (
 
 		status.ServiceStatusDeployed.True(entity, "")
 		status.ServiceStatusReady.Unknown(entity, "")
-	case status.ServiceRevisionStatusFailed:
+	} else if status.ServiceRevisionStatusReady.IsFalse(revision) {
 		if status.ServiceStatusDeleted.IsUnknown(entity) {
 			status.ServiceStatusDeleted.False(entity, "")
 		} else {
 			status.ServiceStatusDeployed.False(entity, "")
 		}
 
-		entity.Status.SummaryStatusMessage = revision.StatusMessage
+		entity.Status.SummaryStatusMessage = revision.Status.SummaryStatusMessage
 	}
 
 	entity.Status.SetSummary(status.WalkService(&entity.Status))

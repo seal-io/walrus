@@ -105,8 +105,11 @@ func (d Deployer) Apply(ctx context.Context, service *model.Service, opts deptyp
 			return
 		}
 
+		// Update a failure status.
+		status.ServiceRevisionStatusReady.False(revision, err.Error())
+
 		// Report to service revision.
-		_ = d.updateRevisionStatus(ctx, revision, status.ServiceRevisionStatusFailed, err.Error())
+		_ = d.updateRevisionStatus(ctx, revision)
 	}()
 
 	return d.createK8sJob(ctx, createK8sJobOptions{
@@ -132,8 +135,11 @@ func (d Deployer) Destroy(ctx context.Context, service *model.Service, opts dept
 			return
 		}
 
+		// Update a failure status.
+		status.ServiceRevisionStatusReady.False(revision, err.Error())
+
 		// Report to service revision.
-		_ = d.updateRevisionStatus(ctx, revision, status.ServiceRevisionStatusFailed, err.Error())
+		_ = d.updateRevisionStatus(ctx, revision)
 	}()
 
 	// If no resource exists, skip job and set revision status succeed.
@@ -145,7 +151,8 @@ func (d Deployer) Destroy(ctx context.Context, service *model.Service, opts dept
 	}
 
 	if !exist {
-		return d.updateRevisionStatus(ctx, revision, status.ServiceRevisionStatusSucceeded, revision.StatusMessage)
+		status.ServiceRevisionStatusReady.True(revision, "")
+		return d.updateRevisionStatus(ctx, revision)
 	}
 
 	return d.createK8sJob(ctx, createK8sJobOptions{
@@ -298,14 +305,12 @@ func (d Deployer) getProxyEnv(ctx context.Context) ([]corev1.EnvVar, error) {
 	return env, nil
 }
 
-func (d Deployer) updateRevisionStatus(ctx context.Context, ar *model.ServiceRevision, s, m string) error {
+func (d Deployer) updateRevisionStatus(ctx context.Context, ar *model.ServiceRevision) error {
 	// Report to service revision.
-	ar.Status = s
-	ar.StatusMessage = m
+	ar.Status.SetSummary(status.WalkServiceRevision(&ar.Status))
 
 	ar, err := d.modelClient.ServiceRevisions().UpdateOne(ar).
 		SetStatus(ar.Status).
-		SetStatusMessage(ar.StatusMessage).
 		Save(ctx)
 	if err != nil {
 		return err
@@ -396,7 +401,7 @@ func (d Deployer) createRevision(
 		return nil, err
 	}
 
-	if prevEntity != nil && prevEntity.Status == status.ServiceRevisionStatusRunning {
+	if prevEntity != nil && status.ServiceRevisionStatusReady.IsUnknown(prevEntity) {
 		return nil, errors.New("service deployment is running")
 	}
 
@@ -427,8 +432,8 @@ func (d Deployer) createRevision(
 		Attributes:      svc.Attributes,
 		Tags:            opts.Tags,
 		DeployerType:    DeployerType,
-		Status:          status.ServiceRevisionStatusRunning,
 	}
+	status.ServiceStatusReady.Unknown(entity, "")
 
 	// Inherit the output of previous revision to create a new one.
 	if prevEntity != nil {
@@ -444,7 +449,7 @@ func (d Deployer) createRevision(
 		}
 		entity.PreviousRequiredProviders = requiredProviders
 	case opts.JobType == JobTypeDestroy && entity.Output != "":
-		if prevEntity.Status == status.ServiceRevisionStatusFailed {
+		if status.ServiceRevisionStatusReady.IsFalse(prevEntity) {
 			// Get required providers from the previous output after first deployment.
 			requiredProviders, err := d.getRequiredProviders(ctx, opts.ServiceID, entity.Output)
 			if err != nil {
