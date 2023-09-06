@@ -72,9 +72,6 @@ func (ServiceRevision) Fields() []ent.Field {
 		field.JSON("previous_required_providers", []types.ProviderRequirement{}).
 			Comment("Previous provider requirement of the revision.").
 			Default([]types.ProviderRequirement{}),
-		field.Strings("tags").
-			Comment("Tags of the revision.").
-			Default([]string{}),
 		field.Text("record").
 			Comment("Record of the revision.").
 			Optional(),
