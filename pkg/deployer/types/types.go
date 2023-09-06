@@ -27,8 +27,6 @@ type Deployer interface {
 type ApplyOptions struct {
 	// SkipTLSVerify indicates to skip TLS verification.
 	SkipTLSVerify bool
-	// Tags holds the tags for create service revision.
-	Tags []string
 }
 
 // DestroyOptions holds the options of Deployer's Destroy action.
