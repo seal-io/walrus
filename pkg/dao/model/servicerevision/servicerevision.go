@@ -26,8 +26,6 @@ const (
 	FieldCreateTime = "create_time"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
-	// FieldStatusMessage holds the string denoting the status_message field in the database.
-	FieldStatusMessage = "status_message"
 	// FieldProjectID holds the string denoting the project_id field in the database.
 	FieldProjectID = "project_id"
 	// FieldEnvironmentID holds the string denoting the environment_id field in the database.
@@ -54,6 +52,8 @@ const (
 	FieldPreviousRequiredProviders = "previous_required_providers"
 	// FieldTags holds the string denoting the tags field in the database.
 	FieldTags = "tags"
+	// FieldRecord holds the string denoting the record field in the database.
+	FieldRecord = "record"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
@@ -90,7 +90,6 @@ var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldStatus,
-	FieldStatusMessage,
 	FieldProjectID,
 	FieldEnvironmentID,
 	FieldServiceID,
@@ -104,6 +103,7 @@ var Columns = []string{
 	FieldDuration,
 	FieldPreviousRequiredProviders,
 	FieldTags,
+	FieldRecord,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -122,7 +122,7 @@ func ValidColumn(column string) bool {
 //
 //	import _ "github.com/seal-io/walrus/pkg/dao/model/runtime"
 var (
-	Hooks        [2]ent.Hook
+	Hooks        [1]ent.Hook
 	Interceptors [1]ent.Interceptor
 	// DefaultCreateTime holds the default value on creation for the "create_time" field.
 	DefaultCreateTime func() time.Time
@@ -159,16 +159,6 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByCreateTime orders the results by the create_time field.
 func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
-}
-
-// ByStatus orders the results by the status field.
-func ByStatus(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStatus, opts...).ToFunc()
-}
-
-// ByStatusMessage orders the results by the status_message field.
-func ByStatusMessage(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStatusMessage, opts...).ToFunc()
 }
 
 // ByProjectID orders the results by the project_id field.
@@ -224,6 +214,11 @@ func ByDeployerType(opts ...sql.OrderTermOption) OrderOption {
 // ByDuration orders the results by the duration field.
 func ByDuration(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDuration, opts...).ToFunc()
+}
+
+// ByRecord orders the results by the record field.
+func ByRecord(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRecord, opts...).ToFunc()
 }
 
 // ByProjectField orders the results by project field.

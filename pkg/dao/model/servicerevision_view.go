@@ -17,6 +17,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
 // ServiceRevisionCreateInput holds the creation input of the ServiceRevision entity,
@@ -51,6 +52,8 @@ type ServiceRevisionCreateInput struct {
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
 	// Tags of the revision.
 	Tags []string `path:"-" query:"-" json:"tags,omitempty"`
+	// Record of the revision.
+	Record string `path:"-" query:"-" json:"record,omitempty"`
 }
 
 // Model returns the ServiceRevision entity for creating,
@@ -71,6 +74,7 @@ func (srci *ServiceRevisionCreateInput) Model() *ServiceRevision {
 		Duration:                  srci.Duration,
 		PreviousRequiredProviders: srci.PreviousRequiredProviders,
 		Tags:                      srci.Tags,
+		Record:                    srci.Record,
 	}
 
 	if srci.Project != nil {
@@ -149,6 +153,8 @@ type ServiceRevisionCreateInputsItem struct {
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
 	// Tags of the revision.
 	Tags []string `path:"-" query:"-" json:"tags,omitempty"`
+	// Record of the revision.
+	Record string `path:"-" query:"-" json:"record,omitempty"`
 }
 
 // ValidateWith checks the ServiceRevisionCreateInputsItem entity with the given context and client set.
@@ -201,6 +207,7 @@ func (srci *ServiceRevisionCreateInputs) Model() []*ServiceRevision {
 			Duration:                  srci.Items[i].Duration,
 			PreviousRequiredProviders: srci.Items[i].PreviousRequiredProviders,
 			Tags:                      srci.Items[i].Tags,
+			Record:                    srci.Items[i].Record,
 		}
 
 		if srci.Project != nil {
@@ -637,6 +644,8 @@ type ServiceRevisionUpdateInput struct {
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
 	// Tags of the revision.
 	Tags []string `path:"-" query:"-" json:"tags,omitempty"`
+	// Record of the revision.
+	Record string `path:"-" query:"-" json:"record,omitempty"`
 }
 
 // Model returns the ServiceRevision entity for modifying,
@@ -657,6 +666,7 @@ func (srui *ServiceRevisionUpdateInput) Model() *ServiceRevision {
 		Duration:                  srui.Duration,
 		PreviousRequiredProviders: srui.PreviousRequiredProviders,
 		Tags:                      srui.Tags,
+		Record:                    srui.Record,
 	}
 
 	return _sr
@@ -707,6 +717,8 @@ type ServiceRevisionUpdateInputsItem struct {
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders"`
 	// Tags of the revision.
 	Tags []string `path:"-" query:"-" json:"tags"`
+	// Record of the revision.
+	Record string `path:"-" query:"-" json:"record,omitempty"`
 }
 
 // ValidateWith checks the ServiceRevisionUpdateInputsItem entity with the given context and client set.
@@ -759,6 +771,7 @@ func (srui *ServiceRevisionUpdateInputs) Model() []*ServiceRevision {
 			Duration:                  srui.Items[i].Duration,
 			PreviousRequiredProviders: srui.Items[i].PreviousRequiredProviders,
 			Tags:                      srui.Items[i].Tags,
+			Record:                    srui.Items[i].Record,
 		}
 
 		_srs[i] = _sr
@@ -878,8 +891,7 @@ func (srui *ServiceRevisionUpdateInputs) ValidateWith(ctx context.Context, cs Cl
 type ServiceRevisionOutput struct {
 	ID                        object.ID                   `json:"id,omitempty"`
 	CreateTime                *time.Time                  `json:"createTime,omitempty"`
-	Status                    string                      `json:"status,omitempty"`
-	StatusMessage             string                      `json:"statusMessage,omitempty"`
+	Status                    status.Status               `json:"status,omitempty"`
 	TemplateName              string                      `json:"templateName,omitempty"`
 	TemplateVersion           string                      `json:"templateVersion,omitempty"`
 	Attributes                property.Values             `json:"attributes,omitempty"`
@@ -888,6 +900,7 @@ type ServiceRevisionOutput struct {
 	Duration                  int                         `json:"duration,omitempty"`
 	PreviousRequiredProviders []types.ProviderRequirement `json:"previousRequiredProviders,omitempty"`
 	Tags                      []string                    `json:"tags,omitempty"`
+	Record                    string                      `json:"record,omitempty"`
 
 	Project     *ProjectOutput     `json:"project,omitempty"`
 	Environment *EnvironmentOutput `json:"environment,omitempty"`
@@ -914,7 +927,6 @@ func ExposeServiceRevision(_sr *ServiceRevision) *ServiceRevisionOutput {
 		ID:                        _sr.ID,
 		CreateTime:                _sr.CreateTime,
 		Status:                    _sr.Status,
-		StatusMessage:             _sr.StatusMessage,
 		TemplateName:              _sr.TemplateName,
 		TemplateVersion:           _sr.TemplateVersion,
 		Attributes:                _sr.Attributes,
@@ -923,6 +935,7 @@ func ExposeServiceRevision(_sr *ServiceRevision) *ServiceRevisionOutput {
 		Duration:                  _sr.Duration,
 		PreviousRequiredProviders: _sr.PreviousRequiredProviders,
 		Tags:                      _sr.Tags,
+		Record:                    _sr.Record,
 	}
 
 	if _sr.Edges.Project != nil {

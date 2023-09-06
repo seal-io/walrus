@@ -503,8 +503,7 @@ var (
 	ServiceRevisionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "create_time", Type: field.TypeTime},
-		{Name: "status", Type: field.TypeString, Nullable: true},
-		{Name: "status_message", Type: field.TypeString, Nullable: true},
+		{Name: "status", Type: field.TypeJSON, Nullable: true},
 		{Name: "template_name", Type: field.TypeString},
 		{Name: "template_version", Type: field.TypeString},
 		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
@@ -515,6 +514,7 @@ var (
 		{Name: "duration", Type: field.TypeInt, Default: 0},
 		{Name: "previous_required_providers", Type: field.TypeJSON},
 		{Name: "tags", Type: field.TypeJSON},
+		{Name: "record", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "service_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},

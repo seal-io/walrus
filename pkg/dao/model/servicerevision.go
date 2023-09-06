@@ -21,6 +21,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/utils/json"
 )
 
@@ -32,9 +33,7 @@ type ServiceRevision struct {
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime *time.Time `json:"create_time,omitempty"`
 	// Status holds the value of the "status" field.
-	Status string `json:"status,omitempty"`
-	// StatusMessage holds the value of the "status_message" field.
-	StatusMessage string `json:"status_message,omitempty"`
+	Status status.Status `json:"status,omitempty"`
 	// ID of the project to belong.
 	ProjectID object.ID `json:"project_id,omitempty"`
 	// ID of the environment to which the revision belongs.
@@ -61,6 +60,8 @@ type ServiceRevision struct {
 	PreviousRequiredProviders []types.ProviderRequirement `json:"previous_required_providers,omitempty"`
 	// Tags of the revision.
 	Tags []string `json:"tags,omitempty"`
+	// Record of the revision.
+	Record string `json:"record,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ServiceRevisionQuery when eager-loading is set.
 	Edges        ServiceRevisionEdges `json:"edges,omitempty"`
@@ -124,7 +125,7 @@ func (*ServiceRevision) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case servicerevision.FieldPreviousRequiredProviders, servicerevision.FieldTags:
+		case servicerevision.FieldStatus, servicerevision.FieldPreviousRequiredProviders, servicerevision.FieldTags:
 			values[i] = new([]byte)
 		case servicerevision.FieldVariables:
 			values[i] = new(crypto.Map[string, string])
@@ -134,7 +135,7 @@ func (*ServiceRevision) scanValues(columns []string) ([]any, error) {
 			values[i] = new(property.Values)
 		case servicerevision.FieldDuration:
 			values[i] = new(sql.NullInt64)
-		case servicerevision.FieldStatus, servicerevision.FieldStatusMessage, servicerevision.FieldTemplateName, servicerevision.FieldTemplateVersion, servicerevision.FieldInputPlan, servicerevision.FieldOutput, servicerevision.FieldDeployerType:
+		case servicerevision.FieldTemplateName, servicerevision.FieldTemplateVersion, servicerevision.FieldInputPlan, servicerevision.FieldOutput, servicerevision.FieldDeployerType, servicerevision.FieldRecord:
 			values[i] = new(sql.NullString)
 		case servicerevision.FieldCreateTime:
 			values[i] = new(sql.NullTime)
@@ -167,16 +168,12 @@ func (sr *ServiceRevision) assignValues(columns []string, values []any) error {
 				*sr.CreateTime = value.Time
 			}
 		case servicerevision.FieldStatus:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
-			} else if value.Valid {
-				sr.Status = value.String
-			}
-		case servicerevision.FieldStatusMessage:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field status_message", values[i])
-			} else if value.Valid {
-				sr.StatusMessage = value.String
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &sr.Status); err != nil {
+					return fmt.Errorf("unmarshal field status: %w", err)
+				}
 			}
 		case servicerevision.FieldProjectID:
 			if value, ok := values[i].(*object.ID); !ok {
@@ -260,6 +257,12 @@ func (sr *ServiceRevision) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field tags: %w", err)
 				}
 			}
+		case servicerevision.FieldRecord:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field record", values[i])
+			} else if value.Valid {
+				sr.Record = value.String
+			}
 		default:
 			sr.selectValues.Set(columns[i], values[i])
 		}
@@ -317,10 +320,7 @@ func (sr *ServiceRevision) String() string {
 	}
 	builder.WriteString(", ")
 	builder.WriteString("status=")
-	builder.WriteString(sr.Status)
-	builder.WriteString(", ")
-	builder.WriteString("status_message=")
-	builder.WriteString(sr.StatusMessage)
+	builder.WriteString(fmt.Sprintf("%v", sr.Status))
 	builder.WriteString(", ")
 	builder.WriteString("project_id=")
 	builder.WriteString(fmt.Sprintf("%v", sr.ProjectID))
@@ -358,6 +358,9 @@ func (sr *ServiceRevision) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("tags=")
 	builder.WriteString(fmt.Sprintf("%v", sr.Tags))
+	builder.WriteString(", ")
+	builder.WriteString("record=")
+	builder.WriteString(sr.Record)
 	builder.WriteByte(')')
 	return builder.String()
 }

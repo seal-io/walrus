@@ -68,16 +68,6 @@ func CreateTime(v time.Time) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldCreateTime, v))
 }
 
-// Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
-func Status(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldEQ(FieldStatus, v))
-}
-
-// StatusMessage applies equality check predicate on the "status_message" field. It's identical to StatusMessageEQ.
-func StatusMessage(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldEQ(FieldStatusMessage, v))
-}
-
 // ProjectID applies equality check predicate on the "project_id" field. It's identical to ProjectIDEQ.
 func ProjectID(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldProjectID, v))
@@ -133,6 +123,11 @@ func Duration(v int) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldDuration, v))
 }
 
+// Record applies equality check predicate on the "record" field. It's identical to RecordEQ.
+func Record(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldEQ(FieldRecord, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldCreateTime, v))
@@ -173,61 +168,6 @@ func CreateTimeLTE(v time.Time) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldLTE(FieldCreateTime, v))
 }
 
-// StatusEQ applies the EQ predicate on the "status" field.
-func StatusEQ(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldEQ(FieldStatus, v))
-}
-
-// StatusNEQ applies the NEQ predicate on the "status" field.
-func StatusNEQ(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldNEQ(FieldStatus, v))
-}
-
-// StatusIn applies the In predicate on the "status" field.
-func StatusIn(vs ...string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldIn(FieldStatus, vs...))
-}
-
-// StatusNotIn applies the NotIn predicate on the "status" field.
-func StatusNotIn(vs ...string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldNotIn(FieldStatus, vs...))
-}
-
-// StatusGT applies the GT predicate on the "status" field.
-func StatusGT(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldGT(FieldStatus, v))
-}
-
-// StatusGTE applies the GTE predicate on the "status" field.
-func StatusGTE(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldGTE(FieldStatus, v))
-}
-
-// StatusLT applies the LT predicate on the "status" field.
-func StatusLT(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldLT(FieldStatus, v))
-}
-
-// StatusLTE applies the LTE predicate on the "status" field.
-func StatusLTE(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldLTE(FieldStatus, v))
-}
-
-// StatusContains applies the Contains predicate on the "status" field.
-func StatusContains(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldContains(FieldStatus, v))
-}
-
-// StatusHasPrefix applies the HasPrefix predicate on the "status" field.
-func StatusHasPrefix(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldHasPrefix(FieldStatus, v))
-}
-
-// StatusHasSuffix applies the HasSuffix predicate on the "status" field.
-func StatusHasSuffix(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldHasSuffix(FieldStatus, v))
-}
-
 // StatusIsNil applies the IsNil predicate on the "status" field.
 func StatusIsNil() predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldIsNull(FieldStatus))
@@ -236,91 +176,6 @@ func StatusIsNil() predicate.ServiceRevision {
 // StatusNotNil applies the NotNil predicate on the "status" field.
 func StatusNotNil() predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldNotNull(FieldStatus))
-}
-
-// StatusEqualFold applies the EqualFold predicate on the "status" field.
-func StatusEqualFold(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldEqualFold(FieldStatus, v))
-}
-
-// StatusContainsFold applies the ContainsFold predicate on the "status" field.
-func StatusContainsFold(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldContainsFold(FieldStatus, v))
-}
-
-// StatusMessageEQ applies the EQ predicate on the "status_message" field.
-func StatusMessageEQ(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldEQ(FieldStatusMessage, v))
-}
-
-// StatusMessageNEQ applies the NEQ predicate on the "status_message" field.
-func StatusMessageNEQ(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldNEQ(FieldStatusMessage, v))
-}
-
-// StatusMessageIn applies the In predicate on the "status_message" field.
-func StatusMessageIn(vs ...string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldIn(FieldStatusMessage, vs...))
-}
-
-// StatusMessageNotIn applies the NotIn predicate on the "status_message" field.
-func StatusMessageNotIn(vs ...string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldNotIn(FieldStatusMessage, vs...))
-}
-
-// StatusMessageGT applies the GT predicate on the "status_message" field.
-func StatusMessageGT(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldGT(FieldStatusMessage, v))
-}
-
-// StatusMessageGTE applies the GTE predicate on the "status_message" field.
-func StatusMessageGTE(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldGTE(FieldStatusMessage, v))
-}
-
-// StatusMessageLT applies the LT predicate on the "status_message" field.
-func StatusMessageLT(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldLT(FieldStatusMessage, v))
-}
-
-// StatusMessageLTE applies the LTE predicate on the "status_message" field.
-func StatusMessageLTE(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldLTE(FieldStatusMessage, v))
-}
-
-// StatusMessageContains applies the Contains predicate on the "status_message" field.
-func StatusMessageContains(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldContains(FieldStatusMessage, v))
-}
-
-// StatusMessageHasPrefix applies the HasPrefix predicate on the "status_message" field.
-func StatusMessageHasPrefix(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldHasPrefix(FieldStatusMessage, v))
-}
-
-// StatusMessageHasSuffix applies the HasSuffix predicate on the "status_message" field.
-func StatusMessageHasSuffix(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldHasSuffix(FieldStatusMessage, v))
-}
-
-// StatusMessageIsNil applies the IsNil predicate on the "status_message" field.
-func StatusMessageIsNil() predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldIsNull(FieldStatusMessage))
-}
-
-// StatusMessageNotNil applies the NotNil predicate on the "status_message" field.
-func StatusMessageNotNil() predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldNotNull(FieldStatusMessage))
-}
-
-// StatusMessageEqualFold applies the EqualFold predicate on the "status_message" field.
-func StatusMessageEqualFold(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldEqualFold(FieldStatusMessage, v))
-}
-
-// StatusMessageContainsFold applies the ContainsFold predicate on the "status_message" field.
-func StatusMessageContainsFold(v string) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldContainsFold(FieldStatusMessage, v))
 }
 
 // ProjectIDEQ applies the EQ predicate on the "project_id" field.
@@ -986,6 +841,81 @@ func DurationLT(v int) predicate.ServiceRevision {
 // DurationLTE applies the LTE predicate on the "duration" field.
 func DurationLTE(v int) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldLTE(FieldDuration, v))
+}
+
+// RecordEQ applies the EQ predicate on the "record" field.
+func RecordEQ(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldEQ(FieldRecord, v))
+}
+
+// RecordNEQ applies the NEQ predicate on the "record" field.
+func RecordNEQ(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldNEQ(FieldRecord, v))
+}
+
+// RecordIn applies the In predicate on the "record" field.
+func RecordIn(vs ...string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldIn(FieldRecord, vs...))
+}
+
+// RecordNotIn applies the NotIn predicate on the "record" field.
+func RecordNotIn(vs ...string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldNotIn(FieldRecord, vs...))
+}
+
+// RecordGT applies the GT predicate on the "record" field.
+func RecordGT(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldGT(FieldRecord, v))
+}
+
+// RecordGTE applies the GTE predicate on the "record" field.
+func RecordGTE(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldGTE(FieldRecord, v))
+}
+
+// RecordLT applies the LT predicate on the "record" field.
+func RecordLT(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldLT(FieldRecord, v))
+}
+
+// RecordLTE applies the LTE predicate on the "record" field.
+func RecordLTE(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldLTE(FieldRecord, v))
+}
+
+// RecordContains applies the Contains predicate on the "record" field.
+func RecordContains(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldContains(FieldRecord, v))
+}
+
+// RecordHasPrefix applies the HasPrefix predicate on the "record" field.
+func RecordHasPrefix(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldHasPrefix(FieldRecord, v))
+}
+
+// RecordHasSuffix applies the HasSuffix predicate on the "record" field.
+func RecordHasSuffix(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldHasSuffix(FieldRecord, v))
+}
+
+// RecordIsNil applies the IsNil predicate on the "record" field.
+func RecordIsNil() predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldIsNull(FieldRecord))
+}
+
+// RecordNotNil applies the NotNil predicate on the "record" field.
+func RecordNotNil() predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldNotNull(FieldRecord))
+}
+
+// RecordEqualFold applies the EqualFold predicate on the "record" field.
+func RecordEqualFold(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldEqualFold(FieldRecord, v))
+}
+
+// RecordContainsFold applies the ContainsFold predicate on the "record" field.
+func RecordContainsFold(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldContainsFold(FieldRecord, v))
 }
 
 // HasProject applies the HasEdge predicate on the "project" edge.
