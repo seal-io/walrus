@@ -29,8 +29,6 @@ import (
 type (
 	CreateRequest struct {
 		model.ServiceCreateInput `path:",inline" json:",inline"`
-
-		RemarkTags []string `json:"remarkTags,omitempty"`
 	}
 
 	CreateResponse = *model.ServiceOutput

@@ -57,7 +57,6 @@ func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 	// Apply service.
 	applyOpts := pkgservice.Options{
 		TlsCertified: h.tlsCertified,
-		Tags:         req.RemarkTags,
 	}
 
 	ready, err := pkgservice.CheckDependencyStatus(req.Context, h.modelClient, entity)

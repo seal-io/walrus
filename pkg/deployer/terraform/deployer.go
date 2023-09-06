@@ -94,7 +94,6 @@ func (d Deployer) Apply(ctx context.Context, service *model.Service, opts deptyp
 	revision, err := d.createRevision(ctx, createRevisionOptions{
 		ServiceID: service.ID,
 		JobType:   JobTypeApply,
-		Tags:      opts.Tags,
 	})
 	if err != nil {
 		return err
@@ -378,8 +377,6 @@ type createRevisionOptions struct {
 	ServiceID object.ID
 	// JobType indicates the type of the job.
 	JobType string
-	// Tags indicates the tags for the revision.
-	Tags []string
 }
 
 // createRevision creates a new service revision.
@@ -430,7 +427,6 @@ func (d Deployer) createRevision(
 		TemplateName:    svc.Edges.Template.Name,
 		TemplateVersion: svc.Edges.Template.Version,
 		Attributes:      svc.Attributes,
-		Tags:            opts.Tags,
 		DeployerType:    DeployerType,
 	}
 

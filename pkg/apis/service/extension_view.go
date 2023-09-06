@@ -25,8 +25,6 @@ type RouteUpgradeRequest struct {
 	_ struct{} `route:"PUT=/upgrade"`
 
 	model.ServiceUpdateInput `path:",inline" json:",inline"`
-
-	RemarkTags []string `json:"remarkTags,omitempty"`
 }
 
 func (r *RouteUpgradeRequest) Validate() error {

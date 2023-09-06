@@ -25,7 +25,6 @@ const annotationSubjectIDName = "walrus.seal.io/subject-id"
 // Options for deploy or destroy.
 type Options struct {
 	TlsCertified bool
-	Tags         []string
 }
 
 func Create(
@@ -60,7 +59,6 @@ func Create(
 		// Deploy service.
 		err = Apply(ctx, mc, dp, entity, Options{
 			TlsCertified: opts.TlsCertified,
-			Tags:         opts.Tags,
 		})
 		if err != nil {
 			return nil, err
@@ -102,7 +100,6 @@ func Apply(
 
 	applyOpts := deptypes.ApplyOptions{
 		SkipTLSVerify: !opts.TlsCertified,
-		Tags:          opts.Tags,
 	}
 
 	err = dp.Apply(ctx, entity, applyOpts)

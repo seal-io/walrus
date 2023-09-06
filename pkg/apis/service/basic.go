@@ -32,7 +32,6 @@ func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 
 	createOpts := pkgservice.Options{
 		TlsCertified: h.tlsCertified,
-		Tags:         req.RemarkTags,
 	}
 
 	return pkgservice.Create(
