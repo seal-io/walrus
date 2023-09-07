@@ -142,7 +142,7 @@ require (
 	github.com/containerd/containerd v1.6.18 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/creack/goselect v0.1.2 // indirect
-	github.com/cyphar/filepath-securejoin v0.2.3 // indirect
+	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/docker/cli v20.10.21+incompatible // indirect
