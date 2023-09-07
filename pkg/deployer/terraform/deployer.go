@@ -433,7 +433,9 @@ func (d Deployer) createRevision(
 		Tags:            opts.Tags,
 		DeployerType:    DeployerType,
 	}
-	status.ServiceStatusReady.Unknown(entity, "")
+
+	status.ServiceRevisionStatusReady.Unknown(entity, "")
+	entity.Status.SetSummary(status.WalkServiceRevision(&entity.Status))
 
 	// Inherit the output of previous revision to create a new one.
 	if prevEntity != nil {
