@@ -216,19 +216,23 @@ func (in *scheduler) Schedule(jobName string, cron Expr, task Task, taskArgs ...
 		return
 	}
 
-	const atLeast = 5 * time.Minute
+	const (
+		// The minimum timeout is 5 minutes.
+		atLeast = 5 * time.Minute
+		// The maximum timeout is 6 hours.
+		atMost = 6 * time.Hour
+	)
 
 	var (
 		now  = time.Now()
-		next = ceParsed.Next(now).Sub(now)
+		next = ceParsed.Next(now).Sub(now) * 3
 	)
 
-	if next > atLeast {
-		next >>= 1
-	}
-
-	if next < atLeast {
+	switch {
+	case next < atLeast:
 		next = atLeast
+	case next > atMost:
+		next = atMost
 	}
 
 	tt := timeoutTask{
