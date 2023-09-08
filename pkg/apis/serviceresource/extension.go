@@ -88,8 +88,7 @@ func (h Handler) RouteExec(req RouteExecRequest) error {
 		return fmt.Errorf("unreachable connector: %w", err)
 	}
 
-	ts := asTermStream(*req.Stream, req.Width, req.Height)
-	defer func() { _ = ts.Close() }()
+	ts := asTermStream(req.Stream, req.Width, req.Height)
 
 	opts := optypes.ExecOptions{
 		Out:     ts,
