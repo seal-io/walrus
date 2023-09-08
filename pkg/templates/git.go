@@ -246,7 +246,7 @@ func SyncTemplateFromGitRepo(
 		return err
 	}
 
-	versions, versionSchema, err := getValidVersions(r, versions)
+	versions, versionSchema, err := getValidVersions(entity, r, versions)
 	if err != nil {
 		return err
 	}
@@ -256,7 +256,7 @@ func SyncTemplateFromGitRepo(
 
 		// If template exists, update template status.
 		t, err := mc.Templates().Query().
-			Where(template.Name(repo.Name)).
+			Where(template.Name(entity.Name)).
 			Only(ctx)
 		if err != nil {
 			if !model.IsNotFound(err) {
@@ -286,7 +286,7 @@ func SyncTemplateFromGitRepo(
 	defer func() {
 		rerr := updateTemplateStatus(ctx, mc, entity, err)
 		if rerr != nil {
-			logger.Errorf("failed to update template status: %v", rerr)
+			logger.Errorf("failed to update template %s status: %v", entity.Name, rerr)
 		}
 	}()
 
@@ -403,6 +403,7 @@ func GetRepoFileRaw(repo *vcs.Repository, file string) (string, error) {
 
 // getValidVersions get valid terraform module versions.
 func getValidVersions(
+	entity *model.Template,
 	r *git.Repository,
 	versions []*version.Version,
 ) ([]*version.Version, map[*version.Version]*types.TemplateSchema, error) {
@@ -422,7 +423,8 @@ func getValidVersions(
 
 		resetRef, err := vcs.GetRepoRef(r, tag)
 		if err != nil {
-			logger.Warnf("failed to get tag reference: %v", err)
+			logger.Warnf("failed to get \"%s:%s\" of catalog %q git reference: %v",
+				entity.Name, tag, entity.CatalogID, err)
 			continue
 		}
 
@@ -431,15 +433,16 @@ func getValidVersions(
 			Mode:   git.HardReset,
 		})
 		if err != nil {
-			logger.Warnf("failed to reset to tag %s: %v", tag, err)
+			logger.Warnf("failed set \"%s:%s\" of catalog %q: %v", entity.Name, tag, entity.CatalogID, err)
 			continue
 		}
 
+		logger.Debugf("get \"%s:%s\" of catalog %q schema", entity.Name, tag, entity.CatalogID)
 		dir := w.Filesystem.Root()
 
 		schema, err := loadTerraformTemplateSchema(dir)
 		if err != nil {
-			logger.Warnf("failed to load terraform template schema: %v", err)
+			logger.Warnf("failed to load \"%s:%s\" of catalog %q schema: %v", entity.Name, tag, entity.CatalogID, err)
 			continue
 		}
 
