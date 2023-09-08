@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	imgdistref "github.com/distribution/distribution/reference"
 
@@ -142,6 +143,34 @@ func cronExpression(ctx context.Context, name, oldVal, newVal string) (bool, err
 	err := cron.ValidateCronExpr(newVal)
 
 	return err == nil, err
+}
+
+// cronAtLeast implements the modifyValidator stereotype,
+// which means the value can be modified if it's cron expression and at least the given duration.
+// This modifier allows blank new value,
+// if not allowed, combine with notBlank.
+func cronAtLeast(d time.Duration) modifyValidator {
+	return func(ctx context.Context, name, oldVal, newVal string) (bool, error) {
+		// Allow blank,
+		// combine with notBlank if disallowed.
+		if newVal == "" {
+			return true, nil
+		}
+
+		expr, err := cron.ParseCronExpr(newVal, false)
+		if err != nil {
+			return false, err
+		}
+
+		next := expr.Next(time.Now())
+
+		duration := expr.Next(next).Sub(next)
+		if duration < d {
+			return false, fmt.Errorf("cron expression %q is too short, at least %v", newVal, d)
+		}
+
+		return true, nil
+	}
 }
 
 // containerImageReference implements the modifyValidator stereotype,

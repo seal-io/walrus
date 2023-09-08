@@ -1,6 +1,8 @@
 package settings
 
 import (
+	"time"
+
 	"k8s.io/utils/pointer"
 
 	"github.com/seal-io/walrus/pkg/casdoor"
@@ -204,12 +206,12 @@ var (
 		modifyWith(notBlank, cronExpression),
 	)
 	// CatalogTemplateSyncCronExpr indicates the cron expression of catalog template synchronization event,
-	// default cron expression means sync at 1 o'clock evey day.
+	// default cron expression means sync at 1 o'clock evey day, and new cron must be at least 30 minutes.
 	CatalogTemplateSyncCronExpr = newValue(
 		"CatalogTemplateSyncCronExpr",
 		private,
 		initializeFrom("0 0 1 * * *"),
-		modifyWith(notBlank, cronExpression),
+		modifyWith(notBlank, cronExpression, cronAtLeast(30*time.Minute)),
 	)
 )
 

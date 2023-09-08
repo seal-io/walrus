@@ -11,7 +11,6 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/hashicorp/go-getter"
 	"github.com/hashicorp/go-version"
@@ -104,8 +103,7 @@ func (s schemaSyncer) Do(_ context.Context, message template.BusMessage) error {
 	logger := log.WithName("template")
 
 	gopool.Go(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-		defer cancel()
+		ctx := context.Background()
 
 		m := message.Refer
 		logger.Debugf("syncing schema for template %s", m.ID)
