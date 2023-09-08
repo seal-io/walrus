@@ -3,6 +3,7 @@ package catalog
 import (
 	"context"
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/drone/go-scm/scm"
@@ -113,7 +114,13 @@ func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) er
 
 	logger.Infof("found %d repositories in %s", len(repos), c.Source)
 
-	wg := gopool.Group()
+	var (
+		total     = len(repos)
+		processed = int32(0)
+		failed    = int32(0)
+
+		wg = gopool.Group()
+	)
 
 	batchSize := 10
 	for i := 0; i < batchSize; i++ {
@@ -135,15 +142,22 @@ func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) er
 					CatalogID:   c.ID,
 				}
 
-				logger.Debugf("syncing template %s of catalog %s",
-					repo.Name, c.ID)
+				logger.Debugf("syncing  \"%s:%s\" of catalog %q", c.Name, repo.Name, c.ID)
 
 				serr := templates.SyncTemplateFromGitRepo(ctx, mc, t, repo)
 				if serr != nil {
+					logger.Debugf("failed sync \"%s:%s\" of catalog %q: %v", c.Name, repo.Name, c.ID, serr)
 					berr = multierr.Append(berr,
-						fmt.Errorf("error syncing template %s: %w",
-							repo.Name, serr))
+						fmt.Errorf("error syncing \"%s:%s\" of catalog %q: %w",
+							c.Name, repo.Name, c.ID, serr))
+
+					atomic.AddInt32(&failed, 1)
+				} else {
+					atomic.AddInt32(&processed, 1)
 				}
+
+				logger.Debugf("synced catalog %s, total: %d, processed: %d, failed: %d",
+					c.Name, total, processed, failed)
 			}
 
 			return berr
@@ -194,7 +208,7 @@ func UpdateStatusWithSyncErr(ctx context.Context, mc model.ClientSet, c *model.C
 
 	if syncErr != nil {
 		status.CatalogStatusInitialized.False(c, syncErr.Error())
-		logger.Errorf("failed to sync catalog %s templates: %v", c.Name, syncErr)
+		logger.Warnf("failed to sync catalog %s templates: %v", c.Name, syncErr)
 	} else {
 		status.CatalogStatusReady.Reset(c, "")
 		status.CatalogStatusReady.True(c, "")

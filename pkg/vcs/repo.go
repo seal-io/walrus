@@ -139,7 +139,7 @@ func GetGitRepoVersions(r *git.Repository) ([]*version.Version, error) {
 	err = tagRefs.ForEach(func(ref *plumbing.Reference) error {
 		v, verr := version.NewVersion(ref.Name().Short())
 		if verr != nil {
-			logger.Warnf("failed to parse tag %s: %v", ref.Name().Short(), err)
+			logger.Warnf("failed to parse tag %s: %v", ref.Name().Short(), verr)
 		}
 
 		if v != nil {
