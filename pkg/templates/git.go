@@ -395,7 +395,7 @@ func GetRepoFileRaw(repo *vcs.Repository, file string) (string, error) {
 	}
 
 	if repo.Driver == gitlab.Driver {
-		return fmt.Sprintf("https://%s/%s/%s/-/raw/%s/%s", endpoint.Host, repo.Namespace, repo.Name, ref, file), nil
+		return fmt.Sprintf("%s/-/raw/%s/%s", endpoint.String(), ref, file), nil
 	}
 
 	return "", nil
