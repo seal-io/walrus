@@ -22,6 +22,7 @@ import (
 	"github.com/seal-io/walrus/utils/gopool"
 	"github.com/seal-io/walrus/utils/hash"
 	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/pointer"
 	"github.com/seal-io/walrus/utils/strs"
 )
 
@@ -331,7 +332,7 @@ func (d KubernetesDriver) Delete(ctx context.Context, key string) error {
 func (d KubernetesDriver) delete(ctx context.Context, sec *core.Secret) error {
 	// Delete existed secret.
 	opts := meta.DeleteOptions{
-		PropagationPolicy: point(meta.DeletePropagationBackground),
+		PropagationPolicy: pointer.Ref(meta.DeletePropagationBackground),
 	}
 
 	err := d.cli.Delete(ctx, sec.Name, opts)

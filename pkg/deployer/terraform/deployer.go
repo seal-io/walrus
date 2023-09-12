@@ -11,7 +11,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/utils/pointer"
 
 	"github.com/seal-io/walrus/pkg/auths"
 	"github.com/seal-io/walrus/pkg/auths/session"
@@ -40,6 +39,7 @@ import (
 	"github.com/seal-io/walrus/pkg/terraform/util"
 	"github.com/seal-io/walrus/utils/json"
 	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/pointer"
 )
 
 // DeployerType the type of deployer.

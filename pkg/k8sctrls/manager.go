@@ -10,12 +10,12 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"k8s.io/utils/pointer"
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/utils/gopool"
 	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/pointer"
 )
 
 // ManagerOptions holds the options for creating a new manager.

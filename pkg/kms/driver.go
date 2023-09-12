@@ -38,7 +38,3 @@ func normalize(p string) string {
 
 	return p
 }
-
-func point[T ~string](s T) *T {
-	return &s
-}

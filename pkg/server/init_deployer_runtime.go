@@ -14,6 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/utils/pointer"
 )
 
 // setupDeployerRuntime configures the deployer runtime at initialization phase,
@@ -170,7 +171,7 @@ func applyDeployPermission(ctx context.Context, cli *kubernetes.Clientset) error
 		err = cli.RbacV1().
 			RoleBindings(rb.Namespace).
 			Delete(ctx, rb.Name, meta.DeleteOptions{
-				PropagationPolicy: point(meta.DeletePropagationForeground),
+				PropagationPolicy: pointer.Ref(meta.DeletePropagationForeground),
 			})
 		if err != nil && !kerrors.IsNotFound(err) {
 			return err
@@ -198,8 +199,4 @@ func applyDeployPermission(ctx context.Context, cli *kubernetes.Clientset) error
 	}
 
 	return nil
-}
-
-func point[T ~string | int | int64 | bool](s T) *T {
-	return &s
 }
