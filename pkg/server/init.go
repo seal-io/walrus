@@ -36,6 +36,7 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		r.registerHealthCheckers,
 		r.startBackgroundJobs,
 		r.setupBusSubscribers,
+		r.setupDeployerRuntime,
 	}
 	if r.EnableAuthn {
 		inits = append(inits,
