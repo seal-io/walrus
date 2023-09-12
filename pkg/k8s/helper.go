@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/kubernetes"
+	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
@@ -53,8 +53,8 @@ func loadConfig(loader clientcmd.ClientConfigLoader) (*rest.Config, error) {
 		ClientConfig()
 }
 
-func Wait(ctx context.Context, cfg *rest.Config, callback ...func(context.Context, *kubernetes.Clientset) error) error {
-	cli, err := kubernetes.NewForConfig(cfg)
+func Wait(ctx context.Context, cfg *rest.Config) error {
+	cli, err := coreclient.NewForConfig(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to create client via cfg: %w", err)
 	}
@@ -77,14 +77,6 @@ func Wait(ctx context.Context, cfg *rest.Config, callback ...func(context.Contex
 		}
 
 		return err
-	}
-
-	// Execute callbacks.
-	for i := range callback {
-		err = callback[i](ctx, cli)
-		if err != nil {
-			return fmt.Errorf("failed to execute callback: %w", err)
-		}
 	}
 
 	return nil
