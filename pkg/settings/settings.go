@@ -3,11 +3,10 @@ package settings
 import (
 	"time"
 
-	"k8s.io/utils/pointer"
-
 	"github.com/seal-io/walrus/pkg/casdoor"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
+	"github.com/seal-io/walrus/utils/pointer"
 	"github.com/seal-io/walrus/utils/strs"
 )
 
