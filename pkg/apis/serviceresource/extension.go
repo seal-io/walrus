@@ -2,12 +2,14 @@ package serviceresource
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 
 	"github.com/gorilla/websocket"
+	"k8s.io/client-go/util/exec"
 
 	"github.com/seal-io/walrus/pkg/operator"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
@@ -99,14 +101,20 @@ func (h Handler) RouteExec(req RouteExecRequest) error {
 
 	err = op.Exec(ts, req.Key, opts)
 	if err != nil {
-		if strings.Contains(err.Error(), "OCI runtime exec failed: exec failed:") {
-			return &websocket.CloseError{
-				Code: websocket.CloseUnsupportedData,
-				Text: "unresolved exec shell: " + req.Shell,
-			}
+		var exitErr exec.CodeExitError
+
+		// Return websocket unsupported data error if exec shell is not supported.
+		switch {
+		default:
+			return err
+		case errors.As(err, &exitErr) && exitErr.Code == 126: // SPDY V4 protocol error.
+		case strings.Contains(err.Error(), "OCI runtime exec failed: exec failed:"): // None SPDY V4 protocol error.
 		}
 
-		return err
+		return &websocket.CloseError{
+			Code: websocket.CloseUnsupportedData,
+			Text: "unresolved exec shell: " + req.Shell,
+		}
 	}
 
 	return nil
