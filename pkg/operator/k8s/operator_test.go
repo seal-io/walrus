@@ -12,7 +12,10 @@ import (
 	core "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
+	dynamicclient "k8s.io/client-go/dynamic"
+	batchclient "k8s.io/client-go/kubernetes/typed/batch/v1"
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
+	networkingclient "k8s.io/client-go/kubernetes/typed/networking/v1"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
@@ -35,8 +38,12 @@ func TestOperator(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 	op := Operator{
-		Logger:     log.WithName("operator").WithName("k8s"),
-		RestConfig: k8sCfg,
+		Logger:        log.WithName("operator").WithName("k8s"),
+		RestConfig:    k8sCfg,
+		CoreCli:       coreclient.NewForConfigOrDie(k8sCfg),
+		BatchCli:      batchclient.NewForConfigOrDie(k8sCfg),
+		NetworkingCli: networkingclient.NewForConfigOrDie(k8sCfg),
+		DynamicCli:    dynamicclient.NewForConfigOrDie(k8sCfg),
 	}
 
 	t.Run("IsConnected", func(t *testing.T) {
