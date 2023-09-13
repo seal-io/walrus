@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"reflect"
 
+	authorization "k8s.io/api/authorization/v1"
 	batch "k8s.io/api/batch/v1"
-	coordination "k8s.io/api/coordination/v1"
 	core "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
@@ -42,6 +42,10 @@ func (r *Server) setupDeployerRuntime(ctx context.Context, opts initOptions) err
 
 // applyDeployWorkspace applies the Kubernetes Namespace to run deployer at next.
 func applyDeployWorkspace(ctx context.Context, cli *kubernetes.Clientset) error {
+	if !isCreationAllowed(ctx, cli, "namespaces") {
+		return nil
+	}
+
 	ns := core.Namespace{
 		ObjectMeta: meta.ObjectMeta{
 			Name: types.WalrusSystemNamespace,
@@ -60,6 +64,10 @@ func applyDeployWorkspace(ctx context.Context, cli *kubernetes.Clientset) error 
 
 // applyDeployPermission applies the Kubernetes RBAC resources for deployer running.
 func applyDeployPermission(ctx context.Context, cli *kubernetes.Clientset) error {
+	if !isCreationAllowed(ctx, cli, "serviceaccounts", "roles", "rolebindings") {
+		return nil
+	}
+
 	sa := core.ServiceAccount{
 		ObjectMeta: meta.ObjectMeta{
 			Namespace: types.WalrusSystemNamespace,
@@ -80,6 +88,7 @@ func applyDeployPermission(ctx context.Context, cli *kubernetes.Clientset) error
 			Name:      types.DeployerServiceAccountName,
 		},
 		Rules: []rbac.PolicyRule{
+			// The below rules are used for kaniko to build images.
 			{
 				APIGroups: []string{batch.GroupName},
 				Resources: []string{"jobs"},
@@ -87,12 +96,7 @@ func applyDeployPermission(ctx context.Context, cli *kubernetes.Clientset) error
 			},
 			{
 				APIGroups: []string{core.GroupName},
-				Resources: []string{"secrets", "pods", "pods/log", "events"},
-				Verbs:     []string{rbac.VerbAll},
-			},
-			{
-				APIGroups: []string{coordination.GroupName},
-				Resources: []string{"leases"},
+				Resources: []string{"secrets", "pods", "pods/log"},
 				Verbs:     []string{rbac.VerbAll},
 			},
 		},
@@ -144,7 +148,7 @@ func applyDeployPermission(ctx context.Context, cli *kubernetes.Clientset) error
 		RoleRef: rbac.RoleRef{
 			APIGroup: rbac.GroupName,
 			Kind:     "Role",
-			Name:     types.DeployerServiceAccountName,
+			Name:     r.Name,
 		},
 	}
 
@@ -199,4 +203,30 @@ func applyDeployPermission(ctx context.Context, cli *kubernetes.Clientset) error
 	}
 
 	return nil
+}
+
+// isCreationAllowed checks if the creation of the specified resource is allowed.
+func isCreationAllowed(ctx context.Context, cli *kubernetes.Clientset, resources ...string) bool {
+	allowed := true
+
+	for _, resource := range resources {
+		sar := authorization.SelfSubjectAccessReview{
+			Spec: authorization.SelfSubjectAccessReviewSpec{
+				ResourceAttributes: &authorization.ResourceAttributes{
+					Verb:     "create",
+					Resource: resource,
+				},
+			},
+		}
+
+		sar_, _ := cli.AuthorizationV1().SelfSubjectAccessReviews().
+			Create(ctx, &sar, meta.CreateOptions{})
+
+		allowed = allowed && (sar_ != nil && sar_.Status.Allowed)
+		if !allowed {
+			break
+		}
+	}
+
+	return allowed
 }

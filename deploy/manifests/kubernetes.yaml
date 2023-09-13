@@ -149,7 +149,8 @@ metadata:
     "app.kubernetes.io/part-of": "walrus"
     "app.kubernetes.io/component": "database"
 spec:
-  storageClassName: standard
+  # When a PVC does not specify a storageClassName,
+  # the default StorageClass is used.
   accessModes:
     - ReadWriteOnce
   resources:
@@ -456,6 +457,13 @@ metadata:
     "app.kubernetes.io/component": "walrus"
 rules:
   - apiGroups:
+      - "authorization.k8s.io"
+    resources:
+      - "subjectaccessreviews"
+      - "selfsubjectaccessreviews"
+    verbs:
+      - "create"
+  - apiGroups:
       - "batch"
     resources:
       - "jobs"
@@ -494,6 +502,56 @@ roleRef:
   name: walrus
 ---
 apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: walrus-system
+  name: walrus-deployer
+  labels:
+    "app.kubernetes.io/part-of": "walrus"
+    "app.kubernetes.io/component": "walrus"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: walrus-system
+  name: walrus-deployer
+  labels:
+    "app.kubernetes.io/part-of": "walrus"
+    "app.kubernetes.io/component": "walrus"
+rules:
+  # The below rules are used for kaniko to build images.
+  - apiGroups:
+      - "batch"
+    resources:
+      - "jobs"
+    verbs:
+      - "*"
+  - apiGroups:
+      - ""
+    resources:
+      - "secrets"
+      - "pods"
+      - "pods/log"
+    verbs:
+      - "*"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: walrus-system
+  name: walrus-deployer
+  labels:
+    "app.kubernetes.io/part-of": "walrus"
+    "app.kubernetes.io/component": "walrus"
+subjects:
+  - kind: ServiceAccount
+    name: walrus-deployer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: walrus-deployer
+---
+apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   namespace: walrus-system
@@ -502,7 +560,8 @@ metadata:
     "app.kubernetes.io/part-of": "walrus"
     "app.kubernetes.io/component": "walrus"
 spec:
-  storageClassName: standard
+  # When a PVC does not specify a storageClassName,
+  # the default StorageClass is used.
   accessModes:
     - ReadWriteOnce
   resources:
