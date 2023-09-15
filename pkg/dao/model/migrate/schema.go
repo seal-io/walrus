@@ -743,7 +743,7 @@ var (
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "kind", Type: field.TypeString, Default: "api"},
-		{Name: "name", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "expiration", Type: field.TypeTime, Nullable: true},
 		{Name: "value", Type: field.TypeString, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
 		{Name: "subject_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
