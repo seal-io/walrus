@@ -75,11 +75,24 @@ func (h Handler) CollectionRouteGetFieldValues(
 	}
 
 	var (
+		values   []string
 		pvalues  = make([]Value, 0)
 		fieldStr = string(req.FieldName)
 	)
 
 	if req.FieldName.IsLabel() {
+		/* Get the label values of given label name by the following sql:
+		SELECT
+		  DISTINCT(
+		    labels ->> 'walrus.seal.io/project-name'
+		  ) AS value
+		FROM
+		  "cost_reports"
+		WHERE
+		  "start_time" >= $1
+		  AND "end_time" <= $2
+		  AND "labels" <> 'null' :: jsonb
+		*/
 		var (
 			s []struct {
 				Value string `json:"value"`
@@ -117,29 +130,17 @@ func (h Handler) CollectionRouteGetFieldValues(
 		return pvalues, len(pvalues), nil
 	}
 
-	values, err := h.modelClient.CostReports().Query().
-		Modify(func(s *sql.Selector) {
-			if len(ps) != 0 {
-				s.Where(sql.And(ps...))
-			}
-			s.Distinct().Select(fieldStr)
-		}).
-		Strings(req.Context)
-	if err != nil {
-		return nil, 0, err
-	}
-
 	if req.FieldName == types.FilterFieldConnectorID {
-		var ids []any
-		for _, v := range values {
-			ids = append(ids, v)
-		}
-
-		err = h.modelClient.Connectors().Query().
+		/* Get the connector values of given connectorID field by the following sql:
+		SELECT
+		  name AS label,
+		  id AS value
+		FROM
+		  "connectors"
+		*/
+		err := h.modelClient.Connectors().Query().
 			Modify(func(s *sql.Selector) {
-				s.Where(
-					sql.In(connector.FieldID, ids...),
-				).SelectExpr(
+				s.SelectExpr(
 					sql.Expr(fmt.Sprintf(`%s AS label`, connector.FieldName)),
 					sql.Expr(fmt.Sprintf(`%s AS value`, connector.FieldID)),
 				)
@@ -150,6 +151,30 @@ func (h Handler) CollectionRouteGetFieldValues(
 		}
 
 		return pvalues, len(pvalues), nil
+	}
+
+	/* Get values of given field name by the following sql:
+	SELECT
+	  DISTINCT COALESCE(namespace, '')
+	FROM
+	  "cost_reports"
+	WHERE
+	  "start_time" >= '2023-09-09T00:00:00Z'
+	  AND "end_time" <= '2023-09-15T16:16:51Z'
+	*/
+
+	fieldStr = fmt.Sprintf(`COALESCE(%s, '')`, req.FieldName)
+
+	err := h.modelClient.CostReports().Query().
+		Modify(func(s *sql.Selector) {
+			if len(ps) != 0 {
+				s.Where(sql.And(ps...))
+			}
+			s.Distinct().Select(fieldStr)
+		}).
+		Scan(req.Context, &values)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	for _, v := range values {
