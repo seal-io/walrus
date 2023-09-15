@@ -37,6 +37,7 @@ func (Token) Fields() []ent.Field {
 			Immutable(),
 		field.String("name").
 			Comment("The name of token.").
+			Unique().
 			NotEmpty().
 			Immutable(),
 		field.Time("expiration").
