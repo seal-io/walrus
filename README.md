@@ -38,7 +38,7 @@ Please read our [contributing guide](./docs/CONTRIBUTING.md) if you're intereste
 
 # License
 
-Copyright (c) 2023 [Seal, Inc.](https://seal.io)
+Copyright (c) 2023 [Seal Software Co., Ltd.](https://seal.io)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
