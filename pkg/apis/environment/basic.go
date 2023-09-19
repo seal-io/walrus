@@ -19,7 +19,7 @@ func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 	err := h.modelClient.WithTx(req.Context, func(tx *model.Tx) (err error) {
 		entity, err = tx.Environments().Create().
 			Set(entity).
-			SaveE(req.Context, dao.EnvironmentConnectorsEdgeSave)
+			SaveE(req.Context, dao.EnvironmentConnectorsEdgeSave, dao.EnvironmentVariablesEdgeSave)
 		if err != nil {
 			return err
 		}

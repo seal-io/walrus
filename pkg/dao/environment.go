@@ -85,6 +85,33 @@ func EnvironmentConnectorsEdgeSave(ctx context.Context, mc model.ClientSet, enti
 	return nil
 }
 
+// EnvironmentVariablesEdgeSave saves the edge variables of model.Environment entity.
+func EnvironmentVariablesEdgeSave(ctx context.Context, mc model.ClientSet, entity *model.Environment) error {
+	if entity.Edges.Variables == nil {
+		return nil
+	}
+
+	newItems := entity.Edges.Variables
+	for i := range newItems {
+		if newItems[i] == nil {
+			return errors.New("invalid input: nil variable")
+		}
+		newItems[i].EnvironmentID = entity.ID
+		newItems[i].ProjectID = entity.ProjectID
+	}
+
+	variables, err := mc.Variables().CreateBulk().
+		Set(newItems...).
+		Save(ctx)
+	if err != nil {
+		return err
+	}
+
+	entity.Edges.Variables = variables
+
+	return nil
+}
+
 // GetEnvironmentByID gets an environment including project & connectors edges by ID.
 func GetEnvironmentByID(ctx context.Context, mc model.ClientSet, id object.ID) (*model.Environment, error) {
 	envs, err := GetEnvironmentsByIDs(ctx, mc, id)
