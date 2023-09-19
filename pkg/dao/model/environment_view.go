@@ -36,6 +36,8 @@ type EnvironmentCreateInput struct {
 	Connectors []*EnvironmentConnectorRelationshipCreateInput `uri:"-" query:"-" json:"connectors,omitempty"`
 	// Services specifies full inserting the new Service entities of the Environment entity.
 	Services []*ServiceCreateInput `uri:"-" query:"-" json:"services,cli-ignore,omitempty"`
+	// Variables specifies full inserting the new Variable entities of the Environment entity.
+	Variables []*VariableCreateInput `uri:"-" query:"-" json:"variables,omitempty"`
 }
 
 // Model returns the Environment entity for creating,
@@ -76,6 +78,17 @@ func (eci *EnvironmentCreateInput) Model() *Environment {
 		}
 		_e.Edges.Services = append(_e.Edges.Services,
 			eci.Services[j].Model())
+	}
+	if eci.Variables != nil {
+		// Empty slice is used for clearing the edge.
+		_e.Edges.Variables = make([]*Variable, 0, len(eci.Variables))
+	}
+	for j := range eci.Variables {
+		if eci.Variables[j] == nil {
+			continue
+		}
+		_e.Edges.Variables = append(_e.Edges.Variables,
+			eci.Variables[j].Model())
 	}
 	return _e
 }
@@ -134,6 +147,20 @@ func (eci *EnvironmentCreateInput) ValidateWith(ctx context.Context, cs ClientSe
 		}
 	}
 
+	for i := range eci.Variables {
+		if eci.Variables[i] == nil {
+			continue
+		}
+
+		if err := eci.Variables[i].ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				eci.Variables[i] = nil
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -150,6 +177,8 @@ type EnvironmentCreateInputsItem struct {
 	Connectors []*EnvironmentConnectorRelationshipCreateInput `uri:"-" query:"-" json:"connectors,omitempty"`
 	// Services specifies full inserting the new Service entities.
 	Services []*ServiceCreateInput `uri:"-" query:"-" json:"services,cli-ignore,omitempty"`
+	// Variables specifies full inserting the new Variable entities.
+	Variables []*VariableCreateInput `uri:"-" query:"-" json:"variables,omitempty"`
 }
 
 // ValidateWith checks the EnvironmentCreateInputsItem entity with the given context and client set.
@@ -186,6 +215,20 @@ func (eci *EnvironmentCreateInputsItem) ValidateWith(ctx context.Context, cs Cli
 				return err
 			} else {
 				eci.Services[i] = nil
+			}
+		}
+	}
+
+	for i := range eci.Variables {
+		if eci.Variables[i] == nil {
+			continue
+		}
+
+		if err := eci.Variables[i].ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				eci.Variables[i] = nil
 			}
 		}
 	}
@@ -246,6 +289,17 @@ func (eci *EnvironmentCreateInputs) Model() []*Environment {
 			}
 			_e.Edges.Services = append(_e.Edges.Services,
 				eci.Items[i].Services[j].Model())
+		}
+		if eci.Items[i].Variables != nil {
+			// Empty slice is used for clearing the edge.
+			_e.Edges.Variables = make([]*Variable, 0, len(eci.Items[i].Variables))
+		}
+		for j := range eci.Items[i].Variables {
+			if eci.Items[i].Variables[j] == nil {
+				continue
+			}
+			_e.Edges.Variables = append(_e.Edges.Variables,
+				eci.Items[i].Variables[j].Model())
 		}
 
 		_es[i] = _e
