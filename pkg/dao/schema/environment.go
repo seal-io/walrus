@@ -79,7 +79,8 @@ func (Environment) Edges() []ent.Edge {
 			Comment("Variables that belong to the environment.").
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
-				entx.SkipIO()),
+				entx.SkipInput(entx.WithUpdate(), entx.WithQuery()),
+				entx.SkipOutput()),
 	}
 }
 
