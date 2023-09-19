@@ -85,6 +85,17 @@ func (r *CreateRequest) Validate() error {
 		}
 	}
 
+	// Verify variables.
+	for i := range r.Variables {
+		if r.Variables[i] == nil {
+			return errors.New("empty variable")
+		}
+
+		if err := validation.IsDNSLabel(r.Variables[i].Name); err != nil {
+			return fmt.Errorf("invalid variable name: %w", err)
+		}
+	}
+
 	return nil
 }
 
