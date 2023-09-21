@@ -488,7 +488,7 @@ func (i Properties) Cty() (cty.Type, cty.Value, error) {
 	for x := range i {
 		t, v, err := i[x].Cty()
 		if err != nil {
-			return t, v, err
+			return t, v, fmt.Errorf("error parsing property %q: %w", x, err)
 		}
 		ot[x] = t
 		ov[x] = v
