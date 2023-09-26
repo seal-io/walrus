@@ -3,6 +3,10 @@ package environment
 import (
 	"entgo.io/ent/dialect/sql"
 
+	"github.com/seal-io/walrus/pkg/dao/model/variable"
+	"github.com/seal-io/walrus/pkg/dao/types/crypto"
+	"github.com/seal-io/walrus/utils/errorx"
+
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/service"
@@ -149,4 +153,48 @@ func getCaps(entities model.Services) (int, int) {
 	}
 
 	return verticesCap, edgesCap
+}
+
+func (h Handler) RouteCloneEnvironment(req RouteCloneEnvironmentRequest) (*RouteCloneEnvironmentResponse, error) {
+	entity := req.Model()
+
+	var variableNames []string
+
+	variables := entity.Edges.Variables
+	for i := range variables {
+		v := variables[i]
+		if v == nil {
+			return nil, errorx.New("invalid input: nil variable")
+		}
+
+		if v.Sensitive && v.Value == "" {
+			variableNames = append(variableNames, v.Name)
+		}
+	}
+
+	// Fetch and fill the value with sensitive variables from the cloned environment.
+	if len(variableNames) > 0 {
+		vs, err := h.modelClient.Variables().Query().
+			Where(
+				variable.EnvironmentID(req.CloneEnvironmentId),
+				variable.NameIn(variableNames...),
+			).
+			All(req.Context)
+		if err != nil {
+			return nil, err
+		}
+
+		variableValueMap := make(map[string]crypto.String)
+		for _, vv := range vs {
+			variableValueMap[vv.Name] = vv.Value
+		}
+
+		for _, v := range variables {
+			if v.Sensitive && v.Value == "" {
+				v.Value = variableValueMap[v.Name]
+			}
+		}
+	}
+
+	return createEnvironment(req.Context, h.modelClient, entity)
 }
