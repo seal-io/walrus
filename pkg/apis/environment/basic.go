@@ -8,51 +8,11 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
 	"github.com/seal-io/walrus/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
-	pkgservice "github.com/seal-io/walrus/pkg/service"
-	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
 )
 
 func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
-	entity := req.Model()
-
-	err := h.modelClient.WithTx(req.Context, func(tx *model.Tx) (err error) {
-		entity, err = tx.Environments().Create().
-			Set(entity).
-			SaveE(req.Context, dao.EnvironmentConnectorsEdgeSave, dao.EnvironmentVariablesEdgeSave)
-		if err != nil {
-			return err
-		}
-
-		// TODO(thxCode): move the following codes into DAO.
-
-		serviceInputs := make(model.Services, 0, len(req.Services))
-
-		for _, s := range req.Services {
-			svc := s.Model()
-			svc.ProjectID = entity.ProjectID
-			svc.EnvironmentID = entity.ID
-			serviceInputs = append(serviceInputs, svc)
-		}
-
-		if err = pkgservice.SetSubjectID(req.Context, serviceInputs...); err != nil {
-			return err
-		}
-
-		services, err := pkgservice.CreateScheduledServices(req.Context, tx, serviceInputs)
-		if err != nil {
-			return err
-		}
-
-		entity.Edges.Services = services
-
-		return envbus.NotifyIDs(req.Context, tx, envbus.EventCreate, entity.ID)
-	})
-	if err != nil {
-		return nil, errorx.Wrap(err, "failed to create environment")
-	}
-
-	return model.ExposeEnvironment(entity), nil
+	return createEnvironment(req.Context, h.modelClient, req.Model())
 }
 
 func (h Handler) Get(req GetRequest) (GetResponse, error) {
