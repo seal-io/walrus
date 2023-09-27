@@ -67,6 +67,7 @@ type (
 		] `query:",inline"`
 
 		CatalogIDs []object.ID `query:"catalogID,omitempty"`
+		NonCatalog bool        `query:"nonCatalog,omitempty"`
 
 		Stream *runtime.RequestUnidiStream
 	}

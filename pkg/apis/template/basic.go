@@ -82,7 +82,9 @@ var (
 func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse, int, error) {
 	query := h.modelClient.Templates().Query()
 
-	if len(req.CatalogIDs) != 0 {
+	if req.NonCatalog {
+		query.Where(template.CatalogIDIsNil())
+	} else if len(req.CatalogIDs) != 0 {
 		query.Where(template.CatalogIDIn(req.CatalogIDs...))
 	}
 
