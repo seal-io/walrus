@@ -155,15 +155,21 @@ func manageResources(
 		return err
 	}
 
-	// Calculate creating list and deleting list.
+	// Calculate creating list, deleting list and updating list.
 	observedRessIndex := dao.ServiceResourceToMap(observedRess)
 
 	deleteRessIDs := make([]object.ID, 0, len(recordRess))
 
+	updatedRess := make([]*model.ServiceResource, 0, len(recordRess))
+
 	for _, c := range recordRess {
 		k := dao.ServiceResourceGetUniqueKey(c)
 		if observedRessIndex[k] != nil {
+			c.Edges.Instances = observedRessIndex[k].Edges.Instances
+			updatedRess = append(updatedRess, c)
+
 			delete(observedRessIndex, k)
+
 			continue
 		}
 
@@ -206,6 +212,14 @@ func manageResources(
 				Where(serviceresource.IDIn(deleteRessIDs...)).
 				Exec(ctx)
 			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+				return err
+			}
+		}
+
+		// Update resources with new instances.
+		for _, r := range updatedRess {
+			err = dao.ServiceResourceInstancesEdgeSave(ctx, tx, r)
+			if err != nil {
 				return err
 			}
 		}
