@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"entgo.io/ent/dialect/sql"
+
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
@@ -18,9 +20,29 @@ func CreateTemplate(ctx context.Context, mc model.ClientSet, entity *model.Templ
 	status.TemplateStatusInitialized.Unknown(entity, "Initializing template")
 	entity.Status.SetSummary(status.WalkTemplate(&entity.Status))
 
+	var conflictOptions []sql.ConflictOption
+	if entity.ProjectID == "" {
+		conflictOptions = append(
+			conflictOptions,
+			sql.ConflictWhere(sql.P().
+				IsNull(template.FieldProjectID)),
+			sql.ConflictColumns(template.FieldName),
+		)
+	} else {
+		conflictOptions = append(
+			conflictOptions,
+			sql.ConflictWhere(sql.P().
+				NotNull(template.FieldProjectID)),
+			sql.ConflictColumns(
+				template.FieldName,
+				template.FieldProjectID,
+			),
+		)
+	}
+
 	id, err := mc.Templates().Create().
 		Set(entity).
-		OnConflictColumns(template.FieldName).
+		OnConflict(conflictOptions...).
 		Update(func(up *model.TemplateUpsert) {
 			up.UpdateStatus().
 				UpdateDescription().

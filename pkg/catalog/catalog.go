@@ -140,6 +140,7 @@ func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) er
 					Description: repo.Description,
 					Source:      repo.Link,
 					CatalogID:   c.ID,
+					ProjectID:   c.ProjectID,
 				}
 
 				logger.Debugf("syncing  \"%s:%s\" of catalog %q", c.Name, repo.Name, c.ID)

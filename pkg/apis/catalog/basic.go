@@ -78,6 +78,14 @@ var (
 func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse, int, error) {
 	query := h.modelClient.Catalogs().Query()
 
+	if req.Project != nil {
+		// Handle project scope request.
+		query.Where(catalog.ProjectID(req.Project.ID))
+	} else {
+		// Handle global scope request.
+		query.Where(catalog.ProjectIDIsNil())
+	}
+
 	if queries, ok := req.Querying(queryFields); ok {
 		query = query.Where(queries)
 	}
