@@ -181,6 +181,7 @@ func syncTemplateFromRef(
 		OnConflictColumns(
 			templateversion.FieldName,
 			templateversion.FieldVersion,
+			templateversion.FieldTemplateID,
 		).
 		Update(func(up *model.TemplateVersionUpsert) {
 			up.UpdateSchema()

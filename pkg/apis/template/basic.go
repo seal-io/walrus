@@ -82,6 +82,23 @@ var (
 func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse, int, error) {
 	query := h.modelClient.Templates().Query()
 
+	if req.Project != nil {
+		ps := template.ProjectID(req.Project.ID)
+
+		if req.WithGlobal {
+			// Handle project scope request with global scope.
+			ps = template.Or(
+				template.ProjectID(req.Project.ID),
+				template.ProjectIDIsNil(),
+			)
+		}
+
+		query.Where(ps)
+	} else {
+		// Handle global scope request.
+		query.Where(template.ProjectIDIsNil())
+	}
+
 	if req.NonCatalog {
 		query.Where(template.CatalogIDIsNil())
 	} else if len(req.CatalogIDs) != 0 {

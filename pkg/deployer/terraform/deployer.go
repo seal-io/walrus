@@ -415,7 +415,8 @@ func (d Deployer) createRevision(
 		WithTemplate(func(tvq *model.TemplateVersionQuery) {
 			tvq.Select(
 				templateversion.FieldName,
-				templateversion.FieldVersion)
+				templateversion.FieldVersion,
+				templateversion.FieldTemplateID)
 		}).
 		Select(
 			service.FieldID,
@@ -431,6 +432,7 @@ func (d Deployer) createRevision(
 		ProjectID:       svc.ProjectID,
 		EnvironmentID:   svc.EnvironmentID,
 		ServiceID:       svc.ID,
+		TemplateID:      svc.Edges.Template.TemplateID,
 		TemplateName:    svc.Edges.Template.Name,
 		TemplateVersion: svc.Edges.Template.Version,
 		Attributes:      svc.Attributes,
@@ -465,6 +467,7 @@ func (d Deployer) createRevision(
 			// Copy required providers from the previous revision.
 			entity.PreviousRequiredProviders = prevEntity.PreviousRequiredProviders
 			// Reuse other fields from the previous revision.
+			entity.TemplateID = prevEntity.TemplateID
 			entity.TemplateName = prevEntity.TemplateName
 			entity.TemplateVersion = prevEntity.TemplateVersion
 			entity.Attributes = prevEntity.Attributes
@@ -687,8 +690,8 @@ func (d Deployer) getModuleConfig(
 	)
 
 	predicates = append(predicates, templateversion.And(
-		templateversion.Name(opts.ServiceRevision.TemplateName),
 		templateversion.Version(opts.ServiceRevision.TemplateVersion),
+		templateversion.TemplateID(opts.ServiceRevision.TemplateID),
 	))
 
 	templateVersion, err := d.modelClient.TemplateVersions().
@@ -766,7 +769,7 @@ func (d Deployer) getPreviousRequiredProviders(
 
 	templateVersion, err := d.modelClient.TemplateVersions().Query().
 		Where(
-			templateversion.Name(entity.TemplateName),
+			templateversion.TemplateID(entity.TemplateID),
 			templateversion.Version(entity.TemplateVersion),
 		).
 		Only(ctx)

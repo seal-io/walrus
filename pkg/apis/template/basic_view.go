@@ -68,6 +68,7 @@ type (
 
 		CatalogIDs []object.ID `query:"catalogID,omitempty"`
 		NonCatalog bool        `query:"nonCatalog,omitempty"`
+		WithGlobal bool        `query:"withGlobal,omitempty"`
 
 		Stream *runtime.RequestUnidiStream
 	}

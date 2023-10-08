@@ -3,10 +3,12 @@ package project
 import (
 	"k8s.io/client-go/rest"
 
+	"github.com/seal-io/walrus/pkg/apis/catalog"
 	"github.com/seal-io/walrus/pkg/apis/connector"
 	"github.com/seal-io/walrus/pkg/apis/environment"
 	"github.com/seal-io/walrus/pkg/apis/projectsubject"
 	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/pkg/apis/template"
 	"github.com/seal-io/walrus/pkg/apis/variable"
 	"github.com/seal-io/walrus/pkg/dao/model"
 )
@@ -34,6 +36,8 @@ func (h Handler) SubResourceHandlers() []runtime.IResourceHandler {
 		connector.Handle(h.modelClient),
 		environment.Handle(h.modelClient, h.kubeConfig, h.tlsCertified),
 		variable.Handle(h.modelClient),
+		catalog.Handle(h.modelClient),
+		template.Handle(h.modelClient),
 		runtime.Alias(
 			projectsubject.Handle(h.modelClient),
 			"Subject"),
