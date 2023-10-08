@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/walrus/pkg/dao/entx"
+	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/schema/mixin"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
@@ -26,8 +27,14 @@ func (Template) Mixin() []ent.Mixin {
 
 func (Template) Indexes() []ent.Index {
 	return []ent.Index{
+		index.Fields("project_id", "name").
+			Unique().
+			Annotations(
+				entsql.IndexWhere("project_id IS NOT NULL")),
 		index.Fields("name").
-			Unique(),
+			Unique().
+			Annotations(
+				entsql.IndexWhere("project_id IS NULL")),
 	}
 }
 
@@ -47,6 +54,10 @@ func (Template) Fields() []ent.Field {
 			Comment("ID of the template catalog.").
 			Optional().
 			Immutable(),
+		object.IDField("project_id").
+			Comment("ID of the project to belong, empty means for all projects.").
+			Immutable().
+			Optional(),
 	}
 }
 
@@ -67,5 +78,14 @@ func (Template) Edges() []ent.Edge {
 			Immutable().
 			Annotations(
 				entx.SkipInput()),
+		// Project 1-* Templates.
+		edge.From("project", Project.Type).
+			Ref("templates").
+			Field("project_id").
+			Comment("Project to which the template belongs.").
+			Unique().
+			Immutable().
+			Annotations(
+				entx.ValidateContext(intercept.WithProjectInterceptor)),
 	}
 }
