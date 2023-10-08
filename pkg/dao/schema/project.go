@@ -73,6 +73,18 @@ func (Project) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
 				entx.SkipIO()),
+		// Project 1-* Templates.
+		edge.To("templates", Template.Type).
+			Comment("Templates that belong to the project.").
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+				entx.SkipIO()),
+		// Project 1-* Catalogs.
+		edge.To("catalogs", Catalog.Type).
+			Comment("Catalogs that belong to the project.").
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+				entx.SkipIO()),
 	}
 }
 

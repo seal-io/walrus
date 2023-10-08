@@ -26,7 +26,7 @@ func (TemplateVersion) Mixin() []ent.Mixin {
 
 func (TemplateVersion) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("name", "version").
+		index.Fields("name", "version", "template_id").
 			Unique(),
 	}
 }
