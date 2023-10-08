@@ -524,6 +524,64 @@ func HasVariablesWith(preds ...predicate.Variable) predicate.Project {
 	})
 }
 
+// HasTemplates applies the HasEdge predicate on the "templates" edge.
+func HasTemplates() predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TemplatesTable, TemplatesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Template
+		step.Edge.Schema = schemaConfig.Template
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTemplatesWith applies the HasEdge predicate on the "templates" edge with a given conditions (other predicates).
+func HasTemplatesWith(preds ...predicate.Template) predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := newTemplatesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Template
+		step.Edge.Schema = schemaConfig.Template
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCatalogs applies the HasEdge predicate on the "catalogs" edge.
+func HasCatalogs() predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CatalogsTable, CatalogsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Catalog
+		step.Edge.Schema = schemaConfig.Catalog
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCatalogsWith applies the HasEdge predicate on the "catalogs" edge with a given conditions (other predicates).
+func HasCatalogsWith(preds ...predicate.Catalog) predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := newCatalogsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Catalog
+		step.Edge.Schema = schemaConfig.Catalog
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Project) predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {

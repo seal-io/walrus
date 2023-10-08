@@ -18,6 +18,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/walrus/pkg/dao/model/catalog"
+	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -126,6 +127,20 @@ func (cc *CatalogCreate) SetSync(ts *types.CatalogSync) *CatalogCreate {
 	return cc
 }
 
+// SetProjectID sets the "project_id" field.
+func (cc *CatalogCreate) SetProjectID(o object.ID) *CatalogCreate {
+	cc.mutation.SetProjectID(o)
+	return cc
+}
+
+// SetNillableProjectID sets the "project_id" field if the given value is not nil.
+func (cc *CatalogCreate) SetNillableProjectID(o *object.ID) *CatalogCreate {
+	if o != nil {
+		cc.SetProjectID(*o)
+	}
+	return cc
+}
+
 // SetID sets the "id" field.
 func (cc *CatalogCreate) SetID(o object.ID) *CatalogCreate {
 	cc.mutation.SetID(o)
@@ -145,6 +160,11 @@ func (cc *CatalogCreate) AddTemplates(t ...*Template) *CatalogCreate {
 		ids[i] = t[i].ID
 	}
 	return cc.AddTemplateIDs(ids...)
+}
+
+// SetProject sets the "project" edge to the Project entity.
+func (cc *CatalogCreate) SetProject(p *Project) *CatalogCreate {
+	return cc.SetProjectID(p.ID)
 }
 
 // Mutation returns the CatalogMutation object of the builder.
@@ -335,6 +355,24 @@ func (cc *CatalogCreate) createSpec() (*Catalog, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := cc.mutation.ProjectIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   catalog.ProjectTable,
+			Columns: []string{catalog.ProjectColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(project.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = cc.schemaConfig.Catalog
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ProjectID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -384,6 +422,9 @@ func (cc *CatalogCreate) Set(obj *Catalog) *CatalogCreate {
 	if !reflect.ValueOf(obj.Sync).IsZero() {
 		cc.SetSync(obj.Sync)
 	}
+	if obj.ProjectID != "" {
+		cc.SetProjectID(obj.ProjectID)
+	}
 
 	// Record the given object.
 	cc.object = obj
@@ -423,6 +464,11 @@ func (cc *CatalogCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Cont
 			Where(
 				catalog.Name(obj.Name),
 			)
+		if obj.ProjectID != "" {
+			q.Where(catalog.ProjectID(obj.ProjectID))
+		} else {
+			q.Where(catalog.ProjectIDIsNil())
+		}
 		obj.ID, err = q.OnlyID(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("model: failed to query id of Catalog entity: %w", err)
@@ -447,6 +493,9 @@ func (cc *CatalogCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Cont
 		}
 		if _, set := cc.mutation.Field(catalog.FieldSync); set {
 			obj.Sync = x.Sync
+		}
+		if _, set := cc.mutation.Field(catalog.FieldProjectID); set {
+			obj.ProjectID = x.ProjectID
 		}
 		obj.Edges = x.Edges
 	}
@@ -551,6 +600,11 @@ func (ccb *CatalogCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx context
 				Where(
 					catalog.Name(obj.Name),
 				)
+			if obj.ProjectID != "" {
+				q.Where(catalog.ProjectID(obj.ProjectID))
+			} else {
+				q.Where(catalog.ProjectIDIsNil())
+			}
 			objs[i].ID, err = q.OnlyID(ctx)
 			if err != nil {
 				return nil, fmt.Errorf("model: failed to query id of Catalog entity: %w", err)
@@ -577,6 +631,9 @@ func (ccb *CatalogCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx context
 			}
 			if _, set := ccb.builders[i].mutation.Field(catalog.FieldSync); set {
 				objs[i].Sync = x[i].Sync
+			}
+			if _, set := ccb.builders[i].mutation.Field(catalog.FieldProjectID); set {
+				objs[i].ProjectID = x[i].ProjectID
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -834,6 +891,9 @@ func (u *CatalogUpsertOne) UpdateNewValues() *CatalogUpsertOne {
 		}
 		if _, exists := u.create.mutation.Source(); exists {
 			s.SetIgnore(catalog.FieldSource)
+		}
+		if _, exists := u.create.mutation.ProjectID(); exists {
+			s.SetIgnore(catalog.FieldProjectID)
 		}
 	}))
 	return u
@@ -1177,6 +1237,9 @@ func (u *CatalogUpsertBulk) UpdateNewValues() *CatalogUpsertBulk {
 			}
 			if _, exists := b.mutation.Source(); exists {
 				s.SetIgnore(catalog.FieldSource)
+			}
+			if _, exists := b.mutation.ProjectID(); exists {
+				s.SetIgnore(catalog.FieldProjectID)
 			}
 		}
 	}))

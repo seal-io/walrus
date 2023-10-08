@@ -19,6 +19,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/catalog"
 	"github.com/seal-io/walrus/pkg/dao/model/internal"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
+	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -33,6 +34,7 @@ type TemplateQuery struct {
 	predicates   []predicate.Template
 	withVersions *TemplateVersionQuery
 	withCatalog  *CatalogQuery
+	withProject  *ProjectQuery
 	modifiers    []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -113,6 +115,31 @@ func (tq *TemplateQuery) QueryCatalog() *CatalogQuery {
 		)
 		schemaConfig := tq.schemaConfig
 		step.To.Schema = schemaConfig.Catalog
+		step.Edge.Schema = schemaConfig.Template
+		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryProject chains the current query on the "project" edge.
+func (tq *TemplateQuery) QueryProject() *ProjectQuery {
+	query := (&ProjectClient{config: tq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := tq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(template.Table, template.FieldID, selector),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, template.ProjectTable, template.ProjectColumn),
+		)
+		schemaConfig := tq.schemaConfig
+		step.To.Schema = schemaConfig.Project
 		step.Edge.Schema = schemaConfig.Template
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
@@ -314,6 +341,7 @@ func (tq *TemplateQuery) Clone() *TemplateQuery {
 		predicates:   append([]predicate.Template{}, tq.predicates...),
 		withVersions: tq.withVersions.Clone(),
 		withCatalog:  tq.withCatalog.Clone(),
+		withProject:  tq.withProject.Clone(),
 		// clone intermediate query.
 		sql:  tq.sql.Clone(),
 		path: tq.path,
@@ -339,6 +367,17 @@ func (tq *TemplateQuery) WithCatalog(opts ...func(*CatalogQuery)) *TemplateQuery
 		opt(query)
 	}
 	tq.withCatalog = query
+	return tq
+}
+
+// WithProject tells the query-builder to eager-load the nodes that are connected to
+// the "project" edge. The optional arguments are used to configure the query builder of the edge.
+func (tq *TemplateQuery) WithProject(opts ...func(*ProjectQuery)) *TemplateQuery {
+	query := (&ProjectClient{config: tq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withProject = query
 	return tq
 }
 
@@ -420,9 +459,10 @@ func (tq *TemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tem
 	var (
 		nodes       = []*Template{}
 		_spec       = tq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			tq.withVersions != nil,
 			tq.withCatalog != nil,
+			tq.withProject != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -458,6 +498,12 @@ func (tq *TemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tem
 	if query := tq.withCatalog; query != nil {
 		if err := tq.loadCatalog(ctx, query, nodes, nil,
 			func(n *Template, e *Catalog) { n.Edges.Catalog = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := tq.withProject; query != nil {
+		if err := tq.loadProject(ctx, query, nodes, nil,
+			func(n *Template, e *Project) { n.Edges.Project = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -523,6 +569,35 @@ func (tq *TemplateQuery) loadCatalog(ctx context.Context, query *CatalogQuery, n
 	}
 	return nil
 }
+func (tq *TemplateQuery) loadProject(ctx context.Context, query *ProjectQuery, nodes []*Template, init func(*Template), assign func(*Template, *Project)) error {
+	ids := make([]object.ID, 0, len(nodes))
+	nodeids := make(map[object.ID][]*Template)
+	for i := range nodes {
+		fk := nodes[i].ProjectID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(project.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "project_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (tq *TemplateQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := tq.querySpec()
@@ -556,6 +631,9 @@ func (tq *TemplateQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if tq.withCatalog != nil {
 			_spec.Node.AddColumnOnce(template.FieldCatalogID)
+		}
+		if tq.withProject != nil {
+			_spec.Node.AddColumnOnce(template.FieldProjectID)
 		}
 	}
 	if ps := tq.predicates; len(ps) > 0 {

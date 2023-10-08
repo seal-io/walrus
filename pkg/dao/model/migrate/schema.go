@@ -25,17 +25,37 @@ var (
 		{Name: "type", Type: field.TypeString},
 		{Name: "source", Type: field.TypeString},
 		{Name: "sync", Type: field.TypeJSON, Nullable: true},
+		{Name: "project_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// CatalogsTable holds the schema information for the "catalogs" table.
 	CatalogsTable = &schema.Table{
 		Name:       "catalogs",
 		Columns:    CatalogsColumns,
 		PrimaryKey: []*schema.Column{CatalogsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "catalogs_projects_catalogs",
+				Columns:    []*schema.Column{CatalogsColumns[11]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 		Indexes: []*schema.Index{
+			{
+				Name:    "catalog_project_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{CatalogsColumns[11], CatalogsColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "project_id IS NOT NULL",
+				},
+			},
 			{
 				Name:    "catalog_name",
 				Unique:  true,
 				Columns: []*schema.Column{CatalogsColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "project_id IS NULL",
+				},
 			},
 		},
 	}
@@ -506,6 +526,7 @@ var (
 		{Name: "status", Type: field.TypeJSON, Nullable: true},
 		{Name: "template_name", Type: field.TypeString},
 		{Name: "template_version", Type: field.TypeString},
+		{Name: "template_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
 		{Name: "variables", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
 		{Name: "input_plan", Type: field.TypeString},
@@ -526,19 +547,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "service_revisions_environments_service_revisions",
-				Columns:    []*schema.Column{ServiceRevisionsColumns[13]},
+				Columns:    []*schema.Column{ServiceRevisionsColumns[14]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "service_revisions_projects_service_revisions",
-				Columns:    []*schema.Column{ServiceRevisionsColumns[14]},
+				Columns:    []*schema.Column{ServiceRevisionsColumns[15]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "service_revisions_services_revisions",
-				Columns:    []*schema.Column{ServiceRevisionsColumns[15]},
+				Columns:    []*schema.Column{ServiceRevisionsColumns[16]},
 				RefColumns: []*schema.Column{ServicesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -679,6 +700,7 @@ var (
 		{Name: "icon", Type: field.TypeString, Nullable: true},
 		{Name: "source", Type: field.TypeString},
 		{Name: "catalog_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "project_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// TemplatesTable holds the schema information for the "templates" table.
 	TemplatesTable = &schema.Table{
@@ -692,12 +714,29 @@ var (
 				RefColumns: []*schema.Column{CatalogsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
+			{
+				Symbol:     "templates_projects_templates",
+				Columns:    []*schema.Column{TemplatesColumns[10]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
 		},
 		Indexes: []*schema.Index{
+			{
+				Name:    "template_project_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{TemplatesColumns[10], TemplatesColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "project_id IS NOT NULL",
+				},
+			},
 			{
 				Name:    "template_name",
 				Unique:  true,
 				Columns: []*schema.Column{TemplatesColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "project_id IS NULL",
+				},
 			},
 		},
 	}
@@ -732,9 +771,9 @@ var (
 				Columns: []*schema.Column{TemplateVersionsColumns[1]},
 			},
 			{
-				Name:    "templateversion_name_version",
+				Name:    "templateversion_name_version_template_id",
 				Unique:  true,
-				Columns: []*schema.Column{TemplateVersionsColumns[3], TemplateVersionsColumns[4]},
+				Columns: []*schema.Column{TemplateVersionsColumns[3], TemplateVersionsColumns[4], TemplateVersionsColumns[7]},
 			},
 		},
 	}
@@ -859,6 +898,7 @@ var (
 )
 
 func init() {
+	CatalogsTable.ForeignKeys[0].RefTable = ProjectsTable
 	ConnectorsTable.ForeignKeys[0].RefTable = ProjectsTable
 	CostReportsTable.ForeignKeys[0].RefTable = ConnectorsTable
 	EnvironmentsTable.ForeignKeys[0].RefTable = ProjectsTable
@@ -884,6 +924,7 @@ func init() {
 	SubjectRoleRelationshipsTable.ForeignKeys[1].RefTable = SubjectsTable
 	SubjectRoleRelationshipsTable.ForeignKeys[2].RefTable = RolesTable
 	TemplatesTable.ForeignKeys[0].RefTable = CatalogsTable
+	TemplatesTable.ForeignKeys[1].RefTable = ProjectsTable
 	TemplateVersionsTable.ForeignKeys[0].RefTable = TemplatesTable
 	TokensTable.ForeignKeys[0].RefTable = SubjectsTable
 	VariablesTable.ForeignKeys[0].RefTable = EnvironmentsTable

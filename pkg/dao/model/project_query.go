@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/walrus/pkg/dao/model/catalog"
 	"github.com/seal-io/walrus/pkg/dao/model/connector"
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
 	"github.com/seal-io/walrus/pkg/dao/model/internal"
@@ -25,6 +26,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
 	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/variable"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
@@ -43,6 +45,8 @@ type ProjectQuery struct {
 	withServiceResources *ServiceResourceQuery
 	withServiceRevisions *ServiceRevisionQuery
 	withVariables        *VariableQuery
+	withTemplates        *TemplateQuery
+	withCatalogs         *CatalogQuery
 	modifiers            []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -255,6 +259,56 @@ func (pq *ProjectQuery) QueryVariables() *VariableQuery {
 	return query
 }
 
+// QueryTemplates chains the current query on the "templates" edge.
+func (pq *ProjectQuery) QueryTemplates() *TemplateQuery {
+	query := (&TemplateClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, selector),
+			sqlgraph.To(template.Table, template.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.TemplatesTable, project.TemplatesColumn),
+		)
+		schemaConfig := pq.schemaConfig
+		step.To.Schema = schemaConfig.Template
+		step.Edge.Schema = schemaConfig.Template
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCatalogs chains the current query on the "catalogs" edge.
+func (pq *ProjectQuery) QueryCatalogs() *CatalogQuery {
+	query := (&CatalogClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, selector),
+			sqlgraph.To(catalog.Table, catalog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.CatalogsTable, project.CatalogsColumn),
+		)
+		schemaConfig := pq.schemaConfig
+		step.To.Schema = schemaConfig.Catalog
+		step.Edge.Schema = schemaConfig.Catalog
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Project entity from the query.
 // Returns a *NotFoundError when no Project was found.
 func (pq *ProjectQuery) First(ctx context.Context) (*Project, error) {
@@ -454,6 +508,8 @@ func (pq *ProjectQuery) Clone() *ProjectQuery {
 		withServiceResources: pq.withServiceResources.Clone(),
 		withServiceRevisions: pq.withServiceRevisions.Clone(),
 		withVariables:        pq.withVariables.Clone(),
+		withTemplates:        pq.withTemplates.Clone(),
+		withCatalogs:         pq.withCatalogs.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
@@ -537,6 +593,28 @@ func (pq *ProjectQuery) WithVariables(opts ...func(*VariableQuery)) *ProjectQuer
 	return pq
 }
 
+// WithTemplates tells the query-builder to eager-load the nodes that are connected to
+// the "templates" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithTemplates(opts ...func(*TemplateQuery)) *ProjectQuery {
+	query := (&TemplateClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withTemplates = query
+	return pq
+}
+
+// WithCatalogs tells the query-builder to eager-load the nodes that are connected to
+// the "catalogs" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithCatalogs(opts ...func(*CatalogQuery)) *ProjectQuery {
+	query := (&CatalogClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withCatalogs = query
+	return pq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -615,7 +693,7 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 	var (
 		nodes       = []*Project{}
 		_spec       = pq.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [9]bool{
 			pq.withEnvironments != nil,
 			pq.withConnectors != nil,
 			pq.withSubjectRoles != nil,
@@ -623,6 +701,8 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 			pq.withServiceResources != nil,
 			pq.withServiceRevisions != nil,
 			pq.withVariables != nil,
+			pq.withTemplates != nil,
+			pq.withCatalogs != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -694,6 +774,20 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 		if err := pq.loadVariables(ctx, query, nodes,
 			func(n *Project) { n.Edges.Variables = []*Variable{} },
 			func(n *Project, e *Variable) { n.Edges.Variables = append(n.Edges.Variables, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withTemplates; query != nil {
+		if err := pq.loadTemplates(ctx, query, nodes,
+			func(n *Project) { n.Edges.Templates = []*Template{} },
+			func(n *Project, e *Template) { n.Edges.Templates = append(n.Edges.Templates, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withCatalogs; query != nil {
+		if err := pq.loadCatalogs(ctx, query, nodes,
+			func(n *Project) { n.Edges.Catalogs = []*Catalog{} },
+			func(n *Project, e *Catalog) { n.Edges.Catalogs = append(n.Edges.Catalogs, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -895,6 +989,66 @@ func (pq *ProjectQuery) loadVariables(ctx context.Context, query *VariableQuery,
 	}
 	query.Where(predicate.Variable(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(project.VariablesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ProjectID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "project_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (pq *ProjectQuery) loadTemplates(ctx context.Context, query *TemplateQuery, nodes []*Project, init func(*Project), assign func(*Project, *Template)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[object.ID]*Project)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(template.FieldProjectID)
+	}
+	query.Where(predicate.Template(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(project.TemplatesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ProjectID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "project_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (pq *ProjectQuery) loadCatalogs(ctx context.Context, query *CatalogQuery, nodes []*Project, init func(*Project), assign func(*Project, *Catalog)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[object.ID]*Project)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(catalog.FieldProjectID)
+	}
+	query.Where(predicate.Catalog(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(project.CatalogsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

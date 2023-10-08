@@ -635,6 +635,25 @@ func (c *CatalogClient) QueryTemplates(ca *Catalog) *TemplateQuery {
 	return query
 }
 
+// QueryProject queries the project edge of a Catalog.
+func (c *CatalogClient) QueryProject(ca *Catalog) *ProjectQuery {
+	query := (&ProjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ca.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(catalog.Table, catalog.FieldID, id),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, catalog.ProjectTable, catalog.ProjectColumn),
+		)
+		schemaConfig := ca.schemaConfig
+		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.Catalog
+		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CatalogClient) Hooks() []Hook {
 	hooks := c.hooks.Catalog
@@ -1843,6 +1862,44 @@ func (c *ProjectClient) QueryVariables(pr *Project) *VariableQuery {
 		schemaConfig := pr.schemaConfig
 		step.To.Schema = schemaConfig.Variable
 		step.Edge.Schema = schemaConfig.Variable
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTemplates queries the templates edge of a Project.
+func (c *ProjectClient) QueryTemplates(pr *Project) *TemplateQuery {
+	query := (&TemplateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, id),
+			sqlgraph.To(template.Table, template.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.TemplatesTable, project.TemplatesColumn),
+		)
+		schemaConfig := pr.schemaConfig
+		step.To.Schema = schemaConfig.Template
+		step.Edge.Schema = schemaConfig.Template
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCatalogs queries the catalogs edge of a Project.
+func (c *ProjectClient) QueryCatalogs(pr *Project) *CatalogQuery {
+	query := (&CatalogClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, id),
+			sqlgraph.To(catalog.Table, catalog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.CatalogsTable, project.CatalogsColumn),
+		)
+		schemaConfig := pr.schemaConfig
+		step.To.Schema = schemaConfig.Catalog
+		step.Edge.Schema = schemaConfig.Catalog
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -3607,6 +3664,25 @@ func (c *TemplateClient) QueryCatalog(t *Template) *CatalogQuery {
 		)
 		schemaConfig := t.schemaConfig
 		step.To.Schema = schemaConfig.Catalog
+		step.Edge.Schema = schemaConfig.Template
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryProject queries the project edge of a Template.
+func (c *TemplateClient) QueryProject(t *Template) *ProjectQuery {
+	query := (&ProjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(template.Table, template.FieldID, id),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, template.ProjectTable, template.ProjectColumn),
+		)
+		schemaConfig := t.schemaConfig
+		step.To.Schema = schemaConfig.Project
 		step.Edge.Schema = schemaConfig.Template
 		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
 		return fromV, nil

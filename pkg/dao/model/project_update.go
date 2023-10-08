@@ -18,6 +18,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/walrus/pkg/dao/model/catalog"
 	"github.com/seal-io/walrus/pkg/dao/model/connector"
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
 	"github.com/seal-io/walrus/pkg/dao/model/internal"
@@ -27,6 +28,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
 	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/variable"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
@@ -201,6 +203,36 @@ func (pu *ProjectUpdate) AddVariables(v ...*Variable) *ProjectUpdate {
 	return pu.AddVariableIDs(ids...)
 }
 
+// AddTemplateIDs adds the "templates" edge to the Template entity by IDs.
+func (pu *ProjectUpdate) AddTemplateIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.AddTemplateIDs(ids...)
+	return pu
+}
+
+// AddTemplates adds the "templates" edges to the Template entity.
+func (pu *ProjectUpdate) AddTemplates(t ...*Template) *ProjectUpdate {
+	ids := make([]object.ID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return pu.AddTemplateIDs(ids...)
+}
+
+// AddCatalogIDs adds the "catalogs" edge to the Catalog entity by IDs.
+func (pu *ProjectUpdate) AddCatalogIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.AddCatalogIDs(ids...)
+	return pu
+}
+
+// AddCatalogs adds the "catalogs" edges to the Catalog entity.
+func (pu *ProjectUpdate) AddCatalogs(c ...*Catalog) *ProjectUpdate {
+	ids := make([]object.ID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return pu.AddCatalogIDs(ids...)
+}
+
 // Mutation returns the ProjectMutation object of the builder.
 func (pu *ProjectUpdate) Mutation() *ProjectMutation {
 	return pu.mutation
@@ -351,6 +383,48 @@ func (pu *ProjectUpdate) RemoveVariables(v ...*Variable) *ProjectUpdate {
 		ids[i] = v[i].ID
 	}
 	return pu.RemoveVariableIDs(ids...)
+}
+
+// ClearTemplates clears all "templates" edges to the Template entity.
+func (pu *ProjectUpdate) ClearTemplates() *ProjectUpdate {
+	pu.mutation.ClearTemplates()
+	return pu
+}
+
+// RemoveTemplateIDs removes the "templates" edge to Template entities by IDs.
+func (pu *ProjectUpdate) RemoveTemplateIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.RemoveTemplateIDs(ids...)
+	return pu
+}
+
+// RemoveTemplates removes "templates" edges to Template entities.
+func (pu *ProjectUpdate) RemoveTemplates(t ...*Template) *ProjectUpdate {
+	ids := make([]object.ID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return pu.RemoveTemplateIDs(ids...)
+}
+
+// ClearCatalogs clears all "catalogs" edges to the Catalog entity.
+func (pu *ProjectUpdate) ClearCatalogs() *ProjectUpdate {
+	pu.mutation.ClearCatalogs()
+	return pu
+}
+
+// RemoveCatalogIDs removes the "catalogs" edge to Catalog entities by IDs.
+func (pu *ProjectUpdate) RemoveCatalogIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.RemoveCatalogIDs(ids...)
+	return pu
+}
+
+// RemoveCatalogs removes "catalogs" edges to Catalog entities.
+func (pu *ProjectUpdate) RemoveCatalogs(c ...*Catalog) *ProjectUpdate {
+	ids := make([]object.ID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return pu.RemoveCatalogIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -825,6 +899,102 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pu.mutation.TemplatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.TemplatesTable,
+			Columns: []string{project.TemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(template.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.Template
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedTemplatesIDs(); len(nodes) > 0 && !pu.mutation.TemplatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.TemplatesTable,
+			Columns: []string{project.TemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(template.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.Template
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.TemplatesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.TemplatesTable,
+			Columns: []string{project.TemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(template.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.Template
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pu.mutation.CatalogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.CatalogsTable,
+			Columns: []string{project.CatalogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(catalog.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.Catalog
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedCatalogsIDs(); len(nodes) > 0 && !pu.mutation.CatalogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.CatalogsTable,
+			Columns: []string{project.CatalogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(catalog.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.Catalog
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.CatalogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.CatalogsTable,
+			Columns: []string{project.CatalogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(catalog.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.Catalog
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = pu.schemaConfig.Project
 	ctx = internal.NewSchemaConfigContext(ctx, pu.schemaConfig)
 	_spec.AddModifiers(pu.modifiers...)
@@ -1005,6 +1175,36 @@ func (puo *ProjectUpdateOne) AddVariables(v ...*Variable) *ProjectUpdateOne {
 	return puo.AddVariableIDs(ids...)
 }
 
+// AddTemplateIDs adds the "templates" edge to the Template entity by IDs.
+func (puo *ProjectUpdateOne) AddTemplateIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.AddTemplateIDs(ids...)
+	return puo
+}
+
+// AddTemplates adds the "templates" edges to the Template entity.
+func (puo *ProjectUpdateOne) AddTemplates(t ...*Template) *ProjectUpdateOne {
+	ids := make([]object.ID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return puo.AddTemplateIDs(ids...)
+}
+
+// AddCatalogIDs adds the "catalogs" edge to the Catalog entity by IDs.
+func (puo *ProjectUpdateOne) AddCatalogIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.AddCatalogIDs(ids...)
+	return puo
+}
+
+// AddCatalogs adds the "catalogs" edges to the Catalog entity.
+func (puo *ProjectUpdateOne) AddCatalogs(c ...*Catalog) *ProjectUpdateOne {
+	ids := make([]object.ID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return puo.AddCatalogIDs(ids...)
+}
+
 // Mutation returns the ProjectMutation object of the builder.
 func (puo *ProjectUpdateOne) Mutation() *ProjectMutation {
 	return puo.mutation
@@ -1155,6 +1355,48 @@ func (puo *ProjectUpdateOne) RemoveVariables(v ...*Variable) *ProjectUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return puo.RemoveVariableIDs(ids...)
+}
+
+// ClearTemplates clears all "templates" edges to the Template entity.
+func (puo *ProjectUpdateOne) ClearTemplates() *ProjectUpdateOne {
+	puo.mutation.ClearTemplates()
+	return puo
+}
+
+// RemoveTemplateIDs removes the "templates" edge to Template entities by IDs.
+func (puo *ProjectUpdateOne) RemoveTemplateIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.RemoveTemplateIDs(ids...)
+	return puo
+}
+
+// RemoveTemplates removes "templates" edges to Template entities.
+func (puo *ProjectUpdateOne) RemoveTemplates(t ...*Template) *ProjectUpdateOne {
+	ids := make([]object.ID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return puo.RemoveTemplateIDs(ids...)
+}
+
+// ClearCatalogs clears all "catalogs" edges to the Catalog entity.
+func (puo *ProjectUpdateOne) ClearCatalogs() *ProjectUpdateOne {
+	puo.mutation.ClearCatalogs()
+	return puo
+}
+
+// RemoveCatalogIDs removes the "catalogs" edge to Catalog entities by IDs.
+func (puo *ProjectUpdateOne) RemoveCatalogIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.RemoveCatalogIDs(ids...)
+	return puo
+}
+
+// RemoveCatalogs removes "catalogs" edges to Catalog entities.
+func (puo *ProjectUpdateOne) RemoveCatalogs(c ...*Catalog) *ProjectUpdateOne {
+	ids := make([]object.ID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return puo.RemoveCatalogIDs(ids...)
 }
 
 // Where appends a list predicates to the ProjectUpdate builder.
@@ -1752,6 +1994,102 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 			},
 		}
 		edge.Schema = puo.schemaConfig.Variable
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.TemplatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.TemplatesTable,
+			Columns: []string{project.TemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(template.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.Template
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedTemplatesIDs(); len(nodes) > 0 && !puo.mutation.TemplatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.TemplatesTable,
+			Columns: []string{project.TemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(template.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.Template
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.TemplatesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.TemplatesTable,
+			Columns: []string{project.TemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(template.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.Template
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.CatalogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.CatalogsTable,
+			Columns: []string{project.CatalogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(catalog.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.Catalog
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedCatalogsIDs(); len(nodes) > 0 && !puo.mutation.CatalogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.CatalogsTable,
+			Columns: []string{project.CatalogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(catalog.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.Catalog
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.CatalogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.CatalogsTable,
+			Columns: []string{project.CatalogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(catalog.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.Catalog
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

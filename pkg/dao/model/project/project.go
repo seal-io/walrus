@@ -45,6 +45,10 @@ const (
 	EdgeServiceRevisions = "service_revisions"
 	// EdgeVariables holds the string denoting the variables edge name in mutations.
 	EdgeVariables = "variables"
+	// EdgeTemplates holds the string denoting the templates edge name in mutations.
+	EdgeTemplates = "templates"
+	// EdgeCatalogs holds the string denoting the catalogs edge name in mutations.
+	EdgeCatalogs = "catalogs"
 	// Table holds the table name of the project in the database.
 	Table = "projects"
 	// EnvironmentsTable is the table that holds the environments relation/edge.
@@ -96,6 +100,20 @@ const (
 	VariablesInverseTable = "variables"
 	// VariablesColumn is the table column denoting the variables relation/edge.
 	VariablesColumn = "project_id"
+	// TemplatesTable is the table that holds the templates relation/edge.
+	TemplatesTable = "templates"
+	// TemplatesInverseTable is the table name for the Template entity.
+	// It exists in this package in order to avoid circular dependency with the "template" package.
+	TemplatesInverseTable = "templates"
+	// TemplatesColumn is the table column denoting the templates relation/edge.
+	TemplatesColumn = "project_id"
+	// CatalogsTable is the table that holds the catalogs relation/edge.
+	CatalogsTable = "catalogs"
+	// CatalogsInverseTable is the table name for the Catalog entity.
+	// It exists in this package in order to avoid circular dependency with the "catalog" package.
+	CatalogsInverseTable = "catalogs"
+	// CatalogsColumn is the table column denoting the catalogs relation/edge.
+	CatalogsColumn = "project_id"
 )
 
 // Columns holds all SQL columns for project fields.
@@ -266,6 +284,34 @@ func ByVariables(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newVariablesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByTemplatesCount orders the results by templates count.
+func ByTemplatesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTemplatesStep(), opts...)
+	}
+}
+
+// ByTemplates orders the results by templates terms.
+func ByTemplates(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTemplatesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCatalogsCount orders the results by catalogs count.
+func ByCatalogsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCatalogsStep(), opts...)
+	}
+}
+
+// ByCatalogs orders the results by catalogs terms.
+func ByCatalogs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCatalogsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newEnvironmentsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -313,6 +359,20 @@ func newVariablesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(VariablesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, VariablesTable, VariablesColumn),
+	)
+}
+func newTemplatesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TemplatesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TemplatesTable, TemplatesColumn),
+	)
+}
+func newCatalogsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CatalogsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CatalogsTable, CatalogsColumn),
 	)
 }
 

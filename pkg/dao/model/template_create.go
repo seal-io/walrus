@@ -18,6 +18,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/walrus/pkg/dao/model/catalog"
+	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -136,6 +137,20 @@ func (tc *TemplateCreate) SetNillableCatalogID(o *object.ID) *TemplateCreate {
 	return tc
 }
 
+// SetProjectID sets the "project_id" field.
+func (tc *TemplateCreate) SetProjectID(o object.ID) *TemplateCreate {
+	tc.mutation.SetProjectID(o)
+	return tc
+}
+
+// SetNillableProjectID sets the "project_id" field if the given value is not nil.
+func (tc *TemplateCreate) SetNillableProjectID(o *object.ID) *TemplateCreate {
+	if o != nil {
+		tc.SetProjectID(*o)
+	}
+	return tc
+}
+
 // SetID sets the "id" field.
 func (tc *TemplateCreate) SetID(o object.ID) *TemplateCreate {
 	tc.mutation.SetID(o)
@@ -160,6 +175,11 @@ func (tc *TemplateCreate) AddVersions(t ...*TemplateVersion) *TemplateCreate {
 // SetCatalog sets the "catalog" edge to the Catalog entity.
 func (tc *TemplateCreate) SetCatalog(c *Catalog) *TemplateCreate {
 	return tc.SetCatalogID(c.ID)
+}
+
+// SetProject sets the "project" edge to the Project entity.
+func (tc *TemplateCreate) SetProject(p *Project) *TemplateCreate {
+	return tc.SetProjectID(p.ID)
 }
 
 // Mutation returns the TemplateMutation object of the builder.
@@ -348,6 +368,24 @@ func (tc *TemplateCreate) createSpec() (*Template, *sqlgraph.CreateSpec) {
 		_node.CatalogID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := tc.mutation.ProjectIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   template.ProjectTable,
+			Columns: []string{template.ProjectColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(project.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = tc.schemaConfig.Template
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ProjectID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -396,6 +434,9 @@ func (tc *TemplateCreate) Set(obj *Template) *TemplateCreate {
 	if obj.CatalogID != "" {
 		tc.SetCatalogID(obj.CatalogID)
 	}
+	if obj.ProjectID != "" {
+		tc.SetProjectID(obj.ProjectID)
+	}
 
 	// Record the given object.
 	tc.object = obj
@@ -435,6 +476,11 @@ func (tc *TemplateCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Con
 			Where(
 				template.Name(obj.Name),
 			)
+		if obj.ProjectID != "" {
+			q.Where(template.ProjectID(obj.ProjectID))
+		} else {
+			q.Where(template.ProjectIDIsNil())
+		}
 		obj.ID, err = q.OnlyID(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("model: failed to query id of Template entity: %w", err)
@@ -459,6 +505,9 @@ func (tc *TemplateCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Con
 		}
 		if _, set := tc.mutation.Field(template.FieldCatalogID); set {
 			obj.CatalogID = x.CatalogID
+		}
+		if _, set := tc.mutation.Field(template.FieldProjectID); set {
+			obj.ProjectID = x.ProjectID
 		}
 		obj.Edges = x.Edges
 	}
@@ -563,6 +612,11 @@ func (tcb *TemplateCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx contex
 				Where(
 					template.Name(obj.Name),
 				)
+			if obj.ProjectID != "" {
+				q.Where(template.ProjectID(obj.ProjectID))
+			} else {
+				q.Where(template.ProjectIDIsNil())
+			}
 			objs[i].ID, err = q.OnlyID(ctx)
 			if err != nil {
 				return nil, fmt.Errorf("model: failed to query id of Template entity: %w", err)
@@ -589,6 +643,9 @@ func (tcb *TemplateCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx contex
 			}
 			if _, set := tcb.builders[i].mutation.Field(template.FieldCatalogID); set {
 				objs[i].CatalogID = x[i].CatalogID
+			}
+			if _, set := tcb.builders[i].mutation.Field(template.FieldProjectID); set {
+				objs[i].ProjectID = x[i].ProjectID
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -828,6 +885,9 @@ func (u *TemplateUpsertOne) UpdateNewValues() *TemplateUpsertOne {
 		}
 		if _, exists := u.create.mutation.CatalogID(); exists {
 			s.SetIgnore(template.FieldCatalogID)
+		}
+		if _, exists := u.create.mutation.ProjectID(); exists {
+			s.SetIgnore(template.FieldProjectID)
 		}
 	}))
 	return u
@@ -1150,6 +1210,9 @@ func (u *TemplateUpsertBulk) UpdateNewValues() *TemplateUpsertBulk {
 			}
 			if _, exists := b.mutation.CatalogID(); exists {
 				s.SetIgnore(template.FieldCatalogID)
+			}
+			if _, exists := b.mutation.ProjectID(); exists {
+				s.SetIgnore(template.FieldProjectID)
 			}
 		}
 	}))

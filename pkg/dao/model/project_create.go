@@ -17,6 +17,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/walrus/pkg/dao/model/catalog"
 	"github.com/seal-io/walrus/pkg/dao/model/connector"
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
@@ -24,6 +25,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
 	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/variable"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
@@ -207,6 +209,36 @@ func (pc *ProjectCreate) AddVariables(v ...*Variable) *ProjectCreate {
 		ids[i] = v[i].ID
 	}
 	return pc.AddVariableIDs(ids...)
+}
+
+// AddTemplateIDs adds the "templates" edge to the Template entity by IDs.
+func (pc *ProjectCreate) AddTemplateIDs(ids ...object.ID) *ProjectCreate {
+	pc.mutation.AddTemplateIDs(ids...)
+	return pc
+}
+
+// AddTemplates adds the "templates" edges to the Template entity.
+func (pc *ProjectCreate) AddTemplates(t ...*Template) *ProjectCreate {
+	ids := make([]object.ID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return pc.AddTemplateIDs(ids...)
+}
+
+// AddCatalogIDs adds the "catalogs" edge to the Catalog entity by IDs.
+func (pc *ProjectCreate) AddCatalogIDs(ids ...object.ID) *ProjectCreate {
+	pc.mutation.AddCatalogIDs(ids...)
+	return pc
+}
+
+// AddCatalogs adds the "catalogs" edges to the Catalog entity.
+func (pc *ProjectCreate) AddCatalogs(c ...*Catalog) *ProjectCreate {
+	ids := make([]object.ID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return pc.AddCatalogIDs(ids...)
 }
 
 // Mutation returns the ProjectMutation object of the builder.
@@ -462,6 +494,40 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = pc.schemaConfig.Variable
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.TemplatesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.TemplatesTable,
+			Columns: []string{project.TemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(template.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pc.schemaConfig.Template
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.CatalogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.CatalogsTable,
+			Columns: []string{project.CatalogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(catalog.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pc.schemaConfig.Catalog
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

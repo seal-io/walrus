@@ -57,9 +57,13 @@ type ProjectEdges struct {
 	ServiceRevisions []*ServiceRevision `json:"service_revisions,omitempty"`
 	// Variables that belong to the project.
 	Variables []*Variable `json:"variables,omitempty"`
+	// Templates that belong to the project.
+	Templates []*Template `json:"templates,omitempty"`
+	// Catalogs that belong to the project.
+	Catalogs []*Catalog `json:"catalogs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [9]bool
 }
 
 // EnvironmentsOrErr returns the Environments value or an error if the edge
@@ -123,6 +127,24 @@ func (e ProjectEdges) VariablesOrErr() ([]*Variable, error) {
 		return e.Variables, nil
 	}
 	return nil, &NotLoadedError{edge: "variables"}
+}
+
+// TemplatesOrErr returns the Templates value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) TemplatesOrErr() ([]*Template, error) {
+	if e.loadedTypes[7] {
+		return e.Templates, nil
+	}
+	return nil, &NotLoadedError{edge: "templates"}
+}
+
+// CatalogsOrErr returns the Catalogs value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) CatalogsOrErr() ([]*Catalog, error) {
+	if e.loadedTypes[8] {
+		return e.Catalogs, nil
+	}
+	return nil, &NotLoadedError{edge: "catalogs"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -247,6 +269,16 @@ func (pr *Project) QueryServiceRevisions() *ServiceRevisionQuery {
 // QueryVariables queries the "variables" edge of the Project entity.
 func (pr *Project) QueryVariables() *VariableQuery {
 	return NewProjectClient(pr.config).QueryVariables(pr)
+}
+
+// QueryTemplates queries the "templates" edge of the Project entity.
+func (pr *Project) QueryTemplates() *TemplateQuery {
+	return NewProjectClient(pr.config).QueryTemplates(pr)
+}
+
+// QueryCatalogs queries the "catalogs" edge of the Project entity.
+func (pr *Project) QueryCatalogs() *CatalogQuery {
+	return NewProjectClient(pr.config).QueryCatalogs(pr)
 }
 
 // Update returns a builder for updating this Project.

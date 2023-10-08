@@ -37,10 +37,14 @@ const (
 	FieldSource = "source"
 	// FieldCatalogID holds the string denoting the catalog_id field in the database.
 	FieldCatalogID = "catalog_id"
+	// FieldProjectID holds the string denoting the project_id field in the database.
+	FieldProjectID = "project_id"
 	// EdgeVersions holds the string denoting the versions edge name in mutations.
 	EdgeVersions = "versions"
 	// EdgeCatalog holds the string denoting the catalog edge name in mutations.
 	EdgeCatalog = "catalog"
+	// EdgeProject holds the string denoting the project edge name in mutations.
+	EdgeProject = "project"
 	// Table holds the table name of the template in the database.
 	Table = "templates"
 	// VersionsTable is the table that holds the versions relation/edge.
@@ -57,6 +61,13 @@ const (
 	CatalogInverseTable = "catalogs"
 	// CatalogColumn is the table column denoting the catalog relation/edge.
 	CatalogColumn = "catalog_id"
+	// ProjectTable is the table that holds the project relation/edge.
+	ProjectTable = "templates"
+	// ProjectInverseTable is the table name for the Project entity.
+	// It exists in this package in order to avoid circular dependency with the "project" package.
+	ProjectInverseTable = "projects"
+	// ProjectColumn is the table column denoting the project relation/edge.
+	ProjectColumn = "project_id"
 )
 
 // Columns holds all SQL columns for template fields.
@@ -71,6 +82,7 @@ var Columns = []string{
 	FieldIcon,
 	FieldSource,
 	FieldCatalogID,
+	FieldProjectID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -147,6 +159,11 @@ func ByCatalogID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCatalogID, opts...).ToFunc()
 }
 
+// ByProjectID orders the results by the project_id field.
+func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
+}
+
 // ByVersionsCount orders the results by versions count.
 func ByVersionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -167,6 +184,13 @@ func ByCatalogField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCatalogStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByProjectField orders the results by project field.
+func ByProjectField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newProjectStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newVersionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -179,6 +203,13 @@ func newCatalogStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CatalogInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, CatalogTable, CatalogColumn),
+	)
+}
+func newProjectStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ProjectInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ProjectTable, ProjectColumn),
 	)
 }
 
