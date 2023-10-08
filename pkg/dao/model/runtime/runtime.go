@@ -557,20 +557,24 @@ func init() {
 	servicerevisionDescTemplateVersion := servicerevisionFields[4].Descriptor()
 	// servicerevision.TemplateVersionValidator is a validator for the "template_version" field. It is called by the builders before save.
 	servicerevision.TemplateVersionValidator = servicerevisionDescTemplateVersion.Validators[0].(func(string) error)
+	// servicerevisionDescTemplateID is the schema descriptor for template_id field.
+	servicerevisionDescTemplateID := servicerevisionFields[5].Descriptor()
+	// servicerevision.TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
+	servicerevision.TemplateIDValidator = servicerevisionDescTemplateID.Validators[0].(func(string) error)
 	// servicerevisionDescVariables is the schema descriptor for variables field.
-	servicerevisionDescVariables := servicerevisionFields[6].Descriptor()
+	servicerevisionDescVariables := servicerevisionFields[7].Descriptor()
 	// servicerevision.DefaultVariables holds the default value on creation for the variables field.
 	servicerevision.DefaultVariables = servicerevisionDescVariables.Default.(crypto.Map[string, string])
 	// servicerevisionDescDeployerType is the schema descriptor for deployer_type field.
-	servicerevisionDescDeployerType := servicerevisionFields[9].Descriptor()
+	servicerevisionDescDeployerType := servicerevisionFields[10].Descriptor()
 	// servicerevision.DefaultDeployerType holds the default value on creation for the deployer_type field.
 	servicerevision.DefaultDeployerType = servicerevisionDescDeployerType.Default.(string)
 	// servicerevisionDescDuration is the schema descriptor for duration field.
-	servicerevisionDescDuration := servicerevisionFields[10].Descriptor()
+	servicerevisionDescDuration := servicerevisionFields[11].Descriptor()
 	// servicerevision.DefaultDuration holds the default value on creation for the duration field.
 	servicerevision.DefaultDuration = servicerevisionDescDuration.Default.(int)
 	// servicerevisionDescPreviousRequiredProviders is the schema descriptor for previous_required_providers field.
-	servicerevisionDescPreviousRequiredProviders := servicerevisionFields[11].Descriptor()
+	servicerevisionDescPreviousRequiredProviders := servicerevisionFields[12].Descriptor()
 	// servicerevision.DefaultPreviousRequiredProviders holds the default value on creation for the previous_required_providers field.
 	servicerevision.DefaultPreviousRequiredProviders = servicerevisionDescPreviousRequiredProviders.Default.([]types.ProviderRequirement)
 	settingMixin := schema.Setting{}.Mixin()

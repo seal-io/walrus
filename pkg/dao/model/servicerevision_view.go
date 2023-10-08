@@ -36,6 +36,8 @@ type ServiceRevisionCreateInput struct {
 	Output string `path:"-" query:"-" json:"output"`
 	// Input plan of the revision.
 	InputPlan string `path:"-" query:"-" json:"inputPlan"`
+	// ID of the template.
+	TemplateID object.ID `path:"-" query:"-" json:"templateID"`
 	// Version of the template.
 	TemplateVersion string `path:"-" query:"-" json:"templateVersion"`
 	// Name of the template.
@@ -64,6 +66,7 @@ func (srci *ServiceRevisionCreateInput) Model() *ServiceRevision {
 	_sr := &ServiceRevision{
 		Output:                    srci.Output,
 		InputPlan:                 srci.InputPlan,
+		TemplateID:                srci.TemplateID,
 		TemplateVersion:           srci.TemplateVersion,
 		TemplateName:              srci.TemplateName,
 		Attributes:                srci.Attributes,
@@ -134,6 +137,8 @@ type ServiceRevisionCreateInputsItem struct {
 	Output string `path:"-" query:"-" json:"output"`
 	// Input plan of the revision.
 	InputPlan string `path:"-" query:"-" json:"inputPlan"`
+	// ID of the template.
+	TemplateID object.ID `path:"-" query:"-" json:"templateID"`
 	// Version of the template.
 	TemplateVersion string `path:"-" query:"-" json:"templateVersion"`
 	// Name of the template.
@@ -194,6 +199,7 @@ func (srci *ServiceRevisionCreateInputs) Model() []*ServiceRevision {
 		_sr := &ServiceRevision{
 			Output:                    srci.Items[i].Output,
 			InputPlan:                 srci.Items[i].InputPlan,
+			TemplateID:                srci.Items[i].TemplateID,
 			TemplateVersion:           srci.Items[i].TemplateVersion,
 			TemplateName:              srci.Items[i].TemplateName,
 			Attributes:                srci.Items[i].Attributes,
@@ -882,6 +888,7 @@ type ServiceRevisionOutput struct {
 	Status                    status.Status               `json:"status,omitempty"`
 	TemplateName              string                      `json:"templateName,omitempty"`
 	TemplateVersion           string                      `json:"templateVersion,omitempty"`
+	TemplateID                object.ID                   `json:"templateID,omitempty"`
 	Attributes                property.Values             `json:"attributes,omitempty"`
 	Variables                 crypto.Map[string, string]  `json:"variables,omitempty"`
 	DeployerType              string                      `json:"deployerType,omitempty"`
@@ -916,6 +923,7 @@ func ExposeServiceRevision(_sr *ServiceRevision) *ServiceRevisionOutput {
 		Status:                    _sr.Status,
 		TemplateName:              _sr.TemplateName,
 		TemplateVersion:           _sr.TemplateVersion,
+		TemplateID:                _sr.TemplateID,
 		Attributes:                _sr.Attributes,
 		Variables:                 _sr.Variables,
 		DeployerType:              _sr.DeployerType,

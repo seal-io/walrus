@@ -392,6 +392,7 @@ func (tvc *TemplateVersionCreate) SaveE(ctx context.Context, cbs ...func(ctx con
 			Where(
 				templateversion.Name(obj.Name),
 				templateversion.Version(obj.Version),
+				templateversion.TemplateID(obj.TemplateID),
 			)
 		obj.ID, err = q.OnlyID(ctx)
 		if err != nil {
@@ -515,6 +516,7 @@ func (tvcb *TemplateVersionCreateBulk) SaveE(ctx context.Context, cbs ...func(ct
 				Where(
 					templateversion.Name(obj.Name),
 					templateversion.Version(obj.Version),
+					templateversion.TemplateID(obj.TemplateID),
 				)
 			objs[i].ID, err = q.OnlyID(ctx)
 			if err != nil {

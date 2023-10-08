@@ -44,6 +44,8 @@ type ServiceRevision struct {
 	TemplateName string `json:"template_name,omitempty"`
 	// Version of the template.
 	TemplateVersion string `json:"template_version,omitempty"`
+	// ID of the template.
+	TemplateID object.ID `json:"template_id,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
 	// Variables of the revision.
@@ -127,7 +129,7 @@ func (*ServiceRevision) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case servicerevision.FieldVariables:
 			values[i] = new(crypto.Map[string, string])
-		case servicerevision.FieldID, servicerevision.FieldProjectID, servicerevision.FieldEnvironmentID, servicerevision.FieldServiceID:
+		case servicerevision.FieldID, servicerevision.FieldProjectID, servicerevision.FieldEnvironmentID, servicerevision.FieldServiceID, servicerevision.FieldTemplateID:
 			values[i] = new(object.ID)
 		case servicerevision.FieldAttributes:
 			values[i] = new(property.Values)
@@ -202,6 +204,12 @@ func (sr *ServiceRevision) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field template_version", values[i])
 			} else if value.Valid {
 				sr.TemplateVersion = value.String
+			}
+		case servicerevision.FieldTemplateID:
+			if value, ok := values[i].(*object.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field template_id", values[i])
+			} else if value != nil {
+				sr.TemplateID = *value
 			}
 		case servicerevision.FieldAttributes:
 			if value, ok := values[i].(*property.Values); !ok {
@@ -326,6 +334,9 @@ func (sr *ServiceRevision) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("template_version=")
 	builder.WriteString(sr.TemplateVersion)
+	builder.WriteString(", ")
+	builder.WriteString("template_id=")
+	builder.WriteString(fmt.Sprintf("%v", sr.TemplateID))
 	builder.WriteString(", ")
 	builder.WriteString("attributes=")
 	builder.WriteString(fmt.Sprintf("%v", sr.Attributes))

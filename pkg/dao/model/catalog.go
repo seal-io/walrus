@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/walrus/pkg/dao/model/catalog"
+	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
@@ -45,6 +46,8 @@ type Catalog struct {
 	Source string `json:"source,omitempty"`
 	// Sync information of the catalog.
 	Sync *types.CatalogSync `json:"sync,omitempty"`
+	// ID of the project to belong, empty means for all projects.
+	ProjectID object.ID `json:"project_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CatalogQuery when eager-loading is set.
 	Edges        CatalogEdges `json:"edges,omitempty"`
@@ -55,9 +58,11 @@ type Catalog struct {
 type CatalogEdges struct {
 	// Templates that belong to this catalog.
 	Templates []*Template `json:"templates,omitempty"`
+	// Project to which the catalog belongs.
+	Project *Project `json:"project,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // TemplatesOrErr returns the Templates value or an error if the edge
@@ -69,6 +74,19 @@ func (e CatalogEdges) TemplatesOrErr() ([]*Template, error) {
 	return nil, &NotLoadedError{edge: "templates"}
 }
 
+// ProjectOrErr returns the Project value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CatalogEdges) ProjectOrErr() (*Project, error) {
+	if e.loadedTypes[1] {
+		if e.Project == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: project.Label}
+		}
+		return e.Project, nil
+	}
+	return nil, &NotLoadedError{edge: "project"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Catalog) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -76,7 +94,7 @@ func (*Catalog) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case catalog.FieldLabels, catalog.FieldAnnotations, catalog.FieldStatus, catalog.FieldSync:
 			values[i] = new([]byte)
-		case catalog.FieldID:
+		case catalog.FieldID, catalog.FieldProjectID:
 			values[i] = new(object.ID)
 		case catalog.FieldName, catalog.FieldDescription, catalog.FieldType, catalog.FieldSource:
 			values[i] = new(sql.NullString)
@@ -173,6 +191,12 @@ func (c *Catalog) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field sync: %w", err)
 				}
 			}
+		case catalog.FieldProjectID:
+			if value, ok := values[i].(*object.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field project_id", values[i])
+			} else if value != nil {
+				c.ProjectID = *value
+			}
 		default:
 			c.selectValues.Set(columns[i], values[i])
 		}
@@ -189,6 +213,11 @@ func (c *Catalog) Value(name string) (ent.Value, error) {
 // QueryTemplates queries the "templates" edge of the Catalog entity.
 func (c *Catalog) QueryTemplates() *TemplateQuery {
 	return NewCatalogClient(c.config).QueryTemplates(c)
+}
+
+// QueryProject queries the "project" edge of the Catalog entity.
+func (c *Catalog) QueryProject() *ProjectQuery {
+	return NewCatalogClient(c.config).QueryProject(c)
 }
 
 // Update returns a builder for updating this Catalog.
@@ -247,6 +276,9 @@ func (c *Catalog) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("sync=")
 	builder.WriteString(fmt.Sprintf("%v", c.Sync))
+	builder.WriteString(", ")
+	builder.WriteString("project_id=")
+	builder.WriteString(fmt.Sprintf("%v", c.ProjectID))
 	builder.WriteByte(')')
 	return builder.String()
 }

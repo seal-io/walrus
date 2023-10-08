@@ -39,8 +39,12 @@ const (
 	FieldSource = "source"
 	// FieldSync holds the string denoting the sync field in the database.
 	FieldSync = "sync"
+	// FieldProjectID holds the string denoting the project_id field in the database.
+	FieldProjectID = "project_id"
 	// EdgeTemplates holds the string denoting the templates edge name in mutations.
 	EdgeTemplates = "templates"
+	// EdgeProject holds the string denoting the project edge name in mutations.
+	EdgeProject = "project"
 	// Table holds the table name of the catalog in the database.
 	Table = "catalogs"
 	// TemplatesTable is the table that holds the templates relation/edge.
@@ -50,6 +54,13 @@ const (
 	TemplatesInverseTable = "templates"
 	// TemplatesColumn is the table column denoting the templates relation/edge.
 	TemplatesColumn = "catalog_id"
+	// ProjectTable is the table that holds the project relation/edge.
+	ProjectTable = "catalogs"
+	// ProjectInverseTable is the table name for the Project entity.
+	// It exists in this package in order to avoid circular dependency with the "project" package.
+	ProjectInverseTable = "projects"
+	// ProjectColumn is the table column denoting the project relation/edge.
+	ProjectColumn = "project_id"
 )
 
 // Columns holds all SQL columns for catalog fields.
@@ -65,6 +76,7 @@ var Columns = []string{
 	FieldType,
 	FieldSource,
 	FieldSync,
+	FieldProjectID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -140,6 +152,11 @@ func BySource(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSource, opts...).ToFunc()
 }
 
+// ByProjectID orders the results by the project_id field.
+func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
+}
+
 // ByTemplatesCount orders the results by templates count.
 func ByTemplatesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -153,11 +170,25 @@ func ByTemplates(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newTemplatesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByProjectField orders the results by project field.
+func ByProjectField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newProjectStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newTemplatesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TemplatesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, TemplatesTable, TemplatesColumn),
+	)
+}
+func newProjectStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ProjectInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ProjectTable, ProjectColumn),
 	)
 }
 

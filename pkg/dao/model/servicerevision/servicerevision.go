@@ -36,6 +36,8 @@ const (
 	FieldTemplateName = "template_name"
 	// FieldTemplateVersion holds the string denoting the template_version field in the database.
 	FieldTemplateVersion = "template_version"
+	// FieldTemplateID holds the string denoting the template_id field in the database.
+	FieldTemplateID = "template_id"
 	// FieldAttributes holds the string denoting the attributes field in the database.
 	FieldAttributes = "attributes"
 	// FieldVariables holds the string denoting the variables field in the database.
@@ -93,6 +95,7 @@ var Columns = []string{
 	FieldServiceID,
 	FieldTemplateName,
 	FieldTemplateVersion,
+	FieldTemplateID,
 	FieldAttributes,
 	FieldVariables,
 	FieldInputPlan,
@@ -133,6 +136,8 @@ var (
 	TemplateNameValidator func(string) error
 	// TemplateVersionValidator is a validator for the "template_version" field. It is called by the builders before save.
 	TemplateVersionValidator func(string) error
+	// TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
+	TemplateIDValidator func(string) error
 	// DefaultVariables holds the default value on creation for the "variables" field.
 	DefaultVariables crypto.Map[string, string]
 	// DefaultDeployerType holds the default value on creation for the "deployer_type" field.
@@ -179,6 +184,11 @@ func ByTemplateName(opts ...sql.OrderTermOption) OrderOption {
 // ByTemplateVersion orders the results by the template_version field.
 func ByTemplateVersion(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTemplateVersion, opts...).ToFunc()
+}
+
+// ByTemplateID orders the results by the template_id field.
+func ByTemplateID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTemplateID, opts...).ToFunc()
 }
 
 // ByAttributes orders the results by the attributes field.
