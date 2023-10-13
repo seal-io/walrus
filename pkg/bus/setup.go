@@ -44,6 +44,12 @@ func Setup(ctx context.Context, opts SetupOptions) (err error) {
 		return
 	}
 
+	err = setting.AddSubscriber("trusted-ca-sync",
+		templates.SyncGitTrustedCA)
+	if err != nil {
+		return
+	}
+
 	// Template.
 	err = template.AddSubscriber("sync-template-schema",
 		templates.SchemaSync(opts.ModelClient).Do)

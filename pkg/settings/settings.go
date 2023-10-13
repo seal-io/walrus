@@ -51,6 +51,13 @@ var (
 		initializeFrom("sealio/terraform-deployer:v0.1.4"),
 		modifyWith(notBlank, containerImageReference),
 	)
+	// SSLTrustedCAFile indicates the file path of trusted root CA certificates for SSL connection.
+	SSLTrustedCAFile = newValue(
+		"SSLTrustedCAFile",
+		editable,
+		initializeFromSpecifiedEnv("GIT_SSL_CAINFO", ""),
+		nil,
+	)
 )
 
 // the built-in settings for server.

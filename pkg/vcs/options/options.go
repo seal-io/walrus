@@ -1,9 +1,13 @@
 package options
 
 import (
+	"context"
 	"crypto/tls"
 	"net/http"
 	"time"
+
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/utils/log"
 
 	"github.com/drone/go-scm/scm"
 	scmtransport "github.com/drone/go-scm/scm/transport"
@@ -28,6 +32,39 @@ func WithUserAgent(userAgent string) ClientOption {
 					r.Header.Set(headerKey, userAgent)
 				}
 			},
+		}
+	}
+}
+
+// WithCACerts sets the trusted CA certificates in the system pool and the given CA file in settings.
+func WithCACerts(ctx context.Context, mc model.ClientSet) ClientOption {
+	return func(client *http.Client) {
+		tr, ok := client.Transport.(*scmtransport.Custom)
+		if !ok {
+			return
+		}
+
+		for b := tr.Base; b != nil; {
+			switch v := b.(type) {
+			case *scmtransport.Custom:
+				b = v.Base
+				continue
+			case *http.Transport:
+				if v.TLSClientConfig == nil {
+					v.TLSClientConfig = &tls.Config{
+						MinVersion: tls.VersionTLS12,
+					}
+				}
+
+				pool, err := GetCertPool(ctx, mc)
+				if err != nil {
+					log.Errorf("failed to get CA cert pool: %v", err)
+					return
+				}
+				v.TLSClientConfig.RootCAs = pool
+			}
+
+			return
 		}
 	}
 }

@@ -6,6 +6,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/scaleway/scaleway-sdk-go/logger"
+
+	settingbus "github.com/seal-io/walrus/pkg/bus/setting"
+	"github.com/seal-io/walrus/pkg/settings"
+
 	"entgo.io/ent/dialect/sql"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport"
@@ -22,6 +27,8 @@ import (
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/strs"
 )
+
+const GitCAFileEnvKey = "GIT_SSL_CAINFO"
 
 // CreateTemplateVersionsFromRepo creates template versions and
 // return founded version count from a git repository worktree.
@@ -455,4 +462,47 @@ func getValidVersions(
 	}
 
 	return validVersions, versionSchema, nil
+}
+
+// SyncGitTrustedCA syncs git trusted CA from settings,
+// and sets environment variable GIT_SSL_CAINFO.
+func SyncGitTrustedCA(ctx context.Context, m settingbus.BusMessage) error {
+	for i := 0; i < len(m.Refers); i++ {
+		if m.Refers[i] == nil || m.Refers[i].Name == "" {
+			continue
+		}
+
+		if m.Refers[i].Name != settings.SSLTrustedCAFile.Name() {
+			continue
+		}
+
+		err := SetGitCAEnvVar(ctx, m.TransactionalModelClient)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// SetGitCAEnvVar sets environment variable GIT_SSL_CAINFO from settings.
+func SetGitCAEnvVar(ctx context.Context, mc model.ClientSet) error {
+	// Get trusted CA value of from settings.
+	v, err := settings.SSLTrustedCAFile.Value(ctx, mc)
+	if err != nil {
+		return err
+	}
+
+	if v == "" {
+		return nil
+	}
+
+	err = os.Setenv(GitCAFileEnvKey, v)
+	if err != nil {
+		return err
+	}
+
+	logger.Infof("set environment variable %s: %s", GitCAFileEnvKey, v)
+
+	return nil
 }

@@ -11,6 +11,7 @@ import (
 const (
 	FileMain = "main.tf"
 	FileVars = "terraform.tfvars"
+	FileCA   = "ca.crt"
 )
 
 // ModuleConfig is a struct with model.Template and its variables.

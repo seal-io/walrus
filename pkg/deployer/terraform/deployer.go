@@ -4,8 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/seal-io/walrus/pkg/templates"
+	"github.com/seal-io/walrus/pkg/vcs/options"
 
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
 	corev1 "k8s.io/api/core/v1"
@@ -239,6 +243,11 @@ func (d Deployer) createK8sJob(ctx context.Context, opts createK8sJobOptions) er
 		return err
 	}
 
+	jobEnv, err = d.addCAEnv(ctx, jobEnv)
+	if err != nil {
+		return err
+	}
+
 	// Create deployment job.
 	jobOpts := JobCreateOptions{
 		Type:              opts.Type,
@@ -248,6 +257,22 @@ func (d Deployer) createK8sJob(ctx context.Context, opts createK8sJobOptions) er
 	}
 
 	return CreateJob(ctx, d.clientSet, jobOpts)
+}
+
+func (d Deployer) addCAEnv(ctx context.Context, jobEnv []corev1.EnvVar) ([]corev1.EnvVar, error) {
+	file, err := settings.SSLTrustedCAFile.Value(ctx, d.modelClient)
+	if err != nil {
+		return jobEnv, err
+	}
+
+	if file != "" {
+		jobEnv = append(jobEnv, corev1.EnvVar{
+			Name:  templates.GitCAFileEnvKey,
+			Value: filepath.Join(_secretMountPath, config.FileCA),
+		})
+	}
+
+	return jobEnv, nil
 }
 
 func (d Deployer) getProxyEnv(ctx context.Context) ([]corev1.EnvVar, error) {
@@ -363,6 +388,13 @@ func (d Deployer) createK8sSecrets(ctx context.Context, opts createK8sSecretsOpt
 	for k, v := range providerData {
 		secretData[k] = v
 	}
+
+	// Mount the trusted CA certs to secret.
+	CAData, err := options.GetTrustedCAData(ctx, d.modelClient)
+	if err != nil {
+		return err
+	}
+	secretData[config.FileCA] = CAData
 
 	// Create deployment secret.
 	if err = CreateSecret(ctx, d.clientSet, secretName, secretData); err != nil {
