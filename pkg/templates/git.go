@@ -428,8 +428,16 @@ func getValidVersions(
 			continue
 		}
 
+		hash := resetRef.Hash()
+
+		// If tag is not a commit hash, get commit hash from tag object target.
+		object, err := r.TagObject(hash)
+		if err == nil {
+			hash = object.Target
+		}
+
 		err = w.Reset(&git.ResetOptions{
-			Commit: resetRef.Hash(),
+			Commit: hash,
 			Mode:   git.HardReset,
 		})
 		if err != nil {
