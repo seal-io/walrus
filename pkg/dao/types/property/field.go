@@ -425,20 +425,6 @@ func (i Property) Cty() (cty.Type, cty.Value, error) {
 	}
 
 	switch {
-	// From Terraform expression guide,
-	// https://developer.hashicorp.com/terraform/language/expressions/type-constraints#collection-types,
-	// map(any), list(any), set(any) are the compatible expansions for map, list, set.
-	case (i.Type.IsMapType() && cty.DynamicPseudoType.Equals(*i.Type.MapElementType())) ||
-		(i.Type.IsListType() && cty.DynamicPseudoType.Equals(*i.Type.ListElementType())) ||
-		(i.Type.IsSetType() && cty.DynamicPseudoType.Equals(*i.Type.SetElementType())):
-		// When the property type is very loose,
-		// only perform conversion checks on its value.
-		var v ctyjson.SimpleJSONValue
-		if err := json.Unmarshal(i.Value, &v); err != nil {
-			return i.Type, cty.NilVal, err
-		}
-
-		return i.Type, v.Value, nil
 	case i.Type == cty.NilType || i.Type == cty.DynamicPseudoType:
 		// When the property type is not defined or lost,
 		// guess the property type from its value.
@@ -448,6 +434,15 @@ func (i Property) Cty() (cty.Type, cty.Value, error) {
 		}
 
 		return v.Type(), v.Value, nil
+	case i.Type.HasDynamicTypes():
+		// When the property type is a compound type whose descendent elements are DynamicPseudoType.
+		// Only perform conversion checks on its value.
+		var v ctyjson.SimpleJSONValue
+		if err := json.Unmarshal(i.Value, &v); err != nil {
+			return i.Type, cty.NilVal, err
+		}
+
+		return i.Type, v.Value, nil
 	}
 
 	// Perform type conversion with the property value.
