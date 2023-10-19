@@ -38,6 +38,8 @@ type Environment struct {
 	UpdateTime *time.Time `json:"update_time,omitempty"`
 	// ID of the project to belong.
 	ProjectID object.ID `json:"project_id,omitempty"`
+	// Type of the environment.
+	Type string `json:"type,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EnvironmentQuery when eager-loading is set.
 	Edges        EnvironmentEdges `json:"edges,omitempty"`
@@ -130,7 +132,7 @@ func (*Environment) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case environment.FieldID, environment.FieldProjectID:
 			values[i] = new(object.ID)
-		case environment.FieldName, environment.FieldDescription:
+		case environment.FieldName, environment.FieldDescription, environment.FieldType:
 			values[i] = new(sql.NullString)
 		case environment.FieldCreateTime, environment.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -202,6 +204,12 @@ func (e *Environment) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field project_id", values[i])
 			} else if value != nil {
 				e.ProjectID = *value
+			}
+		case environment.FieldType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field type", values[i])
+			} else if value.Valid {
+				e.Type = value.String
 			}
 		default:
 			e.selectValues.Set(columns[i], values[i])
@@ -293,6 +301,9 @@ func (e *Environment) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("project_id=")
 	builder.WriteString(fmt.Sprintf("%v", e.ProjectID))
+	builder.WriteString(", ")
+	builder.WriteString("type=")
+	builder.WriteString(e.Type)
 	builder.WriteByte(')')
 	return builder.String()
 }

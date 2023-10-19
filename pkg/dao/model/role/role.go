@@ -31,6 +31,8 @@ const (
 	FieldDescription = "description"
 	// FieldPolicies holds the string denoting the policies field in the database.
 	FieldPolicies = "policies"
+	// FieldApplicableEnvironmentTypes holds the string denoting the applicable_environment_types field in the database.
+	FieldApplicableEnvironmentTypes = "applicable_environment_types"
 	// FieldSession holds the string denoting the session field in the database.
 	FieldSession = "session"
 	// FieldBuiltin holds the string denoting the builtin field in the database.
@@ -56,6 +58,7 @@ var Columns = []string{
 	FieldKind,
 	FieldDescription,
 	FieldPolicies,
+	FieldApplicableEnvironmentTypes,
 	FieldSession,
 	FieldBuiltin,
 }
@@ -87,6 +90,8 @@ var (
 	DefaultKind string
 	// DefaultPolicies holds the default value on creation for the "policies" field.
 	DefaultPolicies types.RolePolicies
+	// DefaultApplicableEnvironmentTypes holds the default value on creation for the "applicable_environment_types" field.
+	DefaultApplicableEnvironmentTypes []string
 	// DefaultSession holds the default value on creation for the "session" field.
 	DefaultSession bool
 	// DefaultBuiltin holds the default value on creation for the "builtin" field.

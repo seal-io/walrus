@@ -34,6 +34,8 @@ type Role struct {
 	Description string `json:"description,omitempty"`
 	// The policy list of the role.
 	Policies types.RolePolicies `json:"policies,omitempty"`
+	// The environment type list of the role to apply, only for system kind role.
+	ApplicableEnvironmentTypes []string `json:"applicable_environment_types,omitempty"`
 	// Indicate whether the role is session level, decide when creating.
 	Session bool `json:"session,omitempty"`
 	// Indicate whether the role is builtin, decide when creating.
@@ -67,7 +69,7 @@ func (*Role) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case role.FieldPolicies:
+		case role.FieldPolicies, role.FieldApplicableEnvironmentTypes:
 			values[i] = new([]byte)
 		case role.FieldSession, role.FieldBuiltin:
 			values[i] = new(sql.NullBool)
@@ -128,6 +130,14 @@ func (r *Role) assignValues(columns []string, values []any) error {
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &r.Policies); err != nil {
 					return fmt.Errorf("unmarshal field policies: %w", err)
+				}
+			}
+		case role.FieldApplicableEnvironmentTypes:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field applicable_environment_types", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &r.ApplicableEnvironmentTypes); err != nil {
+					return fmt.Errorf("unmarshal field applicable_environment_types: %w", err)
 				}
 			}
 		case role.FieldSession:
@@ -201,6 +211,9 @@ func (r *Role) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("policies=")
 	builder.WriteString(fmt.Sprintf("%v", r.Policies))
+	builder.WriteString(", ")
+	builder.WriteString("applicable_environment_types=")
+	builder.WriteString(fmt.Sprintf("%v", r.ApplicableEnvironmentTypes))
 	builder.WriteString(", ")
 	builder.WriteString("session=")
 	builder.WriteString(fmt.Sprintf("%v", r.Session))

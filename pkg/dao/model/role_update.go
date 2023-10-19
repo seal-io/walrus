@@ -80,6 +80,24 @@ func (ru *RoleUpdate) AppendPolicies(tp types.RolePolicies) *RoleUpdate {
 	return ru
 }
 
+// SetApplicableEnvironmentTypes sets the "applicable_environment_types" field.
+func (ru *RoleUpdate) SetApplicableEnvironmentTypes(s []string) *RoleUpdate {
+	ru.mutation.SetApplicableEnvironmentTypes(s)
+	return ru
+}
+
+// AppendApplicableEnvironmentTypes appends s to the "applicable_environment_types" field.
+func (ru *RoleUpdate) AppendApplicableEnvironmentTypes(s []string) *RoleUpdate {
+	ru.mutation.AppendApplicableEnvironmentTypes(s)
+	return ru
+}
+
+// ClearApplicableEnvironmentTypes clears the value of the "applicable_environment_types" field.
+func (ru *RoleUpdate) ClearApplicableEnvironmentTypes() *RoleUpdate {
+	ru.mutation.ClearApplicableEnvironmentTypes()
+	return ru
+}
+
 // AddSubjectIDs adds the "subjects" edge to the SubjectRoleRelationship entity by IDs.
 func (ru *RoleUpdate) AddSubjectIDs(ids ...object.ID) *RoleUpdate {
 	ru.mutation.AddSubjectIDs(ids...)
@@ -202,6 +220,11 @@ func (ru *RoleUpdate) Set(obj *Role) *RoleUpdate {
 		ru.ClearDescription()
 	}
 	ru.SetPolicies(obj.Policies)
+	if !reflect.ValueOf(obj.ApplicableEnvironmentTypes).IsZero() {
+		ru.SetApplicableEnvironmentTypes(obj.ApplicableEnvironmentTypes)
+	} else {
+		ru.ClearApplicableEnvironmentTypes()
+	}
 
 	// With Default.
 	if obj.UpdateTime != nil {
@@ -245,6 +268,17 @@ func (ru *RoleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, role.FieldPolicies, value)
 		})
+	}
+	if value, ok := ru.mutation.ApplicableEnvironmentTypes(); ok {
+		_spec.SetField(role.FieldApplicableEnvironmentTypes, field.TypeJSON, value)
+	}
+	if value, ok := ru.mutation.AppendedApplicableEnvironmentTypes(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, role.FieldApplicableEnvironmentTypes, value)
+		})
+	}
+	if ru.mutation.ApplicableEnvironmentTypesCleared() {
+		_spec.ClearField(role.FieldApplicableEnvironmentTypes, field.TypeJSON)
 	}
 	if ru.mutation.SubjectsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -354,6 +388,24 @@ func (ruo *RoleUpdateOne) SetPolicies(tp types.RolePolicies) *RoleUpdateOne {
 // AppendPolicies appends tp to the "policies" field.
 func (ruo *RoleUpdateOne) AppendPolicies(tp types.RolePolicies) *RoleUpdateOne {
 	ruo.mutation.AppendPolicies(tp)
+	return ruo
+}
+
+// SetApplicableEnvironmentTypes sets the "applicable_environment_types" field.
+func (ruo *RoleUpdateOne) SetApplicableEnvironmentTypes(s []string) *RoleUpdateOne {
+	ruo.mutation.SetApplicableEnvironmentTypes(s)
+	return ruo
+}
+
+// AppendApplicableEnvironmentTypes appends s to the "applicable_environment_types" field.
+func (ruo *RoleUpdateOne) AppendApplicableEnvironmentTypes(s []string) *RoleUpdateOne {
+	ruo.mutation.AppendApplicableEnvironmentTypes(s)
+	return ruo
+}
+
+// ClearApplicableEnvironmentTypes clears the value of the "applicable_environment_types" field.
+func (ruo *RoleUpdateOne) ClearApplicableEnvironmentTypes() *RoleUpdateOne {
+	ruo.mutation.ClearApplicableEnvironmentTypes()
 	return ruo
 }
 
@@ -506,6 +558,13 @@ func (ruo *RoleUpdateOne) Set(obj *Role) *RoleUpdateOne {
 			if !reflect.DeepEqual(db.Policies, obj.Policies) {
 				ruo.SetPolicies(obj.Policies)
 			}
+			if !reflect.ValueOf(obj.ApplicableEnvironmentTypes).IsZero() {
+				if !reflect.DeepEqual(db.ApplicableEnvironmentTypes, obj.ApplicableEnvironmentTypes) {
+					ruo.SetApplicableEnvironmentTypes(obj.ApplicableEnvironmentTypes)
+				}
+			} else {
+				ruo.ClearApplicableEnvironmentTypes()
+			}
 
 			// With Default.
 			if (obj.UpdateTime != nil) && (!reflect.DeepEqual(db.UpdateTime, obj.UpdateTime)) {
@@ -561,6 +620,9 @@ func (ruo *RoleUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context.Con
 		}
 		if _, set := ruo.mutation.Field(role.FieldPolicies); set {
 			obj.Policies = x.Policies
+		}
+		if _, set := ruo.mutation.Field(role.FieldApplicableEnvironmentTypes); set {
+			obj.ApplicableEnvironmentTypes = x.ApplicableEnvironmentTypes
 		}
 		obj.Edges = x.Edges
 	}
@@ -645,6 +707,17 @@ func (ruo *RoleUpdateOne) sqlSave(ctx context.Context) (_node *Role, err error) 
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, role.FieldPolicies, value)
 		})
+	}
+	if value, ok := ruo.mutation.ApplicableEnvironmentTypes(); ok {
+		_spec.SetField(role.FieldApplicableEnvironmentTypes, field.TypeJSON, value)
+	}
+	if value, ok := ruo.mutation.AppendedApplicableEnvironmentTypes(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, role.FieldApplicableEnvironmentTypes, value)
+		})
+	}
+	if ruo.mutation.ApplicableEnvironmentTypesCleared() {
+		_spec.ClearField(role.FieldApplicableEnvironmentTypes, field.TypeJSON)
 	}
 	if ruo.mutation.SubjectsCleared() {
 		edge := &sqlgraph.EdgeSpec{

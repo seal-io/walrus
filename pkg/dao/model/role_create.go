@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"entgo.io/ent/dialect"
@@ -91,6 +92,12 @@ func (rc *RoleCreate) SetNillableDescription(s *string) *RoleCreate {
 // SetPolicies sets the "policies" field.
 func (rc *RoleCreate) SetPolicies(tp types.RolePolicies) *RoleCreate {
 	rc.mutation.SetPolicies(tp)
+	return rc
+}
+
+// SetApplicableEnvironmentTypes sets the "applicable_environment_types" field.
+func (rc *RoleCreate) SetApplicableEnvironmentTypes(s []string) *RoleCreate {
+	rc.mutation.SetApplicableEnvironmentTypes(s)
 	return rc
 }
 
@@ -202,6 +209,10 @@ func (rc *RoleCreate) defaults() error {
 		v := role.DefaultPolicies
 		rc.mutation.SetPolicies(v)
 	}
+	if _, ok := rc.mutation.ApplicableEnvironmentTypes(); !ok {
+		v := role.DefaultApplicableEnvironmentTypes
+		rc.mutation.SetApplicableEnvironmentTypes(v)
+	}
 	if _, ok := rc.mutation.Session(); !ok {
 		v := role.DefaultSession
 		rc.mutation.SetSession(v)
@@ -295,6 +306,10 @@ func (rc *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 		_spec.SetField(role.FieldPolicies, field.TypeJSON, value)
 		_node.Policies = value
 	}
+	if value, ok := rc.mutation.ApplicableEnvironmentTypes(); ok {
+		_spec.SetField(role.FieldApplicableEnvironmentTypes, field.TypeJSON, value)
+		_node.ApplicableEnvironmentTypes = value
+	}
 	if value, ok := rc.mutation.Session(); ok {
 		_spec.SetField(role.FieldSession, field.TypeBool, value)
 		_node.Session = value
@@ -358,6 +373,9 @@ func (rc *RoleCreate) Set(obj *Role) *RoleCreate {
 	}
 	if obj.Description != "" {
 		rc.SetDescription(obj.Description)
+	}
+	if !reflect.ValueOf(obj.ApplicableEnvironmentTypes).IsZero() {
+		rc.SetApplicableEnvironmentTypes(obj.ApplicableEnvironmentTypes)
 	}
 
 	// Record the given object.
@@ -668,6 +686,24 @@ func (u *RoleUpsert) UpdatePolicies() *RoleUpsert {
 	return u
 }
 
+// SetApplicableEnvironmentTypes sets the "applicable_environment_types" field.
+func (u *RoleUpsert) SetApplicableEnvironmentTypes(v []string) *RoleUpsert {
+	u.Set(role.FieldApplicableEnvironmentTypes, v)
+	return u
+}
+
+// UpdateApplicableEnvironmentTypes sets the "applicable_environment_types" field to the value that was provided on create.
+func (u *RoleUpsert) UpdateApplicableEnvironmentTypes() *RoleUpsert {
+	u.SetExcluded(role.FieldApplicableEnvironmentTypes)
+	return u
+}
+
+// ClearApplicableEnvironmentTypes clears the value of the "applicable_environment_types" field.
+func (u *RoleUpsert) ClearApplicableEnvironmentTypes() *RoleUpsert {
+	u.SetNull(role.FieldApplicableEnvironmentTypes)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -774,6 +810,27 @@ func (u *RoleUpsertOne) SetPolicies(v types.RolePolicies) *RoleUpsertOne {
 func (u *RoleUpsertOne) UpdatePolicies() *RoleUpsertOne {
 	return u.Update(func(s *RoleUpsert) {
 		s.UpdatePolicies()
+	})
+}
+
+// SetApplicableEnvironmentTypes sets the "applicable_environment_types" field.
+func (u *RoleUpsertOne) SetApplicableEnvironmentTypes(v []string) *RoleUpsertOne {
+	return u.Update(func(s *RoleUpsert) {
+		s.SetApplicableEnvironmentTypes(v)
+	})
+}
+
+// UpdateApplicableEnvironmentTypes sets the "applicable_environment_types" field to the value that was provided on create.
+func (u *RoleUpsertOne) UpdateApplicableEnvironmentTypes() *RoleUpsertOne {
+	return u.Update(func(s *RoleUpsert) {
+		s.UpdateApplicableEnvironmentTypes()
+	})
+}
+
+// ClearApplicableEnvironmentTypes clears the value of the "applicable_environment_types" field.
+func (u *RoleUpsertOne) ClearApplicableEnvironmentTypes() *RoleUpsertOne {
+	return u.Update(func(s *RoleUpsert) {
+		s.ClearApplicableEnvironmentTypes()
 	})
 }
 
@@ -1048,6 +1105,27 @@ func (u *RoleUpsertBulk) SetPolicies(v types.RolePolicies) *RoleUpsertBulk {
 func (u *RoleUpsertBulk) UpdatePolicies() *RoleUpsertBulk {
 	return u.Update(func(s *RoleUpsert) {
 		s.UpdatePolicies()
+	})
+}
+
+// SetApplicableEnvironmentTypes sets the "applicable_environment_types" field.
+func (u *RoleUpsertBulk) SetApplicableEnvironmentTypes(v []string) *RoleUpsertBulk {
+	return u.Update(func(s *RoleUpsert) {
+		s.SetApplicableEnvironmentTypes(v)
+	})
+}
+
+// UpdateApplicableEnvironmentTypes sets the "applicable_environment_types" field to the value that was provided on create.
+func (u *RoleUpsertBulk) UpdateApplicableEnvironmentTypes() *RoleUpsertBulk {
+	return u.Update(func(s *RoleUpsert) {
+		s.UpdateApplicableEnvironmentTypes()
+	})
+}
+
+// ClearApplicableEnvironmentTypes clears the value of the "applicable_environment_types" field.
+func (u *RoleUpsertBulk) ClearApplicableEnvironmentTypes() *RoleUpsertBulk {
+	return u.Update(func(s *RoleUpsert) {
+		s.ClearApplicableEnvironmentTypes()
 	})
 }
 

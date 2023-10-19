@@ -25,6 +25,8 @@ type EnvironmentCreateInput struct {
 	// Project indicates to create Environment entity MUST under the Project route.
 	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
 
+	// Type of the environment.
+	Type string `path:"-" query:"-" json:"type"`
 	// Name holds the value of the "name" field.
 	Name string `path:"-" query:"-" json:"name"`
 	// Description holds the value of the "description" field.
@@ -48,6 +50,7 @@ func (eci *EnvironmentCreateInput) Model() *Environment {
 	}
 
 	_e := &Environment{
+		Type:        eci.Type,
 		Name:        eci.Name,
 		Description: eci.Description,
 		Labels:      eci.Labels,
@@ -166,6 +169,8 @@ func (eci *EnvironmentCreateInput) ValidateWith(ctx context.Context, cs ClientSe
 
 // EnvironmentCreateInputs holds the creation input item of the Environment entities.
 type EnvironmentCreateInputsItem struct {
+	// Type of the environment.
+	Type string `path:"-" query:"-" json:"type"`
 	// Name holds the value of the "name" field.
 	Name string `path:"-" query:"-" json:"name"`
 	// Description holds the value of the "description" field.
@@ -259,6 +264,7 @@ func (eci *EnvironmentCreateInputs) Model() []*Environment {
 
 	for i := range eci.Items {
 		_e := &Environment{
+			Type:        eci.Items[i].Type,
 			Name:        eci.Items[i].Name,
 			Description: eci.Items[i].Description,
 			Labels:      eci.Items[i].Labels,
@@ -947,6 +953,7 @@ type EnvironmentOutput struct {
 	Labels      map[string]string `json:"labels,omitempty"`
 	CreateTime  *time.Time        `json:"createTime,omitempty"`
 	UpdateTime  *time.Time        `json:"updateTime,omitempty"`
+	Type        string            `json:"type,omitempty"`
 
 	Project    *ProjectOutput                            `json:"project,omitempty"`
 	Connectors []*EnvironmentConnectorRelationshipOutput `json:"connectors,omitempty"`
@@ -975,6 +982,7 @@ func ExposeEnvironment(_e *Environment) *EnvironmentOutput {
 		Labels:      _e.Labels,
 		CreateTime:  _e.CreateTime,
 		UpdateTime:  _e.UpdateTime,
+		Type:        _e.Type,
 	}
 
 	if _e.Edges.Project != nil {

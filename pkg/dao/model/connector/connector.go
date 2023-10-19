@@ -41,6 +41,8 @@ const (
 	FieldCategory = "category"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
+	// FieldApplicableEnvironmentType holds the string denoting the applicable_environment_type field in the database.
+	FieldApplicableEnvironmentType = "applicable_environment_type"
 	// FieldConfigVersion holds the string denoting the config_version field in the database.
 	FieldConfigVersion = "config_version"
 	// FieldConfigData holds the string denoting the config_data field in the database.
@@ -102,6 +104,7 @@ var Columns = []string{
 	FieldProjectID,
 	FieldCategory,
 	FieldType,
+	FieldApplicableEnvironmentType,
 	FieldConfigVersion,
 	FieldConfigData,
 	FieldEnableFinOps,
@@ -142,6 +145,8 @@ var (
 	CategoryValidator func(string) error
 	// TypeValidator is a validator for the "type" field. It is called by the builders before save.
 	TypeValidator func(string) error
+	// ApplicableEnvironmentTypeValidator is a validator for the "applicable_environment_type" field. It is called by the builders before save.
+	ApplicableEnvironmentTypeValidator func(string) error
 	// ConfigVersionValidator is a validator for the "config_version" field. It is called by the builders before save.
 	ConfigVersionValidator func(string) error
 	// DefaultConfigData holds the default value on creation for the "config_data" field.
@@ -189,6 +194,11 @@ func ByCategory(opts ...sql.OrderTermOption) OrderOption {
 // ByType orders the results by the type field.
 func ByType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldType, opts...).ToFunc()
+}
+
+// ByApplicableEnvironmentType orders the results by the applicable_environment_type field.
+func ByApplicableEnvironmentType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldApplicableEnvironmentType, opts...).ToFunc()
 }
 
 // ByConfigVersion orders the results by the config_version field.
