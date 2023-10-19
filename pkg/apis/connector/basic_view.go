@@ -41,6 +41,10 @@ func (r *CreateRequest) Validate() error {
 		return errors.New("invalid config data: empty")
 	}
 
+	if !types.IsEnvironmentType(r.ApplicableEnvironmentType) {
+		return fmt.Errorf("invalid applicable environment type: %s", r.ApplicableEnvironmentType)
+	}
+
 	if err := validateConnector(r.Context, r.Model()); err != nil {
 		return err
 	}

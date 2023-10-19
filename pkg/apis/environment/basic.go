@@ -1,6 +1,9 @@
 package environment
 
 import (
+	"net/http"
+
+	"github.com/seal-io/walrus/pkg/auths/session"
 	envbus "github.com/seal-io/walrus/pkg/bus/environment"
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -8,6 +11,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
 	"github.com/seal-io/walrus/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
 )
 
@@ -146,6 +150,25 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 	ids := req.IDs()
+
+	// Validate whether the subject has permission to delete environments.
+	sj := session.MustGetSubject(req.Context)
+	if !sj.IsAdmin() {
+		for i := range ids {
+			ress := []session.ActionResource{
+				{Name: "projects", Refer: req.Project.ID.String()},
+				{Name: "environments", Refer: ids[i].String()},
+			}
+
+			if sj.Enforce(http.MethodDelete, ress, "") {
+				continue
+			}
+
+			return errorx.HttpErrorf(http.StatusForbidden,
+				"cannot delete environment %s that type not in: %v",
+				ids[i], sj.ApplicableEnvironmentTypes)
+		}
+	}
 
 	return h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
 		entities, err := dao.GetEnvironmentsByIDs(req.Context, tx, ids...)
