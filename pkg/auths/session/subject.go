@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slices"
@@ -19,21 +20,24 @@ type Role struct {
 	Policies types.RolePolicies `json:"policies"`
 }
 
-func (r Role) enforce(act, res, resRefer, path string) bool {
-	for i := range r.Policies {
-		if enforce(&r.Policies[i], act, res, resRefer, path) {
-			return true
-		}
-	}
+type Resource struct {
+	// ID indicates the id of the resource.
+	ID object.ID `json:"id"`
+	// Name indicates the name of the resource.
+	Name string `json:"name"`
+}
 
-	return false
+func (r Resource) Match(refer string) bool {
+	return string(r.ID) == refer || r.Name == refer
 }
 
 type Project struct {
-	// ID indicates the id of the project.
-	ID object.ID `json:"id"`
-	// Name indicates the name of the project.
-	Name string `json:"name"`
+	Resource `json:",inline"`
+
+	// ReadOnlyEnvironments indicates the read-only environment list of the project.
+	ReadOnlyEnvironments []Resource `json:"readOnlyEnvironments"`
+	// ReadOnlyConnectors indicates the read-only connector list of the project.
+	ReadOnlyConnectors []Resource `json:"readOnlyConnectors"`
 }
 
 type ProjectRole struct {
@@ -41,24 +45,6 @@ type ProjectRole struct {
 	Project Project `json:"project"`
 	// Roles indicates the roles.
 	Roles []Role `json:"roles"`
-}
-
-func (r ProjectRole) enforce(projRefer, act, res, resRefer, path string) bool {
-	if r.Project.ID.String() != projRefer && r.Project.Name != projRefer {
-		return false
-	}
-
-	for i := range r.Roles {
-		if r.Roles[i].ID == types.ProjectRoleOwner {
-			return true
-		}
-
-		if r.Roles[i].enforce(act, res, resRefer, path) {
-			return true
-		}
-	}
-
-	return false
 }
 
 type Subject struct {
@@ -76,6 +62,8 @@ type Subject struct {
 	Roles []Role `json:"roles"`
 	// ProjectRoles indicates the project roles of the subject.
 	ProjectRoles []ProjectRole `json:"projectRoles"`
+	// ApplicableEnvironmentTypes indicates which environment type are the subject to apply.
+	ApplicableEnvironmentTypes []string `json:"applicableEnvironmentTypes"`
 }
 
 // IsAnonymous returns true if this subject has not been authenticated.
@@ -94,31 +82,95 @@ func (s Subject) IsAdmin() bool {
 	return false
 }
 
+// IsApplicableEnvironmentType returns true if the given environment type is applicable.
+func (s Subject) IsApplicableEnvironmentType(et string) bool {
+	return slices.Contains(s.ApplicableEnvironmentTypes, et)
+}
+
+type ActionResource struct {
+	// Name indicates the name of resource.
+	Name string
+	// Refer indicates the refer of resource, either ID or name.
+	Refer string
+}
+
 // Enforce returns true if the given conditions if allowing.
-func (s Subject) Enforce(projectRefer, action, resource, resourceRefer, path string) bool {
-	for i := range s.Roles {
-		if s.Roles[i].ID == types.SystemRoleAdmin {
-			return true
-		}
+func (s Subject) Enforce(action string, resources []ActionResource, path string) bool {
+	const allow, reject = true, false
+
+	var (
+		checkProjectRoles           bool
+		targetResource, targetRefer string
+	)
+
+	if sz := len(resources); sz != 0 {
+		checkProjectRoles = resources[0].Name == "projects" && resources[0].Refer != ""
+		targetResource, targetRefer = resources[sz-1].Name, resources[sz-1].Refer
 	}
 
-	if projectRefer != "" {
-		for i := range s.ProjectRoles {
-			if s.ProjectRoles[i].enforce(projectRefer, action, resource, resourceRefer, path) {
-				return true
+	for i := range s.Roles {
+		r := &s.Roles[i]
+
+		if r.ID == types.SystemRoleAdmin {
+			return allow
+		}
+
+		if checkProjectRoles {
+			continue
+		}
+
+		if !enforces(r.Policies, action, targetResource, targetRefer, path) {
+			continue
+		}
+
+		return allow
+	}
+
+	if !checkProjectRoles {
+		return reject // Reject if failed in the validation of all system roles.
+	}
+
+	projectRefer := resources[0].Refer
+	subResources := resources[1:]
+
+	for i := range s.ProjectRoles {
+		pr := &s.ProjectRoles[i]
+		p := &pr.Project
+
+		if !p.Match(projectRefer) {
+			continue
+		}
+
+		for j := range pr.Roles {
+			if pr.Roles[j].ID != types.ProjectRoleOwner &&
+				!enforces(pr.Roles[j].Policies, action, targetResource, targetRefer, path) {
+				continue
 			}
+
+			if action != http.MethodGet && len(subResources) > 0 {
+				var rejectList []Resource
+
+				switch subResources[0].Name {
+				case "environments":
+					rejectList = p.ReadOnlyEnvironments
+				case "connectors":
+					rejectList = p.ReadOnlyConnectors
+				}
+
+				for k := range rejectList {
+					if rejectList[k].Match(subResources[0].Refer) {
+						return reject // Reject if the subresource is readonly.
+					}
+				}
+			}
+
+			return allow
 		}
 
-		return false
+		break
 	}
 
-	for i := range s.Roles {
-		if s.Roles[i].enforce(action, resource, resourceRefer, path) {
-			return true
-		}
-	}
-
-	return false
+	return reject // Reject if failed in the validation of all project roles.
 }
 
 const subjectContextKey = "_subject_"
@@ -181,6 +233,16 @@ func getContext(ctx context.Context) (*gin.Context, error) {
 	}
 
 	return nil, errors.New("not gin context")
+}
+
+func enforces(ps types.RolePolicies, act, res, resRefer, path string) bool {
+	for i := range ps {
+		if enforce(&ps[i], act, res, resRefer, path) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func enforce(p *types.RolePolicy, act, res, resRefer, path string) bool {

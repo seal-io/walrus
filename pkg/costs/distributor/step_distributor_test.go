@@ -45,7 +45,7 @@ func TestStepDistribute(t *testing.T) {
 	)
 
 	conns, err := testData(ctx, client, startTime, endTime)
-	assert.Nil(t, err, "error create cost test data: %w", err)
+	assert.Nil(t, err, "error create cost test data: %v", err)
 
 	filterFirstConn := types.CostFilters{
 		{

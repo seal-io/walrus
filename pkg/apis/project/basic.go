@@ -122,13 +122,21 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 	ids := req.IDs()
 
-	// Validate whether the subject has permission to delete the projects.
+	// Validate whether the subject has permission to delete projects.
 	sj := session.MustGetSubject(req.Context)
 	if !sj.IsAdmin() {
 		for i := range ids {
-			if !sj.Enforce(string(ids[i]), http.MethodDelete, "projects", string(ids[i]), req.Context.FullPath()) {
-				return errorx.NewHttpError(http.StatusForbidden, "")
+			ress := []session.ActionResource{
+				{Name: "projects", Refer: ids[i].String()},
 			}
+
+			if sj.Enforce(http.MethodDelete, ress, "") {
+				continue
+			}
+
+			return errorx.HttpErrorf(http.StatusForbidden,
+				"cannot delete project %s that has not permission",
+				ids[i])
 		}
 	}
 

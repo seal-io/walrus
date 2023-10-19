@@ -58,15 +58,16 @@ func (a Account) Filter(c *gin.Context) {
 
 // Authorize implements the runtime.RouteAuthorizer interface.
 func (a Account) Authorize(c *gin.Context, p runtime.RouteProfile) int {
-	sj, _ := session.GetSubject(c)
-
-	var resource, resourceRefer string
-	if len(p.Resources) != 0 {
-		resource = p.Resources[len(p.Resources)-1]
-		resourceRefer = c.Param(p.ResourcePathRefers[len(p.ResourcePathRefers)-1])
+	ress := make([]session.ActionResource, len(p.Resources))
+	for i := range p.Resources {
+		ress[i] = session.ActionResource{
+			Name:  p.Resources[i],
+			Refer: c.Param(p.ResourcePathRefers[i]),
+		}
 	}
 
-	if sj.Enforce(c.Param("project"), p.Method, resource, resourceRefer, c.FullPath()) {
+	sj, _ := session.GetSubject(c)
+	if sj.Enforce(p.Method, ress, c.FullPath()) {
 		return http.StatusOK
 	}
 

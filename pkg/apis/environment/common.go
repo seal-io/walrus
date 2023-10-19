@@ -4,20 +4,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
-	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
-	"github.com/seal-io/walrus/utils/validation"
-
-	"github.com/seal-io/walrus/pkg/dao/model/connector"
-	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/seal-io/walrus/pkg/auths/session"
 	envbus "github.com/seal-io/walrus/pkg/bus/environment"
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/connector"
+	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 	pkgservice "github.com/seal-io/walrus/pkg/service"
 	"github.com/seal-io/walrus/utils/errorx"
+	"github.com/seal-io/walrus/utils/validation"
 )
 
 func createEnvironment(
@@ -25,6 +26,13 @@ func createEnvironment(
 	mc model.ClientSet,
 	entity *model.Environment,
 ) (*model.EnvironmentOutput, error) {
+	// Validate the creating environment has the same use with subject.
+	sj := session.MustGetSubject(ctx)
+	if !sj.IsApplicableEnvironmentType(entity.Type) {
+		return nil, errorx.HttpErrorf(http.StatusForbidden,
+			"cannot create an environment that type not in: %s", sj.ApplicableEnvironmentTypes)
+	}
+
 	err := mc.WithTx(ctx, func(tx *model.Tx) (err error) {
 		entity, err = tx.Environments().Create().
 			Set(entity).
@@ -72,6 +80,10 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 
 	if err := validation.IsDNSLabel(r.Name); err != nil {
 		return fmt.Errorf("invalid name: %w", err)
+	}
+
+	if !types.IsEnvironmentType(r.Type) {
+		return fmt.Errorf("invalid type: %s", r.Type)
 	}
 
 	// Verify connections.
