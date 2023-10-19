@@ -157,7 +157,7 @@ func GetGitRepoVersions(r *git.Repository) ([]*version.Version, error) {
 }
 
 // CloneGitRepo clones a git repository to a specific directory.
-func CloneGitRepo(ctx context.Context, link, dir string) (*git.Repository, error) {
+func CloneGitRepo(ctx context.Context, link, dir string, skipTLSVerify bool) (*git.Repository, error) {
 	logger := log.WithName("template")
 
 	src, err := GetGitSource(link)
@@ -165,8 +165,13 @@ func CloneGitRepo(ctx context.Context, link, dir string) (*git.Repository, error
 		return nil, err
 	}
 
+	options := []getter.ClientOption{getter.WithContext(ctx)}
+	if skipTLSVerify {
+		options = append(options, getter.WithInsecure())
+	}
+
 	// Clone git repository.
-	err = getter.Get(dir, src, getter.WithContext(ctx))
+	err = getter.Get(dir, src, options...)
 	if err != nil {
 		logger.Errorf("failed to get %s: %v", link, err)
 

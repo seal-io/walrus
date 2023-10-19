@@ -17,6 +17,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/settings"
 	"github.com/seal-io/walrus/pkg/vcs"
 	"github.com/seal-io/walrus/pkg/vcs/driver/gitlab"
 	"github.com/seal-io/walrus/utils/log"
@@ -111,7 +112,7 @@ func syncTemplateFromRef(
 	defer os.RemoveAll(tempDir)
 
 	// Clone git repository.
-	r, err := vcs.CloneGitRepo(ctx, repo.Link, tempDir)
+	r, err := vcs.CloneGitRepo(ctx, repo.Link, tempDir, settings.SkipRemoteTLSVerify.ShouldValueBool(ctx, mc))
 	if err != nil {
 		return err
 	}
@@ -224,7 +225,7 @@ func SyncTemplateFromGitRepo(
 	}
 
 	// Clone git repository.
-	r, err := vcs.CloneGitRepo(ctx, u.String(), tempDir)
+	r, err := vcs.CloneGitRepo(ctx, u.String(), tempDir, settings.SkipRemoteTLSVerify.ShouldValueBool(ctx, mc))
 	if err != nil {
 		return err
 	}

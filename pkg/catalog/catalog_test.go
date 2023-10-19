@@ -15,7 +15,7 @@ func TestGetRepos(t *testing.T) {
 
 	ctx := context.Background()
 	for _, c := range cases {
-		repos, err := getRepos(ctx, c, version.GetUserAgent())
+		repos, err := getRepos(ctx, c, version.GetUserAgent(), true)
 		if err != nil {
 			t.Fatal(err)
 		}
