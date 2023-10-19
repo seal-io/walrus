@@ -40,6 +40,10 @@ func (Role) Fields() []ent.Field {
 		field.JSON("policies", types.RolePolicies{}).
 			Comment("The policy list of the role.").
 			Default(types.DefaultRolePolicies()),
+		field.Strings("applicable_environment_types").
+			Comment("The environment type list of the role to apply, only for system kind role.").
+			Default([]string{}).
+			Optional(),
 		field.Bool("session").
 			Comment("Indicate whether the role is session level, decide when creating.").
 			Default(false).

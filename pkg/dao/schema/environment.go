@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
+	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/walrus/pkg/dao/entx"
@@ -33,6 +34,10 @@ func (Environment) Fields() []ent.Field {
 	return []ent.Field{
 		object.IDField("project_id").
 			Comment("ID of the project to belong.").
+			NotEmpty().
+			Immutable(),
+		field.String("type").
+			Comment("Type of the environment.").
 			NotEmpty().
 			Immutable(),
 	}

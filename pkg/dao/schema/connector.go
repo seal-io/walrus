@@ -53,8 +53,8 @@ func (Connector) Fields() []ent.Field {
 			Optional(),
 		field.String("category").
 			Comment("Category of the connector.").
-			Immutable().
 			NotEmpty().
+			Immutable().
 			Annotations(
 				entx.Input()),
 		field.String("type").
@@ -63,6 +63,12 @@ func (Connector) Fields() []ent.Field {
 			Immutable().
 			Annotations(
 				entx.Input()),
+		field.String("applicable_environment_type").
+			Comment("Environment type of the connector to apply.").
+			NotEmpty().
+			Immutable().
+			Annotations(
+				entx.Input(entx.WithQuery())),
 		field.String("config_version").
 			Comment("Connector config version.").
 			NotEmpty(),
