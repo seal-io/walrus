@@ -320,6 +320,16 @@ func DescriptionContainsFold(v string) predicate.Role {
 	return predicate.Role(sql.FieldContainsFold(FieldDescription, v))
 }
 
+// ApplicableEnvironmentTypesIsNil applies the IsNil predicate on the "applicable_environment_types" field.
+func ApplicableEnvironmentTypesIsNil() predicate.Role {
+	return predicate.Role(sql.FieldIsNull(FieldApplicableEnvironmentTypes))
+}
+
+// ApplicableEnvironmentTypesNotNil applies the NotNil predicate on the "applicable_environment_types" field.
+func ApplicableEnvironmentTypesNotNil() predicate.Role {
+	return predicate.Role(sql.FieldNotNull(FieldApplicableEnvironmentTypes))
+}
+
 // SessionEQ applies the EQ predicate on the "session" field.
 func SessionEQ(v bool) predicate.Role {
 	return predicate.Role(sql.FieldEQ(FieldSession, v))

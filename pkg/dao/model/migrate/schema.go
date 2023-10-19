@@ -71,6 +71,7 @@ var (
 		{Name: "status", Type: field.TypeJSON, Nullable: true},
 		{Name: "category", Type: field.TypeString},
 		{Name: "type", Type: field.TypeString},
+		{Name: "applicable_environment_type", Type: field.TypeString},
 		{Name: "config_version", Type: field.TypeString},
 		{Name: "config_data", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
 		{Name: "enable_fin_ops", Type: field.TypeBool},
@@ -85,7 +86,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "connectors_projects_connectors",
-				Columns:    []*schema.Column{ConnectorsColumns[14]},
+				Columns:    []*schema.Column{ConnectorsColumns[15]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -94,7 +95,7 @@ var (
 			{
 				Name:    "connector_project_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{ConnectorsColumns[14], ConnectorsColumns[1]},
+				Columns: []*schema.Column{ConnectorsColumns[15], ConnectorsColumns[1]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "project_id IS NOT NULL",
 				},
@@ -185,6 +186,7 @@ var (
 		{Name: "annotations", Type: field.TypeJSON, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
+		{Name: "type", Type: field.TypeString},
 		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// EnvironmentsTable holds the schema information for the "environments" table.
@@ -195,7 +197,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "environments_projects_environments",
-				Columns:    []*schema.Column{EnvironmentsColumns[7]},
+				Columns:    []*schema.Column{EnvironmentsColumns[8]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
@@ -204,7 +206,7 @@ var (
 			{
 				Name:    "environment_project_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{EnvironmentsColumns[7], EnvironmentsColumns[1]},
+				Columns: []*schema.Column{EnvironmentsColumns[8], EnvironmentsColumns[1]},
 			},
 		},
 	}
@@ -305,6 +307,7 @@ var (
 		{Name: "kind", Type: field.TypeString, Default: "system"},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "policies", Type: field.TypeJSON},
+		{Name: "applicable_environment_types", Type: field.TypeJSON, Nullable: true},
 		{Name: "session", Type: field.TypeBool, Default: false},
 		{Name: "builtin", Type: field.TypeBool, Default: false},
 	}

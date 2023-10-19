@@ -138,6 +138,12 @@ func (cc *ConnectorCreate) SetType(s string) *ConnectorCreate {
 	return cc
 }
 
+// SetApplicableEnvironmentType sets the "applicable_environment_type" field.
+func (cc *ConnectorCreate) SetApplicableEnvironmentType(s string) *ConnectorCreate {
+	cc.mutation.SetApplicableEnvironmentType(s)
+	return cc
+}
+
 // SetConfigVersion sets the "config_version" field.
 func (cc *ConnectorCreate) SetConfigVersion(s string) *ConnectorCreate {
 	cc.mutation.SetConfigVersion(s)
@@ -316,6 +322,14 @@ func (cc *ConnectorCreate) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`model: validator failed for field "Connector.type": %w`, err)}
 		}
 	}
+	if _, ok := cc.mutation.ApplicableEnvironmentType(); !ok {
+		return &ValidationError{Name: "applicable_environment_type", err: errors.New(`model: missing required field "Connector.applicable_environment_type"`)}
+	}
+	if v, ok := cc.mutation.ApplicableEnvironmentType(); ok {
+		if err := connector.ApplicableEnvironmentTypeValidator(v); err != nil {
+			return &ValidationError{Name: "applicable_environment_type", err: fmt.Errorf(`model: validator failed for field "Connector.applicable_environment_type": %w`, err)}
+		}
+	}
 	if _, ok := cc.mutation.ConfigVersion(); !ok {
 		return &ValidationError{Name: "config_version", err: errors.New(`model: missing required field "Connector.config_version"`)}
 	}
@@ -399,6 +413,10 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.GetType(); ok {
 		_spec.SetField(connector.FieldType, field.TypeString, value)
 		_node.Type = value
+	}
+	if value, ok := cc.mutation.ApplicableEnvironmentType(); ok {
+		_spec.SetField(connector.FieldApplicableEnvironmentType, field.TypeString, value)
+		_node.ApplicableEnvironmentType = value
 	}
 	if value, ok := cc.mutation.ConfigVersion(); ok {
 		_spec.SetField(connector.FieldConfigVersion, field.TypeString, value)
@@ -511,6 +529,7 @@ func (cc *ConnectorCreate) Set(obj *Connector) *ConnectorCreate {
 	cc.SetName(obj.Name)
 	cc.SetCategory(obj.Category)
 	cc.SetType(obj.Type)
+	cc.SetApplicableEnvironmentType(obj.ApplicableEnvironmentType)
 	cc.SetConfigVersion(obj.ConfigVersion)
 	cc.SetEnableFinOps(obj.EnableFinOps)
 
@@ -610,6 +629,9 @@ func (cc *ConnectorCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Co
 		}
 		if _, set := cc.mutation.Field(connector.FieldType); set {
 			obj.Type = x.Type
+		}
+		if _, set := cc.mutation.Field(connector.FieldApplicableEnvironmentType); set {
+			obj.ApplicableEnvironmentType = x.ApplicableEnvironmentType
 		}
 		if _, set := cc.mutation.Field(connector.FieldConfigVersion); set {
 			obj.ConfigVersion = x.ConfigVersion
@@ -754,6 +776,9 @@ func (ccb *ConnectorCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx conte
 			}
 			if _, set := ccb.builders[i].mutation.Field(connector.FieldType); set {
 				objs[i].Type = x[i].Type
+			}
+			if _, set := ccb.builders[i].mutation.Field(connector.FieldApplicableEnvironmentType); set {
+				objs[i].ApplicableEnvironmentType = x[i].ApplicableEnvironmentType
 			}
 			if _, set := ccb.builders[i].mutation.Field(connector.FieldConfigVersion); set {
 				objs[i].ConfigVersion = x[i].ConfigVersion
@@ -1065,6 +1090,9 @@ func (u *ConnectorUpsertOne) UpdateNewValues() *ConnectorUpsertOne {
 		}
 		if _, exists := u.create.mutation.GetType(); exists {
 			s.SetIgnore(connector.FieldType)
+		}
+		if _, exists := u.create.mutation.ApplicableEnvironmentType(); exists {
+			s.SetIgnore(connector.FieldApplicableEnvironmentType)
 		}
 	}))
 	return u
@@ -1460,6 +1488,9 @@ func (u *ConnectorUpsertBulk) UpdateNewValues() *ConnectorUpsertBulk {
 			}
 			if _, exists := b.mutation.GetType(); exists {
 				s.SetIgnore(connector.FieldType)
+			}
+			if _, exists := b.mutation.ApplicableEnvironmentType(); exists {
+				s.SetIgnore(connector.FieldApplicableEnvironmentType)
 			}
 		}
 	}))

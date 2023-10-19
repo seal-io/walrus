@@ -1206,37 +1206,38 @@ func (m *CatalogMutation) ResetEdge(name string) error {
 // ConnectorMutation represents an operation that mutates the Connector nodes in the graph.
 type ConnectorMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *object.ID
-	name                   *string
-	description            *string
-	labels                 *map[string]string
-	annotations            *map[string]string
-	create_time            *time.Time
-	update_time            *time.Time
-	status                 *status.Status
-	category               *string
-	_type                  *string
-	config_version         *string
-	config_data            *crypto.Properties
-	enable_fin_ops         *bool
-	fin_ops_custom_pricing **types.FinOpsCustomPricing
-	clearedFields          map[string]struct{}
-	project                *object.ID
-	clearedproject         bool
-	environments           map[object.ID]struct{}
-	removedenvironments    map[object.ID]struct{}
-	clearedenvironments    bool
-	resources              map[object.ID]struct{}
-	removedresources       map[object.ID]struct{}
-	clearedresources       bool
-	cost_reports           map[int]struct{}
-	removedcost_reports    map[int]struct{}
-	clearedcost_reports    bool
-	done                   bool
-	oldValue               func(context.Context) (*Connector, error)
-	predicates             []predicate.Connector
+	op                          Op
+	typ                         string
+	id                          *object.ID
+	name                        *string
+	description                 *string
+	labels                      *map[string]string
+	annotations                 *map[string]string
+	create_time                 *time.Time
+	update_time                 *time.Time
+	status                      *status.Status
+	category                    *string
+	_type                       *string
+	applicable_environment_type *string
+	config_version              *string
+	config_data                 *crypto.Properties
+	enable_fin_ops              *bool
+	fin_ops_custom_pricing      **types.FinOpsCustomPricing
+	clearedFields               map[string]struct{}
+	project                     *object.ID
+	clearedproject              bool
+	environments                map[object.ID]struct{}
+	removedenvironments         map[object.ID]struct{}
+	clearedenvironments         bool
+	resources                   map[object.ID]struct{}
+	removedresources            map[object.ID]struct{}
+	clearedresources            bool
+	cost_reports                map[int]struct{}
+	removedcost_reports         map[int]struct{}
+	clearedcost_reports         bool
+	done                        bool
+	oldValue                    func(context.Context) (*Connector, error)
+	predicates                  []predicate.Connector
 }
 
 var _ ent.Mutation = (*ConnectorMutation)(nil)
@@ -1768,6 +1769,42 @@ func (m *ConnectorMutation) ResetType() {
 	m._type = nil
 }
 
+// SetApplicableEnvironmentType sets the "applicable_environment_type" field.
+func (m *ConnectorMutation) SetApplicableEnvironmentType(s string) {
+	m.applicable_environment_type = &s
+}
+
+// ApplicableEnvironmentType returns the value of the "applicable_environment_type" field in the mutation.
+func (m *ConnectorMutation) ApplicableEnvironmentType() (r string, exists bool) {
+	v := m.applicable_environment_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldApplicableEnvironmentType returns the old "applicable_environment_type" field's value of the Connector entity.
+// If the Connector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConnectorMutation) OldApplicableEnvironmentType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldApplicableEnvironmentType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldApplicableEnvironmentType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldApplicableEnvironmentType: %w", err)
+	}
+	return oldValue.ApplicableEnvironmentType, nil
+}
+
+// ResetApplicableEnvironmentType resets all changes to the "applicable_environment_type" field.
+func (m *ConnectorMutation) ResetApplicableEnvironmentType() {
+	m.applicable_environment_type = nil
+}
+
 // SetConfigVersion sets the "config_version" field.
 func (m *ConnectorMutation) SetConfigVersion(s string) {
 	m.config_version = &s
@@ -2160,7 +2197,7 @@ func (m *ConnectorMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ConnectorMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 15)
 	if m.name != nil {
 		fields = append(fields, connector.FieldName)
 	}
@@ -2190,6 +2227,9 @@ func (m *ConnectorMutation) Fields() []string {
 	}
 	if m._type != nil {
 		fields = append(fields, connector.FieldType)
+	}
+	if m.applicable_environment_type != nil {
+		fields = append(fields, connector.FieldApplicableEnvironmentType)
 	}
 	if m.config_version != nil {
 		fields = append(fields, connector.FieldConfigVersion)
@@ -2231,6 +2271,8 @@ func (m *ConnectorMutation) Field(name string) (ent.Value, bool) {
 		return m.Category()
 	case connector.FieldType:
 		return m.GetType()
+	case connector.FieldApplicableEnvironmentType:
+		return m.ApplicableEnvironmentType()
 	case connector.FieldConfigVersion:
 		return m.ConfigVersion()
 	case connector.FieldConfigData:
@@ -2268,6 +2310,8 @@ func (m *ConnectorMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldCategory(ctx)
 	case connector.FieldType:
 		return m.OldType(ctx)
+	case connector.FieldApplicableEnvironmentType:
+		return m.OldApplicableEnvironmentType(ctx)
 	case connector.FieldConfigVersion:
 		return m.OldConfigVersion(ctx)
 	case connector.FieldConfigData:
@@ -2354,6 +2398,13 @@ func (m *ConnectorMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetType(v)
+		return nil
+	case connector.FieldApplicableEnvironmentType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetApplicableEnvironmentType(v)
 		return nil
 	case connector.FieldConfigVersion:
 		v, ok := value.(string)
@@ -2506,6 +2557,9 @@ func (m *ConnectorMutation) ResetField(name string) error {
 		return nil
 	case connector.FieldType:
 		m.ResetType()
+		return nil
+	case connector.FieldApplicableEnvironmentType:
+		m.ResetApplicableEnvironmentType()
 		return nil
 	case connector.FieldConfigVersion:
 		m.ResetConfigVersion()
@@ -5743,6 +5797,7 @@ type EnvironmentMutation struct {
 	annotations              *map[string]string
 	create_time              *time.Time
 	update_time              *time.Time
+	_type                    *string
 	clearedFields            map[string]struct{}
 	project                  *object.ID
 	clearedproject           bool
@@ -6161,6 +6216,42 @@ func (m *EnvironmentMutation) ResetProjectID() {
 	m.project = nil
 }
 
+// SetType sets the "type" field.
+func (m *EnvironmentMutation) SetType(s string) {
+	m._type = &s
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *EnvironmentMutation) GetType() (r string, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the Environment entity.
+// If the Environment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnvironmentMutation) OldType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *EnvironmentMutation) ResetType() {
+	m._type = nil
+}
+
 // ClearProject clears the "project" edge to the Project entity.
 func (m *EnvironmentMutation) ClearProject() {
 	m.clearedproject = true
@@ -6491,7 +6582,7 @@ func (m *EnvironmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EnvironmentMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.name != nil {
 		fields = append(fields, environment.FieldName)
 	}
@@ -6512,6 +6603,9 @@ func (m *EnvironmentMutation) Fields() []string {
 	}
 	if m.project != nil {
 		fields = append(fields, environment.FieldProjectID)
+	}
+	if m._type != nil {
+		fields = append(fields, environment.FieldType)
 	}
 	return fields
 }
@@ -6535,6 +6629,8 @@ func (m *EnvironmentMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdateTime()
 	case environment.FieldProjectID:
 		return m.ProjectID()
+	case environment.FieldType:
+		return m.GetType()
 	}
 	return nil, false
 }
@@ -6558,6 +6654,8 @@ func (m *EnvironmentMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldUpdateTime(ctx)
 	case environment.FieldProjectID:
 		return m.OldProjectID(ctx)
+	case environment.FieldType:
+		return m.OldType(ctx)
 	}
 	return nil, fmt.Errorf("unknown Environment field %s", name)
 }
@@ -6615,6 +6713,13 @@ func (m *EnvironmentMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetProjectID(v)
+		return nil
+	case environment.FieldType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Environment field %s", name)
@@ -6706,6 +6811,9 @@ func (m *EnvironmentMutation) ResetField(name string) error {
 		return nil
 	case environment.FieldProjectID:
 		m.ResetProjectID()
+		return nil
+	case environment.FieldType:
+		m.ResetType()
 		return nil
 	}
 	return fmt.Errorf("unknown Environment field %s", name)
@@ -9771,24 +9879,26 @@ func (m *ProjectMutation) ResetEdge(name string) error {
 // RoleMutation represents an operation that mutates the Role nodes in the graph.
 type RoleMutation struct {
 	config
-	op              Op
-	typ             string
-	id              *string
-	create_time     *time.Time
-	update_time     *time.Time
-	kind            *string
-	description     *string
-	policies        *types.RolePolicies
-	appendpolicies  types.RolePolicies
-	session         *bool
-	builtin         *bool
-	clearedFields   map[string]struct{}
-	subjects        map[object.ID]struct{}
-	removedsubjects map[object.ID]struct{}
-	clearedsubjects bool
-	done            bool
-	oldValue        func(context.Context) (*Role, error)
-	predicates      []predicate.Role
+	op                                 Op
+	typ                                string
+	id                                 *string
+	create_time                        *time.Time
+	update_time                        *time.Time
+	kind                               *string
+	description                        *string
+	policies                           *types.RolePolicies
+	appendpolicies                     types.RolePolicies
+	applicable_environment_types       *[]string
+	appendapplicable_environment_types []string
+	session                            *bool
+	builtin                            *bool
+	clearedFields                      map[string]struct{}
+	subjects                           map[object.ID]struct{}
+	removedsubjects                    map[object.ID]struct{}
+	clearedsubjects                    bool
+	done                               bool
+	oldValue                           func(context.Context) (*Role, error)
+	predicates                         []predicate.Role
 }
 
 var _ ent.Mutation = (*RoleMutation)(nil)
@@ -10103,6 +10213,71 @@ func (m *RoleMutation) ResetPolicies() {
 	m.appendpolicies = nil
 }
 
+// SetApplicableEnvironmentTypes sets the "applicable_environment_types" field.
+func (m *RoleMutation) SetApplicableEnvironmentTypes(s []string) {
+	m.applicable_environment_types = &s
+	m.appendapplicable_environment_types = nil
+}
+
+// ApplicableEnvironmentTypes returns the value of the "applicable_environment_types" field in the mutation.
+func (m *RoleMutation) ApplicableEnvironmentTypes() (r []string, exists bool) {
+	v := m.applicable_environment_types
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldApplicableEnvironmentTypes returns the old "applicable_environment_types" field's value of the Role entity.
+// If the Role object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoleMutation) OldApplicableEnvironmentTypes(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldApplicableEnvironmentTypes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldApplicableEnvironmentTypes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldApplicableEnvironmentTypes: %w", err)
+	}
+	return oldValue.ApplicableEnvironmentTypes, nil
+}
+
+// AppendApplicableEnvironmentTypes adds s to the "applicable_environment_types" field.
+func (m *RoleMutation) AppendApplicableEnvironmentTypes(s []string) {
+	m.appendapplicable_environment_types = append(m.appendapplicable_environment_types, s...)
+}
+
+// AppendedApplicableEnvironmentTypes returns the list of values that were appended to the "applicable_environment_types" field in this mutation.
+func (m *RoleMutation) AppendedApplicableEnvironmentTypes() ([]string, bool) {
+	if len(m.appendapplicable_environment_types) == 0 {
+		return nil, false
+	}
+	return m.appendapplicable_environment_types, true
+}
+
+// ClearApplicableEnvironmentTypes clears the value of the "applicable_environment_types" field.
+func (m *RoleMutation) ClearApplicableEnvironmentTypes() {
+	m.applicable_environment_types = nil
+	m.appendapplicable_environment_types = nil
+	m.clearedFields[role.FieldApplicableEnvironmentTypes] = struct{}{}
+}
+
+// ApplicableEnvironmentTypesCleared returns if the "applicable_environment_types" field was cleared in this mutation.
+func (m *RoleMutation) ApplicableEnvironmentTypesCleared() bool {
+	_, ok := m.clearedFields[role.FieldApplicableEnvironmentTypes]
+	return ok
+}
+
+// ResetApplicableEnvironmentTypes resets all changes to the "applicable_environment_types" field.
+func (m *RoleMutation) ResetApplicableEnvironmentTypes() {
+	m.applicable_environment_types = nil
+	m.appendapplicable_environment_types = nil
+	delete(m.clearedFields, role.FieldApplicableEnvironmentTypes)
+}
+
 // SetSession sets the "session" field.
 func (m *RoleMutation) SetSession(b bool) {
 	m.session = &b
@@ -10263,7 +10438,7 @@ func (m *RoleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RoleMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.create_time != nil {
 		fields = append(fields, role.FieldCreateTime)
 	}
@@ -10278,6 +10453,9 @@ func (m *RoleMutation) Fields() []string {
 	}
 	if m.policies != nil {
 		fields = append(fields, role.FieldPolicies)
+	}
+	if m.applicable_environment_types != nil {
+		fields = append(fields, role.FieldApplicableEnvironmentTypes)
 	}
 	if m.session != nil {
 		fields = append(fields, role.FieldSession)
@@ -10303,6 +10481,8 @@ func (m *RoleMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case role.FieldPolicies:
 		return m.Policies()
+	case role.FieldApplicableEnvironmentTypes:
+		return m.ApplicableEnvironmentTypes()
 	case role.FieldSession:
 		return m.Session()
 	case role.FieldBuiltin:
@@ -10326,6 +10506,8 @@ func (m *RoleMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldDescription(ctx)
 	case role.FieldPolicies:
 		return m.OldPolicies(ctx)
+	case role.FieldApplicableEnvironmentTypes:
+		return m.OldApplicableEnvironmentTypes(ctx)
 	case role.FieldSession:
 		return m.OldSession(ctx)
 	case role.FieldBuiltin:
@@ -10374,6 +10556,13 @@ func (m *RoleMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetPolicies(v)
 		return nil
+	case role.FieldApplicableEnvironmentTypes:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetApplicableEnvironmentTypes(v)
+		return nil
 	case role.FieldSession:
 		v, ok := value.(bool)
 		if !ok {
@@ -10421,6 +10610,9 @@ func (m *RoleMutation) ClearedFields() []string {
 	if m.FieldCleared(role.FieldDescription) {
 		fields = append(fields, role.FieldDescription)
 	}
+	if m.FieldCleared(role.FieldApplicableEnvironmentTypes) {
+		fields = append(fields, role.FieldApplicableEnvironmentTypes)
+	}
 	return fields
 }
 
@@ -10437,6 +10629,9 @@ func (m *RoleMutation) ClearField(name string) error {
 	switch name {
 	case role.FieldDescription:
 		m.ClearDescription()
+		return nil
+	case role.FieldApplicableEnvironmentTypes:
+		m.ClearApplicableEnvironmentTypes()
 		return nil
 	}
 	return fmt.Errorf("unknown Role nullable field %s", name)
@@ -10460,6 +10655,9 @@ func (m *RoleMutation) ResetField(name string) error {
 		return nil
 	case role.FieldPolicies:
 		m.ResetPolicies()
+		return nil
+	case role.FieldApplicableEnvironmentTypes:
+		m.ResetApplicableEnvironmentTypes()
 		return nil
 	case role.FieldSession:
 		m.ResetSession()

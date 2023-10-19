@@ -117,12 +117,16 @@ func init() {
 	connectorDescType := connectorFields[2].Descriptor()
 	// connector.TypeValidator is a validator for the "type" field. It is called by the builders before save.
 	connector.TypeValidator = connectorDescType.Validators[0].(func(string) error)
+	// connectorDescApplicableEnvironmentType is the schema descriptor for applicable_environment_type field.
+	connectorDescApplicableEnvironmentType := connectorFields[3].Descriptor()
+	// connector.ApplicableEnvironmentTypeValidator is a validator for the "applicable_environment_type" field. It is called by the builders before save.
+	connector.ApplicableEnvironmentTypeValidator = connectorDescApplicableEnvironmentType.Validators[0].(func(string) error)
 	// connectorDescConfigVersion is the schema descriptor for config_version field.
-	connectorDescConfigVersion := connectorFields[3].Descriptor()
+	connectorDescConfigVersion := connectorFields[4].Descriptor()
 	// connector.ConfigVersionValidator is a validator for the "config_version" field. It is called by the builders before save.
 	connector.ConfigVersionValidator = connectorDescConfigVersion.Validators[0].(func(string) error)
 	// connectorDescConfigData is the schema descriptor for config_data field.
-	connectorDescConfigData := connectorFields[4].Descriptor()
+	connectorDescConfigData := connectorFields[5].Descriptor()
 	// connector.DefaultConfigData holds the default value on creation for the config_data field.
 	connector.DefaultConfigData = connectorDescConfigData.Default.(crypto.Properties)
 	costreportHooks := schema.CostReport{}.Hooks()
@@ -242,6 +246,10 @@ func init() {
 	environmentDescProjectID := environmentFields[0].Descriptor()
 	// environment.ProjectIDValidator is a validator for the "project_id" field. It is called by the builders before save.
 	environment.ProjectIDValidator = environmentDescProjectID.Validators[0].(func(string) error)
+	// environmentDescType is the schema descriptor for type field.
+	environmentDescType := environmentFields[1].Descriptor()
+	// environment.TypeValidator is a validator for the "type" field. It is called by the builders before save.
+	environment.TypeValidator = environmentDescType.Validators[0].(func(string) error)
 	environmentconnectorrelationshipMixin := schema.EnvironmentConnectorRelationship{}.Mixin()
 	environmentconnectorrelationshipMixinHooks0 := environmentconnectorrelationshipMixin[0].Hooks()
 	environmentconnectorrelationship.Hooks[0] = environmentconnectorrelationshipMixinHooks0[0]
@@ -362,12 +370,16 @@ func init() {
 	roleDescPolicies := roleFields[3].Descriptor()
 	// role.DefaultPolicies holds the default value on creation for the policies field.
 	role.DefaultPolicies = roleDescPolicies.Default.(types.RolePolicies)
+	// roleDescApplicableEnvironmentTypes is the schema descriptor for applicable_environment_types field.
+	roleDescApplicableEnvironmentTypes := roleFields[4].Descriptor()
+	// role.DefaultApplicableEnvironmentTypes holds the default value on creation for the applicable_environment_types field.
+	role.DefaultApplicableEnvironmentTypes = roleDescApplicableEnvironmentTypes.Default.([]string)
 	// roleDescSession is the schema descriptor for session field.
-	roleDescSession := roleFields[4].Descriptor()
+	roleDescSession := roleFields[5].Descriptor()
 	// role.DefaultSession holds the default value on creation for the session field.
 	role.DefaultSession = roleDescSession.Default.(bool)
 	// roleDescBuiltin is the schema descriptor for builtin field.
-	roleDescBuiltin := roleFields[5].Descriptor()
+	roleDescBuiltin := roleFields[6].Descriptor()
 	// role.DefaultBuiltin holds the default value on creation for the builtin field.
 	role.DefaultBuiltin = roleDescBuiltin.Default.(bool)
 	// roleDescID is the schema descriptor for id field.

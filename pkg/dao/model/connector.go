@@ -47,6 +47,8 @@ type Connector struct {
 	Category string `json:"category,omitempty"`
 	// Type of the connector.
 	Type string `json:"type,omitempty"`
+	// Environment type of the connector to apply.
+	ApplicableEnvironmentType string `json:"applicable_environment_type,omitempty"`
 	// Connector config version.
 	ConfigVersion string `json:"config_version,omitempty"`
 	// Connector config data.
@@ -129,7 +131,7 @@ func (*Connector) scanValues(columns []string) ([]any, error) {
 			values[i] = new(object.ID)
 		case connector.FieldEnableFinOps:
 			values[i] = new(sql.NullBool)
-		case connector.FieldName, connector.FieldDescription, connector.FieldCategory, connector.FieldType, connector.FieldConfigVersion:
+		case connector.FieldName, connector.FieldDescription, connector.FieldCategory, connector.FieldType, connector.FieldApplicableEnvironmentType, connector.FieldConfigVersion:
 			values[i] = new(sql.NullString)
 		case connector.FieldCreateTime, connector.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -221,6 +223,12 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field type", values[i])
 			} else if value.Valid {
 				c.Type = value.String
+			}
+		case connector.FieldApplicableEnvironmentType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field applicable_environment_type", values[i])
+			} else if value.Valid {
+				c.ApplicableEnvironmentType = value.String
 			}
 		case connector.FieldConfigVersion:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -337,6 +345,9 @@ func (c *Connector) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("type=")
 	builder.WriteString(c.Type)
+	builder.WriteString(", ")
+	builder.WriteString("applicable_environment_type=")
+	builder.WriteString(c.ApplicableEnvironmentType)
 	builder.WriteString(", ")
 	builder.WriteString("config_version=")
 	builder.WriteString(c.ConfigVersion)

@@ -103,6 +103,12 @@ func (ec *EnvironmentCreate) SetProjectID(o object.ID) *EnvironmentCreate {
 	return ec
 }
 
+// SetType sets the "type" field.
+func (ec *EnvironmentCreate) SetType(s string) *EnvironmentCreate {
+	ec.mutation.SetType(s)
+	return ec
+}
+
 // SetID sets the "id" field.
 func (ec *EnvironmentCreate) SetID(o object.ID) *EnvironmentCreate {
 	ec.mutation.SetID(o)
@@ -275,6 +281,14 @@ func (ec *EnvironmentCreate) check() error {
 			return &ValidationError{Name: "project_id", err: fmt.Errorf(`model: validator failed for field "Environment.project_id": %w`, err)}
 		}
 	}
+	if _, ok := ec.mutation.GetType(); !ok {
+		return &ValidationError{Name: "type", err: errors.New(`model: missing required field "Environment.type"`)}
+	}
+	if v, ok := ec.mutation.GetType(); ok {
+		if err := environment.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`model: validator failed for field "Environment.type": %w`, err)}
+		}
+	}
 	if _, ok := ec.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "Environment.project"`)}
 	}
@@ -338,6 +352,10 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 	if value, ok := ec.mutation.UpdateTime(); ok {
 		_spec.SetField(environment.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
+	}
+	if value, ok := ec.mutation.GetType(); ok {
+		_spec.SetField(environment.FieldType, field.TypeString, value)
+		_node.Type = value
 	}
 	if nodes := ec.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -467,6 +485,7 @@ func (ec *EnvironmentCreate) Set(obj *Environment) *EnvironmentCreate {
 	// Required.
 	ec.SetName(obj.Name)
 	ec.SetProjectID(obj.ProjectID)
+	ec.SetType(obj.Type)
 
 	// Optional.
 	if obj.Description != "" {
@@ -539,6 +558,9 @@ func (ec *EnvironmentCreate) SaveE(ctx context.Context, cbs ...func(ctx context.
 		}
 		if _, set := ec.mutation.Field(environment.FieldProjectID); set {
 			obj.ProjectID = x.ProjectID
+		}
+		if _, set := ec.mutation.Field(environment.FieldType); set {
+			obj.Type = x.Type
 		}
 		obj.Edges = x.Edges
 	}
@@ -661,6 +683,9 @@ func (ecb *EnvironmentCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx con
 			}
 			if _, set := ecb.builders[i].mutation.Field(environment.FieldProjectID); set {
 				objs[i].ProjectID = x[i].ProjectID
+			}
+			if _, set := ecb.builders[i].mutation.Field(environment.FieldType); set {
+				objs[i].Type = x[i].Type
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -879,6 +904,9 @@ func (u *EnvironmentUpsertOne) UpdateNewValues() *EnvironmentUpsertOne {
 		}
 		if _, exists := u.create.mutation.ProjectID(); exists {
 			s.SetIgnore(environment.FieldProjectID)
+		}
+		if _, exists := u.create.mutation.GetType(); exists {
+			s.SetIgnore(environment.FieldType)
 		}
 	}))
 	return u
@@ -1177,6 +1205,9 @@ func (u *EnvironmentUpsertBulk) UpdateNewValues() *EnvironmentUpsertBulk {
 			}
 			if _, exists := b.mutation.ProjectID(); exists {
 				s.SetIgnore(environment.FieldProjectID)
+			}
+			if _, exists := b.mutation.GetType(); exists {
+				s.SetIgnore(environment.FieldType)
 			}
 		}
 	}))
