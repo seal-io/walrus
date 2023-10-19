@@ -2,6 +2,7 @@ module github.com/seal-io/walrus
 
 replace (
 	github.com/drone/go-scm => github.com/seal-io/go-scm v0.0.0-20230824095817-eccc60e66f70
+	github.com/hashicorp/go-getter => github.com/seal-io/go-getter v0.0.0-20231020102123-ada0c53c72cb
 	github.com/seal-io/walrus/utils => ./staging/utils
 )
 

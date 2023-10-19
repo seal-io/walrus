@@ -234,7 +234,7 @@ func (d Deployer) createK8sJob(ctx context.Context, opts createK8sJobOptions) er
 		return err
 	}
 
-	jobEnv, err := d.getProxyEnv(ctx)
+	jobEnv, err := d.getEnv(ctx)
 	if err != nil {
 		return err
 	}
@@ -250,7 +250,7 @@ func (d Deployer) createK8sJob(ctx context.Context, opts createK8sJobOptions) er
 	return CreateJob(ctx, d.clientSet, jobOpts)
 }
 
-func (d Deployer) getProxyEnv(ctx context.Context) ([]corev1.EnvVar, error) {
+func (d Deployer) getEnv(ctx context.Context) ([]corev1.EnvVar, error) {
 	var env []corev1.EnvVar
 
 	allProxy, err := settings.DeployerAllProxy.Value(ctx, d.modelClient)
@@ -298,6 +298,13 @@ func (d Deployer) getProxyEnv(ctx context.Context) ([]corev1.EnvVar, error) {
 		env = append(env, corev1.EnvVar{
 			Name:  "NO_PROXY",
 			Value: noProxy,
+		})
+	}
+
+	if settings.SkipRemoteTLSVerify.ShouldValueBool(ctx, d.modelClient) {
+		env = append(env, corev1.EnvVar{
+			Name:  "GIT_SSL_NO_VERIFY",
+			Value: "true",
 		})
 	}
 

@@ -135,6 +135,12 @@ var (
 		editable,
 		initializeFrom("true"),
 		modifyWith(notBlank))
+	// SkipRemoteTLSVerify indicates whether skip SSL verification when accessing remote server.
+	SkipRemoteTLSVerify = newValue(
+		"SkipRemoteTLSVerify",
+		editable,
+		initializeFrom("false"),
+		modifyWith(notBlank))
 )
 
 // the built-in settings for server cron jobs.

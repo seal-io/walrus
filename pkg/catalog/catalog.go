@@ -24,7 +24,7 @@ import (
 )
 
 // getRepos returns org and a list of repositories from the given catalog.
-func getRepos(ctx context.Context, c *model.Catalog, ua string) ([]*vcs.Repository, error) {
+func getRepos(ctx context.Context, c *model.Catalog, ua string, skipTLSVerify bool) ([]*vcs.Repository, error) {
 	var (
 		client *scm.Client
 		err    error
@@ -37,7 +37,13 @@ func getRepos(ctx context.Context, c *model.Catalog, ua string) ([]*vcs.Reposito
 
 	switch c.Type {
 	case types.GitDriverGithub, types.GitDriverGitlab:
-		client, err = vcs.NewClientFromURL(c.Type, c.Source, options.WithUserAgent(ua))
+		ops := []options.ClientOption{options.WithUserAgent(ua)}
+
+		if skipTLSVerify {
+			ops = append(ops, options.WithInsecureSkipVerify())
+		}
+
+		client, err = vcs.NewClientFromURL(c.Type, c.Source, ops...)
 		if err != nil {
 			return nil, err
 		}
@@ -107,7 +113,7 @@ func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) er
 
 	ua := version.GetUserAgent() + "; uuid=" + settings.InstallationUUID.ShouldValue(ctx, mc)
 
-	repos, err := getRepos(ctx, c, ua)
+	repos, err := getRepos(ctx, c, ua, settings.SkipRemoteTLSVerify.ShouldValueBool(ctx, mc))
 	if err != nil {
 		return err
 	}
