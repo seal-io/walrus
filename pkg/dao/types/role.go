@@ -27,10 +27,10 @@ func IsRoleKind(s string) bool {
 }
 
 const (
-	SystemRoleAnonymity        = "system/anonymity"
-	SystemRoleUser             = "system/user"
-	SystemRolePlatformEngineer = "system/platform-engineer"
-	SystemRoleAdmin            = "system/admin"
+	SystemRoleAnonymity = "system/anonymity"
+	SystemRoleUser      = "system/user"
+	SystemRoleManager   = "system/manager"
+	SystemRoleAdmin     = "system/admin"
 
 	ProjectRoleViewer = "project/viewer"
 	ProjectRoleMember = "project/member"
