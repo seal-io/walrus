@@ -68,13 +68,11 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 					Resources: types.RolePolicyFields(
 						"catalogs",
 						"connectors",
-						"environments",
 						"perspectives",
 						"roles",
 						"settings",
 						"subjects",
 						"templates",
-						"templateCompletions",
 						"variables"),
 				},
 				{
@@ -94,7 +92,7 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 						"/account/logout"),
 				},
 				{
-					Actions: types.RolePolicyFields(http.MethodGet, http.MethodPost),
+					Actions: types.RolePolicyFields(http.MethodPost, http.MethodGet),
 					Paths: types.RolePolicyFields(
 						"/account/tokens"),
 				},
@@ -104,13 +102,17 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 						"/account/tokens/:token"),
 				},
 			},
+			ApplicableEnvironmentTypes: []string{
+				types.EnvironmentDevelopment,
+				types.EnvironmentStaging,
+			},
 			Session: true,
 			Builtin: true,
 		},
 
-		// System platform engineer.
+		// System operations.
 		{
-			ID:          types.SystemRolePlatformEngineer,
+			ID:          types.SystemRoleManager,
 			Kind:        types.RoleKindSystem,
 			Description: "The role who can manage the system resources.",
 			Policies: types.RolePolicies{
@@ -119,11 +121,15 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 					Resources: types.RolePolicyFields(
 						"catalogs",
 						"connectors",
+						"perspectives",
 						"settings",
 						"templates",
 						"templateCompletions",
 						"variables"),
 				},
+			},
+			ApplicableEnvironmentTypes: []string{
+				types.EnvironmentProduction,
 			},
 			Session: false,
 			Builtin: true,
@@ -136,21 +142,12 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 			Description: "The role who can manage all resources, including system and project.",
 			Policies: types.RolePolicies{
 				{
-					Actions: types.RolePolicyFields("*"),
-					Resources: types.RolePolicyFields(
-						"catalogs",
-						"connectors",
-						"environments",
-						"perspectives",
-						"projects",
-						"projectSubjects",
-						"roles",
-						"settings",
-						"subjects",
-						"templates",
-						"templateCompletions",
-						"variables"),
+					Actions:   types.RolePolicyFields("*"),
+					Resources: types.RolePolicyFields("*"),
 				},
+			},
+			ApplicableEnvironmentTypes: []string{
+				types.EnvironmentProduction,
 			},
 			Session: false,
 			Builtin: true,
@@ -166,8 +163,9 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 					Actions: types.RolePolicyFields(http.MethodGet),
 					Resources: types.RolePolicyFields(
 						"connectors",
-						"projects",
 						"environments",
+						"projects",
+						"projectSubjects",
 						"services",
 						"serviceResources",
 						"serviceRevisions",
@@ -188,7 +186,8 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 					Actions: types.RolePolicyFields(http.MethodGet),
 					Resources: types.RolePolicyFields(
 						"connectors",
-						"projects"),
+						"projects",
+						"projectSubjects"),
 				},
 				{
 					Actions: types.RolePolicyFields("*"),
@@ -214,9 +213,9 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 					Actions: types.RolePolicyFields("*"),
 					Resources: types.RolePolicyFields(
 						"connectors",
+						"environments",
 						"projects",
 						"projectSubjects",
-						"environments",
 						"services",
 						"serviceResources",
 						"serviceRevisions",
@@ -232,6 +231,7 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 		Set(builtin...).
 		OnConflictColumns(role.FieldID).
 		Update(func(upsert *model.RoleUpsert) {
+			upsert.UpdateApplicableEnvironmentTypes()
 			upsert.UpdatePolicies()
 			upsert.UpdateUpdateTime()
 		}).
