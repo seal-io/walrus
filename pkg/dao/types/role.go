@@ -13,13 +13,17 @@ const (
 	RoleKindProject = "project"
 )
 
-var RoleKinds = []string{
+var roleKinds = []string{
 	RoleKindSystem,
 	RoleKindProject,
 }
 
+func RoleKinds() []string {
+	return slices.Clone(roleKinds)
+}
+
 func IsRoleKind(s string) bool {
-	return slices.Contains(RoleKinds, s)
+	return slices.Contains(roleKinds, s)
 }
 
 const (
@@ -132,10 +136,6 @@ type RolePolicy struct {
 	// ResourceRefers specifies the including object.Refer list of this policy,
 	// only works if the Resources specified as ["<a kind of resource>"].
 	ResourceRefers []string `json:"resourceRefers,omitempty"`
-	// ResourceReferExcludes specifies the excluding object.Refer list of this policy,
-	// only works if the Resources specified as ["<a kind of resource>"]
-	// and ResourceRefers specified as ["*"].
-	ResourceReferExcludes []string `json:"resourceReferExcludes,omitempty"`
 
 	// Paths specifies the route-registered path list of this policy,
 	// i.e. /resources/:id, only works if the Resources has not been specified.
@@ -158,17 +158,11 @@ func (in RolePolicy) Normalize() RolePolicy {
 		if len(in.ResourceRefers) > 1 {
 			in.ResourceRefers = aggregateList(&in.ResourceRefers)
 		}
-		// Clean up ResourceReferExcludes if ResourceRefers is not ["*"].
-		if len(in.ResourceRefers) != 1 || in.ResourceRefers[0] != "*" {
-			in.ResourceReferExcludes = nil
-		}
 		// Clean up Paths if Resources is not empty.
 		in.Paths = nil
 	} else {
 		// Clean up ResourceRefers if Resources is empty.
 		in.ResourceRefers = nil
-		// Clean up ResourceReferExcludes if Resources is empty.
-		in.ResourceReferExcludes = nil
 	}
 
 	return in
@@ -241,7 +235,6 @@ func (in RolePolicy) String() string {
 	appendAttributes(&sb, "actions", in.Actions)
 	appendAttributes(&sb, "resources", in.Resources)
 	appendAttributes(&sb, "resourceRefers", in.ResourceRefers)
-	appendAttributes(&sb, "resourceReferExcludes", in.ResourceReferExcludes)
 	appendAttributes(&sb, "paths", in.Paths)
 
 	return sb.String()

@@ -224,12 +224,7 @@ func enforce(p *types.RolePolicy, act, res, resRefer, path string) bool {
 				return false
 			}
 		case 1:
-			if p.ResourceRefers[0] == "*" {
-				if slices.Contains(p.ResourceReferExcludes, resRefer) {
-					// Excluded resource refer.
-					return false
-				}
-			} else if p.ResourceRefers[0] != resRefer {
+			if p.ResourceRefers[0] != "*" && p.ResourceRefers[0] != resRefer {
 				// Unexpected resource refer.
 				return false
 			}
