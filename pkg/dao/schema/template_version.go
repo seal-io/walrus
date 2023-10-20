@@ -94,6 +94,13 @@ func (TemplateVersion) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.Restrict),
 				entx.SkipIO()),
+		// TemplateVersion *-* ResourceDefinitions.
+		edge.From("resource_definitions", ResourceDefinition.Type).
+			Ref("matching_rules").
+			Comment("Resource definitions that use the template version.").
+			Through("resource_definition_matching_rules", ResourceDefinitionMatchingRule.Type).
+			Annotations(
+				entx.SkipIO()),
 		// Project 1-* TemplateVersions.
 		edge.From("project", Project.Type).
 			Ref("template_versions").
