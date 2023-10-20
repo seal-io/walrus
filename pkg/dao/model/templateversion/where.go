@@ -579,6 +579,35 @@ func HasResourcesWith(preds ...predicate.Resource) predicate.TemplateVersion {
 	})
 }
 
+// HasResourceDefinitions applies the HasEdge predicate on the "resource_definitions" edge.
+func HasResourceDefinitions() predicate.TemplateVersion {
+	return predicate.TemplateVersion(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, ResourceDefinitionsTable, ResourceDefinitionsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ResourceDefinitionMatchingRule
+		step.Edge.Schema = schemaConfig.ResourceDefinitionMatchingRule
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasResourceDefinitionsWith applies the HasEdge predicate on the "resource_definitions" edge with a given conditions (other predicates).
+func HasResourceDefinitionsWith(preds ...predicate.ResourceDefinitionMatchingRule) predicate.TemplateVersion {
+	return predicate.TemplateVersion(func(s *sql.Selector) {
+		step := newResourceDefinitionsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ResourceDefinitionMatchingRule
+		step.Edge.Schema = schemaConfig.ResourceDefinitionMatchingRule
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasProject applies the HasEdge predicate on the "project" edge.
 func HasProject() predicate.TemplateVersion {
 	return predicate.TemplateVersion(func(s *sql.Selector) {

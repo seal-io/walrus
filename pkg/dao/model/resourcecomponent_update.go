@@ -48,15 +48,15 @@ func (rcu *ResourceComponentUpdate) SetUpdateTime(t time.Time) *ResourceComponen
 }
 
 // SetStatus sets the "status" field.
-func (rcu *ResourceComponentUpdate) SetStatus(trs types.ResourceComponentStatus) *ResourceComponentUpdate {
-	rcu.mutation.SetStatus(trs)
+func (rcu *ResourceComponentUpdate) SetStatus(tcs types.ResourceComponentStatus) *ResourceComponentUpdate {
+	rcu.mutation.SetStatus(tcs)
 	return rcu
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (rcu *ResourceComponentUpdate) SetNillableStatus(trs *types.ResourceComponentStatus) *ResourceComponentUpdate {
-	if trs != nil {
-		rcu.SetStatus(*trs)
+func (rcu *ResourceComponentUpdate) SetNillableStatus(tcs *types.ResourceComponentStatus) *ResourceComponentUpdate {
+	if tcs != nil {
+		rcu.SetStatus(*tcs)
 	}
 	return rcu
 }
@@ -492,15 +492,15 @@ func (rcuo *ResourceComponentUpdateOne) SetUpdateTime(t time.Time) *ResourceComp
 }
 
 // SetStatus sets the "status" field.
-func (rcuo *ResourceComponentUpdateOne) SetStatus(trs types.ResourceComponentStatus) *ResourceComponentUpdateOne {
-	rcuo.mutation.SetStatus(trs)
+func (rcuo *ResourceComponentUpdateOne) SetStatus(tcs types.ResourceComponentStatus) *ResourceComponentUpdateOne {
+	rcuo.mutation.SetStatus(tcs)
 	return rcuo
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (rcuo *ResourceComponentUpdateOne) SetNillableStatus(trs *types.ResourceComponentStatus) *ResourceComponentUpdateOne {
-	if trs != nil {
-		rcuo.SetStatus(*trs)
+func (rcuo *ResourceComponentUpdateOne) SetNillableStatus(tcs *types.ResourceComponentStatus) *ResourceComponentUpdateOne {
+	if tcs != nil {
+		rcuo.SetStatus(*tcs)
 	}
 	return rcuo
 }

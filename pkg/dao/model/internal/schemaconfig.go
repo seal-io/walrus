@@ -21,6 +21,8 @@ type SchemaConfig struct {
 	Resource                         string // Resource table.
 	ResourceComponent                string // ResourceComponent table.
 	ResourceComponentRelationship    string // ResourceComponentRelationship table.
+	ResourceDefinition               string // ResourceDefinition table.
+	ResourceDefinitionMatchingRule   string // ResourceDefinitionMatchingRule table.
 	ResourceRelationship             string // ResourceRelationship table.
 	ResourceRevision                 string // ResourceRevision table.
 	Role                             string // Role table.

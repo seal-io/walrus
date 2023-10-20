@@ -43,7 +43,7 @@ type WorkflowStepExecutionCreateInput struct {
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Attributes of the workflow step execution.
-	Attributes map[string]interface{} `path:"-" query:"-" json:"attributes,omitempty"`
+	Attributes map[string]any `path:"-" query:"-" json:"attributes,omitempty"`
 	// Retry policy of the workflow step.
 	RetryStrategy *types.RetryStrategy `path:"-" query:"-" json:"retryStrategy,omitempty"`
 	// Timeout of the workflow step execution.
@@ -132,7 +132,7 @@ type WorkflowStepExecutionCreateInputsItem struct {
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Attributes of the workflow step execution.
-	Attributes map[string]interface{} `path:"-" query:"-" json:"attributes,omitempty"`
+	Attributes map[string]any `path:"-" query:"-" json:"attributes,omitempty"`
 	// Retry policy of the workflow step.
 	RetryStrategy *types.RetryStrategy `path:"-" query:"-" json:"retryStrategy,omitempty"`
 	// Timeout of the workflow step execution.
@@ -564,7 +564,7 @@ type WorkflowStepExecutionUpdateInput struct {
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Attributes of the workflow step execution.
-	Attributes map[string]interface{} `path:"-" query:"-" json:"attributes,omitempty"`
+	Attributes map[string]any `path:"-" query:"-" json:"attributes,omitempty"`
 	// Retry policy of the workflow step.
 	RetryStrategy *types.RetryStrategy `path:"-" query:"-" json:"retryStrategy,omitempty"`
 	// Timeout of the workflow step execution.
@@ -625,7 +625,7 @@ type WorkflowStepExecutionUpdateInputsItem struct {
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Attributes of the workflow step execution.
-	Attributes map[string]interface{} `path:"-" query:"-" json:"attributes,omitempty"`
+	Attributes map[string]any `path:"-" query:"-" json:"attributes,omitempty"`
 	// Retry policy of the workflow step.
 	RetryStrategy *types.RetryStrategy `path:"-" query:"-" json:"retryStrategy,omitempty"`
 	// Timeout of the workflow step execution.
@@ -786,23 +786,23 @@ func (wseui *WorkflowStepExecutionUpdateInputs) ValidateWith(ctx context.Context
 
 // WorkflowStepExecutionOutput holds the output of the WorkflowStepExecution entity.
 type WorkflowStepExecutionOutput struct {
-	ID                  object.ID              `json:"id,omitempty"`
-	Name                string                 `json:"name,omitempty"`
-	Description         string                 `json:"description,omitempty"`
-	Labels              map[string]string      `json:"labels,omitempty"`
-	CreateTime          *time.Time             `json:"createTime,omitempty"`
-	UpdateTime          *time.Time             `json:"updateTime,omitempty"`
-	Status              status.Status          `json:"status,omitempty"`
-	WorkflowStepID      object.ID              `json:"workflowStepID,omitempty"`
-	WorkflowExecutionID object.ID              `json:"workflowExecutionID,omitempty"`
-	WorkflowID          object.ID              `json:"workflowID,omitempty"`
-	Type                string                 `json:"type,omitempty"`
-	Attributes          map[string]interface{} `json:"attributes,omitempty"`
-	ExecuteTime         time.Time              `json:"executeTime,omitempty"`
-	Duration            int                    `json:"duration,omitempty"`
-	RetryStrategy       *types.RetryStrategy   `json:"retryStrategy,omitempty"`
-	Timeout             int                    `json:"timeout,omitempty"`
-	Record              string                 `json:"record,omitempty"`
+	ID                  object.ID            `json:"id,omitempty"`
+	Name                string               `json:"name,omitempty"`
+	Description         string               `json:"description,omitempty"`
+	Labels              map[string]string    `json:"labels,omitempty"`
+	CreateTime          *time.Time           `json:"createTime,omitempty"`
+	UpdateTime          *time.Time           `json:"updateTime,omitempty"`
+	Status              status.Status        `json:"status,omitempty"`
+	WorkflowStepID      object.ID            `json:"workflowStepID,omitempty"`
+	WorkflowExecutionID object.ID            `json:"workflowExecutionID,omitempty"`
+	WorkflowID          object.ID            `json:"workflowID,omitempty"`
+	Type                string               `json:"type,omitempty"`
+	Attributes          map[string]any       `json:"attributes,omitempty"`
+	ExecuteTime         time.Time            `json:"executeTime,omitempty"`
+	Duration            int                  `json:"duration,omitempty"`
+	RetryStrategy       *types.RetryStrategy `json:"retryStrategy,omitempty"`
+	Timeout             int                  `json:"timeout,omitempty"`
+	Record              string               `json:"record,omitempty"`
 
 	Project        *ProjectOutput                `json:"project,omitempty"`
 	StageExecution *WorkflowStageExecutionOutput `json:"stageExecution,omitempty"`

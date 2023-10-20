@@ -35,11 +35,15 @@ type ResourceCreateInput struct {
 	Description string `path:"-" query:"-" json:"description,omitempty"`
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Type of the resource referring to a resource definition type.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
 
 	// Template specifies full inserting the new TemplateVersion entity of the Resource entity.
-	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template"`
+	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template,omitempty"`
+	// ResourceDefinition specifies full inserting the new ResourceDefinition entity of the Resource entity.
+	ResourceDefinition *ResourceDefinitionQueryInput `uri:"-" query:"-" json:"-"`
 }
 
 // Model returns the Resource entity for creating,
@@ -53,6 +57,7 @@ func (rci *ResourceCreateInput) Model() *Resource {
 		Name:        rci.Name,
 		Description: rci.Description,
 		Labels:      rci.Labels,
+		Type:        rci.Type,
 		Attributes:  rci.Attributes,
 	}
 
@@ -64,7 +69,10 @@ func (rci *ResourceCreateInput) Model() *Resource {
 	}
 
 	if rci.Template != nil {
-		_r.TemplateID = rci.Template.ID
+		_r.TemplateID = &rci.Template.ID
+	}
+	if rci.ResourceDefinition != nil {
+		_r.ResourceDefinitionID = &rci.ResourceDefinition.ID
 	}
 	return _r
 }
@@ -111,6 +119,16 @@ func (rci *ResourceCreateInput) ValidateWith(ctx context.Context, cs ClientSet, 
 		}
 	}
 
+	if rci.ResourceDefinition != nil {
+		if err := rci.ResourceDefinition.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rci.ResourceDefinition = nil
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -122,11 +140,15 @@ type ResourceCreateInputsItem struct {
 	Description string `path:"-" query:"-" json:"description,omitempty"`
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Type of the resource referring to a resource definition type.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
 
 	// Template specifies full inserting the new TemplateVersion entity.
-	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template"`
+	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template,omitempty"`
+	// ResourceDefinition specifies full inserting the new ResourceDefinition entity.
+	ResourceDefinition *ResourceDefinitionQueryInput `uri:"-" query:"-" json:"-"`
 }
 
 // ValidateWith checks the ResourceCreateInputsItem entity with the given context and client set.
@@ -145,6 +167,16 @@ func (rci *ResourceCreateInputsItem) ValidateWith(ctx context.Context, cs Client
 				return err
 			} else {
 				rci.Template = nil
+			}
+		}
+	}
+
+	if rci.ResourceDefinition != nil {
+		if err := rci.ResourceDefinition.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rci.ResourceDefinition = nil
 			}
 		}
 	}
@@ -180,6 +212,7 @@ func (rci *ResourceCreateInputs) Model() []*Resource {
 			Name:        rci.Items[i].Name,
 			Description: rci.Items[i].Description,
 			Labels:      rci.Items[i].Labels,
+			Type:        rci.Items[i].Type,
 			Attributes:  rci.Items[i].Attributes,
 		}
 
@@ -191,7 +224,10 @@ func (rci *ResourceCreateInputs) Model() []*Resource {
 		}
 
 		if rci.Items[i].Template != nil {
-			_r.TemplateID = rci.Items[i].Template.ID
+			_r.TemplateID = &rci.Items[i].Template.ID
+		}
+		if rci.Items[i].ResourceDefinition != nil {
+			_r.ResourceDefinitionID = &rci.Items[i].ResourceDefinition.ID
 		}
 
 		_rs[i] = _r
@@ -605,7 +641,9 @@ type ResourceUpdateInput struct {
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
 
 	// Template indicates replacing the stale TemplateVersion entity.
-	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template"`
+	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template,omitempty"`
+	// ResourceDefinition indicates replacing the stale ResourceDefinition entity.
+	ResourceDefinition *ResourceDefinitionQueryInput `uri:"-" query:"-" json:"-"`
 }
 
 // Model returns the Resource entity for modifying,
@@ -624,7 +662,10 @@ func (rui *ResourceUpdateInput) Model() *Resource {
 	}
 
 	if rui.Template != nil {
-		_r.TemplateID = rui.Template.ID
+		_r.TemplateID = &rui.Template.ID
+	}
+	if rui.ResourceDefinition != nil {
+		_r.ResourceDefinitionID = &rui.ResourceDefinition.ID
 	}
 	return _r
 }
@@ -658,6 +699,16 @@ func (rui *ResourceUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, 
 		}
 	}
 
+	if rui.ResourceDefinition != nil {
+		if err := rui.ResourceDefinition.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rui.ResourceDefinition = nil
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -676,7 +727,9 @@ type ResourceUpdateInputsItem struct {
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
 
 	// Template indicates replacing the stale TemplateVersion entity.
-	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template"`
+	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template,omitempty"`
+	// ResourceDefinition indicates replacing the stale ResourceDefinition entity.
+	ResourceDefinition *ResourceDefinitionQueryInput `uri:"-" query:"-" json:"-"`
 }
 
 // ValidateWith checks the ResourceUpdateInputsItem entity with the given context and client set.
@@ -695,6 +748,16 @@ func (rui *ResourceUpdateInputsItem) ValidateWith(ctx context.Context, cs Client
 				return err
 			} else {
 				rui.Template = nil
+			}
+		}
+	}
+
+	if rui.ResourceDefinition != nil {
+		if err := rui.ResourceDefinition.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rui.ResourceDefinition = nil
 			}
 		}
 	}
@@ -735,7 +798,10 @@ func (rui *ResourceUpdateInputs) Model() []*Resource {
 		}
 
 		if rui.Items[i].Template != nil {
-			_r.TemplateID = rui.Items[i].Template.ID
+			_r.TemplateID = &rui.Items[i].Template.ID
+		}
+		if rui.Items[i].ResourceDefinition != nil {
+			_r.ResourceDefinitionID = &rui.Items[i].ResourceDefinition.ID
 		}
 
 		_rs[i] = _r
@@ -877,6 +943,7 @@ type ResourceOutput struct {
 	CreateTime  *time.Time        `json:"createTime,omitempty"`
 	UpdateTime  *time.Time        `json:"updateTime,omitempty"`
 	Status      status.Status     `json:"status,omitempty"`
+	Type        string            `json:"type,omitempty"`
 	Attributes  property.Values   `json:"attributes,omitempty"`
 
 	Project     *ProjectOutput         `json:"project,omitempty"`
@@ -908,6 +975,7 @@ func ExposeResource(_r *Resource) *ResourceOutput {
 		CreateTime:  _r.CreateTime,
 		UpdateTime:  _r.UpdateTime,
 		Status:      _r.Status,
+		Type:        _r.Type,
 		Attributes:  _r.Attributes,
 	}
 
@@ -927,9 +995,9 @@ func ExposeResource(_r *Resource) *ResourceOutput {
 	}
 	if _r.Edges.Template != nil {
 		ro.Template = ExposeTemplateVersion(_r.Edges.Template)
-	} else if _r.TemplateID != "" {
+	} else if _r.TemplateID != nil {
 		ro.Template = &TemplateVersionOutput{
-			ID: _r.TemplateID,
+			ID: *_r.TemplateID,
 		}
 	}
 	return ro

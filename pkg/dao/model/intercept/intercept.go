@@ -24,6 +24,8 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponentrelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/role"
@@ -393,6 +395,60 @@ func (f TraverseResourceComponentRelationship) Traverse(ctx context.Context, q m
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *model.ResourceComponentRelationshipQuery", q)
+}
+
+// The ResourceDefinitionFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ResourceDefinitionFunc func(context.Context, *model.ResourceDefinitionQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f ResourceDefinitionFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.ResourceDefinitionQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.ResourceDefinitionQuery", q)
+}
+
+// The TraverseResourceDefinition type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseResourceDefinition func(context.Context, *model.ResourceDefinitionQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseResourceDefinition) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseResourceDefinition) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ResourceDefinitionQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.ResourceDefinitionQuery", q)
+}
+
+// The ResourceDefinitionMatchingRuleFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ResourceDefinitionMatchingRuleFunc func(context.Context, *model.ResourceDefinitionMatchingRuleQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f ResourceDefinitionMatchingRuleFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.ResourceDefinitionMatchingRuleQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.ResourceDefinitionMatchingRuleQuery", q)
+}
+
+// The TraverseResourceDefinitionMatchingRule type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseResourceDefinitionMatchingRule func(context.Context, *model.ResourceDefinitionMatchingRuleQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseResourceDefinitionMatchingRule) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseResourceDefinitionMatchingRule) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ResourceDefinitionMatchingRuleQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.ResourceDefinitionMatchingRuleQuery", q)
 }
 
 // The ResourceRelationshipFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -852,6 +908,10 @@ func NewQuery(q model.Query) (Query, error) {
 		return &query[*model.ResourceComponentQuery, predicate.ResourceComponent, resourcecomponent.OrderOption]{typ: model.TypeResourceComponent, tq: q}, nil
 	case *model.ResourceComponentRelationshipQuery:
 		return &query[*model.ResourceComponentRelationshipQuery, predicate.ResourceComponentRelationship, resourcecomponentrelationship.OrderOption]{typ: model.TypeResourceComponentRelationship, tq: q}, nil
+	case *model.ResourceDefinitionQuery:
+		return &query[*model.ResourceDefinitionQuery, predicate.ResourceDefinition, resourcedefinition.OrderOption]{typ: model.TypeResourceDefinition, tq: q}, nil
+	case *model.ResourceDefinitionMatchingRuleQuery:
+		return &query[*model.ResourceDefinitionMatchingRuleQuery, predicate.ResourceDefinitionMatchingRule, resourcedefinitionmatchingrule.OrderOption]{typ: model.TypeResourceDefinitionMatchingRule, tq: q}, nil
 	case *model.ResourceRelationshipQuery:
 		return &query[*model.ResourceRelationshipQuery, predicate.ResourceRelationship, resourcerelationship.OrderOption]{typ: model.TypeResourceRelationship, tq: q}, nil
 	case *model.ResourceRevisionQuery:

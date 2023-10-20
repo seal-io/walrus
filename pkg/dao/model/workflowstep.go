@@ -47,11 +47,11 @@ type WorkflowStep struct {
 	// ID of the stage that this workflow step belongs to.
 	WorkflowStageID object.ID `json:"workflow_stage_id,omitempty"`
 	// Attributes of the workflow step.
-	Attributes map[string]interface{} `json:"attributes,omitempty"`
+	Attributes map[string]any `json:"attributes,omitempty"`
 	// Inputs of the workflow step.
-	Inputs map[string]interface{} `json:"inputs,omitempty"`
+	Inputs map[string]any `json:"inputs,omitempty"`
 	// Outputs of the workflow step.
-	Outputs map[string]interface{} `json:"outputs,omitempty"`
+	Outputs map[string]any `json:"outputs,omitempty"`
 	// Order of the workflow step.
 	Order int `json:"order,omitempty"`
 	// ID list of the workflow steps that this workflow step depends on.

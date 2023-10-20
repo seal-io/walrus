@@ -309,10 +309,12 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "status", Type: field.TypeJSON, Nullable: true},
+		{Name: "type", Type: field.TypeString, Nullable: true},
 		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
 		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "template_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "resource_definition_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "template_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// ResourcesTable holds the schema information for the "resources" table.
 	ResourcesTable = &schema.Table{
@@ -322,19 +324,25 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "resources_environments_resources",
-				Columns:    []*schema.Column{ResourcesColumns[9]},
+				Columns:    []*schema.Column{ResourcesColumns[10]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
 			{
 				Symbol:     "resources_projects_resources",
-				Columns:    []*schema.Column{ResourcesColumns[10]},
+				Columns:    []*schema.Column{ResourcesColumns[11]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
+				Symbol:     "resources_resource_definitions_resources",
+				Columns:    []*schema.Column{ResourcesColumns[12]},
+				RefColumns: []*schema.Column{ResourceDefinitionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
 				Symbol:     "resources_template_versions_resources",
-				Columns:    []*schema.Column{ResourcesColumns[11]},
+				Columns:    []*schema.Column{ResourcesColumns[13]},
 				RefColumns: []*schema.Column{TemplateVersionsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
@@ -343,7 +351,7 @@ var (
 			{
 				Name:    "resource_project_id_environment_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{ResourcesColumns[10], ResourcesColumns[9], ResourcesColumns[1]},
+				Columns: []*schema.Column{ResourcesColumns[11], ResourcesColumns[10], ResourcesColumns[1]},
 			},
 		},
 	}
@@ -453,6 +461,79 @@ var (
 				Name:    "resourcecomponentrelationship_resource_component_id_dependency_id_type",
 				Unique:  true,
 				Columns: []*schema.Column{ResourceComponentRelationshipsColumns[3], ResourceComponentRelationshipsColumns[4], ResourceComponentRelationshipsColumns[2]},
+			},
+		},
+	}
+	// ResourceDefinitionsColumns holds the columns for the "resource_definitions" table.
+	ResourceDefinitionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
+		{Name: "annotations", Type: field.TypeJSON, Nullable: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "type", Type: field.TypeString},
+		{Name: "schema", Type: field.TypeJSON},
+		{Name: "ui_schema", Type: field.TypeJSON},
+	}
+	// ResourceDefinitionsTable holds the schema information for the "resource_definitions" table.
+	ResourceDefinitionsTable = &schema.Table{
+		Name:       "resource_definitions",
+		Columns:    ResourceDefinitionsColumns,
+		PrimaryKey: []*schema.Column{ResourceDefinitionsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "resourcedefinition_type",
+				Unique:  true,
+				Columns: []*schema.Column{ResourceDefinitionsColumns[7]},
+			},
+			{
+				Name:    "resourcedefinition_name",
+				Unique:  true,
+				Columns: []*schema.Column{ResourceDefinitionsColumns[1]},
+			},
+		},
+	}
+	// ResourceDefinitionMatchingRulesColumns holds the columns for the "resource_definition_matching_rules" table.
+	ResourceDefinitionMatchingRulesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "selector", Type: field.TypeJSON},
+		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
+		{Name: "resource_definition_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "template_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+	}
+	// ResourceDefinitionMatchingRulesTable holds the schema information for the "resource_definition_matching_rules" table.
+	ResourceDefinitionMatchingRulesTable = &schema.Table{
+		Name:       "resource_definition_matching_rules",
+		Columns:    ResourceDefinitionMatchingRulesColumns,
+		PrimaryKey: []*schema.Column{ResourceDefinitionMatchingRulesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "resource_definition_matching_rules_resource_definitions_resource_definition",
+				Columns:    []*schema.Column{ResourceDefinitionMatchingRulesColumns[5]},
+				RefColumns: []*schema.Column{ResourceDefinitionsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "resource_definition_matching_rules_template_versions_template",
+				Columns:    []*schema.Column{ResourceDefinitionMatchingRulesColumns[6]},
+				RefColumns: []*schema.Column{TemplateVersionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "resourcedefinitionmatchingrule_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{ResourceDefinitionMatchingRulesColumns[1]},
+			},
+			{
+				Name:    "resourcedefinitionmatchingrule_resource_definition_id_template_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{ResourceDefinitionMatchingRulesColumns[5], ResourceDefinitionMatchingRulesColumns[6], ResourceDefinitionMatchingRulesColumns[2]},
 			},
 		},
 	}
@@ -1143,6 +1224,8 @@ var (
 		ResourcesTable,
 		ResourceComponentsTable,
 		ResourceComponentRelationshipsTable,
+		ResourceDefinitionsTable,
+		ResourceDefinitionMatchingRulesTable,
 		ResourceRelationshipsTable,
 		ResourceRevisionsTable,
 		RolesTable,
@@ -1171,7 +1254,8 @@ func init() {
 	EnvironmentConnectorRelationshipsTable.ForeignKeys[1].RefTable = ConnectorsTable
 	ResourcesTable.ForeignKeys[0].RefTable = EnvironmentsTable
 	ResourcesTable.ForeignKeys[1].RefTable = ProjectsTable
-	ResourcesTable.ForeignKeys[2].RefTable = TemplateVersionsTable
+	ResourcesTable.ForeignKeys[2].RefTable = ResourceDefinitionsTable
+	ResourcesTable.ForeignKeys[3].RefTable = TemplateVersionsTable
 	ResourceComponentsTable.ForeignKeys[0].RefTable = ConnectorsTable
 	ResourceComponentsTable.ForeignKeys[1].RefTable = EnvironmentsTable
 	ResourceComponentsTable.ForeignKeys[2].RefTable = ProjectsTable
@@ -1180,6 +1264,8 @@ func init() {
 	ResourceComponentsTable.ForeignKeys[5].RefTable = ResourceComponentsTable
 	ResourceComponentRelationshipsTable.ForeignKeys[0].RefTable = ResourceComponentsTable
 	ResourceComponentRelationshipsTable.ForeignKeys[1].RefTable = ResourceComponentsTable
+	ResourceDefinitionMatchingRulesTable.ForeignKeys[0].RefTable = ResourceDefinitionsTable
+	ResourceDefinitionMatchingRulesTable.ForeignKeys[1].RefTable = TemplateVersionsTable
 	ResourceRelationshipsTable.ForeignKeys[0].RefTable = ResourcesTable
 	ResourceRelationshipsTable.ForeignKeys[1].RefTable = ResourcesTable
 	ResourceRevisionsTable.ForeignKeys[0].RefTable = EnvironmentsTable

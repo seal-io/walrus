@@ -43,6 +43,8 @@ const (
 	EdgeTemplate = "template"
 	// EdgeResources holds the string denoting the resources edge name in mutations.
 	EdgeResources = "resources"
+	// EdgeResourceDefinitions holds the string denoting the resource_definitions edge name in mutations.
+	EdgeResourceDefinitions = "resource_definitions"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// Table holds the table name of the templateversion in the database.
@@ -61,6 +63,13 @@ const (
 	ResourcesInverseTable = "resources"
 	// ResourcesColumn is the table column denoting the resources relation/edge.
 	ResourcesColumn = "template_id"
+	// ResourceDefinitionsTable is the table that holds the resource_definitions relation/edge.
+	ResourceDefinitionsTable = "resource_definition_matching_rules"
+	// ResourceDefinitionsInverseTable is the table name for the ResourceDefinitionMatchingRule entity.
+	// It exists in this package in order to avoid circular dependency with the "resourcedefinitionmatchingrule" package.
+	ResourceDefinitionsInverseTable = "resource_definition_matching_rules"
+	// ResourceDefinitionsColumn is the table column denoting the resource_definitions relation/edge.
+	ResourceDefinitionsColumn = "template_id"
 	// ProjectTable is the table that holds the project relation/edge.
 	ProjectTable = "template_versions"
 	// ProjectInverseTable is the table name for the Project entity.
@@ -117,7 +126,7 @@ var (
 	// SourceValidator is a validator for the "source" field. It is called by the builders before save.
 	SourceValidator func(string) error
 	// DefaultSchema holds the default value on creation for the "schema" field.
-	DefaultSchema types.Schema
+	DefaultSchema types.TemplateVersionSchema
 	// DefaultUiSchema holds the default value on creation for the "uiSchema" field.
 	DefaultUiSchema types.UISchema
 )
@@ -186,6 +195,20 @@ func ByResources(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByResourceDefinitionsCount orders the results by resource_definitions count.
+func ByResourceDefinitionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newResourceDefinitionsStep(), opts...)
+	}
+}
+
+// ByResourceDefinitions orders the results by resource_definitions terms.
+func ByResourceDefinitions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newResourceDefinitionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByProjectField orders the results by project field.
 func ByProjectField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -204,6 +227,13 @@ func newResourcesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ResourcesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ResourcesTable, ResourcesColumn),
+	)
+}
+func newResourceDefinitionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ResourceDefinitionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, ResourceDefinitionsTable, ResourceDefinitionsColumn),
 	)
 }
 func newProjectStep() *sqlgraph.Step {

@@ -21,6 +21,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/internal"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -48,15 +49,15 @@ func (tvu *TemplateVersionUpdate) SetUpdateTime(t time.Time) *TemplateVersionUpd
 }
 
 // SetSchema sets the "schema" field.
-func (tvu *TemplateVersionUpdate) SetSchema(t types.Schema) *TemplateVersionUpdate {
-	tvu.mutation.SetSchema(t)
+func (tvu *TemplateVersionUpdate) SetSchema(tvs types.TemplateVersionSchema) *TemplateVersionUpdate {
+	tvu.mutation.SetSchema(tvs)
 	return tvu
 }
 
 // SetNillableSchema sets the "schema" field if the given value is not nil.
-func (tvu *TemplateVersionUpdate) SetNillableSchema(t *types.Schema) *TemplateVersionUpdate {
-	if t != nil {
-		tvu.SetSchema(*t)
+func (tvu *TemplateVersionUpdate) SetNillableSchema(tvs *types.TemplateVersionSchema) *TemplateVersionUpdate {
+	if tvs != nil {
+		tvu.SetSchema(*tvs)
 	}
 	return tvu
 }
@@ -90,6 +91,21 @@ func (tvu *TemplateVersionUpdate) AddResources(r ...*Resource) *TemplateVersionU
 	return tvu.AddResourceIDs(ids...)
 }
 
+// AddResourceDefinitionIDs adds the "resource_definitions" edge to the ResourceDefinitionMatchingRule entity by IDs.
+func (tvu *TemplateVersionUpdate) AddResourceDefinitionIDs(ids ...object.ID) *TemplateVersionUpdate {
+	tvu.mutation.AddResourceDefinitionIDs(ids...)
+	return tvu
+}
+
+// AddResourceDefinitions adds the "resource_definitions" edges to the ResourceDefinitionMatchingRule entity.
+func (tvu *TemplateVersionUpdate) AddResourceDefinitions(r ...*ResourceDefinitionMatchingRule) *TemplateVersionUpdate {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return tvu.AddResourceDefinitionIDs(ids...)
+}
+
 // Mutation returns the TemplateVersionMutation object of the builder.
 func (tvu *TemplateVersionUpdate) Mutation() *TemplateVersionMutation {
 	return tvu.mutation
@@ -114,6 +130,27 @@ func (tvu *TemplateVersionUpdate) RemoveResources(r ...*Resource) *TemplateVersi
 		ids[i] = r[i].ID
 	}
 	return tvu.RemoveResourceIDs(ids...)
+}
+
+// ClearResourceDefinitions clears all "resource_definitions" edges to the ResourceDefinitionMatchingRule entity.
+func (tvu *TemplateVersionUpdate) ClearResourceDefinitions() *TemplateVersionUpdate {
+	tvu.mutation.ClearResourceDefinitions()
+	return tvu
+}
+
+// RemoveResourceDefinitionIDs removes the "resource_definitions" edge to ResourceDefinitionMatchingRule entities by IDs.
+func (tvu *TemplateVersionUpdate) RemoveResourceDefinitionIDs(ids ...object.ID) *TemplateVersionUpdate {
+	tvu.mutation.RemoveResourceDefinitionIDs(ids...)
+	return tvu
+}
+
+// RemoveResourceDefinitions removes "resource_definitions" edges to ResourceDefinitionMatchingRule entities.
+func (tvu *TemplateVersionUpdate) RemoveResourceDefinitions(r ...*ResourceDefinitionMatchingRule) *TemplateVersionUpdate {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return tvu.RemoveResourceDefinitionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -163,11 +200,6 @@ func (tvu *TemplateVersionUpdate) check() error {
 	if v, ok := tvu.mutation.Schema(); ok {
 		if err := v.Validate(); err != nil {
 			return &ValidationError{Name: "schema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.schema": %w`, err)}
-		}
-	}
-	if v, ok := tvu.mutation.UiSchema(); ok {
-		if err := v.Validate(); err != nil {
-			return &ValidationError{Name: "uiSchema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.uiSchema": %w`, err)}
 		}
 	}
 	if _, ok := tvu.mutation.TemplateID(); tvu.mutation.TemplateCleared() && !ok {
@@ -298,6 +330,54 @@ func (tvu *TemplateVersionUpdate) sqlSave(ctx context.Context) (n int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if tvu.mutation.ResourceDefinitionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   templateversion.ResourceDefinitionsTable,
+			Columns: []string{templateversion.ResourceDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcedefinitionmatchingrule.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = tvu.schemaConfig.ResourceDefinitionMatchingRule
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tvu.mutation.RemovedResourceDefinitionsIDs(); len(nodes) > 0 && !tvu.mutation.ResourceDefinitionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   templateversion.ResourceDefinitionsTable,
+			Columns: []string{templateversion.ResourceDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcedefinitionmatchingrule.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = tvu.schemaConfig.ResourceDefinitionMatchingRule
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tvu.mutation.ResourceDefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   templateversion.ResourceDefinitionsTable,
+			Columns: []string{templateversion.ResourceDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcedefinitionmatchingrule.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = tvu.schemaConfig.ResourceDefinitionMatchingRule
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = tvu.schemaConfig.TemplateVersion
 	ctx = internal.NewSchemaConfigContext(ctx, tvu.schemaConfig)
 	_spec.AddModifiers(tvu.modifiers...)
@@ -330,15 +410,15 @@ func (tvuo *TemplateVersionUpdateOne) SetUpdateTime(t time.Time) *TemplateVersio
 }
 
 // SetSchema sets the "schema" field.
-func (tvuo *TemplateVersionUpdateOne) SetSchema(t types.Schema) *TemplateVersionUpdateOne {
-	tvuo.mutation.SetSchema(t)
+func (tvuo *TemplateVersionUpdateOne) SetSchema(tvs types.TemplateVersionSchema) *TemplateVersionUpdateOne {
+	tvuo.mutation.SetSchema(tvs)
 	return tvuo
 }
 
 // SetNillableSchema sets the "schema" field if the given value is not nil.
-func (tvuo *TemplateVersionUpdateOne) SetNillableSchema(t *types.Schema) *TemplateVersionUpdateOne {
-	if t != nil {
-		tvuo.SetSchema(*t)
+func (tvuo *TemplateVersionUpdateOne) SetNillableSchema(tvs *types.TemplateVersionSchema) *TemplateVersionUpdateOne {
+	if tvs != nil {
+		tvuo.SetSchema(*tvs)
 	}
 	return tvuo
 }
@@ -372,6 +452,21 @@ func (tvuo *TemplateVersionUpdateOne) AddResources(r ...*Resource) *TemplateVers
 	return tvuo.AddResourceIDs(ids...)
 }
 
+// AddResourceDefinitionIDs adds the "resource_definitions" edge to the ResourceDefinitionMatchingRule entity by IDs.
+func (tvuo *TemplateVersionUpdateOne) AddResourceDefinitionIDs(ids ...object.ID) *TemplateVersionUpdateOne {
+	tvuo.mutation.AddResourceDefinitionIDs(ids...)
+	return tvuo
+}
+
+// AddResourceDefinitions adds the "resource_definitions" edges to the ResourceDefinitionMatchingRule entity.
+func (tvuo *TemplateVersionUpdateOne) AddResourceDefinitions(r ...*ResourceDefinitionMatchingRule) *TemplateVersionUpdateOne {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return tvuo.AddResourceDefinitionIDs(ids...)
+}
+
 // Mutation returns the TemplateVersionMutation object of the builder.
 func (tvuo *TemplateVersionUpdateOne) Mutation() *TemplateVersionMutation {
 	return tvuo.mutation
@@ -396,6 +491,27 @@ func (tvuo *TemplateVersionUpdateOne) RemoveResources(r ...*Resource) *TemplateV
 		ids[i] = r[i].ID
 	}
 	return tvuo.RemoveResourceIDs(ids...)
+}
+
+// ClearResourceDefinitions clears all "resource_definitions" edges to the ResourceDefinitionMatchingRule entity.
+func (tvuo *TemplateVersionUpdateOne) ClearResourceDefinitions() *TemplateVersionUpdateOne {
+	tvuo.mutation.ClearResourceDefinitions()
+	return tvuo
+}
+
+// RemoveResourceDefinitionIDs removes the "resource_definitions" edge to ResourceDefinitionMatchingRule entities by IDs.
+func (tvuo *TemplateVersionUpdateOne) RemoveResourceDefinitionIDs(ids ...object.ID) *TemplateVersionUpdateOne {
+	tvuo.mutation.RemoveResourceDefinitionIDs(ids...)
+	return tvuo
+}
+
+// RemoveResourceDefinitions removes "resource_definitions" edges to ResourceDefinitionMatchingRule entities.
+func (tvuo *TemplateVersionUpdateOne) RemoveResourceDefinitions(r ...*ResourceDefinitionMatchingRule) *TemplateVersionUpdateOne {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return tvuo.RemoveResourceDefinitionIDs(ids...)
 }
 
 // Where appends a list predicates to the TemplateVersionUpdate builder.
@@ -458,11 +574,6 @@ func (tvuo *TemplateVersionUpdateOne) check() error {
 	if v, ok := tvuo.mutation.Schema(); ok {
 		if err := v.Validate(); err != nil {
 			return &ValidationError{Name: "schema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.schema": %w`, err)}
-		}
-	}
-	if v, ok := tvuo.mutation.UiSchema(); ok {
-		if err := v.Validate(); err != nil {
-			return &ValidationError{Name: "uiSchema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.uiSchema": %w`, err)}
 		}
 	}
 	if _, ok := tvuo.mutation.TemplateID(); tvuo.mutation.TemplateCleared() && !ok {
@@ -698,6 +809,54 @@ func (tvuo *TemplateVersionUpdateOne) sqlSave(ctx context.Context) (_node *Templ
 			},
 		}
 		edge.Schema = tvuo.schemaConfig.Resource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if tvuo.mutation.ResourceDefinitionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   templateversion.ResourceDefinitionsTable,
+			Columns: []string{templateversion.ResourceDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcedefinitionmatchingrule.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = tvuo.schemaConfig.ResourceDefinitionMatchingRule
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tvuo.mutation.RemovedResourceDefinitionsIDs(); len(nodes) > 0 && !tvuo.mutation.ResourceDefinitionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   templateversion.ResourceDefinitionsTable,
+			Columns: []string{templateversion.ResourceDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcedefinitionmatchingrule.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = tvuo.schemaConfig.ResourceDefinitionMatchingRule
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tvuo.mutation.ResourceDefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   templateversion.ResourceDefinitionsTable,
+			Columns: []string{templateversion.ResourceDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcedefinitionmatchingrule.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = tvuo.schemaConfig.ResourceDefinitionMatchingRule
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

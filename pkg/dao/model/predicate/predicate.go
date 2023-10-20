@@ -42,6 +42,12 @@ type ResourceComponent func(*sql.Selector)
 // ResourceComponentRelationship is the predicate function for resourcecomponentrelationship builders.
 type ResourceComponentRelationship func(*sql.Selector)
 
+// ResourceDefinition is the predicate function for resourcedefinition builders.
+type ResourceDefinition func(*sql.Selector)
+
+// ResourceDefinitionMatchingRule is the predicate function for resourcedefinitionmatchingrule builders.
+type ResourceDefinitionMatchingRule func(*sql.Selector)
+
 // ResourceRelationship is the predicate function for resourcerelationship builders.
 type ResourceRelationship func(*sql.Selector)
 
