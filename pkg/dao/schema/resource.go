@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
+	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/walrus/pkg/dao/entx"
@@ -43,7 +44,20 @@ func (Resource) Fields() []ent.Field {
 			Immutable(),
 		object.IDField("template_id").
 			Comment("ID of the template version to which the resource belong.").
-			NotEmpty(),
+			Optional().
+			Nillable(),
+		field.String("type").
+			Comment("Type of the resource referring to a resource definition type.").
+			Immutable().
+			Optional(),
+		object.IDField("resource_definition_id").
+			Comment("ID of the resource definition to which the resource use.").
+			Immutable().
+			Optional().
+			Nillable().
+			Annotations(
+				entx.SkipIO(),
+			),
 		property.ValuesField("attributes").
 			Comment("Attributes to configure the template.").
 			Optional(),
@@ -76,10 +90,24 @@ func (Resource) Edges() []ent.Edge {
 			Field("template_id").
 			Comment("Template to which the resource belongs.").
 			Unique().
-			Required().
 			Annotations(
 				entx.SkipInput(entx.WithQuery()),
 				entx.Input(entx.WithCreate(), entx.WithUpdate())),
+		// ResourceDefinition 1-* Resources.
+		edge.From("resource_definition", ResourceDefinition.Type).
+			Ref("resources").
+			Field("resource_definition_id").
+			Comment("Definition of the resource.").
+			Unique().
+			Immutable().
+			Annotations(
+				entx.SkipInput(entx.WithQuery()),
+				entx.Input(entx.WithCreate(), entx.WithUpdate()),
+				entx.SkipOutput(),
+			).
+			// Hide the edge from the API, but generate the input for validation and edge resolution.
+			// Mapping from type to definition_edge.type is done in the API layer.
+			StructTag(`json:"-"`),
 		// Resource 1-* ResourceRevisions.
 		edge.To("revisions", ResourceRevision.Type).
 			Comment("Revisions that belong to the resource.").
