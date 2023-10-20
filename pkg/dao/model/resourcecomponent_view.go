@@ -1132,14 +1132,14 @@ func (rcui *ResourceComponentUpdateInputs) ValidateWith(ctx context.Context, cs 
 
 // ResourceComponentOutput holds the output of the ResourceComponent entity.
 type ResourceComponentOutput struct {
-	ID           object.ID                           `json:"id,omitempty"`
-	CreateTime   *time.Time                          `json:"createTime,omitempty"`
-	UpdateTime   *time.Time                          `json:"updateTime,omitempty"`
-	Mode         string                              `json:"mode,omitempty"`
-	Type         string                              `json:"type,omitempty"`
-	Name         string                              `json:"name,omitempty"`
-	DeployerType string                              `json:"deployerType,omitempty"`
-	Shape        string                              `json:"shape,omitempty"`
+	ID           object.ID                             `json:"id,omitempty"`
+	CreateTime   *time.Time                            `json:"createTime,omitempty"`
+	UpdateTime   *time.Time                            `json:"updateTime,omitempty"`
+	Mode         string                                `json:"mode,omitempty"`
+	Type         string                                `json:"type,omitempty"`
+	Name         string                                `json:"name,omitempty"`
+	DeployerType string                                `json:"deployerType,omitempty"`
+	Shape        string                                `json:"shape,omitempty"`
 	Status       types.ResourceComponentStatus         `json:"status,omitempty"`
 	Keys         *types.ResourceComponentOperationKeys `json:"keys,omitempty"`
 

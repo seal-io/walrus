@@ -30,6 +30,8 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponentrelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/role"
@@ -79,6 +81,10 @@ type Client struct {
 	ResourceComponent *ResourceComponentClient
 	// ResourceComponentRelationship is the client for interacting with the ResourceComponentRelationship builders.
 	ResourceComponentRelationship *ResourceComponentRelationshipClient
+	// ResourceDefinition is the client for interacting with the ResourceDefinition builders.
+	ResourceDefinition *ResourceDefinitionClient
+	// ResourceDefinitionMatchingRule is the client for interacting with the ResourceDefinitionMatchingRule builders.
+	ResourceDefinitionMatchingRule *ResourceDefinitionMatchingRuleClient
 	// ResourceRelationship is the client for interacting with the ResourceRelationship builders.
 	ResourceRelationship *ResourceRelationshipClient
 	// ResourceRevision is the client for interacting with the ResourceRevision builders.
@@ -135,6 +141,8 @@ func (c *Client) init() {
 	c.Resource = NewResourceClient(c.config)
 	c.ResourceComponent = NewResourceComponentClient(c.config)
 	c.ResourceComponentRelationship = NewResourceComponentRelationshipClient(c.config)
+	c.ResourceDefinition = NewResourceDefinitionClient(c.config)
+	c.ResourceDefinitionMatchingRule = NewResourceDefinitionMatchingRuleClient(c.config)
 	c.ResourceRelationship = NewResourceRelationshipClient(c.config)
 	c.ResourceRevision = NewResourceRevisionClient(c.config)
 	c.Role = NewRoleClient(c.config)
@@ -246,6 +254,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Resource:                         NewResourceClient(cfg),
 		ResourceComponent:                NewResourceComponentClient(cfg),
 		ResourceComponentRelationship:    NewResourceComponentRelationshipClient(cfg),
+		ResourceDefinition:               NewResourceDefinitionClient(cfg),
+		ResourceDefinitionMatchingRule:   NewResourceDefinitionMatchingRuleClient(cfg),
 		ResourceRelationship:             NewResourceRelationshipClient(cfg),
 		ResourceRevision:                 NewResourceRevisionClient(cfg),
 		Role:                             NewRoleClient(cfg),
@@ -292,6 +302,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Resource:                         NewResourceClient(cfg),
 		ResourceComponent:                NewResourceComponentClient(cfg),
 		ResourceComponentRelationship:    NewResourceComponentRelationshipClient(cfg),
+		ResourceDefinition:               NewResourceDefinitionClient(cfg),
+		ResourceDefinitionMatchingRule:   NewResourceDefinitionMatchingRuleClient(cfg),
 		ResourceRelationship:             NewResourceRelationshipClient(cfg),
 		ResourceRevision:                 NewResourceRevisionClient(cfg),
 		Role:                             NewRoleClient(cfg),
@@ -339,10 +351,11 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Catalog, c.Connector, c.CostReport, c.DistributeLock, c.Environment,
 		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Resource,
-		c.ResourceComponent, c.ResourceComponentRelationship, c.ResourceRelationship,
-		c.ResourceRevision, c.Role, c.Setting, c.Subject, c.SubjectRoleRelationship,
-		c.Template, c.TemplateVersion, c.Token, c.Variable, c.Workflow,
-		c.WorkflowExecution, c.WorkflowStage, c.WorkflowStageExecution, c.WorkflowStep,
+		c.ResourceComponent, c.ResourceComponentRelationship, c.ResourceDefinition,
+		c.ResourceDefinitionMatchingRule, c.ResourceRelationship, c.ResourceRevision,
+		c.Role, c.Setting, c.Subject, c.SubjectRoleRelationship, c.Template,
+		c.TemplateVersion, c.Token, c.Variable, c.Workflow, c.WorkflowExecution,
+		c.WorkflowStage, c.WorkflowStageExecution, c.WorkflowStep,
 		c.WorkflowStepExecution,
 	} {
 		n.Use(hooks...)
@@ -355,10 +368,11 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Catalog, c.Connector, c.CostReport, c.DistributeLock, c.Environment,
 		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Resource,
-		c.ResourceComponent, c.ResourceComponentRelationship, c.ResourceRelationship,
-		c.ResourceRevision, c.Role, c.Setting, c.Subject, c.SubjectRoleRelationship,
-		c.Template, c.TemplateVersion, c.Token, c.Variable, c.Workflow,
-		c.WorkflowExecution, c.WorkflowStage, c.WorkflowStageExecution, c.WorkflowStep,
+		c.ResourceComponent, c.ResourceComponentRelationship, c.ResourceDefinition,
+		c.ResourceDefinitionMatchingRule, c.ResourceRelationship, c.ResourceRevision,
+		c.Role, c.Setting, c.Subject, c.SubjectRoleRelationship, c.Template,
+		c.TemplateVersion, c.Token, c.Variable, c.Workflow, c.WorkflowExecution,
+		c.WorkflowStage, c.WorkflowStageExecution, c.WorkflowStep,
 		c.WorkflowStepExecution,
 	} {
 		n.Intercept(interceptors...)
@@ -418,6 +432,16 @@ func (c *Client) ResourceComponents() *ResourceComponentClient {
 // ResourceComponentRelationships implements the ClientSet.
 func (c *Client) ResourceComponentRelationships() *ResourceComponentRelationshipClient {
 	return c.ResourceComponentRelationship
+}
+
+// ResourceDefinitions implements the ClientSet.
+func (c *Client) ResourceDefinitions() *ResourceDefinitionClient {
+	return c.ResourceDefinition
+}
+
+// ResourceDefinitionMatchingRules implements the ClientSet.
+func (c *Client) ResourceDefinitionMatchingRules() *ResourceDefinitionMatchingRuleClient {
+	return c.ResourceDefinitionMatchingRule
 }
 
 // ResourceRelationships implements the ClientSet.
@@ -568,6 +592,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ResourceComponent.mutate(ctx, m)
 	case *ResourceComponentRelationshipMutation:
 		return c.ResourceComponentRelationship.mutate(ctx, m)
+	case *ResourceDefinitionMutation:
+		return c.ResourceDefinition.mutate(ctx, m)
+	case *ResourceDefinitionMatchingRuleMutation:
+		return c.ResourceDefinitionMatchingRule.mutate(ctx, m)
 	case *ResourceRelationshipMutation:
 		return c.ResourceRelationship.mutate(ctx, m)
 	case *ResourceRevisionMutation:
@@ -2299,6 +2327,25 @@ func (c *ResourceClient) QueryTemplate(r *Resource) *TemplateVersionQuery {
 	return query
 }
 
+// QueryResourceDefinition queries the resource_definition edge of a Resource.
+func (c *ResourceClient) QueryResourceDefinition(r *Resource) *ResourceDefinitionQuery {
+	query := (&ResourceDefinitionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resource.Table, resource.FieldID, id),
+			sqlgraph.To(resourcedefinition.Table, resourcedefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, resource.ResourceDefinitionTable, resource.ResourceDefinitionColumn),
+		)
+		schemaConfig := r.schemaConfig
+		step.To.Schema = schemaConfig.ResourceDefinition
+		step.Edge.Schema = schemaConfig.Resource
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryRevisions queries the revisions edge of a Resource.
 func (c *ResourceClient) QueryRevisions(r *Resource) *ResourceRevisionQuery {
 	query := (&ResourceRevisionClient{config: c.config}).Query()
@@ -2828,6 +2875,320 @@ func (c *ResourceComponentRelationshipClient) mutate(ctx context.Context, m *Res
 		return (&ResourceComponentRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("model: unknown ResourceComponentRelationship mutation op: %q", m.Op())
+	}
+}
+
+// ResourceDefinitionClient is a client for the ResourceDefinition schema.
+type ResourceDefinitionClient struct {
+	config
+}
+
+// NewResourceDefinitionClient returns a client for the ResourceDefinition from the given config.
+func NewResourceDefinitionClient(c config) *ResourceDefinitionClient {
+	return &ResourceDefinitionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `resourcedefinition.Hooks(f(g(h())))`.
+func (c *ResourceDefinitionClient) Use(hooks ...Hook) {
+	c.hooks.ResourceDefinition = append(c.hooks.ResourceDefinition, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `resourcedefinition.Intercept(f(g(h())))`.
+func (c *ResourceDefinitionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ResourceDefinition = append(c.inters.ResourceDefinition, interceptors...)
+}
+
+// Create returns a builder for creating a ResourceDefinition entity.
+func (c *ResourceDefinitionClient) Create() *ResourceDefinitionCreate {
+	mutation := newResourceDefinitionMutation(c.config, OpCreate)
+	return &ResourceDefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ResourceDefinition entities.
+func (c *ResourceDefinitionClient) CreateBulk(builders ...*ResourceDefinitionCreate) *ResourceDefinitionCreateBulk {
+	return &ResourceDefinitionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ResourceDefinition.
+func (c *ResourceDefinitionClient) Update() *ResourceDefinitionUpdate {
+	mutation := newResourceDefinitionMutation(c.config, OpUpdate)
+	return &ResourceDefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ResourceDefinitionClient) UpdateOne(rd *ResourceDefinition) *ResourceDefinitionUpdateOne {
+	mutation := newResourceDefinitionMutation(c.config, OpUpdateOne, withResourceDefinition(rd))
+	return &ResourceDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ResourceDefinitionClient) UpdateOneID(id object.ID) *ResourceDefinitionUpdateOne {
+	mutation := newResourceDefinitionMutation(c.config, OpUpdateOne, withResourceDefinitionID(id))
+	return &ResourceDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ResourceDefinition.
+func (c *ResourceDefinitionClient) Delete() *ResourceDefinitionDelete {
+	mutation := newResourceDefinitionMutation(c.config, OpDelete)
+	return &ResourceDefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ResourceDefinitionClient) DeleteOne(rd *ResourceDefinition) *ResourceDefinitionDeleteOne {
+	return c.DeleteOneID(rd.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ResourceDefinitionClient) DeleteOneID(id object.ID) *ResourceDefinitionDeleteOne {
+	builder := c.Delete().Where(resourcedefinition.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ResourceDefinitionDeleteOne{builder}
+}
+
+// Query returns a query builder for ResourceDefinition.
+func (c *ResourceDefinitionClient) Query() *ResourceDefinitionQuery {
+	return &ResourceDefinitionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeResourceDefinition},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ResourceDefinition entity by its id.
+func (c *ResourceDefinitionClient) Get(ctx context.Context, id object.ID) (*ResourceDefinition, error) {
+	return c.Query().Where(resourcedefinition.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ResourceDefinitionClient) GetX(ctx context.Context, id object.ID) *ResourceDefinition {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryMatchingRules queries the matching_rules edge of a ResourceDefinition.
+func (c *ResourceDefinitionClient) QueryMatchingRules(rd *ResourceDefinition) *ResourceDefinitionMatchingRuleQuery {
+	query := (&ResourceDefinitionMatchingRuleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rd.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcedefinition.Table, resourcedefinition.FieldID, id),
+			sqlgraph.To(resourcedefinitionmatchingrule.Table, resourcedefinitionmatchingrule.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, resourcedefinition.MatchingRulesTable, resourcedefinition.MatchingRulesColumn),
+		)
+		schemaConfig := rd.schemaConfig
+		step.To.Schema = schemaConfig.ResourceDefinitionMatchingRule
+		step.Edge.Schema = schemaConfig.ResourceDefinitionMatchingRule
+		fromV = sqlgraph.Neighbors(rd.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryResources queries the resources edge of a ResourceDefinition.
+func (c *ResourceDefinitionClient) QueryResources(rd *ResourceDefinition) *ResourceQuery {
+	query := (&ResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rd.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcedefinition.Table, resourcedefinition.FieldID, id),
+			sqlgraph.To(resource.Table, resource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, resourcedefinition.ResourcesTable, resourcedefinition.ResourcesColumn),
+		)
+		schemaConfig := rd.schemaConfig
+		step.To.Schema = schemaConfig.Resource
+		step.Edge.Schema = schemaConfig.Resource
+		fromV = sqlgraph.Neighbors(rd.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ResourceDefinitionClient) Hooks() []Hook {
+	hooks := c.hooks.ResourceDefinition
+	return append(hooks[:len(hooks):len(hooks)], resourcedefinition.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *ResourceDefinitionClient) Interceptors() []Interceptor {
+	return c.inters.ResourceDefinition
+}
+
+func (c *ResourceDefinitionClient) mutate(ctx context.Context, m *ResourceDefinitionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ResourceDefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ResourceDefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ResourceDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ResourceDefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown ResourceDefinition mutation op: %q", m.Op())
+	}
+}
+
+// ResourceDefinitionMatchingRuleClient is a client for the ResourceDefinitionMatchingRule schema.
+type ResourceDefinitionMatchingRuleClient struct {
+	config
+}
+
+// NewResourceDefinitionMatchingRuleClient returns a client for the ResourceDefinitionMatchingRule from the given config.
+func NewResourceDefinitionMatchingRuleClient(c config) *ResourceDefinitionMatchingRuleClient {
+	return &ResourceDefinitionMatchingRuleClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `resourcedefinitionmatchingrule.Hooks(f(g(h())))`.
+func (c *ResourceDefinitionMatchingRuleClient) Use(hooks ...Hook) {
+	c.hooks.ResourceDefinitionMatchingRule = append(c.hooks.ResourceDefinitionMatchingRule, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `resourcedefinitionmatchingrule.Intercept(f(g(h())))`.
+func (c *ResourceDefinitionMatchingRuleClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ResourceDefinitionMatchingRule = append(c.inters.ResourceDefinitionMatchingRule, interceptors...)
+}
+
+// Create returns a builder for creating a ResourceDefinitionMatchingRule entity.
+func (c *ResourceDefinitionMatchingRuleClient) Create() *ResourceDefinitionMatchingRuleCreate {
+	mutation := newResourceDefinitionMatchingRuleMutation(c.config, OpCreate)
+	return &ResourceDefinitionMatchingRuleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ResourceDefinitionMatchingRule entities.
+func (c *ResourceDefinitionMatchingRuleClient) CreateBulk(builders ...*ResourceDefinitionMatchingRuleCreate) *ResourceDefinitionMatchingRuleCreateBulk {
+	return &ResourceDefinitionMatchingRuleCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ResourceDefinitionMatchingRule.
+func (c *ResourceDefinitionMatchingRuleClient) Update() *ResourceDefinitionMatchingRuleUpdate {
+	mutation := newResourceDefinitionMatchingRuleMutation(c.config, OpUpdate)
+	return &ResourceDefinitionMatchingRuleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ResourceDefinitionMatchingRuleClient) UpdateOne(rdmr *ResourceDefinitionMatchingRule) *ResourceDefinitionMatchingRuleUpdateOne {
+	mutation := newResourceDefinitionMatchingRuleMutation(c.config, OpUpdateOne, withResourceDefinitionMatchingRule(rdmr))
+	return &ResourceDefinitionMatchingRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ResourceDefinitionMatchingRuleClient) UpdateOneID(id object.ID) *ResourceDefinitionMatchingRuleUpdateOne {
+	mutation := newResourceDefinitionMatchingRuleMutation(c.config, OpUpdateOne, withResourceDefinitionMatchingRuleID(id))
+	return &ResourceDefinitionMatchingRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ResourceDefinitionMatchingRule.
+func (c *ResourceDefinitionMatchingRuleClient) Delete() *ResourceDefinitionMatchingRuleDelete {
+	mutation := newResourceDefinitionMatchingRuleMutation(c.config, OpDelete)
+	return &ResourceDefinitionMatchingRuleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ResourceDefinitionMatchingRuleClient) DeleteOne(rdmr *ResourceDefinitionMatchingRule) *ResourceDefinitionMatchingRuleDeleteOne {
+	return c.DeleteOneID(rdmr.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ResourceDefinitionMatchingRuleClient) DeleteOneID(id object.ID) *ResourceDefinitionMatchingRuleDeleteOne {
+	builder := c.Delete().Where(resourcedefinitionmatchingrule.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ResourceDefinitionMatchingRuleDeleteOne{builder}
+}
+
+// Query returns a query builder for ResourceDefinitionMatchingRule.
+func (c *ResourceDefinitionMatchingRuleClient) Query() *ResourceDefinitionMatchingRuleQuery {
+	return &ResourceDefinitionMatchingRuleQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeResourceDefinitionMatchingRule},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ResourceDefinitionMatchingRule entity by its id.
+func (c *ResourceDefinitionMatchingRuleClient) Get(ctx context.Context, id object.ID) (*ResourceDefinitionMatchingRule, error) {
+	return c.Query().Where(resourcedefinitionmatchingrule.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ResourceDefinitionMatchingRuleClient) GetX(ctx context.Context, id object.ID) *ResourceDefinitionMatchingRule {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryResourceDefinition queries the resource_definition edge of a ResourceDefinitionMatchingRule.
+func (c *ResourceDefinitionMatchingRuleClient) QueryResourceDefinition(rdmr *ResourceDefinitionMatchingRule) *ResourceDefinitionQuery {
+	query := (&ResourceDefinitionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rdmr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcedefinitionmatchingrule.Table, resourcedefinitionmatchingrule.FieldID, id),
+			sqlgraph.To(resourcedefinition.Table, resourcedefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, resourcedefinitionmatchingrule.ResourceDefinitionTable, resourcedefinitionmatchingrule.ResourceDefinitionColumn),
+		)
+		schemaConfig := rdmr.schemaConfig
+		step.To.Schema = schemaConfig.ResourceDefinition
+		step.Edge.Schema = schemaConfig.ResourceDefinitionMatchingRule
+		fromV = sqlgraph.Neighbors(rdmr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTemplate queries the template edge of a ResourceDefinitionMatchingRule.
+func (c *ResourceDefinitionMatchingRuleClient) QueryTemplate(rdmr *ResourceDefinitionMatchingRule) *TemplateVersionQuery {
+	query := (&TemplateVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rdmr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcedefinitionmatchingrule.Table, resourcedefinitionmatchingrule.FieldID, id),
+			sqlgraph.To(templateversion.Table, templateversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, resourcedefinitionmatchingrule.TemplateTable, resourcedefinitionmatchingrule.TemplateColumn),
+		)
+		schemaConfig := rdmr.schemaConfig
+		step.To.Schema = schemaConfig.TemplateVersion
+		step.Edge.Schema = schemaConfig.ResourceDefinitionMatchingRule
+		fromV = sqlgraph.Neighbors(rdmr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ResourceDefinitionMatchingRuleClient) Hooks() []Hook {
+	hooks := c.hooks.ResourceDefinitionMatchingRule
+	return append(hooks[:len(hooks):len(hooks)], resourcedefinitionmatchingrule.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *ResourceDefinitionMatchingRuleClient) Interceptors() []Interceptor {
+	return c.inters.ResourceDefinitionMatchingRule
+}
+
+func (c *ResourceDefinitionMatchingRuleClient) mutate(ctx context.Context, m *ResourceDefinitionMatchingRuleMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ResourceDefinitionMatchingRuleCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ResourceDefinitionMatchingRuleUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ResourceDefinitionMatchingRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ResourceDefinitionMatchingRuleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown ResourceDefinitionMatchingRule mutation op: %q", m.Op())
 	}
 }
 
@@ -4058,6 +4419,25 @@ func (c *TemplateVersionClient) QueryResources(tv *TemplateVersion) *ResourceQue
 		schemaConfig := tv.schemaConfig
 		step.To.Schema = schemaConfig.Resource
 		step.Edge.Schema = schemaConfig.Resource
+		fromV = sqlgraph.Neighbors(tv.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryResourceDefinitions queries the resource_definitions edge of a TemplateVersion.
+func (c *TemplateVersionClient) QueryResourceDefinitions(tv *TemplateVersion) *ResourceDefinitionMatchingRuleQuery {
+	query := (&ResourceDefinitionMatchingRuleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := tv.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(templateversion.Table, templateversion.FieldID, id),
+			sqlgraph.To(resourcedefinitionmatchingrule.Table, resourcedefinitionmatchingrule.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, templateversion.ResourceDefinitionsTable, templateversion.ResourceDefinitionsColumn),
+		)
+		schemaConfig := tv.schemaConfig
+		step.To.Schema = schemaConfig.ResourceDefinitionMatchingRule
+		step.Edge.Schema = schemaConfig.ResourceDefinitionMatchingRule
 		fromV = sqlgraph.Neighbors(tv.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -5436,18 +5816,20 @@ type (
 	hooks struct {
 		Catalog, Connector, CostReport, DistributeLock, Environment,
 		EnvironmentConnectorRelationship, Perspective, Project, Resource,
-		ResourceComponent, ResourceComponentRelationship, ResourceRelationship,
-		ResourceRevision, Role, Setting, Subject, SubjectRoleRelationship, Template,
-		TemplateVersion, Token, Variable, Workflow, WorkflowExecution, WorkflowStage,
-		WorkflowStageExecution, WorkflowStep, WorkflowStepExecution []ent.Hook
+		ResourceComponent, ResourceComponentRelationship, ResourceDefinition,
+		ResourceDefinitionMatchingRule, ResourceRelationship, ResourceRevision, Role,
+		Setting, Subject, SubjectRoleRelationship, Template, TemplateVersion, Token,
+		Variable, Workflow, WorkflowExecution, WorkflowStage, WorkflowStageExecution,
+		WorkflowStep, WorkflowStepExecution []ent.Hook
 	}
 	inters struct {
 		Catalog, Connector, CostReport, DistributeLock, Environment,
 		EnvironmentConnectorRelationship, Perspective, Project, Resource,
-		ResourceComponent, ResourceComponentRelationship, ResourceRelationship,
-		ResourceRevision, Role, Setting, Subject, SubjectRoleRelationship, Template,
-		TemplateVersion, Token, Variable, Workflow, WorkflowExecution, WorkflowStage,
-		WorkflowStageExecution, WorkflowStep, WorkflowStepExecution []ent.Interceptor
+		ResourceComponent, ResourceComponentRelationship, ResourceDefinition,
+		ResourceDefinitionMatchingRule, ResourceRelationship, ResourceRevision, Role,
+		Setting, Subject, SubjectRoleRelationship, Template, TemplateVersion, Token,
+		Variable, Workflow, WorkflowExecution, WorkflowStage, WorkflowStageExecution,
+		WorkflowStep, WorkflowStepExecution []ent.Interceptor
 	}
 )
 

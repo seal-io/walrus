@@ -39,7 +39,7 @@ type TemplateVersion struct {
 	// Source of the template.
 	Source string `json:"source,omitempty"`
 	// Generated schema and data of the template.
-	Schema types.Schema `json:"schema,omitempty"`
+	Schema types.TemplateVersionSchema `json:"schema,omitempty"`
 	// ui schema of the template.
 	UiSchema types.UISchema `json:"uiSchema,omitempty"`
 	// ID of the project to belong, empty means for all projects.
@@ -56,11 +56,13 @@ type TemplateVersionEdges struct {
 	Template *Template `json:"template,omitempty"`
 	// Resources that belong to the template version.
 	Resources []*Resource `json:"resources,omitempty"`
+	// ResourceDefinitions holds the value of the resource_definitions edge.
+	ResourceDefinitions []*ResourceDefinitionMatchingRule `json:"resource_definitions,omitempty"`
 	// Project to which the template version belongs.
 	Project *Project `json:"project,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // TemplateOrErr returns the Template value or an error if the edge
@@ -85,10 +87,19 @@ func (e TemplateVersionEdges) ResourcesOrErr() ([]*Resource, error) {
 	return nil, &NotLoadedError{edge: "resources"}
 }
 
+// ResourceDefinitionsOrErr returns the ResourceDefinitions value or an error if the edge
+// was not loaded in eager-loading.
+func (e TemplateVersionEdges) ResourceDefinitionsOrErr() ([]*ResourceDefinitionMatchingRule, error) {
+	if e.loadedTypes[2] {
+		return e.ResourceDefinitions, nil
+	}
+	return nil, &NotLoadedError{edge: "resource_definitions"}
+}
+
 // ProjectOrErr returns the Project value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e TemplateVersionEdges) ProjectOrErr() (*Project, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		if e.Project == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: project.Label}
@@ -213,6 +224,11 @@ func (tv *TemplateVersion) QueryTemplate() *TemplateQuery {
 // QueryResources queries the "resources" edge of the TemplateVersion entity.
 func (tv *TemplateVersion) QueryResources() *ResourceQuery {
 	return NewTemplateVersionClient(tv.config).QueryResources(tv)
+}
+
+// QueryResourceDefinitions queries the "resource_definitions" edge of the TemplateVersion entity.
+func (tv *TemplateVersion) QueryResourceDefinitions() *ResourceDefinitionMatchingRuleQuery {
+	return NewTemplateVersionClient(tv.config).QueryResourceDefinitions(tv)
 }
 
 // QueryProject queries the "project" edge of the TemplateVersion entity.

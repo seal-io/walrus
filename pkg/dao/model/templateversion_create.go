@@ -18,6 +18,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
@@ -87,15 +88,15 @@ func (tvc *TemplateVersionCreate) SetSource(s string) *TemplateVersionCreate {
 }
 
 // SetSchema sets the "schema" field.
-func (tvc *TemplateVersionCreate) SetSchema(t types.Schema) *TemplateVersionCreate {
-	tvc.mutation.SetSchema(t)
+func (tvc *TemplateVersionCreate) SetSchema(tvs types.TemplateVersionSchema) *TemplateVersionCreate {
+	tvc.mutation.SetSchema(tvs)
 	return tvc
 }
 
 // SetNillableSchema sets the "schema" field if the given value is not nil.
-func (tvc *TemplateVersionCreate) SetNillableSchema(t *types.Schema) *TemplateVersionCreate {
-	if t != nil {
-		tvc.SetSchema(*t)
+func (tvc *TemplateVersionCreate) SetNillableSchema(tvs *types.TemplateVersionSchema) *TemplateVersionCreate {
+	if tvs != nil {
+		tvc.SetSchema(*tvs)
 	}
 	return tvc
 }
@@ -152,6 +153,21 @@ func (tvc *TemplateVersionCreate) AddResources(r ...*Resource) *TemplateVersionC
 		ids[i] = r[i].ID
 	}
 	return tvc.AddResourceIDs(ids...)
+}
+
+// AddResourceDefinitionIDs adds the "resource_definitions" edge to the ResourceDefinitionMatchingRule entity by IDs.
+func (tvc *TemplateVersionCreate) AddResourceDefinitionIDs(ids ...object.ID) *TemplateVersionCreate {
+	tvc.mutation.AddResourceDefinitionIDs(ids...)
+	return tvc
+}
+
+// AddResourceDefinitions adds the "resource_definitions" edges to the ResourceDefinitionMatchingRule entity.
+func (tvc *TemplateVersionCreate) AddResourceDefinitions(r ...*ResourceDefinitionMatchingRule) *TemplateVersionCreate {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return tvc.AddResourceDefinitionIDs(ids...)
 }
 
 // SetProject sets the "project" edge to the Project entity.
@@ -272,11 +288,6 @@ func (tvc *TemplateVersionCreate) check() error {
 	if _, ok := tvc.mutation.UiSchema(); !ok {
 		return &ValidationError{Name: "uiSchema", err: errors.New(`model: missing required field "TemplateVersion.uiSchema"`)}
 	}
-	if v, ok := tvc.mutation.UiSchema(); ok {
-		if err := v.Validate(); err != nil {
-			return &ValidationError{Name: "uiSchema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.uiSchema": %w`, err)}
-		}
-	}
 	if _, ok := tvc.mutation.TemplateID(); !ok {
 		return &ValidationError{Name: "template", err: errors.New(`model: missing required edge "TemplateVersion.template"`)}
 	}
@@ -375,6 +386,23 @@ func (tvc *TemplateVersionCreate) createSpec() (*TemplateVersion, *sqlgraph.Crea
 			},
 		}
 		edge.Schema = tvc.schemaConfig.Resource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := tvc.mutation.ResourceDefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   templateversion.ResourceDefinitionsTable,
+			Columns: []string{templateversion.ResourceDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcedefinitionmatchingrule.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = tvc.schemaConfig.ResourceDefinitionMatchingRule
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -777,7 +805,7 @@ func (u *TemplateVersionUpsert) UpdateUpdateTime() *TemplateVersionUpsert {
 }
 
 // SetSchema sets the "schema" field.
-func (u *TemplateVersionUpsert) SetSchema(v types.Schema) *TemplateVersionUpsert {
+func (u *TemplateVersionUpsert) SetSchema(v types.TemplateVersionSchema) *TemplateVersionUpsert {
 	u.Set(templateversion.FieldSchema, v)
 	return u
 }
@@ -881,7 +909,7 @@ func (u *TemplateVersionUpsertOne) UpdateUpdateTime() *TemplateVersionUpsertOne 
 }
 
 // SetSchema sets the "schema" field.
-func (u *TemplateVersionUpsertOne) SetSchema(v types.Schema) *TemplateVersionUpsertOne {
+func (u *TemplateVersionUpsertOne) SetSchema(v types.TemplateVersionSchema) *TemplateVersionUpsertOne {
 	return u.Update(func(s *TemplateVersionUpsert) {
 		s.SetSchema(v)
 	})
@@ -1154,7 +1182,7 @@ func (u *TemplateVersionUpsertBulk) UpdateUpdateTime() *TemplateVersionUpsertBul
 }
 
 // SetSchema sets the "schema" field.
-func (u *TemplateVersionUpsertBulk) SetSchema(v types.Schema) *TemplateVersionUpsertBulk {
+func (u *TemplateVersionUpsertBulk) SetSchema(v types.TemplateVersionSchema) *TemplateVersionUpsertBulk {
 	return u.Update(func(s *TemplateVersionUpsert) {
 		s.SetSchema(v)
 	})

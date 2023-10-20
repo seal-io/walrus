@@ -16,6 +16,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
@@ -47,7 +48,11 @@ type Resource struct {
 	// ID of the environment to which the resource deploys.
 	EnvironmentID object.ID `json:"environment_id,omitempty"`
 	// ID of the template version to which the resource belong.
-	TemplateID object.ID `json:"template_id,omitempty"`
+	TemplateID *object.ID `json:"template_id,omitempty"`
+	// Type of the resource referring to a resource definition type.
+	Type string `json:"type,omitempty"`
+	// ID of the resource definition to which the resource use.
+	ResourceDefinitionID *object.ID `json:"resource_definition_id,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -64,6 +69,8 @@ type ResourceEdges struct {
 	Environment *Environment `json:"environment,omitempty"`
 	// Template to which the resource belongs.
 	Template *TemplateVersion `json:"template,omitempty"`
+	// Definition of the resource.
+	ResourceDefinition *ResourceDefinition `json:"-"`
 	// Revisions that belong to the resource.
 	Revisions []*ResourceRevision `json:"revisions,omitempty"`
 	// Components that belong to the resource.
@@ -72,7 +79,7 @@ type ResourceEdges struct {
 	Dependencies []*ResourceRelationship `json:"dependencies,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 }
 
 // ProjectOrErr returns the Project value or an error if the edge
@@ -114,10 +121,23 @@ func (e ResourceEdges) TemplateOrErr() (*TemplateVersion, error) {
 	return nil, &NotLoadedError{edge: "template"}
 }
 
+// ResourceDefinitionOrErr returns the ResourceDefinition value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ResourceEdges) ResourceDefinitionOrErr() (*ResourceDefinition, error) {
+	if e.loadedTypes[3] {
+		if e.ResourceDefinition == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: resourcedefinition.Label}
+		}
+		return e.ResourceDefinition, nil
+	}
+	return nil, &NotLoadedError{edge: "resource_definition"}
+}
+
 // RevisionsOrErr returns the Revisions value or an error if the edge
 // was not loaded in eager-loading.
 func (e ResourceEdges) RevisionsOrErr() ([]*ResourceRevision, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.Revisions, nil
 	}
 	return nil, &NotLoadedError{edge: "revisions"}
@@ -126,7 +146,7 @@ func (e ResourceEdges) RevisionsOrErr() ([]*ResourceRevision, error) {
 // ComponentsOrErr returns the Components value or an error if the edge
 // was not loaded in eager-loading.
 func (e ResourceEdges) ComponentsOrErr() ([]*ResourceComponent, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.Components, nil
 	}
 	return nil, &NotLoadedError{edge: "components"}
@@ -135,7 +155,7 @@ func (e ResourceEdges) ComponentsOrErr() ([]*ResourceComponent, error) {
 // DependenciesOrErr returns the Dependencies value or an error if the edge
 // was not loaded in eager-loading.
 func (e ResourceEdges) DependenciesOrErr() ([]*ResourceRelationship, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.Dependencies, nil
 	}
 	return nil, &NotLoadedError{edge: "dependencies"}
@@ -146,13 +166,15 @@ func (*Resource) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case resource.FieldTemplateID, resource.FieldResourceDefinitionID:
+			values[i] = &sql.NullScanner{S: new(object.ID)}
 		case resource.FieldLabels, resource.FieldAnnotations, resource.FieldStatus:
 			values[i] = new([]byte)
-		case resource.FieldID, resource.FieldProjectID, resource.FieldEnvironmentID, resource.FieldTemplateID:
+		case resource.FieldID, resource.FieldProjectID, resource.FieldEnvironmentID:
 			values[i] = new(object.ID)
 		case resource.FieldAttributes:
 			values[i] = new(property.Values)
-		case resource.FieldName, resource.FieldDescription:
+		case resource.FieldName, resource.FieldDescription, resource.FieldType:
 			values[i] = new(sql.NullString)
 		case resource.FieldCreateTime, resource.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -240,10 +262,24 @@ func (r *Resource) assignValues(columns []string, values []any) error {
 				r.EnvironmentID = *value
 			}
 		case resource.FieldTemplateID:
-			if value, ok := values[i].(*object.ID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field template_id", values[i])
-			} else if value != nil {
-				r.TemplateID = *value
+			} else if value.Valid {
+				r.TemplateID = new(object.ID)
+				*r.TemplateID = *value.S.(*object.ID)
+			}
+		case resource.FieldType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field type", values[i])
+			} else if value.Valid {
+				r.Type = value.String
+			}
+		case resource.FieldResourceDefinitionID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field resource_definition_id", values[i])
+			} else if value.Valid {
+				r.ResourceDefinitionID = new(object.ID)
+				*r.ResourceDefinitionID = *value.S.(*object.ID)
 			}
 		case resource.FieldAttributes:
 			if value, ok := values[i].(*property.Values); !ok {
@@ -277,6 +313,11 @@ func (r *Resource) QueryEnvironment() *EnvironmentQuery {
 // QueryTemplate queries the "template" edge of the Resource entity.
 func (r *Resource) QueryTemplate() *TemplateVersionQuery {
 	return NewResourceClient(r.config).QueryTemplate(r)
+}
+
+// QueryResourceDefinition queries the "resource_definition" edge of the Resource entity.
+func (r *Resource) QueryResourceDefinition() *ResourceDefinitionQuery {
+	return NewResourceClient(r.config).QueryResourceDefinition(r)
 }
 
 // QueryRevisions queries the "revisions" edge of the Resource entity.
@@ -348,8 +389,18 @@ func (r *Resource) String() string {
 	builder.WriteString("environment_id=")
 	builder.WriteString(fmt.Sprintf("%v", r.EnvironmentID))
 	builder.WriteString(", ")
-	builder.WriteString("template_id=")
-	builder.WriteString(fmt.Sprintf("%v", r.TemplateID))
+	if v := r.TemplateID; v != nil {
+		builder.WriteString("template_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("type=")
+	builder.WriteString(r.Type)
+	builder.WriteString(", ")
+	if v := r.ResourceDefinitionID; v != nil {
+		builder.WriteString("resource_definition_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("attributes=")
 	builder.WriteString(fmt.Sprintf("%v", r.Attributes))

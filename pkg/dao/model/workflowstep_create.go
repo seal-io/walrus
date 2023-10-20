@@ -119,19 +119,19 @@ func (wsc *WorkflowStepCreate) SetWorkflowStageID(o object.ID) *WorkflowStepCrea
 }
 
 // SetAttributes sets the "attributes" field.
-func (wsc *WorkflowStepCreate) SetAttributes(m map[string]interface{}) *WorkflowStepCreate {
+func (wsc *WorkflowStepCreate) SetAttributes(m map[string]any) *WorkflowStepCreate {
 	wsc.mutation.SetAttributes(m)
 	return wsc
 }
 
 // SetInputs sets the "inputs" field.
-func (wsc *WorkflowStepCreate) SetInputs(m map[string]interface{}) *WorkflowStepCreate {
+func (wsc *WorkflowStepCreate) SetInputs(m map[string]any) *WorkflowStepCreate {
 	wsc.mutation.SetInputs(m)
 	return wsc
 }
 
 // SetOutputs sets the "outputs" field.
-func (wsc *WorkflowStepCreate) SetOutputs(m map[string]interface{}) *WorkflowStepCreate {
+func (wsc *WorkflowStepCreate) SetOutputs(m map[string]any) *WorkflowStepCreate {
 	wsc.mutation.SetOutputs(m)
 	return wsc
 }
@@ -921,7 +921,7 @@ func (u *WorkflowStepUpsert) UpdateUpdateTime() *WorkflowStepUpsert {
 }
 
 // SetAttributes sets the "attributes" field.
-func (u *WorkflowStepUpsert) SetAttributes(v map[string]interface{}) *WorkflowStepUpsert {
+func (u *WorkflowStepUpsert) SetAttributes(v map[string]any) *WorkflowStepUpsert {
 	u.Set(workflowstep.FieldAttributes, v)
 	return u
 }
@@ -939,7 +939,7 @@ func (u *WorkflowStepUpsert) ClearAttributes() *WorkflowStepUpsert {
 }
 
 // SetInputs sets the "inputs" field.
-func (u *WorkflowStepUpsert) SetInputs(v map[string]interface{}) *WorkflowStepUpsert {
+func (u *WorkflowStepUpsert) SetInputs(v map[string]any) *WorkflowStepUpsert {
 	u.Set(workflowstep.FieldInputs, v)
 	return u
 }
@@ -957,7 +957,7 @@ func (u *WorkflowStepUpsert) ClearInputs() *WorkflowStepUpsert {
 }
 
 // SetOutputs sets the "outputs" field.
-func (u *WorkflowStepUpsert) SetOutputs(v map[string]interface{}) *WorkflowStepUpsert {
+func (u *WorkflowStepUpsert) SetOutputs(v map[string]any) *WorkflowStepUpsert {
 	u.Set(workflowstep.FieldOutputs, v)
 	return u
 }
@@ -1184,7 +1184,7 @@ func (u *WorkflowStepUpsertOne) UpdateUpdateTime() *WorkflowStepUpsertOne {
 }
 
 // SetAttributes sets the "attributes" field.
-func (u *WorkflowStepUpsertOne) SetAttributes(v map[string]interface{}) *WorkflowStepUpsertOne {
+func (u *WorkflowStepUpsertOne) SetAttributes(v map[string]any) *WorkflowStepUpsertOne {
 	return u.Update(func(s *WorkflowStepUpsert) {
 		s.SetAttributes(v)
 	})
@@ -1205,7 +1205,7 @@ func (u *WorkflowStepUpsertOne) ClearAttributes() *WorkflowStepUpsertOne {
 }
 
 // SetInputs sets the "inputs" field.
-func (u *WorkflowStepUpsertOne) SetInputs(v map[string]interface{}) *WorkflowStepUpsertOne {
+func (u *WorkflowStepUpsertOne) SetInputs(v map[string]any) *WorkflowStepUpsertOne {
 	return u.Update(func(s *WorkflowStepUpsert) {
 		s.SetInputs(v)
 	})
@@ -1226,7 +1226,7 @@ func (u *WorkflowStepUpsertOne) ClearInputs() *WorkflowStepUpsertOne {
 }
 
 // SetOutputs sets the "outputs" field.
-func (u *WorkflowStepUpsertOne) SetOutputs(v map[string]interface{}) *WorkflowStepUpsertOne {
+func (u *WorkflowStepUpsertOne) SetOutputs(v map[string]any) *WorkflowStepUpsertOne {
 	return u.Update(func(s *WorkflowStepUpsert) {
 		s.SetOutputs(v)
 	})
@@ -1632,7 +1632,7 @@ func (u *WorkflowStepUpsertBulk) UpdateUpdateTime() *WorkflowStepUpsertBulk {
 }
 
 // SetAttributes sets the "attributes" field.
-func (u *WorkflowStepUpsertBulk) SetAttributes(v map[string]interface{}) *WorkflowStepUpsertBulk {
+func (u *WorkflowStepUpsertBulk) SetAttributes(v map[string]any) *WorkflowStepUpsertBulk {
 	return u.Update(func(s *WorkflowStepUpsert) {
 		s.SetAttributes(v)
 	})
@@ -1653,7 +1653,7 @@ func (u *WorkflowStepUpsertBulk) ClearAttributes() *WorkflowStepUpsertBulk {
 }
 
 // SetInputs sets the "inputs" field.
-func (u *WorkflowStepUpsertBulk) SetInputs(v map[string]interface{}) *WorkflowStepUpsertBulk {
+func (u *WorkflowStepUpsertBulk) SetInputs(v map[string]any) *WorkflowStepUpsertBulk {
 	return u.Update(func(s *WorkflowStepUpsert) {
 		s.SetInputs(v)
 	})
@@ -1674,7 +1674,7 @@ func (u *WorkflowStepUpsertBulk) ClearInputs() *WorkflowStepUpsertBulk {
 }
 
 // SetOutputs sets the "outputs" field.
-func (u *WorkflowStepUpsertBulk) SetOutputs(v map[string]interface{}) *WorkflowStepUpsertBulk {
+func (u *WorkflowStepUpsertBulk) SetOutputs(v map[string]any) *WorkflowStepUpsertBulk {
 	return u.Update(func(s *WorkflowStepUpsert) {
 		s.SetOutputs(v)
 	})

@@ -121,6 +121,20 @@ func (ru *ResourceUpdate) SetTemplateID(o object.ID) *ResourceUpdate {
 	return ru
 }
 
+// SetNillableTemplateID sets the "template_id" field if the given value is not nil.
+func (ru *ResourceUpdate) SetNillableTemplateID(o *object.ID) *ResourceUpdate {
+	if o != nil {
+		ru.SetTemplateID(*o)
+	}
+	return ru
+}
+
+// ClearTemplateID clears the value of the "template_id" field.
+func (ru *ResourceUpdate) ClearTemplateID() *ResourceUpdate {
+	ru.mutation.ClearTemplateID()
+	return ru
+}
+
 // SetAttributes sets the "attributes" field.
 func (ru *ResourceUpdate) SetAttributes(pr property.Values) *ResourceUpdate {
 	ru.mutation.SetAttributes(pr)
@@ -301,19 +315,11 @@ func (ru *ResourceUpdate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (ru *ResourceUpdate) check() error {
-	if v, ok := ru.mutation.TemplateID(); ok {
-		if err := resource.TemplateIDValidator(string(v)); err != nil {
-			return &ValidationError{Name: "template_id", err: fmt.Errorf(`model: validator failed for field "Resource.template_id": %w`, err)}
-		}
-	}
 	if _, ok := ru.mutation.ProjectID(); ru.mutation.ProjectCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "Resource.project"`)
 	}
 	if _, ok := ru.mutation.EnvironmentID(); ru.mutation.EnvironmentCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "Resource.environment"`)
-	}
-	if _, ok := ru.mutation.TemplateID(); ru.mutation.TemplateCleared() && !ok {
-		return errors.New(`model: clearing a required unique edge "Resource.template"`)
 	}
 	return nil
 }
@@ -367,7 +373,11 @@ func (ru *ResourceUpdate) Set(obj *Resource) *ResourceUpdate {
 	if !reflect.ValueOf(obj.Status).IsZero() {
 		ru.SetStatus(obj.Status)
 	}
-	ru.SetTemplateID(obj.TemplateID)
+	if obj.TemplateID != nil {
+		ru.SetTemplateID(*obj.TemplateID)
+	} else {
+		ru.ClearTemplateID()
+	}
 	if !reflect.ValueOf(obj.Attributes).IsZero() {
 		ru.SetAttributes(obj.Attributes)
 	} else {
@@ -429,6 +439,9 @@ func (ru *ResourceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if ru.mutation.StatusCleared() {
 		_spec.ClearField(resource.FieldStatus, field.TypeJSON)
+	}
+	if ru.mutation.TypeCleared() {
+		_spec.ClearField(resource.FieldType, field.TypeString)
 	}
 	if value, ok := ru.mutation.Attributes(); ok {
 		_spec.SetField(resource.FieldAttributes, field.TypeOther, value)
@@ -712,6 +725,20 @@ func (ruo *ResourceUpdateOne) SetTemplateID(o object.ID) *ResourceUpdateOne {
 	return ruo
 }
 
+// SetNillableTemplateID sets the "template_id" field if the given value is not nil.
+func (ruo *ResourceUpdateOne) SetNillableTemplateID(o *object.ID) *ResourceUpdateOne {
+	if o != nil {
+		ruo.SetTemplateID(*o)
+	}
+	return ruo
+}
+
+// ClearTemplateID clears the value of the "template_id" field.
+func (ruo *ResourceUpdateOne) ClearTemplateID() *ResourceUpdateOne {
+	ruo.mutation.ClearTemplateID()
+	return ruo
+}
+
 // SetAttributes sets the "attributes" field.
 func (ruo *ResourceUpdateOne) SetAttributes(pr property.Values) *ResourceUpdateOne {
 	ruo.mutation.SetAttributes(pr)
@@ -905,19 +932,11 @@ func (ruo *ResourceUpdateOne) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (ruo *ResourceUpdateOne) check() error {
-	if v, ok := ruo.mutation.TemplateID(); ok {
-		if err := resource.TemplateIDValidator(string(v)); err != nil {
-			return &ValidationError{Name: "template_id", err: fmt.Errorf(`model: validator failed for field "Resource.template_id": %w`, err)}
-		}
-	}
 	if _, ok := ruo.mutation.ProjectID(); ruo.mutation.ProjectCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "Resource.project"`)
 	}
 	if _, ok := ruo.mutation.EnvironmentID(); ruo.mutation.EnvironmentCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "Resource.environment"`)
-	}
-	if _, ok := ruo.mutation.TemplateID(); ruo.mutation.TemplateCleared() && !ok {
-		return errors.New(`model: clearing a required unique edge "Resource.template"`)
 	}
 	return nil
 }
@@ -989,8 +1008,12 @@ func (ruo *ResourceUpdateOne) Set(obj *Resource) *ResourceUpdateOne {
 					ruo.SetStatus(obj.Status)
 				}
 			}
-			if db.TemplateID != obj.TemplateID {
-				ruo.SetTemplateID(obj.TemplateID)
+			if obj.TemplateID != nil {
+				if !reflect.DeepEqual(db.TemplateID, obj.TemplateID) {
+					ruo.SetTemplateID(*obj.TemplateID)
+				}
+			} else {
+				ruo.ClearTemplateID()
 			}
 			if !reflect.ValueOf(obj.Attributes).IsZero() {
 				if !reflect.DeepEqual(db.Attributes, obj.Attributes) {
@@ -1163,6 +1186,9 @@ func (ruo *ResourceUpdateOne) sqlSave(ctx context.Context) (_node *Resource, err
 	}
 	if ruo.mutation.StatusCleared() {
 		_spec.ClearField(resource.FieldStatus, field.TypeJSON)
+	}
+	if ruo.mutation.TypeCleared() {
+		_spec.ClearField(resource.FieldType, field.TypeString)
 	}
 	if value, ok := ruo.mutation.Attributes(); ok {
 		_spec.SetField(resource.FieldAttributes, field.TypeOther, value)

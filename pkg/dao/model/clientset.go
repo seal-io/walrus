@@ -42,6 +42,12 @@ type ClientSet interface {
 	// ResourceComponentRelationships returns the client for interacting with the ResourceComponentRelationship builders.
 	ResourceComponentRelationships() *ResourceComponentRelationshipClient
 
+	// ResourceDefinitions returns the client for interacting with the ResourceDefinition builders.
+	ResourceDefinitions() *ResourceDefinitionClient
+
+	// ResourceDefinitionMatchingRules returns the client for interacting with the ResourceDefinitionMatchingRule builders.
+	ResourceDefinitionMatchingRules() *ResourceDefinitionMatchingRuleClient
+
 	// ResourceRelationships returns the client for interacting with the ResourceRelationship builders.
 	ResourceRelationships() *ResourceRelationshipClient
 
@@ -171,6 +177,18 @@ type ResourceComponentClientGetter interface {
 type ResourceComponentRelationshipClientGetter interface {
 	// ResourceComponentRelationships returns the client for interacting with the ResourceComponentRelationship builders.
 	ResourceComponentRelationships() *ResourceComponentRelationshipClient
+}
+
+// ResourceDefinitionClientGetter is an interface that allows getting ResourceDefinitionClient.
+type ResourceDefinitionClientGetter interface {
+	// ResourceDefinitions returns the client for interacting with the ResourceDefinition builders.
+	ResourceDefinitions() *ResourceDefinitionClient
+}
+
+// ResourceDefinitionMatchingRuleClientGetter is an interface that allows getting ResourceDefinitionMatchingRuleClient.
+type ResourceDefinitionMatchingRuleClientGetter interface {
+	// ResourceDefinitionMatchingRules returns the client for interacting with the ResourceDefinitionMatchingRule builders.
+	ResourceDefinitionMatchingRules() *ResourceDefinitionMatchingRuleClient
 }
 
 // ResourceRelationshipClientGetter is an interface that allows getting ResourceRelationshipClient.

@@ -39,6 +39,10 @@ type Tx struct {
 	ResourceComponent *ResourceComponentClient
 	// ResourceComponentRelationship is the client for interacting with the ResourceComponentRelationship builders.
 	ResourceComponentRelationship *ResourceComponentRelationshipClient
+	// ResourceDefinition is the client for interacting with the ResourceDefinition builders.
+	ResourceDefinition *ResourceDefinitionClient
+	// ResourceDefinitionMatchingRule is the client for interacting with the ResourceDefinitionMatchingRule builders.
+	ResourceDefinitionMatchingRule *ResourceDefinitionMatchingRuleClient
 	// ResourceRelationship is the client for interacting with the ResourceRelationship builders.
 	ResourceRelationship *ResourceRelationshipClient
 	// ResourceRevision is the client for interacting with the ResourceRevision builders.
@@ -213,6 +217,8 @@ func (tx *Tx) init() {
 	tx.Resource = NewResourceClient(tx.config)
 	tx.ResourceComponent = NewResourceComponentClient(tx.config)
 	tx.ResourceComponentRelationship = NewResourceComponentRelationshipClient(tx.config)
+	tx.ResourceDefinition = NewResourceDefinitionClient(tx.config)
+	tx.ResourceDefinitionMatchingRule = NewResourceDefinitionMatchingRuleClient(tx.config)
 	tx.ResourceRelationship = NewResourceRelationshipClient(tx.config)
 	tx.ResourceRevision = NewResourceRevisionClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
@@ -347,6 +353,16 @@ func (tx *Tx) ResourceComponentRelationships() *ResourceComponentRelationshipCli
 	return tx.ResourceComponentRelationship
 }
 
+// ResourceDefinitions implements the ClientSet.
+func (tx *Tx) ResourceDefinitions() *ResourceDefinitionClient {
+	return tx.ResourceDefinition
+}
+
+// ResourceDefinitionMatchingRules implements the ClientSet.
+func (tx *Tx) ResourceDefinitionMatchingRules() *ResourceDefinitionMatchingRuleClient {
+	return tx.ResourceDefinitionMatchingRule
+}
+
 // ResourceRelationships implements the ClientSet.
 func (tx *Tx) ResourceRelationships() *ResourceRelationshipClient {
 	return tx.ResourceRelationship
@@ -445,6 +461,8 @@ func (tx *Tx) Intercept(interceptors ...Interceptor) {
 	tx.Resource.Intercept(interceptors...)
 	tx.ResourceComponent.Intercept(interceptors...)
 	tx.ResourceComponentRelationship.Intercept(interceptors...)
+	tx.ResourceDefinition.Intercept(interceptors...)
+	tx.ResourceDefinitionMatchingRule.Intercept(interceptors...)
 	tx.ResourceRelationship.Intercept(interceptors...)
 	tx.ResourceRevision.Intercept(interceptors...)
 	tx.Role.Intercept(interceptors...)
@@ -500,6 +518,8 @@ func (tx *Tx) Use(hooks ...Hook) {
 	tx.Resource.Use(hooks...)
 	tx.ResourceComponent.Use(hooks...)
 	tx.ResourceComponentRelationship.Use(hooks...)
+	tx.ResourceDefinition.Use(hooks...)
+	tx.ResourceDefinitionMatchingRule.Use(hooks...)
 	tx.ResourceRelationship.Use(hooks...)
 	tx.ResourceRevision.Use(hooks...)
 	tx.Role.Use(hooks...)

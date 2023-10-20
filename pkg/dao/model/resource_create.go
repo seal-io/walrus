@@ -21,6 +21,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
@@ -131,6 +132,42 @@ func (rc *ResourceCreate) SetTemplateID(o object.ID) *ResourceCreate {
 	return rc
 }
 
+// SetNillableTemplateID sets the "template_id" field if the given value is not nil.
+func (rc *ResourceCreate) SetNillableTemplateID(o *object.ID) *ResourceCreate {
+	if o != nil {
+		rc.SetTemplateID(*o)
+	}
+	return rc
+}
+
+// SetType sets the "type" field.
+func (rc *ResourceCreate) SetType(s string) *ResourceCreate {
+	rc.mutation.SetType(s)
+	return rc
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (rc *ResourceCreate) SetNillableType(s *string) *ResourceCreate {
+	if s != nil {
+		rc.SetType(*s)
+	}
+	return rc
+}
+
+// SetResourceDefinitionID sets the "resource_definition_id" field.
+func (rc *ResourceCreate) SetResourceDefinitionID(o object.ID) *ResourceCreate {
+	rc.mutation.SetResourceDefinitionID(o)
+	return rc
+}
+
+// SetNillableResourceDefinitionID sets the "resource_definition_id" field if the given value is not nil.
+func (rc *ResourceCreate) SetNillableResourceDefinitionID(o *object.ID) *ResourceCreate {
+	if o != nil {
+		rc.SetResourceDefinitionID(*o)
+	}
+	return rc
+}
+
 // SetAttributes sets the "attributes" field.
 func (rc *ResourceCreate) SetAttributes(pr property.Values) *ResourceCreate {
 	rc.mutation.SetAttributes(pr)
@@ -156,6 +193,11 @@ func (rc *ResourceCreate) SetEnvironment(e *Environment) *ResourceCreate {
 // SetTemplate sets the "template" edge to the TemplateVersion entity.
 func (rc *ResourceCreate) SetTemplate(t *TemplateVersion) *ResourceCreate {
 	return rc.SetTemplateID(t.ID)
+}
+
+// SetResourceDefinition sets the "resource_definition" edge to the ResourceDefinition entity.
+func (rc *ResourceCreate) SetResourceDefinition(r *ResourceDefinition) *ResourceCreate {
+	return rc.SetResourceDefinitionID(r.ID)
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ResourceRevision entity by IDs.
@@ -297,22 +339,11 @@ func (rc *ResourceCreate) check() error {
 			return &ValidationError{Name: "environment_id", err: fmt.Errorf(`model: validator failed for field "Resource.environment_id": %w`, err)}
 		}
 	}
-	if _, ok := rc.mutation.TemplateID(); !ok {
-		return &ValidationError{Name: "template_id", err: errors.New(`model: missing required field "Resource.template_id"`)}
-	}
-	if v, ok := rc.mutation.TemplateID(); ok {
-		if err := resource.TemplateIDValidator(string(v)); err != nil {
-			return &ValidationError{Name: "template_id", err: fmt.Errorf(`model: validator failed for field "Resource.template_id": %w`, err)}
-		}
-	}
 	if _, ok := rc.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "Resource.project"`)}
 	}
 	if _, ok := rc.mutation.EnvironmentID(); !ok {
 		return &ValidationError{Name: "environment", err: errors.New(`model: missing required edge "Resource.environment"`)}
-	}
-	if _, ok := rc.mutation.TemplateID(); !ok {
-		return &ValidationError{Name: "template", err: errors.New(`model: missing required edge "Resource.template"`)}
 	}
 	return nil
 }
@@ -379,6 +410,10 @@ func (rc *ResourceCreate) createSpec() (*Resource, *sqlgraph.CreateSpec) {
 		_spec.SetField(resource.FieldStatus, field.TypeJSON, value)
 		_node.Status = value
 	}
+	if value, ok := rc.mutation.GetType(); ok {
+		_spec.SetField(resource.FieldType, field.TypeString, value)
+		_node.Type = value
+	}
 	if value, ok := rc.mutation.Attributes(); ok {
 		_spec.SetField(resource.FieldAttributes, field.TypeOther, value)
 		_node.Attributes = value
@@ -434,7 +469,25 @@ func (rc *ResourceCreate) createSpec() (*Resource, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.TemplateID = nodes[0]
+		_node.TemplateID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rc.mutation.ResourceDefinitionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   resource.ResourceDefinitionTable,
+			Columns: []string{resource.ResourceDefinitionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcedefinition.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = rc.schemaConfig.Resource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ResourceDefinitionID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := rc.mutation.RevisionsIDs(); len(nodes) > 0 {
@@ -514,7 +567,6 @@ func (rc *ResourceCreate) Set(obj *Resource) *ResourceCreate {
 	rc.SetName(obj.Name)
 	rc.SetProjectID(obj.ProjectID)
 	rc.SetEnvironmentID(obj.EnvironmentID)
-	rc.SetTemplateID(obj.TemplateID)
 
 	// Optional.
 	if obj.Description != "" {
@@ -534,6 +586,15 @@ func (rc *ResourceCreate) Set(obj *Resource) *ResourceCreate {
 	}
 	if !reflect.ValueOf(obj.Status).IsZero() {
 		rc.SetStatus(obj.Status)
+	}
+	if obj.TemplateID != nil {
+		rc.SetTemplateID(*obj.TemplateID)
+	}
+	if obj.Type != "" {
+		rc.SetType(obj.Type)
+	}
+	if obj.ResourceDefinitionID != nil {
+		rc.SetResourceDefinitionID(*obj.ResourceDefinitionID)
 	}
 	if !reflect.ValueOf(obj.Attributes).IsZero() {
 		rc.SetAttributes(obj.Attributes)
@@ -603,6 +664,12 @@ func (rc *ResourceCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Con
 		}
 		if _, set := rc.mutation.Field(resource.FieldTemplateID); set {
 			obj.TemplateID = x.TemplateID
+		}
+		if _, set := rc.mutation.Field(resource.FieldType); set {
+			obj.Type = x.Type
+		}
+		if _, set := rc.mutation.Field(resource.FieldResourceDefinitionID); set {
+			obj.ResourceDefinitionID = x.ResourceDefinitionID
 		}
 		if _, set := rc.mutation.Field(resource.FieldAttributes); set {
 			obj.Attributes = x.Attributes
@@ -738,6 +805,12 @@ func (rcb *ResourceCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx contex
 			}
 			if _, set := rcb.builders[i].mutation.Field(resource.FieldTemplateID); set {
 				objs[i].TemplateID = x[i].TemplateID
+			}
+			if _, set := rcb.builders[i].mutation.Field(resource.FieldType); set {
+				objs[i].Type = x[i].Type
+			}
+			if _, set := rcb.builders[i].mutation.Field(resource.FieldResourceDefinitionID); set {
+				objs[i].ResourceDefinitionID = x[i].ResourceDefinitionID
 			}
 			if _, set := rcb.builders[i].mutation.Field(resource.FieldAttributes); set {
 				objs[i].Attributes = x[i].Attributes
@@ -964,6 +1037,12 @@ func (u *ResourceUpsert) UpdateTemplateID() *ResourceUpsert {
 	return u
 }
 
+// ClearTemplateID clears the value of the "template_id" field.
+func (u *ResourceUpsert) ClearTemplateID() *ResourceUpsert {
+	u.SetNull(resource.FieldTemplateID)
+	return u
+}
+
 // SetAttributes sets the "attributes" field.
 func (u *ResourceUpsert) SetAttributes(v property.Values) *ResourceUpsert {
 	u.Set(resource.FieldAttributes, v)
@@ -1010,6 +1089,12 @@ func (u *ResourceUpsertOne) UpdateNewValues() *ResourceUpsertOne {
 		}
 		if _, exists := u.create.mutation.EnvironmentID(); exists {
 			s.SetIgnore(resource.FieldEnvironmentID)
+		}
+		if _, exists := u.create.mutation.GetType(); exists {
+			s.SetIgnore(resource.FieldType)
+		}
+		if _, exists := u.create.mutation.ResourceDefinitionID(); exists {
+			s.SetIgnore(resource.FieldResourceDefinitionID)
 		}
 	}))
 	return u
@@ -1151,6 +1236,13 @@ func (u *ResourceUpsertOne) SetTemplateID(v object.ID) *ResourceUpsertOne {
 func (u *ResourceUpsertOne) UpdateTemplateID() *ResourceUpsertOne {
 	return u.Update(func(s *ResourceUpsert) {
 		s.UpdateTemplateID()
+	})
+}
+
+// ClearTemplateID clears the value of the "template_id" field.
+func (u *ResourceUpsertOne) ClearTemplateID() *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.ClearTemplateID()
 	})
 }
 
@@ -1368,6 +1460,12 @@ func (u *ResourceUpsertBulk) UpdateNewValues() *ResourceUpsertBulk {
 			if _, exists := b.mutation.EnvironmentID(); exists {
 				s.SetIgnore(resource.FieldEnvironmentID)
 			}
+			if _, exists := b.mutation.GetType(); exists {
+				s.SetIgnore(resource.FieldType)
+			}
+			if _, exists := b.mutation.ResourceDefinitionID(); exists {
+				s.SetIgnore(resource.FieldResourceDefinitionID)
+			}
 		}
 	}))
 	return u
@@ -1509,6 +1607,13 @@ func (u *ResourceUpsertBulk) SetTemplateID(v object.ID) *ResourceUpsertBulk {
 func (u *ResourceUpsertBulk) UpdateTemplateID() *ResourceUpsertBulk {
 	return u.Update(func(s *ResourceUpsert) {
 		s.UpdateTemplateID()
+	})
+}
+
+// ClearTemplateID clears the value of the "template_id" field.
+func (u *ResourceUpsertBulk) ClearTemplateID() *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.ClearTemplateID()
 	})
 }
 

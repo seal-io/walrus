@@ -144,6 +144,30 @@ func (f ResourceComponentRelationshipFunc) Mutate(ctx context.Context, m model.M
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ResourceComponentRelationshipMutation", m)
 }
 
+// The ResourceDefinitionFunc type is an adapter to allow the use of ordinary
+// function as ResourceDefinition mutator.
+type ResourceDefinitionFunc func(context.Context, *model.ResourceDefinitionMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ResourceDefinitionFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.ResourceDefinitionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ResourceDefinitionMutation", m)
+}
+
+// The ResourceDefinitionMatchingRuleFunc type is an adapter to allow the use of ordinary
+// function as ResourceDefinitionMatchingRule mutator.
+type ResourceDefinitionMatchingRuleFunc func(context.Context, *model.ResourceDefinitionMatchingRuleMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ResourceDefinitionMatchingRuleFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.ResourceDefinitionMatchingRuleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ResourceDefinitionMatchingRuleMutation", m)
+}
+
 // The ResourceRelationshipFunc type is an adapter to allow the use of ordinary
 // function as ResourceRelationship mutator.
 type ResourceRelationshipFunc func(context.Context, *model.ResourceRelationshipMutation) (model.Value, error)

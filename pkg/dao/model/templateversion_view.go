@@ -33,7 +33,7 @@ type TemplateVersionCreateInput struct {
 	// Name of the template.
 	Name string `path:"-" query:"-" json:"name"`
 	// Generated schema and data of the template.
-	Schema types.Schema `path:"-" query:"-" json:"schema,omitempty"`
+	Schema types.TemplateVersionSchema `path:"-" query:"-" json:"schema,omitempty"`
 	// ui schema of the template.
 	UiSchema types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
 }
@@ -102,7 +102,7 @@ type TemplateVersionCreateInputsItem struct {
 	// Name of the template.
 	Name string `path:"-" query:"-" json:"name"`
 	// Generated schema and data of the template.
-	Schema types.Schema `path:"-" query:"-" json:"schema,omitempty"`
+	Schema types.TemplateVersionSchema `path:"-" query:"-" json:"schema,omitempty"`
 	// ui schema of the template.
 	UiSchema types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
 }
@@ -549,7 +549,7 @@ type TemplateVersionUpdateInput struct {
 	TemplateVersionQueryInput `path:",inline" query:"-" json:"-"`
 
 	// Generated schema and data of the template.
-	Schema types.Schema `path:"-" query:"-" json:"schema,omitempty"`
+	Schema types.TemplateVersionSchema `path:"-" query:"-" json:"schema,omitempty"`
 	// ui schema of the template.
 	UiSchema types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
 }
@@ -604,7 +604,7 @@ type TemplateVersionUpdateInputsItem struct {
 	Version string `path:"-" query:"-" json:"version,omitempty"`
 
 	// Generated schema and data of the template.
-	Schema types.Schema `path:"-" query:"-" json:"schema"`
+	Schema types.TemplateVersionSchema `path:"-" query:"-" json:"schema"`
 	// ui schema of the template.
 	UiSchema types.UISchema `path:"-" query:"-" json:"uiSchema"`
 }
@@ -786,14 +786,14 @@ func (tvui *TemplateVersionUpdateInputs) ValidateWith(ctx context.Context, cs Cl
 
 // TemplateVersionOutput holds the output of the TemplateVersion entity.
 type TemplateVersionOutput struct {
-	ID         object.ID      `json:"id,omitempty"`
-	CreateTime *time.Time     `json:"createTime,omitempty"`
-	UpdateTime *time.Time     `json:"updateTime,omitempty"`
-	Name       string         `json:"name,omitempty"`
-	Version    string         `json:"version,omitempty"`
-	Source     string         `json:"source,omitempty"`
-	Schema     types.Schema   `json:"schema,omitempty"`
-	UiSchema   types.UISchema `json:"uiSchema,omitempty"`
+	ID         object.ID                   `json:"id,omitempty"`
+	CreateTime *time.Time                  `json:"createTime,omitempty"`
+	UpdateTime *time.Time                  `json:"updateTime,omitempty"`
+	Name       string                      `json:"name,omitempty"`
+	Version    string                      `json:"version,omitempty"`
+	Source     string                      `json:"source,omitempty"`
+	Schema     types.TemplateVersionSchema `json:"schema,omitempty"`
+	UiSchema   types.UISchema              `json:"uiSchema,omitempty"`
 
 	Template *TemplateOutput `json:"template,omitempty"`
 	Project  *ProjectOutput  `json:"project,omitempty"`

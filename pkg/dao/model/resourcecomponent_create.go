@@ -148,15 +148,15 @@ func (rcc *ResourceComponentCreate) SetShape(s string) *ResourceComponentCreate 
 }
 
 // SetStatus sets the "status" field.
-func (rcc *ResourceComponentCreate) SetStatus(trs types.ResourceComponentStatus) *ResourceComponentCreate {
-	rcc.mutation.SetStatus(trs)
+func (rcc *ResourceComponentCreate) SetStatus(tcs types.ResourceComponentStatus) *ResourceComponentCreate {
+	rcc.mutation.SetStatus(tcs)
 	return rcc
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (rcc *ResourceComponentCreate) SetNillableStatus(trs *types.ResourceComponentStatus) *ResourceComponentCreate {
-	if trs != nil {
-		rcc.SetStatus(*trs)
+func (rcc *ResourceComponentCreate) SetNillableStatus(tcs *types.ResourceComponentStatus) *ResourceComponentCreate {
+	if tcs != nil {
+		rcc.SetStatus(*tcs)
 	}
 	return rcc
 }

@@ -20,6 +20,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -28,14 +29,15 @@ import (
 // TemplateVersionQuery is the builder for querying TemplateVersion entities.
 type TemplateVersionQuery struct {
 	config
-	ctx           *QueryContext
-	order         []templateversion.OrderOption
-	inters        []Interceptor
-	predicates    []predicate.TemplateVersion
-	withTemplate  *TemplateQuery
-	withResources *ResourceQuery
-	withProject   *ProjectQuery
-	modifiers     []func(*sql.Selector)
+	ctx                     *QueryContext
+	order                   []templateversion.OrderOption
+	inters                  []Interceptor
+	predicates              []predicate.TemplateVersion
+	withTemplate            *TemplateQuery
+	withResources           *ResourceQuery
+	withResourceDefinitions *ResourceDefinitionMatchingRuleQuery
+	withProject             *ProjectQuery
+	modifiers               []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -116,6 +118,31 @@ func (tvq *TemplateVersionQuery) QueryResources() *ResourceQuery {
 		schemaConfig := tvq.schemaConfig
 		step.To.Schema = schemaConfig.Resource
 		step.Edge.Schema = schemaConfig.Resource
+		fromU = sqlgraph.SetNeighbors(tvq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryResourceDefinitions chains the current query on the "resource_definitions" edge.
+func (tvq *TemplateVersionQuery) QueryResourceDefinitions() *ResourceDefinitionMatchingRuleQuery {
+	query := (&ResourceDefinitionMatchingRuleClient{config: tvq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tvq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := tvq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(templateversion.Table, templateversion.FieldID, selector),
+			sqlgraph.To(resourcedefinitionmatchingrule.Table, resourcedefinitionmatchingrule.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, templateversion.ResourceDefinitionsTable, templateversion.ResourceDefinitionsColumn),
+		)
+		schemaConfig := tvq.schemaConfig
+		step.To.Schema = schemaConfig.ResourceDefinitionMatchingRule
+		step.Edge.Schema = schemaConfig.ResourceDefinitionMatchingRule
 		fromU = sqlgraph.SetNeighbors(tvq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -334,14 +361,15 @@ func (tvq *TemplateVersionQuery) Clone() *TemplateVersionQuery {
 		return nil
 	}
 	return &TemplateVersionQuery{
-		config:        tvq.config,
-		ctx:           tvq.ctx.Clone(),
-		order:         append([]templateversion.OrderOption{}, tvq.order...),
-		inters:        append([]Interceptor{}, tvq.inters...),
-		predicates:    append([]predicate.TemplateVersion{}, tvq.predicates...),
-		withTemplate:  tvq.withTemplate.Clone(),
-		withResources: tvq.withResources.Clone(),
-		withProject:   tvq.withProject.Clone(),
+		config:                  tvq.config,
+		ctx:                     tvq.ctx.Clone(),
+		order:                   append([]templateversion.OrderOption{}, tvq.order...),
+		inters:                  append([]Interceptor{}, tvq.inters...),
+		predicates:              append([]predicate.TemplateVersion{}, tvq.predicates...),
+		withTemplate:            tvq.withTemplate.Clone(),
+		withResources:           tvq.withResources.Clone(),
+		withResourceDefinitions: tvq.withResourceDefinitions.Clone(),
+		withProject:             tvq.withProject.Clone(),
 		// clone intermediate query.
 		sql:  tvq.sql.Clone(),
 		path: tvq.path,
@@ -367,6 +395,17 @@ func (tvq *TemplateVersionQuery) WithResources(opts ...func(*ResourceQuery)) *Te
 		opt(query)
 	}
 	tvq.withResources = query
+	return tvq
+}
+
+// WithResourceDefinitions tells the query-builder to eager-load the nodes that are connected to
+// the "resource_definitions" edge. The optional arguments are used to configure the query builder of the edge.
+func (tvq *TemplateVersionQuery) WithResourceDefinitions(opts ...func(*ResourceDefinitionMatchingRuleQuery)) *TemplateVersionQuery {
+	query := (&ResourceDefinitionMatchingRuleClient{config: tvq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	tvq.withResourceDefinitions = query
 	return tvq
 }
 
@@ -459,9 +498,10 @@ func (tvq *TemplateVersionQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 	var (
 		nodes       = []*TemplateVersion{}
 		_spec       = tvq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			tvq.withTemplate != nil,
 			tvq.withResources != nil,
+			tvq.withResourceDefinitions != nil,
 			tvq.withProject != nil,
 		}
 	)
@@ -498,6 +538,15 @@ func (tvq *TemplateVersionQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 		if err := tvq.loadResources(ctx, query, nodes,
 			func(n *TemplateVersion) { n.Edges.Resources = []*Resource{} },
 			func(n *TemplateVersion, e *Resource) { n.Edges.Resources = append(n.Edges.Resources, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := tvq.withResourceDefinitions; query != nil {
+		if err := tvq.loadResourceDefinitions(ctx, query, nodes,
+			func(n *TemplateVersion) { n.Edges.ResourceDefinitions = []*ResourceDefinitionMatchingRule{} },
+			func(n *TemplateVersion, e *ResourceDefinitionMatchingRule) {
+				n.Edges.ResourceDefinitions = append(n.Edges.ResourceDefinitions, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -554,6 +603,39 @@ func (tvq *TemplateVersionQuery) loadResources(ctx context.Context, query *Resou
 	}
 	query.Where(predicate.Resource(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(templateversion.ResourcesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TemplateID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "template_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "template_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (tvq *TemplateVersionQuery) loadResourceDefinitions(ctx context.Context, query *ResourceDefinitionMatchingRuleQuery, nodes []*TemplateVersion, init func(*TemplateVersion), assign func(*TemplateVersion, *ResourceDefinitionMatchingRule)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[object.ID]*TemplateVersion)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(resourcedefinitionmatchingrule.FieldTemplateID)
+	}
+	query.Where(predicate.ResourceDefinitionMatchingRule(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(templateversion.ResourceDefinitionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

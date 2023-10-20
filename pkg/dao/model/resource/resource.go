@@ -39,6 +39,10 @@ const (
 	FieldEnvironmentID = "environment_id"
 	// FieldTemplateID holds the string denoting the template_id field in the database.
 	FieldTemplateID = "template_id"
+	// FieldType holds the string denoting the type field in the database.
+	FieldType = "type"
+	// FieldResourceDefinitionID holds the string denoting the resource_definition_id field in the database.
+	FieldResourceDefinitionID = "resource_definition_id"
 	// FieldAttributes holds the string denoting the attributes field in the database.
 	FieldAttributes = "attributes"
 	// EdgeProject holds the string denoting the project edge name in mutations.
@@ -47,6 +51,8 @@ const (
 	EdgeEnvironment = "environment"
 	// EdgeTemplate holds the string denoting the template edge name in mutations.
 	EdgeTemplate = "template"
+	// EdgeResourceDefinition holds the string denoting the resource_definition edge name in mutations.
+	EdgeResourceDefinition = "resource_definition"
 	// EdgeRevisions holds the string denoting the revisions edge name in mutations.
 	EdgeRevisions = "revisions"
 	// EdgeComponents holds the string denoting the components edge name in mutations.
@@ -76,6 +82,13 @@ const (
 	TemplateInverseTable = "template_versions"
 	// TemplateColumn is the table column denoting the template relation/edge.
 	TemplateColumn = "template_id"
+	// ResourceDefinitionTable is the table that holds the resource_definition relation/edge.
+	ResourceDefinitionTable = "resources"
+	// ResourceDefinitionInverseTable is the table name for the ResourceDefinition entity.
+	// It exists in this package in order to avoid circular dependency with the "resourcedefinition" package.
+	ResourceDefinitionInverseTable = "resource_definitions"
+	// ResourceDefinitionColumn is the table column denoting the resource_definition relation/edge.
+	ResourceDefinitionColumn = "resource_definition_id"
 	// RevisionsTable is the table that holds the revisions relation/edge.
 	RevisionsTable = "resource_revisions"
 	// RevisionsInverseTable is the table name for the ResourceRevision entity.
@@ -112,6 +125,8 @@ var Columns = []string{
 	FieldProjectID,
 	FieldEnvironmentID,
 	FieldTemplateID,
+	FieldType,
+	FieldResourceDefinitionID,
 	FieldAttributes,
 }
 
@@ -149,8 +164,6 @@ var (
 	ProjectIDValidator func(string) error
 	// EnvironmentIDValidator is a validator for the "environment_id" field. It is called by the builders before save.
 	EnvironmentIDValidator func(string) error
-	// TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
-	TemplateIDValidator func(string) error
 )
 
 // OrderOption defines the ordering options for the Resource queries.
@@ -196,6 +209,16 @@ func ByTemplateID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTemplateID, opts...).ToFunc()
 }
 
+// ByType orders the results by the type field.
+func ByType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldType, opts...).ToFunc()
+}
+
+// ByResourceDefinitionID orders the results by the resource_definition_id field.
+func ByResourceDefinitionID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldResourceDefinitionID, opts...).ToFunc()
+}
+
 // ByAttributes orders the results by the attributes field.
 func ByAttributes(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAttributes, opts...).ToFunc()
@@ -219,6 +242,13 @@ func ByEnvironmentField(field string, opts ...sql.OrderTermOption) OrderOption {
 func ByTemplateField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newTemplateStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByResourceDefinitionField orders the results by resource_definition field.
+func ByResourceDefinitionField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newResourceDefinitionStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -282,6 +312,13 @@ func newTemplateStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TemplateInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, TemplateTable, TemplateColumn),
+	)
+}
+func newResourceDefinitionStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ResourceDefinitionInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ResourceDefinitionTable, ResourceDefinitionColumn),
 	)
 }
 func newRevisionsStep() *sqlgraph.Step {

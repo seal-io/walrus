@@ -27,6 +27,8 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponentrelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/role"
@@ -70,6 +72,8 @@ const (
 	TypeResource                         = "Resource"
 	TypeResourceComponent                = "ResourceComponent"
 	TypeResourceComponentRelationship    = "ResourceComponentRelationship"
+	TypeResourceDefinition               = "ResourceDefinition"
+	TypeResourceDefinitionMatchingRule   = "ResourceDefinitionMatchingRule"
 	TypeResourceRelationship             = "ResourceRelationship"
 	TypeResourceRevision                 = "ResourceRevision"
 	TypeRole                             = "Role"
@@ -10472,36 +10476,39 @@ func (m *ProjectMutation) ResetEdge(name string) error {
 // ResourceMutation represents an operation that mutates the Resource nodes in the graph.
 type ResourceMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *object.ID
-	name                *string
-	description         *string
-	labels              *map[string]string
-	annotations         *map[string]string
-	create_time         *time.Time
-	update_time         *time.Time
-	status              *status.Status
-	attributes          *property.Values
-	clearedFields       map[string]struct{}
-	project             *object.ID
-	clearedproject      bool
-	environment         *object.ID
-	clearedenvironment  bool
-	template            *object.ID
-	clearedtemplate     bool
-	revisions           map[object.ID]struct{}
-	removedrevisions    map[object.ID]struct{}
-	clearedrevisions    bool
-	components          map[object.ID]struct{}
-	removedcomponents   map[object.ID]struct{}
-	clearedcomponents   bool
-	dependencies        map[object.ID]struct{}
-	removeddependencies map[object.ID]struct{}
-	cleareddependencies bool
-	done                bool
-	oldValue            func(context.Context) (*Resource, error)
-	predicates          []predicate.Resource
+	op                         Op
+	typ                        string
+	id                         *object.ID
+	name                       *string
+	description                *string
+	labels                     *map[string]string
+	annotations                *map[string]string
+	create_time                *time.Time
+	update_time                *time.Time
+	status                     *status.Status
+	_type                      *string
+	attributes                 *property.Values
+	clearedFields              map[string]struct{}
+	project                    *object.ID
+	clearedproject             bool
+	environment                *object.ID
+	clearedenvironment         bool
+	template                   *object.ID
+	clearedtemplate            bool
+	resource_definition        *object.ID
+	clearedresource_definition bool
+	revisions                  map[object.ID]struct{}
+	removedrevisions           map[object.ID]struct{}
+	clearedrevisions           bool
+	components                 map[object.ID]struct{}
+	removedcomponents          map[object.ID]struct{}
+	clearedcomponents          bool
+	dependencies               map[object.ID]struct{}
+	removeddependencies        map[object.ID]struct{}
+	cleareddependencies        bool
+	done                       bool
+	oldValue                   func(context.Context) (*Resource, error)
+	predicates                 []predicate.Resource
 }
 
 var _ ent.Mutation = (*ResourceMutation)(nil)
@@ -11001,7 +11008,7 @@ func (m *ResourceMutation) TemplateID() (r object.ID, exists bool) {
 // OldTemplateID returns the old "template_id" field's value of the Resource entity.
 // If the Resource object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ResourceMutation) OldTemplateID(ctx context.Context) (v object.ID, err error) {
+func (m *ResourceMutation) OldTemplateID(ctx context.Context) (v *object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldTemplateID is only allowed on UpdateOne operations")
 	}
@@ -11015,9 +11022,120 @@ func (m *ResourceMutation) OldTemplateID(ctx context.Context) (v object.ID, err 
 	return oldValue.TemplateID, nil
 }
 
+// ClearTemplateID clears the value of the "template_id" field.
+func (m *ResourceMutation) ClearTemplateID() {
+	m.template = nil
+	m.clearedFields[resource.FieldTemplateID] = struct{}{}
+}
+
+// TemplateIDCleared returns if the "template_id" field was cleared in this mutation.
+func (m *ResourceMutation) TemplateIDCleared() bool {
+	_, ok := m.clearedFields[resource.FieldTemplateID]
+	return ok
+}
+
 // ResetTemplateID resets all changes to the "template_id" field.
 func (m *ResourceMutation) ResetTemplateID() {
 	m.template = nil
+	delete(m.clearedFields, resource.FieldTemplateID)
+}
+
+// SetType sets the "type" field.
+func (m *ResourceMutation) SetType(s string) {
+	m._type = &s
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *ResourceMutation) GetType() (r string, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the Resource entity.
+// If the Resource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceMutation) OldType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ClearType clears the value of the "type" field.
+func (m *ResourceMutation) ClearType() {
+	m._type = nil
+	m.clearedFields[resource.FieldType] = struct{}{}
+}
+
+// TypeCleared returns if the "type" field was cleared in this mutation.
+func (m *ResourceMutation) TypeCleared() bool {
+	_, ok := m.clearedFields[resource.FieldType]
+	return ok
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *ResourceMutation) ResetType() {
+	m._type = nil
+	delete(m.clearedFields, resource.FieldType)
+}
+
+// SetResourceDefinitionID sets the "resource_definition_id" field.
+func (m *ResourceMutation) SetResourceDefinitionID(o object.ID) {
+	m.resource_definition = &o
+}
+
+// ResourceDefinitionID returns the value of the "resource_definition_id" field in the mutation.
+func (m *ResourceMutation) ResourceDefinitionID() (r object.ID, exists bool) {
+	v := m.resource_definition
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResourceDefinitionID returns the old "resource_definition_id" field's value of the Resource entity.
+// If the Resource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceMutation) OldResourceDefinitionID(ctx context.Context) (v *object.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResourceDefinitionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResourceDefinitionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResourceDefinitionID: %w", err)
+	}
+	return oldValue.ResourceDefinitionID, nil
+}
+
+// ClearResourceDefinitionID clears the value of the "resource_definition_id" field.
+func (m *ResourceMutation) ClearResourceDefinitionID() {
+	m.resource_definition = nil
+	m.clearedFields[resource.FieldResourceDefinitionID] = struct{}{}
+}
+
+// ResourceDefinitionIDCleared returns if the "resource_definition_id" field was cleared in this mutation.
+func (m *ResourceMutation) ResourceDefinitionIDCleared() bool {
+	_, ok := m.clearedFields[resource.FieldResourceDefinitionID]
+	return ok
+}
+
+// ResetResourceDefinitionID resets all changes to the "resource_definition_id" field.
+func (m *ResourceMutation) ResetResourceDefinitionID() {
+	m.resource_definition = nil
+	delete(m.clearedFields, resource.FieldResourceDefinitionID)
 }
 
 // SetAttributes sets the "attributes" field.
@@ -11128,7 +11246,7 @@ func (m *ResourceMutation) ClearTemplate() {
 
 // TemplateCleared reports if the "template" edge to the TemplateVersion entity was cleared.
 func (m *ResourceMutation) TemplateCleared() bool {
-	return m.clearedtemplate
+	return m.TemplateIDCleared() || m.clearedtemplate
 }
 
 // TemplateIDs returns the "template" edge IDs in the mutation.
@@ -11145,6 +11263,32 @@ func (m *ResourceMutation) TemplateIDs() (ids []object.ID) {
 func (m *ResourceMutation) ResetTemplate() {
 	m.template = nil
 	m.clearedtemplate = false
+}
+
+// ClearResourceDefinition clears the "resource_definition" edge to the ResourceDefinition entity.
+func (m *ResourceMutation) ClearResourceDefinition() {
+	m.clearedresource_definition = true
+}
+
+// ResourceDefinitionCleared reports if the "resource_definition" edge to the ResourceDefinition entity was cleared.
+func (m *ResourceMutation) ResourceDefinitionCleared() bool {
+	return m.ResourceDefinitionIDCleared() || m.clearedresource_definition
+}
+
+// ResourceDefinitionIDs returns the "resource_definition" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ResourceDefinitionID instead. It exists only for internal usage by the builders.
+func (m *ResourceMutation) ResourceDefinitionIDs() (ids []object.ID) {
+	if id := m.resource_definition; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetResourceDefinition resets all changes to the "resource_definition" edge.
+func (m *ResourceMutation) ResetResourceDefinition() {
+	m.resource_definition = nil
+	m.clearedresource_definition = false
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ResourceRevision entity by ids.
@@ -11343,7 +11487,7 @@ func (m *ResourceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ResourceMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 13)
 	if m.name != nil {
 		fields = append(fields, resource.FieldName)
 	}
@@ -11373,6 +11517,12 @@ func (m *ResourceMutation) Fields() []string {
 	}
 	if m.template != nil {
 		fields = append(fields, resource.FieldTemplateID)
+	}
+	if m._type != nil {
+		fields = append(fields, resource.FieldType)
+	}
+	if m.resource_definition != nil {
+		fields = append(fields, resource.FieldResourceDefinitionID)
 	}
 	if m.attributes != nil {
 		fields = append(fields, resource.FieldAttributes)
@@ -11405,6 +11555,10 @@ func (m *ResourceMutation) Field(name string) (ent.Value, bool) {
 		return m.EnvironmentID()
 	case resource.FieldTemplateID:
 		return m.TemplateID()
+	case resource.FieldType:
+		return m.GetType()
+	case resource.FieldResourceDefinitionID:
+		return m.ResourceDefinitionID()
 	case resource.FieldAttributes:
 		return m.Attributes()
 	}
@@ -11436,6 +11590,10 @@ func (m *ResourceMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldEnvironmentID(ctx)
 	case resource.FieldTemplateID:
 		return m.OldTemplateID(ctx)
+	case resource.FieldType:
+		return m.OldType(ctx)
+	case resource.FieldResourceDefinitionID:
+		return m.OldResourceDefinitionID(ctx)
 	case resource.FieldAttributes:
 		return m.OldAttributes(ctx)
 	}
@@ -11517,6 +11675,20 @@ func (m *ResourceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTemplateID(v)
 		return nil
+	case resource.FieldType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	case resource.FieldResourceDefinitionID:
+		v, ok := value.(object.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResourceDefinitionID(v)
+		return nil
 	case resource.FieldAttributes:
 		v, ok := value.(property.Values)
 		if !ok {
@@ -11566,6 +11738,15 @@ func (m *ResourceMutation) ClearedFields() []string {
 	if m.FieldCleared(resource.FieldStatus) {
 		fields = append(fields, resource.FieldStatus)
 	}
+	if m.FieldCleared(resource.FieldTemplateID) {
+		fields = append(fields, resource.FieldTemplateID)
+	}
+	if m.FieldCleared(resource.FieldType) {
+		fields = append(fields, resource.FieldType)
+	}
+	if m.FieldCleared(resource.FieldResourceDefinitionID) {
+		fields = append(fields, resource.FieldResourceDefinitionID)
+	}
 	if m.FieldCleared(resource.FieldAttributes) {
 		fields = append(fields, resource.FieldAttributes)
 	}
@@ -11594,6 +11775,15 @@ func (m *ResourceMutation) ClearField(name string) error {
 		return nil
 	case resource.FieldStatus:
 		m.ClearStatus()
+		return nil
+	case resource.FieldTemplateID:
+		m.ClearTemplateID()
+		return nil
+	case resource.FieldType:
+		m.ClearType()
+		return nil
+	case resource.FieldResourceDefinitionID:
+		m.ClearResourceDefinitionID()
 		return nil
 	case resource.FieldAttributes:
 		m.ClearAttributes()
@@ -11636,6 +11826,12 @@ func (m *ResourceMutation) ResetField(name string) error {
 	case resource.FieldTemplateID:
 		m.ResetTemplateID()
 		return nil
+	case resource.FieldType:
+		m.ResetType()
+		return nil
+	case resource.FieldResourceDefinitionID:
+		m.ResetResourceDefinitionID()
+		return nil
 	case resource.FieldAttributes:
 		m.ResetAttributes()
 		return nil
@@ -11645,7 +11841,7 @@ func (m *ResourceMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ResourceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.project != nil {
 		edges = append(edges, resource.EdgeProject)
 	}
@@ -11654,6 +11850,9 @@ func (m *ResourceMutation) AddedEdges() []string {
 	}
 	if m.template != nil {
 		edges = append(edges, resource.EdgeTemplate)
+	}
+	if m.resource_definition != nil {
+		edges = append(edges, resource.EdgeResourceDefinition)
 	}
 	if m.revisions != nil {
 		edges = append(edges, resource.EdgeRevisions)
@@ -11683,6 +11882,10 @@ func (m *ResourceMutation) AddedIDs(name string) []ent.Value {
 		if id := m.template; id != nil {
 			return []ent.Value{*id}
 		}
+	case resource.EdgeResourceDefinition:
+		if id := m.resource_definition; id != nil {
+			return []ent.Value{*id}
+		}
 	case resource.EdgeRevisions:
 		ids := make([]ent.Value, 0, len(m.revisions))
 		for id := range m.revisions {
@@ -11707,7 +11910,7 @@ func (m *ResourceMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ResourceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.removedrevisions != nil {
 		edges = append(edges, resource.EdgeRevisions)
 	}
@@ -11748,7 +11951,7 @@ func (m *ResourceMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ResourceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.clearedproject {
 		edges = append(edges, resource.EdgeProject)
 	}
@@ -11757,6 +11960,9 @@ func (m *ResourceMutation) ClearedEdges() []string {
 	}
 	if m.clearedtemplate {
 		edges = append(edges, resource.EdgeTemplate)
+	}
+	if m.clearedresource_definition {
+		edges = append(edges, resource.EdgeResourceDefinition)
 	}
 	if m.clearedrevisions {
 		edges = append(edges, resource.EdgeRevisions)
@@ -11780,6 +11986,8 @@ func (m *ResourceMutation) EdgeCleared(name string) bool {
 		return m.clearedenvironment
 	case resource.EdgeTemplate:
 		return m.clearedtemplate
+	case resource.EdgeResourceDefinition:
+		return m.clearedresource_definition
 	case resource.EdgeRevisions:
 		return m.clearedrevisions
 	case resource.EdgeComponents:
@@ -11803,6 +12011,9 @@ func (m *ResourceMutation) ClearEdge(name string) error {
 	case resource.EdgeTemplate:
 		m.ClearTemplate()
 		return nil
+	case resource.EdgeResourceDefinition:
+		m.ClearResourceDefinition()
+		return nil
 	}
 	return fmt.Errorf("unknown Resource unique edge %s", name)
 }
@@ -11819,6 +12030,9 @@ func (m *ResourceMutation) ResetEdge(name string) error {
 		return nil
 	case resource.EdgeTemplate:
 		m.ResetTemplate()
+		return nil
+	case resource.EdgeResourceDefinition:
+		m.ResetResourceDefinition()
 		return nil
 	case resource.EdgeRevisions:
 		m.ResetRevisions()
@@ -12473,8 +12687,8 @@ func (m *ResourceComponentMutation) ResetShape() {
 }
 
 // SetStatus sets the "status" field.
-func (m *ResourceComponentMutation) SetStatus(trs types.ResourceComponentStatus) {
-	m.status = &trs
+func (m *ResourceComponentMutation) SetStatus(tcs types.ResourceComponentStatus) {
+	m.status = &tcs
 }
 
 // Status returns the value of the "status" field in the mutation.
@@ -14046,6 +14260,1728 @@ func (m *ResourceComponentRelationshipMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown ResourceComponentRelationship edge %s", name)
+}
+
+// ResourceDefinitionMutation represents an operation that mutates the ResourceDefinition nodes in the graph.
+type ResourceDefinitionMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *object.ID
+	name                  *string
+	description           *string
+	labels                *map[string]string
+	annotations           *map[string]string
+	create_time           *time.Time
+	update_time           *time.Time
+	_type                 *string
+	schema                *types.Schema
+	uiSchema              *types.UISchema
+	clearedFields         map[string]struct{}
+	matching_rules        map[object.ID]struct{}
+	removedmatching_rules map[object.ID]struct{}
+	clearedmatching_rules bool
+	resources             map[object.ID]struct{}
+	removedresources      map[object.ID]struct{}
+	clearedresources      bool
+	done                  bool
+	oldValue              func(context.Context) (*ResourceDefinition, error)
+	predicates            []predicate.ResourceDefinition
+}
+
+var _ ent.Mutation = (*ResourceDefinitionMutation)(nil)
+
+// resourceDefinitionOption allows management of the mutation configuration using functional options.
+type resourceDefinitionOption func(*ResourceDefinitionMutation)
+
+// newResourceDefinitionMutation creates new mutation for the ResourceDefinition entity.
+func newResourceDefinitionMutation(c config, op Op, opts ...resourceDefinitionOption) *ResourceDefinitionMutation {
+	m := &ResourceDefinitionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeResourceDefinition,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withResourceDefinitionID sets the ID field of the mutation.
+func withResourceDefinitionID(id object.ID) resourceDefinitionOption {
+	return func(m *ResourceDefinitionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ResourceDefinition
+		)
+		m.oldValue = func(ctx context.Context) (*ResourceDefinition, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ResourceDefinition.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withResourceDefinition sets the old ResourceDefinition of the mutation.
+func withResourceDefinition(node *ResourceDefinition) resourceDefinitionOption {
+	return func(m *ResourceDefinitionMutation) {
+		m.oldValue = func(context.Context) (*ResourceDefinition, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ResourceDefinitionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ResourceDefinitionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("model: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ResourceDefinition entities.
+func (m *ResourceDefinitionMutation) SetID(id object.ID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ResourceDefinitionMutation) ID() (id object.ID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ResourceDefinitionMutation) IDs(ctx context.Context) ([]object.ID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []object.ID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ResourceDefinition.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *ResourceDefinitionMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *ResourceDefinitionMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the ResourceDefinition entity.
+// If the ResourceDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceDefinitionMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *ResourceDefinitionMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *ResourceDefinitionMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *ResourceDefinitionMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the ResourceDefinition entity.
+// If the ResourceDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceDefinitionMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *ResourceDefinitionMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[resourcedefinition.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *ResourceDefinitionMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[resourcedefinition.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *ResourceDefinitionMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, resourcedefinition.FieldDescription)
+}
+
+// SetLabels sets the "labels" field.
+func (m *ResourceDefinitionMutation) SetLabels(value map[string]string) {
+	m.labels = &value
+}
+
+// Labels returns the value of the "labels" field in the mutation.
+func (m *ResourceDefinitionMutation) Labels() (r map[string]string, exists bool) {
+	v := m.labels
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLabels returns the old "labels" field's value of the ResourceDefinition entity.
+// If the ResourceDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceDefinitionMutation) OldLabels(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLabels is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLabels requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLabels: %w", err)
+	}
+	return oldValue.Labels, nil
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (m *ResourceDefinitionMutation) ClearLabels() {
+	m.labels = nil
+	m.clearedFields[resourcedefinition.FieldLabels] = struct{}{}
+}
+
+// LabelsCleared returns if the "labels" field was cleared in this mutation.
+func (m *ResourceDefinitionMutation) LabelsCleared() bool {
+	_, ok := m.clearedFields[resourcedefinition.FieldLabels]
+	return ok
+}
+
+// ResetLabels resets all changes to the "labels" field.
+func (m *ResourceDefinitionMutation) ResetLabels() {
+	m.labels = nil
+	delete(m.clearedFields, resourcedefinition.FieldLabels)
+}
+
+// SetAnnotations sets the "annotations" field.
+func (m *ResourceDefinitionMutation) SetAnnotations(value map[string]string) {
+	m.annotations = &value
+}
+
+// Annotations returns the value of the "annotations" field in the mutation.
+func (m *ResourceDefinitionMutation) Annotations() (r map[string]string, exists bool) {
+	v := m.annotations
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAnnotations returns the old "annotations" field's value of the ResourceDefinition entity.
+// If the ResourceDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceDefinitionMutation) OldAnnotations(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAnnotations is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAnnotations requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAnnotations: %w", err)
+	}
+	return oldValue.Annotations, nil
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (m *ResourceDefinitionMutation) ClearAnnotations() {
+	m.annotations = nil
+	m.clearedFields[resourcedefinition.FieldAnnotations] = struct{}{}
+}
+
+// AnnotationsCleared returns if the "annotations" field was cleared in this mutation.
+func (m *ResourceDefinitionMutation) AnnotationsCleared() bool {
+	_, ok := m.clearedFields[resourcedefinition.FieldAnnotations]
+	return ok
+}
+
+// ResetAnnotations resets all changes to the "annotations" field.
+func (m *ResourceDefinitionMutation) ResetAnnotations() {
+	m.annotations = nil
+	delete(m.clearedFields, resourcedefinition.FieldAnnotations)
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *ResourceDefinitionMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *ResourceDefinitionMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the ResourceDefinition entity.
+// If the ResourceDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceDefinitionMutation) OldCreateTime(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *ResourceDefinitionMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *ResourceDefinitionMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *ResourceDefinitionMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the ResourceDefinition entity.
+// If the ResourceDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceDefinitionMutation) OldUpdateTime(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *ResourceDefinitionMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetType sets the "type" field.
+func (m *ResourceDefinitionMutation) SetType(s string) {
+	m._type = &s
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *ResourceDefinitionMutation) GetType() (r string, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the ResourceDefinition entity.
+// If the ResourceDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceDefinitionMutation) OldType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *ResourceDefinitionMutation) ResetType() {
+	m._type = nil
+}
+
+// SetSchema sets the "schema" field.
+func (m *ResourceDefinitionMutation) SetSchema(t types.Schema) {
+	m.schema = &t
+}
+
+// Schema returns the value of the "schema" field in the mutation.
+func (m *ResourceDefinitionMutation) Schema() (r types.Schema, exists bool) {
+	v := m.schema
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSchema returns the old "schema" field's value of the ResourceDefinition entity.
+// If the ResourceDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceDefinitionMutation) OldSchema(ctx context.Context) (v types.Schema, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSchema is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSchema requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSchema: %w", err)
+	}
+	return oldValue.Schema, nil
+}
+
+// ResetSchema resets all changes to the "schema" field.
+func (m *ResourceDefinitionMutation) ResetSchema() {
+	m.schema = nil
+}
+
+// SetUiSchema sets the "uiSchema" field.
+func (m *ResourceDefinitionMutation) SetUiSchema(ts types.UISchema) {
+	m.uiSchema = &ts
+}
+
+// UiSchema returns the value of the "uiSchema" field in the mutation.
+func (m *ResourceDefinitionMutation) UiSchema() (r types.UISchema, exists bool) {
+	v := m.uiSchema
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUiSchema returns the old "uiSchema" field's value of the ResourceDefinition entity.
+// If the ResourceDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceDefinitionMutation) OldUiSchema(ctx context.Context) (v types.UISchema, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUiSchema is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUiSchema requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUiSchema: %w", err)
+	}
+	return oldValue.UiSchema, nil
+}
+
+// ResetUiSchema resets all changes to the "uiSchema" field.
+func (m *ResourceDefinitionMutation) ResetUiSchema() {
+	m.uiSchema = nil
+}
+
+// AddMatchingRuleIDs adds the "matching_rules" edge to the ResourceDefinitionMatchingRule entity by ids.
+func (m *ResourceDefinitionMutation) AddMatchingRuleIDs(ids ...object.ID) {
+	if m.matching_rules == nil {
+		m.matching_rules = make(map[object.ID]struct{})
+	}
+	for i := range ids {
+		m.matching_rules[ids[i]] = struct{}{}
+	}
+}
+
+// ClearMatchingRules clears the "matching_rules" edge to the ResourceDefinitionMatchingRule entity.
+func (m *ResourceDefinitionMutation) ClearMatchingRules() {
+	m.clearedmatching_rules = true
+}
+
+// MatchingRulesCleared reports if the "matching_rules" edge to the ResourceDefinitionMatchingRule entity was cleared.
+func (m *ResourceDefinitionMutation) MatchingRulesCleared() bool {
+	return m.clearedmatching_rules
+}
+
+// RemoveMatchingRuleIDs removes the "matching_rules" edge to the ResourceDefinitionMatchingRule entity by IDs.
+func (m *ResourceDefinitionMutation) RemoveMatchingRuleIDs(ids ...object.ID) {
+	if m.removedmatching_rules == nil {
+		m.removedmatching_rules = make(map[object.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.matching_rules, ids[i])
+		m.removedmatching_rules[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedMatchingRules returns the removed IDs of the "matching_rules" edge to the ResourceDefinitionMatchingRule entity.
+func (m *ResourceDefinitionMutation) RemovedMatchingRulesIDs() (ids []object.ID) {
+	for id := range m.removedmatching_rules {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// MatchingRulesIDs returns the "matching_rules" edge IDs in the mutation.
+func (m *ResourceDefinitionMutation) MatchingRulesIDs() (ids []object.ID) {
+	for id := range m.matching_rules {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetMatchingRules resets all changes to the "matching_rules" edge.
+func (m *ResourceDefinitionMutation) ResetMatchingRules() {
+	m.matching_rules = nil
+	m.clearedmatching_rules = false
+	m.removedmatching_rules = nil
+}
+
+// AddResourceIDs adds the "resources" edge to the Resource entity by ids.
+func (m *ResourceDefinitionMutation) AddResourceIDs(ids ...object.ID) {
+	if m.resources == nil {
+		m.resources = make(map[object.ID]struct{})
+	}
+	for i := range ids {
+		m.resources[ids[i]] = struct{}{}
+	}
+}
+
+// ClearResources clears the "resources" edge to the Resource entity.
+func (m *ResourceDefinitionMutation) ClearResources() {
+	m.clearedresources = true
+}
+
+// ResourcesCleared reports if the "resources" edge to the Resource entity was cleared.
+func (m *ResourceDefinitionMutation) ResourcesCleared() bool {
+	return m.clearedresources
+}
+
+// RemoveResourceIDs removes the "resources" edge to the Resource entity by IDs.
+func (m *ResourceDefinitionMutation) RemoveResourceIDs(ids ...object.ID) {
+	if m.removedresources == nil {
+		m.removedresources = make(map[object.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.resources, ids[i])
+		m.removedresources[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedResources returns the removed IDs of the "resources" edge to the Resource entity.
+func (m *ResourceDefinitionMutation) RemovedResourcesIDs() (ids []object.ID) {
+	for id := range m.removedresources {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResourcesIDs returns the "resources" edge IDs in the mutation.
+func (m *ResourceDefinitionMutation) ResourcesIDs() (ids []object.ID) {
+	for id := range m.resources {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetResources resets all changes to the "resources" edge.
+func (m *ResourceDefinitionMutation) ResetResources() {
+	m.resources = nil
+	m.clearedresources = false
+	m.removedresources = nil
+}
+
+// Where appends a list predicates to the ResourceDefinitionMutation builder.
+func (m *ResourceDefinitionMutation) Where(ps ...predicate.ResourceDefinition) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ResourceDefinitionMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ResourceDefinitionMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ResourceDefinition, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ResourceDefinitionMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ResourceDefinitionMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ResourceDefinition).
+func (m *ResourceDefinitionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ResourceDefinitionMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.name != nil {
+		fields = append(fields, resourcedefinition.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, resourcedefinition.FieldDescription)
+	}
+	if m.labels != nil {
+		fields = append(fields, resourcedefinition.FieldLabels)
+	}
+	if m.annotations != nil {
+		fields = append(fields, resourcedefinition.FieldAnnotations)
+	}
+	if m.create_time != nil {
+		fields = append(fields, resourcedefinition.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, resourcedefinition.FieldUpdateTime)
+	}
+	if m._type != nil {
+		fields = append(fields, resourcedefinition.FieldType)
+	}
+	if m.schema != nil {
+		fields = append(fields, resourcedefinition.FieldSchema)
+	}
+	if m.uiSchema != nil {
+		fields = append(fields, resourcedefinition.FieldUiSchema)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ResourceDefinitionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case resourcedefinition.FieldName:
+		return m.Name()
+	case resourcedefinition.FieldDescription:
+		return m.Description()
+	case resourcedefinition.FieldLabels:
+		return m.Labels()
+	case resourcedefinition.FieldAnnotations:
+		return m.Annotations()
+	case resourcedefinition.FieldCreateTime:
+		return m.CreateTime()
+	case resourcedefinition.FieldUpdateTime:
+		return m.UpdateTime()
+	case resourcedefinition.FieldType:
+		return m.GetType()
+	case resourcedefinition.FieldSchema:
+		return m.Schema()
+	case resourcedefinition.FieldUiSchema:
+		return m.UiSchema()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ResourceDefinitionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case resourcedefinition.FieldName:
+		return m.OldName(ctx)
+	case resourcedefinition.FieldDescription:
+		return m.OldDescription(ctx)
+	case resourcedefinition.FieldLabels:
+		return m.OldLabels(ctx)
+	case resourcedefinition.FieldAnnotations:
+		return m.OldAnnotations(ctx)
+	case resourcedefinition.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case resourcedefinition.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case resourcedefinition.FieldType:
+		return m.OldType(ctx)
+	case resourcedefinition.FieldSchema:
+		return m.OldSchema(ctx)
+	case resourcedefinition.FieldUiSchema:
+		return m.OldUiSchema(ctx)
+	}
+	return nil, fmt.Errorf("unknown ResourceDefinition field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ResourceDefinitionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case resourcedefinition.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case resourcedefinition.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case resourcedefinition.FieldLabels:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLabels(v)
+		return nil
+	case resourcedefinition.FieldAnnotations:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAnnotations(v)
+		return nil
+	case resourcedefinition.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case resourcedefinition.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case resourcedefinition.FieldType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	case resourcedefinition.FieldSchema:
+		v, ok := value.(types.Schema)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSchema(v)
+		return nil
+	case resourcedefinition.FieldUiSchema:
+		v, ok := value.(types.UISchema)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUiSchema(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ResourceDefinition field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ResourceDefinitionMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ResourceDefinitionMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ResourceDefinitionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ResourceDefinition numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ResourceDefinitionMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(resourcedefinition.FieldDescription) {
+		fields = append(fields, resourcedefinition.FieldDescription)
+	}
+	if m.FieldCleared(resourcedefinition.FieldLabels) {
+		fields = append(fields, resourcedefinition.FieldLabels)
+	}
+	if m.FieldCleared(resourcedefinition.FieldAnnotations) {
+		fields = append(fields, resourcedefinition.FieldAnnotations)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ResourceDefinitionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ResourceDefinitionMutation) ClearField(name string) error {
+	switch name {
+	case resourcedefinition.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case resourcedefinition.FieldLabels:
+		m.ClearLabels()
+		return nil
+	case resourcedefinition.FieldAnnotations:
+		m.ClearAnnotations()
+		return nil
+	}
+	return fmt.Errorf("unknown ResourceDefinition nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ResourceDefinitionMutation) ResetField(name string) error {
+	switch name {
+	case resourcedefinition.FieldName:
+		m.ResetName()
+		return nil
+	case resourcedefinition.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case resourcedefinition.FieldLabels:
+		m.ResetLabels()
+		return nil
+	case resourcedefinition.FieldAnnotations:
+		m.ResetAnnotations()
+		return nil
+	case resourcedefinition.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case resourcedefinition.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case resourcedefinition.FieldType:
+		m.ResetType()
+		return nil
+	case resourcedefinition.FieldSchema:
+		m.ResetSchema()
+		return nil
+	case resourcedefinition.FieldUiSchema:
+		m.ResetUiSchema()
+		return nil
+	}
+	return fmt.Errorf("unknown ResourceDefinition field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ResourceDefinitionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.matching_rules != nil {
+		edges = append(edges, resourcedefinition.EdgeMatchingRules)
+	}
+	if m.resources != nil {
+		edges = append(edges, resourcedefinition.EdgeResources)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ResourceDefinitionMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case resourcedefinition.EdgeMatchingRules:
+		ids := make([]ent.Value, 0, len(m.matching_rules))
+		for id := range m.matching_rules {
+			ids = append(ids, id)
+		}
+		return ids
+	case resourcedefinition.EdgeResources:
+		ids := make([]ent.Value, 0, len(m.resources))
+		for id := range m.resources {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ResourceDefinitionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedmatching_rules != nil {
+		edges = append(edges, resourcedefinition.EdgeMatchingRules)
+	}
+	if m.removedresources != nil {
+		edges = append(edges, resourcedefinition.EdgeResources)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ResourceDefinitionMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case resourcedefinition.EdgeMatchingRules:
+		ids := make([]ent.Value, 0, len(m.removedmatching_rules))
+		for id := range m.removedmatching_rules {
+			ids = append(ids, id)
+		}
+		return ids
+	case resourcedefinition.EdgeResources:
+		ids := make([]ent.Value, 0, len(m.removedresources))
+		for id := range m.removedresources {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ResourceDefinitionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedmatching_rules {
+		edges = append(edges, resourcedefinition.EdgeMatchingRules)
+	}
+	if m.clearedresources {
+		edges = append(edges, resourcedefinition.EdgeResources)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ResourceDefinitionMutation) EdgeCleared(name string) bool {
+	switch name {
+	case resourcedefinition.EdgeMatchingRules:
+		return m.clearedmatching_rules
+	case resourcedefinition.EdgeResources:
+		return m.clearedresources
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ResourceDefinitionMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ResourceDefinition unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ResourceDefinitionMutation) ResetEdge(name string) error {
+	switch name {
+	case resourcedefinition.EdgeMatchingRules:
+		m.ResetMatchingRules()
+		return nil
+	case resourcedefinition.EdgeResources:
+		m.ResetResources()
+		return nil
+	}
+	return fmt.Errorf("unknown ResourceDefinition edge %s", name)
+}
+
+// ResourceDefinitionMatchingRuleMutation represents an operation that mutates the ResourceDefinitionMatchingRule nodes in the graph.
+type ResourceDefinitionMatchingRuleMutation struct {
+	config
+	op                         Op
+	typ                        string
+	id                         *object.ID
+	create_time                *time.Time
+	name                       *string
+	selector                   *types.Selector
+	attributes                 *property.Values
+	clearedFields              map[string]struct{}
+	resource_definition        *object.ID
+	clearedresource_definition bool
+	template                   *object.ID
+	clearedtemplate            bool
+	done                       bool
+	oldValue                   func(context.Context) (*ResourceDefinitionMatchingRule, error)
+	predicates                 []predicate.ResourceDefinitionMatchingRule
+}
+
+var _ ent.Mutation = (*ResourceDefinitionMatchingRuleMutation)(nil)
+
+// resourceDefinitionMatchingRuleOption allows management of the mutation configuration using functional options.
+type resourceDefinitionMatchingRuleOption func(*ResourceDefinitionMatchingRuleMutation)
+
+// newResourceDefinitionMatchingRuleMutation creates new mutation for the ResourceDefinitionMatchingRule entity.
+func newResourceDefinitionMatchingRuleMutation(c config, op Op, opts ...resourceDefinitionMatchingRuleOption) *ResourceDefinitionMatchingRuleMutation {
+	m := &ResourceDefinitionMatchingRuleMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeResourceDefinitionMatchingRule,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withResourceDefinitionMatchingRuleID sets the ID field of the mutation.
+func withResourceDefinitionMatchingRuleID(id object.ID) resourceDefinitionMatchingRuleOption {
+	return func(m *ResourceDefinitionMatchingRuleMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ResourceDefinitionMatchingRule
+		)
+		m.oldValue = func(ctx context.Context) (*ResourceDefinitionMatchingRule, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ResourceDefinitionMatchingRule.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withResourceDefinitionMatchingRule sets the old ResourceDefinitionMatchingRule of the mutation.
+func withResourceDefinitionMatchingRule(node *ResourceDefinitionMatchingRule) resourceDefinitionMatchingRuleOption {
+	return func(m *ResourceDefinitionMatchingRuleMutation) {
+		m.oldValue = func(context.Context) (*ResourceDefinitionMatchingRule, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ResourceDefinitionMatchingRuleMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ResourceDefinitionMatchingRuleMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("model: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ResourceDefinitionMatchingRule entities.
+func (m *ResourceDefinitionMatchingRuleMutation) SetID(id object.ID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ResourceDefinitionMatchingRuleMutation) ID() (id object.ID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) IDs(ctx context.Context) ([]object.ID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []object.ID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ResourceDefinitionMatchingRule.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *ResourceDefinitionMatchingRuleMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the ResourceDefinitionMatchingRule entity.
+// If the ResourceDefinitionMatchingRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceDefinitionMatchingRuleMutation) OldCreateTime(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *ResourceDefinitionMatchingRuleMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetResourceDefinitionID sets the "resource_definition_id" field.
+func (m *ResourceDefinitionMatchingRuleMutation) SetResourceDefinitionID(o object.ID) {
+	m.resource_definition = &o
+}
+
+// ResourceDefinitionID returns the value of the "resource_definition_id" field in the mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) ResourceDefinitionID() (r object.ID, exists bool) {
+	v := m.resource_definition
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResourceDefinitionID returns the old "resource_definition_id" field's value of the ResourceDefinitionMatchingRule entity.
+// If the ResourceDefinitionMatchingRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceDefinitionMatchingRuleMutation) OldResourceDefinitionID(ctx context.Context) (v object.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResourceDefinitionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResourceDefinitionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResourceDefinitionID: %w", err)
+	}
+	return oldValue.ResourceDefinitionID, nil
+}
+
+// ResetResourceDefinitionID resets all changes to the "resource_definition_id" field.
+func (m *ResourceDefinitionMatchingRuleMutation) ResetResourceDefinitionID() {
+	m.resource_definition = nil
+}
+
+// SetTemplateID sets the "template_id" field.
+func (m *ResourceDefinitionMatchingRuleMutation) SetTemplateID(o object.ID) {
+	m.template = &o
+}
+
+// TemplateID returns the value of the "template_id" field in the mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) TemplateID() (r object.ID, exists bool) {
+	v := m.template
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTemplateID returns the old "template_id" field's value of the ResourceDefinitionMatchingRule entity.
+// If the ResourceDefinitionMatchingRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceDefinitionMatchingRuleMutation) OldTemplateID(ctx context.Context) (v object.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTemplateID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTemplateID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTemplateID: %w", err)
+	}
+	return oldValue.TemplateID, nil
+}
+
+// ResetTemplateID resets all changes to the "template_id" field.
+func (m *ResourceDefinitionMatchingRuleMutation) ResetTemplateID() {
+	m.template = nil
+}
+
+// SetName sets the "name" field.
+func (m *ResourceDefinitionMatchingRuleMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the ResourceDefinitionMatchingRule entity.
+// If the ResourceDefinitionMatchingRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceDefinitionMatchingRuleMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *ResourceDefinitionMatchingRuleMutation) ResetName() {
+	m.name = nil
+}
+
+// SetSelector sets the "selector" field.
+func (m *ResourceDefinitionMatchingRuleMutation) SetSelector(t types.Selector) {
+	m.selector = &t
+}
+
+// Selector returns the value of the "selector" field in the mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) Selector() (r types.Selector, exists bool) {
+	v := m.selector
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSelector returns the old "selector" field's value of the ResourceDefinitionMatchingRule entity.
+// If the ResourceDefinitionMatchingRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceDefinitionMatchingRuleMutation) OldSelector(ctx context.Context) (v types.Selector, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSelector is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSelector requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSelector: %w", err)
+	}
+	return oldValue.Selector, nil
+}
+
+// ResetSelector resets all changes to the "selector" field.
+func (m *ResourceDefinitionMatchingRuleMutation) ResetSelector() {
+	m.selector = nil
+}
+
+// SetAttributes sets the "attributes" field.
+func (m *ResourceDefinitionMatchingRuleMutation) SetAttributes(pr property.Values) {
+	m.attributes = &pr
+}
+
+// Attributes returns the value of the "attributes" field in the mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) Attributes() (r property.Values, exists bool) {
+	v := m.attributes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAttributes returns the old "attributes" field's value of the ResourceDefinitionMatchingRule entity.
+// If the ResourceDefinitionMatchingRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceDefinitionMatchingRuleMutation) OldAttributes(ctx context.Context) (v property.Values, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAttributes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAttributes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAttributes: %w", err)
+	}
+	return oldValue.Attributes, nil
+}
+
+// ClearAttributes clears the value of the "attributes" field.
+func (m *ResourceDefinitionMatchingRuleMutation) ClearAttributes() {
+	m.attributes = nil
+	m.clearedFields[resourcedefinitionmatchingrule.FieldAttributes] = struct{}{}
+}
+
+// AttributesCleared returns if the "attributes" field was cleared in this mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) AttributesCleared() bool {
+	_, ok := m.clearedFields[resourcedefinitionmatchingrule.FieldAttributes]
+	return ok
+}
+
+// ResetAttributes resets all changes to the "attributes" field.
+func (m *ResourceDefinitionMatchingRuleMutation) ResetAttributes() {
+	m.attributes = nil
+	delete(m.clearedFields, resourcedefinitionmatchingrule.FieldAttributes)
+}
+
+// ClearResourceDefinition clears the "resource_definition" edge to the ResourceDefinition entity.
+func (m *ResourceDefinitionMatchingRuleMutation) ClearResourceDefinition() {
+	m.clearedresource_definition = true
+}
+
+// ResourceDefinitionCleared reports if the "resource_definition" edge to the ResourceDefinition entity was cleared.
+func (m *ResourceDefinitionMatchingRuleMutation) ResourceDefinitionCleared() bool {
+	return m.clearedresource_definition
+}
+
+// ResourceDefinitionIDs returns the "resource_definition" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ResourceDefinitionID instead. It exists only for internal usage by the builders.
+func (m *ResourceDefinitionMatchingRuleMutation) ResourceDefinitionIDs() (ids []object.ID) {
+	if id := m.resource_definition; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetResourceDefinition resets all changes to the "resource_definition" edge.
+func (m *ResourceDefinitionMatchingRuleMutation) ResetResourceDefinition() {
+	m.resource_definition = nil
+	m.clearedresource_definition = false
+}
+
+// ClearTemplate clears the "template" edge to the TemplateVersion entity.
+func (m *ResourceDefinitionMatchingRuleMutation) ClearTemplate() {
+	m.clearedtemplate = true
+}
+
+// TemplateCleared reports if the "template" edge to the TemplateVersion entity was cleared.
+func (m *ResourceDefinitionMatchingRuleMutation) TemplateCleared() bool {
+	return m.clearedtemplate
+}
+
+// TemplateIDs returns the "template" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TemplateID instead. It exists only for internal usage by the builders.
+func (m *ResourceDefinitionMatchingRuleMutation) TemplateIDs() (ids []object.ID) {
+	if id := m.template; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTemplate resets all changes to the "template" edge.
+func (m *ResourceDefinitionMatchingRuleMutation) ResetTemplate() {
+	m.template = nil
+	m.clearedtemplate = false
+}
+
+// Where appends a list predicates to the ResourceDefinitionMatchingRuleMutation builder.
+func (m *ResourceDefinitionMatchingRuleMutation) Where(ps ...predicate.ResourceDefinitionMatchingRule) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ResourceDefinitionMatchingRuleMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ResourceDefinitionMatchingRuleMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ResourceDefinitionMatchingRule, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ResourceDefinitionMatchingRuleMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ResourceDefinitionMatchingRuleMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ResourceDefinitionMatchingRule).
+func (m *ResourceDefinitionMatchingRuleMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ResourceDefinitionMatchingRuleMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.create_time != nil {
+		fields = append(fields, resourcedefinitionmatchingrule.FieldCreateTime)
+	}
+	if m.resource_definition != nil {
+		fields = append(fields, resourcedefinitionmatchingrule.FieldResourceDefinitionID)
+	}
+	if m.template != nil {
+		fields = append(fields, resourcedefinitionmatchingrule.FieldTemplateID)
+	}
+	if m.name != nil {
+		fields = append(fields, resourcedefinitionmatchingrule.FieldName)
+	}
+	if m.selector != nil {
+		fields = append(fields, resourcedefinitionmatchingrule.FieldSelector)
+	}
+	if m.attributes != nil {
+		fields = append(fields, resourcedefinitionmatchingrule.FieldAttributes)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ResourceDefinitionMatchingRuleMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case resourcedefinitionmatchingrule.FieldCreateTime:
+		return m.CreateTime()
+	case resourcedefinitionmatchingrule.FieldResourceDefinitionID:
+		return m.ResourceDefinitionID()
+	case resourcedefinitionmatchingrule.FieldTemplateID:
+		return m.TemplateID()
+	case resourcedefinitionmatchingrule.FieldName:
+		return m.Name()
+	case resourcedefinitionmatchingrule.FieldSelector:
+		return m.Selector()
+	case resourcedefinitionmatchingrule.FieldAttributes:
+		return m.Attributes()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ResourceDefinitionMatchingRuleMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case resourcedefinitionmatchingrule.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case resourcedefinitionmatchingrule.FieldResourceDefinitionID:
+		return m.OldResourceDefinitionID(ctx)
+	case resourcedefinitionmatchingrule.FieldTemplateID:
+		return m.OldTemplateID(ctx)
+	case resourcedefinitionmatchingrule.FieldName:
+		return m.OldName(ctx)
+	case resourcedefinitionmatchingrule.FieldSelector:
+		return m.OldSelector(ctx)
+	case resourcedefinitionmatchingrule.FieldAttributes:
+		return m.OldAttributes(ctx)
+	}
+	return nil, fmt.Errorf("unknown ResourceDefinitionMatchingRule field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ResourceDefinitionMatchingRuleMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case resourcedefinitionmatchingrule.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case resourcedefinitionmatchingrule.FieldResourceDefinitionID:
+		v, ok := value.(object.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResourceDefinitionID(v)
+		return nil
+	case resourcedefinitionmatchingrule.FieldTemplateID:
+		v, ok := value.(object.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTemplateID(v)
+		return nil
+	case resourcedefinitionmatchingrule.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case resourcedefinitionmatchingrule.FieldSelector:
+		v, ok := value.(types.Selector)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSelector(v)
+		return nil
+	case resourcedefinitionmatchingrule.FieldAttributes:
+		v, ok := value.(property.Values)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAttributes(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ResourceDefinitionMatchingRule field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ResourceDefinitionMatchingRuleMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ResourceDefinitionMatchingRuleMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ResourceDefinitionMatchingRule numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(resourcedefinitionmatchingrule.FieldAttributes) {
+		fields = append(fields, resourcedefinitionmatchingrule.FieldAttributes)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ResourceDefinitionMatchingRuleMutation) ClearField(name string) error {
+	switch name {
+	case resourcedefinitionmatchingrule.FieldAttributes:
+		m.ClearAttributes()
+		return nil
+	}
+	return fmt.Errorf("unknown ResourceDefinitionMatchingRule nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ResourceDefinitionMatchingRuleMutation) ResetField(name string) error {
+	switch name {
+	case resourcedefinitionmatchingrule.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case resourcedefinitionmatchingrule.FieldResourceDefinitionID:
+		m.ResetResourceDefinitionID()
+		return nil
+	case resourcedefinitionmatchingrule.FieldTemplateID:
+		m.ResetTemplateID()
+		return nil
+	case resourcedefinitionmatchingrule.FieldName:
+		m.ResetName()
+		return nil
+	case resourcedefinitionmatchingrule.FieldSelector:
+		m.ResetSelector()
+		return nil
+	case resourcedefinitionmatchingrule.FieldAttributes:
+		m.ResetAttributes()
+		return nil
+	}
+	return fmt.Errorf("unknown ResourceDefinitionMatchingRule field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.resource_definition != nil {
+		edges = append(edges, resourcedefinitionmatchingrule.EdgeResourceDefinition)
+	}
+	if m.template != nil {
+		edges = append(edges, resourcedefinitionmatchingrule.EdgeTemplate)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case resourcedefinitionmatchingrule.EdgeResourceDefinition:
+		if id := m.resource_definition; id != nil {
+			return []ent.Value{*id}
+		}
+	case resourcedefinitionmatchingrule.EdgeTemplate:
+		if id := m.template; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedresource_definition {
+		edges = append(edges, resourcedefinitionmatchingrule.EdgeResourceDefinition)
+	}
+	if m.clearedtemplate {
+		edges = append(edges, resourcedefinitionmatchingrule.EdgeTemplate)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) EdgeCleared(name string) bool {
+	switch name {
+	case resourcedefinitionmatchingrule.EdgeResourceDefinition:
+		return m.clearedresource_definition
+	case resourcedefinitionmatchingrule.EdgeTemplate:
+		return m.clearedtemplate
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ResourceDefinitionMatchingRuleMutation) ClearEdge(name string) error {
+	switch name {
+	case resourcedefinitionmatchingrule.EdgeResourceDefinition:
+		m.ClearResourceDefinition()
+		return nil
+	case resourcedefinitionmatchingrule.EdgeTemplate:
+		m.ClearTemplate()
+		return nil
+	}
+	return fmt.Errorf("unknown ResourceDefinitionMatchingRule unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ResourceDefinitionMatchingRuleMutation) ResetEdge(name string) error {
+	switch name {
+	case resourcedefinitionmatchingrule.EdgeResourceDefinition:
+		m.ResetResourceDefinition()
+		return nil
+	case resourcedefinitionmatchingrule.EdgeTemplate:
+		m.ResetTemplate()
+		return nil
+	}
+	return fmt.Errorf("unknown ResourceDefinitionMatchingRule edge %s", name)
 }
 
 // ResourceRelationshipMutation represents an operation that mutates the ResourceRelationship nodes in the graph.
@@ -20407,27 +22343,30 @@ func (m *TemplateMutation) ResetEdge(name string) error {
 // TemplateVersionMutation represents an operation that mutates the TemplateVersion nodes in the graph.
 type TemplateVersionMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *object.ID
-	create_time      *time.Time
-	update_time      *time.Time
-	name             *string
-	version          *string
-	source           *string
-	schema           *types.Schema
-	uiSchema         *types.UISchema
-	clearedFields    map[string]struct{}
-	template         *object.ID
-	clearedtemplate  bool
-	resources        map[object.ID]struct{}
-	removedresources map[object.ID]struct{}
-	clearedresources bool
-	project          *object.ID
-	clearedproject   bool
-	done             bool
-	oldValue         func(context.Context) (*TemplateVersion, error)
-	predicates       []predicate.TemplateVersion
+	op                          Op
+	typ                         string
+	id                          *object.ID
+	create_time                 *time.Time
+	update_time                 *time.Time
+	name                        *string
+	version                     *string
+	source                      *string
+	schema                      *types.TemplateVersionSchema
+	uiSchema                    *types.UISchema
+	clearedFields               map[string]struct{}
+	template                    *object.ID
+	clearedtemplate             bool
+	resources                   map[object.ID]struct{}
+	removedresources            map[object.ID]struct{}
+	clearedresources            bool
+	resource_definitions        map[object.ID]struct{}
+	removedresource_definitions map[object.ID]struct{}
+	clearedresource_definitions bool
+	project                     *object.ID
+	clearedproject              bool
+	done                        bool
+	oldValue                    func(context.Context) (*TemplateVersion, error)
+	predicates                  []predicate.TemplateVersion
 }
 
 var _ ent.Mutation = (*TemplateVersionMutation)(nil)
@@ -20751,12 +22690,12 @@ func (m *TemplateVersionMutation) ResetSource() {
 }
 
 // SetSchema sets the "schema" field.
-func (m *TemplateVersionMutation) SetSchema(t types.Schema) {
-	m.schema = &t
+func (m *TemplateVersionMutation) SetSchema(tvs types.TemplateVersionSchema) {
+	m.schema = &tvs
 }
 
 // Schema returns the value of the "schema" field in the mutation.
-func (m *TemplateVersionMutation) Schema() (r types.Schema, exists bool) {
+func (m *TemplateVersionMutation) Schema() (r types.TemplateVersionSchema, exists bool) {
 	v := m.schema
 	if v == nil {
 		return
@@ -20767,7 +22706,7 @@ func (m *TemplateVersionMutation) Schema() (r types.Schema, exists bool) {
 // OldSchema returns the old "schema" field's value of the TemplateVersion entity.
 // If the TemplateVersion object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TemplateVersionMutation) OldSchema(ctx context.Context) (v types.Schema, err error) {
+func (m *TemplateVersionMutation) OldSchema(ctx context.Context) (v types.TemplateVersionSchema, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldSchema is only allowed on UpdateOne operations")
 	}
@@ -20949,6 +22888,60 @@ func (m *TemplateVersionMutation) ResetResources() {
 	m.resources = nil
 	m.clearedresources = false
 	m.removedresources = nil
+}
+
+// AddResourceDefinitionIDs adds the "resource_definitions" edge to the ResourceDefinitionMatchingRule entity by ids.
+func (m *TemplateVersionMutation) AddResourceDefinitionIDs(ids ...object.ID) {
+	if m.resource_definitions == nil {
+		m.resource_definitions = make(map[object.ID]struct{})
+	}
+	for i := range ids {
+		m.resource_definitions[ids[i]] = struct{}{}
+	}
+}
+
+// ClearResourceDefinitions clears the "resource_definitions" edge to the ResourceDefinitionMatchingRule entity.
+func (m *TemplateVersionMutation) ClearResourceDefinitions() {
+	m.clearedresource_definitions = true
+}
+
+// ResourceDefinitionsCleared reports if the "resource_definitions" edge to the ResourceDefinitionMatchingRule entity was cleared.
+func (m *TemplateVersionMutation) ResourceDefinitionsCleared() bool {
+	return m.clearedresource_definitions
+}
+
+// RemoveResourceDefinitionIDs removes the "resource_definitions" edge to the ResourceDefinitionMatchingRule entity by IDs.
+func (m *TemplateVersionMutation) RemoveResourceDefinitionIDs(ids ...object.ID) {
+	if m.removedresource_definitions == nil {
+		m.removedresource_definitions = make(map[object.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.resource_definitions, ids[i])
+		m.removedresource_definitions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedResourceDefinitions returns the removed IDs of the "resource_definitions" edge to the ResourceDefinitionMatchingRule entity.
+func (m *TemplateVersionMutation) RemovedResourceDefinitionsIDs() (ids []object.ID) {
+	for id := range m.removedresource_definitions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResourceDefinitionsIDs returns the "resource_definitions" edge IDs in the mutation.
+func (m *TemplateVersionMutation) ResourceDefinitionsIDs() (ids []object.ID) {
+	for id := range m.resource_definitions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetResourceDefinitions resets all changes to the "resource_definitions" edge.
+func (m *TemplateVersionMutation) ResetResourceDefinitions() {
+	m.resource_definitions = nil
+	m.clearedresource_definitions = false
+	m.removedresource_definitions = nil
 }
 
 // ClearProject clears the "project" edge to the Project entity.
@@ -21144,7 +23137,7 @@ func (m *TemplateVersionMutation) SetField(name string, value ent.Value) error {
 		m.SetSource(v)
 		return nil
 	case templateversion.FieldSchema:
-		v, ok := value.(types.Schema)
+		v, ok := value.(types.TemplateVersionSchema)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -21255,12 +23248,15 @@ func (m *TemplateVersionMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *TemplateVersionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.template != nil {
 		edges = append(edges, templateversion.EdgeTemplate)
 	}
 	if m.resources != nil {
 		edges = append(edges, templateversion.EdgeResources)
+	}
+	if m.resource_definitions != nil {
+		edges = append(edges, templateversion.EdgeResourceDefinitions)
 	}
 	if m.project != nil {
 		edges = append(edges, templateversion.EdgeProject)
@@ -21282,6 +23278,12 @@ func (m *TemplateVersionMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case templateversion.EdgeResourceDefinitions:
+		ids := make([]ent.Value, 0, len(m.resource_definitions))
+		for id := range m.resource_definitions {
+			ids = append(ids, id)
+		}
+		return ids
 	case templateversion.EdgeProject:
 		if id := m.project; id != nil {
 			return []ent.Value{*id}
@@ -21292,9 +23294,12 @@ func (m *TemplateVersionMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TemplateVersionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedresources != nil {
 		edges = append(edges, templateversion.EdgeResources)
+	}
+	if m.removedresource_definitions != nil {
+		edges = append(edges, templateversion.EdgeResourceDefinitions)
 	}
 	return edges
 }
@@ -21309,18 +23314,27 @@ func (m *TemplateVersionMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case templateversion.EdgeResourceDefinitions:
+		ids := make([]ent.Value, 0, len(m.removedresource_definitions))
+		for id := range m.removedresource_definitions {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *TemplateVersionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedtemplate {
 		edges = append(edges, templateversion.EdgeTemplate)
 	}
 	if m.clearedresources {
 		edges = append(edges, templateversion.EdgeResources)
+	}
+	if m.clearedresource_definitions {
+		edges = append(edges, templateversion.EdgeResourceDefinitions)
 	}
 	if m.clearedproject {
 		edges = append(edges, templateversion.EdgeProject)
@@ -21336,6 +23350,8 @@ func (m *TemplateVersionMutation) EdgeCleared(name string) bool {
 		return m.clearedtemplate
 	case templateversion.EdgeResources:
 		return m.clearedresources
+	case templateversion.EdgeResourceDefinitions:
+		return m.clearedresource_definitions
 	case templateversion.EdgeProject:
 		return m.clearedproject
 	}
@@ -21365,6 +23381,9 @@ func (m *TemplateVersionMutation) ResetEdge(name string) error {
 		return nil
 	case templateversion.EdgeResources:
 		m.ResetResources()
+		return nil
+	case templateversion.EdgeResourceDefinitions:
+		m.ResetResourceDefinitions()
 		return nil
 	case templateversion.EdgeProject:
 		m.ResetProject()
@@ -28456,9 +30475,9 @@ type WorkflowStepMutation struct {
 	update_time        *time.Time
 	_type              *string
 	workflow_id        *object.ID
-	attributes         *map[string]interface{}
-	inputs             *map[string]interface{}
-	outputs            *map[string]interface{}
+	attributes         *map[string]any
+	inputs             *map[string]any
+	outputs            *map[string]any
 	_order             *int
 	add_order          *int
 	dependencies       *[]object.ID
@@ -28980,12 +30999,12 @@ func (m *WorkflowStepMutation) ResetWorkflowStageID() {
 }
 
 // SetAttributes sets the "attributes" field.
-func (m *WorkflowStepMutation) SetAttributes(value map[string]interface{}) {
+func (m *WorkflowStepMutation) SetAttributes(value map[string]any) {
 	m.attributes = &value
 }
 
 // Attributes returns the value of the "attributes" field in the mutation.
-func (m *WorkflowStepMutation) Attributes() (r map[string]interface{}, exists bool) {
+func (m *WorkflowStepMutation) Attributes() (r map[string]any, exists bool) {
 	v := m.attributes
 	if v == nil {
 		return
@@ -28996,7 +31015,7 @@ func (m *WorkflowStepMutation) Attributes() (r map[string]interface{}, exists bo
 // OldAttributes returns the old "attributes" field's value of the WorkflowStep entity.
 // If the WorkflowStep object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *WorkflowStepMutation) OldAttributes(ctx context.Context) (v map[string]interface{}, err error) {
+func (m *WorkflowStepMutation) OldAttributes(ctx context.Context) (v map[string]any, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldAttributes is only allowed on UpdateOne operations")
 	}
@@ -29029,12 +31048,12 @@ func (m *WorkflowStepMutation) ResetAttributes() {
 }
 
 // SetInputs sets the "inputs" field.
-func (m *WorkflowStepMutation) SetInputs(value map[string]interface{}) {
+func (m *WorkflowStepMutation) SetInputs(value map[string]any) {
 	m.inputs = &value
 }
 
 // Inputs returns the value of the "inputs" field in the mutation.
-func (m *WorkflowStepMutation) Inputs() (r map[string]interface{}, exists bool) {
+func (m *WorkflowStepMutation) Inputs() (r map[string]any, exists bool) {
 	v := m.inputs
 	if v == nil {
 		return
@@ -29045,7 +31064,7 @@ func (m *WorkflowStepMutation) Inputs() (r map[string]interface{}, exists bool) 
 // OldInputs returns the old "inputs" field's value of the WorkflowStep entity.
 // If the WorkflowStep object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *WorkflowStepMutation) OldInputs(ctx context.Context) (v map[string]interface{}, err error) {
+func (m *WorkflowStepMutation) OldInputs(ctx context.Context) (v map[string]any, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldInputs is only allowed on UpdateOne operations")
 	}
@@ -29078,12 +31097,12 @@ func (m *WorkflowStepMutation) ResetInputs() {
 }
 
 // SetOutputs sets the "outputs" field.
-func (m *WorkflowStepMutation) SetOutputs(value map[string]interface{}) {
+func (m *WorkflowStepMutation) SetOutputs(value map[string]any) {
 	m.outputs = &value
 }
 
 // Outputs returns the value of the "outputs" field in the mutation.
-func (m *WorkflowStepMutation) Outputs() (r map[string]interface{}, exists bool) {
+func (m *WorkflowStepMutation) Outputs() (r map[string]any, exists bool) {
 	v := m.outputs
 	if v == nil {
 		return
@@ -29094,7 +31113,7 @@ func (m *WorkflowStepMutation) Outputs() (r map[string]interface{}, exists bool)
 // OldOutputs returns the old "outputs" field's value of the WorkflowStep entity.
 // If the WorkflowStep object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *WorkflowStepMutation) OldOutputs(ctx context.Context) (v map[string]interface{}, err error) {
+func (m *WorkflowStepMutation) OldOutputs(ctx context.Context) (v map[string]any, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldOutputs is only allowed on UpdateOne operations")
 	}
@@ -29654,21 +31673,21 @@ func (m *WorkflowStepMutation) SetField(name string, value ent.Value) error {
 		m.SetWorkflowStageID(v)
 		return nil
 	case workflowstep.FieldAttributes:
-		v, ok := value.(map[string]interface{})
+		v, ok := value.(map[string]any)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAttributes(v)
 		return nil
 	case workflowstep.FieldInputs:
-		v, ok := value.(map[string]interface{})
+		v, ok := value.(map[string]any)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetInputs(v)
 		return nil
 	case workflowstep.FieldOutputs:
-		v, ok := value.(map[string]interface{})
+		v, ok := value.(map[string]any)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -29987,7 +32006,7 @@ type WorkflowStepExecutionMutation struct {
 	workflow_execution_id  *object.ID
 	workflow_id            *object.ID
 	_type                  *string
-	attributes             *map[string]interface{}
+	attributes             *map[string]any
 	times                  *int
 	addtimes               *int
 	execute_time           *time.Time
@@ -30634,12 +32653,12 @@ func (m *WorkflowStepExecutionMutation) ResetType() {
 }
 
 // SetAttributes sets the "attributes" field.
-func (m *WorkflowStepExecutionMutation) SetAttributes(value map[string]interface{}) {
+func (m *WorkflowStepExecutionMutation) SetAttributes(value map[string]any) {
 	m.attributes = &value
 }
 
 // Attributes returns the value of the "attributes" field in the mutation.
-func (m *WorkflowStepExecutionMutation) Attributes() (r map[string]interface{}, exists bool) {
+func (m *WorkflowStepExecutionMutation) Attributes() (r map[string]any, exists bool) {
 	v := m.attributes
 	if v == nil {
 		return
@@ -30650,7 +32669,7 @@ func (m *WorkflowStepExecutionMutation) Attributes() (r map[string]interface{}, 
 // OldAttributes returns the old "attributes" field's value of the WorkflowStepExecution entity.
 // If the WorkflowStepExecution object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *WorkflowStepExecutionMutation) OldAttributes(ctx context.Context) (v map[string]interface{}, err error) {
+func (m *WorkflowStepExecutionMutation) OldAttributes(ctx context.Context) (v map[string]any, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldAttributes is only allowed on UpdateOne operations")
 	}
@@ -31405,7 +33424,7 @@ func (m *WorkflowStepExecutionMutation) SetField(name string, value ent.Value) e
 		m.SetType(v)
 		return nil
 	case workflowstepexecution.FieldAttributes:
-		v, ok := value.(map[string]interface{})
+		v, ok := value.(map[string]any)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

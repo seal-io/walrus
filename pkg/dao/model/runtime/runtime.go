@@ -19,6 +19,8 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponentrelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/role"
@@ -392,10 +394,6 @@ func init() {
 	resourceDescEnvironmentID := resourceFields[1].Descriptor()
 	// resource.EnvironmentIDValidator is a validator for the "environment_id" field. It is called by the builders before save.
 	resource.EnvironmentIDValidator = resourceDescEnvironmentID.Validators[0].(func(string) error)
-	// resourceDescTemplateID is the schema descriptor for template_id field.
-	resourceDescTemplateID := resourceFields[2].Descriptor()
-	// resource.TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
-	resource.TemplateIDValidator = resourceDescTemplateID.Validators[0].(func(string) error)
 	resourcecomponentMixin := schema.ResourceComponent{}.Mixin()
 	resourcecomponentMixinHooks0 := resourcecomponentMixin[0].Hooks()
 	resourcecomponent.Hooks[0] = resourcecomponentMixinHooks0[0]
@@ -474,6 +472,66 @@ func init() {
 	resourcecomponentrelationshipDescType := resourcecomponentrelationshipFields[2].Descriptor()
 	// resourcecomponentrelationship.TypeValidator is a validator for the "type" field. It is called by the builders before save.
 	resourcecomponentrelationship.TypeValidator = resourcecomponentrelationshipDescType.Validators[0].(func(string) error)
+	resourcedefinitionMixin := schema.ResourceDefinition{}.Mixin()
+	resourcedefinitionMixinHooks0 := resourcedefinitionMixin[0].Hooks()
+	resourcedefinition.Hooks[0] = resourcedefinitionMixinHooks0[0]
+	resourcedefinitionMixinFields0 := resourcedefinitionMixin[0].Fields()
+	_ = resourcedefinitionMixinFields0
+	resourcedefinitionFields := schema.ResourceDefinition{}.Fields()
+	_ = resourcedefinitionFields
+	// resourcedefinitionDescName is the schema descriptor for name field.
+	resourcedefinitionDescName := resourcedefinitionMixinFields0[1].Descriptor()
+	// resourcedefinition.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	resourcedefinition.NameValidator = resourcedefinitionDescName.Validators[0].(func(string) error)
+	// resourcedefinitionDescLabels is the schema descriptor for labels field.
+	resourcedefinitionDescLabels := resourcedefinitionMixinFields0[3].Descriptor()
+	// resourcedefinition.DefaultLabels holds the default value on creation for the labels field.
+	resourcedefinition.DefaultLabels = resourcedefinitionDescLabels.Default.(map[string]string)
+	// resourcedefinitionDescAnnotations is the schema descriptor for annotations field.
+	resourcedefinitionDescAnnotations := resourcedefinitionMixinFields0[4].Descriptor()
+	// resourcedefinition.DefaultAnnotations holds the default value on creation for the annotations field.
+	resourcedefinition.DefaultAnnotations = resourcedefinitionDescAnnotations.Default.(map[string]string)
+	// resourcedefinitionDescCreateTime is the schema descriptor for create_time field.
+	resourcedefinitionDescCreateTime := resourcedefinitionMixinFields0[5].Descriptor()
+	// resourcedefinition.DefaultCreateTime holds the default value on creation for the create_time field.
+	resourcedefinition.DefaultCreateTime = resourcedefinitionDescCreateTime.Default.(func() time.Time)
+	// resourcedefinitionDescUpdateTime is the schema descriptor for update_time field.
+	resourcedefinitionDescUpdateTime := resourcedefinitionMixinFields0[6].Descriptor()
+	// resourcedefinition.DefaultUpdateTime holds the default value on creation for the update_time field.
+	resourcedefinition.DefaultUpdateTime = resourcedefinitionDescUpdateTime.Default.(func() time.Time)
+	// resourcedefinition.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	resourcedefinition.UpdateDefaultUpdateTime = resourcedefinitionDescUpdateTime.UpdateDefault.(func() time.Time)
+	// resourcedefinitionDescSchema is the schema descriptor for schema field.
+	resourcedefinitionDescSchema := resourcedefinitionFields[1].Descriptor()
+	// resourcedefinition.DefaultSchema holds the default value on creation for the schema field.
+	resourcedefinition.DefaultSchema = resourcedefinitionDescSchema.Default.(types.Schema)
+	// resourcedefinitionDescUiSchema is the schema descriptor for uiSchema field.
+	resourcedefinitionDescUiSchema := resourcedefinitionFields[2].Descriptor()
+	// resourcedefinition.DefaultUiSchema holds the default value on creation for the uiSchema field.
+	resourcedefinition.DefaultUiSchema = resourcedefinitionDescUiSchema.Default.(types.UISchema)
+	resourcedefinitionmatchingruleMixin := schema.ResourceDefinitionMatchingRule{}.Mixin()
+	resourcedefinitionmatchingruleMixinHooks0 := resourcedefinitionmatchingruleMixin[0].Hooks()
+	resourcedefinitionmatchingrule.Hooks[0] = resourcedefinitionmatchingruleMixinHooks0[0]
+	resourcedefinitionmatchingruleMixinFields1 := resourcedefinitionmatchingruleMixin[1].Fields()
+	_ = resourcedefinitionmatchingruleMixinFields1
+	resourcedefinitionmatchingruleFields := schema.ResourceDefinitionMatchingRule{}.Fields()
+	_ = resourcedefinitionmatchingruleFields
+	// resourcedefinitionmatchingruleDescCreateTime is the schema descriptor for create_time field.
+	resourcedefinitionmatchingruleDescCreateTime := resourcedefinitionmatchingruleMixinFields1[0].Descriptor()
+	// resourcedefinitionmatchingrule.DefaultCreateTime holds the default value on creation for the create_time field.
+	resourcedefinitionmatchingrule.DefaultCreateTime = resourcedefinitionmatchingruleDescCreateTime.Default.(func() time.Time)
+	// resourcedefinitionmatchingruleDescResourceDefinitionID is the schema descriptor for resource_definition_id field.
+	resourcedefinitionmatchingruleDescResourceDefinitionID := resourcedefinitionmatchingruleFields[0].Descriptor()
+	// resourcedefinitionmatchingrule.ResourceDefinitionIDValidator is a validator for the "resource_definition_id" field. It is called by the builders before save.
+	resourcedefinitionmatchingrule.ResourceDefinitionIDValidator = resourcedefinitionmatchingruleDescResourceDefinitionID.Validators[0].(func(string) error)
+	// resourcedefinitionmatchingruleDescTemplateID is the schema descriptor for template_id field.
+	resourcedefinitionmatchingruleDescTemplateID := resourcedefinitionmatchingruleFields[1].Descriptor()
+	// resourcedefinitionmatchingrule.TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
+	resourcedefinitionmatchingrule.TemplateIDValidator = resourcedefinitionmatchingruleDescTemplateID.Validators[0].(func(string) error)
+	// resourcedefinitionmatchingruleDescName is the schema descriptor for name field.
+	resourcedefinitionmatchingruleDescName := resourcedefinitionmatchingruleFields[2].Descriptor()
+	// resourcedefinitionmatchingrule.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	resourcedefinitionmatchingrule.NameValidator = resourcedefinitionmatchingruleDescName.Validators[0].(func(string) error)
 	resourcerelationshipMixin := schema.ResourceRelationship{}.Mixin()
 	resourcerelationshipMixinHooks0 := resourcerelationshipMixin[0].Hooks()
 	resourcerelationship.Hooks[0] = resourcerelationshipMixinHooks0[0]
@@ -757,7 +815,7 @@ func init() {
 	// templateversionDescSchema is the schema descriptor for schema field.
 	templateversionDescSchema := templateversionFields[4].Descriptor()
 	// templateversion.DefaultSchema holds the default value on creation for the schema field.
-	templateversion.DefaultSchema = templateversionDescSchema.Default.(types.Schema)
+	templateversion.DefaultSchema = templateversionDescSchema.Default.(types.TemplateVersionSchema)
 	// templateversionDescUiSchema is the schema descriptor for uiSchema field.
 	templateversionDescUiSchema := templateversionFields[5].Descriptor()
 	// templateversion.DefaultUiSchema holds the default value on creation for the uiSchema field.
