@@ -125,7 +125,7 @@ func (s *WorkflowStepServiceValidator) Validate(ctx *gin.Context, client *model.
 	rci.Project = scm.Project
 	rci.Environment = scm.Environment
 
-	if err := apiresource.ValidateCreateInput(*rci); err != nil {
+	if err := apiresource.ValidateCreateInput(rci); err != nil {
 		return err
 	}
 

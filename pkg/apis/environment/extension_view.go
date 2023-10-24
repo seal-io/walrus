@@ -44,3 +44,13 @@ type (
 func (r *RouteCloneEnvironmentRequest) Validate() error {
 	return validateEnvironmentCreateInput(r.EnvironmentCreateInput)
 }
+
+type (
+	RouteGetResourceDefinitionsRequest struct {
+		_ struct{} `route:"GET=/resource-definitions"`
+
+		model.EnvironmentQueryInput `path:",inline"`
+	}
+
+	RouteGetResourceDefinitionsResponse = []*model.ResourceDefinitionOutput
+)

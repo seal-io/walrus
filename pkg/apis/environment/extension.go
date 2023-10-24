@@ -5,15 +5,20 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/environment"
+	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
+	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/model/variable"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
 	pkgcomponent "github.com/seal-io/walrus/pkg/resourcecomponents"
+	"github.com/seal-io/walrus/pkg/resourcedefinitions"
 	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
 )
@@ -31,7 +36,9 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 		WithDependencies(func(dq *model.ResourceRelationshipQuery) {
 			dq.Select(resourcerelationship.FieldDependencyID).
 				Where(func(s *sql.Selector) {
-					s.Where(sql.ColumnsNEQ(resourcerelationship.FieldResourceID, resourcerelationship.FieldDependencyID))
+					s.Where(
+						sql.ColumnsNEQ(resourcerelationship.FieldResourceID, resourcerelationship.FieldDependencyID),
+					)
 				})
 		}).
 		// Must extract resource.
@@ -204,4 +211,55 @@ func (h Handler) RouteCloneEnvironment(req RouteCloneEnvironmentRequest) (*Route
 	}
 
 	return createEnvironment(req.Context, h.modelClient, entity)
+}
+
+func (h Handler) RouteGetResourceDefinitions(
+	req RouteGetResourceDefinitionsRequest,
+) (RouteGetResourceDefinitionsResponse, error) {
+	rds, err := h.modelClient.ResourceDefinitions().Query().
+		WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
+			rq.Order(model.Desc(resourcedefinitionmatchingrule.FieldCreateTime)).
+				Select(resourcedefinitionmatchingrule.FieldResourceDefinitionID).
+				Unique(false).
+				Select(resourcedefinitionmatchingrule.FieldTemplateID).
+				WithTemplate(func(tq *model.TemplateVersionQuery) {
+					tq.Select(
+						templateversion.FieldID,
+						templateversion.FieldVersion,
+						templateversion.FieldName,
+					)
+				})
+		}).
+		All(req.Context)
+	if err != nil {
+		return nil, err
+	}
+
+	env, err := h.modelClient.Environments().Query().
+		Where(environment.ID(req.ID)).
+		WithProject(func(pq *model.ProjectQuery) {
+			pq.Select(project.FieldName)
+		}).
+		Only(req.Context)
+	if err != nil {
+		return nil, err
+	}
+
+	var availableRds []*model.ResourceDefinition
+
+	for _, rd := range rds {
+		m := resourcedefinitions.Match(
+			rd.Edges.MatchingRules,
+			env.Edges.Project.Name,
+			env.Name,
+			env.Type,
+			env.Labels,
+			nil,
+		)
+		if m != nil {
+			availableRds = append(availableRds, rd)
+		}
+	}
+
+	return model.ExposeResourceDefinitions(availableRds), nil
 }

@@ -31,12 +31,13 @@ var getResourceRevisionFields = resourcerevision.WithoutFields(
 
 const summaryStatus = "(status ->> 'summaryStatus')"
 
+// CollectionRouteGetLatestResourceRevisions returns the latest 10 revisions of resources.
 func (h Handler) CollectionRouteGetLatestResourceRevisions(
 	req CollectionRouteGetLatestResourceRevisionsRequest,
 ) (CollectionRouteGetLatestResourceRevisionsResponse, int, error) {
 	ctx := intercept.WithProjectInterceptor(req.Context)
 
-	entities, err := h.modelClient.ResourceRevisions().Query().
+	query := h.modelClient.ResourceRevisions().Query().
 		Order(model.Desc(resourcerevision.FieldCreateTime)).
 		Select(getResourceRevisionFields...).
 		WithProject(func(pq *model.ProjectQuery) {
@@ -57,8 +58,27 @@ func (h Handler) CollectionRouteGetLatestResourceRevisions(
 					environment.FieldID,
 					environment.FieldName)
 			}).
-		Limit(10).
-		All(ctx)
+		Limit(10)
+
+	if req.IsService != nil && *req.IsService {
+		query.Modify(func(s *sql.Selector) {
+			// Query revisions of service type resources.
+			t := sql.Table(resource.Table)
+			s.LeftJoin(t).
+				On(t.C(resource.FieldID), resourcerevision.FieldResourceID).
+				Where(sql.NotNull(t.C(resource.FieldTemplateID)))
+		})
+	} else if req.IsService != nil && !*req.IsService {
+		query.Modify(func(s *sql.Selector) {
+			// Query revisions of non-service resources.
+			t := sql.Table(resource.Table)
+			s.LeftJoin(t).
+				On(t.C(resource.FieldID), resourcerevision.FieldResourceID).
+				Where(sql.IsNull(t.C(resource.FieldTemplateID)))
+		})
+	}
+
+	entities, err := query.All(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -94,15 +114,24 @@ func (h Handler) CollectionRouteGetBasicInformation(
 
 	// Count services below owned projects.
 	serviceNum, err := h.modelClient.Resources().Query().
+		Where(resource.TemplateIDNotNil()).
 		Count(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	// Count service resources below owned projects if needed.
-	var serviceResourceNum int
+	// Count non-service resources below owned projects.
+	resourceNum, err := h.modelClient.Resources().Query().
+		Where(resource.TemplateIDIsNil()).
+		Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Count resource components below owned projects if needed.
+	var resourceComponentNum int
 	if req.WithResourceComponent {
-		serviceResourceNum, err = h.modelClient.ResourceComponents().Query().
+		resourceComponentNum, err = h.modelClient.ResourceComponents().Query().
 			Where(resourcecomponent.ModeNEQ(types.ResourceComponentModeData)).
 			Count(ctx)
 		if err != nil {
@@ -110,10 +139,10 @@ func (h Handler) CollectionRouteGetBasicInformation(
 		}
 	}
 
-	// Count service revisions below owned projects if needed.
-	var serviceRevisionNum int
+	// Count resource revisions below owned projects if needed.
+	var resourceRevisionNum int
 	if req.WithResourceRevision {
-		serviceRevisionNum, err = h.modelClient.ResourceRevisions().Query().
+		resourceRevisionNum, err = h.modelClient.ResourceRevisions().Query().
 			Count(ctx)
 		if err != nil {
 			return nil, err
@@ -125,11 +154,13 @@ func (h Handler) CollectionRouteGetBasicInformation(
 		Environment:       environmentNum,
 		Connector:         connectorNum,
 		Service:           serviceNum,
-		ResourceComponent: serviceResourceNum,
-		ResourceRevision:  serviceRevisionNum,
+		Resource:          resourceNum,
+		ResourceComponent: resourceComponentNum,
+		ResourceRevision:  resourceRevisionNum,
 	}, nil
 }
 
+// CollectionRouteGetResourceRevisionStatistics returns statistics of resource revisions.
 func (h Handler) CollectionRouteGetResourceRevisionStatistics(
 	req CollectionRouteGetResourceRevisionStatisticsRequest,
 ) (*CollectionRouteGetResourceRevisionStatisticsResponse, error) {
@@ -157,7 +188,7 @@ func (h Handler) CollectionRouteGetResourceRevisionStatistics(
 	}, nil
 }
 
-// getResourceRevisionStatusStats collects the status counts of service revisions
+// getResourceRevisionStatusStats collects the status counts of resource revisions
 // according to the given time range.
 func getResourceRevisionStatusStats(
 	ctx context.Context,
@@ -234,7 +265,7 @@ func getResourceRevisionStatusStats(
 		case status.ResourceRevisionSummaryStatusFailed:
 			statMap[t].Failed = c.Count
 		case status.ResourceRevisionSummaryStatusSucceed:
-			statMap[t].Succeed = c.Count
+			statMap[t].Succeeded = c.Count
 		case status.ResourceRevisionSummaryStatusRunning:
 			statMap[t].Running = c.Count
 		}
@@ -246,9 +277,9 @@ func getResourceRevisionStatusStats(
 	for k, sm := range statMap {
 		r = append(r, &RevisionStatusStats{
 			RevisionStatusCount: RevisionStatusCount{
-				Failed:  sm.Failed,
-				Succeed: sm.Succeed,
-				Running: sm.Running,
+				Failed:    sm.Failed,
+				Succeeded: sm.Succeeded,
+				Running:   sm.Running,
 			},
 			StartTime: k,
 		})
@@ -262,7 +293,7 @@ func getResourceRevisionStatusStats(
 	return r, nil
 }
 
-// getResourceRevisionStatusCount returns the status counts by the service revisions.
+// getResourceRevisionStatusCount returns the status counts by the resource revisions.
 func getResourceRevisionStatusCount(
 	ctx context.Context,
 	query *model.ResourceRevisionQuery,
@@ -294,7 +325,7 @@ func getResourceRevisionStatusCount(
 		case status.ResourceRevisionSummaryStatusFailed:
 			r.Failed = sc.Count
 		case status.ResourceRevisionSummaryStatusSucceed:
-			r.Succeed = sc.Count
+			r.Succeeded = sc.Count
 		case status.ResourceRevisionSummaryStatusRunning:
 			r.Running = sc.Count
 		}

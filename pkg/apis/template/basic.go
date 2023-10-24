@@ -1,10 +1,15 @@
 package template
 
 import (
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqljson"
+
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	modbus "github.com/seal-io/walrus/pkg/bus/template"
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	"github.com/seal-io/walrus/utils/topic"
@@ -103,6 +108,22 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 		query.Where(template.CatalogIDIsNil())
 	} else if len(req.CatalogIDs) != 0 {
 		query.Where(template.CatalogIDIn(req.CatalogIDs...))
+	}
+
+	// A template is considered a service template when the category label equals to "service".
+	if req.IsService != nil && *req.IsService {
+		query.Where(func(s *sql.Selector) {
+			s.Where(sqljson.ValueEQ(resource.FieldLabels, "service", sqljson.Path(types.LabelWalrusCategory)))
+		})
+	} else if req.IsService != nil && !*req.IsService {
+		query.Where(func(s *sql.Selector) {
+			s.Where(
+				sql.Or(
+					sql.Not(sqljson.HasKey(resource.FieldLabels, sqljson.Path(types.LabelWalrusCategory))),
+					sqljson.ValueNEQ(resource.FieldLabels, "service", sqljson.Path(types.LabelWalrusCategory)),
+				),
+			)
+		})
 	}
 
 	if queries, ok := req.Querying(queryFields); ok {

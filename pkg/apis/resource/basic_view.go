@@ -13,12 +13,16 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
+	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/deployer/terraform"
+	"github.com/seal-io/walrus/pkg/resourcedefinitions"
 	"github.com/seal-io/walrus/pkg/terraform/convertor"
 	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/json"
@@ -35,7 +39,7 @@ type (
 )
 
 func (r *CreateRequest) Validate() error {
-	return ValidateCreateInput(r.ResourceCreateInput)
+	return ValidateCreateInput(&r.ResourceCreateInput)
 }
 
 type (
@@ -91,6 +95,15 @@ type (
 )
 
 func (r *CollectionCreateRequest) Validate() error {
+	// Resource type maps to type in definition edge.
+	for _, item := range r.Items {
+		if item.Type != "" {
+			item.ResourceDefinition = &model.ResourceDefinitionQueryInput{
+				Type: item.Type,
+			}
+		}
+	}
+
 	if err := r.ResourceCreateInputs.Validate(); err != nil {
 		return err
 	}
@@ -106,9 +119,12 @@ func (r *CollectionCreateRequest) Validate() error {
 		}
 	}
 
+	var tvIDs []object.ID
 	// Get template versions.
-	tvIDs := make([]object.ID, len(r.Items))
 	for i := range r.Items {
+		if r.Items[i].Template == nil {
+			continue
+		}
 		tvIDs[i] = r.Items[i].Template.ID
 	}
 
@@ -136,6 +152,9 @@ func (r *CollectionCreateRequest) Validate() error {
 			// Includes connectors.
 			rq.WithConnector()
 		}).
+		WithProject(func(pq *model.ProjectQuery) {
+			pq.Select(project.FieldName)
+		}).
 		Only(r.Context)
 	if err != nil {
 		return fmt.Errorf("failed to get environment: %w", err)
@@ -154,14 +173,65 @@ func (r *CollectionCreateRequest) Validate() error {
 		tvm[tvs[i].ID] = tvs[i]
 	}
 
-	for _, res := range r.Items {
-		// Verify resource's variables with variables schema that defined on the template version.
-		if !tvm[res.Template.ID].Schema.IsEmpty() {
-			err = res.Attributes.ValidateWith(tvm[res.Template.ID].Schema.VariableSchemas())
-			if err != nil {
-				return fmt.Errorf("invalid variables: %w", err)
-			}
+	// Get resource definitions.
+	var rdTypes []string
 
+	for i := range r.Items {
+		if r.Items[i].Type != "" {
+			rdTypes = append(rdTypes, r.Items[i].Type)
+		}
+	}
+
+	rds, err := r.Client.ResourceDefinitions().Query().
+		Where(resourcedefinition.TypeIn(rdTypes...)).
+		Select(
+			resourcedefinition.FieldID,
+			resourcedefinition.FieldName,
+		).
+		WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
+			rq.Order(model.Desc(resourcedefinitionmatchingrule.FieldCreateTime)).
+				Select(resourcedefinitionmatchingrule.FieldResourceDefinitionID).
+				Unique(false).
+				Select(resourcedefinitionmatchingrule.FieldTemplateID).
+				WithTemplate(func(tq *model.TemplateVersionQuery) {
+					tq.Select(
+						templateversion.FieldID,
+						templateversion.FieldVersion,
+						templateversion.FieldName,
+					)
+				})
+		}).
+		All(r.Context)
+	if err != nil {
+		return fmt.Errorf("failed to get resource definition: %w", err)
+	}
+
+	rdm := make(map[string]*model.ResourceDefinition, len(rds))
+	for _, rd := range rds {
+		rdm[rd.Type] = rd
+	}
+
+	for _, res := range r.Items {
+		if res.Template != nil {
+			// Verify resource's variables with variables schema that defined on the template version.
+			if !tvm[res.Template.ID].Schema.IsEmpty() {
+				err = res.Attributes.ValidateWith(tvm[res.Template.ID].Schema.VariableSchemas())
+				if err != nil {
+					return fmt.Errorf("invalid variables: %w", err)
+				}
+			} else if res.Type != "" {
+				rule := resourcedefinitions.Match(
+					rdm[res.Type].Edges.MatchingRules,
+					env.Edges.Project.Name,
+					env.Name,
+					env.Type,
+					env.Labels,
+					res.Labels,
+				)
+				if rule == nil {
+					return fmt.Errorf("no matching resource definition for %q", res.Name)
+				}
+			}
 			// Verify that variables in attributes are valid.
 			err = validateVariable(r.Context, r.Client, res.Attributes, res.Name, r.Project.ID, r.Environment.ID)
 			if err != nil {
@@ -180,6 +250,8 @@ type (
 		runtime.RequestCollection[
 			predicate.Resource, resource.OrderOption,
 		] `query:",inline"`
+
+		IsService *bool `query:"isService,omitempty"`
 
 		WithSchema bool `query:"withSchema,omitempty"`
 
@@ -315,26 +387,20 @@ func validateVariable(
 	return err
 }
 
-func ValidateCreateInput(rci model.ResourceCreateInput) error {
+func ValidateCreateInput(rci *model.ResourceCreateInput) error {
+	// Resource type maps to type in definition edge.
+	if rci.Type != "" {
+		rci.ResourceDefinition = &model.ResourceDefinitionQueryInput{
+			Type: rci.Type,
+		}
+	}
+
 	if err := rci.Validate(); err != nil {
 		return err
 	}
 
 	if err := validation.IsDNSLabel(rci.Name); err != nil {
 		return fmt.Errorf("invalid name: %w", err)
-	}
-
-	// Get template version.
-	tv, err := rci.Client.TemplateVersions().Query().
-		Where(templateversion.ID(rci.Template.ID)).
-		Select(
-			templateversion.FieldID,
-			templateversion.FieldName,
-			templateversion.FieldSchema,
-			templateversion.FieldUiSchema).
-		Only(rci.Context)
-	if err != nil {
-		return fmt.Errorf("failed to get template version: %w", err)
 	}
 
 	// Get environment.
@@ -347,22 +413,77 @@ func ValidateCreateInput(rci model.ResourceCreateInput) error {
 			// Includes connectors.
 			rq.WithConnector()
 		}).
+		WithProject(func(pq *model.ProjectQuery) {
+			pq.Select(project.FieldName)
+		}).
 		Only(rci.Context)
 	if err != nil {
 		return fmt.Errorf("failed to get environment: %w", err)
 	}
 
-	// Validate template version whether match the target environment.
-	if err = validateEnvironment(tv, env); err != nil {
-		return err
-	}
-
-	// Verify variables with variables schema that defined on the template version.
-	if !tv.Schema.IsEmpty() {
-		err = rci.Attributes.ValidateWith(tv.Schema.VariableSchemas())
+	switch {
+	case rci.Template != nil:
+		// Get template version.
+		tv, err := rci.Client.TemplateVersions().Query().
+			Where(templateversion.ID(rci.Template.ID)).
+			Select(
+				templateversion.FieldID,
+				templateversion.FieldName,
+				templateversion.FieldSchema,
+				templateversion.FieldUiSchema).
+			Only(rci.Context)
 		if err != nil {
-			return fmt.Errorf("invalid variables: %w", err)
+			return fmt.Errorf("failed to get template version: %w", err)
 		}
+
+		// Validate template version whether match the target environment.
+		if err = validateEnvironment(tv, env); err != nil {
+			return err
+		}
+
+		// Verify variables with variables schema that defined on the template version.
+		if !tv.Schema.IsEmpty() {
+			err = rci.Attributes.ValidateWith(tv.Schema.VariableSchemas())
+			if err != nil {
+				return fmt.Errorf("invalid variables: %w", err)
+			}
+		}
+
+	case rci.Type != "":
+		rd, err := rci.Client.ResourceDefinitions().Query().
+			Where(resourcedefinition.Type(rci.Type)).
+			WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
+				rq.Order(model.Desc(resourcedefinitionmatchingrule.FieldCreateTime)).
+					Select(resourcedefinitionmatchingrule.FieldResourceDefinitionID).
+					Unique(false).
+					Select(resourcedefinitionmatchingrule.FieldTemplateID).
+					WithTemplate(func(tq *model.TemplateVersionQuery) {
+						tq.Select(
+							templateversion.FieldID,
+							templateversion.FieldVersion,
+							templateversion.FieldName,
+						)
+					})
+			}).
+			Select(resourcedefinition.FieldID, resourcedefinition.FieldName).
+			Only(rci.Context)
+		if err != nil {
+			return fmt.Errorf("failed to get resource definition: %w", err)
+		}
+
+		rule := resourcedefinitions.Match(
+			rd.Edges.MatchingRules,
+			env.Edges.Project.Name,
+			env.Name,
+			env.Type,
+			env.Labels,
+			rci.Labels,
+		)
+		if rule == nil {
+			return fmt.Errorf("resource definition %s does not match environment %s", rd.Name, env.Name)
+		}
+	default:
+		return errors.New("template or resource definition is required")
 	}
 
 	// Verify that variables in attributes are valid.

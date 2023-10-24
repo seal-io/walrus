@@ -12,12 +12,12 @@ import (
 )
 
 type RevisionStatusCount struct {
-	Running int `json:"running"`
-	Failed  int `json:"failed"`
-	Succeed int `json:"succeed"`
+	Running   int `json:"running"`
+	Failed    int `json:"failed"`
+	Succeeded int `json:"succeeded"`
 }
 
-// RevisionStatusStats is the statistics of service revision status.
+// RevisionStatusStats is the statistics of resource revision status.
 type RevisionStatusStats struct {
 	RevisionStatusCount
 
@@ -26,7 +26,9 @@ type RevisionStatusStats struct {
 
 type (
 	CollectionRouteGetLatestResourceRevisionsRequest struct {
-		_ struct{} `route:"GET=/latest-service-revisions"`
+		_ struct{} `route:"GET=/latest-resource-revisions"`
+
+		IsService *bool `query:"isService,omitempty"`
 
 		Context *gin.Context
 	}
@@ -57,10 +59,12 @@ type (
 		Connector int `json:"connector"`
 		// Service number.
 		Service int `json:"service"`
-		// Service resource number.
-		ResourceComponent int `json:"serviceResource,omitempty"`
-		// Service revision number.
-		ResourceRevision int `json:"serviceRevision,omitempty"`
+		// Resource number.
+		Resource int `json:"resource"`
+		// Resource component number.
+		ResourceComponent int `json:"resourceComponent,omitempty"`
+		// Resource revision number.
+		ResourceRevision int `json:"resourceRevision,omitempty"`
 	}
 )
 
@@ -70,7 +74,7 @@ func (r *CollectionRouteGetBasicInformationRequest) SetGinContext(ctx *gin.Conte
 
 type (
 	CollectionRouteGetResourceRevisionStatisticsRequest struct {
-		_ struct{} `route:"POST=/service-revision-statistics"`
+		_ struct{} `route:"POST=/resource-revision-statistics"`
 
 		Step      string    `json:"step"`
 		StartTime time.Time `json:"startTime"`
