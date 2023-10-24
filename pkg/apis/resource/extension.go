@@ -98,7 +98,7 @@ func (h Handler) RouteRollback(req RouteRollbackRequest) error {
 	entity := rev.Edges.Resource
 
 	entity.Attributes = rev.Attributes
-	entity.TemplateID = tv.ID
+	entity.TemplateID = &tv.ID
 	status.ResourceStatusDeployed.Reset(entity, "Rolling back")
 	entity.Status.SetSummary(status.WalkResource(&entity.Status))
 

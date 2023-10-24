@@ -5,7 +5,7 @@ const (
 
 	ResourceRevisionSummaryStatusRunning string = "Running"
 	ResourceRevisionSummaryStatusFailed  string = "Failed"
-	ResourceRevisionSummaryStatusSucceed string = "Succeed"
+	ResourceRevisionSummaryStatusSucceed string = "Succeeded"
 )
 
 // resourceRevisionStatusPaths makes the following decision.
@@ -14,7 +14,7 @@ const (
 // | ---------------- | ----------------------- | --------------------- | --------------------- |
 // | Ready            | Unknown                 | Running               | Transitioning         |
 // | Ready            | False                   | Failed                | Error                 |
-// | Ready            | True                    | Succeed               |                       |.
+// | Ready            | True                    | Succeeded               |                       |.
 var resourceRevisionStatusPaths = NewWalker(
 	[][]ConditionType{
 		{

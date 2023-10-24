@@ -27,6 +27,8 @@ var (
 	Workflow = topic.Topic(migrate.WorkflowsTable.Name)
 	// WorkflowExecution is the topic for model.WorkflowExecution.
 	WorkflowExecution = topic.Topic(migrate.WorkflowExecutionsTable.Name)
+	// ResourceDefinition is the topic for model.ResourceDefinition.
+	ResourceDefinition = topic.Topic(migrate.ResourceDefinitionsTable.Name)
 )
 
 // tableNameSet holds the set for interested table names,
@@ -41,6 +43,7 @@ var tableNameSet = sets.NewString(
 	string(Template),
 	string(Workflow),
 	string(WorkflowExecution),
+	string(ResourceDefinition),
 	// Disallow subscribing from topic.
 	migrate.SettingsTable.Name,
 )

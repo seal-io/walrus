@@ -19,20 +19,27 @@ import (
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/connector"
+	"github.com/seal-io/walrus/pkg/dao/model/environment"
 	"github.com/seal-io/walrus/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
+	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
 	pkgenv "github.com/seal-io/walrus/pkg/environment"
 	opk8s "github.com/seal-io/walrus/pkg/operator/k8s"
 	pkgresource "github.com/seal-io/walrus/pkg/resource"
+	"github.com/seal-io/walrus/pkg/resourcedefinitions"
 	"github.com/seal-io/walrus/pkg/settings"
 	"github.com/seal-io/walrus/pkg/templates/openapi"
 	"github.com/seal-io/walrus/pkg/templates/translator"
@@ -414,24 +421,103 @@ func (d Deployer) createRevision(
 				templateversion.FieldVersion,
 				templateversion.FieldTemplateID)
 		}).
+		WithProject(func(pq *model.ProjectQuery) {
+			pq.Select(project.FieldName)
+		}).
+		WithEnvironment(func(env *model.EnvironmentQuery) {
+			env.Select(environment.FieldLabels)
+			env.Select(environment.FieldName)
+			env.Select(environment.FieldType)
+		}).
+		WithResourceDefinition(func(rd *model.ResourceDefinitionQuery) {
+			rd.Select(resourcedefinition.FieldType)
+			rd.WithMatchingRules(func(mrs *model.ResourceDefinitionMatchingRuleQuery) {
+				mrs.Select(
+					resourcedefinitionmatchingrule.FieldName,
+					resourcedefinitionmatchingrule.FieldSelector,
+					resourcedefinitionmatchingrule.FieldAttributes,
+				).
+					WithTemplate(func(tvq *model.TemplateVersionQuery) {
+						tvq.Select(
+							templateversion.FieldID,
+							templateversion.FieldVersion,
+							templateversion.FieldName,
+						)
+					})
+			})
+		}).
 		Select(
 			resource.FieldID,
 			resource.FieldProjectID,
 			resource.FieldEnvironmentID,
+			resource.FieldType,
 			resource.FieldAttributes).
 		Only(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	var (
+		templateID                    object.ID
+		templateName, templateVersion string
+		attributes                    property.Values
+	)
+
+	switch {
+	case res.TemplateID != nil:
+		templateID = res.Edges.Template.TemplateID
+		templateName = res.Edges.Template.Name
+		templateVersion = res.Edges.Template.Version
+		attributes = res.Attributes
+	case res.ResourceDefinitionID != nil:
+		rd := res.Edges.ResourceDefinition
+		matchRule := resourcedefinitions.Match(
+			rd.Edges.MatchingRules,
+			res.Edges.Project.Name,
+			res.Edges.Environment.Name,
+			res.Edges.Environment.Type,
+			res.Edges.Environment.Labels,
+			res.Labels,
+		)
+
+		if matchRule == nil {
+			return nil, fmt.Errorf("resource definition %s does not match resource %s", rd.Name, res.Name)
+		}
+		templateName = matchRule.Edges.Template.Name
+		templateVersion = matchRule.Edges.Template.Version
+
+		templateID, err = d.modelClient.Templates().Query().
+			Where(
+				template.Name(templateName),
+				// Now we only support resource definition globally.
+				template.ProjectIDIsNil(),
+			).
+			OnlyID(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		// Merge the attributes from resource definition.
+		attributes = res.Attributes
+		if attributes == nil {
+			attributes = make(property.Values)
+		}
+
+		for k, v := range matchRule.Attributes {
+			attributes[k] = v
+		}
+	default:
+		return nil, errors.New("service has no template or resource definition")
+	}
+
 	entity := &model.ResourceRevision{
 		ProjectID:       res.ProjectID,
 		EnvironmentID:   res.EnvironmentID,
 		ResourceID:      res.ID,
-		TemplateID:      res.Edges.Template.TemplateID,
-		TemplateName:    res.Edges.Template.Name,
-		TemplateVersion: res.Edges.Template.Version,
-		Attributes:      res.Attributes,
+		TemplateID:      templateID,
+		TemplateName:    templateName,
+		TemplateVersion: templateVersion,
+		Attributes:      attributes,
 		DeployerType:    DeployerType,
 	}
 
@@ -781,7 +867,10 @@ func (d Deployer) getPreviousRequiredProviders(
 	return prevRequiredProviders, nil
 }
 
-func getVarConfigOptions(variables model.Variables, resourceOutputs map[string]parser.OutputState) config.CreateOptions {
+func getVarConfigOptions(
+	variables model.Variables,
+	resourceOutputs map[string]parser.OutputState,
+) config.CreateOptions {
 	varsConfigOpts := config.CreateOptions{
 		Attributes: map[string]any{},
 	}

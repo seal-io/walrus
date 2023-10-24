@@ -125,6 +125,14 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 	query := h.modelClient.Resources().Query().
 		Where(resource.EnvironmentID(req.Environment.ID))
 
+	// At the moment, a resource is considered a service if it directly uses templates.
+	// In the long run, it may be extended to both template/definition resources if the category label is present.
+	if req.IsService != nil && *req.IsService {
+		query.Where(resource.TemplateIDNotNil())
+	} else if req.IsService != nil && !*req.IsService {
+		query.Where(resource.ResourceDefinitionIDNotNil())
+	}
+
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
 	}

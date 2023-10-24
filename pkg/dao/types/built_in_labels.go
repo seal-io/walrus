@@ -19,4 +19,7 @@ const (
 
 	// LabelWalrusManaged indicates whether the resource is managed by Seal.
 	LabelWalrusManaged string = "walrus.seal.io/managed"
+
+	// LabelWalrusCategory indicates the category of the resource.
+	LabelWalrusCategory string = "walrus.seal.io/category"
 )

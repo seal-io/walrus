@@ -17,6 +17,7 @@ import (
 	"github.com/seal-io/walrus/pkg/apis/perspective"
 	"github.com/seal-io/walrus/pkg/apis/project"
 	"github.com/seal-io/walrus/pkg/apis/proxy"
+	"github.com/seal-io/walrus/pkg/apis/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/apis/role"
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/apis/setting"
@@ -93,6 +94,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		r.Routes(dashboard.Handle(opts.ModelClient))
 		r.Routes(perspective.Handle(opts.ModelClient))
 		r.Routes(project.Handle(opts.ModelClient, opts.K8sConfig))
+		r.Routes(resourcedefinition.Handle(opts.ModelClient))
 		r.Routes(role.Handle(opts.ModelClient))
 		r.Routes(setting.Handle(opts.ModelClient))
 		r.Routes(subject.Handle(opts.ModelClient))
