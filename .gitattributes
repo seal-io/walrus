@@ -1,0 +1,6 @@
+* text=auto eol=lf
+
+**/*.pb.go linguist-generated=true
+**/go.sum linguist-generated=true
+**/zz_generated.*.go linguist-generated=true
+clients linguist-generated=true
