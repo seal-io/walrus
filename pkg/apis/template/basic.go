@@ -1,6 +1,10 @@
 package template
 
 import (
+	"fmt"
+
+	"entgo.io/ent/dialect/sql"
+
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	modbus "github.com/seal-io/walrus/pkg/bus/template"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -82,23 +86,53 @@ var (
 func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse, int, error) {
 	query := h.modelClient.Templates().Query()
 
-	if req.Project != nil {
-		ps := template.ProjectID(req.Project.ID)
-
-		if req.WithGlobal {
-			// Handle project scope request with global scope.
-			ps = template.Or(
-				template.ProjectID(req.Project.ID),
-				template.ProjectIDIsNil(),
-			)
-		}
-
-		query.Where(ps)
-	} else {
+	// Handle scope.
+	switch {
+	case req.Project == nil:
 		// Handle global scope request.
 		query.Where(template.ProjectIDIsNil())
+	case req.WithGlobal:
+		// Handle project scope request with global scope.
+		ps := sql.Or(
+			sql.EQ(template.FieldProjectID, req.Project.ID),
+			sql.IsNull(template.FieldProjectID),
+		)
+
+		// If duplicate name exists, choose the one with project ID.
+		scopeExpr := `CASE WHEN project_id IS NOT NULL THEN 2
+                                          ELSE 1 END`
+
+		modifier := func(s *sql.Selector) {
+			alias := sql.Table(template.Table).
+				As("alias")
+
+			subQuery := sql.Select(alias.C(template.FieldName)).
+				AppendSelectExpr(sql.Expr(fmt.Sprintf("MAX(%s) AS scope", scopeExpr))).
+				From(alias).
+				Where(ps).
+				GroupBy(alias.C(template.FieldName)).
+				As("alias")
+
+			s.Join(subQuery).
+				OnP(
+					sql.And(
+						ps,
+						sql.ColumnsEQ(
+							s.C(template.FieldName),
+							alias.C(template.FieldName),
+						),
+						sql.ExprP(fmt.Sprintf("(%s) = alias.scope", scopeExpr)),
+					),
+				)
+		}
+
+		query.Modify(modifier)
+	default:
+		// Handle project scope request.
+		query.Where(template.ProjectID(req.Project.ID))
 	}
 
+	// Handle catalog.
 	if req.NonCatalog {
 		query.Where(template.CatalogIDIsNil())
 	} else if len(req.CatalogIDs) != 0 {
