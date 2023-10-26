@@ -89,8 +89,9 @@ func (h Handler) RouteRollback(req RouteRollbackRequest) error {
 
 	tv, err := h.modelClient.TemplateVersions().Query().
 		Where(
+			templateversion.Name(rev.TemplateName),
 			templateversion.Version(rev.TemplateVersion),
-			templateversion.TemplateID(rev.TemplateID)).
+			templateversion.ProjectID(rev.ProjectID)).
 		Only(req.Context)
 	if err != nil {
 		return err

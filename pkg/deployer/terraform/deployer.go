@@ -416,7 +416,7 @@ func (d Deployer) createRevision(
 			tvq.Select(
 				templateversion.FieldName,
 				templateversion.FieldVersion,
-				templateversion.FieldTemplateID)
+				templateversion.FieldProjectID)
 		}).
 		Select(
 			service.FieldID,
@@ -432,7 +432,6 @@ func (d Deployer) createRevision(
 		ProjectID:       svc.ProjectID,
 		EnvironmentID:   svc.EnvironmentID,
 		ServiceID:       svc.ID,
-		TemplateID:      svc.Edges.Template.TemplateID,
 		TemplateName:    svc.Edges.Template.Name,
 		TemplateVersion: svc.Edges.Template.Version,
 		Attributes:      svc.Attributes,
@@ -467,9 +466,9 @@ func (d Deployer) createRevision(
 			// Copy required providers from the previous revision.
 			entity.PreviousRequiredProviders = prevEntity.PreviousRequiredProviders
 			// Reuse other fields from the previous revision.
-			entity.TemplateID = prevEntity.TemplateID
 			entity.TemplateName = prevEntity.TemplateName
 			entity.TemplateVersion = prevEntity.TemplateVersion
+			entity.ProjectID = prevEntity.ProjectID
 			entity.Attributes = prevEntity.Attributes
 			entity.InputPlan = prevEntity.InputPlan
 		}
@@ -690,17 +689,18 @@ func (d Deployer) getModuleConfig(
 	)
 
 	predicates = append(predicates, templateversion.And(
+		templateversion.Name(opts.ServiceRevision.TemplateName),
 		templateversion.Version(opts.ServiceRevision.TemplateVersion),
-		templateversion.TemplateID(opts.ServiceRevision.TemplateID),
+		templateversion.ProjectID(opts.ProjectID),
 	))
 
 	templateVersion, err := d.modelClient.TemplateVersions().
 		Query().
 		Select(
 			templateversion.FieldID,
-			templateversion.FieldTemplateID,
 			templateversion.FieldName,
 			templateversion.FieldVersion,
+			templateversion.FieldProjectID,
 			templateversion.FieldSource,
 			templateversion.FieldSchema,
 		).
@@ -769,8 +769,9 @@ func (d Deployer) getPreviousRequiredProviders(
 
 	templateVersion, err := d.modelClient.TemplateVersions().Query().
 		Where(
-			templateversion.TemplateID(entity.TemplateID),
+			templateversion.Name(entity.TemplateName),
 			templateversion.Version(entity.TemplateVersion),
+			templateversion.ProjectID(entity.ProjectID),
 		).
 		Only(ctx)
 	if err != nil {

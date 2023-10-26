@@ -169,6 +169,30 @@ func syncTemplateFromRef(
 		ref = v.Original()
 	}
 
+	var conflictOptions []sql.ConflictOption
+	if entity.ProjectID == "" {
+		conflictOptions = append(
+			conflictOptions,
+			sql.ConflictWhere(sql.P().
+				IsNull(templateversion.FieldProjectID)),
+			sql.ConflictColumns(
+				templateversion.FieldName,
+				templateversion.FieldVersion,
+			),
+		)
+	} else {
+		conflictOptions = append(
+			conflictOptions,
+			sql.ConflictWhere(sql.P().
+				NotNull(templateversion.FieldProjectID)),
+			sql.ConflictColumns(
+				templateversion.FieldName,
+				templateversion.FieldVersion,
+				templateversion.FieldProjectID,
+			),
+		)
+	}
+
 	// Create or update a template version.
 	return mc.TemplateVersions().Create().
 		Set(&model.TemplateVersion{
@@ -177,12 +201,9 @@ func syncTemplateFromRef(
 			Version:    ref,
 			Source:     source + "?ref=" + repo.Reference,
 			Schema:     schema,
+			ProjectID:  entity.ProjectID,
 		}).
-		OnConflictColumns(
-			templateversion.FieldName,
-			templateversion.FieldVersion,
-			templateversion.FieldTemplateID,
-		).
+		OnConflict(conflictOptions...).
 		Update(func(up *model.TemplateVersionUpsert) {
 			up.UpdateSchema()
 		}).
@@ -333,6 +354,7 @@ func GetTemplateVersions(
 			Version:    tag,
 			Source:     source + "?ref=" + tag,
 			Schema:     schema,
+			ProjectID:  entity.ProjectID,
 		})
 	}
 
