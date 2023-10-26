@@ -42,6 +42,8 @@ func init() {
 	catalogMixin := schema.Catalog{}.Mixin()
 	catalogMixinHooks0 := catalogMixin[0].Hooks()
 	catalog.Hooks[0] = catalogMixinHooks0[0]
+	catalogInters := schema.Catalog{}.Interceptors()
+	catalog.Interceptors[0] = catalogInters[0]
 	catalogMixinFields0 := catalogMixin[0].Fields()
 	_ = catalogMixinFields0
 	catalogFields := schema.Catalog{}.Fields()
@@ -569,24 +571,20 @@ func init() {
 	servicerevisionDescTemplateVersion := servicerevisionFields[4].Descriptor()
 	// servicerevision.TemplateVersionValidator is a validator for the "template_version" field. It is called by the builders before save.
 	servicerevision.TemplateVersionValidator = servicerevisionDescTemplateVersion.Validators[0].(func(string) error)
-	// servicerevisionDescTemplateID is the schema descriptor for template_id field.
-	servicerevisionDescTemplateID := servicerevisionFields[5].Descriptor()
-	// servicerevision.TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
-	servicerevision.TemplateIDValidator = servicerevisionDescTemplateID.Validators[0].(func(string) error)
 	// servicerevisionDescVariables is the schema descriptor for variables field.
-	servicerevisionDescVariables := servicerevisionFields[7].Descriptor()
+	servicerevisionDescVariables := servicerevisionFields[6].Descriptor()
 	// servicerevision.DefaultVariables holds the default value on creation for the variables field.
 	servicerevision.DefaultVariables = servicerevisionDescVariables.Default.(crypto.Map[string, string])
 	// servicerevisionDescDeployerType is the schema descriptor for deployer_type field.
-	servicerevisionDescDeployerType := servicerevisionFields[10].Descriptor()
+	servicerevisionDescDeployerType := servicerevisionFields[9].Descriptor()
 	// servicerevision.DefaultDeployerType holds the default value on creation for the deployer_type field.
 	servicerevision.DefaultDeployerType = servicerevisionDescDeployerType.Default.(string)
 	// servicerevisionDescDuration is the schema descriptor for duration field.
-	servicerevisionDescDuration := servicerevisionFields[11].Descriptor()
+	servicerevisionDescDuration := servicerevisionFields[10].Descriptor()
 	// servicerevision.DefaultDuration holds the default value on creation for the duration field.
 	servicerevision.DefaultDuration = servicerevisionDescDuration.Default.(int)
 	// servicerevisionDescPreviousRequiredProviders is the schema descriptor for previous_required_providers field.
-	servicerevisionDescPreviousRequiredProviders := servicerevisionFields[12].Descriptor()
+	servicerevisionDescPreviousRequiredProviders := servicerevisionFields[11].Descriptor()
 	// servicerevision.DefaultPreviousRequiredProviders holds the default value on creation for the previous_required_providers field.
 	servicerevision.DefaultPreviousRequiredProviders = servicerevisionDescPreviousRequiredProviders.Default.([]types.ProviderRequirement)
 	settingMixin := schema.Setting{}.Mixin()
@@ -683,6 +681,8 @@ func init() {
 	templateMixin := schema.Template{}.Mixin()
 	templateMixinHooks0 := templateMixin[0].Hooks()
 	template.Hooks[0] = templateMixinHooks0[0]
+	templateInters := schema.Template{}.Interceptors()
+	template.Interceptors[0] = templateInters[0]
 	templateMixinFields0 := templateMixin[0].Fields()
 	_ = templateMixinFields0
 	templateFields := schema.Template{}.Fields()
@@ -712,6 +712,8 @@ func init() {
 	templateversionMixin := schema.TemplateVersion{}.Mixin()
 	templateversionMixinHooks0 := templateversionMixin[0].Hooks()
 	templateversion.Hooks[0] = templateversionMixinHooks0[0]
+	templateversionInters := schema.TemplateVersion{}.Interceptors()
+	templateversion.Interceptors[0] = templateversionInters[0]
 	templateversionMixinFields1 := templateversionMixin[1].Fields()
 	_ = templateversionMixinFields1
 	templateversionFields := schema.TemplateVersion{}.Fields()

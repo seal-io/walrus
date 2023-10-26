@@ -18,6 +18,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model/internal"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
+	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/service"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
@@ -33,6 +34,7 @@ type TemplateVersionQuery struct {
 	predicates   []predicate.TemplateVersion
 	withTemplate *TemplateQuery
 	withServices *ServiceQuery
+	withProject  *ProjectQuery
 	modifiers    []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -114,6 +116,31 @@ func (tvq *TemplateVersionQuery) QueryServices() *ServiceQuery {
 		schemaConfig := tvq.schemaConfig
 		step.To.Schema = schemaConfig.Service
 		step.Edge.Schema = schemaConfig.Service
+		fromU = sqlgraph.SetNeighbors(tvq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryProject chains the current query on the "project" edge.
+func (tvq *TemplateVersionQuery) QueryProject() *ProjectQuery {
+	query := (&ProjectClient{config: tvq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tvq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := tvq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(templateversion.Table, templateversion.FieldID, selector),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, templateversion.ProjectTable, templateversion.ProjectColumn),
+		)
+		schemaConfig := tvq.schemaConfig
+		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.TemplateVersion
 		fromU = sqlgraph.SetNeighbors(tvq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -314,6 +341,7 @@ func (tvq *TemplateVersionQuery) Clone() *TemplateVersionQuery {
 		predicates:   append([]predicate.TemplateVersion{}, tvq.predicates...),
 		withTemplate: tvq.withTemplate.Clone(),
 		withServices: tvq.withServices.Clone(),
+		withProject:  tvq.withProject.Clone(),
 		// clone intermediate query.
 		sql:  tvq.sql.Clone(),
 		path: tvq.path,
@@ -339,6 +367,17 @@ func (tvq *TemplateVersionQuery) WithServices(opts ...func(*ServiceQuery)) *Temp
 		opt(query)
 	}
 	tvq.withServices = query
+	return tvq
+}
+
+// WithProject tells the query-builder to eager-load the nodes that are connected to
+// the "project" edge. The optional arguments are used to configure the query builder of the edge.
+func (tvq *TemplateVersionQuery) WithProject(opts ...func(*ProjectQuery)) *TemplateVersionQuery {
+	query := (&ProjectClient{config: tvq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	tvq.withProject = query
 	return tvq
 }
 
@@ -420,9 +459,10 @@ func (tvq *TemplateVersionQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 	var (
 		nodes       = []*TemplateVersion{}
 		_spec       = tvq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			tvq.withTemplate != nil,
 			tvq.withServices != nil,
+			tvq.withProject != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -458,6 +498,12 @@ func (tvq *TemplateVersionQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 		if err := tvq.loadServices(ctx, query, nodes,
 			func(n *TemplateVersion) { n.Edges.Services = []*Service{} },
 			func(n *TemplateVersion, e *Service) { n.Edges.Services = append(n.Edges.Services, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := tvq.withProject; query != nil {
+		if err := tvq.loadProject(ctx, query, nodes, nil,
+			func(n *TemplateVersion, e *Project) { n.Edges.Project = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -523,6 +569,35 @@ func (tvq *TemplateVersionQuery) loadServices(ctx context.Context, query *Servic
 	}
 	return nil
 }
+func (tvq *TemplateVersionQuery) loadProject(ctx context.Context, query *ProjectQuery, nodes []*TemplateVersion, init func(*TemplateVersion), assign func(*TemplateVersion, *Project)) error {
+	ids := make([]object.ID, 0, len(nodes))
+	nodeids := make(map[object.ID][]*TemplateVersion)
+	for i := range nodes {
+		fk := nodes[i].ProjectID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(project.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "project_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (tvq *TemplateVersionQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := tvq.querySpec()
@@ -556,6 +631,9 @@ func (tvq *TemplateVersionQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if tvq.withTemplate != nil {
 			_spec.Node.AddColumnOnce(templateversion.FieldTemplateID)
+		}
+		if tvq.withProject != nil {
+			_spec.Node.AddColumnOnce(templateversion.FieldProjectID)
 		}
 	}
 	if ps := tvq.predicates; len(ps) > 0 {

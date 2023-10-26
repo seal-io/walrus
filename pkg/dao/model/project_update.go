@@ -29,6 +29,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
+	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/model/variable"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
@@ -218,6 +219,21 @@ func (pu *ProjectUpdate) AddTemplates(t ...*Template) *ProjectUpdate {
 	return pu.AddTemplateIDs(ids...)
 }
 
+// AddTemplateVersionIDs adds the "template_versions" edge to the TemplateVersion entity by IDs.
+func (pu *ProjectUpdate) AddTemplateVersionIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.AddTemplateVersionIDs(ids...)
+	return pu
+}
+
+// AddTemplateVersions adds the "template_versions" edges to the TemplateVersion entity.
+func (pu *ProjectUpdate) AddTemplateVersions(t ...*TemplateVersion) *ProjectUpdate {
+	ids := make([]object.ID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return pu.AddTemplateVersionIDs(ids...)
+}
+
 // AddCatalogIDs adds the "catalogs" edge to the Catalog entity by IDs.
 func (pu *ProjectUpdate) AddCatalogIDs(ids ...object.ID) *ProjectUpdate {
 	pu.mutation.AddCatalogIDs(ids...)
@@ -404,6 +420,27 @@ func (pu *ProjectUpdate) RemoveTemplates(t ...*Template) *ProjectUpdate {
 		ids[i] = t[i].ID
 	}
 	return pu.RemoveTemplateIDs(ids...)
+}
+
+// ClearTemplateVersions clears all "template_versions" edges to the TemplateVersion entity.
+func (pu *ProjectUpdate) ClearTemplateVersions() *ProjectUpdate {
+	pu.mutation.ClearTemplateVersions()
+	return pu
+}
+
+// RemoveTemplateVersionIDs removes the "template_versions" edge to TemplateVersion entities by IDs.
+func (pu *ProjectUpdate) RemoveTemplateVersionIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.RemoveTemplateVersionIDs(ids...)
+	return pu
+}
+
+// RemoveTemplateVersions removes "template_versions" edges to TemplateVersion entities.
+func (pu *ProjectUpdate) RemoveTemplateVersions(t ...*TemplateVersion) *ProjectUpdate {
+	ids := make([]object.ID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return pu.RemoveTemplateVersionIDs(ids...)
 }
 
 // ClearCatalogs clears all "catalogs" edges to the Catalog entity.
@@ -947,6 +984,54 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pu.mutation.TemplateVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.TemplateVersionsTable,
+			Columns: []string{project.TemplateVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(templateversion.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.TemplateVersion
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedTemplateVersionsIDs(); len(nodes) > 0 && !pu.mutation.TemplateVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.TemplateVersionsTable,
+			Columns: []string{project.TemplateVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(templateversion.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.TemplateVersion
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.TemplateVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.TemplateVersionsTable,
+			Columns: []string{project.TemplateVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(templateversion.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.TemplateVersion
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if pu.mutation.CatalogsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1190,6 +1275,21 @@ func (puo *ProjectUpdateOne) AddTemplates(t ...*Template) *ProjectUpdateOne {
 	return puo.AddTemplateIDs(ids...)
 }
 
+// AddTemplateVersionIDs adds the "template_versions" edge to the TemplateVersion entity by IDs.
+func (puo *ProjectUpdateOne) AddTemplateVersionIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.AddTemplateVersionIDs(ids...)
+	return puo
+}
+
+// AddTemplateVersions adds the "template_versions" edges to the TemplateVersion entity.
+func (puo *ProjectUpdateOne) AddTemplateVersions(t ...*TemplateVersion) *ProjectUpdateOne {
+	ids := make([]object.ID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return puo.AddTemplateVersionIDs(ids...)
+}
+
 // AddCatalogIDs adds the "catalogs" edge to the Catalog entity by IDs.
 func (puo *ProjectUpdateOne) AddCatalogIDs(ids ...object.ID) *ProjectUpdateOne {
 	puo.mutation.AddCatalogIDs(ids...)
@@ -1376,6 +1476,27 @@ func (puo *ProjectUpdateOne) RemoveTemplates(t ...*Template) *ProjectUpdateOne {
 		ids[i] = t[i].ID
 	}
 	return puo.RemoveTemplateIDs(ids...)
+}
+
+// ClearTemplateVersions clears all "template_versions" edges to the TemplateVersion entity.
+func (puo *ProjectUpdateOne) ClearTemplateVersions() *ProjectUpdateOne {
+	puo.mutation.ClearTemplateVersions()
+	return puo
+}
+
+// RemoveTemplateVersionIDs removes the "template_versions" edge to TemplateVersion entities by IDs.
+func (puo *ProjectUpdateOne) RemoveTemplateVersionIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.RemoveTemplateVersionIDs(ids...)
+	return puo
+}
+
+// RemoveTemplateVersions removes "template_versions" edges to TemplateVersion entities.
+func (puo *ProjectUpdateOne) RemoveTemplateVersions(t ...*TemplateVersion) *ProjectUpdateOne {
+	ids := make([]object.ID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return puo.RemoveTemplateVersionIDs(ids...)
 }
 
 // ClearCatalogs clears all "catalogs" edges to the Catalog entity.
@@ -2042,6 +2163,54 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 			},
 		}
 		edge.Schema = puo.schemaConfig.Template
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.TemplateVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.TemplateVersionsTable,
+			Columns: []string{project.TemplateVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(templateversion.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.TemplateVersion
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedTemplateVersionsIDs(); len(nodes) > 0 && !puo.mutation.TemplateVersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.TemplateVersionsTable,
+			Columns: []string{project.TemplateVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(templateversion.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.TemplateVersion
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.TemplateVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.TemplateVersionsTable,
+			Columns: []string{project.TemplateVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(templateversion.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.TemplateVersion
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
