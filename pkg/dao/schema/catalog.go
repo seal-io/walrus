@@ -79,3 +79,9 @@ func (Catalog) Edges() []ent.Edge {
 				entx.ValidateContext(intercept.WithProjectInterceptor)),
 	}
 }
+
+func (Catalog) Interceptors() []ent.Interceptor {
+	return []ent.Interceptor{
+		intercept.ByProjectOptional("project_id"),
+	}
+}

@@ -51,10 +51,6 @@ func (ServiceRevision) Fields() []ent.Field {
 		field.String("template_version").
 			Comment("Version of the template.").
 			NotEmpty(),
-		object.IDField("template_id").
-			Comment("ID of the template.").
-			NotEmpty().
-			Immutable(),
 		property.ValuesField("attributes").
 			Comment("Attributes to configure the template.").
 			Optional(),
