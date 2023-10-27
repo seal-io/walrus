@@ -49,8 +49,10 @@ func (h Handler) Get(req GetRequest) (GetResponse, error) {
 		WithTemplate(func(tvq *model.TemplateVersionQuery) {
 			tvq.Select(
 				templateversion.FieldID,
+				templateversion.FieldTemplateID,
 				templateversion.FieldName,
-				templateversion.FieldVersion)
+				templateversion.FieldVersion,
+				templateversion.FieldProjectID)
 		}).
 		WithProject(func(pq *model.ProjectQuery) {
 			pq.Select(project.FieldName)
@@ -172,8 +174,10 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 					WithTemplate(func(tvq *model.TemplateVersionQuery) {
 						tvq.Select(
 							templateversion.FieldID,
+							templateversion.FieldTemplateID,
 							templateversion.FieldName,
-							templateversion.FieldVersion)
+							templateversion.FieldVersion,
+							templateversion.FieldProjectID)
 						if req.WithSchema {
 							tvq.Select(templateversion.FieldSchema)
 						}
@@ -234,8 +238,10 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 		WithTemplate(func(tvq *model.TemplateVersionQuery) {
 			tvq.Select(
 				templateversion.FieldID,
+				templateversion.FieldTemplateID,
 				templateversion.FieldName,
-				templateversion.FieldVersion)
+				templateversion.FieldVersion,
+				templateversion.FieldProjectID)
 			if req.WithSchema {
 				tvq.Select(templateversion.FieldSchema)
 			}
