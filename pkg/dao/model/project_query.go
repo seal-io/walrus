@@ -27,6 +27,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
+	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/model/variable"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
@@ -46,6 +47,7 @@ type ProjectQuery struct {
 	withServiceRevisions *ServiceRevisionQuery
 	withVariables        *VariableQuery
 	withTemplates        *TemplateQuery
+	withTemplateVersions *TemplateVersionQuery
 	withCatalogs         *CatalogQuery
 	modifiers            []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -284,6 +286,31 @@ func (pq *ProjectQuery) QueryTemplates() *TemplateQuery {
 	return query
 }
 
+// QueryTemplateVersions chains the current query on the "template_versions" edge.
+func (pq *ProjectQuery) QueryTemplateVersions() *TemplateVersionQuery {
+	query := (&TemplateVersionClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, selector),
+			sqlgraph.To(templateversion.Table, templateversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.TemplateVersionsTable, project.TemplateVersionsColumn),
+		)
+		schemaConfig := pq.schemaConfig
+		step.To.Schema = schemaConfig.TemplateVersion
+		step.Edge.Schema = schemaConfig.TemplateVersion
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryCatalogs chains the current query on the "catalogs" edge.
 func (pq *ProjectQuery) QueryCatalogs() *CatalogQuery {
 	query := (&CatalogClient{config: pq.config}).Query()
@@ -509,6 +536,7 @@ func (pq *ProjectQuery) Clone() *ProjectQuery {
 		withServiceRevisions: pq.withServiceRevisions.Clone(),
 		withVariables:        pq.withVariables.Clone(),
 		withTemplates:        pq.withTemplates.Clone(),
+		withTemplateVersions: pq.withTemplateVersions.Clone(),
 		withCatalogs:         pq.withCatalogs.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
@@ -604,6 +632,17 @@ func (pq *ProjectQuery) WithTemplates(opts ...func(*TemplateQuery)) *ProjectQuer
 	return pq
 }
 
+// WithTemplateVersions tells the query-builder to eager-load the nodes that are connected to
+// the "template_versions" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithTemplateVersions(opts ...func(*TemplateVersionQuery)) *ProjectQuery {
+	query := (&TemplateVersionClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withTemplateVersions = query
+	return pq
+}
+
 // WithCatalogs tells the query-builder to eager-load the nodes that are connected to
 // the "catalogs" edge. The optional arguments are used to configure the query builder of the edge.
 func (pq *ProjectQuery) WithCatalogs(opts ...func(*CatalogQuery)) *ProjectQuery {
@@ -693,7 +732,7 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 	var (
 		nodes       = []*Project{}
 		_spec       = pq.querySpec()
-		loadedTypes = [9]bool{
+		loadedTypes = [10]bool{
 			pq.withEnvironments != nil,
 			pq.withConnectors != nil,
 			pq.withSubjectRoles != nil,
@@ -702,6 +741,7 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 			pq.withServiceRevisions != nil,
 			pq.withVariables != nil,
 			pq.withTemplates != nil,
+			pq.withTemplateVersions != nil,
 			pq.withCatalogs != nil,
 		}
 	)
@@ -781,6 +821,13 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 		if err := pq.loadTemplates(ctx, query, nodes,
 			func(n *Project) { n.Edges.Templates = []*Template{} },
 			func(n *Project, e *Template) { n.Edges.Templates = append(n.Edges.Templates, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withTemplateVersions; query != nil {
+		if err := pq.loadTemplateVersions(ctx, query, nodes,
+			func(n *Project) { n.Edges.TemplateVersions = []*TemplateVersion{} },
+			func(n *Project, e *TemplateVersion) { n.Edges.TemplateVersions = append(n.Edges.TemplateVersions, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1019,6 +1066,36 @@ func (pq *ProjectQuery) loadTemplates(ctx context.Context, query *TemplateQuery,
 	}
 	query.Where(predicate.Template(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(project.TemplatesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ProjectID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "project_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (pq *ProjectQuery) loadTemplateVersions(ctx context.Context, query *TemplateVersionQuery, nodes []*Project, init func(*Project), assign func(*Project, *TemplateVersion)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[object.ID]*Project)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(templateversion.FieldProjectID)
+	}
+	query.Where(predicate.TemplateVersion(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(project.TemplateVersionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

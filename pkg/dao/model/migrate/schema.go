@@ -752,6 +752,7 @@ var (
 		{Name: "version", Type: field.TypeString},
 		{Name: "source", Type: field.TypeString},
 		{Name: "schema", Type: field.TypeJSON},
+		{Name: "project_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "template_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// TemplateVersionsTable holds the schema information for the "template_versions" table.
@@ -761,8 +762,14 @@ var (
 		PrimaryKey: []*schema.Column{TemplateVersionsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "template_versions_templates_versions",
+				Symbol:     "template_versions_projects_template_versions",
 				Columns:    []*schema.Column{TemplateVersionsColumns[7]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "template_versions_templates_versions",
+				Columns:    []*schema.Column{TemplateVersionsColumns[8]},
 				RefColumns: []*schema.Column{TemplatesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -774,9 +781,20 @@ var (
 				Columns: []*schema.Column{TemplateVersionsColumns[1]},
 			},
 			{
-				Name:    "templateversion_name_version_template_id",
+				Name:    "templateversion_name_version_project_id",
 				Unique:  true,
 				Columns: []*schema.Column{TemplateVersionsColumns[3], TemplateVersionsColumns[4], TemplateVersionsColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "project_id IS NOT NULL",
+				},
+			},
+			{
+				Name:    "templateversion_name_version",
+				Unique:  true,
+				Columns: []*schema.Column{TemplateVersionsColumns[3], TemplateVersionsColumns[4]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "project_id IS NULL",
+				},
 			},
 		},
 	}
@@ -928,7 +946,8 @@ func init() {
 	SubjectRoleRelationshipsTable.ForeignKeys[2].RefTable = RolesTable
 	TemplatesTable.ForeignKeys[0].RefTable = CatalogsTable
 	TemplatesTable.ForeignKeys[1].RefTable = ProjectsTable
-	TemplateVersionsTable.ForeignKeys[0].RefTable = TemplatesTable
+	TemplateVersionsTable.ForeignKeys[0].RefTable = ProjectsTable
+	TemplateVersionsTable.ForeignKeys[1].RefTable = TemplatesTable
 	TokensTable.ForeignKeys[0].RefTable = SubjectsTable
 	VariablesTable.ForeignKeys[0].RefTable = EnvironmentsTable
 	VariablesTable.ForeignKeys[1].RefTable = ProjectsTable

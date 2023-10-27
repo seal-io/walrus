@@ -47,6 +47,8 @@ const (
 	EdgeVariables = "variables"
 	// EdgeTemplates holds the string denoting the templates edge name in mutations.
 	EdgeTemplates = "templates"
+	// EdgeTemplateVersions holds the string denoting the template_versions edge name in mutations.
+	EdgeTemplateVersions = "template_versions"
 	// EdgeCatalogs holds the string denoting the catalogs edge name in mutations.
 	EdgeCatalogs = "catalogs"
 	// Table holds the table name of the project in the database.
@@ -107,6 +109,13 @@ const (
 	TemplatesInverseTable = "templates"
 	// TemplatesColumn is the table column denoting the templates relation/edge.
 	TemplatesColumn = "project_id"
+	// TemplateVersionsTable is the table that holds the template_versions relation/edge.
+	TemplateVersionsTable = "template_versions"
+	// TemplateVersionsInverseTable is the table name for the TemplateVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "templateversion" package.
+	TemplateVersionsInverseTable = "template_versions"
+	// TemplateVersionsColumn is the table column denoting the template_versions relation/edge.
+	TemplateVersionsColumn = "project_id"
 	// CatalogsTable is the table that holds the catalogs relation/edge.
 	CatalogsTable = "catalogs"
 	// CatalogsInverseTable is the table name for the Catalog entity.
@@ -299,6 +308,20 @@ func ByTemplates(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByTemplateVersionsCount orders the results by template_versions count.
+func ByTemplateVersionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTemplateVersionsStep(), opts...)
+	}
+}
+
+// ByTemplateVersions orders the results by template_versions terms.
+func ByTemplateVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTemplateVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByCatalogsCount orders the results by catalogs count.
 func ByCatalogsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -366,6 +389,13 @@ func newTemplatesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TemplatesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, TemplatesTable, TemplatesColumn),
+	)
+}
+func newTemplateVersionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TemplateVersionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TemplateVersionsTable, TemplateVersionsColumn),
 	)
 }
 func newCatalogsStep() *sqlgraph.Step {

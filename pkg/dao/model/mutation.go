@@ -8494,6 +8494,9 @@ type ProjectMutation struct {
 	templates                map[object.ID]struct{}
 	removedtemplates         map[object.ID]struct{}
 	clearedtemplates         bool
+	template_versions        map[object.ID]struct{}
+	removedtemplate_versions map[object.ID]struct{}
+	clearedtemplate_versions bool
 	catalogs                 map[object.ID]struct{}
 	removedcatalogs          map[object.ID]struct{}
 	clearedcatalogs          bool
@@ -9293,6 +9296,60 @@ func (m *ProjectMutation) ResetTemplates() {
 	m.removedtemplates = nil
 }
 
+// AddTemplateVersionIDs adds the "template_versions" edge to the TemplateVersion entity by ids.
+func (m *ProjectMutation) AddTemplateVersionIDs(ids ...object.ID) {
+	if m.template_versions == nil {
+		m.template_versions = make(map[object.ID]struct{})
+	}
+	for i := range ids {
+		m.template_versions[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTemplateVersions clears the "template_versions" edge to the TemplateVersion entity.
+func (m *ProjectMutation) ClearTemplateVersions() {
+	m.clearedtemplate_versions = true
+}
+
+// TemplateVersionsCleared reports if the "template_versions" edge to the TemplateVersion entity was cleared.
+func (m *ProjectMutation) TemplateVersionsCleared() bool {
+	return m.clearedtemplate_versions
+}
+
+// RemoveTemplateVersionIDs removes the "template_versions" edge to the TemplateVersion entity by IDs.
+func (m *ProjectMutation) RemoveTemplateVersionIDs(ids ...object.ID) {
+	if m.removedtemplate_versions == nil {
+		m.removedtemplate_versions = make(map[object.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.template_versions, ids[i])
+		m.removedtemplate_versions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTemplateVersions returns the removed IDs of the "template_versions" edge to the TemplateVersion entity.
+func (m *ProjectMutation) RemovedTemplateVersionsIDs() (ids []object.ID) {
+	for id := range m.removedtemplate_versions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TemplateVersionsIDs returns the "template_versions" edge IDs in the mutation.
+func (m *ProjectMutation) TemplateVersionsIDs() (ids []object.ID) {
+	for id := range m.template_versions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTemplateVersions resets all changes to the "template_versions" edge.
+func (m *ProjectMutation) ResetTemplateVersions() {
+	m.template_versions = nil
+	m.clearedtemplate_versions = false
+	m.removedtemplate_versions = nil
+}
+
 // AddCatalogIDs adds the "catalogs" edge to the Catalog entity by ids.
 func (m *ProjectMutation) AddCatalogIDs(ids ...object.ID) {
 	if m.catalogs == nil {
@@ -9586,7 +9643,7 @@ func (m *ProjectMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ProjectMutation) AddedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.environments != nil {
 		edges = append(edges, project.EdgeEnvironments)
 	}
@@ -9610,6 +9667,9 @@ func (m *ProjectMutation) AddedEdges() []string {
 	}
 	if m.templates != nil {
 		edges = append(edges, project.EdgeTemplates)
+	}
+	if m.template_versions != nil {
+		edges = append(edges, project.EdgeTemplateVersions)
 	}
 	if m.catalogs != nil {
 		edges = append(edges, project.EdgeCatalogs)
@@ -9669,6 +9729,12 @@ func (m *ProjectMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case project.EdgeTemplateVersions:
+		ids := make([]ent.Value, 0, len(m.template_versions))
+		for id := range m.template_versions {
+			ids = append(ids, id)
+		}
+		return ids
 	case project.EdgeCatalogs:
 		ids := make([]ent.Value, 0, len(m.catalogs))
 		for id := range m.catalogs {
@@ -9681,7 +9747,7 @@ func (m *ProjectMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ProjectMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.removedenvironments != nil {
 		edges = append(edges, project.EdgeEnvironments)
 	}
@@ -9705,6 +9771,9 @@ func (m *ProjectMutation) RemovedEdges() []string {
 	}
 	if m.removedtemplates != nil {
 		edges = append(edges, project.EdgeTemplates)
+	}
+	if m.removedtemplate_versions != nil {
+		edges = append(edges, project.EdgeTemplateVersions)
 	}
 	if m.removedcatalogs != nil {
 		edges = append(edges, project.EdgeCatalogs)
@@ -9764,6 +9833,12 @@ func (m *ProjectMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case project.EdgeTemplateVersions:
+		ids := make([]ent.Value, 0, len(m.removedtemplate_versions))
+		for id := range m.removedtemplate_versions {
+			ids = append(ids, id)
+		}
+		return ids
 	case project.EdgeCatalogs:
 		ids := make([]ent.Value, 0, len(m.removedcatalogs))
 		for id := range m.removedcatalogs {
@@ -9776,7 +9851,7 @@ func (m *ProjectMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ProjectMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.clearedenvironments {
 		edges = append(edges, project.EdgeEnvironments)
 	}
@@ -9800,6 +9875,9 @@ func (m *ProjectMutation) ClearedEdges() []string {
 	}
 	if m.clearedtemplates {
 		edges = append(edges, project.EdgeTemplates)
+	}
+	if m.clearedtemplate_versions {
+		edges = append(edges, project.EdgeTemplateVersions)
 	}
 	if m.clearedcatalogs {
 		edges = append(edges, project.EdgeCatalogs)
@@ -9827,6 +9905,8 @@ func (m *ProjectMutation) EdgeCleared(name string) bool {
 		return m.clearedvariables
 	case project.EdgeTemplates:
 		return m.clearedtemplates
+	case project.EdgeTemplateVersions:
+		return m.clearedtemplate_versions
 	case project.EdgeCatalogs:
 		return m.clearedcatalogs
 	}
@@ -9868,6 +9948,9 @@ func (m *ProjectMutation) ResetEdge(name string) error {
 		return nil
 	case project.EdgeTemplates:
 		m.ResetTemplates()
+		return nil
+	case project.EdgeTemplateVersions:
+		m.ResetTemplateVersions()
 		return nil
 	case project.EdgeCatalogs:
 		m.ResetCatalogs()
@@ -19829,6 +19912,8 @@ type TemplateVersionMutation struct {
 	services        map[object.ID]struct{}
 	removedservices map[object.ID]struct{}
 	clearedservices bool
+	project         *object.ID
+	clearedproject  bool
 	done            bool
 	oldValue        func(context.Context) (*TemplateVersion, error)
 	predicates      []predicate.TemplateVersion
@@ -20190,6 +20275,55 @@ func (m *TemplateVersionMutation) ResetSchema() {
 	m.schema = nil
 }
 
+// SetProjectID sets the "project_id" field.
+func (m *TemplateVersionMutation) SetProjectID(o object.ID) {
+	m.project = &o
+}
+
+// ProjectID returns the value of the "project_id" field in the mutation.
+func (m *TemplateVersionMutation) ProjectID() (r object.ID, exists bool) {
+	v := m.project
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProjectID returns the old "project_id" field's value of the TemplateVersion entity.
+// If the TemplateVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TemplateVersionMutation) OldProjectID(ctx context.Context) (v object.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProjectID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProjectID: %w", err)
+	}
+	return oldValue.ProjectID, nil
+}
+
+// ClearProjectID clears the value of the "project_id" field.
+func (m *TemplateVersionMutation) ClearProjectID() {
+	m.project = nil
+	m.clearedFields[templateversion.FieldProjectID] = struct{}{}
+}
+
+// ProjectIDCleared returns if the "project_id" field was cleared in this mutation.
+func (m *TemplateVersionMutation) ProjectIDCleared() bool {
+	_, ok := m.clearedFields[templateversion.FieldProjectID]
+	return ok
+}
+
+// ResetProjectID resets all changes to the "project_id" field.
+func (m *TemplateVersionMutation) ResetProjectID() {
+	m.project = nil
+	delete(m.clearedFields, templateversion.FieldProjectID)
+}
+
 // ClearTemplate clears the "template" edge to the Template entity.
 func (m *TemplateVersionMutation) ClearTemplate() {
 	m.clearedtemplate = true
@@ -20270,6 +20404,32 @@ func (m *TemplateVersionMutation) ResetServices() {
 	m.removedservices = nil
 }
 
+// ClearProject clears the "project" edge to the Project entity.
+func (m *TemplateVersionMutation) ClearProject() {
+	m.clearedproject = true
+}
+
+// ProjectCleared reports if the "project" edge to the Project entity was cleared.
+func (m *TemplateVersionMutation) ProjectCleared() bool {
+	return m.ProjectIDCleared() || m.clearedproject
+}
+
+// ProjectIDs returns the "project" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ProjectID instead. It exists only for internal usage by the builders.
+func (m *TemplateVersionMutation) ProjectIDs() (ids []object.ID) {
+	if id := m.project; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetProject resets all changes to the "project" edge.
+func (m *TemplateVersionMutation) ResetProject() {
+	m.project = nil
+	m.clearedproject = false
+}
+
 // Where appends a list predicates to the TemplateVersionMutation builder.
 func (m *TemplateVersionMutation) Where(ps ...predicate.TemplateVersion) {
 	m.predicates = append(m.predicates, ps...)
@@ -20304,7 +20464,7 @@ func (m *TemplateVersionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TemplateVersionMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.create_time != nil {
 		fields = append(fields, templateversion.FieldCreateTime)
 	}
@@ -20325,6 +20485,9 @@ func (m *TemplateVersionMutation) Fields() []string {
 	}
 	if m.schema != nil {
 		fields = append(fields, templateversion.FieldSchema)
+	}
+	if m.project != nil {
+		fields = append(fields, templateversion.FieldProjectID)
 	}
 	return fields
 }
@@ -20348,6 +20511,8 @@ func (m *TemplateVersionMutation) Field(name string) (ent.Value, bool) {
 		return m.Source()
 	case templateversion.FieldSchema:
 		return m.Schema()
+	case templateversion.FieldProjectID:
+		return m.ProjectID()
 	}
 	return nil, false
 }
@@ -20371,6 +20536,8 @@ func (m *TemplateVersionMutation) OldField(ctx context.Context, name string) (en
 		return m.OldSource(ctx)
 	case templateversion.FieldSchema:
 		return m.OldSchema(ctx)
+	case templateversion.FieldProjectID:
+		return m.OldProjectID(ctx)
 	}
 	return nil, fmt.Errorf("unknown TemplateVersion field %s", name)
 }
@@ -20429,6 +20596,13 @@ func (m *TemplateVersionMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSchema(v)
 		return nil
+	case templateversion.FieldProjectID:
+		v, ok := value.(object.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProjectID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown TemplateVersion field %s", name)
 }
@@ -20458,7 +20632,11 @@ func (m *TemplateVersionMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *TemplateVersionMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(templateversion.FieldProjectID) {
+		fields = append(fields, templateversion.FieldProjectID)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -20471,6 +20649,11 @@ func (m *TemplateVersionMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *TemplateVersionMutation) ClearField(name string) error {
+	switch name {
+	case templateversion.FieldProjectID:
+		m.ClearProjectID()
+		return nil
+	}
 	return fmt.Errorf("unknown TemplateVersion nullable field %s", name)
 }
 
@@ -20499,18 +20682,24 @@ func (m *TemplateVersionMutation) ResetField(name string) error {
 	case templateversion.FieldSchema:
 		m.ResetSchema()
 		return nil
+	case templateversion.FieldProjectID:
+		m.ResetProjectID()
+		return nil
 	}
 	return fmt.Errorf("unknown TemplateVersion field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *TemplateVersionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.template != nil {
 		edges = append(edges, templateversion.EdgeTemplate)
 	}
 	if m.services != nil {
 		edges = append(edges, templateversion.EdgeServices)
+	}
+	if m.project != nil {
+		edges = append(edges, templateversion.EdgeProject)
 	}
 	return edges
 }
@@ -20529,13 +20718,17 @@ func (m *TemplateVersionMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case templateversion.EdgeProject:
+		if id := m.project; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TemplateVersionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedservices != nil {
 		edges = append(edges, templateversion.EdgeServices)
 	}
@@ -20558,12 +20751,15 @@ func (m *TemplateVersionMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *TemplateVersionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedtemplate {
 		edges = append(edges, templateversion.EdgeTemplate)
 	}
 	if m.clearedservices {
 		edges = append(edges, templateversion.EdgeServices)
+	}
+	if m.clearedproject {
+		edges = append(edges, templateversion.EdgeProject)
 	}
 	return edges
 }
@@ -20576,6 +20772,8 @@ func (m *TemplateVersionMutation) EdgeCleared(name string) bool {
 		return m.clearedtemplate
 	case templateversion.EdgeServices:
 		return m.clearedservices
+	case templateversion.EdgeProject:
+		return m.clearedproject
 	}
 	return false
 }
@@ -20586,6 +20784,9 @@ func (m *TemplateVersionMutation) ClearEdge(name string) error {
 	switch name {
 	case templateversion.EdgeTemplate:
 		m.ClearTemplate()
+		return nil
+	case templateversion.EdgeProject:
+		m.ClearProject()
 		return nil
 	}
 	return fmt.Errorf("unknown TemplateVersion unique edge %s", name)
@@ -20600,6 +20801,9 @@ func (m *TemplateVersionMutation) ResetEdge(name string) error {
 		return nil
 	case templateversion.EdgeServices:
 		m.ResetServices()
+		return nil
+	case templateversion.EdgeProject:
+		m.ResetProject()
 		return nil
 	}
 	return fmt.Errorf("unknown TemplateVersion edge %s", name)

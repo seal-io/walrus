@@ -13,6 +13,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
+	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
@@ -21,6 +22,9 @@ import (
 // please tags with `path:",inline" json:",inline"` if embedding.
 type TemplateVersionCreateInput struct {
 	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Project indicates to create TemplateVersion entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
 
 	// Source of the template.
 	Source string `path:"-" query:"-" json:"source"`
@@ -46,6 +50,10 @@ func (tvci *TemplateVersionCreateInput) Model() *TemplateVersion {
 		Schema:  tvci.Schema,
 	}
 
+	if tvci.Project != nil {
+		_tv.ProjectID = tvci.Project.ID
+	}
+
 	return _tv
 }
 
@@ -66,6 +74,17 @@ func (tvci *TemplateVersionCreateInput) ValidateWith(ctx context.Context, cs Cli
 
 	if cache == nil {
 		cache = map[string]any{}
+	}
+
+	// Validate when creating under the Project route.
+	if tvci.Project != nil {
+		if err := tvci.Project.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				tvci.Project = nil
+			}
+		}
 	}
 
 	return nil
@@ -101,6 +120,9 @@ func (tvci *TemplateVersionCreateInputsItem) ValidateWith(ctx context.Context, c
 type TemplateVersionCreateInputs struct {
 	inputConfig `path:"-" query:"-" json:"-"`
 
+	// Project indicates to create TemplateVersion entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+
 	// Items holds the entities to create, which MUST not be empty.
 	Items []*TemplateVersionCreateInputsItem `path:"-" query:"-" json:"items"`
 }
@@ -120,6 +142,10 @@ func (tvci *TemplateVersionCreateInputs) Model() []*TemplateVersion {
 			Version: tvci.Items[i].Version,
 			Name:    tvci.Items[i].Name,
 			Schema:  tvci.Items[i].Schema,
+		}
+
+		if tvci.Project != nil {
+			_tv.ProjectID = tvci.Project.ID
 		}
 
 		_tvs[i] = _tv
@@ -149,6 +175,17 @@ func (tvci *TemplateVersionCreateInputs) ValidateWith(ctx context.Context, cs Cl
 
 	if cache == nil {
 		cache = map[string]any{}
+	}
+
+	// Validate when creating under the Project route.
+	if tvci.Project != nil {
+		if err := tvci.Project.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				tvci.Project = nil
+			}
+		}
 	}
 
 	for i := range tvci.Items {
@@ -184,6 +221,9 @@ type TemplateVersionDeleteInputsItem struct {
 // please tags with `path:",inline" json:",inline"` if embedding.
 type TemplateVersionDeleteInputs struct {
 	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Project indicates to delete TemplateVersion entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
 
 	// Items holds the entities to create, which MUST not be empty.
 	Items []*TemplateVersionDeleteInputsItem `path:"-" query:"-" json:"items"`
@@ -243,6 +283,26 @@ func (tvdi *TemplateVersionDeleteInputs) ValidateWith(ctx context.Context, cs Cl
 	}
 
 	q := cs.TemplateVersions().Query()
+
+	// Validate when deleting under the Project route.
+	if tvdi.Project != nil {
+		if err := tvdi.Project.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				tvdi.Project = nil
+				q.Where(
+					templateversion.ProjectIDIsNil())
+			}
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				templateversion.ProjectID(tvdi.Project.ID))
+		}
+	} else {
+		q.Where(
+			templateversion.ProjectIDIsNil())
+	}
 
 	ids := make([]object.ID, 0, len(tvdi.Items))
 	ors := make([]predicate.TemplateVersion, 0, len(tvdi.Items))
@@ -310,6 +370,9 @@ func (tvdi *TemplateVersionDeleteInputs) ValidateWith(ctx context.Context, cs Cl
 type TemplateVersionQueryInput struct {
 	inputConfig `path:"-" query:"-" json:"-"`
 
+	// Project indicates to query TemplateVersion entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"project,omitempty"`
+
 	// Refer holds the route path reference of the TemplateVersion entity.
 	Refer *object.Refer `path:"templateversion,default=" query:"-" json:"-"`
 	// ID of the TemplateVersion entity, tries to retrieve the entity with the following unique index parts if no ID provided.
@@ -358,6 +421,26 @@ func (tvqi *TemplateVersionQueryInput) ValidateWith(ctx context.Context, cs Clie
 	}
 
 	q := cs.TemplateVersions().Query()
+
+	// Validate when querying under the Project route.
+	if tvqi.Project != nil {
+		if err := tvqi.Project.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				tvqi.Project = nil
+				q.Where(
+					templateversion.ProjectIDIsNil())
+			}
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				templateversion.ProjectID(tvqi.Project.ID))
+		}
+	} else {
+		q.Where(
+			templateversion.ProjectIDIsNil())
+	}
 
 	if tvqi.Refer != nil {
 		if tvqi.Refer.IsID() {
@@ -416,6 +499,9 @@ func (tvqi *TemplateVersionQueryInput) ValidateWith(ctx context.Context, cs Clie
 // please tags with `path:",inline" query:",inline"` if embedding.
 type TemplateVersionQueryInputs struct {
 	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Project indicates to query TemplateVersion entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
 }
 
 // Validate checks the TemplateVersionQueryInputs entity.
@@ -435,6 +521,17 @@ func (tvqi *TemplateVersionQueryInputs) ValidateWith(ctx context.Context, cs Cli
 
 	if cache == nil {
 		cache = map[string]any{}
+	}
+
+	// Validate when querying under the Project route.
+	if tvqi.Project != nil {
+		if err := tvqi.Project.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				tvqi.Project = nil
+			}
+		}
 	}
 
 	return nil
@@ -519,6 +616,9 @@ func (tvui *TemplateVersionUpdateInputsItem) ValidateWith(ctx context.Context, c
 type TemplateVersionUpdateInputs struct {
 	inputConfig `path:"-" query:"-" json:"-"`
 
+	// Project indicates to update TemplateVersion entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+
 	// Items holds the entities to create, which MUST not be empty.
 	Items []*TemplateVersionUpdateInputsItem `path:"-" query:"-" json:"items"`
 }
@@ -584,6 +684,26 @@ func (tvui *TemplateVersionUpdateInputs) ValidateWith(ctx context.Context, cs Cl
 	}
 
 	q := cs.TemplateVersions().Query()
+
+	// Validate when updating under the Project route.
+	if tvui.Project != nil {
+		if err := tvui.Project.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				tvui.Project = nil
+				q.Where(
+					templateversion.ProjectIDIsNil())
+			}
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				templateversion.ProjectID(tvui.Project.ID))
+		}
+	} else {
+		q.Where(
+			templateversion.ProjectIDIsNil())
+	}
 
 	ids := make([]object.ID, 0, len(tvui.Items))
 	ors := make([]predicate.TemplateVersion, 0, len(tvui.Items))
@@ -663,6 +783,7 @@ type TemplateVersionOutput struct {
 	Schema     *types.TemplateSchema `json:"schema,omitempty"`
 
 	Template *TemplateOutput `json:"template,omitempty"`
+	Project  *ProjectOutput  `json:"project,omitempty"`
 }
 
 // View returns the output of TemplateVersion entity.
@@ -696,6 +817,13 @@ func ExposeTemplateVersion(_tv *TemplateVersion) *TemplateVersionOutput {
 	} else if _tv.TemplateID != "" {
 		tvo.Template = &TemplateOutput{
 			ID: _tv.TemplateID,
+		}
+	}
+	if _tv.Edges.Project != nil {
+		tvo.Project = ExposeProject(_tv.Edges.Project)
+	} else if _tv.ProjectID != "" {
+		tvo.Project = &ProjectOutput{
+			ID: _tv.ProjectID,
 		}
 	}
 	return tvo

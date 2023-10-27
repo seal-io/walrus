@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
+	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
@@ -39,6 +40,8 @@ type TemplateVersion struct {
 	Source string `json:"source,omitempty"`
 	// Schema of the template.
 	Schema *types.TemplateSchema `json:"schema,omitempty"`
+	// ID of the project to belong, empty means for all projects.
+	ProjectID object.ID `json:"project_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TemplateVersionQuery when eager-loading is set.
 	Edges        TemplateVersionEdges `json:"edges,omitempty"`
@@ -51,9 +54,11 @@ type TemplateVersionEdges struct {
 	Template *Template `json:"template,omitempty"`
 	// Services that belong to the template version.
 	Services []*Service `json:"services,omitempty"`
+	// Project to which the template version belongs.
+	Project *Project `json:"project,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // TemplateOrErr returns the Template value or an error if the edge
@@ -78,6 +83,19 @@ func (e TemplateVersionEdges) ServicesOrErr() ([]*Service, error) {
 	return nil, &NotLoadedError{edge: "services"}
 }
 
+// ProjectOrErr returns the Project value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e TemplateVersionEdges) ProjectOrErr() (*Project, error) {
+	if e.loadedTypes[2] {
+		if e.Project == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: project.Label}
+		}
+		return e.Project, nil
+	}
+	return nil, &NotLoadedError{edge: "project"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*TemplateVersion) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -85,7 +103,7 @@ func (*TemplateVersion) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case templateversion.FieldSchema:
 			values[i] = new([]byte)
-		case templateversion.FieldID, templateversion.FieldTemplateID:
+		case templateversion.FieldID, templateversion.FieldTemplateID, templateversion.FieldProjectID:
 			values[i] = new(object.ID)
 		case templateversion.FieldName, templateversion.FieldVersion, templateversion.FieldSource:
 			values[i] = new(sql.NullString)
@@ -158,6 +176,12 @@ func (tv *TemplateVersion) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field schema: %w", err)
 				}
 			}
+		case templateversion.FieldProjectID:
+			if value, ok := values[i].(*object.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field project_id", values[i])
+			} else if value != nil {
+				tv.ProjectID = *value
+			}
 		default:
 			tv.selectValues.Set(columns[i], values[i])
 		}
@@ -179,6 +203,11 @@ func (tv *TemplateVersion) QueryTemplate() *TemplateQuery {
 // QueryServices queries the "services" edge of the TemplateVersion entity.
 func (tv *TemplateVersion) QueryServices() *ServiceQuery {
 	return NewTemplateVersionClient(tv.config).QueryServices(tv)
+}
+
+// QueryProject queries the "project" edge of the TemplateVersion entity.
+func (tv *TemplateVersion) QueryProject() *ProjectQuery {
+	return NewTemplateVersionClient(tv.config).QueryProject(tv)
 }
 
 // Update returns a builder for updating this TemplateVersion.
@@ -228,6 +257,9 @@ func (tv *TemplateVersion) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("schema=")
 	builder.WriteString(fmt.Sprintf("%v", tv.Schema))
+	builder.WriteString(", ")
+	builder.WriteString("project_id=")
+	builder.WriteString(fmt.Sprintf("%v", tv.ProjectID))
 	builder.WriteByte(')')
 	return builder.String()
 }

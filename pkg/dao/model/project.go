@@ -59,11 +59,13 @@ type ProjectEdges struct {
 	Variables []*Variable `json:"variables,omitempty"`
 	// Templates that belong to the project.
 	Templates []*Template `json:"templates,omitempty"`
+	// TemplateVersions that belong to the project.
+	TemplateVersions []*TemplateVersion `json:"template_versions,omitempty"`
 	// Catalogs that belong to the project.
 	Catalogs []*Catalog `json:"catalogs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [9]bool
+	loadedTypes [10]bool
 }
 
 // EnvironmentsOrErr returns the Environments value or an error if the edge
@@ -138,10 +140,19 @@ func (e ProjectEdges) TemplatesOrErr() ([]*Template, error) {
 	return nil, &NotLoadedError{edge: "templates"}
 }
 
+// TemplateVersionsOrErr returns the TemplateVersions value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) TemplateVersionsOrErr() ([]*TemplateVersion, error) {
+	if e.loadedTypes[8] {
+		return e.TemplateVersions, nil
+	}
+	return nil, &NotLoadedError{edge: "template_versions"}
+}
+
 // CatalogsOrErr returns the Catalogs value or an error if the edge
 // was not loaded in eager-loading.
 func (e ProjectEdges) CatalogsOrErr() ([]*Catalog, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[9] {
 		return e.Catalogs, nil
 	}
 	return nil, &NotLoadedError{edge: "catalogs"}
@@ -274,6 +285,11 @@ func (pr *Project) QueryVariables() *VariableQuery {
 // QueryTemplates queries the "templates" edge of the Project entity.
 func (pr *Project) QueryTemplates() *TemplateQuery {
 	return NewProjectClient(pr.config).QueryTemplates(pr)
+}
+
+// QueryTemplateVersions queries the "template_versions" edge of the Project entity.
+func (pr *Project) QueryTemplateVersions() *TemplateVersionQuery {
+	return NewProjectClient(pr.config).QueryTemplateVersions(pr)
 }
 
 // QueryCatalogs queries the "catalogs" edge of the Project entity.
