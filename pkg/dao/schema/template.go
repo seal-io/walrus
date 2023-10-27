@@ -89,3 +89,9 @@ func (Template) Edges() []ent.Edge {
 				entx.ValidateContext(intercept.WithProjectInterceptor)),
 	}
 }
+
+func (Template) Interceptors() []ent.Interceptor {
+	return []ent.Interceptor{
+		intercept.ByProjectOptional("project_id"),
+	}
+}
