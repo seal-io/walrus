@@ -26,6 +26,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
+	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/model/variable"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
@@ -224,6 +225,21 @@ func (pc *ProjectCreate) AddTemplates(t ...*Template) *ProjectCreate {
 		ids[i] = t[i].ID
 	}
 	return pc.AddTemplateIDs(ids...)
+}
+
+// AddTemplateVersionIDs adds the "template_versions" edge to the TemplateVersion entity by IDs.
+func (pc *ProjectCreate) AddTemplateVersionIDs(ids ...object.ID) *ProjectCreate {
+	pc.mutation.AddTemplateVersionIDs(ids...)
+	return pc
+}
+
+// AddTemplateVersions adds the "template_versions" edges to the TemplateVersion entity.
+func (pc *ProjectCreate) AddTemplateVersions(t ...*TemplateVersion) *ProjectCreate {
+	ids := make([]object.ID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return pc.AddTemplateVersionIDs(ids...)
 }
 
 // AddCatalogIDs adds the "catalogs" edge to the Catalog entity by IDs.
@@ -511,6 +527,23 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = pc.schemaConfig.Template
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.TemplateVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.TemplateVersionsTable,
+			Columns: []string{project.TemplateVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(templateversion.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pc.schemaConfig.TemplateVersion
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

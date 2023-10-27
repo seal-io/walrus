@@ -91,6 +91,11 @@ func Source(v string) predicate.TemplateVersion {
 	return predicate.TemplateVersion(sql.FieldEQ(FieldSource, v))
 }
 
+// ProjectID applies equality check predicate on the "project_id" field. It's identical to ProjectIDEQ.
+func ProjectID(v object.ID) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldEQ(FieldProjectID, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.TemplateVersion {
 	return predicate.TemplateVersion(sql.FieldEQ(FieldCreateTime, v))
@@ -436,6 +441,86 @@ func SourceContainsFold(v string) predicate.TemplateVersion {
 	return predicate.TemplateVersion(sql.FieldContainsFold(FieldSource, v))
 }
 
+// ProjectIDEQ applies the EQ predicate on the "project_id" field.
+func ProjectIDEQ(v object.ID) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldEQ(FieldProjectID, v))
+}
+
+// ProjectIDNEQ applies the NEQ predicate on the "project_id" field.
+func ProjectIDNEQ(v object.ID) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldNEQ(FieldProjectID, v))
+}
+
+// ProjectIDIn applies the In predicate on the "project_id" field.
+func ProjectIDIn(vs ...object.ID) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldIn(FieldProjectID, vs...))
+}
+
+// ProjectIDNotIn applies the NotIn predicate on the "project_id" field.
+func ProjectIDNotIn(vs ...object.ID) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldNotIn(FieldProjectID, vs...))
+}
+
+// ProjectIDGT applies the GT predicate on the "project_id" field.
+func ProjectIDGT(v object.ID) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldGT(FieldProjectID, v))
+}
+
+// ProjectIDGTE applies the GTE predicate on the "project_id" field.
+func ProjectIDGTE(v object.ID) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldGTE(FieldProjectID, v))
+}
+
+// ProjectIDLT applies the LT predicate on the "project_id" field.
+func ProjectIDLT(v object.ID) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldLT(FieldProjectID, v))
+}
+
+// ProjectIDLTE applies the LTE predicate on the "project_id" field.
+func ProjectIDLTE(v object.ID) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldLTE(FieldProjectID, v))
+}
+
+// ProjectIDContains applies the Contains predicate on the "project_id" field.
+func ProjectIDContains(v object.ID) predicate.TemplateVersion {
+	vc := string(v)
+	return predicate.TemplateVersion(sql.FieldContains(FieldProjectID, vc))
+}
+
+// ProjectIDHasPrefix applies the HasPrefix predicate on the "project_id" field.
+func ProjectIDHasPrefix(v object.ID) predicate.TemplateVersion {
+	vc := string(v)
+	return predicate.TemplateVersion(sql.FieldHasPrefix(FieldProjectID, vc))
+}
+
+// ProjectIDHasSuffix applies the HasSuffix predicate on the "project_id" field.
+func ProjectIDHasSuffix(v object.ID) predicate.TemplateVersion {
+	vc := string(v)
+	return predicate.TemplateVersion(sql.FieldHasSuffix(FieldProjectID, vc))
+}
+
+// ProjectIDIsNil applies the IsNil predicate on the "project_id" field.
+func ProjectIDIsNil() predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldIsNull(FieldProjectID))
+}
+
+// ProjectIDNotNil applies the NotNil predicate on the "project_id" field.
+func ProjectIDNotNil() predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldNotNull(FieldProjectID))
+}
+
+// ProjectIDEqualFold applies the EqualFold predicate on the "project_id" field.
+func ProjectIDEqualFold(v object.ID) predicate.TemplateVersion {
+	vc := string(v)
+	return predicate.TemplateVersion(sql.FieldEqualFold(FieldProjectID, vc))
+}
+
+// ProjectIDContainsFold applies the ContainsFold predicate on the "project_id" field.
+func ProjectIDContainsFold(v object.ID) predicate.TemplateVersion {
+	vc := string(v)
+	return predicate.TemplateVersion(sql.FieldContainsFold(FieldProjectID, vc))
+}
+
 // HasTemplate applies the HasEdge predicate on the "template" edge.
 func HasTemplate() predicate.TemplateVersion {
 	return predicate.TemplateVersion(func(s *sql.Selector) {
@@ -486,6 +571,35 @@ func HasServicesWith(preds ...predicate.Service) predicate.TemplateVersion {
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Service
 		step.Edge.Schema = schemaConfig.Service
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasProject applies the HasEdge predicate on the "project" edge.
+func HasProject() predicate.TemplateVersion {
+	return predicate.TemplateVersion(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ProjectTable, ProjectColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.TemplateVersion
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasProjectWith applies the HasEdge predicate on the "project" edge with a given conditions (other predicates).
+func HasProjectWith(preds ...predicate.Project) predicate.TemplateVersion {
+	return predicate.TemplateVersion(func(s *sql.Selector) {
+		step := newProjectStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.TemplateVersion
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -553,6 +553,35 @@ func HasTemplatesWith(preds ...predicate.Template) predicate.Project {
 	})
 }
 
+// HasTemplateVersions applies the HasEdge predicate on the "template_versions" edge.
+func HasTemplateVersions() predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TemplateVersionsTable, TemplateVersionsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.TemplateVersion
+		step.Edge.Schema = schemaConfig.TemplateVersion
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTemplateVersionsWith applies the HasEdge predicate on the "template_versions" edge with a given conditions (other predicates).
+func HasTemplateVersionsWith(preds ...predicate.TemplateVersion) predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := newTemplateVersionsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.TemplateVersion
+		step.Edge.Schema = schemaConfig.TemplateVersion
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasCatalogs applies the HasEdge predicate on the "catalogs" edge.
 func HasCatalogs() predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {

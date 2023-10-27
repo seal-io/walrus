@@ -42,6 +42,8 @@ func init() {
 	catalogMixin := schema.Catalog{}.Mixin()
 	catalogMixinHooks0 := catalogMixin[0].Hooks()
 	catalog.Hooks[0] = catalogMixinHooks0[0]
+	catalogInters := schema.Catalog{}.Interceptors()
+	catalog.Interceptors[0] = catalogInters[0]
 	catalogMixinFields0 := catalogMixin[0].Fields()
 	_ = catalogMixinFields0
 	catalogFields := schema.Catalog{}.Fields()
@@ -683,6 +685,8 @@ func init() {
 	templateMixin := schema.Template{}.Mixin()
 	templateMixinHooks0 := templateMixin[0].Hooks()
 	template.Hooks[0] = templateMixinHooks0[0]
+	templateInters := schema.Template{}.Interceptors()
+	template.Interceptors[0] = templateInters[0]
 	templateMixinFields0 := templateMixin[0].Fields()
 	_ = templateMixinFields0
 	templateFields := schema.Template{}.Fields()
@@ -712,6 +716,8 @@ func init() {
 	templateversionMixin := schema.TemplateVersion{}.Mixin()
 	templateversionMixinHooks0 := templateversionMixin[0].Hooks()
 	templateversion.Hooks[0] = templateversionMixinHooks0[0]
+	templateversionInters := schema.TemplateVersion{}.Interceptors()
+	templateversion.Interceptors[0] = templateversionInters[0]
 	templateversionMixinFields1 := templateversionMixin[1].Fields()
 	_ = templateversionMixinFields1
 	templateversionFields := schema.TemplateVersion{}.Fields()

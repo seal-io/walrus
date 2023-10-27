@@ -662,7 +662,8 @@ func (c *CatalogClient) Hooks() []Hook {
 
 // Interceptors returns the client interceptors.
 func (c *CatalogClient) Interceptors() []Interceptor {
-	return c.inters.Catalog
+	inters := c.inters.Catalog
+	return append(inters[:len(inters):len(inters)], catalog.Interceptors[:]...)
 }
 
 func (c *CatalogClient) mutate(ctx context.Context, m *CatalogMutation) (Value, error) {
@@ -1881,6 +1882,25 @@ func (c *ProjectClient) QueryTemplates(pr *Project) *TemplateQuery {
 		schemaConfig := pr.schemaConfig
 		step.To.Schema = schemaConfig.Template
 		step.Edge.Schema = schemaConfig.Template
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTemplateVersions queries the template_versions edge of a Project.
+func (c *ProjectClient) QueryTemplateVersions(pr *Project) *TemplateVersionQuery {
+	query := (&TemplateVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, id),
+			sqlgraph.To(templateversion.Table, templateversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.TemplateVersionsTable, project.TemplateVersionsColumn),
+		)
+		schemaConfig := pr.schemaConfig
+		step.To.Schema = schemaConfig.TemplateVersion
+		step.Edge.Schema = schemaConfig.TemplateVersion
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -3698,7 +3718,8 @@ func (c *TemplateClient) Hooks() []Hook {
 
 // Interceptors returns the client interceptors.
 func (c *TemplateClient) Interceptors() []Interceptor {
-	return c.inters.Template
+	inters := c.inters.Template
+	return append(inters[:len(inters):len(inters)], template.Interceptors[:]...)
 }
 
 func (c *TemplateClient) mutate(ctx context.Context, m *TemplateMutation) (Value, error) {
@@ -3847,6 +3868,25 @@ func (c *TemplateVersionClient) QueryServices(tv *TemplateVersion) *ServiceQuery
 	return query
 }
 
+// QueryProject queries the project edge of a TemplateVersion.
+func (c *TemplateVersionClient) QueryProject(tv *TemplateVersion) *ProjectQuery {
+	query := (&ProjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := tv.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(templateversion.Table, templateversion.FieldID, id),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, templateversion.ProjectTable, templateversion.ProjectColumn),
+		)
+		schemaConfig := tv.schemaConfig
+		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.TemplateVersion
+		fromV = sqlgraph.Neighbors(tv.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *TemplateVersionClient) Hooks() []Hook {
 	hooks := c.hooks.TemplateVersion
@@ -3855,7 +3895,8 @@ func (c *TemplateVersionClient) Hooks() []Hook {
 
 // Interceptors returns the client interceptors.
 func (c *TemplateVersionClient) Interceptors() []Interceptor {
-	return c.inters.TemplateVersion
+	inters := c.inters.TemplateVersion
+	return append(inters[:len(inters):len(inters)], templateversion.Interceptors[:]...)
 }
 
 func (c *TemplateVersionClient) mutate(ctx context.Context, m *TemplateVersionMutation) (Value, error) {
