@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/walrus/pkg/dao/entx"
+	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/schema/mixin"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -26,8 +27,14 @@ func (TemplateVersion) Mixin() []ent.Mixin {
 
 func (TemplateVersion) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("name", "version", "template_id").
-			Unique(),
+		index.Fields("name", "version", "project_id").
+			Unique().
+			Annotations(
+				entsql.IndexWhere("project_id IS NOT NULL")),
+		index.Fields("name", "version").
+			Unique().
+			Annotations(
+				entsql.IndexWhere("project_id IS NULL")),
 	}
 }
 
@@ -57,6 +64,10 @@ func (TemplateVersion) Fields() []ent.Field {
 		field.JSON("schema", &types.TemplateSchema{}).
 			Comment("Schema of the template.").
 			Default(&types.TemplateSchema{}),
+		object.IDField("project_id").
+			Comment("ID of the project to belong, empty means for all projects.").
+			Immutable().
+			Optional(),
 	}
 }
 
@@ -78,5 +89,20 @@ func (TemplateVersion) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.Restrict),
 				entx.SkipIO()),
+		// Project 1-* TemplateVersions.
+		edge.From("project", Project.Type).
+			Ref("template_versions").
+			Field("project_id").
+			Comment("Project to which the template version belongs.").
+			Unique().
+			Immutable().
+			Annotations(
+				entx.ValidateContext(intercept.WithProjectInterceptor)),
+	}
+}
+
+func (TemplateVersion) Interceptors() []ent.Interceptor {
+	return []ent.Interceptor{
+		intercept.ByProjectOptional("project_id"),
 	}
 }
