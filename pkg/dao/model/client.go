@@ -27,12 +27,12 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/perspective"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponentrelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/role"
-	"github.com/seal-io/walrus/pkg/dao/model/service"
-	"github.com/seal-io/walrus/pkg/dao/model/servicerelationship"
-	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
-	"github.com/seal-io/walrus/pkg/dao/model/serviceresourcerelationship"
-	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/setting"
 	"github.com/seal-io/walrus/pkg/dao/model/subject"
 	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
@@ -73,18 +73,18 @@ type Client struct {
 	Perspective *PerspectiveClient
 	// Project is the client for interacting with the Project builders.
 	Project *ProjectClient
+	// Resource is the client for interacting with the Resource builders.
+	Resource *ResourceClient
+	// ResourceComponent is the client for interacting with the ResourceComponent builders.
+	ResourceComponent *ResourceComponentClient
+	// ResourceComponentRelationship is the client for interacting with the ResourceComponentRelationship builders.
+	ResourceComponentRelationship *ResourceComponentRelationshipClient
+	// ResourceRelationship is the client for interacting with the ResourceRelationship builders.
+	ResourceRelationship *ResourceRelationshipClient
+	// ResourceRevision is the client for interacting with the ResourceRevision builders.
+	ResourceRevision *ResourceRevisionClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
-	// Service is the client for interacting with the Service builders.
-	Service *ServiceClient
-	// ServiceRelationship is the client for interacting with the ServiceRelationship builders.
-	ServiceRelationship *ServiceRelationshipClient
-	// ServiceResource is the client for interacting with the ServiceResource builders.
-	ServiceResource *ServiceResourceClient
-	// ServiceResourceRelationship is the client for interacting with the ServiceResourceRelationship builders.
-	ServiceResourceRelationship *ServiceResourceRelationshipClient
-	// ServiceRevision is the client for interacting with the ServiceRevision builders.
-	ServiceRevision *ServiceRevisionClient
 	// Setting is the client for interacting with the Setting builders.
 	Setting *SettingClient
 	// Subject is the client for interacting with the Subject builders.
@@ -132,12 +132,12 @@ func (c *Client) init() {
 	c.EnvironmentConnectorRelationship = NewEnvironmentConnectorRelationshipClient(c.config)
 	c.Perspective = NewPerspectiveClient(c.config)
 	c.Project = NewProjectClient(c.config)
+	c.Resource = NewResourceClient(c.config)
+	c.ResourceComponent = NewResourceComponentClient(c.config)
+	c.ResourceComponentRelationship = NewResourceComponentRelationshipClient(c.config)
+	c.ResourceRelationship = NewResourceRelationshipClient(c.config)
+	c.ResourceRevision = NewResourceRevisionClient(c.config)
 	c.Role = NewRoleClient(c.config)
-	c.Service = NewServiceClient(c.config)
-	c.ServiceRelationship = NewServiceRelationshipClient(c.config)
-	c.ServiceResource = NewServiceResourceClient(c.config)
-	c.ServiceResourceRelationship = NewServiceResourceRelationshipClient(c.config)
-	c.ServiceRevision = NewServiceRevisionClient(c.config)
 	c.Setting = NewSettingClient(c.config)
 	c.Subject = NewSubjectClient(c.config)
 	c.SubjectRoleRelationship = NewSubjectRoleRelationshipClient(c.config)
@@ -243,12 +243,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		EnvironmentConnectorRelationship: NewEnvironmentConnectorRelationshipClient(cfg),
 		Perspective:                      NewPerspectiveClient(cfg),
 		Project:                          NewProjectClient(cfg),
+		Resource:                         NewResourceClient(cfg),
+		ResourceComponent:                NewResourceComponentClient(cfg),
+		ResourceComponentRelationship:    NewResourceComponentRelationshipClient(cfg),
+		ResourceRelationship:             NewResourceRelationshipClient(cfg),
+		ResourceRevision:                 NewResourceRevisionClient(cfg),
 		Role:                             NewRoleClient(cfg),
-		Service:                          NewServiceClient(cfg),
-		ServiceRelationship:              NewServiceRelationshipClient(cfg),
-		ServiceResource:                  NewServiceResourceClient(cfg),
-		ServiceResourceRelationship:      NewServiceResourceRelationshipClient(cfg),
-		ServiceRevision:                  NewServiceRevisionClient(cfg),
 		Setting:                          NewSettingClient(cfg),
 		Subject:                          NewSubjectClient(cfg),
 		SubjectRoleRelationship:          NewSubjectRoleRelationshipClient(cfg),
@@ -289,12 +289,12 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		EnvironmentConnectorRelationship: NewEnvironmentConnectorRelationshipClient(cfg),
 		Perspective:                      NewPerspectiveClient(cfg),
 		Project:                          NewProjectClient(cfg),
+		Resource:                         NewResourceClient(cfg),
+		ResourceComponent:                NewResourceComponentClient(cfg),
+		ResourceComponentRelationship:    NewResourceComponentRelationshipClient(cfg),
+		ResourceRelationship:             NewResourceRelationshipClient(cfg),
+		ResourceRevision:                 NewResourceRevisionClient(cfg),
 		Role:                             NewRoleClient(cfg),
-		Service:                          NewServiceClient(cfg),
-		ServiceRelationship:              NewServiceRelationshipClient(cfg),
-		ServiceResource:                  NewServiceResourceClient(cfg),
-		ServiceResourceRelationship:      NewServiceResourceRelationshipClient(cfg),
-		ServiceRevision:                  NewServiceRevisionClient(cfg),
 		Setting:                          NewSettingClient(cfg),
 		Subject:                          NewSubjectClient(cfg),
 		SubjectRoleRelationship:          NewSubjectRoleRelationshipClient(cfg),
@@ -338,12 +338,12 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Catalog, c.Connector, c.CostReport, c.DistributeLock, c.Environment,
-		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Role,
-		c.Service, c.ServiceRelationship, c.ServiceResource,
-		c.ServiceResourceRelationship, c.ServiceRevision, c.Setting, c.Subject,
-		c.SubjectRoleRelationship, c.Template, c.TemplateVersion, c.Token, c.Variable,
-		c.Workflow, c.WorkflowExecution, c.WorkflowStage, c.WorkflowStageExecution,
-		c.WorkflowStep, c.WorkflowStepExecution,
+		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Resource,
+		c.ResourceComponent, c.ResourceComponentRelationship, c.ResourceRelationship,
+		c.ResourceRevision, c.Role, c.Setting, c.Subject, c.SubjectRoleRelationship,
+		c.Template, c.TemplateVersion, c.Token, c.Variable, c.Workflow,
+		c.WorkflowExecution, c.WorkflowStage, c.WorkflowStageExecution, c.WorkflowStep,
+		c.WorkflowStepExecution,
 	} {
 		n.Use(hooks...)
 	}
@@ -354,12 +354,12 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Catalog, c.Connector, c.CostReport, c.DistributeLock, c.Environment,
-		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Role,
-		c.Service, c.ServiceRelationship, c.ServiceResource,
-		c.ServiceResourceRelationship, c.ServiceRevision, c.Setting, c.Subject,
-		c.SubjectRoleRelationship, c.Template, c.TemplateVersion, c.Token, c.Variable,
-		c.Workflow, c.WorkflowExecution, c.WorkflowStage, c.WorkflowStageExecution,
-		c.WorkflowStep, c.WorkflowStepExecution,
+		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Resource,
+		c.ResourceComponent, c.ResourceComponentRelationship, c.ResourceRelationship,
+		c.ResourceRevision, c.Role, c.Setting, c.Subject, c.SubjectRoleRelationship,
+		c.Template, c.TemplateVersion, c.Token, c.Variable, c.Workflow,
+		c.WorkflowExecution, c.WorkflowStage, c.WorkflowStageExecution, c.WorkflowStep,
+		c.WorkflowStepExecution,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -405,34 +405,34 @@ func (c *Client) Projects() *ProjectClient {
 	return c.Project
 }
 
+// Resources implements the ClientSet.
+func (c *Client) Resources() *ResourceClient {
+	return c.Resource
+}
+
+// ResourceComponents implements the ClientSet.
+func (c *Client) ResourceComponents() *ResourceComponentClient {
+	return c.ResourceComponent
+}
+
+// ResourceComponentRelationships implements the ClientSet.
+func (c *Client) ResourceComponentRelationships() *ResourceComponentRelationshipClient {
+	return c.ResourceComponentRelationship
+}
+
+// ResourceRelationships implements the ClientSet.
+func (c *Client) ResourceRelationships() *ResourceRelationshipClient {
+	return c.ResourceRelationship
+}
+
+// ResourceRevisions implements the ClientSet.
+func (c *Client) ResourceRevisions() *ResourceRevisionClient {
+	return c.ResourceRevision
+}
+
 // Roles implements the ClientSet.
 func (c *Client) Roles() *RoleClient {
 	return c.Role
-}
-
-// Services implements the ClientSet.
-func (c *Client) Services() *ServiceClient {
-	return c.Service
-}
-
-// ServiceRelationships implements the ClientSet.
-func (c *Client) ServiceRelationships() *ServiceRelationshipClient {
-	return c.ServiceRelationship
-}
-
-// ServiceResources implements the ClientSet.
-func (c *Client) ServiceResources() *ServiceResourceClient {
-	return c.ServiceResource
-}
-
-// ServiceResourceRelationships implements the ClientSet.
-func (c *Client) ServiceResourceRelationships() *ServiceResourceRelationshipClient {
-	return c.ServiceResourceRelationship
-}
-
-// ServiceRevisions implements the ClientSet.
-func (c *Client) ServiceRevisions() *ServiceRevisionClient {
-	return c.ServiceRevision
 }
 
 // Settings implements the ClientSet.
@@ -562,18 +562,18 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Perspective.mutate(ctx, m)
 	case *ProjectMutation:
 		return c.Project.mutate(ctx, m)
+	case *ResourceMutation:
+		return c.Resource.mutate(ctx, m)
+	case *ResourceComponentMutation:
+		return c.ResourceComponent.mutate(ctx, m)
+	case *ResourceComponentRelationshipMutation:
+		return c.ResourceComponentRelationship.mutate(ctx, m)
+	case *ResourceRelationshipMutation:
+		return c.ResourceRelationship.mutate(ctx, m)
+	case *ResourceRevisionMutation:
+		return c.ResourceRevision.mutate(ctx, m)
 	case *RoleMutation:
 		return c.Role.mutate(ctx, m)
-	case *ServiceMutation:
-		return c.Service.mutate(ctx, m)
-	case *ServiceRelationshipMutation:
-		return c.ServiceRelationship.mutate(ctx, m)
-	case *ServiceResourceMutation:
-		return c.ServiceResource.mutate(ctx, m)
-	case *ServiceResourceRelationshipMutation:
-		return c.ServiceResourceRelationship.mutate(ctx, m)
-	case *ServiceRevisionMutation:
-		return c.ServiceRevision.mutate(ctx, m)
 	case *SettingMutation:
 		return c.Setting.mutate(ctx, m)
 	case *SubjectMutation:
@@ -894,19 +894,19 @@ func (c *ConnectorClient) QueryEnvironments(co *Connector) *EnvironmentConnector
 	return query
 }
 
-// QueryResources queries the resources edge of a Connector.
-func (c *ConnectorClient) QueryResources(co *Connector) *ServiceResourceQuery {
-	query := (&ServiceResourceClient{config: c.config}).Query()
+// QueryResourceComponents queries the resource_components edge of a Connector.
+func (c *ConnectorClient) QueryResourceComponents(co *Connector) *ResourceComponentQuery {
+	query := (&ResourceComponentClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := co.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(connector.Table, connector.FieldID, id),
-			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, connector.ResourcesTable, connector.ResourcesColumn),
+			sqlgraph.To(resourcecomponent.Table, resourcecomponent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, connector.ResourceComponentsTable, connector.ResourceComponentsColumn),
 		)
 		schemaConfig := co.schemaConfig
-		step.To.Schema = schemaConfig.ServiceResource
-		step.Edge.Schema = schemaConfig.ServiceResource
+		step.To.Schema = schemaConfig.ResourceComponent
+		step.Edge.Schema = schemaConfig.ResourceComponent
 		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -1346,57 +1346,57 @@ func (c *EnvironmentClient) QueryConnectors(e *Environment) *EnvironmentConnecto
 	return query
 }
 
-// QueryServices queries the services edge of a Environment.
-func (c *EnvironmentClient) QueryServices(e *Environment) *ServiceQuery {
-	query := (&ServiceClient{config: c.config}).Query()
+// QueryResources queries the resources edge of a Environment.
+func (c *EnvironmentClient) QueryResources(e *Environment) *ResourceQuery {
+	query := (&ResourceClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := e.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(environment.Table, environment.FieldID, id),
-			sqlgraph.To(service.Table, service.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, environment.ServicesTable, environment.ServicesColumn),
+			sqlgraph.To(resource.Table, resource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, environment.ResourcesTable, environment.ResourcesColumn),
 		)
 		schemaConfig := e.schemaConfig
-		step.To.Schema = schemaConfig.Service
-		step.Edge.Schema = schemaConfig.Service
+		step.To.Schema = schemaConfig.Resource
+		step.Edge.Schema = schemaConfig.Resource
 		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
-// QueryServiceRevisions queries the service_revisions edge of a Environment.
-func (c *EnvironmentClient) QueryServiceRevisions(e *Environment) *ServiceRevisionQuery {
-	query := (&ServiceRevisionClient{config: c.config}).Query()
+// QueryResourceRevisions queries the resource_revisions edge of a Environment.
+func (c *EnvironmentClient) QueryResourceRevisions(e *Environment) *ResourceRevisionQuery {
+	query := (&ResourceRevisionClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := e.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(environment.Table, environment.FieldID, id),
-			sqlgraph.To(servicerevision.Table, servicerevision.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, environment.ServiceRevisionsTable, environment.ServiceRevisionsColumn),
+			sqlgraph.To(resourcerevision.Table, resourcerevision.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, environment.ResourceRevisionsTable, environment.ResourceRevisionsColumn),
 		)
 		schemaConfig := e.schemaConfig
-		step.To.Schema = schemaConfig.ServiceRevision
-		step.Edge.Schema = schemaConfig.ServiceRevision
+		step.To.Schema = schemaConfig.ResourceRevision
+		step.Edge.Schema = schemaConfig.ResourceRevision
 		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
-// QueryServiceResources queries the service_resources edge of a Environment.
-func (c *EnvironmentClient) QueryServiceResources(e *Environment) *ServiceResourceQuery {
-	query := (&ServiceResourceClient{config: c.config}).Query()
+// QueryResourceComponents queries the resource_components edge of a Environment.
+func (c *EnvironmentClient) QueryResourceComponents(e *Environment) *ResourceComponentQuery {
+	query := (&ResourceComponentClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := e.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(environment.Table, environment.FieldID, id),
-			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, environment.ServiceResourcesTable, environment.ServiceResourcesColumn),
+			sqlgraph.To(resourcecomponent.Table, resourcecomponent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, environment.ResourceComponentsTable, environment.ResourceComponentsColumn),
 		)
 		schemaConfig := e.schemaConfig
-		step.To.Schema = schemaConfig.ServiceResource
-		step.Edge.Schema = schemaConfig.ServiceResource
+		step.To.Schema = schemaConfig.ResourceComponent
+		step.Edge.Schema = schemaConfig.ResourceComponent
 		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -1875,57 +1875,57 @@ func (c *ProjectClient) QuerySubjectRoles(pr *Project) *SubjectRoleRelationshipQ
 	return query
 }
 
-// QueryServices queries the services edge of a Project.
-func (c *ProjectClient) QueryServices(pr *Project) *ServiceQuery {
-	query := (&ServiceClient{config: c.config}).Query()
+// QueryResources queries the resources edge of a Project.
+func (c *ProjectClient) QueryResources(pr *Project) *ResourceQuery {
+	query := (&ResourceClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := pr.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(project.Table, project.FieldID, id),
-			sqlgraph.To(service.Table, service.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, project.ServicesTable, project.ServicesColumn),
+			sqlgraph.To(resource.Table, resource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.ResourcesTable, project.ResourcesColumn),
 		)
 		schemaConfig := pr.schemaConfig
-		step.To.Schema = schemaConfig.Service
-		step.Edge.Schema = schemaConfig.Service
+		step.To.Schema = schemaConfig.Resource
+		step.Edge.Schema = schemaConfig.Resource
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
-// QueryServiceResources queries the service_resources edge of a Project.
-func (c *ProjectClient) QueryServiceResources(pr *Project) *ServiceResourceQuery {
-	query := (&ServiceResourceClient{config: c.config}).Query()
+// QueryResourceComponents queries the resource_components edge of a Project.
+func (c *ProjectClient) QueryResourceComponents(pr *Project) *ResourceComponentQuery {
+	query := (&ResourceComponentClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := pr.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(project.Table, project.FieldID, id),
-			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, project.ServiceResourcesTable, project.ServiceResourcesColumn),
+			sqlgraph.To(resourcecomponent.Table, resourcecomponent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.ResourceComponentsTable, project.ResourceComponentsColumn),
 		)
 		schemaConfig := pr.schemaConfig
-		step.To.Schema = schemaConfig.ServiceResource
-		step.Edge.Schema = schemaConfig.ServiceResource
+		step.To.Schema = schemaConfig.ResourceComponent
+		step.Edge.Schema = schemaConfig.ResourceComponent
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
-// QueryServiceRevisions queries the service_revisions edge of a Project.
-func (c *ProjectClient) QueryServiceRevisions(pr *Project) *ServiceRevisionQuery {
-	query := (&ServiceRevisionClient{config: c.config}).Query()
+// QueryResourceRevisions queries the resource_revisions edge of a Project.
+func (c *ProjectClient) QueryResourceRevisions(pr *Project) *ResourceRevisionQuery {
+	query := (&ResourceRevisionClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := pr.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(project.Table, project.FieldID, id),
-			sqlgraph.To(servicerevision.Table, servicerevision.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, project.ServiceRevisionsTable, project.ServiceRevisionsColumn),
+			sqlgraph.To(resourcerevision.Table, resourcerevision.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.ResourceRevisionsTable, project.ResourceRevisionsColumn),
 		)
 		schemaConfig := pr.schemaConfig
-		step.To.Schema = schemaConfig.ServiceRevision
-		step.Edge.Schema = schemaConfig.ServiceRevision
+		step.To.Schema = schemaConfig.ResourceRevision
+		step.Edge.Schema = schemaConfig.ResourceRevision
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -2149,6 +2149,1022 @@ func (c *ProjectClient) mutate(ctx context.Context, m *ProjectMutation) (Value, 
 	}
 }
 
+// ResourceClient is a client for the Resource schema.
+type ResourceClient struct {
+	config
+}
+
+// NewResourceClient returns a client for the Resource from the given config.
+func NewResourceClient(c config) *ResourceClient {
+	return &ResourceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `resource.Hooks(f(g(h())))`.
+func (c *ResourceClient) Use(hooks ...Hook) {
+	c.hooks.Resource = append(c.hooks.Resource, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `resource.Intercept(f(g(h())))`.
+func (c *ResourceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Resource = append(c.inters.Resource, interceptors...)
+}
+
+// Create returns a builder for creating a Resource entity.
+func (c *ResourceClient) Create() *ResourceCreate {
+	mutation := newResourceMutation(c.config, OpCreate)
+	return &ResourceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Resource entities.
+func (c *ResourceClient) CreateBulk(builders ...*ResourceCreate) *ResourceCreateBulk {
+	return &ResourceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Resource.
+func (c *ResourceClient) Update() *ResourceUpdate {
+	mutation := newResourceMutation(c.config, OpUpdate)
+	return &ResourceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ResourceClient) UpdateOne(r *Resource) *ResourceUpdateOne {
+	mutation := newResourceMutation(c.config, OpUpdateOne, withResource(r))
+	return &ResourceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ResourceClient) UpdateOneID(id object.ID) *ResourceUpdateOne {
+	mutation := newResourceMutation(c.config, OpUpdateOne, withResourceID(id))
+	return &ResourceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Resource.
+func (c *ResourceClient) Delete() *ResourceDelete {
+	mutation := newResourceMutation(c.config, OpDelete)
+	return &ResourceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ResourceClient) DeleteOne(r *Resource) *ResourceDeleteOne {
+	return c.DeleteOneID(r.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ResourceClient) DeleteOneID(id object.ID) *ResourceDeleteOne {
+	builder := c.Delete().Where(resource.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ResourceDeleteOne{builder}
+}
+
+// Query returns a query builder for Resource.
+func (c *ResourceClient) Query() *ResourceQuery {
+	return &ResourceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeResource},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Resource entity by its id.
+func (c *ResourceClient) Get(ctx context.Context, id object.ID) (*Resource, error) {
+	return c.Query().Where(resource.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ResourceClient) GetX(ctx context.Context, id object.ID) *Resource {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProject queries the project edge of a Resource.
+func (c *ResourceClient) QueryProject(r *Resource) *ProjectQuery {
+	query := (&ProjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resource.Table, resource.FieldID, id),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, resource.ProjectTable, resource.ProjectColumn),
+		)
+		schemaConfig := r.schemaConfig
+		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.Resource
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEnvironment queries the environment edge of a Resource.
+func (c *ResourceClient) QueryEnvironment(r *Resource) *EnvironmentQuery {
+	query := (&EnvironmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resource.Table, resource.FieldID, id),
+			sqlgraph.To(environment.Table, environment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, resource.EnvironmentTable, resource.EnvironmentColumn),
+		)
+		schemaConfig := r.schemaConfig
+		step.To.Schema = schemaConfig.Environment
+		step.Edge.Schema = schemaConfig.Resource
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTemplate queries the template edge of a Resource.
+func (c *ResourceClient) QueryTemplate(r *Resource) *TemplateVersionQuery {
+	query := (&TemplateVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resource.Table, resource.FieldID, id),
+			sqlgraph.To(templateversion.Table, templateversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, resource.TemplateTable, resource.TemplateColumn),
+		)
+		schemaConfig := r.schemaConfig
+		step.To.Schema = schemaConfig.TemplateVersion
+		step.Edge.Schema = schemaConfig.Resource
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRevisions queries the revisions edge of a Resource.
+func (c *ResourceClient) QueryRevisions(r *Resource) *ResourceRevisionQuery {
+	query := (&ResourceRevisionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resource.Table, resource.FieldID, id),
+			sqlgraph.To(resourcerevision.Table, resourcerevision.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, resource.RevisionsTable, resource.RevisionsColumn),
+		)
+		schemaConfig := r.schemaConfig
+		step.To.Schema = schemaConfig.ResourceRevision
+		step.Edge.Schema = schemaConfig.ResourceRevision
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryComponents queries the components edge of a Resource.
+func (c *ResourceClient) QueryComponents(r *Resource) *ResourceComponentQuery {
+	query := (&ResourceComponentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resource.Table, resource.FieldID, id),
+			sqlgraph.To(resourcecomponent.Table, resourcecomponent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, resource.ComponentsTable, resource.ComponentsColumn),
+		)
+		schemaConfig := r.schemaConfig
+		step.To.Schema = schemaConfig.ResourceComponent
+		step.Edge.Schema = schemaConfig.ResourceComponent
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDependencies queries the dependencies edge of a Resource.
+func (c *ResourceClient) QueryDependencies(r *Resource) *ResourceRelationshipQuery {
+	query := (&ResourceRelationshipClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resource.Table, resource.FieldID, id),
+			sqlgraph.To(resourcerelationship.Table, resourcerelationship.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, resource.DependenciesTable, resource.DependenciesColumn),
+		)
+		schemaConfig := r.schemaConfig
+		step.To.Schema = schemaConfig.ResourceRelationship
+		step.Edge.Schema = schemaConfig.ResourceRelationship
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ResourceClient) Hooks() []Hook {
+	hooks := c.hooks.Resource
+	return append(hooks[:len(hooks):len(hooks)], resource.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *ResourceClient) Interceptors() []Interceptor {
+	inters := c.inters.Resource
+	return append(inters[:len(inters):len(inters)], resource.Interceptors[:]...)
+}
+
+func (c *ResourceClient) mutate(ctx context.Context, m *ResourceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ResourceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ResourceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ResourceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ResourceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown Resource mutation op: %q", m.Op())
+	}
+}
+
+// ResourceComponentClient is a client for the ResourceComponent schema.
+type ResourceComponentClient struct {
+	config
+}
+
+// NewResourceComponentClient returns a client for the ResourceComponent from the given config.
+func NewResourceComponentClient(c config) *ResourceComponentClient {
+	return &ResourceComponentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `resourcecomponent.Hooks(f(g(h())))`.
+func (c *ResourceComponentClient) Use(hooks ...Hook) {
+	c.hooks.ResourceComponent = append(c.hooks.ResourceComponent, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `resourcecomponent.Intercept(f(g(h())))`.
+func (c *ResourceComponentClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ResourceComponent = append(c.inters.ResourceComponent, interceptors...)
+}
+
+// Create returns a builder for creating a ResourceComponent entity.
+func (c *ResourceComponentClient) Create() *ResourceComponentCreate {
+	mutation := newResourceComponentMutation(c.config, OpCreate)
+	return &ResourceComponentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ResourceComponent entities.
+func (c *ResourceComponentClient) CreateBulk(builders ...*ResourceComponentCreate) *ResourceComponentCreateBulk {
+	return &ResourceComponentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ResourceComponent.
+func (c *ResourceComponentClient) Update() *ResourceComponentUpdate {
+	mutation := newResourceComponentMutation(c.config, OpUpdate)
+	return &ResourceComponentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ResourceComponentClient) UpdateOne(rc *ResourceComponent) *ResourceComponentUpdateOne {
+	mutation := newResourceComponentMutation(c.config, OpUpdateOne, withResourceComponent(rc))
+	return &ResourceComponentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ResourceComponentClient) UpdateOneID(id object.ID) *ResourceComponentUpdateOne {
+	mutation := newResourceComponentMutation(c.config, OpUpdateOne, withResourceComponentID(id))
+	return &ResourceComponentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ResourceComponent.
+func (c *ResourceComponentClient) Delete() *ResourceComponentDelete {
+	mutation := newResourceComponentMutation(c.config, OpDelete)
+	return &ResourceComponentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ResourceComponentClient) DeleteOne(rc *ResourceComponent) *ResourceComponentDeleteOne {
+	return c.DeleteOneID(rc.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ResourceComponentClient) DeleteOneID(id object.ID) *ResourceComponentDeleteOne {
+	builder := c.Delete().Where(resourcecomponent.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ResourceComponentDeleteOne{builder}
+}
+
+// Query returns a query builder for ResourceComponent.
+func (c *ResourceComponentClient) Query() *ResourceComponentQuery {
+	return &ResourceComponentQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeResourceComponent},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ResourceComponent entity by its id.
+func (c *ResourceComponentClient) Get(ctx context.Context, id object.ID) (*ResourceComponent, error) {
+	return c.Query().Where(resourcecomponent.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ResourceComponentClient) GetX(ctx context.Context, id object.ID) *ResourceComponent {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProject queries the project edge of a ResourceComponent.
+func (c *ResourceComponentClient) QueryProject(rc *ResourceComponent) *ProjectQuery {
+	query := (&ProjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcecomponent.Table, resourcecomponent.FieldID, id),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, resourcecomponent.ProjectTable, resourcecomponent.ProjectColumn),
+		)
+		schemaConfig := rc.schemaConfig
+		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.ResourceComponent
+		fromV = sqlgraph.Neighbors(rc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEnvironment queries the environment edge of a ResourceComponent.
+func (c *ResourceComponentClient) QueryEnvironment(rc *ResourceComponent) *EnvironmentQuery {
+	query := (&EnvironmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcecomponent.Table, resourcecomponent.FieldID, id),
+			sqlgraph.To(environment.Table, environment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, resourcecomponent.EnvironmentTable, resourcecomponent.EnvironmentColumn),
+		)
+		schemaConfig := rc.schemaConfig
+		step.To.Schema = schemaConfig.Environment
+		step.Edge.Schema = schemaConfig.ResourceComponent
+		fromV = sqlgraph.Neighbors(rc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryResource queries the resource edge of a ResourceComponent.
+func (c *ResourceComponentClient) QueryResource(rc *ResourceComponent) *ResourceQuery {
+	query := (&ResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcecomponent.Table, resourcecomponent.FieldID, id),
+			sqlgraph.To(resource.Table, resource.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, resourcecomponent.ResourceTable, resourcecomponent.ResourceColumn),
+		)
+		schemaConfig := rc.schemaConfig
+		step.To.Schema = schemaConfig.Resource
+		step.Edge.Schema = schemaConfig.ResourceComponent
+		fromV = sqlgraph.Neighbors(rc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryConnector queries the connector edge of a ResourceComponent.
+func (c *ResourceComponentClient) QueryConnector(rc *ResourceComponent) *ConnectorQuery {
+	query := (&ConnectorClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcecomponent.Table, resourcecomponent.FieldID, id),
+			sqlgraph.To(connector.Table, connector.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, resourcecomponent.ConnectorTable, resourcecomponent.ConnectorColumn),
+		)
+		schemaConfig := rc.schemaConfig
+		step.To.Schema = schemaConfig.Connector
+		step.Edge.Schema = schemaConfig.ResourceComponent
+		fromV = sqlgraph.Neighbors(rc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryComposition queries the composition edge of a ResourceComponent.
+func (c *ResourceComponentClient) QueryComposition(rc *ResourceComponent) *ResourceComponentQuery {
+	query := (&ResourceComponentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcecomponent.Table, resourcecomponent.FieldID, id),
+			sqlgraph.To(resourcecomponent.Table, resourcecomponent.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, resourcecomponent.CompositionTable, resourcecomponent.CompositionColumn),
+		)
+		schemaConfig := rc.schemaConfig
+		step.To.Schema = schemaConfig.ResourceComponent
+		step.Edge.Schema = schemaConfig.ResourceComponent
+		fromV = sqlgraph.Neighbors(rc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryComponents queries the components edge of a ResourceComponent.
+func (c *ResourceComponentClient) QueryComponents(rc *ResourceComponent) *ResourceComponentQuery {
+	query := (&ResourceComponentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcecomponent.Table, resourcecomponent.FieldID, id),
+			sqlgraph.To(resourcecomponent.Table, resourcecomponent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, resourcecomponent.ComponentsTable, resourcecomponent.ComponentsColumn),
+		)
+		schemaConfig := rc.schemaConfig
+		step.To.Schema = schemaConfig.ResourceComponent
+		step.Edge.Schema = schemaConfig.ResourceComponent
+		fromV = sqlgraph.Neighbors(rc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryClass queries the class edge of a ResourceComponent.
+func (c *ResourceComponentClient) QueryClass(rc *ResourceComponent) *ResourceComponentQuery {
+	query := (&ResourceComponentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcecomponent.Table, resourcecomponent.FieldID, id),
+			sqlgraph.To(resourcecomponent.Table, resourcecomponent.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, resourcecomponent.ClassTable, resourcecomponent.ClassColumn),
+		)
+		schemaConfig := rc.schemaConfig
+		step.To.Schema = schemaConfig.ResourceComponent
+		step.Edge.Schema = schemaConfig.ResourceComponent
+		fromV = sqlgraph.Neighbors(rc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryInstances queries the instances edge of a ResourceComponent.
+func (c *ResourceComponentClient) QueryInstances(rc *ResourceComponent) *ResourceComponentQuery {
+	query := (&ResourceComponentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcecomponent.Table, resourcecomponent.FieldID, id),
+			sqlgraph.To(resourcecomponent.Table, resourcecomponent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, resourcecomponent.InstancesTable, resourcecomponent.InstancesColumn),
+		)
+		schemaConfig := rc.schemaConfig
+		step.To.Schema = schemaConfig.ResourceComponent
+		step.Edge.Schema = schemaConfig.ResourceComponent
+		fromV = sqlgraph.Neighbors(rc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDependencies queries the dependencies edge of a ResourceComponent.
+func (c *ResourceComponentClient) QueryDependencies(rc *ResourceComponent) *ResourceComponentRelationshipQuery {
+	query := (&ResourceComponentRelationshipClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcecomponent.Table, resourcecomponent.FieldID, id),
+			sqlgraph.To(resourcecomponentrelationship.Table, resourcecomponentrelationship.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, resourcecomponent.DependenciesTable, resourcecomponent.DependenciesColumn),
+		)
+		schemaConfig := rc.schemaConfig
+		step.To.Schema = schemaConfig.ResourceComponentRelationship
+		step.Edge.Schema = schemaConfig.ResourceComponentRelationship
+		fromV = sqlgraph.Neighbors(rc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ResourceComponentClient) Hooks() []Hook {
+	hooks := c.hooks.ResourceComponent
+	return append(hooks[:len(hooks):len(hooks)], resourcecomponent.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *ResourceComponentClient) Interceptors() []Interceptor {
+	inters := c.inters.ResourceComponent
+	return append(inters[:len(inters):len(inters)], resourcecomponent.Interceptors[:]...)
+}
+
+func (c *ResourceComponentClient) mutate(ctx context.Context, m *ResourceComponentMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ResourceComponentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ResourceComponentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ResourceComponentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ResourceComponentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown ResourceComponent mutation op: %q", m.Op())
+	}
+}
+
+// ResourceComponentRelationshipClient is a client for the ResourceComponentRelationship schema.
+type ResourceComponentRelationshipClient struct {
+	config
+}
+
+// NewResourceComponentRelationshipClient returns a client for the ResourceComponentRelationship from the given config.
+func NewResourceComponentRelationshipClient(c config) *ResourceComponentRelationshipClient {
+	return &ResourceComponentRelationshipClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `resourcecomponentrelationship.Hooks(f(g(h())))`.
+func (c *ResourceComponentRelationshipClient) Use(hooks ...Hook) {
+	c.hooks.ResourceComponentRelationship = append(c.hooks.ResourceComponentRelationship, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `resourcecomponentrelationship.Intercept(f(g(h())))`.
+func (c *ResourceComponentRelationshipClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ResourceComponentRelationship = append(c.inters.ResourceComponentRelationship, interceptors...)
+}
+
+// Create returns a builder for creating a ResourceComponentRelationship entity.
+func (c *ResourceComponentRelationshipClient) Create() *ResourceComponentRelationshipCreate {
+	mutation := newResourceComponentRelationshipMutation(c.config, OpCreate)
+	return &ResourceComponentRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ResourceComponentRelationship entities.
+func (c *ResourceComponentRelationshipClient) CreateBulk(builders ...*ResourceComponentRelationshipCreate) *ResourceComponentRelationshipCreateBulk {
+	return &ResourceComponentRelationshipCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ResourceComponentRelationship.
+func (c *ResourceComponentRelationshipClient) Update() *ResourceComponentRelationshipUpdate {
+	mutation := newResourceComponentRelationshipMutation(c.config, OpUpdate)
+	return &ResourceComponentRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ResourceComponentRelationshipClient) UpdateOne(rcr *ResourceComponentRelationship) *ResourceComponentRelationshipUpdateOne {
+	mutation := newResourceComponentRelationshipMutation(c.config, OpUpdateOne, withResourceComponentRelationship(rcr))
+	return &ResourceComponentRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ResourceComponentRelationshipClient) UpdateOneID(id object.ID) *ResourceComponentRelationshipUpdateOne {
+	mutation := newResourceComponentRelationshipMutation(c.config, OpUpdateOne, withResourceComponentRelationshipID(id))
+	return &ResourceComponentRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ResourceComponentRelationship.
+func (c *ResourceComponentRelationshipClient) Delete() *ResourceComponentRelationshipDelete {
+	mutation := newResourceComponentRelationshipMutation(c.config, OpDelete)
+	return &ResourceComponentRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ResourceComponentRelationshipClient) DeleteOne(rcr *ResourceComponentRelationship) *ResourceComponentRelationshipDeleteOne {
+	return c.DeleteOneID(rcr.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ResourceComponentRelationshipClient) DeleteOneID(id object.ID) *ResourceComponentRelationshipDeleteOne {
+	builder := c.Delete().Where(resourcecomponentrelationship.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ResourceComponentRelationshipDeleteOne{builder}
+}
+
+// Query returns a query builder for ResourceComponentRelationship.
+func (c *ResourceComponentRelationshipClient) Query() *ResourceComponentRelationshipQuery {
+	return &ResourceComponentRelationshipQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeResourceComponentRelationship},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ResourceComponentRelationship entity by its id.
+func (c *ResourceComponentRelationshipClient) Get(ctx context.Context, id object.ID) (*ResourceComponentRelationship, error) {
+	return c.Query().Where(resourcecomponentrelationship.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ResourceComponentRelationshipClient) GetX(ctx context.Context, id object.ID) *ResourceComponentRelationship {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryResourceComponent queries the resource_component edge of a ResourceComponentRelationship.
+func (c *ResourceComponentRelationshipClient) QueryResourceComponent(rcr *ResourceComponentRelationship) *ResourceComponentQuery {
+	query := (&ResourceComponentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rcr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcecomponentrelationship.Table, resourcecomponentrelationship.FieldID, id),
+			sqlgraph.To(resourcecomponent.Table, resourcecomponent.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, resourcecomponentrelationship.ResourceComponentTable, resourcecomponentrelationship.ResourceComponentColumn),
+		)
+		schemaConfig := rcr.schemaConfig
+		step.To.Schema = schemaConfig.ResourceComponent
+		step.Edge.Schema = schemaConfig.ResourceComponentRelationship
+		fromV = sqlgraph.Neighbors(rcr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDependency queries the dependency edge of a ResourceComponentRelationship.
+func (c *ResourceComponentRelationshipClient) QueryDependency(rcr *ResourceComponentRelationship) *ResourceComponentQuery {
+	query := (&ResourceComponentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rcr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcecomponentrelationship.Table, resourcecomponentrelationship.FieldID, id),
+			sqlgraph.To(resourcecomponent.Table, resourcecomponent.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, resourcecomponentrelationship.DependencyTable, resourcecomponentrelationship.DependencyColumn),
+		)
+		schemaConfig := rcr.schemaConfig
+		step.To.Schema = schemaConfig.ResourceComponent
+		step.Edge.Schema = schemaConfig.ResourceComponentRelationship
+		fromV = sqlgraph.Neighbors(rcr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ResourceComponentRelationshipClient) Hooks() []Hook {
+	hooks := c.hooks.ResourceComponentRelationship
+	return append(hooks[:len(hooks):len(hooks)], resourcecomponentrelationship.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *ResourceComponentRelationshipClient) Interceptors() []Interceptor {
+	return c.inters.ResourceComponentRelationship
+}
+
+func (c *ResourceComponentRelationshipClient) mutate(ctx context.Context, m *ResourceComponentRelationshipMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ResourceComponentRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ResourceComponentRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ResourceComponentRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ResourceComponentRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown ResourceComponentRelationship mutation op: %q", m.Op())
+	}
+}
+
+// ResourceRelationshipClient is a client for the ResourceRelationship schema.
+type ResourceRelationshipClient struct {
+	config
+}
+
+// NewResourceRelationshipClient returns a client for the ResourceRelationship from the given config.
+func NewResourceRelationshipClient(c config) *ResourceRelationshipClient {
+	return &ResourceRelationshipClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `resourcerelationship.Hooks(f(g(h())))`.
+func (c *ResourceRelationshipClient) Use(hooks ...Hook) {
+	c.hooks.ResourceRelationship = append(c.hooks.ResourceRelationship, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `resourcerelationship.Intercept(f(g(h())))`.
+func (c *ResourceRelationshipClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ResourceRelationship = append(c.inters.ResourceRelationship, interceptors...)
+}
+
+// Create returns a builder for creating a ResourceRelationship entity.
+func (c *ResourceRelationshipClient) Create() *ResourceRelationshipCreate {
+	mutation := newResourceRelationshipMutation(c.config, OpCreate)
+	return &ResourceRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ResourceRelationship entities.
+func (c *ResourceRelationshipClient) CreateBulk(builders ...*ResourceRelationshipCreate) *ResourceRelationshipCreateBulk {
+	return &ResourceRelationshipCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ResourceRelationship.
+func (c *ResourceRelationshipClient) Update() *ResourceRelationshipUpdate {
+	mutation := newResourceRelationshipMutation(c.config, OpUpdate)
+	return &ResourceRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ResourceRelationshipClient) UpdateOne(rr *ResourceRelationship) *ResourceRelationshipUpdateOne {
+	mutation := newResourceRelationshipMutation(c.config, OpUpdateOne, withResourceRelationship(rr))
+	return &ResourceRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ResourceRelationshipClient) UpdateOneID(id object.ID) *ResourceRelationshipUpdateOne {
+	mutation := newResourceRelationshipMutation(c.config, OpUpdateOne, withResourceRelationshipID(id))
+	return &ResourceRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ResourceRelationship.
+func (c *ResourceRelationshipClient) Delete() *ResourceRelationshipDelete {
+	mutation := newResourceRelationshipMutation(c.config, OpDelete)
+	return &ResourceRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ResourceRelationshipClient) DeleteOne(rr *ResourceRelationship) *ResourceRelationshipDeleteOne {
+	return c.DeleteOneID(rr.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ResourceRelationshipClient) DeleteOneID(id object.ID) *ResourceRelationshipDeleteOne {
+	builder := c.Delete().Where(resourcerelationship.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ResourceRelationshipDeleteOne{builder}
+}
+
+// Query returns a query builder for ResourceRelationship.
+func (c *ResourceRelationshipClient) Query() *ResourceRelationshipQuery {
+	return &ResourceRelationshipQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeResourceRelationship},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ResourceRelationship entity by its id.
+func (c *ResourceRelationshipClient) Get(ctx context.Context, id object.ID) (*ResourceRelationship, error) {
+	return c.Query().Where(resourcerelationship.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ResourceRelationshipClient) GetX(ctx context.Context, id object.ID) *ResourceRelationship {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryResource queries the resource edge of a ResourceRelationship.
+func (c *ResourceRelationshipClient) QueryResource(rr *ResourceRelationship) *ResourceQuery {
+	query := (&ResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcerelationship.Table, resourcerelationship.FieldID, id),
+			sqlgraph.To(resource.Table, resource.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, resourcerelationship.ResourceTable, resourcerelationship.ResourceColumn),
+		)
+		schemaConfig := rr.schemaConfig
+		step.To.Schema = schemaConfig.Resource
+		step.Edge.Schema = schemaConfig.ResourceRelationship
+		fromV = sqlgraph.Neighbors(rr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDependency queries the dependency edge of a ResourceRelationship.
+func (c *ResourceRelationshipClient) QueryDependency(rr *ResourceRelationship) *ResourceQuery {
+	query := (&ResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcerelationship.Table, resourcerelationship.FieldID, id),
+			sqlgraph.To(resource.Table, resource.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, resourcerelationship.DependencyTable, resourcerelationship.DependencyColumn),
+		)
+		schemaConfig := rr.schemaConfig
+		step.To.Schema = schemaConfig.Resource
+		step.Edge.Schema = schemaConfig.ResourceRelationship
+		fromV = sqlgraph.Neighbors(rr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ResourceRelationshipClient) Hooks() []Hook {
+	hooks := c.hooks.ResourceRelationship
+	return append(hooks[:len(hooks):len(hooks)], resourcerelationship.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *ResourceRelationshipClient) Interceptors() []Interceptor {
+	return c.inters.ResourceRelationship
+}
+
+func (c *ResourceRelationshipClient) mutate(ctx context.Context, m *ResourceRelationshipMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ResourceRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ResourceRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ResourceRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ResourceRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown ResourceRelationship mutation op: %q", m.Op())
+	}
+}
+
+// ResourceRevisionClient is a client for the ResourceRevision schema.
+type ResourceRevisionClient struct {
+	config
+}
+
+// NewResourceRevisionClient returns a client for the ResourceRevision from the given config.
+func NewResourceRevisionClient(c config) *ResourceRevisionClient {
+	return &ResourceRevisionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `resourcerevision.Hooks(f(g(h())))`.
+func (c *ResourceRevisionClient) Use(hooks ...Hook) {
+	c.hooks.ResourceRevision = append(c.hooks.ResourceRevision, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `resourcerevision.Intercept(f(g(h())))`.
+func (c *ResourceRevisionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ResourceRevision = append(c.inters.ResourceRevision, interceptors...)
+}
+
+// Create returns a builder for creating a ResourceRevision entity.
+func (c *ResourceRevisionClient) Create() *ResourceRevisionCreate {
+	mutation := newResourceRevisionMutation(c.config, OpCreate)
+	return &ResourceRevisionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ResourceRevision entities.
+func (c *ResourceRevisionClient) CreateBulk(builders ...*ResourceRevisionCreate) *ResourceRevisionCreateBulk {
+	return &ResourceRevisionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ResourceRevision.
+func (c *ResourceRevisionClient) Update() *ResourceRevisionUpdate {
+	mutation := newResourceRevisionMutation(c.config, OpUpdate)
+	return &ResourceRevisionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ResourceRevisionClient) UpdateOne(rr *ResourceRevision) *ResourceRevisionUpdateOne {
+	mutation := newResourceRevisionMutation(c.config, OpUpdateOne, withResourceRevision(rr))
+	return &ResourceRevisionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ResourceRevisionClient) UpdateOneID(id object.ID) *ResourceRevisionUpdateOne {
+	mutation := newResourceRevisionMutation(c.config, OpUpdateOne, withResourceRevisionID(id))
+	return &ResourceRevisionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ResourceRevision.
+func (c *ResourceRevisionClient) Delete() *ResourceRevisionDelete {
+	mutation := newResourceRevisionMutation(c.config, OpDelete)
+	return &ResourceRevisionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ResourceRevisionClient) DeleteOne(rr *ResourceRevision) *ResourceRevisionDeleteOne {
+	return c.DeleteOneID(rr.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ResourceRevisionClient) DeleteOneID(id object.ID) *ResourceRevisionDeleteOne {
+	builder := c.Delete().Where(resourcerevision.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ResourceRevisionDeleteOne{builder}
+}
+
+// Query returns a query builder for ResourceRevision.
+func (c *ResourceRevisionClient) Query() *ResourceRevisionQuery {
+	return &ResourceRevisionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeResourceRevision},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ResourceRevision entity by its id.
+func (c *ResourceRevisionClient) Get(ctx context.Context, id object.ID) (*ResourceRevision, error) {
+	return c.Query().Where(resourcerevision.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ResourceRevisionClient) GetX(ctx context.Context, id object.ID) *ResourceRevision {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProject queries the project edge of a ResourceRevision.
+func (c *ResourceRevisionClient) QueryProject(rr *ResourceRevision) *ProjectQuery {
+	query := (&ProjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcerevision.Table, resourcerevision.FieldID, id),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, resourcerevision.ProjectTable, resourcerevision.ProjectColumn),
+		)
+		schemaConfig := rr.schemaConfig
+		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.ResourceRevision
+		fromV = sqlgraph.Neighbors(rr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEnvironment queries the environment edge of a ResourceRevision.
+func (c *ResourceRevisionClient) QueryEnvironment(rr *ResourceRevision) *EnvironmentQuery {
+	query := (&EnvironmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcerevision.Table, resourcerevision.FieldID, id),
+			sqlgraph.To(environment.Table, environment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, resourcerevision.EnvironmentTable, resourcerevision.EnvironmentColumn),
+		)
+		schemaConfig := rr.schemaConfig
+		step.To.Schema = schemaConfig.Environment
+		step.Edge.Schema = schemaConfig.ResourceRevision
+		fromV = sqlgraph.Neighbors(rr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryResource queries the resource edge of a ResourceRevision.
+func (c *ResourceRevisionClient) QueryResource(rr *ResourceRevision) *ResourceQuery {
+	query := (&ResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcerevision.Table, resourcerevision.FieldID, id),
+			sqlgraph.To(resource.Table, resource.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, resourcerevision.ResourceTable, resourcerevision.ResourceColumn),
+		)
+		schemaConfig := rr.schemaConfig
+		step.To.Schema = schemaConfig.Resource
+		step.Edge.Schema = schemaConfig.ResourceRevision
+		fromV = sqlgraph.Neighbors(rr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ResourceRevisionClient) Hooks() []Hook {
+	hooks := c.hooks.ResourceRevision
+	return append(hooks[:len(hooks):len(hooks)], resourcerevision.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *ResourceRevisionClient) Interceptors() []Interceptor {
+	inters := c.inters.ResourceRevision
+	return append(inters[:len(inters):len(inters)], resourcerevision.Interceptors[:]...)
+}
+
+func (c *ResourceRevisionClient) mutate(ctx context.Context, m *ResourceRevisionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ResourceRevisionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ResourceRevisionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ResourceRevisionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ResourceRevisionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown ResourceRevision mutation op: %q", m.Op())
+	}
+}
+
 // RoleClient is a client for the Role schema.
 type RoleClient struct {
 	config
@@ -2284,1022 +3300,6 @@ func (c *RoleClient) mutate(ctx context.Context, m *RoleMutation) (Value, error)
 		return (&RoleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("model: unknown Role mutation op: %q", m.Op())
-	}
-}
-
-// ServiceClient is a client for the Service schema.
-type ServiceClient struct {
-	config
-}
-
-// NewServiceClient returns a client for the Service from the given config.
-func NewServiceClient(c config) *ServiceClient {
-	return &ServiceClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `service.Hooks(f(g(h())))`.
-func (c *ServiceClient) Use(hooks ...Hook) {
-	c.hooks.Service = append(c.hooks.Service, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `service.Intercept(f(g(h())))`.
-func (c *ServiceClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Service = append(c.inters.Service, interceptors...)
-}
-
-// Create returns a builder for creating a Service entity.
-func (c *ServiceClient) Create() *ServiceCreate {
-	mutation := newServiceMutation(c.config, OpCreate)
-	return &ServiceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Service entities.
-func (c *ServiceClient) CreateBulk(builders ...*ServiceCreate) *ServiceCreateBulk {
-	return &ServiceCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Service.
-func (c *ServiceClient) Update() *ServiceUpdate {
-	mutation := newServiceMutation(c.config, OpUpdate)
-	return &ServiceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *ServiceClient) UpdateOne(s *Service) *ServiceUpdateOne {
-	mutation := newServiceMutation(c.config, OpUpdateOne, withService(s))
-	return &ServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *ServiceClient) UpdateOneID(id object.ID) *ServiceUpdateOne {
-	mutation := newServiceMutation(c.config, OpUpdateOne, withServiceID(id))
-	return &ServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Service.
-func (c *ServiceClient) Delete() *ServiceDelete {
-	mutation := newServiceMutation(c.config, OpDelete)
-	return &ServiceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *ServiceClient) DeleteOne(s *Service) *ServiceDeleteOne {
-	return c.DeleteOneID(s.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ServiceClient) DeleteOneID(id object.ID) *ServiceDeleteOne {
-	builder := c.Delete().Where(service.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ServiceDeleteOne{builder}
-}
-
-// Query returns a query builder for Service.
-func (c *ServiceClient) Query() *ServiceQuery {
-	return &ServiceQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeService},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Service entity by its id.
-func (c *ServiceClient) Get(ctx context.Context, id object.ID) (*Service, error) {
-	return c.Query().Where(service.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *ServiceClient) GetX(ctx context.Context, id object.ID) *Service {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryProject queries the project edge of a Service.
-func (c *ServiceClient) QueryProject(s *Service) *ProjectQuery {
-	query := (&ProjectClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := s.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(service.Table, service.FieldID, id),
-			sqlgraph.To(project.Table, project.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, service.ProjectTable, service.ProjectColumn),
-		)
-		schemaConfig := s.schemaConfig
-		step.To.Schema = schemaConfig.Project
-		step.Edge.Schema = schemaConfig.Service
-		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryEnvironment queries the environment edge of a Service.
-func (c *ServiceClient) QueryEnvironment(s *Service) *EnvironmentQuery {
-	query := (&EnvironmentClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := s.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(service.Table, service.FieldID, id),
-			sqlgraph.To(environment.Table, environment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, service.EnvironmentTable, service.EnvironmentColumn),
-		)
-		schemaConfig := s.schemaConfig
-		step.To.Schema = schemaConfig.Environment
-		step.Edge.Schema = schemaConfig.Service
-		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryTemplate queries the template edge of a Service.
-func (c *ServiceClient) QueryTemplate(s *Service) *TemplateVersionQuery {
-	query := (&TemplateVersionClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := s.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(service.Table, service.FieldID, id),
-			sqlgraph.To(templateversion.Table, templateversion.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, service.TemplateTable, service.TemplateColumn),
-		)
-		schemaConfig := s.schemaConfig
-		step.To.Schema = schemaConfig.TemplateVersion
-		step.Edge.Schema = schemaConfig.Service
-		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryRevisions queries the revisions edge of a Service.
-func (c *ServiceClient) QueryRevisions(s *Service) *ServiceRevisionQuery {
-	query := (&ServiceRevisionClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := s.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(service.Table, service.FieldID, id),
-			sqlgraph.To(servicerevision.Table, servicerevision.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, service.RevisionsTable, service.RevisionsColumn),
-		)
-		schemaConfig := s.schemaConfig
-		step.To.Schema = schemaConfig.ServiceRevision
-		step.Edge.Schema = schemaConfig.ServiceRevision
-		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryResources queries the resources edge of a Service.
-func (c *ServiceClient) QueryResources(s *Service) *ServiceResourceQuery {
-	query := (&ServiceResourceClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := s.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(service.Table, service.FieldID, id),
-			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, service.ResourcesTable, service.ResourcesColumn),
-		)
-		schemaConfig := s.schemaConfig
-		step.To.Schema = schemaConfig.ServiceResource
-		step.Edge.Schema = schemaConfig.ServiceResource
-		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryDependencies queries the dependencies edge of a Service.
-func (c *ServiceClient) QueryDependencies(s *Service) *ServiceRelationshipQuery {
-	query := (&ServiceRelationshipClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := s.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(service.Table, service.FieldID, id),
-			sqlgraph.To(servicerelationship.Table, servicerelationship.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, service.DependenciesTable, service.DependenciesColumn),
-		)
-		schemaConfig := s.schemaConfig
-		step.To.Schema = schemaConfig.ServiceRelationship
-		step.Edge.Schema = schemaConfig.ServiceRelationship
-		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *ServiceClient) Hooks() []Hook {
-	hooks := c.hooks.Service
-	return append(hooks[:len(hooks):len(hooks)], service.Hooks[:]...)
-}
-
-// Interceptors returns the client interceptors.
-func (c *ServiceClient) Interceptors() []Interceptor {
-	inters := c.inters.Service
-	return append(inters[:len(inters):len(inters)], service.Interceptors[:]...)
-}
-
-func (c *ServiceClient) mutate(ctx context.Context, m *ServiceMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&ServiceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&ServiceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&ServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&ServiceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("model: unknown Service mutation op: %q", m.Op())
-	}
-}
-
-// ServiceRelationshipClient is a client for the ServiceRelationship schema.
-type ServiceRelationshipClient struct {
-	config
-}
-
-// NewServiceRelationshipClient returns a client for the ServiceRelationship from the given config.
-func NewServiceRelationshipClient(c config) *ServiceRelationshipClient {
-	return &ServiceRelationshipClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `servicerelationship.Hooks(f(g(h())))`.
-func (c *ServiceRelationshipClient) Use(hooks ...Hook) {
-	c.hooks.ServiceRelationship = append(c.hooks.ServiceRelationship, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `servicerelationship.Intercept(f(g(h())))`.
-func (c *ServiceRelationshipClient) Intercept(interceptors ...Interceptor) {
-	c.inters.ServiceRelationship = append(c.inters.ServiceRelationship, interceptors...)
-}
-
-// Create returns a builder for creating a ServiceRelationship entity.
-func (c *ServiceRelationshipClient) Create() *ServiceRelationshipCreate {
-	mutation := newServiceRelationshipMutation(c.config, OpCreate)
-	return &ServiceRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of ServiceRelationship entities.
-func (c *ServiceRelationshipClient) CreateBulk(builders ...*ServiceRelationshipCreate) *ServiceRelationshipCreateBulk {
-	return &ServiceRelationshipCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for ServiceRelationship.
-func (c *ServiceRelationshipClient) Update() *ServiceRelationshipUpdate {
-	mutation := newServiceRelationshipMutation(c.config, OpUpdate)
-	return &ServiceRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *ServiceRelationshipClient) UpdateOne(sr *ServiceRelationship) *ServiceRelationshipUpdateOne {
-	mutation := newServiceRelationshipMutation(c.config, OpUpdateOne, withServiceRelationship(sr))
-	return &ServiceRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *ServiceRelationshipClient) UpdateOneID(id object.ID) *ServiceRelationshipUpdateOne {
-	mutation := newServiceRelationshipMutation(c.config, OpUpdateOne, withServiceRelationshipID(id))
-	return &ServiceRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for ServiceRelationship.
-func (c *ServiceRelationshipClient) Delete() *ServiceRelationshipDelete {
-	mutation := newServiceRelationshipMutation(c.config, OpDelete)
-	return &ServiceRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *ServiceRelationshipClient) DeleteOne(sr *ServiceRelationship) *ServiceRelationshipDeleteOne {
-	return c.DeleteOneID(sr.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ServiceRelationshipClient) DeleteOneID(id object.ID) *ServiceRelationshipDeleteOne {
-	builder := c.Delete().Where(servicerelationship.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ServiceRelationshipDeleteOne{builder}
-}
-
-// Query returns a query builder for ServiceRelationship.
-func (c *ServiceRelationshipClient) Query() *ServiceRelationshipQuery {
-	return &ServiceRelationshipQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeServiceRelationship},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a ServiceRelationship entity by its id.
-func (c *ServiceRelationshipClient) Get(ctx context.Context, id object.ID) (*ServiceRelationship, error) {
-	return c.Query().Where(servicerelationship.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *ServiceRelationshipClient) GetX(ctx context.Context, id object.ID) *ServiceRelationship {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryService queries the service edge of a ServiceRelationship.
-func (c *ServiceRelationshipClient) QueryService(sr *ServiceRelationship) *ServiceQuery {
-	query := (&ServiceClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := sr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(servicerelationship.Table, servicerelationship.FieldID, id),
-			sqlgraph.To(service.Table, service.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, servicerelationship.ServiceTable, servicerelationship.ServiceColumn),
-		)
-		schemaConfig := sr.schemaConfig
-		step.To.Schema = schemaConfig.Service
-		step.Edge.Schema = schemaConfig.ServiceRelationship
-		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryDependency queries the dependency edge of a ServiceRelationship.
-func (c *ServiceRelationshipClient) QueryDependency(sr *ServiceRelationship) *ServiceQuery {
-	query := (&ServiceClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := sr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(servicerelationship.Table, servicerelationship.FieldID, id),
-			sqlgraph.To(service.Table, service.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, servicerelationship.DependencyTable, servicerelationship.DependencyColumn),
-		)
-		schemaConfig := sr.schemaConfig
-		step.To.Schema = schemaConfig.Service
-		step.Edge.Schema = schemaConfig.ServiceRelationship
-		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *ServiceRelationshipClient) Hooks() []Hook {
-	hooks := c.hooks.ServiceRelationship
-	return append(hooks[:len(hooks):len(hooks)], servicerelationship.Hooks[:]...)
-}
-
-// Interceptors returns the client interceptors.
-func (c *ServiceRelationshipClient) Interceptors() []Interceptor {
-	return c.inters.ServiceRelationship
-}
-
-func (c *ServiceRelationshipClient) mutate(ctx context.Context, m *ServiceRelationshipMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&ServiceRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&ServiceRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&ServiceRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&ServiceRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("model: unknown ServiceRelationship mutation op: %q", m.Op())
-	}
-}
-
-// ServiceResourceClient is a client for the ServiceResource schema.
-type ServiceResourceClient struct {
-	config
-}
-
-// NewServiceResourceClient returns a client for the ServiceResource from the given config.
-func NewServiceResourceClient(c config) *ServiceResourceClient {
-	return &ServiceResourceClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `serviceresource.Hooks(f(g(h())))`.
-func (c *ServiceResourceClient) Use(hooks ...Hook) {
-	c.hooks.ServiceResource = append(c.hooks.ServiceResource, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `serviceresource.Intercept(f(g(h())))`.
-func (c *ServiceResourceClient) Intercept(interceptors ...Interceptor) {
-	c.inters.ServiceResource = append(c.inters.ServiceResource, interceptors...)
-}
-
-// Create returns a builder for creating a ServiceResource entity.
-func (c *ServiceResourceClient) Create() *ServiceResourceCreate {
-	mutation := newServiceResourceMutation(c.config, OpCreate)
-	return &ServiceResourceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of ServiceResource entities.
-func (c *ServiceResourceClient) CreateBulk(builders ...*ServiceResourceCreate) *ServiceResourceCreateBulk {
-	return &ServiceResourceCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for ServiceResource.
-func (c *ServiceResourceClient) Update() *ServiceResourceUpdate {
-	mutation := newServiceResourceMutation(c.config, OpUpdate)
-	return &ServiceResourceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *ServiceResourceClient) UpdateOne(sr *ServiceResource) *ServiceResourceUpdateOne {
-	mutation := newServiceResourceMutation(c.config, OpUpdateOne, withServiceResource(sr))
-	return &ServiceResourceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *ServiceResourceClient) UpdateOneID(id object.ID) *ServiceResourceUpdateOne {
-	mutation := newServiceResourceMutation(c.config, OpUpdateOne, withServiceResourceID(id))
-	return &ServiceResourceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for ServiceResource.
-func (c *ServiceResourceClient) Delete() *ServiceResourceDelete {
-	mutation := newServiceResourceMutation(c.config, OpDelete)
-	return &ServiceResourceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *ServiceResourceClient) DeleteOne(sr *ServiceResource) *ServiceResourceDeleteOne {
-	return c.DeleteOneID(sr.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ServiceResourceClient) DeleteOneID(id object.ID) *ServiceResourceDeleteOne {
-	builder := c.Delete().Where(serviceresource.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ServiceResourceDeleteOne{builder}
-}
-
-// Query returns a query builder for ServiceResource.
-func (c *ServiceResourceClient) Query() *ServiceResourceQuery {
-	return &ServiceResourceQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeServiceResource},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a ServiceResource entity by its id.
-func (c *ServiceResourceClient) Get(ctx context.Context, id object.ID) (*ServiceResource, error) {
-	return c.Query().Where(serviceresource.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *ServiceResourceClient) GetX(ctx context.Context, id object.ID) *ServiceResource {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryProject queries the project edge of a ServiceResource.
-func (c *ServiceResourceClient) QueryProject(sr *ServiceResource) *ProjectQuery {
-	query := (&ProjectClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := sr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(serviceresource.Table, serviceresource.FieldID, id),
-			sqlgraph.To(project.Table, project.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, serviceresource.ProjectTable, serviceresource.ProjectColumn),
-		)
-		schemaConfig := sr.schemaConfig
-		step.To.Schema = schemaConfig.Project
-		step.Edge.Schema = schemaConfig.ServiceResource
-		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryEnvironment queries the environment edge of a ServiceResource.
-func (c *ServiceResourceClient) QueryEnvironment(sr *ServiceResource) *EnvironmentQuery {
-	query := (&EnvironmentClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := sr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(serviceresource.Table, serviceresource.FieldID, id),
-			sqlgraph.To(environment.Table, environment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, serviceresource.EnvironmentTable, serviceresource.EnvironmentColumn),
-		)
-		schemaConfig := sr.schemaConfig
-		step.To.Schema = schemaConfig.Environment
-		step.Edge.Schema = schemaConfig.ServiceResource
-		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryService queries the service edge of a ServiceResource.
-func (c *ServiceResourceClient) QueryService(sr *ServiceResource) *ServiceQuery {
-	query := (&ServiceClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := sr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(serviceresource.Table, serviceresource.FieldID, id),
-			sqlgraph.To(service.Table, service.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, serviceresource.ServiceTable, serviceresource.ServiceColumn),
-		)
-		schemaConfig := sr.schemaConfig
-		step.To.Schema = schemaConfig.Service
-		step.Edge.Schema = schemaConfig.ServiceResource
-		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryConnector queries the connector edge of a ServiceResource.
-func (c *ServiceResourceClient) QueryConnector(sr *ServiceResource) *ConnectorQuery {
-	query := (&ConnectorClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := sr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(serviceresource.Table, serviceresource.FieldID, id),
-			sqlgraph.To(connector.Table, connector.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, serviceresource.ConnectorTable, serviceresource.ConnectorColumn),
-		)
-		schemaConfig := sr.schemaConfig
-		step.To.Schema = schemaConfig.Connector
-		step.Edge.Schema = schemaConfig.ServiceResource
-		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryComposition queries the composition edge of a ServiceResource.
-func (c *ServiceResourceClient) QueryComposition(sr *ServiceResource) *ServiceResourceQuery {
-	query := (&ServiceResourceClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := sr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(serviceresource.Table, serviceresource.FieldID, id),
-			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, serviceresource.CompositionTable, serviceresource.CompositionColumn),
-		)
-		schemaConfig := sr.schemaConfig
-		step.To.Schema = schemaConfig.ServiceResource
-		step.Edge.Schema = schemaConfig.ServiceResource
-		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryComponents queries the components edge of a ServiceResource.
-func (c *ServiceResourceClient) QueryComponents(sr *ServiceResource) *ServiceResourceQuery {
-	query := (&ServiceResourceClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := sr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(serviceresource.Table, serviceresource.FieldID, id),
-			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, serviceresource.ComponentsTable, serviceresource.ComponentsColumn),
-		)
-		schemaConfig := sr.schemaConfig
-		step.To.Schema = schemaConfig.ServiceResource
-		step.Edge.Schema = schemaConfig.ServiceResource
-		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryClass queries the class edge of a ServiceResource.
-func (c *ServiceResourceClient) QueryClass(sr *ServiceResource) *ServiceResourceQuery {
-	query := (&ServiceResourceClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := sr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(serviceresource.Table, serviceresource.FieldID, id),
-			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, serviceresource.ClassTable, serviceresource.ClassColumn),
-		)
-		schemaConfig := sr.schemaConfig
-		step.To.Schema = schemaConfig.ServiceResource
-		step.Edge.Schema = schemaConfig.ServiceResource
-		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryInstances queries the instances edge of a ServiceResource.
-func (c *ServiceResourceClient) QueryInstances(sr *ServiceResource) *ServiceResourceQuery {
-	query := (&ServiceResourceClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := sr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(serviceresource.Table, serviceresource.FieldID, id),
-			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, serviceresource.InstancesTable, serviceresource.InstancesColumn),
-		)
-		schemaConfig := sr.schemaConfig
-		step.To.Schema = schemaConfig.ServiceResource
-		step.Edge.Schema = schemaConfig.ServiceResource
-		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryDependencies queries the dependencies edge of a ServiceResource.
-func (c *ServiceResourceClient) QueryDependencies(sr *ServiceResource) *ServiceResourceRelationshipQuery {
-	query := (&ServiceResourceRelationshipClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := sr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(serviceresource.Table, serviceresource.FieldID, id),
-			sqlgraph.To(serviceresourcerelationship.Table, serviceresourcerelationship.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, serviceresource.DependenciesTable, serviceresource.DependenciesColumn),
-		)
-		schemaConfig := sr.schemaConfig
-		step.To.Schema = schemaConfig.ServiceResourceRelationship
-		step.Edge.Schema = schemaConfig.ServiceResourceRelationship
-		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *ServiceResourceClient) Hooks() []Hook {
-	hooks := c.hooks.ServiceResource
-	return append(hooks[:len(hooks):len(hooks)], serviceresource.Hooks[:]...)
-}
-
-// Interceptors returns the client interceptors.
-func (c *ServiceResourceClient) Interceptors() []Interceptor {
-	inters := c.inters.ServiceResource
-	return append(inters[:len(inters):len(inters)], serviceresource.Interceptors[:]...)
-}
-
-func (c *ServiceResourceClient) mutate(ctx context.Context, m *ServiceResourceMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&ServiceResourceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&ServiceResourceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&ServiceResourceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&ServiceResourceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("model: unknown ServiceResource mutation op: %q", m.Op())
-	}
-}
-
-// ServiceResourceRelationshipClient is a client for the ServiceResourceRelationship schema.
-type ServiceResourceRelationshipClient struct {
-	config
-}
-
-// NewServiceResourceRelationshipClient returns a client for the ServiceResourceRelationship from the given config.
-func NewServiceResourceRelationshipClient(c config) *ServiceResourceRelationshipClient {
-	return &ServiceResourceRelationshipClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `serviceresourcerelationship.Hooks(f(g(h())))`.
-func (c *ServiceResourceRelationshipClient) Use(hooks ...Hook) {
-	c.hooks.ServiceResourceRelationship = append(c.hooks.ServiceResourceRelationship, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `serviceresourcerelationship.Intercept(f(g(h())))`.
-func (c *ServiceResourceRelationshipClient) Intercept(interceptors ...Interceptor) {
-	c.inters.ServiceResourceRelationship = append(c.inters.ServiceResourceRelationship, interceptors...)
-}
-
-// Create returns a builder for creating a ServiceResourceRelationship entity.
-func (c *ServiceResourceRelationshipClient) Create() *ServiceResourceRelationshipCreate {
-	mutation := newServiceResourceRelationshipMutation(c.config, OpCreate)
-	return &ServiceResourceRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of ServiceResourceRelationship entities.
-func (c *ServiceResourceRelationshipClient) CreateBulk(builders ...*ServiceResourceRelationshipCreate) *ServiceResourceRelationshipCreateBulk {
-	return &ServiceResourceRelationshipCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for ServiceResourceRelationship.
-func (c *ServiceResourceRelationshipClient) Update() *ServiceResourceRelationshipUpdate {
-	mutation := newServiceResourceRelationshipMutation(c.config, OpUpdate)
-	return &ServiceResourceRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *ServiceResourceRelationshipClient) UpdateOne(srr *ServiceResourceRelationship) *ServiceResourceRelationshipUpdateOne {
-	mutation := newServiceResourceRelationshipMutation(c.config, OpUpdateOne, withServiceResourceRelationship(srr))
-	return &ServiceResourceRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *ServiceResourceRelationshipClient) UpdateOneID(id object.ID) *ServiceResourceRelationshipUpdateOne {
-	mutation := newServiceResourceRelationshipMutation(c.config, OpUpdateOne, withServiceResourceRelationshipID(id))
-	return &ServiceResourceRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for ServiceResourceRelationship.
-func (c *ServiceResourceRelationshipClient) Delete() *ServiceResourceRelationshipDelete {
-	mutation := newServiceResourceRelationshipMutation(c.config, OpDelete)
-	return &ServiceResourceRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *ServiceResourceRelationshipClient) DeleteOne(srr *ServiceResourceRelationship) *ServiceResourceRelationshipDeleteOne {
-	return c.DeleteOneID(srr.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ServiceResourceRelationshipClient) DeleteOneID(id object.ID) *ServiceResourceRelationshipDeleteOne {
-	builder := c.Delete().Where(serviceresourcerelationship.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ServiceResourceRelationshipDeleteOne{builder}
-}
-
-// Query returns a query builder for ServiceResourceRelationship.
-func (c *ServiceResourceRelationshipClient) Query() *ServiceResourceRelationshipQuery {
-	return &ServiceResourceRelationshipQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeServiceResourceRelationship},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a ServiceResourceRelationship entity by its id.
-func (c *ServiceResourceRelationshipClient) Get(ctx context.Context, id object.ID) (*ServiceResourceRelationship, error) {
-	return c.Query().Where(serviceresourcerelationship.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *ServiceResourceRelationshipClient) GetX(ctx context.Context, id object.ID) *ServiceResourceRelationship {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryServiceResource queries the serviceResource edge of a ServiceResourceRelationship.
-func (c *ServiceResourceRelationshipClient) QueryServiceResource(srr *ServiceResourceRelationship) *ServiceResourceQuery {
-	query := (&ServiceResourceClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := srr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(serviceresourcerelationship.Table, serviceresourcerelationship.FieldID, id),
-			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, serviceresourcerelationship.ServiceResourceTable, serviceresourcerelationship.ServiceResourceColumn),
-		)
-		schemaConfig := srr.schemaConfig
-		step.To.Schema = schemaConfig.ServiceResource
-		step.Edge.Schema = schemaConfig.ServiceResourceRelationship
-		fromV = sqlgraph.Neighbors(srr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryDependency queries the dependency edge of a ServiceResourceRelationship.
-func (c *ServiceResourceRelationshipClient) QueryDependency(srr *ServiceResourceRelationship) *ServiceResourceQuery {
-	query := (&ServiceResourceClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := srr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(serviceresourcerelationship.Table, serviceresourcerelationship.FieldID, id),
-			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, serviceresourcerelationship.DependencyTable, serviceresourcerelationship.DependencyColumn),
-		)
-		schemaConfig := srr.schemaConfig
-		step.To.Schema = schemaConfig.ServiceResource
-		step.Edge.Schema = schemaConfig.ServiceResourceRelationship
-		fromV = sqlgraph.Neighbors(srr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *ServiceResourceRelationshipClient) Hooks() []Hook {
-	hooks := c.hooks.ServiceResourceRelationship
-	return append(hooks[:len(hooks):len(hooks)], serviceresourcerelationship.Hooks[:]...)
-}
-
-// Interceptors returns the client interceptors.
-func (c *ServiceResourceRelationshipClient) Interceptors() []Interceptor {
-	return c.inters.ServiceResourceRelationship
-}
-
-func (c *ServiceResourceRelationshipClient) mutate(ctx context.Context, m *ServiceResourceRelationshipMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&ServiceResourceRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&ServiceResourceRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&ServiceResourceRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&ServiceResourceRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("model: unknown ServiceResourceRelationship mutation op: %q", m.Op())
-	}
-}
-
-// ServiceRevisionClient is a client for the ServiceRevision schema.
-type ServiceRevisionClient struct {
-	config
-}
-
-// NewServiceRevisionClient returns a client for the ServiceRevision from the given config.
-func NewServiceRevisionClient(c config) *ServiceRevisionClient {
-	return &ServiceRevisionClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `servicerevision.Hooks(f(g(h())))`.
-func (c *ServiceRevisionClient) Use(hooks ...Hook) {
-	c.hooks.ServiceRevision = append(c.hooks.ServiceRevision, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `servicerevision.Intercept(f(g(h())))`.
-func (c *ServiceRevisionClient) Intercept(interceptors ...Interceptor) {
-	c.inters.ServiceRevision = append(c.inters.ServiceRevision, interceptors...)
-}
-
-// Create returns a builder for creating a ServiceRevision entity.
-func (c *ServiceRevisionClient) Create() *ServiceRevisionCreate {
-	mutation := newServiceRevisionMutation(c.config, OpCreate)
-	return &ServiceRevisionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of ServiceRevision entities.
-func (c *ServiceRevisionClient) CreateBulk(builders ...*ServiceRevisionCreate) *ServiceRevisionCreateBulk {
-	return &ServiceRevisionCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for ServiceRevision.
-func (c *ServiceRevisionClient) Update() *ServiceRevisionUpdate {
-	mutation := newServiceRevisionMutation(c.config, OpUpdate)
-	return &ServiceRevisionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *ServiceRevisionClient) UpdateOne(sr *ServiceRevision) *ServiceRevisionUpdateOne {
-	mutation := newServiceRevisionMutation(c.config, OpUpdateOne, withServiceRevision(sr))
-	return &ServiceRevisionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *ServiceRevisionClient) UpdateOneID(id object.ID) *ServiceRevisionUpdateOne {
-	mutation := newServiceRevisionMutation(c.config, OpUpdateOne, withServiceRevisionID(id))
-	return &ServiceRevisionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for ServiceRevision.
-func (c *ServiceRevisionClient) Delete() *ServiceRevisionDelete {
-	mutation := newServiceRevisionMutation(c.config, OpDelete)
-	return &ServiceRevisionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *ServiceRevisionClient) DeleteOne(sr *ServiceRevision) *ServiceRevisionDeleteOne {
-	return c.DeleteOneID(sr.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ServiceRevisionClient) DeleteOneID(id object.ID) *ServiceRevisionDeleteOne {
-	builder := c.Delete().Where(servicerevision.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ServiceRevisionDeleteOne{builder}
-}
-
-// Query returns a query builder for ServiceRevision.
-func (c *ServiceRevisionClient) Query() *ServiceRevisionQuery {
-	return &ServiceRevisionQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeServiceRevision},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a ServiceRevision entity by its id.
-func (c *ServiceRevisionClient) Get(ctx context.Context, id object.ID) (*ServiceRevision, error) {
-	return c.Query().Where(servicerevision.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *ServiceRevisionClient) GetX(ctx context.Context, id object.ID) *ServiceRevision {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryProject queries the project edge of a ServiceRevision.
-func (c *ServiceRevisionClient) QueryProject(sr *ServiceRevision) *ProjectQuery {
-	query := (&ProjectClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := sr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(servicerevision.Table, servicerevision.FieldID, id),
-			sqlgraph.To(project.Table, project.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, servicerevision.ProjectTable, servicerevision.ProjectColumn),
-		)
-		schemaConfig := sr.schemaConfig
-		step.To.Schema = schemaConfig.Project
-		step.Edge.Schema = schemaConfig.ServiceRevision
-		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryEnvironment queries the environment edge of a ServiceRevision.
-func (c *ServiceRevisionClient) QueryEnvironment(sr *ServiceRevision) *EnvironmentQuery {
-	query := (&EnvironmentClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := sr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(servicerevision.Table, servicerevision.FieldID, id),
-			sqlgraph.To(environment.Table, environment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, servicerevision.EnvironmentTable, servicerevision.EnvironmentColumn),
-		)
-		schemaConfig := sr.schemaConfig
-		step.To.Schema = schemaConfig.Environment
-		step.Edge.Schema = schemaConfig.ServiceRevision
-		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryService queries the service edge of a ServiceRevision.
-func (c *ServiceRevisionClient) QueryService(sr *ServiceRevision) *ServiceQuery {
-	query := (&ServiceClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := sr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(servicerevision.Table, servicerevision.FieldID, id),
-			sqlgraph.To(service.Table, service.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, servicerevision.ServiceTable, servicerevision.ServiceColumn),
-		)
-		schemaConfig := sr.schemaConfig
-		step.To.Schema = schemaConfig.Service
-		step.Edge.Schema = schemaConfig.ServiceRevision
-		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *ServiceRevisionClient) Hooks() []Hook {
-	hooks := c.hooks.ServiceRevision
-	return append(hooks[:len(hooks):len(hooks)], servicerevision.Hooks[:]...)
-}
-
-// Interceptors returns the client interceptors.
-func (c *ServiceRevisionClient) Interceptors() []Interceptor {
-	inters := c.inters.ServiceRevision
-	return append(inters[:len(inters):len(inters)], servicerevision.Interceptors[:]...)
-}
-
-func (c *ServiceRevisionClient) mutate(ctx context.Context, m *ServiceRevisionMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&ServiceRevisionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&ServiceRevisionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&ServiceRevisionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&ServiceRevisionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("model: unknown ServiceRevision mutation op: %q", m.Op())
 	}
 }
 
@@ -4045,19 +4045,19 @@ func (c *TemplateVersionClient) QueryTemplate(tv *TemplateVersion) *TemplateQuer
 	return query
 }
 
-// QueryServices queries the services edge of a TemplateVersion.
-func (c *TemplateVersionClient) QueryServices(tv *TemplateVersion) *ServiceQuery {
-	query := (&ServiceClient{config: c.config}).Query()
+// QueryResources queries the resources edge of a TemplateVersion.
+func (c *TemplateVersionClient) QueryResources(tv *TemplateVersion) *ResourceQuery {
+	query := (&ResourceClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := tv.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(templateversion.Table, templateversion.FieldID, id),
-			sqlgraph.To(service.Table, service.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, templateversion.ServicesTable, templateversion.ServicesColumn),
+			sqlgraph.To(resource.Table, resource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, templateversion.ResourcesTable, templateversion.ResourcesColumn),
 		)
 		schemaConfig := tv.schemaConfig
-		step.To.Schema = schemaConfig.Service
-		step.Edge.Schema = schemaConfig.Service
+		step.To.Schema = schemaConfig.Resource
+		step.Edge.Schema = schemaConfig.Resource
 		fromV = sqlgraph.Neighbors(tv.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -5435,17 +5435,17 @@ func (c *WorkflowStepExecutionClient) mutate(ctx context.Context, m *WorkflowSte
 type (
 	hooks struct {
 		Catalog, Connector, CostReport, DistributeLock, Environment,
-		EnvironmentConnectorRelationship, Perspective, Project, Role, Service,
-		ServiceRelationship, ServiceResource, ServiceResourceRelationship,
-		ServiceRevision, Setting, Subject, SubjectRoleRelationship, Template,
+		EnvironmentConnectorRelationship, Perspective, Project, Resource,
+		ResourceComponent, ResourceComponentRelationship, ResourceRelationship,
+		ResourceRevision, Role, Setting, Subject, SubjectRoleRelationship, Template,
 		TemplateVersion, Token, Variable, Workflow, WorkflowExecution, WorkflowStage,
 		WorkflowStageExecution, WorkflowStep, WorkflowStepExecution []ent.Hook
 	}
 	inters struct {
 		Catalog, Connector, CostReport, DistributeLock, Environment,
-		EnvironmentConnectorRelationship, Perspective, Project, Role, Service,
-		ServiceRelationship, ServiceResource, ServiceResourceRelationship,
-		ServiceRevision, Setting, Subject, SubjectRoleRelationship, Template,
+		EnvironmentConnectorRelationship, Perspective, Project, Resource,
+		ResourceComponent, ResourceComponentRelationship, ResourceRelationship,
+		ResourceRevision, Role, Setting, Subject, SubjectRoleRelationship, Template,
 		TemplateVersion, Token, Variable, Workflow, WorkflowExecution, WorkflowStage,
 		WorkflowStageExecution, WorkflowStep, WorkflowStepExecution []ent.Interceptor
 	}

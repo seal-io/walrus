@@ -36,8 +36,8 @@ type EnvironmentCreateInput struct {
 
 	// Connectors specifies full inserting the new EnvironmentConnectorRelationship entities of the Environment entity.
 	Connectors []*EnvironmentConnectorRelationshipCreateInput `uri:"-" query:"-" json:"connectors,omitempty"`
-	// Services specifies full inserting the new Service entities of the Environment entity.
-	Services []*ServiceCreateInput `uri:"-" query:"-" json:"services,cli-ignore,omitempty"`
+	// Resources specifies full inserting the new Resource entities of the Environment entity.
+	Resources []*ResourceCreateInput `uri:"-" query:"-" json:"resources,cli-ignore,omitempty"`
 	// Variables specifies full inserting the new Variable entities of the Environment entity.
 	Variables []*VariableCreateInput `uri:"-" query:"-" json:"variables,omitempty"`
 }
@@ -71,16 +71,16 @@ func (eci *EnvironmentCreateInput) Model() *Environment {
 		_e.Edges.Connectors = append(_e.Edges.Connectors,
 			eci.Connectors[j].Model())
 	}
-	if eci.Services != nil {
+	if eci.Resources != nil {
 		// Empty slice is used for clearing the edge.
-		_e.Edges.Services = make([]*Service, 0, len(eci.Services))
+		_e.Edges.Resources = make([]*Resource, 0, len(eci.Resources))
 	}
-	for j := range eci.Services {
-		if eci.Services[j] == nil {
+	for j := range eci.Resources {
+		if eci.Resources[j] == nil {
 			continue
 		}
-		_e.Edges.Services = append(_e.Edges.Services,
-			eci.Services[j].Model())
+		_e.Edges.Resources = append(_e.Edges.Resources,
+			eci.Resources[j].Model())
 	}
 	if eci.Variables != nil {
 		// Empty slice is used for clearing the edge.
@@ -136,16 +136,16 @@ func (eci *EnvironmentCreateInput) ValidateWith(ctx context.Context, cs ClientSe
 		}
 	}
 
-	for i := range eci.Services {
-		if eci.Services[i] == nil {
+	for i := range eci.Resources {
+		if eci.Resources[i] == nil {
 			continue
 		}
 
-		if err := eci.Services[i].ValidateWith(ctx, cs, cache); err != nil {
+		if err := eci.Resources[i].ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
-				eci.Services[i] = nil
+				eci.Resources[i] = nil
 			}
 		}
 	}
@@ -180,8 +180,8 @@ type EnvironmentCreateInputsItem struct {
 
 	// Connectors specifies full inserting the new EnvironmentConnectorRelationship entities.
 	Connectors []*EnvironmentConnectorRelationshipCreateInput `uri:"-" query:"-" json:"connectors,omitempty"`
-	// Services specifies full inserting the new Service entities.
-	Services []*ServiceCreateInput `uri:"-" query:"-" json:"services,cli-ignore,omitempty"`
+	// Resources specifies full inserting the new Resource entities.
+	Resources []*ResourceCreateInput `uri:"-" query:"-" json:"resources,cli-ignore,omitempty"`
 	// Variables specifies full inserting the new Variable entities.
 	Variables []*VariableCreateInput `uri:"-" query:"-" json:"variables,omitempty"`
 }
@@ -210,16 +210,16 @@ func (eci *EnvironmentCreateInputsItem) ValidateWith(ctx context.Context, cs Cli
 		}
 	}
 
-	for i := range eci.Services {
-		if eci.Services[i] == nil {
+	for i := range eci.Resources {
+		if eci.Resources[i] == nil {
 			continue
 		}
 
-		if err := eci.Services[i].ValidateWith(ctx, cs, cache); err != nil {
+		if err := eci.Resources[i].ValidateWith(ctx, cs, cache); err != nil {
 			if !IsBlankResourceReferError(err) {
 				return err
 			} else {
-				eci.Services[i] = nil
+				eci.Resources[i] = nil
 			}
 		}
 	}
@@ -285,16 +285,16 @@ func (eci *EnvironmentCreateInputs) Model() []*Environment {
 			_e.Edges.Connectors = append(_e.Edges.Connectors,
 				eci.Items[i].Connectors[j].Model())
 		}
-		if eci.Items[i].Services != nil {
+		if eci.Items[i].Resources != nil {
 			// Empty slice is used for clearing the edge.
-			_e.Edges.Services = make([]*Service, 0, len(eci.Items[i].Services))
+			_e.Edges.Resources = make([]*Resource, 0, len(eci.Items[i].Resources))
 		}
-		for j := range eci.Items[i].Services {
-			if eci.Items[i].Services[j] == nil {
+		for j := range eci.Items[i].Resources {
+			if eci.Items[i].Resources[j] == nil {
 				continue
 			}
-			_e.Edges.Services = append(_e.Edges.Services,
-				eci.Items[i].Services[j].Model())
+			_e.Edges.Resources = append(_e.Edges.Resources,
+				eci.Items[i].Resources[j].Model())
 		}
 		if eci.Items[i].Variables != nil {
 			// Empty slice is used for clearing the edge.

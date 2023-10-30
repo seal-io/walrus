@@ -20,7 +20,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model/internal"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
-	"github.com/seal-io/walrus/pkg/dao/model/service"
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -75,19 +75,19 @@ func (tvu *TemplateVersionUpdate) SetNillableUiSchema(ts *types.UISchema) *Templ
 	return tvu
 }
 
-// AddServiceIDs adds the "services" edge to the Service entity by IDs.
-func (tvu *TemplateVersionUpdate) AddServiceIDs(ids ...object.ID) *TemplateVersionUpdate {
-	tvu.mutation.AddServiceIDs(ids...)
+// AddResourceIDs adds the "resources" edge to the Resource entity by IDs.
+func (tvu *TemplateVersionUpdate) AddResourceIDs(ids ...object.ID) *TemplateVersionUpdate {
+	tvu.mutation.AddResourceIDs(ids...)
 	return tvu
 }
 
-// AddServices adds the "services" edges to the Service entity.
-func (tvu *TemplateVersionUpdate) AddServices(s ...*Service) *TemplateVersionUpdate {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// AddResources adds the "resources" edges to the Resource entity.
+func (tvu *TemplateVersionUpdate) AddResources(r ...*Resource) *TemplateVersionUpdate {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return tvu.AddServiceIDs(ids...)
+	return tvu.AddResourceIDs(ids...)
 }
 
 // Mutation returns the TemplateVersionMutation object of the builder.
@@ -95,25 +95,25 @@ func (tvu *TemplateVersionUpdate) Mutation() *TemplateVersionMutation {
 	return tvu.mutation
 }
 
-// ClearServices clears all "services" edges to the Service entity.
-func (tvu *TemplateVersionUpdate) ClearServices() *TemplateVersionUpdate {
-	tvu.mutation.ClearServices()
+// ClearResources clears all "resources" edges to the Resource entity.
+func (tvu *TemplateVersionUpdate) ClearResources() *TemplateVersionUpdate {
+	tvu.mutation.ClearResources()
 	return tvu
 }
 
-// RemoveServiceIDs removes the "services" edge to Service entities by IDs.
-func (tvu *TemplateVersionUpdate) RemoveServiceIDs(ids ...object.ID) *TemplateVersionUpdate {
-	tvu.mutation.RemoveServiceIDs(ids...)
+// RemoveResourceIDs removes the "resources" edge to Resource entities by IDs.
+func (tvu *TemplateVersionUpdate) RemoveResourceIDs(ids ...object.ID) *TemplateVersionUpdate {
+	tvu.mutation.RemoveResourceIDs(ids...)
 	return tvu
 }
 
-// RemoveServices removes "services" edges to Service entities.
-func (tvu *TemplateVersionUpdate) RemoveServices(s ...*Service) *TemplateVersionUpdate {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// RemoveResources removes "resources" edges to Resource entities.
+func (tvu *TemplateVersionUpdate) RemoveResources(r ...*Resource) *TemplateVersionUpdate {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return tvu.RemoveServiceIDs(ids...)
+	return tvu.RemoveResourceIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -250,49 +250,49 @@ func (tvu *TemplateVersionUpdate) sqlSave(ctx context.Context) (n int, err error
 	if value, ok := tvu.mutation.UiSchema(); ok {
 		_spec.SetField(templateversion.FieldUiSchema, field.TypeJSON, value)
 	}
-	if tvu.mutation.ServicesCleared() {
+	if tvu.mutation.ResourcesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   templateversion.ServicesTable,
-			Columns: []string{templateversion.ServicesColumn},
+			Table:   templateversion.ResourcesTable,
+			Columns: []string{templateversion.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = tvu.schemaConfig.Service
+		edge.Schema = tvu.schemaConfig.Resource
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tvu.mutation.RemovedServicesIDs(); len(nodes) > 0 && !tvu.mutation.ServicesCleared() {
+	if nodes := tvu.mutation.RemovedResourcesIDs(); len(nodes) > 0 && !tvu.mutation.ResourcesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   templateversion.ServicesTable,
-			Columns: []string{templateversion.ServicesColumn},
+			Table:   templateversion.ResourcesTable,
+			Columns: []string{templateversion.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = tvu.schemaConfig.Service
+		edge.Schema = tvu.schemaConfig.Resource
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tvu.mutation.ServicesIDs(); len(nodes) > 0 {
+	if nodes := tvu.mutation.ResourcesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   templateversion.ServicesTable,
-			Columns: []string{templateversion.ServicesColumn},
+			Table:   templateversion.ResourcesTable,
+			Columns: []string{templateversion.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = tvu.schemaConfig.Service
+		edge.Schema = tvu.schemaConfig.Resource
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -357,19 +357,19 @@ func (tvuo *TemplateVersionUpdateOne) SetNillableUiSchema(ts *types.UISchema) *T
 	return tvuo
 }
 
-// AddServiceIDs adds the "services" edge to the Service entity by IDs.
-func (tvuo *TemplateVersionUpdateOne) AddServiceIDs(ids ...object.ID) *TemplateVersionUpdateOne {
-	tvuo.mutation.AddServiceIDs(ids...)
+// AddResourceIDs adds the "resources" edge to the Resource entity by IDs.
+func (tvuo *TemplateVersionUpdateOne) AddResourceIDs(ids ...object.ID) *TemplateVersionUpdateOne {
+	tvuo.mutation.AddResourceIDs(ids...)
 	return tvuo
 }
 
-// AddServices adds the "services" edges to the Service entity.
-func (tvuo *TemplateVersionUpdateOne) AddServices(s ...*Service) *TemplateVersionUpdateOne {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// AddResources adds the "resources" edges to the Resource entity.
+func (tvuo *TemplateVersionUpdateOne) AddResources(r ...*Resource) *TemplateVersionUpdateOne {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return tvuo.AddServiceIDs(ids...)
+	return tvuo.AddResourceIDs(ids...)
 }
 
 // Mutation returns the TemplateVersionMutation object of the builder.
@@ -377,25 +377,25 @@ func (tvuo *TemplateVersionUpdateOne) Mutation() *TemplateVersionMutation {
 	return tvuo.mutation
 }
 
-// ClearServices clears all "services" edges to the Service entity.
-func (tvuo *TemplateVersionUpdateOne) ClearServices() *TemplateVersionUpdateOne {
-	tvuo.mutation.ClearServices()
+// ClearResources clears all "resources" edges to the Resource entity.
+func (tvuo *TemplateVersionUpdateOne) ClearResources() *TemplateVersionUpdateOne {
+	tvuo.mutation.ClearResources()
 	return tvuo
 }
 
-// RemoveServiceIDs removes the "services" edge to Service entities by IDs.
-func (tvuo *TemplateVersionUpdateOne) RemoveServiceIDs(ids ...object.ID) *TemplateVersionUpdateOne {
-	tvuo.mutation.RemoveServiceIDs(ids...)
+// RemoveResourceIDs removes the "resources" edge to Resource entities by IDs.
+func (tvuo *TemplateVersionUpdateOne) RemoveResourceIDs(ids ...object.ID) *TemplateVersionUpdateOne {
+	tvuo.mutation.RemoveResourceIDs(ids...)
 	return tvuo
 }
 
-// RemoveServices removes "services" edges to Service entities.
-func (tvuo *TemplateVersionUpdateOne) RemoveServices(s ...*Service) *TemplateVersionUpdateOne {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// RemoveResources removes "resources" edges to Resource entities.
+func (tvuo *TemplateVersionUpdateOne) RemoveResources(r ...*Resource) *TemplateVersionUpdateOne {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return tvuo.RemoveServiceIDs(ids...)
+	return tvuo.RemoveResourceIDs(ids...)
 }
 
 // Where appends a list predicates to the TemplateVersionUpdate builder.
@@ -655,49 +655,49 @@ func (tvuo *TemplateVersionUpdateOne) sqlSave(ctx context.Context) (_node *Templ
 	if value, ok := tvuo.mutation.UiSchema(); ok {
 		_spec.SetField(templateversion.FieldUiSchema, field.TypeJSON, value)
 	}
-	if tvuo.mutation.ServicesCleared() {
+	if tvuo.mutation.ResourcesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   templateversion.ServicesTable,
-			Columns: []string{templateversion.ServicesColumn},
+			Table:   templateversion.ResourcesTable,
+			Columns: []string{templateversion.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = tvuo.schemaConfig.Service
+		edge.Schema = tvuo.schemaConfig.Resource
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tvuo.mutation.RemovedServicesIDs(); len(nodes) > 0 && !tvuo.mutation.ServicesCleared() {
+	if nodes := tvuo.mutation.RemovedResourcesIDs(); len(nodes) > 0 && !tvuo.mutation.ResourcesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   templateversion.ServicesTable,
-			Columns: []string{templateversion.ServicesColumn},
+			Table:   templateversion.ResourcesTable,
+			Columns: []string{templateversion.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = tvuo.schemaConfig.Service
+		edge.Schema = tvuo.schemaConfig.Resource
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tvuo.mutation.ServicesIDs(); len(nodes) > 0 {
+	if nodes := tvuo.mutation.ResourcesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   templateversion.ServicesTable,
-			Columns: []string{templateversion.ServicesColumn},
+			Table:   templateversion.ResourcesTable,
+			Columns: []string{templateversion.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = tvuo.schemaConfig.Service
+		edge.Schema = tvuo.schemaConfig.Resource
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

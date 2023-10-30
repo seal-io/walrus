@@ -21,9 +21,9 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/internal"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
-	"github.com/seal-io/walrus/pkg/dao/model/service"
-	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
-	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/variable"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
@@ -31,17 +31,17 @@ import (
 // EnvironmentQuery is the builder for querying Environment entities.
 type EnvironmentQuery struct {
 	config
-	ctx                  *QueryContext
-	order                []environment.OrderOption
-	inters               []Interceptor
-	predicates           []predicate.Environment
-	withProject          *ProjectQuery
-	withConnectors       *EnvironmentConnectorRelationshipQuery
-	withServices         *ServiceQuery
-	withServiceRevisions *ServiceRevisionQuery
-	withServiceResources *ServiceResourceQuery
-	withVariables        *VariableQuery
-	modifiers            []func(*sql.Selector)
+	ctx                    *QueryContext
+	order                  []environment.OrderOption
+	inters                 []Interceptor
+	predicates             []predicate.Environment
+	withProject            *ProjectQuery
+	withConnectors         *EnvironmentConnectorRelationshipQuery
+	withResources          *ResourceQuery
+	withResourceRevisions  *ResourceRevisionQuery
+	withResourceComponents *ResourceComponentQuery
+	withVariables          *VariableQuery
+	modifiers              []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -128,9 +128,9 @@ func (eq *EnvironmentQuery) QueryConnectors() *EnvironmentConnectorRelationshipQ
 	return query
 }
 
-// QueryServices chains the current query on the "services" edge.
-func (eq *EnvironmentQuery) QueryServices() *ServiceQuery {
-	query := (&ServiceClient{config: eq.config}).Query()
+// QueryResources chains the current query on the "resources" edge.
+func (eq *EnvironmentQuery) QueryResources() *ResourceQuery {
+	query := (&ResourceClient{config: eq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := eq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -141,21 +141,21 @@ func (eq *EnvironmentQuery) QueryServices() *ServiceQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(environment.Table, environment.FieldID, selector),
-			sqlgraph.To(service.Table, service.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, environment.ServicesTable, environment.ServicesColumn),
+			sqlgraph.To(resource.Table, resource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, environment.ResourcesTable, environment.ResourcesColumn),
 		)
 		schemaConfig := eq.schemaConfig
-		step.To.Schema = schemaConfig.Service
-		step.Edge.Schema = schemaConfig.Service
+		step.To.Schema = schemaConfig.Resource
+		step.Edge.Schema = schemaConfig.Resource
 		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
-// QueryServiceRevisions chains the current query on the "service_revisions" edge.
-func (eq *EnvironmentQuery) QueryServiceRevisions() *ServiceRevisionQuery {
-	query := (&ServiceRevisionClient{config: eq.config}).Query()
+// QueryResourceRevisions chains the current query on the "resource_revisions" edge.
+func (eq *EnvironmentQuery) QueryResourceRevisions() *ResourceRevisionQuery {
+	query := (&ResourceRevisionClient{config: eq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := eq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -166,21 +166,21 @@ func (eq *EnvironmentQuery) QueryServiceRevisions() *ServiceRevisionQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(environment.Table, environment.FieldID, selector),
-			sqlgraph.To(servicerevision.Table, servicerevision.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, environment.ServiceRevisionsTable, environment.ServiceRevisionsColumn),
+			sqlgraph.To(resourcerevision.Table, resourcerevision.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, environment.ResourceRevisionsTable, environment.ResourceRevisionsColumn),
 		)
 		schemaConfig := eq.schemaConfig
-		step.To.Schema = schemaConfig.ServiceRevision
-		step.Edge.Schema = schemaConfig.ServiceRevision
+		step.To.Schema = schemaConfig.ResourceRevision
+		step.Edge.Schema = schemaConfig.ResourceRevision
 		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
-// QueryServiceResources chains the current query on the "service_resources" edge.
-func (eq *EnvironmentQuery) QueryServiceResources() *ServiceResourceQuery {
-	query := (&ServiceResourceClient{config: eq.config}).Query()
+// QueryResourceComponents chains the current query on the "resource_components" edge.
+func (eq *EnvironmentQuery) QueryResourceComponents() *ResourceComponentQuery {
+	query := (&ResourceComponentClient{config: eq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := eq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -191,12 +191,12 @@ func (eq *EnvironmentQuery) QueryServiceResources() *ServiceResourceQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(environment.Table, environment.FieldID, selector),
-			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, environment.ServiceResourcesTable, environment.ServiceResourcesColumn),
+			sqlgraph.To(resourcecomponent.Table, resourcecomponent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, environment.ResourceComponentsTable, environment.ResourceComponentsColumn),
 		)
 		schemaConfig := eq.schemaConfig
-		step.To.Schema = schemaConfig.ServiceResource
-		step.Edge.Schema = schemaConfig.ServiceResource
+		step.To.Schema = schemaConfig.ResourceComponent
+		step.Edge.Schema = schemaConfig.ResourceComponent
 		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -415,17 +415,17 @@ func (eq *EnvironmentQuery) Clone() *EnvironmentQuery {
 		return nil
 	}
 	return &EnvironmentQuery{
-		config:               eq.config,
-		ctx:                  eq.ctx.Clone(),
-		order:                append([]environment.OrderOption{}, eq.order...),
-		inters:               append([]Interceptor{}, eq.inters...),
-		predicates:           append([]predicate.Environment{}, eq.predicates...),
-		withProject:          eq.withProject.Clone(),
-		withConnectors:       eq.withConnectors.Clone(),
-		withServices:         eq.withServices.Clone(),
-		withServiceRevisions: eq.withServiceRevisions.Clone(),
-		withServiceResources: eq.withServiceResources.Clone(),
-		withVariables:        eq.withVariables.Clone(),
+		config:                 eq.config,
+		ctx:                    eq.ctx.Clone(),
+		order:                  append([]environment.OrderOption{}, eq.order...),
+		inters:                 append([]Interceptor{}, eq.inters...),
+		predicates:             append([]predicate.Environment{}, eq.predicates...),
+		withProject:            eq.withProject.Clone(),
+		withConnectors:         eq.withConnectors.Clone(),
+		withResources:          eq.withResources.Clone(),
+		withResourceRevisions:  eq.withResourceRevisions.Clone(),
+		withResourceComponents: eq.withResourceComponents.Clone(),
+		withVariables:          eq.withVariables.Clone(),
 		// clone intermediate query.
 		sql:  eq.sql.Clone(),
 		path: eq.path,
@@ -454,36 +454,36 @@ func (eq *EnvironmentQuery) WithConnectors(opts ...func(*EnvironmentConnectorRel
 	return eq
 }
 
-// WithServices tells the query-builder to eager-load the nodes that are connected to
-// the "services" edge. The optional arguments are used to configure the query builder of the edge.
-func (eq *EnvironmentQuery) WithServices(opts ...func(*ServiceQuery)) *EnvironmentQuery {
-	query := (&ServiceClient{config: eq.config}).Query()
+// WithResources tells the query-builder to eager-load the nodes that are connected to
+// the "resources" edge. The optional arguments are used to configure the query builder of the edge.
+func (eq *EnvironmentQuery) WithResources(opts ...func(*ResourceQuery)) *EnvironmentQuery {
+	query := (&ResourceClient{config: eq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	eq.withServices = query
+	eq.withResources = query
 	return eq
 }
 
-// WithServiceRevisions tells the query-builder to eager-load the nodes that are connected to
-// the "service_revisions" edge. The optional arguments are used to configure the query builder of the edge.
-func (eq *EnvironmentQuery) WithServiceRevisions(opts ...func(*ServiceRevisionQuery)) *EnvironmentQuery {
-	query := (&ServiceRevisionClient{config: eq.config}).Query()
+// WithResourceRevisions tells the query-builder to eager-load the nodes that are connected to
+// the "resource_revisions" edge. The optional arguments are used to configure the query builder of the edge.
+func (eq *EnvironmentQuery) WithResourceRevisions(opts ...func(*ResourceRevisionQuery)) *EnvironmentQuery {
+	query := (&ResourceRevisionClient{config: eq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	eq.withServiceRevisions = query
+	eq.withResourceRevisions = query
 	return eq
 }
 
-// WithServiceResources tells the query-builder to eager-load the nodes that are connected to
-// the "service_resources" edge. The optional arguments are used to configure the query builder of the edge.
-func (eq *EnvironmentQuery) WithServiceResources(opts ...func(*ServiceResourceQuery)) *EnvironmentQuery {
-	query := (&ServiceResourceClient{config: eq.config}).Query()
+// WithResourceComponents tells the query-builder to eager-load the nodes that are connected to
+// the "resource_components" edge. The optional arguments are used to configure the query builder of the edge.
+func (eq *EnvironmentQuery) WithResourceComponents(opts ...func(*ResourceComponentQuery)) *EnvironmentQuery {
+	query := (&ResourceComponentClient{config: eq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	eq.withServiceResources = query
+	eq.withResourceComponents = query
 	return eq
 }
 
@@ -579,9 +579,9 @@ func (eq *EnvironmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		loadedTypes = [6]bool{
 			eq.withProject != nil,
 			eq.withConnectors != nil,
-			eq.withServices != nil,
-			eq.withServiceRevisions != nil,
-			eq.withServiceResources != nil,
+			eq.withResources != nil,
+			eq.withResourceRevisions != nil,
+			eq.withResourceComponents != nil,
 			eq.withVariables != nil,
 		}
 	)
@@ -623,27 +623,27 @@ func (eq *EnvironmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			return nil, err
 		}
 	}
-	if query := eq.withServices; query != nil {
-		if err := eq.loadServices(ctx, query, nodes,
-			func(n *Environment) { n.Edges.Services = []*Service{} },
-			func(n *Environment, e *Service) { n.Edges.Services = append(n.Edges.Services, e) }); err != nil {
+	if query := eq.withResources; query != nil {
+		if err := eq.loadResources(ctx, query, nodes,
+			func(n *Environment) { n.Edges.Resources = []*Resource{} },
+			func(n *Environment, e *Resource) { n.Edges.Resources = append(n.Edges.Resources, e) }); err != nil {
 			return nil, err
 		}
 	}
-	if query := eq.withServiceRevisions; query != nil {
-		if err := eq.loadServiceRevisions(ctx, query, nodes,
-			func(n *Environment) { n.Edges.ServiceRevisions = []*ServiceRevision{} },
-			func(n *Environment, e *ServiceRevision) {
-				n.Edges.ServiceRevisions = append(n.Edges.ServiceRevisions, e)
+	if query := eq.withResourceRevisions; query != nil {
+		if err := eq.loadResourceRevisions(ctx, query, nodes,
+			func(n *Environment) { n.Edges.ResourceRevisions = []*ResourceRevision{} },
+			func(n *Environment, e *ResourceRevision) {
+				n.Edges.ResourceRevisions = append(n.Edges.ResourceRevisions, e)
 			}); err != nil {
 			return nil, err
 		}
 	}
-	if query := eq.withServiceResources; query != nil {
-		if err := eq.loadServiceResources(ctx, query, nodes,
-			func(n *Environment) { n.Edges.ServiceResources = []*ServiceResource{} },
-			func(n *Environment, e *ServiceResource) {
-				n.Edges.ServiceResources = append(n.Edges.ServiceResources, e)
+	if query := eq.withResourceComponents; query != nil {
+		if err := eq.loadResourceComponents(ctx, query, nodes,
+			func(n *Environment) { n.Edges.ResourceComponents = []*ResourceComponent{} },
+			func(n *Environment, e *ResourceComponent) {
+				n.Edges.ResourceComponents = append(n.Edges.ResourceComponents, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -717,7 +717,7 @@ func (eq *EnvironmentQuery) loadConnectors(ctx context.Context, query *Environme
 	}
 	return nil
 }
-func (eq *EnvironmentQuery) loadServices(ctx context.Context, query *ServiceQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *Service)) error {
+func (eq *EnvironmentQuery) loadResources(ctx context.Context, query *ResourceQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *Resource)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[object.ID]*Environment)
 	for i := range nodes {
@@ -728,10 +728,10 @@ func (eq *EnvironmentQuery) loadServices(ctx context.Context, query *ServiceQuer
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(service.FieldEnvironmentID)
+		query.ctx.AppendFieldOnce(resource.FieldEnvironmentID)
 	}
-	query.Where(predicate.Service(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(environment.ServicesColumn), fks...))
+	query.Where(predicate.Resource(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(environment.ResourcesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -747,7 +747,7 @@ func (eq *EnvironmentQuery) loadServices(ctx context.Context, query *ServiceQuer
 	}
 	return nil
 }
-func (eq *EnvironmentQuery) loadServiceRevisions(ctx context.Context, query *ServiceRevisionQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *ServiceRevision)) error {
+func (eq *EnvironmentQuery) loadResourceRevisions(ctx context.Context, query *ResourceRevisionQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *ResourceRevision)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[object.ID]*Environment)
 	for i := range nodes {
@@ -758,10 +758,10 @@ func (eq *EnvironmentQuery) loadServiceRevisions(ctx context.Context, query *Ser
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(servicerevision.FieldEnvironmentID)
+		query.ctx.AppendFieldOnce(resourcerevision.FieldEnvironmentID)
 	}
-	query.Where(predicate.ServiceRevision(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(environment.ServiceRevisionsColumn), fks...))
+	query.Where(predicate.ResourceRevision(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(environment.ResourceRevisionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -777,7 +777,7 @@ func (eq *EnvironmentQuery) loadServiceRevisions(ctx context.Context, query *Ser
 	}
 	return nil
 }
-func (eq *EnvironmentQuery) loadServiceResources(ctx context.Context, query *ServiceResourceQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *ServiceResource)) error {
+func (eq *EnvironmentQuery) loadResourceComponents(ctx context.Context, query *ResourceComponentQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *ResourceComponent)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[object.ID]*Environment)
 	for i := range nodes {
@@ -788,10 +788,10 @@ func (eq *EnvironmentQuery) loadServiceResources(ctx context.Context, query *Ser
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(serviceresource.FieldEnvironmentID)
+		query.ctx.AppendFieldOnce(resourcecomponent.FieldEnvironmentID)
 	}
-	query.Where(predicate.ServiceResource(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(environment.ServiceResourcesColumn), fks...))
+	query.Where(predicate.ResourceComponent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(environment.ResourceComponentsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

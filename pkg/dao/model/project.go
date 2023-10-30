@@ -49,12 +49,12 @@ type ProjectEdges struct {
 	Connectors []*Connector `json:"connectors,omitempty"`
 	// Roles of a subject that belong to the project.
 	SubjectRoles []*SubjectRoleRelationship `json:"subject_roles,omitempty"`
-	// Services that belong to the project.
-	Services []*Service `json:"services,omitempty"`
-	// ServiceResources that belong to the project.
-	ServiceResources []*ServiceResource `json:"service_resources,omitempty"`
-	// ServiceRevisions that belong to the project.
-	ServiceRevisions []*ServiceRevision `json:"service_revisions,omitempty"`
+	// Resources that belong to the project.
+	Resources []*Resource `json:"resources,omitempty"`
+	// ResourceComponents that belong to the project.
+	ResourceComponents []*ResourceComponent `json:"resource_components,omitempty"`
+	// ResourceRevisions that belong to the project.
+	ResourceRevisions []*ResourceRevision `json:"resource_revisions,omitempty"`
 	// Variables that belong to the project.
 	Variables []*Variable `json:"variables,omitempty"`
 	// Templates that belong to the project.
@@ -107,31 +107,31 @@ func (e ProjectEdges) SubjectRolesOrErr() ([]*SubjectRoleRelationship, error) {
 	return nil, &NotLoadedError{edge: "subject_roles"}
 }
 
-// ServicesOrErr returns the Services value or an error if the edge
+// ResourcesOrErr returns the Resources value or an error if the edge
 // was not loaded in eager-loading.
-func (e ProjectEdges) ServicesOrErr() ([]*Service, error) {
+func (e ProjectEdges) ResourcesOrErr() ([]*Resource, error) {
 	if e.loadedTypes[3] {
-		return e.Services, nil
+		return e.Resources, nil
 	}
-	return nil, &NotLoadedError{edge: "services"}
+	return nil, &NotLoadedError{edge: "resources"}
 }
 
-// ServiceResourcesOrErr returns the ServiceResources value or an error if the edge
+// ResourceComponentsOrErr returns the ResourceComponents value or an error if the edge
 // was not loaded in eager-loading.
-func (e ProjectEdges) ServiceResourcesOrErr() ([]*ServiceResource, error) {
+func (e ProjectEdges) ResourceComponentsOrErr() ([]*ResourceComponent, error) {
 	if e.loadedTypes[4] {
-		return e.ServiceResources, nil
+		return e.ResourceComponents, nil
 	}
-	return nil, &NotLoadedError{edge: "service_resources"}
+	return nil, &NotLoadedError{edge: "resource_components"}
 }
 
-// ServiceRevisionsOrErr returns the ServiceRevisions value or an error if the edge
+// ResourceRevisionsOrErr returns the ResourceRevisions value or an error if the edge
 // was not loaded in eager-loading.
-func (e ProjectEdges) ServiceRevisionsOrErr() ([]*ServiceRevision, error) {
+func (e ProjectEdges) ResourceRevisionsOrErr() ([]*ResourceRevision, error) {
 	if e.loadedTypes[5] {
-		return e.ServiceRevisions, nil
+		return e.ResourceRevisions, nil
 	}
-	return nil, &NotLoadedError{edge: "service_revisions"}
+	return nil, &NotLoadedError{edge: "resource_revisions"}
 }
 
 // VariablesOrErr returns the Variables value or an error if the edge
@@ -328,19 +328,19 @@ func (pr *Project) QuerySubjectRoles() *SubjectRoleRelationshipQuery {
 	return NewProjectClient(pr.config).QuerySubjectRoles(pr)
 }
 
-// QueryServices queries the "services" edge of the Project entity.
-func (pr *Project) QueryServices() *ServiceQuery {
-	return NewProjectClient(pr.config).QueryServices(pr)
+// QueryResources queries the "resources" edge of the Project entity.
+func (pr *Project) QueryResources() *ResourceQuery {
+	return NewProjectClient(pr.config).QueryResources(pr)
 }
 
-// QueryServiceResources queries the "service_resources" edge of the Project entity.
-func (pr *Project) QueryServiceResources() *ServiceResourceQuery {
-	return NewProjectClient(pr.config).QueryServiceResources(pr)
+// QueryResourceComponents queries the "resource_components" edge of the Project entity.
+func (pr *Project) QueryResourceComponents() *ResourceComponentQuery {
+	return NewProjectClient(pr.config).QueryResourceComponents(pr)
 }
 
-// QueryServiceRevisions queries the "service_revisions" edge of the Project entity.
-func (pr *Project) QueryServiceRevisions() *ServiceRevisionQuery {
-	return NewProjectClient(pr.config).QueryServiceRevisions(pr)
+// QueryResourceRevisions queries the "resource_revisions" edge of the Project entity.
+func (pr *Project) QueryResourceRevisions() *ResourceRevisionQuery {
+	return NewProjectClient(pr.config).QueryResourceRevisions(pr)
 }
 
 // QueryVariables queries the "variables" edge of the Project entity.

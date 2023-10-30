@@ -39,12 +39,12 @@ const (
 	EdgeProject = "project"
 	// EdgeConnectors holds the string denoting the connectors edge name in mutations.
 	EdgeConnectors = "connectors"
-	// EdgeServices holds the string denoting the services edge name in mutations.
-	EdgeServices = "services"
-	// EdgeServiceRevisions holds the string denoting the service_revisions edge name in mutations.
-	EdgeServiceRevisions = "service_revisions"
-	// EdgeServiceResources holds the string denoting the service_resources edge name in mutations.
-	EdgeServiceResources = "service_resources"
+	// EdgeResources holds the string denoting the resources edge name in mutations.
+	EdgeResources = "resources"
+	// EdgeResourceRevisions holds the string denoting the resource_revisions edge name in mutations.
+	EdgeResourceRevisions = "resource_revisions"
+	// EdgeResourceComponents holds the string denoting the resource_components edge name in mutations.
+	EdgeResourceComponents = "resource_components"
 	// EdgeVariables holds the string denoting the variables edge name in mutations.
 	EdgeVariables = "variables"
 	// Table holds the table name of the environment in the database.
@@ -63,27 +63,27 @@ const (
 	ConnectorsInverseTable = "environment_connector_relationships"
 	// ConnectorsColumn is the table column denoting the connectors relation/edge.
 	ConnectorsColumn = "environment_id"
-	// ServicesTable is the table that holds the services relation/edge.
-	ServicesTable = "services"
-	// ServicesInverseTable is the table name for the Service entity.
-	// It exists in this package in order to avoid circular dependency with the "service" package.
-	ServicesInverseTable = "services"
-	// ServicesColumn is the table column denoting the services relation/edge.
-	ServicesColumn = "environment_id"
-	// ServiceRevisionsTable is the table that holds the service_revisions relation/edge.
-	ServiceRevisionsTable = "service_revisions"
-	// ServiceRevisionsInverseTable is the table name for the ServiceRevision entity.
-	// It exists in this package in order to avoid circular dependency with the "servicerevision" package.
-	ServiceRevisionsInverseTable = "service_revisions"
-	// ServiceRevisionsColumn is the table column denoting the service_revisions relation/edge.
-	ServiceRevisionsColumn = "environment_id"
-	// ServiceResourcesTable is the table that holds the service_resources relation/edge.
-	ServiceResourcesTable = "service_resources"
-	// ServiceResourcesInverseTable is the table name for the ServiceResource entity.
-	// It exists in this package in order to avoid circular dependency with the "serviceresource" package.
-	ServiceResourcesInverseTable = "service_resources"
-	// ServiceResourcesColumn is the table column denoting the service_resources relation/edge.
-	ServiceResourcesColumn = "environment_id"
+	// ResourcesTable is the table that holds the resources relation/edge.
+	ResourcesTable = "resources"
+	// ResourcesInverseTable is the table name for the Resource entity.
+	// It exists in this package in order to avoid circular dependency with the "resource" package.
+	ResourcesInverseTable = "resources"
+	// ResourcesColumn is the table column denoting the resources relation/edge.
+	ResourcesColumn = "environment_id"
+	// ResourceRevisionsTable is the table that holds the resource_revisions relation/edge.
+	ResourceRevisionsTable = "resource_revisions"
+	// ResourceRevisionsInverseTable is the table name for the ResourceRevision entity.
+	// It exists in this package in order to avoid circular dependency with the "resourcerevision" package.
+	ResourceRevisionsInverseTable = "resource_revisions"
+	// ResourceRevisionsColumn is the table column denoting the resource_revisions relation/edge.
+	ResourceRevisionsColumn = "environment_id"
+	// ResourceComponentsTable is the table that holds the resource_components relation/edge.
+	ResourceComponentsTable = "resource_components"
+	// ResourceComponentsInverseTable is the table name for the ResourceComponent entity.
+	// It exists in this package in order to avoid circular dependency with the "resourcecomponent" package.
+	ResourceComponentsInverseTable = "resource_components"
+	// ResourceComponentsColumn is the table column denoting the resource_components relation/edge.
+	ResourceComponentsColumn = "environment_id"
 	// VariablesTable is the table that holds the variables relation/edge.
 	VariablesTable = "variables"
 	// VariablesInverseTable is the table name for the Variable entity.
@@ -201,45 +201,45 @@ func ByConnectors(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByServicesCount orders the results by services count.
-func ByServicesCount(opts ...sql.OrderTermOption) OrderOption {
+// ByResourcesCount orders the results by resources count.
+func ByResourcesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newServicesStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newResourcesStep(), opts...)
 	}
 }
 
-// ByServices orders the results by services terms.
-func ByServices(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByResources orders the results by resources terms.
+func ByResources(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newServicesStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newResourcesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
-// ByServiceRevisionsCount orders the results by service_revisions count.
-func ByServiceRevisionsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByResourceRevisionsCount orders the results by resource_revisions count.
+func ByResourceRevisionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newServiceRevisionsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newResourceRevisionsStep(), opts...)
 	}
 }
 
-// ByServiceRevisions orders the results by service_revisions terms.
-func ByServiceRevisions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByResourceRevisions orders the results by resource_revisions terms.
+func ByResourceRevisions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newServiceRevisionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newResourceRevisionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
-// ByServiceResourcesCount orders the results by service_resources count.
-func ByServiceResourcesCount(opts ...sql.OrderTermOption) OrderOption {
+// ByResourceComponentsCount orders the results by resource_components count.
+func ByResourceComponentsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newServiceResourcesStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newResourceComponentsStep(), opts...)
 	}
 }
 
-// ByServiceResources orders the results by service_resources terms.
-func ByServiceResources(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByResourceComponents orders the results by resource_components terms.
+func ByResourceComponents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newServiceResourcesStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newResourceComponentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -270,25 +270,25 @@ func newConnectorsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, true, ConnectorsTable, ConnectorsColumn),
 	)
 }
-func newServicesStep() *sqlgraph.Step {
+func newResourcesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ServicesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ServicesTable, ServicesColumn),
+		sqlgraph.To(ResourcesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ResourcesTable, ResourcesColumn),
 	)
 }
-func newServiceRevisionsStep() *sqlgraph.Step {
+func newResourceRevisionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ServiceRevisionsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ServiceRevisionsTable, ServiceRevisionsColumn),
+		sqlgraph.To(ResourceRevisionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ResourceRevisionsTable, ResourceRevisionsColumn),
 	)
 }
-func newServiceResourcesStep() *sqlgraph.Step {
+func newResourceComponentsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ServiceResourcesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ServiceResourcesTable, ServiceResourcesColumn),
+		sqlgraph.To(ResourceComponentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ResourceComponentsTable, ResourceComponentsColumn),
 	)
 }
 func newVariablesStep() *sqlgraph.Step {

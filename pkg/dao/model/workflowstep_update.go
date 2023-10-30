@@ -92,7 +92,7 @@ func (wsu *WorkflowStepUpdate) SetUpdateTime(t time.Time) *WorkflowStepUpdate {
 }
 
 // SetAttributes sets the "attributes" field.
-func (wsu *WorkflowStepUpdate) SetAttributes(m map[string]any) *WorkflowStepUpdate {
+func (wsu *WorkflowStepUpdate) SetAttributes(m map[string]interface{}) *WorkflowStepUpdate {
 	wsu.mutation.SetAttributes(m)
 	return wsu
 }
@@ -104,7 +104,7 @@ func (wsu *WorkflowStepUpdate) ClearAttributes() *WorkflowStepUpdate {
 }
 
 // SetInputs sets the "inputs" field.
-func (wsu *WorkflowStepUpdate) SetInputs(m map[string]any) *WorkflowStepUpdate {
+func (wsu *WorkflowStepUpdate) SetInputs(m map[string]interface{}) *WorkflowStepUpdate {
 	wsu.mutation.SetInputs(m)
 	return wsu
 }
@@ -116,7 +116,7 @@ func (wsu *WorkflowStepUpdate) ClearInputs() *WorkflowStepUpdate {
 }
 
 // SetOutputs sets the "outputs" field.
-func (wsu *WorkflowStepUpdate) SetOutputs(m map[string]any) *WorkflowStepUpdate {
+func (wsu *WorkflowStepUpdate) SetOutputs(m map[string]interface{}) *WorkflowStepUpdate {
 	wsu.mutation.SetOutputs(m)
 	return wsu
 }
@@ -501,7 +501,7 @@ func (wsuo *WorkflowStepUpdateOne) SetUpdateTime(t time.Time) *WorkflowStepUpdat
 }
 
 // SetAttributes sets the "attributes" field.
-func (wsuo *WorkflowStepUpdateOne) SetAttributes(m map[string]any) *WorkflowStepUpdateOne {
+func (wsuo *WorkflowStepUpdateOne) SetAttributes(m map[string]interface{}) *WorkflowStepUpdateOne {
 	wsuo.mutation.SetAttributes(m)
 	return wsuo
 }
@@ -513,7 +513,7 @@ func (wsuo *WorkflowStepUpdateOne) ClearAttributes() *WorkflowStepUpdateOne {
 }
 
 // SetInputs sets the "inputs" field.
-func (wsuo *WorkflowStepUpdateOne) SetInputs(m map[string]any) *WorkflowStepUpdateOne {
+func (wsuo *WorkflowStepUpdateOne) SetInputs(m map[string]interface{}) *WorkflowStepUpdateOne {
 	wsuo.mutation.SetInputs(m)
 	return wsuo
 }
@@ -525,7 +525,7 @@ func (wsuo *WorkflowStepUpdateOne) ClearInputs() *WorkflowStepUpdateOne {
 }
 
 // SetOutputs sets the "outputs" field.
-func (wsuo *WorkflowStepUpdateOne) SetOutputs(m map[string]any) *WorkflowStepUpdateOne {
+func (wsuo *WorkflowStepUpdateOne) SetOutputs(m map[string]interface{}) *WorkflowStepUpdateOne {
 	wsuo.mutation.SetOutputs(m)
 	return wsuo
 }

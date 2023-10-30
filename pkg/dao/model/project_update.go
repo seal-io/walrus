@@ -24,9 +24,9 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/internal"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
-	"github.com/seal-io/walrus/pkg/dao/model/service"
-	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
-	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
@@ -150,49 +150,49 @@ func (pu *ProjectUpdate) AddSubjectRoles(s ...*SubjectRoleRelationship) *Project
 	return pu.AddSubjectRoleIDs(ids...)
 }
 
-// AddServiceIDs adds the "services" edge to the Service entity by IDs.
-func (pu *ProjectUpdate) AddServiceIDs(ids ...object.ID) *ProjectUpdate {
-	pu.mutation.AddServiceIDs(ids...)
+// AddResourceIDs adds the "resources" edge to the Resource entity by IDs.
+func (pu *ProjectUpdate) AddResourceIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.AddResourceIDs(ids...)
 	return pu
 }
 
-// AddServices adds the "services" edges to the Service entity.
-func (pu *ProjectUpdate) AddServices(s ...*Service) *ProjectUpdate {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// AddResources adds the "resources" edges to the Resource entity.
+func (pu *ProjectUpdate) AddResources(r ...*Resource) *ProjectUpdate {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return pu.AddServiceIDs(ids...)
+	return pu.AddResourceIDs(ids...)
 }
 
-// AddServiceResourceIDs adds the "service_resources" edge to the ServiceResource entity by IDs.
-func (pu *ProjectUpdate) AddServiceResourceIDs(ids ...object.ID) *ProjectUpdate {
-	pu.mutation.AddServiceResourceIDs(ids...)
+// AddResourceComponentIDs adds the "resource_components" edge to the ResourceComponent entity by IDs.
+func (pu *ProjectUpdate) AddResourceComponentIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.AddResourceComponentIDs(ids...)
 	return pu
 }
 
-// AddServiceResources adds the "service_resources" edges to the ServiceResource entity.
-func (pu *ProjectUpdate) AddServiceResources(s ...*ServiceResource) *ProjectUpdate {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// AddResourceComponents adds the "resource_components" edges to the ResourceComponent entity.
+func (pu *ProjectUpdate) AddResourceComponents(r ...*ResourceComponent) *ProjectUpdate {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return pu.AddServiceResourceIDs(ids...)
+	return pu.AddResourceComponentIDs(ids...)
 }
 
-// AddServiceRevisionIDs adds the "service_revisions" edge to the ServiceRevision entity by IDs.
-func (pu *ProjectUpdate) AddServiceRevisionIDs(ids ...object.ID) *ProjectUpdate {
-	pu.mutation.AddServiceRevisionIDs(ids...)
+// AddResourceRevisionIDs adds the "resource_revisions" edge to the ResourceRevision entity by IDs.
+func (pu *ProjectUpdate) AddResourceRevisionIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.AddResourceRevisionIDs(ids...)
 	return pu
 }
 
-// AddServiceRevisions adds the "service_revisions" edges to the ServiceRevision entity.
-func (pu *ProjectUpdate) AddServiceRevisions(s ...*ServiceRevision) *ProjectUpdate {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// AddResourceRevisions adds the "resource_revisions" edges to the ResourceRevision entity.
+func (pu *ProjectUpdate) AddResourceRevisions(r ...*ResourceRevision) *ProjectUpdate {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return pu.AddServiceRevisionIDs(ids...)
+	return pu.AddResourceRevisionIDs(ids...)
 }
 
 // AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
@@ -413,67 +413,67 @@ func (pu *ProjectUpdate) RemoveSubjectRoles(s ...*SubjectRoleRelationship) *Proj
 	return pu.RemoveSubjectRoleIDs(ids...)
 }
 
-// ClearServices clears all "services" edges to the Service entity.
-func (pu *ProjectUpdate) ClearServices() *ProjectUpdate {
-	pu.mutation.ClearServices()
+// ClearResources clears all "resources" edges to the Resource entity.
+func (pu *ProjectUpdate) ClearResources() *ProjectUpdate {
+	pu.mutation.ClearResources()
 	return pu
 }
 
-// RemoveServiceIDs removes the "services" edge to Service entities by IDs.
-func (pu *ProjectUpdate) RemoveServiceIDs(ids ...object.ID) *ProjectUpdate {
-	pu.mutation.RemoveServiceIDs(ids...)
+// RemoveResourceIDs removes the "resources" edge to Resource entities by IDs.
+func (pu *ProjectUpdate) RemoveResourceIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.RemoveResourceIDs(ids...)
 	return pu
 }
 
-// RemoveServices removes "services" edges to Service entities.
-func (pu *ProjectUpdate) RemoveServices(s ...*Service) *ProjectUpdate {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// RemoveResources removes "resources" edges to Resource entities.
+func (pu *ProjectUpdate) RemoveResources(r ...*Resource) *ProjectUpdate {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return pu.RemoveServiceIDs(ids...)
+	return pu.RemoveResourceIDs(ids...)
 }
 
-// ClearServiceResources clears all "service_resources" edges to the ServiceResource entity.
-func (pu *ProjectUpdate) ClearServiceResources() *ProjectUpdate {
-	pu.mutation.ClearServiceResources()
+// ClearResourceComponents clears all "resource_components" edges to the ResourceComponent entity.
+func (pu *ProjectUpdate) ClearResourceComponents() *ProjectUpdate {
+	pu.mutation.ClearResourceComponents()
 	return pu
 }
 
-// RemoveServiceResourceIDs removes the "service_resources" edge to ServiceResource entities by IDs.
-func (pu *ProjectUpdate) RemoveServiceResourceIDs(ids ...object.ID) *ProjectUpdate {
-	pu.mutation.RemoveServiceResourceIDs(ids...)
+// RemoveResourceComponentIDs removes the "resource_components" edge to ResourceComponent entities by IDs.
+func (pu *ProjectUpdate) RemoveResourceComponentIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.RemoveResourceComponentIDs(ids...)
 	return pu
 }
 
-// RemoveServiceResources removes "service_resources" edges to ServiceResource entities.
-func (pu *ProjectUpdate) RemoveServiceResources(s ...*ServiceResource) *ProjectUpdate {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// RemoveResourceComponents removes "resource_components" edges to ResourceComponent entities.
+func (pu *ProjectUpdate) RemoveResourceComponents(r ...*ResourceComponent) *ProjectUpdate {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return pu.RemoveServiceResourceIDs(ids...)
+	return pu.RemoveResourceComponentIDs(ids...)
 }
 
-// ClearServiceRevisions clears all "service_revisions" edges to the ServiceRevision entity.
-func (pu *ProjectUpdate) ClearServiceRevisions() *ProjectUpdate {
-	pu.mutation.ClearServiceRevisions()
+// ClearResourceRevisions clears all "resource_revisions" edges to the ResourceRevision entity.
+func (pu *ProjectUpdate) ClearResourceRevisions() *ProjectUpdate {
+	pu.mutation.ClearResourceRevisions()
 	return pu
 }
 
-// RemoveServiceRevisionIDs removes the "service_revisions" edge to ServiceRevision entities by IDs.
-func (pu *ProjectUpdate) RemoveServiceRevisionIDs(ids ...object.ID) *ProjectUpdate {
-	pu.mutation.RemoveServiceRevisionIDs(ids...)
+// RemoveResourceRevisionIDs removes the "resource_revisions" edge to ResourceRevision entities by IDs.
+func (pu *ProjectUpdate) RemoveResourceRevisionIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.RemoveResourceRevisionIDs(ids...)
 	return pu
 }
 
-// RemoveServiceRevisions removes "service_revisions" edges to ServiceRevision entities.
-func (pu *ProjectUpdate) RemoveServiceRevisions(s ...*ServiceRevision) *ProjectUpdate {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// RemoveResourceRevisions removes "resource_revisions" edges to ResourceRevision entities.
+func (pu *ProjectUpdate) RemoveResourceRevisions(r ...*ResourceRevision) *ProjectUpdate {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return pu.RemoveServiceRevisionIDs(ids...)
+	return pu.RemoveResourceRevisionIDs(ids...)
 }
 
 // ClearVariables clears all "variables" edges to the Variable entity.
@@ -966,145 +966,145 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if pu.mutation.ServicesCleared() {
+	if pu.mutation.ResourcesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ServicesTable,
-			Columns: []string{project.ServicesColumn},
+			Table:   project.ResourcesTable,
+			Columns: []string{project.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = pu.schemaConfig.Service
+		edge.Schema = pu.schemaConfig.Resource
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.mutation.RemovedServicesIDs(); len(nodes) > 0 && !pu.mutation.ServicesCleared() {
+	if nodes := pu.mutation.RemovedResourcesIDs(); len(nodes) > 0 && !pu.mutation.ResourcesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ServicesTable,
-			Columns: []string{project.ServicesColumn},
+			Table:   project.ResourcesTable,
+			Columns: []string{project.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = pu.schemaConfig.Service
+		edge.Schema = pu.schemaConfig.Resource
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.mutation.ServicesIDs(); len(nodes) > 0 {
+	if nodes := pu.mutation.ResourcesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ServicesTable,
-			Columns: []string{project.ServicesColumn},
+			Table:   project.ResourcesTable,
+			Columns: []string{project.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = pu.schemaConfig.Service
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if pu.mutation.ServiceResourcesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.ServiceResourcesTable,
-			Columns: []string{project.ServiceResourcesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = pu.schemaConfig.ServiceResource
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := pu.mutation.RemovedServiceResourcesIDs(); len(nodes) > 0 && !pu.mutation.ServiceResourcesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.ServiceResourcesTable,
-			Columns: []string{project.ServiceResourcesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = pu.schemaConfig.ServiceResource
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := pu.mutation.ServiceResourcesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.ServiceResourcesTable,
-			Columns: []string{project.ServiceResourcesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = pu.schemaConfig.ServiceResource
+		edge.Schema = pu.schemaConfig.Resource
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if pu.mutation.ServiceRevisionsCleared() {
+	if pu.mutation.ResourceComponentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ServiceRevisionsTable,
-			Columns: []string{project.ServiceRevisionsColumn},
+			Table:   project.ResourceComponentsTable,
+			Columns: []string{project.ResourceComponentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(servicerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcecomponent.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = pu.schemaConfig.ServiceRevision
+		edge.Schema = pu.schemaConfig.ResourceComponent
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.mutation.RemovedServiceRevisionsIDs(); len(nodes) > 0 && !pu.mutation.ServiceRevisionsCleared() {
+	if nodes := pu.mutation.RemovedResourceComponentsIDs(); len(nodes) > 0 && !pu.mutation.ResourceComponentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ServiceRevisionsTable,
-			Columns: []string{project.ServiceRevisionsColumn},
+			Table:   project.ResourceComponentsTable,
+			Columns: []string{project.ResourceComponentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(servicerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcecomponent.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = pu.schemaConfig.ServiceRevision
+		edge.Schema = pu.schemaConfig.ResourceComponent
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.mutation.ServiceRevisionsIDs(); len(nodes) > 0 {
+	if nodes := pu.mutation.ResourceComponentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ServiceRevisionsTable,
-			Columns: []string{project.ServiceRevisionsColumn},
+			Table:   project.ResourceComponentsTable,
+			Columns: []string{project.ResourceComponentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(servicerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcecomponent.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = pu.schemaConfig.ServiceRevision
+		edge.Schema = pu.schemaConfig.ResourceComponent
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pu.mutation.ResourceRevisionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ResourceRevisionsTable,
+			Columns: []string{project.ResourceRevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.ResourceRevision
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedResourceRevisionsIDs(); len(nodes) > 0 && !pu.mutation.ResourceRevisionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ResourceRevisionsTable,
+			Columns: []string{project.ResourceRevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.ResourceRevision
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.ResourceRevisionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ResourceRevisionsTable,
+			Columns: []string{project.ResourceRevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.ResourceRevision
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -1710,49 +1710,49 @@ func (puo *ProjectUpdateOne) AddSubjectRoles(s ...*SubjectRoleRelationship) *Pro
 	return puo.AddSubjectRoleIDs(ids...)
 }
 
-// AddServiceIDs adds the "services" edge to the Service entity by IDs.
-func (puo *ProjectUpdateOne) AddServiceIDs(ids ...object.ID) *ProjectUpdateOne {
-	puo.mutation.AddServiceIDs(ids...)
+// AddResourceIDs adds the "resources" edge to the Resource entity by IDs.
+func (puo *ProjectUpdateOne) AddResourceIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.AddResourceIDs(ids...)
 	return puo
 }
 
-// AddServices adds the "services" edges to the Service entity.
-func (puo *ProjectUpdateOne) AddServices(s ...*Service) *ProjectUpdateOne {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// AddResources adds the "resources" edges to the Resource entity.
+func (puo *ProjectUpdateOne) AddResources(r ...*Resource) *ProjectUpdateOne {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return puo.AddServiceIDs(ids...)
+	return puo.AddResourceIDs(ids...)
 }
 
-// AddServiceResourceIDs adds the "service_resources" edge to the ServiceResource entity by IDs.
-func (puo *ProjectUpdateOne) AddServiceResourceIDs(ids ...object.ID) *ProjectUpdateOne {
-	puo.mutation.AddServiceResourceIDs(ids...)
+// AddResourceComponentIDs adds the "resource_components" edge to the ResourceComponent entity by IDs.
+func (puo *ProjectUpdateOne) AddResourceComponentIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.AddResourceComponentIDs(ids...)
 	return puo
 }
 
-// AddServiceResources adds the "service_resources" edges to the ServiceResource entity.
-func (puo *ProjectUpdateOne) AddServiceResources(s ...*ServiceResource) *ProjectUpdateOne {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// AddResourceComponents adds the "resource_components" edges to the ResourceComponent entity.
+func (puo *ProjectUpdateOne) AddResourceComponents(r ...*ResourceComponent) *ProjectUpdateOne {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return puo.AddServiceResourceIDs(ids...)
+	return puo.AddResourceComponentIDs(ids...)
 }
 
-// AddServiceRevisionIDs adds the "service_revisions" edge to the ServiceRevision entity by IDs.
-func (puo *ProjectUpdateOne) AddServiceRevisionIDs(ids ...object.ID) *ProjectUpdateOne {
-	puo.mutation.AddServiceRevisionIDs(ids...)
+// AddResourceRevisionIDs adds the "resource_revisions" edge to the ResourceRevision entity by IDs.
+func (puo *ProjectUpdateOne) AddResourceRevisionIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.AddResourceRevisionIDs(ids...)
 	return puo
 }
 
-// AddServiceRevisions adds the "service_revisions" edges to the ServiceRevision entity.
-func (puo *ProjectUpdateOne) AddServiceRevisions(s ...*ServiceRevision) *ProjectUpdateOne {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// AddResourceRevisions adds the "resource_revisions" edges to the ResourceRevision entity.
+func (puo *ProjectUpdateOne) AddResourceRevisions(r ...*ResourceRevision) *ProjectUpdateOne {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return puo.AddServiceRevisionIDs(ids...)
+	return puo.AddResourceRevisionIDs(ids...)
 }
 
 // AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
@@ -1973,67 +1973,67 @@ func (puo *ProjectUpdateOne) RemoveSubjectRoles(s ...*SubjectRoleRelationship) *
 	return puo.RemoveSubjectRoleIDs(ids...)
 }
 
-// ClearServices clears all "services" edges to the Service entity.
-func (puo *ProjectUpdateOne) ClearServices() *ProjectUpdateOne {
-	puo.mutation.ClearServices()
+// ClearResources clears all "resources" edges to the Resource entity.
+func (puo *ProjectUpdateOne) ClearResources() *ProjectUpdateOne {
+	puo.mutation.ClearResources()
 	return puo
 }
 
-// RemoveServiceIDs removes the "services" edge to Service entities by IDs.
-func (puo *ProjectUpdateOne) RemoveServiceIDs(ids ...object.ID) *ProjectUpdateOne {
-	puo.mutation.RemoveServiceIDs(ids...)
+// RemoveResourceIDs removes the "resources" edge to Resource entities by IDs.
+func (puo *ProjectUpdateOne) RemoveResourceIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.RemoveResourceIDs(ids...)
 	return puo
 }
 
-// RemoveServices removes "services" edges to Service entities.
-func (puo *ProjectUpdateOne) RemoveServices(s ...*Service) *ProjectUpdateOne {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// RemoveResources removes "resources" edges to Resource entities.
+func (puo *ProjectUpdateOne) RemoveResources(r ...*Resource) *ProjectUpdateOne {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return puo.RemoveServiceIDs(ids...)
+	return puo.RemoveResourceIDs(ids...)
 }
 
-// ClearServiceResources clears all "service_resources" edges to the ServiceResource entity.
-func (puo *ProjectUpdateOne) ClearServiceResources() *ProjectUpdateOne {
-	puo.mutation.ClearServiceResources()
+// ClearResourceComponents clears all "resource_components" edges to the ResourceComponent entity.
+func (puo *ProjectUpdateOne) ClearResourceComponents() *ProjectUpdateOne {
+	puo.mutation.ClearResourceComponents()
 	return puo
 }
 
-// RemoveServiceResourceIDs removes the "service_resources" edge to ServiceResource entities by IDs.
-func (puo *ProjectUpdateOne) RemoveServiceResourceIDs(ids ...object.ID) *ProjectUpdateOne {
-	puo.mutation.RemoveServiceResourceIDs(ids...)
+// RemoveResourceComponentIDs removes the "resource_components" edge to ResourceComponent entities by IDs.
+func (puo *ProjectUpdateOne) RemoveResourceComponentIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.RemoveResourceComponentIDs(ids...)
 	return puo
 }
 
-// RemoveServiceResources removes "service_resources" edges to ServiceResource entities.
-func (puo *ProjectUpdateOne) RemoveServiceResources(s ...*ServiceResource) *ProjectUpdateOne {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// RemoveResourceComponents removes "resource_components" edges to ResourceComponent entities.
+func (puo *ProjectUpdateOne) RemoveResourceComponents(r ...*ResourceComponent) *ProjectUpdateOne {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return puo.RemoveServiceResourceIDs(ids...)
+	return puo.RemoveResourceComponentIDs(ids...)
 }
 
-// ClearServiceRevisions clears all "service_revisions" edges to the ServiceRevision entity.
-func (puo *ProjectUpdateOne) ClearServiceRevisions() *ProjectUpdateOne {
-	puo.mutation.ClearServiceRevisions()
+// ClearResourceRevisions clears all "resource_revisions" edges to the ResourceRevision entity.
+func (puo *ProjectUpdateOne) ClearResourceRevisions() *ProjectUpdateOne {
+	puo.mutation.ClearResourceRevisions()
 	return puo
 }
 
-// RemoveServiceRevisionIDs removes the "service_revisions" edge to ServiceRevision entities by IDs.
-func (puo *ProjectUpdateOne) RemoveServiceRevisionIDs(ids ...object.ID) *ProjectUpdateOne {
-	puo.mutation.RemoveServiceRevisionIDs(ids...)
+// RemoveResourceRevisionIDs removes the "resource_revisions" edge to ResourceRevision entities by IDs.
+func (puo *ProjectUpdateOne) RemoveResourceRevisionIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.RemoveResourceRevisionIDs(ids...)
 	return puo
 }
 
-// RemoveServiceRevisions removes "service_revisions" edges to ServiceRevision entities.
-func (puo *ProjectUpdateOne) RemoveServiceRevisions(s ...*ServiceRevision) *ProjectUpdateOne {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// RemoveResourceRevisions removes "resource_revisions" edges to ResourceRevision entities.
+func (puo *ProjectUpdateOne) RemoveResourceRevisions(r ...*ResourceRevision) *ProjectUpdateOne {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return puo.RemoveServiceRevisionIDs(ids...)
+	return puo.RemoveResourceRevisionIDs(ids...)
 }
 
 // ClearVariables clears all "variables" edges to the Variable entity.
@@ -2654,145 +2654,145 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if puo.mutation.ServicesCleared() {
+	if puo.mutation.ResourcesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ServicesTable,
-			Columns: []string{project.ServicesColumn},
+			Table:   project.ResourcesTable,
+			Columns: []string{project.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = puo.schemaConfig.Service
+		edge.Schema = puo.schemaConfig.Resource
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.mutation.RemovedServicesIDs(); len(nodes) > 0 && !puo.mutation.ServicesCleared() {
+	if nodes := puo.mutation.RemovedResourcesIDs(); len(nodes) > 0 && !puo.mutation.ResourcesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ServicesTable,
-			Columns: []string{project.ServicesColumn},
+			Table:   project.ResourcesTable,
+			Columns: []string{project.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = puo.schemaConfig.Service
+		edge.Schema = puo.schemaConfig.Resource
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.mutation.ServicesIDs(); len(nodes) > 0 {
+	if nodes := puo.mutation.ResourcesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ServicesTable,
-			Columns: []string{project.ServicesColumn},
+			Table:   project.ResourcesTable,
+			Columns: []string{project.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = puo.schemaConfig.Service
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if puo.mutation.ServiceResourcesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.ServiceResourcesTable,
-			Columns: []string{project.ServiceResourcesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = puo.schemaConfig.ServiceResource
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := puo.mutation.RemovedServiceResourcesIDs(); len(nodes) > 0 && !puo.mutation.ServiceResourcesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.ServiceResourcesTable,
-			Columns: []string{project.ServiceResourcesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = puo.schemaConfig.ServiceResource
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := puo.mutation.ServiceResourcesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.ServiceResourcesTable,
-			Columns: []string{project.ServiceResourcesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = puo.schemaConfig.ServiceResource
+		edge.Schema = puo.schemaConfig.Resource
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if puo.mutation.ServiceRevisionsCleared() {
+	if puo.mutation.ResourceComponentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ServiceRevisionsTable,
-			Columns: []string{project.ServiceRevisionsColumn},
+			Table:   project.ResourceComponentsTable,
+			Columns: []string{project.ResourceComponentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(servicerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcecomponent.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = puo.schemaConfig.ServiceRevision
+		edge.Schema = puo.schemaConfig.ResourceComponent
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.mutation.RemovedServiceRevisionsIDs(); len(nodes) > 0 && !puo.mutation.ServiceRevisionsCleared() {
+	if nodes := puo.mutation.RemovedResourceComponentsIDs(); len(nodes) > 0 && !puo.mutation.ResourceComponentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ServiceRevisionsTable,
-			Columns: []string{project.ServiceRevisionsColumn},
+			Table:   project.ResourceComponentsTable,
+			Columns: []string{project.ResourceComponentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(servicerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcecomponent.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = puo.schemaConfig.ServiceRevision
+		edge.Schema = puo.schemaConfig.ResourceComponent
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.mutation.ServiceRevisionsIDs(); len(nodes) > 0 {
+	if nodes := puo.mutation.ResourceComponentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ServiceRevisionsTable,
-			Columns: []string{project.ServiceRevisionsColumn},
+			Table:   project.ResourceComponentsTable,
+			Columns: []string{project.ResourceComponentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(servicerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcecomponent.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = puo.schemaConfig.ServiceRevision
+		edge.Schema = puo.schemaConfig.ResourceComponent
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.ResourceRevisionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ResourceRevisionsTable,
+			Columns: []string{project.ResourceRevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.ResourceRevision
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedResourceRevisionsIDs(); len(nodes) > 0 && !puo.mutation.ResourceRevisionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ResourceRevisionsTable,
+			Columns: []string{project.ResourceRevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.ResourceRevision
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.ResourceRevisionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ResourceRevisionsTable,
+			Columns: []string{project.ResourceRevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.ResourceRevision
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

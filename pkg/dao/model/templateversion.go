@@ -54,8 +54,8 @@ type TemplateVersion struct {
 type TemplateVersionEdges struct {
 	// Template to which the template version belongs.
 	Template *Template `json:"template,omitempty"`
-	// Services that belong to the template version.
-	Services []*Service `json:"services,omitempty"`
+	// Resources that belong to the template version.
+	Resources []*Resource `json:"resources,omitempty"`
 	// Project to which the template version belongs.
 	Project *Project `json:"project,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -76,13 +76,13 @@ func (e TemplateVersionEdges) TemplateOrErr() (*Template, error) {
 	return nil, &NotLoadedError{edge: "template"}
 }
 
-// ServicesOrErr returns the Services value or an error if the edge
+// ResourcesOrErr returns the Resources value or an error if the edge
 // was not loaded in eager-loading.
-func (e TemplateVersionEdges) ServicesOrErr() ([]*Service, error) {
+func (e TemplateVersionEdges) ResourcesOrErr() ([]*Resource, error) {
 	if e.loadedTypes[1] {
-		return e.Services, nil
+		return e.Resources, nil
 	}
-	return nil, &NotLoadedError{edge: "services"}
+	return nil, &NotLoadedError{edge: "resources"}
 }
 
 // ProjectOrErr returns the Project value or an error if the edge
@@ -210,9 +210,9 @@ func (tv *TemplateVersion) QueryTemplate() *TemplateQuery {
 	return NewTemplateVersionClient(tv.config).QueryTemplate(tv)
 }
 
-// QueryServices queries the "services" edge of the TemplateVersion entity.
-func (tv *TemplateVersion) QueryServices() *ServiceQuery {
-	return NewTemplateVersionClient(tv.config).QueryServices(tv)
+// QueryResources queries the "resources" edge of the TemplateVersion entity.
+func (tv *TemplateVersion) QueryResources() *ResourceQuery {
+	return NewTemplateVersionClient(tv.config).QueryResources(tv)
 }
 
 // QueryProject queries the "project" edge of the TemplateVersion entity.

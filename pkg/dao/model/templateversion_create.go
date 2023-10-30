@@ -17,7 +17,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/walrus/pkg/dao/model/project"
-	"github.com/seal-io/walrus/pkg/dao/model/service"
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
@@ -139,19 +139,19 @@ func (tvc *TemplateVersionCreate) SetTemplate(t *Template) *TemplateVersionCreat
 	return tvc.SetTemplateID(t.ID)
 }
 
-// AddServiceIDs adds the "services" edge to the Service entity by IDs.
-func (tvc *TemplateVersionCreate) AddServiceIDs(ids ...object.ID) *TemplateVersionCreate {
-	tvc.mutation.AddServiceIDs(ids...)
+// AddResourceIDs adds the "resources" edge to the Resource entity by IDs.
+func (tvc *TemplateVersionCreate) AddResourceIDs(ids ...object.ID) *TemplateVersionCreate {
+	tvc.mutation.AddResourceIDs(ids...)
 	return tvc
 }
 
-// AddServices adds the "services" edges to the Service entity.
-func (tvc *TemplateVersionCreate) AddServices(s ...*Service) *TemplateVersionCreate {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// AddResources adds the "resources" edges to the Resource entity.
+func (tvc *TemplateVersionCreate) AddResources(r ...*Resource) *TemplateVersionCreate {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return tvc.AddServiceIDs(ids...)
+	return tvc.AddResourceIDs(ids...)
 }
 
 // SetProject sets the "project" edge to the Project entity.
@@ -363,18 +363,18 @@ func (tvc *TemplateVersionCreate) createSpec() (*TemplateVersion, *sqlgraph.Crea
 		_node.TemplateID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := tvc.mutation.ServicesIDs(); len(nodes) > 0 {
+	if nodes := tvc.mutation.ResourcesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   templateversion.ServicesTable,
-			Columns: []string{templateversion.ServicesColumn},
+			Table:   templateversion.ResourcesTable,
+			Columns: []string{templateversion.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = tvc.schemaConfig.Service
+		edge.Schema = tvc.schemaConfig.Resource
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

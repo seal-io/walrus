@@ -111,7 +111,7 @@ func (wseu *WorkflowStepExecutionUpdate) ClearStatus() *WorkflowStepExecutionUpd
 }
 
 // SetAttributes sets the "attributes" field.
-func (wseu *WorkflowStepExecutionUpdate) SetAttributes(m map[string]any) *WorkflowStepExecutionUpdate {
+func (wseu *WorkflowStepExecutionUpdate) SetAttributes(m map[string]interface{}) *WorkflowStepExecutionUpdate {
 	wseu.mutation.SetAttributes(m)
 	return wseu
 }
@@ -595,7 +595,7 @@ func (wseuo *WorkflowStepExecutionUpdateOne) ClearStatus() *WorkflowStepExecutio
 }
 
 // SetAttributes sets the "attributes" field.
-func (wseuo *WorkflowStepExecutionUpdateOne) SetAttributes(m map[string]any) *WorkflowStepExecutionUpdateOne {
+func (wseuo *WorkflowStepExecutionUpdateOne) SetAttributes(m map[string]interface{}) *WorkflowStepExecutionUpdateOne {
 	wseuo.mutation.SetAttributes(m)
 	return wseuo
 }

@@ -22,9 +22,9 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/internal"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
-	"github.com/seal-io/walrus/pkg/dao/model/service"
-	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
-	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
@@ -48,9 +48,9 @@ type ProjectQuery struct {
 	withEnvironments            *EnvironmentQuery
 	withConnectors              *ConnectorQuery
 	withSubjectRoles            *SubjectRoleRelationshipQuery
-	withServices                *ServiceQuery
-	withServiceResources        *ServiceResourceQuery
-	withServiceRevisions        *ServiceRevisionQuery
+	withResources               *ResourceQuery
+	withResourceComponents      *ResourceComponentQuery
+	withResourceRevisions       *ResourceRevisionQuery
 	withVariables               *VariableQuery
 	withTemplates               *TemplateQuery
 	withTemplateVersions        *TemplateVersionQuery
@@ -173,9 +173,9 @@ func (pq *ProjectQuery) QuerySubjectRoles() *SubjectRoleRelationshipQuery {
 	return query
 }
 
-// QueryServices chains the current query on the "services" edge.
-func (pq *ProjectQuery) QueryServices() *ServiceQuery {
-	query := (&ServiceClient{config: pq.config}).Query()
+// QueryResources chains the current query on the "resources" edge.
+func (pq *ProjectQuery) QueryResources() *ResourceQuery {
+	query := (&ResourceClient{config: pq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := pq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -186,21 +186,21 @@ func (pq *ProjectQuery) QueryServices() *ServiceQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(project.Table, project.FieldID, selector),
-			sqlgraph.To(service.Table, service.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, project.ServicesTable, project.ServicesColumn),
+			sqlgraph.To(resource.Table, resource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.ResourcesTable, project.ResourcesColumn),
 		)
 		schemaConfig := pq.schemaConfig
-		step.To.Schema = schemaConfig.Service
-		step.Edge.Schema = schemaConfig.Service
+		step.To.Schema = schemaConfig.Resource
+		step.Edge.Schema = schemaConfig.Resource
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
-// QueryServiceResources chains the current query on the "service_resources" edge.
-func (pq *ProjectQuery) QueryServiceResources() *ServiceResourceQuery {
-	query := (&ServiceResourceClient{config: pq.config}).Query()
+// QueryResourceComponents chains the current query on the "resource_components" edge.
+func (pq *ProjectQuery) QueryResourceComponents() *ResourceComponentQuery {
+	query := (&ResourceComponentClient{config: pq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := pq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -211,21 +211,21 @@ func (pq *ProjectQuery) QueryServiceResources() *ServiceResourceQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(project.Table, project.FieldID, selector),
-			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, project.ServiceResourcesTable, project.ServiceResourcesColumn),
+			sqlgraph.To(resourcecomponent.Table, resourcecomponent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.ResourceComponentsTable, project.ResourceComponentsColumn),
 		)
 		schemaConfig := pq.schemaConfig
-		step.To.Schema = schemaConfig.ServiceResource
-		step.Edge.Schema = schemaConfig.ServiceResource
+		step.To.Schema = schemaConfig.ResourceComponent
+		step.Edge.Schema = schemaConfig.ResourceComponent
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
-// QueryServiceRevisions chains the current query on the "service_revisions" edge.
-func (pq *ProjectQuery) QueryServiceRevisions() *ServiceRevisionQuery {
-	query := (&ServiceRevisionClient{config: pq.config}).Query()
+// QueryResourceRevisions chains the current query on the "resource_revisions" edge.
+func (pq *ProjectQuery) QueryResourceRevisions() *ResourceRevisionQuery {
+	query := (&ResourceRevisionClient{config: pq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := pq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -236,12 +236,12 @@ func (pq *ProjectQuery) QueryServiceRevisions() *ServiceRevisionQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(project.Table, project.FieldID, selector),
-			sqlgraph.To(servicerevision.Table, servicerevision.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, project.ServiceRevisionsTable, project.ServiceRevisionsColumn),
+			sqlgraph.To(resourcerevision.Table, resourcerevision.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.ResourceRevisionsTable, project.ResourceRevisionsColumn),
 		)
 		schemaConfig := pq.schemaConfig
-		step.To.Schema = schemaConfig.ServiceRevision
-		step.Edge.Schema = schemaConfig.ServiceRevision
+		step.To.Schema = schemaConfig.ResourceRevision
+		step.Edge.Schema = schemaConfig.ResourceRevision
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -693,9 +693,9 @@ func (pq *ProjectQuery) Clone() *ProjectQuery {
 		withEnvironments:            pq.withEnvironments.Clone(),
 		withConnectors:              pq.withConnectors.Clone(),
 		withSubjectRoles:            pq.withSubjectRoles.Clone(),
-		withServices:                pq.withServices.Clone(),
-		withServiceResources:        pq.withServiceResources.Clone(),
-		withServiceRevisions:        pq.withServiceRevisions.Clone(),
+		withResources:               pq.withResources.Clone(),
+		withResourceComponents:      pq.withResourceComponents.Clone(),
+		withResourceRevisions:       pq.withResourceRevisions.Clone(),
 		withVariables:               pq.withVariables.Clone(),
 		withTemplates:               pq.withTemplates.Clone(),
 		withTemplateVersions:        pq.withTemplateVersions.Clone(),
@@ -745,36 +745,36 @@ func (pq *ProjectQuery) WithSubjectRoles(opts ...func(*SubjectRoleRelationshipQu
 	return pq
 }
 
-// WithServices tells the query-builder to eager-load the nodes that are connected to
-// the "services" edge. The optional arguments are used to configure the query builder of the edge.
-func (pq *ProjectQuery) WithServices(opts ...func(*ServiceQuery)) *ProjectQuery {
-	query := (&ServiceClient{config: pq.config}).Query()
+// WithResources tells the query-builder to eager-load the nodes that are connected to
+// the "resources" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithResources(opts ...func(*ResourceQuery)) *ProjectQuery {
+	query := (&ResourceClient{config: pq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	pq.withServices = query
+	pq.withResources = query
 	return pq
 }
 
-// WithServiceResources tells the query-builder to eager-load the nodes that are connected to
-// the "service_resources" edge. The optional arguments are used to configure the query builder of the edge.
-func (pq *ProjectQuery) WithServiceResources(opts ...func(*ServiceResourceQuery)) *ProjectQuery {
-	query := (&ServiceResourceClient{config: pq.config}).Query()
+// WithResourceComponents tells the query-builder to eager-load the nodes that are connected to
+// the "resource_components" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithResourceComponents(opts ...func(*ResourceComponentQuery)) *ProjectQuery {
+	query := (&ResourceComponentClient{config: pq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	pq.withServiceResources = query
+	pq.withResourceComponents = query
 	return pq
 }
 
-// WithServiceRevisions tells the query-builder to eager-load the nodes that are connected to
-// the "service_revisions" edge. The optional arguments are used to configure the query builder of the edge.
-func (pq *ProjectQuery) WithServiceRevisions(opts ...func(*ServiceRevisionQuery)) *ProjectQuery {
-	query := (&ServiceRevisionClient{config: pq.config}).Query()
+// WithResourceRevisions tells the query-builder to eager-load the nodes that are connected to
+// the "resource_revisions" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithResourceRevisions(opts ...func(*ResourceRevisionQuery)) *ProjectQuery {
+	query := (&ResourceRevisionClient{config: pq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	pq.withServiceRevisions = query
+	pq.withResourceRevisions = query
 	return pq
 }
 
@@ -970,9 +970,9 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 			pq.withEnvironments != nil,
 			pq.withConnectors != nil,
 			pq.withSubjectRoles != nil,
-			pq.withServices != nil,
-			pq.withServiceResources != nil,
-			pq.withServiceRevisions != nil,
+			pq.withResources != nil,
+			pq.withResourceComponents != nil,
+			pq.withResourceRevisions != nil,
 			pq.withVariables != nil,
 			pq.withTemplates != nil,
 			pq.withTemplateVersions != nil,
@@ -1029,24 +1029,28 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 			return nil, err
 		}
 	}
-	if query := pq.withServices; query != nil {
-		if err := pq.loadServices(ctx, query, nodes,
-			func(n *Project) { n.Edges.Services = []*Service{} },
-			func(n *Project, e *Service) { n.Edges.Services = append(n.Edges.Services, e) }); err != nil {
+	if query := pq.withResources; query != nil {
+		if err := pq.loadResources(ctx, query, nodes,
+			func(n *Project) { n.Edges.Resources = []*Resource{} },
+			func(n *Project, e *Resource) { n.Edges.Resources = append(n.Edges.Resources, e) }); err != nil {
 			return nil, err
 		}
 	}
-	if query := pq.withServiceResources; query != nil {
-		if err := pq.loadServiceResources(ctx, query, nodes,
-			func(n *Project) { n.Edges.ServiceResources = []*ServiceResource{} },
-			func(n *Project, e *ServiceResource) { n.Edges.ServiceResources = append(n.Edges.ServiceResources, e) }); err != nil {
+	if query := pq.withResourceComponents; query != nil {
+		if err := pq.loadResourceComponents(ctx, query, nodes,
+			func(n *Project) { n.Edges.ResourceComponents = []*ResourceComponent{} },
+			func(n *Project, e *ResourceComponent) {
+				n.Edges.ResourceComponents = append(n.Edges.ResourceComponents, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
-	if query := pq.withServiceRevisions; query != nil {
-		if err := pq.loadServiceRevisions(ctx, query, nodes,
-			func(n *Project) { n.Edges.ServiceRevisions = []*ServiceRevision{} },
-			func(n *Project, e *ServiceRevision) { n.Edges.ServiceRevisions = append(n.Edges.ServiceRevisions, e) }); err != nil {
+	if query := pq.withResourceRevisions; query != nil {
+		if err := pq.loadResourceRevisions(ctx, query, nodes,
+			func(n *Project) { n.Edges.ResourceRevisions = []*ResourceRevision{} },
+			func(n *Project, e *ResourceRevision) {
+				n.Edges.ResourceRevisions = append(n.Edges.ResourceRevisions, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -1219,7 +1223,7 @@ func (pq *ProjectQuery) loadSubjectRoles(ctx context.Context, query *SubjectRole
 	}
 	return nil
 }
-func (pq *ProjectQuery) loadServices(ctx context.Context, query *ServiceQuery, nodes []*Project, init func(*Project), assign func(*Project, *Service)) error {
+func (pq *ProjectQuery) loadResources(ctx context.Context, query *ResourceQuery, nodes []*Project, init func(*Project), assign func(*Project, *Resource)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[object.ID]*Project)
 	for i := range nodes {
@@ -1230,10 +1234,10 @@ func (pq *ProjectQuery) loadServices(ctx context.Context, query *ServiceQuery, n
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(service.FieldProjectID)
+		query.ctx.AppendFieldOnce(resource.FieldProjectID)
 	}
-	query.Where(predicate.Service(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(project.ServicesColumn), fks...))
+	query.Where(predicate.Resource(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(project.ResourcesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -1249,7 +1253,7 @@ func (pq *ProjectQuery) loadServices(ctx context.Context, query *ServiceQuery, n
 	}
 	return nil
 }
-func (pq *ProjectQuery) loadServiceResources(ctx context.Context, query *ServiceResourceQuery, nodes []*Project, init func(*Project), assign func(*Project, *ServiceResource)) error {
+func (pq *ProjectQuery) loadResourceComponents(ctx context.Context, query *ResourceComponentQuery, nodes []*Project, init func(*Project), assign func(*Project, *ResourceComponent)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[object.ID]*Project)
 	for i := range nodes {
@@ -1260,10 +1264,10 @@ func (pq *ProjectQuery) loadServiceResources(ctx context.Context, query *Service
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(serviceresource.FieldProjectID)
+		query.ctx.AppendFieldOnce(resourcecomponent.FieldProjectID)
 	}
-	query.Where(predicate.ServiceResource(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(project.ServiceResourcesColumn), fks...))
+	query.Where(predicate.ResourceComponent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(project.ResourceComponentsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -1279,7 +1283,7 @@ func (pq *ProjectQuery) loadServiceResources(ctx context.Context, query *Service
 	}
 	return nil
 }
-func (pq *ProjectQuery) loadServiceRevisions(ctx context.Context, query *ServiceRevisionQuery, nodes []*Project, init func(*Project), assign func(*Project, *ServiceRevision)) error {
+func (pq *ProjectQuery) loadResourceRevisions(ctx context.Context, query *ResourceRevisionQuery, nodes []*Project, init func(*Project), assign func(*Project, *ResourceRevision)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[object.ID]*Project)
 	for i := range nodes {
@@ -1290,10 +1294,10 @@ func (pq *ProjectQuery) loadServiceRevisions(ctx context.Context, query *Service
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(servicerevision.FieldProjectID)
+		query.ctx.AppendFieldOnce(resourcerevision.FieldProjectID)
 	}
-	query.Where(predicate.ServiceRevision(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(project.ServiceRevisionsColumn), fks...))
+	query.Where(predicate.ResourceRevision(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(project.ResourceRevisionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

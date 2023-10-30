@@ -835,27 +835,27 @@ func HasEnvironmentsWith(preds ...predicate.EnvironmentConnectorRelationship) pr
 	})
 }
 
-// HasResources applies the HasEdge predicate on the "resources" edge.
-func HasResources() predicate.Connector {
+// HasResourceComponents applies the HasEdge predicate on the "resource_components" edge.
+func HasResourceComponents() predicate.Connector {
 	return predicate.Connector(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ResourcesTable, ResourcesColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, ResourceComponentsTable, ResourceComponentsColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.ServiceResource
-		step.Edge.Schema = schemaConfig.ServiceResource
+		step.To.Schema = schemaConfig.ResourceComponent
+		step.Edge.Schema = schemaConfig.ResourceComponent
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasResourcesWith applies the HasEdge predicate on the "resources" edge with a given conditions (other predicates).
-func HasResourcesWith(preds ...predicate.ServiceResource) predicate.Connector {
+// HasResourceComponentsWith applies the HasEdge predicate on the "resource_components" edge with a given conditions (other predicates).
+func HasResourceComponentsWith(preds ...predicate.ResourceComponent) predicate.Connector {
 	return predicate.Connector(func(s *sql.Selector) {
-		step := newResourcesStep()
+		step := newResourceComponentsStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.ServiceResource
-		step.Edge.Schema = schemaConfig.ServiceResource
+		step.To.Schema = schemaConfig.ResourceComponent
+		step.Edge.Schema = schemaConfig.ResourceComponent
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
