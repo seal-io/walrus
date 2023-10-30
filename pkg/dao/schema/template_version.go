@@ -88,9 +88,9 @@ func (TemplateVersion) Edges() []ent.Edge {
 			Immutable().
 			Annotations(
 				entx.SkipInput()),
-		// TemplateVersion 1-* Services.
-		edge.To("services", Service.Type).
-			Comment("Services that belong to the template version.").
+		// TemplateVersion 1-* Resources.
+		edge.To("resources", Resource.Type).
+			Comment("Resources that belong to the template version.").
 			Annotations(
 				entsql.OnDelete(entsql.Restrict),
 				entx.SkipIO()),

@@ -13,36 +13,36 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
-type ServiceRelationship struct {
+type ResourceRelationship struct {
 	ent.Schema
 }
 
-func (ServiceRelationship) Mixin() []ent.Mixin {
+func (ResourceRelationship) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID(),
 		mixin.Time().WithoutUpdateTime(),
 	}
 }
 
-func (ServiceRelationship) Indexes() []ent.Index {
+func (ResourceRelationship) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("service_id", "dependency_id", "path").
+		index.Fields("resource_id", "dependency_id", "path").
 			Unique(),
 	}
 }
 
-func (ServiceRelationship) Fields() []ent.Field {
+func (ResourceRelationship) Fields() []ent.Field {
 	return []ent.Field{
-		object.IDField("service_id").
-			Comment("ID of the service that deploys after the dependency finished.").
+		object.IDField("resource_id").
+			Comment("ID of the resource that deploys after the dependency finished.").
 			NotEmpty().
 			Immutable(),
 		object.IDField("dependency_id").
-			Comment("ID of the service that deploys before the service begins.").
+			Comment("ID of the resource that deploys before the resource begins.").
 			NotEmpty().
 			Immutable(),
 		field.JSON("path", []object.ID{}).
-			Comment("ID list of the service includes all dependencies and the service itself.").
+			Comment("ID list of the resource includes all dependencies and the resource itself.").
 			Default([]object.ID{}).
 			Immutable().
 			Annotations(
@@ -56,20 +56,20 @@ func (ServiceRelationship) Fields() []ent.Field {
 	}
 }
 
-func (ServiceRelationship) Edges() []ent.Edge {
+func (ResourceRelationship) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("service", Service.Type).
-			Field("service_id").
-			Comment("Service to which it currently belongs.").
+		edge.To("resource", Resource.Type).
+			Field("resource_id").
+			Comment("Resource to which it currently belongs.").
 			Unique().
 			Required().
 			Immutable().
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
 				entx.SkipIO()),
-		edge.To("dependency", Service.Type).
+		edge.To("dependency", Resource.Type).
 			Field("dependency_id").
-			Comment("Service to which the dependency belongs.").
+			Comment("Resource to which the dependency belongs.").
 			Unique().
 			Required().
 			Immutable().
@@ -79,7 +79,7 @@ func (ServiceRelationship) Edges() []ent.Edge {
 	}
 }
 
-func (ServiceRelationship) Annotations() []schema.Annotation {
+func (ResourceRelationship) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entx.SkipClearingOptionalField(),
 	}
