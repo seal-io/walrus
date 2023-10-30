@@ -49,21 +49,21 @@ func (Project) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
 				entx.SkipOutput()),
-		// Project 1-* Services.
-		edge.To("services", Service.Type).
-			Comment("Services that belong to the project.").
+		// Project 1-* Resources.
+		edge.To("resources", Resource.Type).
+			Comment("Resources that belong to the project.").
 			Annotations(
 				entsql.OnDelete(entsql.NoAction),
 				entx.SkipIO()),
-		// Project 1-* ServiceResources.
-		edge.To("service_resources", ServiceResource.Type).
-			Comment("ServiceResources that belong to the project.").
+		// Project 1-* ResourceComponents.
+		edge.To("resource_components", ResourceComponent.Type).
+			Comment("ResourceComponents that belong to the project.").
 			Annotations(
 				entsql.OnDelete(entsql.NoAction),
 				entx.SkipIO()),
-		// Project 1-* ServiceRevisions.
-		edge.To("service_revisions", ServiceRevision.Type).
-			Comment("ServiceRevisions that belong to the project.").
+		// Project 1-* ResourceRevisions.
+		edge.To("resource_revisions", ResourceRevision.Type).
+			Comment("ResourceRevisions that belong to the project.").
 			Annotations(
 				entsql.OnDelete(entsql.NoAction),
 				entx.SkipIO()),

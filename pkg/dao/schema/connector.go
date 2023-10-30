@@ -106,9 +106,9 @@ func (Connector) Edges() []ent.Edge {
 			Through("environment_connector_relationships", EnvironmentConnectorRelationship.Type).
 			Annotations(
 				entx.SkipIO()),
-		// Connector 1-* ServiceResources.
-		edge.To("resources", ServiceResource.Type).
-			Comment("ServiceResources that use the connector.").
+		// Connector 1-* ResourceComponents.
+		edge.To("resource_components", ResourceComponent.Type).
+			Comment("ResourceComponents that use the connector.").
 			Annotations(
 				entsql.OnDelete(entsql.Restrict),
 				entx.SkipIO()),

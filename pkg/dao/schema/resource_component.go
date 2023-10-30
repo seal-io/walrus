@@ -13,58 +13,58 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
-type ServiceResource struct {
+type ResourceComponent struct {
 	ent.Schema
 }
 
-func (ServiceResource) Mixin() []ent.Mixin {
+func (ResourceComponent) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID(),
 		mixin.Time(),
 	}
 }
 
-func (ServiceResource) Fields() []ent.Field {
+func (ResourceComponent) Fields() []ent.Field {
 	return []ent.Field{
 		object.IDField("project_id").
 			Comment("ID of the project to belong.").
 			NotEmpty().
 			Immutable(),
 		object.IDField("environment_id").
-			Comment("ID of the environment to which the resource belongs.").
+			Comment("ID of the environment to which the component belongs.").
 			NotEmpty().
 			Immutable(),
-		object.IDField("service_id").
-			Comment("ID of the service to which the resource belongs.").
+		object.IDField("resource_id").
+			Comment("ID of the resource to which the component belongs.").
 			NotEmpty().
 			Immutable(),
 		object.IDField("connector_id").
-			Comment("ID of the connector to which the resource deploys.").
+			Comment("ID of the connector to which the component deploys.").
 			NotEmpty().
 			Immutable(),
 		object.IDField("composition_id").
-			Comment("ID of the parent resource.").
+			Comment("ID of the parent component.").
 			Optional().
 			Immutable(),
 		object.IDField("class_id").
-			Comment("ID of the parent class of the resource realization.").
+			Comment("ID of the parent class of the component realization.").
 			Optional().
 			Immutable(),
 		field.String("mode").
-			Comment("Mode that manages the generated resource, " +
-				"it is the management way of the deployer to the resource, " +
+			Comment("Mode that manages the generated component, " +
+				"it is the management way of the deployer to the component, " +
 				"which provides by deployer.").
 			NotEmpty().
 			Immutable(),
 		field.String("type").
-			Comment("Type of the generated resource, " +
+			Comment("Type of the generated component, " +
 				"it is the type of the resource which the deployer observes, " +
 				"which provides by deployer.").
 			NotEmpty().
 			Immutable(),
 		field.String("name").
-			Comment("Name of the generated resource, " +
-				"it is the real identifier of the resource, " +
+			Comment("Name of the generated component, " +
+				"it is the real identifier of the component, " +
 				"which provides by deployer.").
 			NotEmpty().
 			Immutable(),
@@ -73,14 +73,14 @@ func (ServiceResource) Fields() []ent.Field {
 			NotEmpty().
 			Immutable(),
 		field.String("shape").
-			Comment("Shape of the resource, it can be class or instance shape.").
+			Comment("Shape of the component, it can be class or instance shape.").
 			NotEmpty().
 			Immutable(),
 		field.JSON("status", types.ServiceResourceStatus{}).
-			Comment("Status of the resource.").
+			Comment("Status of the component.").
 			Optional(),
 		field.JSON("keys", &types.ServiceResourceOperationKeys{}).
-			Comment("Keys of the resource.").
+			Comment("Keys of the component.").
 			Optional().
 			Annotations(
 				entx.SkipInput(),
@@ -88,70 +88,70 @@ func (ServiceResource) Fields() []ent.Field {
 	}
 }
 
-func (ServiceResource) Edges() []ent.Edge {
+func (ResourceComponent) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Project 1-* ServiceResources.
+		// Project 1-* ResourceComponents.
 		edge.From("project", Project.Type).
-			Ref("service_resources").
+			Ref("resource_components").
 			Field("project_id").
-			Comment("Project to which the resource belongs.").
+			Comment("Project to which the component belongs.").
 			Unique().
 			Required().
 			Immutable().
 			Annotations(
 				entx.ValidateContext(intercept.WithProjectInterceptor)),
-		// Environment 1-* ServiceResources.
+		// Environment 1-* ResourceComponents.
 		edge.From("environment", Environment.Type).
-			Ref("service_resources").
+			Ref("resource_components").
 			Field("environment_id").
-			Comment("Environment to which the revision deploys.").
+			Comment("Environment to which the component deploys.").
 			Unique().
 			Required().
 			Immutable(),
-		// Service 1-* ServiceResources.
-		edge.From("service", Service.Type).
-			Ref("resources").
-			Field("service_id").
-			Comment("Service to which the resource belongs.").
+		// Resource 1-* ResourceComponents.
+		edge.From("resource", Resource.Type).
+			Ref("components").
+			Field("resource_id").
+			Comment("Resource to which the component belongs.").
 			Unique().
 			Required().
 			Immutable(),
-		// Connector 1-* ServiceResources.
+		// Connector 1-* ResourceComponents.
 		edge.From("connector", Connector.Type).
-			Ref("resources").
+			Ref("resource_components").
 			Field("connector_id").
-			Comment("Connector to which the resource deploys.").
+			Comment("Connector to which the component deploys.").
 			Unique().
 			Required().
 			Immutable().
 			Annotations(
 				entx.SkipInput()),
-		// ServiceResource (!discovered) 1-* ServiceResources (discovered).
-		edge.To("components", ServiceResource.Type).
-			Comment("Components that makes up the service resource.").
+		// ResourceComponent (!discovered) 1-* ResourceComponents (discovered).
+		edge.To("components", ResourceComponent.Type).
+			Comment("Components that makes up the resource component.").
 			From("composition").
 			Field("composition_id").
 			Unique().
 			Immutable().
 			Annotations(
 				entsql.OnDelete(entsql.Cascade)),
-		// ServiceResource (class) 1-* ServiceResources (instance).
-		edge.To("instances", ServiceResource.Type).
-			Comment("Instances that realizes the service resource.").
+		// ResourceComponent (class) 1-* ResourceComponents (instance).
+		edge.To("instances", ResourceComponent.Type).
+			Comment("Instances that realizes the resource component.").
 			From("class").
 			Field("class_id").
 			Unique().
 			Immutable().
 			Annotations(
 				entsql.OnDelete(entsql.Cascade)),
-		// ServiceResource 1-* ServiceResource (dependency).
-		edge.To("dependencies", ServiceResource.Type).
-			Comment("Dependencies that requires for the service resource.").
-			Through("service_resource_relationships", ServiceResourceRelationship.Type),
+		// ResourceComponent 1-* ResourceComponents (dependency).
+		edge.To("dependencies", ResourceComponent.Type).
+			Comment("Dependencies that requires for the resource component.").
+			Through("resource_component_relationships", ResourceComponentRelationship.Type),
 	}
 }
 
-func (ServiceResource) Interceptors() []ent.Interceptor {
+func (ResourceComponent) Interceptors() []ent.Interceptor {
 	return []ent.Interceptor{
 		intercept.ByProject("project_id"),
 	}

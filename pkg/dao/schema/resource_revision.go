@@ -18,11 +18,11 @@ import (
 	"github.com/seal-io/walrus/utils/strs"
 )
 
-type ServiceRevision struct {
+type ResourceRevision struct {
 	ent.Schema
 }
 
-func (ServiceRevision) Mixin() []ent.Mixin {
+func (ResourceRevision) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID(),
 		mixin.Time().WithoutUpdateTime(),
@@ -30,7 +30,7 @@ func (ServiceRevision) Mixin() []ent.Mixin {
 	}
 }
 
-func (ServiceRevision) Fields() []ent.Field {
+func (ResourceRevision) Fields() []ent.Field {
 	return []ent.Field{
 		object.IDField("project_id").
 			Comment("ID of the project to belong.").
@@ -40,8 +40,8 @@ func (ServiceRevision) Fields() []ent.Field {
 			Comment("ID of the environment to which the revision belongs.").
 			NotEmpty().
 			Immutable(),
-		object.IDField("service_id").
-			Comment("ID of the service to which the revision belongs.").
+		object.IDField("resource_id").
+			Comment("ID of the resource to which the revision belongs.").
 			NotEmpty().
 			Immutable(),
 		field.String("template_name").
@@ -82,11 +82,11 @@ func (ServiceRevision) Fields() []ent.Field {
 	}
 }
 
-func (ServiceRevision) Edges() []ent.Edge {
+func (ResourceRevision) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Project 1-* ServiceRevisions.
+		// Project 1-* ResourceRevisions.
 		edge.From("project", Project.Type).
-			Ref("service_revisions").
+			Ref("resource_revisions").
 			Field("project_id").
 			Comment("Project to which the revision belongs.").
 			Unique().
@@ -94,32 +94,32 @@ func (ServiceRevision) Edges() []ent.Edge {
 			Immutable().
 			Annotations(
 				entx.ValidateContext(intercept.WithProjectInterceptor)),
-		// Environment 1-* ServiceRevisions.
+		// Environment 1-* ResourceRevisions.
 		edge.From("environment", Environment.Type).
-			Ref("service_revisions").
+			Ref("resource_revisions").
 			Field("environment_id").
 			Comment("Environment to which the revision deploys.").
 			Unique().
 			Required().
 			Immutable(),
-		// Service 1-* ServiceRevisions.
-		edge.From("service", Service.Type).
+		// Resource 1-* ResourceRevisions.
+		edge.From("resource", Resource.Type).
 			Ref("revisions").
-			Field("service_id").
-			Comment("Service to which the revision belongs.").
+			Field("resource_id").
+			Comment("Resource to which the revision belongs.").
 			Unique().
 			Required().
 			Immutable(),
 	}
 }
 
-func (ServiceRevision) Interceptors() []ent.Interceptor {
+func (ResourceRevision) Interceptors() []ent.Interceptor {
 	return []ent.Interceptor{
 		intercept.ByProject("project_id"),
 	}
 }
 
-func (ServiceRevision) Hooks() []ent.Hook {
+func (ResourceRevision) Hooks() []ent.Hook {
 	// Normalize special chars in status message.
 	normalizeStatusMessage := func(n ent.Mutator) ent.Mutator {
 		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {

@@ -13,36 +13,36 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 )
 
-type Service struct {
+type Resource struct {
 	ent.Schema
 }
 
-func (Service) Mixin() []ent.Mixin {
+func (Resource) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.Metadata(),
 		mixin.Status(),
 	}
 }
 
-func (Service) Indexes() []ent.Index {
+func (Resource) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("project_id", "environment_id", "name").
 			Unique(),
 	}
 }
 
-func (Service) Fields() []ent.Field {
+func (Resource) Fields() []ent.Field {
 	return []ent.Field{
 		object.IDField("project_id").
 			Comment("ID of the project to belong.").
 			NotEmpty().
 			Immutable(),
 		object.IDField("environment_id").
-			Comment("ID of the environment to which the service deploys.").
+			Comment("ID of the environment to which the resource deploys.").
 			NotEmpty().
 			Immutable(),
 		object.IDField("template_id").
-			Comment("ID of the template version to which the service belong.").
+			Comment("ID of the template version to which the resource belong.").
 			NotEmpty(),
 		property.ValuesField("attributes").
 			Comment("Attributes to configure the template.").
@@ -50,58 +50,58 @@ func (Service) Fields() []ent.Field {
 	}
 }
 
-func (Service) Edges() []ent.Edge {
+func (Resource) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Project 1-* Services.
+		// Project 1-* Resources.
 		edge.From("project", Project.Type).
-			Ref("services").
+			Ref("resources").
 			Field("project_id").
-			Comment("Project to which the service belongs.").
+			Comment("Project to which the resource belongs.").
 			Unique().
 			Required().
 			Immutable().
 			Annotations(
 				entx.ValidateContext(intercept.WithProjectInterceptor)),
-		// Environment 1-* Services.
+		// Environment 1-* Resources.
 		edge.From("environment", Environment.Type).
-			Ref("services").
+			Ref("resources").
 			Field("environment_id").
-			Comment("Environment to which the service belongs.").
+			Comment("Environment to which the resource belongs.").
 			Unique().
 			Required().
 			Immutable(),
-		// TemplateVersion 1-* Services.
+		// TemplateVersion 1-* Resources.
 		edge.From("template", TemplateVersion.Type).
-			Ref("services").
+			Ref("resources").
 			Field("template_id").
-			Comment("Template to which the service belongs.").
+			Comment("Template to which the resource belongs.").
 			Unique().
 			Required().
 			Annotations(
 				entx.SkipInput(entx.WithQuery()),
 				entx.Input(entx.WithCreate(), entx.WithUpdate())),
-		// Service 1-* ServiceRevisions.
-		edge.To("revisions", ServiceRevision.Type).
-			Comment("Revisions that belong to the service.").
+		// Resource 1-* ResourceRevisions.
+		edge.To("revisions", ResourceRevision.Type).
+			Comment("Revisions that belong to the resource.").
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
 				entx.SkipIO()),
-		// Service 1-* ServiceResources.
-		edge.To("resources", ServiceResource.Type).
-			Comment("Resources that belong to the service.").
+		// Resource 1-* ResourceComponents.
+		edge.To("components", ResourceComponent.Type).
+			Comment("Components that belong to the resource.").
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
 				entx.SkipIO()),
-		// Service 1-* Services (dependency).
-		edge.To("dependencies", Service.Type).
-			Comment("Dependencies that requires for the service.").
-			Through("service_relationships", ServiceRelationship.Type).
+		// Resource 1-* Resources (dependency).
+		edge.To("dependencies", Resource.Type).
+			Comment("Dependencies that requires for the resource.").
+			Through("resource_relationships", ResourceRelationship.Type).
 			Annotations(
 				entx.SkipIO()),
 	}
 }
 
-func (Service) Interceptors() []ent.Interceptor {
+func (Resource) Interceptors() []ent.Interceptor {
 	return []ent.Interceptor{
 		intercept.ByProject("project_id"),
 	}
