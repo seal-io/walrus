@@ -16,6 +16,7 @@ import (
 	"github.com/seal-io/walrus/pkg/apis/measure"
 	"github.com/seal-io/walrus/pkg/apis/perspective"
 	"github.com/seal-io/walrus/pkg/apis/project"
+	"github.com/seal-io/walrus/pkg/apis/proxy"
 	"github.com/seal-io/walrus/pkg/apis/role"
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/apis/setting"
@@ -114,6 +115,13 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		r.Get("/readyz", measure.Readyz())
 		r.Get("/livez", measure.Livez())
 		r.Get("/metrics", measure.Metrics())
+	}
+
+	proxyApis := apis.Group("/proxy").
+		Use(throttler, account.Filter)
+	{
+		r := proxyApis
+		r.Get("/*path", proxy.Proxy(opts.ModelClient))
 	}
 
 	debugApis := apis.Group("/debug")
