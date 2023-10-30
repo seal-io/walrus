@@ -40,7 +40,7 @@ type ResourceComponentCreateInput struct {
 	// Mode that manages the generated component, it is the management way of the deployer to the component, which provides by deployer.
 	Mode string `path:"-" query:"-" json:"mode"`
 	// Status of the component.
-	Status types.ServiceResourceStatus `path:"-" query:"-" json:"status,omitempty"`
+	Status types.ResourceComponentStatus `path:"-" query:"-" json:"status,omitempty"`
 
 	// Components specifies full inserting the new ResourceComponent entities of the ResourceComponent entity.
 	Components []*ResourceComponentCreateInput `uri:"-" query:"-" json:"components,omitempty"`
@@ -208,7 +208,7 @@ type ResourceComponentCreateInputsItem struct {
 	// Mode that manages the generated component, it is the management way of the deployer to the component, which provides by deployer.
 	Mode string `path:"-" query:"-" json:"mode"`
 	// Status of the component.
-	Status types.ServiceResourceStatus `path:"-" query:"-" json:"status,omitempty"`
+	Status types.ResourceComponentStatus `path:"-" query:"-" json:"status,omitempty"`
 
 	// Components specifies full inserting the new ResourceComponent entities.
 	Components []*ResourceComponentCreateInput `uri:"-" query:"-" json:"components,omitempty"`
@@ -759,7 +759,7 @@ type ResourceComponentUpdateInput struct {
 	ResourceComponentQueryInput `path:",inline" query:"-" json:"-"`
 
 	// Status of the component.
-	Status types.ServiceResourceStatus `path:"-" query:"-" json:"status,omitempty"`
+	Status types.ResourceComponentStatus `path:"-" query:"-" json:"status,omitempty"`
 
 	// Components indicates replacing the stale ResourceComponent entities.
 	Components []*ResourceComponentCreateInput `uri:"-" query:"-" json:"components,omitempty"`
@@ -887,7 +887,7 @@ type ResourceComponentUpdateInputsItem struct {
 	ID object.ID `path:"-" query:"-" json:"id"`
 
 	// Status of the component.
-	Status types.ServiceResourceStatus `path:"-" query:"-" json:"status,omitempty"`
+	Status types.ResourceComponentStatus `path:"-" query:"-" json:"status,omitempty"`
 
 	// Components indicates replacing the stale ResourceComponent entities.
 	Components []*ResourceComponentCreateInput `uri:"-" query:"-" json:"components,omitempty"`
@@ -1140,8 +1140,8 @@ type ResourceComponentOutput struct {
 	Name         string                              `json:"name,omitempty"`
 	DeployerType string                              `json:"deployerType,omitempty"`
 	Shape        string                              `json:"shape,omitempty"`
-	Status       types.ServiceResourceStatus         `json:"status,omitempty"`
-	Keys         *types.ServiceResourceOperationKeys `json:"keys,omitempty"`
+	Status       types.ResourceComponentStatus         `json:"status,omitempty"`
+	Keys         *types.ResourceComponentOperationKeys `json:"keys,omitempty"`
 
 	Project      *ProjectOutput                         `json:"project,omitempty"`
 	Environment  *EnvironmentOutput                     `json:"environment,omitempty"`

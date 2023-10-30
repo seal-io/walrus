@@ -37,12 +37,12 @@ func (op Operator) ID() string {
 
 func (Operator) GetKeys(
 	ctx context.Context,
-	resource *model.ServiceResource,
-) (*types.ServiceResourceOperationKeys, error) {
+	resource *model.ResourceComponent,
+) (*types.ResourceComponentOperationKeys, error) {
 	return nil, nil
 }
 
-func (Operator) GetStatus(ctx context.Context, resource *model.ServiceResource) (*status.Status, error) {
+func (Operator) GetStatus(ctx context.Context, resource *model.ResourceComponent) (*status.Status, error) {
 	return &status.Status{
 		Summary: status.Summary{
 			SummaryStatus:        "Unknown",
@@ -54,15 +54,15 @@ func (Operator) GetStatus(ctx context.Context, resource *model.ServiceResource) 
 
 func (Operator) GetEndpoints(
 	ctx context.Context,
-	resource *model.ServiceResource,
-) ([]types.ServiceResourceEndpoint, error) {
+	resource *model.ResourceComponent,
+) ([]types.ResourceComponentEndpoint, error) {
 	return nil, nil
 }
 
 func (Operator) GetComponents(
 	ctx context.Context,
-	resource *model.ServiceResource,
-) ([]*model.ServiceResource, error) {
+	resource *model.ResourceComponent,
+) ([]*model.ResourceComponent, error) {
 	return nil, nil
 }
 
@@ -74,6 +74,6 @@ func (Operator) Exec(ctx context.Context, s string, options optypes.ExecOptions)
 	return errors.New("cannot execute")
 }
 
-func (Operator) Label(ctx context.Context, resource *model.ServiceResource, m map[string]string) error {
+func (Operator) Label(ctx context.Context, resource *model.ResourceComponent, m map[string]string) error {
 	return nil
 }

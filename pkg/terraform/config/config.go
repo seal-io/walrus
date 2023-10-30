@@ -374,8 +374,8 @@ func loadVariableBlocks(opts *VariableOptions) block.Blocks {
 // loadOutputBlocks returns terraform outputs config block.
 func loadOutputBlocks(opts OutputOptions) block.Blocks {
 	blockConfig := func(output Output) (string, string) {
-		label := fmt.Sprintf("%s_%s", output.ServiceName, output.Name)
-		value := fmt.Sprintf(`{{module.%s.%s}}`, output.ServiceName, output.Name)
+		label := fmt.Sprintf("%s_%s", output.ResourceName, output.Name)
+		value := fmt.Sprintf(`{{module.%s.%s}}`, output.ResourceName, output.Name)
 
 		return label, value
 	}

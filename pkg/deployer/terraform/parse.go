@@ -8,22 +8,21 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/seal-io/walrus/pkg/dao/model/service"
-	"github.com/seal-io/walrus/pkg/dao/model/servicerelationship"
-	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/variable"
 	"github.com/seal-io/walrus/pkg/dao/types"
-	"github.com/seal-io/walrus/pkg/dao/types/object"
-
-	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/terraform/parser"
 )
 
-type ServiceOpts struct {
-	ServiceRevision *model.ServiceRevision
+type RevisionOpts struct {
+	ResourceRevision *model.ResourceRevision
 
-	ServiceName string
+	ResourceName string
 
 	ProjectID     object.ID
 	EnvironmentID object.ID
@@ -35,24 +34,24 @@ func ParseModuleAttributes(
 	mc model.ClientSet,
 	attributes map[string]any,
 	onlyValidated bool,
-	opts ServiceOpts,
+	opts RevisionOpts,
 ) (variables model.Variables, outputs map[string]parser.OutputState, err error) {
 	var (
-		templateVariables        []string
-		dependencyServiceOutputs []string
+		templateVariables         []string
+		dependencyResourceOutputs []string
 	)
 
 	replaced := !onlyValidated
-	templateVariables, dependencyServiceOutputs = parseAttributeReplace(
+	templateVariables, dependencyResourceOutputs = parseAttributeReplace(
 		attributes,
 		templateVariables,
-		dependencyServiceOutputs,
+		dependencyResourceOutputs,
 		replaced,
 	)
 
-	// If service revision has variables that inherit from cloned revision, use them directly.
-	if opts.ServiceRevision != nil && len(opts.ServiceRevision.Variables) > 0 {
-		for k, v := range opts.ServiceRevision.Variables {
+	// If resource revision has variables that inherit from cloned revision, use them directly.
+	if opts.ResourceRevision != nil && len(opts.ResourceRevision.Variables) > 0 {
+		for k, v := range opts.ResourceRevision.Variables {
 			variables = append(variables, &model.Variable{
 				Name:  k,
 				Value: crypto.String(v),
@@ -69,16 +68,16 @@ func ParseModuleAttributes(
 		outputs, err = getServiceDependencyOutputsByID(
 			ctx,
 			mc,
-			opts.ServiceRevision.ServiceID,
-			dependencyServiceOutputs)
+			opts.ResourceRevision.ResourceID,
+			dependencyResourceOutputs)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		// Check if all dependency service outputs are found.
-		for _, o := range dependencyServiceOutputs {
+		// Check if all dependency resource outputs are found.
+		for _, o := range dependencyResourceOutputs {
 			if _, ok := outputs[o]; !ok {
-				return nil, nil, fmt.Errorf("service %s dependency output %s not found", opts.ServiceName, o)
+				return nil, nil, fmt.Errorf("resource %s dependency output %s not found", opts.ResourceName, o)
 			}
 		}
 	}
@@ -87,13 +86,13 @@ func ParseModuleAttributes(
 }
 
 // parseAttributeReplace parses attribute variable ${var.name} replaces it with ${var._variablePrefix+name},
-// service reference ${service.name.output} replaces it with ${var._servicePrefix+name}
-// and returns variable names and service names.
+// resource reference ${service.name.output} replaces it with ${var._servicePrefix+name}
+// and returns variable names and resource names.
 // Replaced flag indicates whether to replace the module attribute variable with prefix string.
 func parseAttributeReplace(
 	attributes map[string]any,
 	variableNames []string,
-	serviceOutputs []string,
+	resourceOutputs []string,
 	replaced bool,
 ) ([]string, []string) {
 	for key, value := range attributes {
@@ -107,10 +106,10 @@ func parseAttributeReplace(
 				continue
 			}
 
-			variableNames, serviceOutputs = parseAttributeReplace(
+			variableNames, resourceOutputs = parseAttributeReplace(
 				value.(map[string]any),
 				variableNames,
-				serviceOutputs,
+				resourceOutputs,
 				replaced,
 			)
 		case reflect.String:
@@ -138,7 +137,7 @@ func parseAttributeReplace(
 			variableRepl := "${var." + _variablePrefix + "${1}}"
 			str = _variableReg.ReplaceAllString(str, variableRepl)
 
-			serviceOutputs = append(serviceOutputs, serviceMatched...)
+			resourceOutputs = append(resourceOutputs, serviceMatched...)
 			serviceRepl := "${var." + _servicePrefix + "${1}_${2}}"
 
 			if replaced {
@@ -153,17 +152,17 @@ func parseAttributeReplace(
 				if _, ok := v.(map[string]any); !ok {
 					continue
 				}
-				variableNames, serviceOutputs = parseAttributeReplace(
+				variableNames, resourceOutputs = parseAttributeReplace(
 					v.(map[string]any),
 					variableNames,
-					serviceOutputs,
+					resourceOutputs,
 					replaced,
 				)
 			}
 		}
 	}
 
-	return variableNames, serviceOutputs
+	return variableNames, resourceOutputs
 }
 
 func getVariables(
@@ -269,18 +268,18 @@ func getVariables(
 	return variables, nil
 }
 
-// getServiceDependencyOutputsByID gets the dependency outputs of the service by service id.
+// getServiceDependencyOutputsByID gets the dependency outputs of the resource by resource id.
 func getServiceDependencyOutputsByID(
 	ctx context.Context,
 	client model.ClientSet,
-	serviceID object.ID,
+	resourceID object.ID,
 	dependOutputs []string,
 ) (map[string]parser.OutputState, error) {
-	entity, err := client.Services().Query().
-		Where(service.ID(serviceID)).
-		WithDependencies(func(sq *model.ServiceRelationshipQuery) {
+	entity, err := client.Resources().Query().
+		Where(resource.ID(resourceID)).
+		WithDependencies(func(sq *model.ResourceRelationshipQuery) {
 			sq.Where(func(s *sql.Selector) {
-				s.Where(sql.ColumnsNEQ(servicerelationship.FieldServiceID, servicerelationship.FieldDependencyID))
+				s.Where(sql.ColumnsNEQ(resourcerelationship.FieldResourceID, resourcerelationship.FieldDependencyID))
 			})
 		}).
 		Only(ctx)
@@ -288,50 +287,50 @@ func getServiceDependencyOutputsByID(
 		return nil, err
 	}
 
-	dependencyServiceIDs := make([]object.ID, 0, len(entity.Edges.Dependencies))
+	dependencyResourceIDs := make([]object.ID, 0, len(entity.Edges.Dependencies))
 
 	for _, d := range entity.Edges.Dependencies {
-		if d.Type != types.ServiceRelationshipTypeImplicit {
+		if d.Type != types.ResourceRelationshipTypeImplicit {
 			continue
 		}
 
-		dependencyServiceIDs = append(dependencyServiceIDs, d.DependencyID)
+		dependencyResourceIDs = append(dependencyResourceIDs, d.DependencyID)
 	}
 
-	return getServiceDependencyOutputs(ctx, client, dependencyServiceIDs, dependOutputs)
+	return getServiceDependencyOutputs(ctx, client, dependencyResourceIDs, dependOutputs)
 }
 
-// getServiceDependencyOutputs gets the dependency outputs of the service.
+// getServiceDependencyOutputs gets the dependency outputs of the resource.
 func getServiceDependencyOutputs(
 	ctx context.Context,
 	client model.ClientSet,
-	dependencyServiceIDs []object.ID,
+	dependencyResourceIDs []object.ID,
 	dependOutputs []string,
 ) (map[string]parser.OutputState, error) {
-	dependencyRevisions, err := client.ServiceRevisions().Query().
+	dependencyRevisions, err := client.ResourceRevisions().Query().
 		Select(
-			servicerevision.FieldID,
-			servicerevision.FieldAttributes,
-			servicerevision.FieldOutput,
-			servicerevision.FieldServiceID,
-			servicerevision.FieldProjectID,
+			resourcerevision.FieldID,
+			resourcerevision.FieldAttributes,
+			resourcerevision.FieldOutput,
+			resourcerevision.FieldResourceID,
+			resourcerevision.FieldProjectID,
 		).
 		Where(func(s *sql.Selector) {
 			sq := s.Clone().
 				AppendSelectExprAs(
 					sql.RowNumber().
-						PartitionBy(servicerevision.FieldServiceID).
-						OrderBy(sql.Desc(servicerevision.FieldCreateTime)),
+						PartitionBy(resourcerevision.FieldResourceID).
+						OrderBy(sql.Desc(resourcerevision.FieldCreateTime)),
 					"row_number",
 				).
 				Where(s.P()).
 				From(s.Table()).
-				As(servicerevision.Table)
+				As(resourcerevision.Table)
 
-			// Query the latest revision of the service.
+			// Query the latest revision of the resource.
 			s.Where(sql.EQ(s.C("row_number"), 1)).
 				From(sq)
-		}).Where(servicerevision.ServiceIDIn(dependencyServiceIDs...)).
+		}).Where(resourcerevision.ResourceIDIn(dependencyResourceIDs...)).
 		All(ctx)
 	if err != nil {
 		return nil, err

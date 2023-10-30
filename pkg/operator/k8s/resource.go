@@ -12,7 +12,7 @@ import (
 	"github.com/seal-io/walrus/pkg/operator/k8s/kube"
 )
 
-// resourceParsingError emits if the given model.ServiceResource got deployer error.
+// resourceParsingError emits if the given model.ResourceComponent got deployer error.
 type resourceParsingError string
 
 func (e resourceParsingError) Error() string {
@@ -33,12 +33,12 @@ type resource struct {
 	Name      string
 }
 
-// parseOperableResources parse the given model.ServiceResource,
+// parseOperableResources parse the given model.ResourceComponent,
 // and keeps resource item which matches enforcer validation.
 func parseResources(
 	ctx context.Context,
 	op Operator,
-	res *model.ServiceResource,
+	res *model.ResourceComponent,
 	enforcer intercept.Enforcer,
 ) ([]resource, error) {
 	if res.DeployerType != types.DeployerTypeTF {

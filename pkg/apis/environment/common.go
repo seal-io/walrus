@@ -16,7 +16,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
-	pkgservice "github.com/seal-io/walrus/pkg/service"
+	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/validation"
 )
@@ -43,26 +43,26 @@ func createEnvironment(
 
 		// TODO(thxCode): move the following codes into DAO.
 
-		serviceInputs := entity.Edges.Services
+		resourceInputs := entity.Edges.Resources
 
-		for _, svc := range serviceInputs {
+		for _, svc := range resourceInputs {
 			if svc == nil {
-				return errors.New("invalid input: nil service")
+				return errors.New("invalid input: nil resource")
 			}
 			svc.ProjectID = entity.ProjectID
 			svc.EnvironmentID = entity.ID
 		}
 
-		if err = pkgservice.SetSubjectID(ctx, serviceInputs...); err != nil {
+		if err = pkgresource.SetSubjectID(ctx, resourceInputs...); err != nil {
 			return err
 		}
 
-		services, err := pkgservice.CreateScheduledServices(ctx, tx, serviceInputs)
+		resources, err := pkgresource.CreateScheduledResources(ctx, tx, resourceInputs)
 		if err != nil {
 			return err
 		}
 
-		entity.Edges.Services = services
+		entity.Edges.Resources = resources
 
 		return envbus.NotifyIDs(ctx, tx, envbus.EventCreate, entity.ID)
 	})
@@ -96,21 +96,21 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 		return err
 	}
 
-	// Verify services.
-	for i := range r.Services {
-		if r.Services[i] == nil {
-			return errors.New("empty service")
+	// Verify resources.
+	for i := range r.Resources {
+		if r.Resources[i] == nil {
+			return errors.New("empty resource")
 		}
 
-		if err := validation.IsDNSLabel(r.Services[i].Name); err != nil {
-			return fmt.Errorf("invalid service name: %w", err)
+		if err := validation.IsDNSLabel(r.Resources[i].Name); err != nil {
+			return fmt.Errorf("invalid resource name: %w", err)
 		}
 	}
 
 	// Get template versions.
-	tvIDs := make([]object.ID, len(r.Services))
-	for i := range r.Services {
-		tvIDs[i] = r.Services[i].Template.ID
+	tvIDs := make([]object.ID, len(r.Resources))
+	for i := range r.Resources {
+		tvIDs[i] = r.Resources[i].Template.ID
 	}
 
 	tvs, err := r.Client.TemplateVersions().Query().
@@ -126,14 +126,15 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 		return fmt.Errorf("failed to get template version: %w", err)
 	}
 
-	// Map template version by ID for service validation.
+	// Map template version by ID for resource validation.
 	tvm := make(map[object.ID]*model.TemplateVersion, len(tvs))
 	for i := range tvs {
 		tvm[tvs[i].ID] = tvs[i]
 	}
 
-	for _, svc := range r.Services {
-		err = svc.Attributes.ValidateWith(tvm[svc.Template.ID].Schema.VariableSchemas())
+	// Verify resource's variables with variables schema that defined on the template version.
+	for _, res := range r.Resources {
+		err = res.Attributes.ValidateWith(tvm[res.Template.ID].Schema.VariableSchemas())
 		if err != nil {
 			return fmt.Errorf("invalid variables: %w", err)
 		}

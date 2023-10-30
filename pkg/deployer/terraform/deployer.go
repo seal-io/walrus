@@ -15,15 +15,15 @@ import (
 	apiconfig "github.com/seal-io/walrus/pkg/apis/config"
 	"github.com/seal-io/walrus/pkg/auths"
 	"github.com/seal-io/walrus/pkg/auths/session"
-	revisionbus "github.com/seal-io/walrus/pkg/bus/servicerevision"
+	revisionbus "github.com/seal-io/walrus/pkg/bus/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/connector"
 	"github.com/seal-io/walrus/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
-	"github.com/seal-io/walrus/pkg/dao/model/service"
-	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
-	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
@@ -32,7 +32,7 @@ import (
 	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
 	pkgenv "github.com/seal-io/walrus/pkg/environment"
 	opk8s "github.com/seal-io/walrus/pkg/operator/k8s"
-	pkgservice "github.com/seal-io/walrus/pkg/service"
+	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	"github.com/seal-io/walrus/pkg/settings"
 	"github.com/seal-io/walrus/pkg/templates/openapi"
 	"github.com/seal-io/walrus/pkg/templates/translator"
@@ -50,7 +50,7 @@ const DeployerType = types.DeployerTypeTF
 const (
 	// _backendAPI the API path to terraform deploy backend.
 	// Terraform will get and update deployment states from this API.
-	_backendAPI = "/v1/projects/%s/environments/%s/services/%s/revisions/%s/terraform-states"
+	_backendAPI = "/v1/projects/%s/environments/%s/resources/%s/revisions/%s/terraform-states"
 
 	// _variablePrefix the prefix of the variable name.
 	_variablePrefix = "_walrus_var_"
@@ -66,7 +66,7 @@ var (
 	_serviceReg = regexp.MustCompile(`\${service\.([^.}]+)\.([^.}]+)}`)
 )
 
-// Deployer terraform deployer to deploy the service.
+// Deployer terraform deployer to deploy the resource.
 type Deployer struct {
 	logger      log.Logger
 	modelClient model.ClientSet
@@ -90,12 +90,12 @@ func (d Deployer) Type() deptypes.Type {
 	return DeployerType
 }
 
-// Apply creates a new service revision by the given service,
-// and drives the Kubernetes Job to create resources of the service.
-func (d Deployer) Apply(ctx context.Context, service *model.Service, opts deptypes.ApplyOptions) (err error) {
+// Apply creates a new resource revision by the given resource,
+// and drives the Kubernetes Job to create components of the resource.
+func (d Deployer) Apply(ctx context.Context, resource *model.Resource, opts deptypes.ApplyOptions) (err error) {
 	revision, err := d.createRevision(ctx, createRevisionOptions{
-		ServiceID: service.ID,
-		JobType:   JobTypeApply,
+		ResourceID: resource.ID,
+		JobType:    JobTypeApply,
 	})
 	if err != nil {
 		return err
@@ -107,24 +107,24 @@ func (d Deployer) Apply(ctx context.Context, service *model.Service, opts deptyp
 		}
 
 		// Update a failure status.
-		status.ServiceRevisionStatusReady.False(revision, err.Error())
+		status.ResourceRevisionStatusReady.False(revision, err.Error())
 
-		// Report to service revision.
+		// Report to resource revision.
 		_ = d.updateRevisionStatus(ctx, revision)
 	}()
 
 	return d.createK8sJob(ctx, createK8sJobOptions{
-		Type:            JobTypeApply,
-		ServiceRevision: revision,
+		Type:             JobTypeApply,
+		ResourceRevision: revision,
 	})
 }
 
-// Destroy creates a new service revision by the given service,
-// and drives the Kubernetes Job to clean the resources of the service.
-func (d Deployer) Destroy(ctx context.Context, service *model.Service, opts deptypes.DestroyOptions) (err error) {
+// Destroy creates a new resource revision by the given resource,
+// and drives the Kubernetes Job to clean the components of the resource.
+func (d Deployer) Destroy(ctx context.Context, resource *model.Resource, opts deptypes.DestroyOptions) (err error) {
 	revision, err := d.createRevision(ctx, createRevisionOptions{
-		ServiceID: service.ID,
-		JobType:   JobTypeDestroy,
+		ResourceID: resource.ID,
+		JobType:    JobTypeDestroy,
 	})
 	if err != nil {
 		return err
@@ -136,41 +136,41 @@ func (d Deployer) Destroy(ctx context.Context, service *model.Service, opts dept
 		}
 
 		// Update a failure status.
-		status.ServiceRevisionStatusReady.False(revision, err.Error())
+		status.ResourceRevisionStatusReady.False(revision, err.Error())
 
-		// Report to service revision.
+		// Report to resource revision.
 		_ = d.updateRevisionStatus(ctx, revision)
 	}()
 
 	// If no resource exists, skip job and set revision status succeed.
-	exist, err := d.modelClient.ServiceResources().Query().
-		Where(serviceresource.ServiceID(service.ID)).
+	exist, err := d.modelClient.ResourceComponents().Query().
+		Where(resourcecomponent.ResourceID(resource.ID)).
 		Exist(ctx)
 	if err != nil {
 		return err
 	}
 
 	if !exist {
-		status.ServiceRevisionStatusReady.True(revision, "")
+		status.ResourceRevisionStatusReady.True(revision, "")
 		return d.updateRevisionStatus(ctx, revision)
 	}
 
 	return d.createK8sJob(ctx, createK8sJobOptions{
-		Type:            JobTypeDestroy,
-		ServiceRevision: revision,
+		Type:             JobTypeDestroy,
+		ResourceRevision: revision,
 	})
 }
 
 type createK8sJobOptions struct {
 	// Type indicates the type of the job.
 	Type string
-	// ServiceRevision indicates the service revision to create the deployment job.
-	ServiceRevision *model.ServiceRevision
+	// ResourceRevision indicates the resource revision to create the deployment job.
+	ResourceRevision *model.ResourceRevision
 }
 
-// createK8sJob creates a k8s job to deploy, destroy or rollback the service.
+// createK8sJob creates a k8s job to deploy, destroy or rollback the resource.
 func (d Deployer) createK8sJob(ctx context.Context, opts createK8sJobOptions) error {
-	revision := opts.ServiceRevision
+	revision := opts.ResourceRevision
 
 	connectors, err := d.getConnectors(ctx, revision.EnvironmentID)
 	if err != nil {
@@ -187,7 +187,7 @@ func (d Deployer) createK8sJob(ctx context.Context, opts createK8sJobOptions) er
 		return err
 	}
 
-	svc, err := d.modelClient.Services().Get(ctx, revision.ServiceID)
+	res, err := d.modelClient.Resources().Get(ctx, revision.ResourceID)
 	if err != nil {
 		return err
 	}
@@ -198,7 +198,7 @@ func (d Deployer) createK8sJob(ctx context.Context, opts createK8sJobOptions) er
 	if sj.ID != "" {
 		subjectID = sj.ID
 	} else {
-		subjectID, err = pkgservice.GetSubjectID(svc)
+		subjectID, err = pkgresource.GetSubjectID(res)
 		if err != nil {
 			return err
 		}
@@ -210,16 +210,16 @@ func (d Deployer) createK8sJob(ctx context.Context, opts createK8sJobOptions) er
 
 	// Prepare tfConfig for deployment.
 	secretOpts := createK8sSecretsOptions{
-		ServiceRevision: opts.ServiceRevision,
-		Connectors:      connectors,
-		ProjectID:       proj.ID,
-		EnvironmentID:   env.ID,
-		SubjectID:       subjectID,
+		ResourceRevision: opts.ResourceRevision,
+		Connectors:       connectors,
+		ProjectID:        proj.ID,
+		EnvironmentID:    env.ID,
+		SubjectID:        subjectID,
 		// Metadata.
 		ProjectName:          proj.Name,
 		EnvironmentName:      env.Name,
-		ServiceName:          svc.Name,
-		ServiceID:            svc.ID,
+		ResourceName:         res.Name,
+		ResourceID:           res.ID,
 		ManagedNamespaceName: pkgenv.GetManagedNamespaceName(env),
 	}
 	if err = d.createK8sSecrets(ctx, secretOpts); err != nil {
@@ -238,10 +238,10 @@ func (d Deployer) createK8sJob(ctx context.Context, opts createK8sJobOptions) er
 
 	// Create deployment job.
 	jobOpts := JobCreateOptions{
-		Type:              opts.Type,
-		ServiceRevisionID: opts.ServiceRevision.ID.String(),
-		Image:             jobImage,
-		Env:               jobEnv,
+		Type:               opts.Type,
+		ResourceRevisionID: opts.ResourceRevision.ID.String(),
+		Image:              jobImage,
+		Env:                jobEnv,
 	}
 
 	return CreateJob(ctx, d.clientSet, jobOpts)
@@ -308,11 +308,11 @@ func (d Deployer) getEnv(ctx context.Context) ([]corev1.EnvVar, error) {
 	return env, nil
 }
 
-func (d Deployer) updateRevisionStatus(ctx context.Context, ar *model.ServiceRevision) error {
-	// Report to service revision.
-	ar.Status.SetSummary(status.WalkServiceRevision(&ar.Status))
+func (d Deployer) updateRevisionStatus(ctx context.Context, ar *model.ResourceRevision) error {
+	// Report to resource revision.
+	ar.Status.SetSummary(status.WalkResourceRevision(&ar.Status))
 
-	ar, err := d.modelClient.ServiceRevisions().UpdateOne(ar).
+	ar, err := d.modelClient.ResourceRevisions().UpdateOne(ar).
 		SetStatus(ar.Status).
 		Save(ctx)
 	if err != nil {
@@ -328,16 +328,16 @@ func (d Deployer) updateRevisionStatus(ctx context.Context, ar *model.ServiceRev
 }
 
 type createK8sSecretsOptions struct {
-	ServiceRevision *model.ServiceRevision
-	Connectors      model.Connectors
-	ProjectID       object.ID
-	EnvironmentID   object.ID
-	SubjectID       object.ID
+	ResourceRevision *model.ResourceRevision
+	Connectors       model.Connectors
+	ProjectID        object.ID
+	EnvironmentID    object.ID
+	SubjectID        object.ID
 	// Metadata.
 	ProjectName          string
 	EnvironmentName      string
-	ServiceName          string
-	ServiceID            object.ID
+	ResourceName         string
+	ResourceID           object.ID
 	ManagedNamespaceName string
 }
 
@@ -345,7 +345,7 @@ type createK8sSecretsOptions struct {
 func (d Deployer) createK8sSecrets(ctx context.Context, opts createK8sSecretsOptions) error {
 	secretData := make(map[string][]byte)
 	// SecretName terraform tfConfig name.
-	secretName := _jobSecretPrefix + string(opts.ServiceRevision.ID)
+	secretName := _jobSecretPrefix + string(opts.ResourceRevision.ID)
 
 	// Prepare terraform config files bytes for deployment.
 	terraformData, err := d.loadConfigsBytes(ctx, opts)
@@ -376,38 +376,38 @@ func (d Deployer) createK8sSecrets(ctx context.Context, opts createK8sSecretsOpt
 }
 
 type createRevisionOptions struct {
-	// ServiceID indicates the ID of service which is for create the revision.
-	ServiceID object.ID
+	// ResourceID indicates the ID of resource which is for create the revision.
+	ResourceID object.ID
 	// JobType indicates the type of the job.
 	JobType string
 }
 
-// createRevision creates a new service revision.
+// createRevision creates a new resource revision.
 // Get the latest revision, and check it if it is running.
 // If not running, then apply the latest revision.
 // If running, then wait for the latest revision to be applied.
 func (d Deployer) createRevision(
 	ctx context.Context,
 	opts createRevisionOptions,
-) (*model.ServiceRevision, error) {
+) (*model.ResourceRevision, error) {
 	// Validate if there is a running revision.
-	prevEntity, err := d.modelClient.ServiceRevisions().Query().
-		Where(servicerevision.And(
-			servicerevision.ServiceID(opts.ServiceID),
-			servicerevision.DeployerType(DeployerType))).
-		Order(model.Desc(servicerevision.FieldCreateTime)).
+	prevEntity, err := d.modelClient.ResourceRevisions().Query().
+		Where(resourcerevision.And(
+			resourcerevision.ResourceID(opts.ResourceID),
+			resourcerevision.DeployerType(DeployerType))).
+		Order(model.Desc(resourcerevision.FieldCreateTime)).
 		First(ctx)
 	if err != nil && !model.IsNotFound(err) {
 		return nil, err
 	}
 
-	if prevEntity != nil && status.ServiceRevisionStatusReady.IsUnknown(prevEntity) {
-		return nil, errors.New("service deployment is running")
+	if prevEntity != nil && status.ResourceRevisionStatusReady.IsUnknown(prevEntity) {
+		return nil, errors.New("deployment is running")
 	}
 
-	// Get the corresponding service and template version.
-	svc, err := d.modelClient.Services().Query().
-		Where(service.ID(opts.ServiceID)).
+	// Get the corresponding resource and template version.
+	res, err := d.modelClient.Resources().Query().
+		Where(resource.ID(opts.ResourceID)).
 		WithTemplate(func(tvq *model.TemplateVersionQuery) {
 			tvq.Select(
 				templateversion.FieldName,
@@ -415,28 +415,28 @@ func (d Deployer) createRevision(
 				templateversion.FieldTemplateID)
 		}).
 		Select(
-			service.FieldID,
-			service.FieldProjectID,
-			service.FieldEnvironmentID,
-			service.FieldAttributes).
+			resource.FieldID,
+			resource.FieldProjectID,
+			resource.FieldEnvironmentID,
+			resource.FieldAttributes).
 		Only(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	entity := &model.ServiceRevision{
-		ProjectID:       svc.ProjectID,
-		EnvironmentID:   svc.EnvironmentID,
-		ServiceID:       svc.ID,
-		TemplateID:      svc.Edges.Template.TemplateID,
-		TemplateName:    svc.Edges.Template.Name,
-		TemplateVersion: svc.Edges.Template.Version,
-		Attributes:      svc.Attributes,
+	entity := &model.ResourceRevision{
+		ProjectID:       res.ProjectID,
+		EnvironmentID:   res.EnvironmentID,
+		ResourceID:      res.ID,
+		TemplateID:      res.Edges.Template.TemplateID,
+		TemplateName:    res.Edges.Template.Name,
+		TemplateVersion: res.Edges.Template.Version,
+		Attributes:      res.Attributes,
 		DeployerType:    DeployerType,
 	}
 
-	status.ServiceRevisionStatusReady.Unknown(entity, "")
-	entity.Status.SetSummary(status.WalkServiceRevision(&entity.Status))
+	status.ResourceRevisionStatusReady.Unknown(entity, "")
+	entity.Status.SetSummary(status.WalkResourceRevision(&entity.Status))
 
 	// Inherit the output of previous revision to create a new one.
 	if prevEntity != nil {
@@ -446,15 +446,15 @@ func (d Deployer) createRevision(
 	switch {
 	case opts.JobType == JobTypeApply && entity.Output != "":
 		// Get required providers from the previous output after first deployment.
-		requiredProviders, err := d.getRequiredProviders(ctx, opts.ServiceID, entity.Output)
+		requiredProviders, err := d.getRequiredProviders(ctx, opts.ResourceID, entity.Output)
 		if err != nil {
 			return nil, err
 		}
 		entity.PreviousRequiredProviders = requiredProviders
 	case opts.JobType == JobTypeDestroy && entity.Output != "":
-		if status.ServiceRevisionStatusReady.IsFalse(prevEntity) {
+		if status.ResourceRevisionStatusReady.IsFalse(prevEntity) {
 			// Get required providers from the previous output after first deployment.
-			requiredProviders, err := d.getRequiredProviders(ctx, opts.ServiceID, entity.Output)
+			requiredProviders, err := d.getRequiredProviders(ctx, opts.ResourceID, entity.Output)
 			if err != nil {
 				return nil, err
 			}
@@ -472,7 +472,7 @@ func (d Deployer) createRevision(
 	}
 
 	// Create revision.
-	entity, err = d.modelClient.ServiceRevisions().Create().
+	entity, err = d.modelClient.ResourceRevisions().Create().
 		Set(entity).
 		Save(ctx)
 	if err != nil {
@@ -516,14 +516,14 @@ func (d Deployer) getRequiredProviders(
 func (d Deployer) loadConfigsBytes(ctx context.Context, opts createK8sSecretsOptions) (map[string][]byte, error) {
 	logger := log.WithName("deployer").WithName("tf")
 	// Prepare terraform tfConfig.
-	//  get module configs from service revision.
+	//  get module configs from resource revision.
 	moduleConfig, providerRequirements, err := d.getModuleConfig(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
 	// Merge current and previous required providers.
 	providerRequirements = append(providerRequirements,
-		opts.ServiceRevision.PreviousRequiredProviders...)
+		opts.ResourceRevision.PreviousRequiredProviders...)
 
 	requiredProviders := make(map[string]*tfconfig.ProviderRequirement, 0)
 	for _, p := range providerRequirements {
@@ -534,11 +534,11 @@ func (d Deployer) loadConfigsBytes(ctx context.Context, opts createK8sSecretsOpt
 		}
 	}
 
-	serviceOpts := ServiceOpts{
-		ServiceRevision: opts.ServiceRevision,
-		ServiceName:     opts.ServiceName,
-		ProjectID:       opts.ProjectID,
-		EnvironmentID:   opts.EnvironmentID,
+	revisionOpts := RevisionOpts{
+		ResourceRevision: opts.ResourceRevision,
+		ResourceName:     opts.ResourceName,
+		ProjectID:        opts.ProjectID,
+		EnvironmentID:    opts.EnvironmentID,
 	}
 	// Parse module attributes.
 	variables, dependencyOutputs, err := ParseModuleAttributes(
@@ -546,7 +546,7 @@ func (d Deployer) loadConfigsBytes(ctx context.Context, opts createK8sSecretsOpt
 		d.modelClient,
 		moduleConfig.Attributes,
 		false,
-		serviceOpts,
+		revisionOpts,
 	)
 	if err != nil {
 		return nil, err
@@ -571,14 +571,14 @@ func (d Deployer) loadConfigsBytes(ctx context.Context, opts createK8sSecretsOpt
 		fmt.Sprintf(_backendAPI,
 			opts.ProjectID,
 			opts.EnvironmentID,
-			opts.ServiceID,
-			opts.ServiceRevision.ID))
+			opts.ResourceID,
+			opts.ResourceRevision.ID))
 
 	// Prepare API token for terraform backend.
 	const _1Day = 60 * 60 * 24
 
 	at, err := auths.CreateAccessToken(ctx,
-		d.modelClient, opts.SubjectID, types.TokenKindDeployment, string(opts.ServiceRevision.ID), pointer.Int(_1Day))
+		d.modelClient, opts.SubjectID, types.TokenKindDeployment, string(opts.ResourceRevision.ID), pointer.Int(_1Day))
 	if err != nil {
 		return nil, err
 	}
@@ -625,20 +625,20 @@ func (d Deployer) loadConfigsBytes(ctx context.Context, opts createK8sSecretsOpt
 		}
 	}
 
-	// Save input plan to service revision.
-	opts.ServiceRevision.InputPlan = string(secretMaps[config.FileMain])
-	// If service revision does not inherit variables from cloned revision,
-	// then save the parsed variables to service revision.
-	if len(opts.ServiceRevision.Variables) == 0 {
+	// Save input plan to resource revision.
+	opts.ResourceRevision.InputPlan = string(secretMaps[config.FileMain])
+	// If resource revision does not inherit variables from cloned revision,
+	// then save the parsed variables to resource revision.
+	if len(opts.ResourceRevision.Variables) == 0 {
 		variableMap := make(crypto.Map[string, string], len(variables))
 		for _, s := range variables {
 			variableMap[s.Name] = string(s.Value)
 		}
-		opts.ServiceRevision.Variables = variableMap
+		opts.ResourceRevision.Variables = variableMap
 	}
 
-	revision, err := d.modelClient.ServiceRevisions().UpdateOne(opts.ServiceRevision).
-		Set(opts.ServiceRevision).
+	revision, err := d.modelClient.ResourceRevisions().UpdateOne(opts.ResourceRevision).
+		Set(opts.ResourceRevision).
 		Save(ctx)
 	if err != nil {
 		return nil, err
@@ -675,7 +675,7 @@ func (d Deployer) getProviderSecretData(connectors model.Connectors) (map[string
 }
 
 // getModuleConfig returns module configs and required connectors to
-// get terraform module config block from service revision.
+// get terraform module config block from resource revision.
 func (d Deployer) getModuleConfig(
 	ctx context.Context,
 	opts createK8sSecretsOptions,
@@ -686,8 +686,8 @@ func (d Deployer) getModuleConfig(
 	)
 
 	predicates = append(predicates, templateversion.And(
-		templateversion.Version(opts.ServiceRevision.TemplateVersion),
-		templateversion.TemplateID(opts.ServiceRevision.TemplateID),
+		templateversion.Version(opts.ResourceRevision.TemplateVersion),
+		templateversion.TemplateID(opts.ResourceRevision.TemplateID),
 	))
 
 	templateVersion, err := d.modelClient.TemplateVersions().
@@ -711,7 +711,7 @@ func (d Deployer) getModuleConfig(
 		requiredProviders = append(requiredProviders, templateVersion.Schema.RequiredProviders...)
 	}
 
-	mc, err := getModuleConfig(opts.ServiceRevision, templateVersion, opts)
+	mc, err := getModuleConfig(opts.ResourceRevision, templateVersion, opts)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -748,13 +748,13 @@ func (d Deployer) getConnectors(ctx context.Context, environmentID object.ID) (m
 // NB(alex): the previous revision may be failed, the failed revision may not contain required providers of states.
 func (d Deployer) getPreviousRequiredProviders(
 	ctx context.Context,
-	serviceID object.ID,
+	resourceID object.ID,
 ) ([]types.ProviderRequirement, error) {
 	prevRequiredProviders := make([]types.ProviderRequirement, 0)
 
-	entity, err := d.modelClient.ServiceRevisions().Query().
-		Where(servicerevision.ServiceID(serviceID)).
-		Order(model.Desc(servicerevision.FieldCreateTime)).
+	entity, err := d.modelClient.ResourceRevisions().Query().
+		Where(resourcerevision.ResourceID(resourceID)).
+		Order(model.Desc(resourcerevision.FieldCreateTime)).
 		First(ctx)
 	if err != nil && !model.IsNotFound(err) {
 		return nil, err
@@ -781,7 +781,7 @@ func (d Deployer) getPreviousRequiredProviders(
 	return prevRequiredProviders, nil
 }
 
-func getVarConfigOptions(variables model.Variables, serviceOutputs map[string]parser.OutputState) config.CreateOptions {
+func getVarConfigOptions(variables model.Variables, resourceOutputs map[string]parser.OutputState) config.CreateOptions {
 	varsConfigOpts := config.CreateOptions{
 		Attributes: map[string]any{},
 	}
@@ -790,8 +790,8 @@ func getVarConfigOptions(variables model.Variables, serviceOutputs map[string]pa
 		varsConfigOpts.Attributes[_variablePrefix+v.Name] = v.Value
 	}
 
-	// Setup service outputs.
-	for n, v := range serviceOutputs {
+	// Setup resource outputs.
+	for n, v := range resourceOutputs {
 		varsConfigOpts.Attributes[_servicePrefix+n] = v.Value
 	}
 
@@ -799,12 +799,12 @@ func getVarConfigOptions(variables model.Variables, serviceOutputs map[string]pa
 }
 
 func getModuleConfig(
-	revision *model.ServiceRevision,
+	revision *model.ResourceRevision,
 	template *model.TemplateVersion,
 	opts createK8sSecretsOptions,
 ) (*config.ModuleConfig, error) {
 	mc := &config.ModuleConfig{
-		Name:   opts.ServiceName,
+		Name:   opts.ResourceName,
 		Source: template.Source,
 	}
 
@@ -850,13 +850,13 @@ func getModuleConfig(
 			case WalrusMetadataEnvironmentName:
 				attrValue = opts.EnvironmentName
 			case WalrusMetadataServiceName:
-				attrValue = opts.ServiceName
+				attrValue = opts.ResourceName
 			case WalrusMetadataProjectID:
 				attrValue = opts.ProjectID.String()
 			case WalrusMetadataEnvironmentID:
 				attrValue = opts.EnvironmentID.String()
-			case WalrusMetadataServiceID:
-				attrValue = opts.ServiceID.String()
+			case WalrusMetadataResourceID:
+				attrValue = opts.ResourceID.String()
 			case WalrusMetadataNamespaceName:
 				attrValue = opts.ManagedNamespaceName
 			}
@@ -881,10 +881,10 @@ func getModuleConfig(
 			valueExpression := openapi.GetOriginalValueExpression(v.Value.Extensions)
 
 			co := config.Output{
-				Sensitive:   v.Value.WriteOnly,
-				Name:        v.Value.Title,
-				ServiceName: opts.ServiceName,
-				Value:       valueExpression,
+				Sensitive:    v.Value.WriteOnly,
+				Name:         v.Value.Title,
+				ResourceName: opts.ResourceName,
+				Value:        valueExpression,
 			}
 
 			if !v.Value.WriteOnly {

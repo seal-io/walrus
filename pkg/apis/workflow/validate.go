@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	apiservice "github.com/seal-io/walrus/pkg/apis/service"
+	apiresource "github.com/seal-io/walrus/pkg/apis/resource"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/subject"
 	"github.com/seal-io/walrus/pkg/dao/types"
@@ -103,18 +103,18 @@ func (s *WorkflowStepServiceValidator) Set(input *model.WorkflowStepCreateInput)
 }
 
 func (s *WorkflowStepServiceValidator) Validate(ctx *gin.Context, client *model.Client) error {
-	sci := &model.ServiceCreateInput{}
+	rci := &model.ResourceCreateInput{}
 	scm := &ServiceCreateMeta{}
 
-	sci.SetGinContext(ctx)
-	sci.SetModelClient(client)
+	rci.SetGinContext(ctx)
+	rci.SetModelClient(client)
 
 	jsonData, err := json.Marshal(s.Attributes)
 	if err != nil {
 		return fmt.Errorf("failed to marshal service attributes: %w", err)
 	}
 
-	if err := json.Unmarshal(jsonData, sci); err != nil {
+	if err := json.Unmarshal(jsonData, rci); err != nil {
 		return fmt.Errorf("failed to unmarshal service input: %w", err)
 	}
 
@@ -122,10 +122,10 @@ func (s *WorkflowStepServiceValidator) Validate(ctx *gin.Context, client *model.
 		return fmt.Errorf("failed to unmarshal service meta: %w", err)
 	}
 
-	sci.Project = scm.Project
-	sci.Environment = scm.Environment
+	rci.Project = scm.Project
+	rci.Environment = scm.Environment
 
-	if err := apiservice.ValidateCreateInput(*sci); err != nil {
+	if err := apiresource.ValidateCreateInput(*rci); err != nil {
 		return err
 	}
 

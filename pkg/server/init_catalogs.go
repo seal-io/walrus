@@ -32,7 +32,7 @@ func (r *Server) createBuiltinCatalogs(ctx context.Context, opts initOptions) er
 	}
 
 	status.CatalogStatusInitialized.Unknown(builtin, "Initializing catalog template")
-	builtin.Status.SetSummary(status.WalkService(&builtin.Status))
+	builtin.Status.SetSummary(status.WalkResource(&builtin.Status))
 
 	c, err = opts.ModelClient.Catalogs().Create().
 		Set(builtin).

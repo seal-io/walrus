@@ -11846,7 +11846,7 @@ type ResourceComponentMutation struct {
 	name                *string
 	deployer_type       *string
 	shape               *string
-	status              *types.ServiceResourceStatus
+	status              *types.ResourceComponentStatus
 	clearedFields       map[string]struct{}
 	project             *object.ID
 	clearedproject      bool
@@ -12473,12 +12473,12 @@ func (m *ResourceComponentMutation) ResetShape() {
 }
 
 // SetStatus sets the "status" field.
-func (m *ResourceComponentMutation) SetStatus(trs types.ServiceResourceStatus) {
+func (m *ResourceComponentMutation) SetStatus(trs types.ResourceComponentStatus) {
 	m.status = &trs
 }
 
 // Status returns the value of the "status" field in the mutation.
-func (m *ResourceComponentMutation) Status() (r types.ServiceResourceStatus, exists bool) {
+func (m *ResourceComponentMutation) Status() (r types.ResourceComponentStatus, exists bool) {
 	v := m.status
 	if v == nil {
 		return
@@ -12489,7 +12489,7 @@ func (m *ResourceComponentMutation) Status() (r types.ServiceResourceStatus, exi
 // OldStatus returns the old "status" field's value of the ResourceComponent entity.
 // If the ResourceComponent object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ResourceComponentMutation) OldStatus(ctx context.Context) (v types.ServiceResourceStatus, err error) {
+func (m *ResourceComponentMutation) OldStatus(ctx context.Context) (v types.ResourceComponentStatus, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
 	}
@@ -13090,7 +13090,7 @@ func (m *ResourceComponentMutation) SetField(name string, value ent.Value) error
 		m.SetShape(v)
 		return nil
 	case resourcecomponent.FieldStatus:
-		v, ok := value.(types.ServiceResourceStatus)
+		v, ok := value.(types.ResourceComponentStatus)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

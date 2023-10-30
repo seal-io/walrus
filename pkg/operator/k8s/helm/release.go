@@ -26,7 +26,7 @@ type (
 	GetReleaseOptions = action.Configuration
 )
 
-func GetRelease(ctx context.Context, res *model.ServiceResource, opts GetReleaseOptions) (*Release, error) {
+func GetRelease(ctx context.Context, res *model.ResourceComponent, opts GetReleaseOptions) (*Release, error) {
 	// TODO(thxCode): there are several drivers of Operable backend,
 	//  https://registry.terraform.io/providers/hashicorp/helm/latest/docs#helm_driver,
 	//  get driver of the `helm` provider.
@@ -64,7 +64,7 @@ func GetRelease(ctx context.Context, res *model.ServiceResource, opts GetRelease
 
 func GetReleaseStatus(
 	ctx context.Context,
-	res *model.ServiceResource,
+	res *model.ResourceComponent,
 	opts GetReleaseOptions,
 ) (*status.Status, error) {
 	hr, err := GetRelease(ctx, res, opts)

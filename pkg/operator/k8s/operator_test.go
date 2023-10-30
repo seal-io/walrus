@@ -105,7 +105,7 @@ func TestOperator(t *testing.T) {
 	}()
 
 	// Mock application resource.
-	res := &model.ServiceResource{
+	res := &model.ResourceComponent{
 		Type:         "kubernetes_pod",
 		Name:         p.Namespace + "/" + p.Name,
 		DeployerType: types.DeployerTypeTF,
@@ -117,9 +117,9 @@ func TestOperator(t *testing.T) {
 			t.Errorf("error getting keys: %v", err)
 		}
 
-		assert.Equalf(t, keys, &types.ServiceResourceOperationKeys{
+		assert.Equalf(t, keys, &types.ResourceComponentOperationKeys{
 			Labels: []string{"Container"},
-			Keys: []types.ServiceResourceOperationKey{
+			Keys: []types.ResourceComponentOperationKey{
 				{
 					Name:       "nginx",
 					Value:      p.Namespace + "/" + p.Name + "/run/nginx",

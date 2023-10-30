@@ -6,8 +6,8 @@ import (
 	"github.com/seal-io/walrus/pkg/cron"
 	catalogskd "github.com/seal-io/walrus/pkg/scheduler/catalog"
 	connskd "github.com/seal-io/walrus/pkg/scheduler/connector"
-	svcskd "github.com/seal-io/walrus/pkg/scheduler/service"
-	svcresskd "github.com/seal-io/walrus/pkg/scheduler/serviceresource"
+	svcskd "github.com/seal-io/walrus/pkg/scheduler/resource"
+	svcresskd "github.com/seal-io/walrus/pkg/scheduler/resourcecomponent"
 	telemetryskd "github.com/seal-io/walrus/pkg/scheduler/telemetry"
 	tokenskd "github.com/seal-io/walrus/pkg/scheduler/token"
 	"github.com/seal-io/walrus/pkg/settings"
@@ -24,7 +24,7 @@ func (r *Server) startBackgroundJobs(ctx context.Context, opts initOptions) erro
 		buildResourceComponentsDiscoverJobCreator,
 		buildResourceLabelApplyJobCreator,
 		buildResourceStatusSyncJobCreator,
-		buildServiceRelationshipCheckJobCreator,
+		buildResourceRelationshipCheckJobCreator,
 		buildTelemetryPeriodicReportJobCreator,
 		buildTokenDeploymentExpireCleanJobCreator,
 	}
@@ -100,7 +100,7 @@ func buildResourceComponentsDiscoverJobCreator(opts initOptions) (es settings.Va
 }
 
 func buildResourceLabelApplyJobCreator(opts initOptions) (es settings.Value, jc cron.JobCreator) {
-	es = settings.ResourceLabelApplyCronExpr
+	es = settings.ResourceComponentLabelApplyCronExpr
 	jc = func(logger log.Logger, expr string) (cron.Expr, cron.Task, error) {
 		task, err := svcresskd.NewLabelApplyTask(logger, opts.ModelClient)
 		if err != nil {
@@ -114,7 +114,7 @@ func buildResourceLabelApplyJobCreator(opts initOptions) (es settings.Value, jc 
 }
 
 func buildResourceStatusSyncJobCreator(opts initOptions) (es settings.Value, jc cron.JobCreator) {
-	es = settings.ResourceStatusSyncCronExpr
+	es = settings.ResourceComponentStatusSyncCronExpr
 	jc = func(logger log.Logger, expr string) (cron.Expr, cron.Task, error) {
 		task, err := svcresskd.NewStatusSyncTask(logger, opts.ModelClient)
 		if err != nil {
@@ -127,10 +127,10 @@ func buildResourceStatusSyncJobCreator(opts initOptions) (es settings.Value, jc 
 	return
 }
 
-func buildServiceRelationshipCheckJobCreator(opts initOptions) (es settings.Value, jc cron.JobCreator) {
-	es = settings.ServiceRelationshipCheckCronExpr
+func buildResourceRelationshipCheckJobCreator(opts initOptions) (es settings.Value, jc cron.JobCreator) {
+	es = settings.ResourceRelationshipCheckCronExpr
 	jc = func(logger log.Logger, expr string) (cron.Expr, cron.Task, error) {
-		task, err := svcskd.NewServiceRelationshipCheckTask(logger,
+		task, err := svcskd.NewResourceRelationshipCheckTask(logger,
 			opts.ModelClient, opts.K8sConfig)
 		if err != nil {
 			return nil, nil, err

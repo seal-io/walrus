@@ -6,7 +6,7 @@ import (
 	authstoken "github.com/seal-io/walrus/pkg/auths/token"
 	"github.com/seal-io/walrus/pkg/bus/catalog"
 	"github.com/seal-io/walrus/pkg/bus/environment"
-	"github.com/seal-io/walrus/pkg/bus/servicerevision"
+	"github.com/seal-io/walrus/pkg/bus/resourcerevision"
 	"github.com/seal-io/walrus/pkg/bus/setting"
 	"github.com/seal-io/walrus/pkg/bus/template"
 	"github.com/seal-io/walrus/pkg/bus/token"
@@ -30,9 +30,9 @@ func Setup(ctx context.Context, opts SetupOptions) (err error) {
 		return
 	}
 
-	// ServiceRevision.
-	err = servicerevision.AddSubscriber("terraform-sync-service-revision-status",
-		terraform.SyncServiceRevisionStatus)
+	// ResourceRevision.
+	err = resourcerevision.AddSubscriber("terraform-sync-resource-revision-status",
+		terraform.SyncResourceRevisionStatus)
 	if err != nil {
 		return
 	}

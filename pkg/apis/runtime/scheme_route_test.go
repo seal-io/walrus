@@ -138,26 +138,26 @@ func Test_getOperationSummaryAndDescription(t *testing.T) {
 			given: Route{
 				RouteProfile: RouteProfile{
 					ResourceProfile: ResourceProfile{
-						Kinds: []string{"Project", "Environment", "Service"},
+						Kinds: []string{"Project", "Environment", "Resource"},
 					},
 					Method:     http.MethodPut,
 					Collection: true,
 				},
 			},
-			expected: "Update services of an environment that belongs to a project.",
+			expected: "Update resources of an environment that belongs to a project.",
 		},
 		{
 			name: "standard collection delete with three prerequisite kinds",
 			given: Route{
 				RouteProfile: RouteProfile{
 					ResourceProfile: ResourceProfile{
-						Kinds: []string{"Project", "Environment", "Service", "ServiceRevision"},
+						Kinds: []string{"Project", "Environment", "Resource", "ResourceRevision"},
 					},
 					Method:     http.MethodDelete,
 					Collection: true,
 				},
 			},
-			expected: "Delete service revisions that belongs to an environment of a project.",
+			expected: "Delete resource revisions that belongs to an environment of a project.",
 		},
 		{
 			name: "long description",
@@ -172,8 +172,8 @@ func Test_getOperationSummaryAndDescription(t *testing.T) {
 							"Organization",
 							"Project",
 							"Environment",
-							"Service",
 							"Resource",
+							"Component",
 						},
 					},
 					Method:     http.MethodGet,
@@ -181,7 +181,7 @@ func Test_getOperationSummaryAndDescription(t *testing.T) {
 					CustomName: "Log",
 				},
 			},
-			expected: "Log for a resource of a service that belongs to an environment of a project under an organization of a system below a word of a universal of a galaxy.",
+			expected: "Log for a component of a resource that belongs to an environment of a project under an organization of a system below a word of a universal of a galaxy.",
 		},
 		{
 			name: "skip same prefix",
@@ -196,8 +196,8 @@ func Test_getOperationSummaryAndDescription(t *testing.T) {
 							"Organization",
 							"Project",
 							"Environment",
-							"Service",
-							"ServiceResource",
+							"Resource",
+							"ResourceComponent",
 						},
 					},
 					Method:     http.MethodGet,
@@ -205,7 +205,7 @@ func Test_getOperationSummaryAndDescription(t *testing.T) {
 					CustomName: "Log",
 				},
 			},
-			expected: "Log for a service resource that belongs to an environment of a project under an organization of a system below a word of a universal of a galaxy.",
+			expected: "Log for a resource component that belongs to an environment of a project under an organization of a system below a word of a universal of a galaxy.",
 		},
 		{
 			name: "custom get",

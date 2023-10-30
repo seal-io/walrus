@@ -37,11 +37,11 @@ type AbsProviderConfig struct {
 
 type Parser struct{}
 
-// ParseServiceRevision parse the service revision output(terraform state) to service resources,
+// ParseResourceRevision parse the service revision output(terraform state) to service resources,
 // returns list must not be `nil` unless unexpected input or raising error,
 // it can be used to clean stale items safety if got an empty list.
-func (p Parser) ParseServiceRevision(revision *model.ServiceRevision) (
-	model.ServiceResources, map[string][]string, error,
+func (p Parser) ParseResourceRevision(revision *model.ResourceRevision) (
+	model.ResourceComponents, map[string][]string, error,
 ) {
 	return p.ParseState(revision.Output, revision)
 }
@@ -51,9 +51,9 @@ func (p Parser) ParseServiceRevision(revision *model.ServiceRevision) (
 // it can be used to clean stale items safety if got an empty list.
 func (p Parser) ParseState(
 	stateStr string,
-	revision *model.ServiceRevision,
+	revision *model.ResourceRevision,
 ) (
-	resources model.ServiceResources,
+	resources model.ResourceComponents,
 	dependencies map[string][]string,
 	err error,
 ) {
@@ -69,8 +69,8 @@ func (p Parser) ParseState(
 		// ModuleDependencies maps resource unique index to its dependencies resource unique indexes.
 		resourceDependencies = make(map[string][]string)
 		// ModuleResourceMap maps terraform module key to resource.
-		moduleResourceMap = make(map[string]*model.ServiceResource)
-		key               = dao.ServiceResourceGetUniqueKey
+		moduleResourceMap = make(map[string]*model.ResourceComponent)
+		key               = dao.ResourceComponentGetUniqueKey
 	)
 
 	for _, rs := range revisionState.Resources {
@@ -78,7 +78,7 @@ func (p Parser) ParseState(
 		default:
 			logger.Errorf("unknown resource mode: %s", rs.Mode)
 			continue
-		case types.ServiceResourceModeManaged, types.ServiceResourceModeData:
+		case types.ResourceComponentModeManaged, types.ResourceComponentModeData:
 		}
 
 		// Try to get the connectorID id from the provider.
@@ -93,22 +93,22 @@ func (p Parser) ParseState(
 			continue
 		}
 
-		classResource := &model.ServiceResource{
+		classResource := &model.ResourceComponent{
 			ProjectID:     revision.ProjectID,
 			EnvironmentID: revision.EnvironmentID,
-			ServiceID:     revision.ServiceID,
+			ResourceID:    revision.ResourceID,
 			ConnectorID:   object.ID(connectorID),
 			Mode:          rs.Mode,
 			Type:          rs.Type,
 			Name:          rs.Name,
 			DeployerType:  revision.DeployerType,
-			Shape:         types.ServiceResourceShapeClass,
+			Shape:         types.ResourceComponentShapeClass,
 		}
-		classResource.Edges.Instances = make(model.ServiceResources, len(rs.Instances))
+		classResource.Edges.Instances = make(model.ResourceComponents, len(rs.Instances))
 
 		// The module key is used to identify the terraform resource module.
 		mk := strs.Join(".", rs.Module, rs.Type, rs.Name)
-		if rs.Mode == types.ServiceResourceModeData {
+		if rs.Mode == types.ResourceComponentModeData {
 			mk = strs.Join(".", rs.Module, rs.Mode, rs.Type, rs.Name)
 		}
 		moduleResourceMap[mk] = classResource
@@ -147,15 +147,15 @@ func (p Parser) ParseState(
 				}
 			}
 
-			instanceResource := &model.ServiceResource{
+			instanceResource := &model.ResourceComponent{
 				ProjectID:     revision.ProjectID,
 				EnvironmentID: revision.EnvironmentID,
-				ServiceID:     revision.ServiceID,
+				ResourceID:    revision.ResourceID,
 				ConnectorID:   object.ID(connectorID),
 				Mode:          rs.Mode,
 				Type:          rs.Type,
 				Name:          instanceID,
-				Shape:         types.ServiceResourceShapeInstance,
+				Shape:         types.ResourceComponentShapeInstance,
 				DeployerType:  revision.DeployerType,
 			}
 
@@ -188,7 +188,7 @@ func (p Parser) ParseState(
 	return resources, dependencies, nil
 }
 
-func ParseStateOutputRawMap(revision *model.ServiceRevision) (map[string]OutputState, error) {
+func ParseStateOutputRawMap(revision *model.ResourceRevision) (map[string]OutputState, error) {
 	if len(revision.Output) == 0 {
 		return nil, nil
 	}
@@ -201,7 +201,7 @@ func ParseStateOutputRawMap(revision *model.ServiceRevision) (map[string]OutputS
 	return revisionState.Outputs, nil
 }
 
-func ParseStateOutput(revision *model.ServiceRevision) ([]types.OutputValue, error) {
+func ParseStateOutput(revision *model.ResourceRevision) ([]types.OutputValue, error) {
 	if len(revision.Output) == 0 {
 		return nil, nil
 	}
@@ -211,7 +211,7 @@ func ParseStateOutput(revision *model.ServiceRevision) ([]types.OutputValue, err
 		return nil, err
 	}
 
-	sn := revision.Edges.Service.Name
+	sn := revision.Edges.Resource.Name
 
 	var outputs []types.OutputValue
 

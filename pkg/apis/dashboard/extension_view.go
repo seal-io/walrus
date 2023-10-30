@@ -25,16 +25,16 @@ type RevisionStatusStats struct {
 }
 
 type (
-	CollectionRouteGetLatestServiceRevisionsRequest struct {
+	CollectionRouteGetLatestResourceRevisionsRequest struct {
 		_ struct{} `route:"GET=/latest-service-revisions"`
 
 		Context *gin.Context
 	}
 
-	CollectionRouteGetLatestServiceRevisionsResponse = []*model.ServiceRevisionOutput
+	CollectionRouteGetLatestResourceRevisionsResponse = []*model.ResourceRevisionOutput
 )
 
-func (r *CollectionRouteGetLatestServiceRevisionsRequest) SetGinContext(ctx *gin.Context) {
+func (r *CollectionRouteGetLatestResourceRevisionsRequest) SetGinContext(ctx *gin.Context) {
 	r.Context = ctx
 }
 
@@ -42,8 +42,8 @@ type (
 	CollectionRouteGetBasicInformationRequest struct {
 		_ struct{} `route:"GET=/basic-information"`
 
-		WithServiceResource bool `query:"withServiceResource,omitempty"`
-		WithServiceRevision bool `query:"withServiceRevision,omitempty"`
+		WithResourceComponent bool `query:"withResourceComponent,omitempty"`
+		WithResourceRevision  bool `query:"withResourceRevision,omitempty"`
 
 		Context *gin.Context
 	}
@@ -58,9 +58,9 @@ type (
 		// Service number.
 		Service int `json:"service"`
 		// Service resource number.
-		ServiceResource int `json:"serviceResource,omitempty"`
+		ResourceComponent int `json:"serviceResource,omitempty"`
 		// Service revision number.
-		ServiceRevision int `json:"serviceRevision,omitempty"`
+		ResourceRevision int `json:"serviceRevision,omitempty"`
 	}
 )
 
@@ -69,7 +69,7 @@ func (r *CollectionRouteGetBasicInformationRequest) SetGinContext(ctx *gin.Conte
 }
 
 type (
-	CollectionRouteGetServiceRevisionStatisticsRequest struct {
+	CollectionRouteGetResourceRevisionStatisticsRequest struct {
 		_ struct{} `route:"POST=/service-revision-statistics"`
 
 		Step      string    `json:"step"`
@@ -79,13 +79,13 @@ type (
 		Context *gin.Context
 	}
 
-	CollectionRouteGetServiceRevisionStatisticsResponse struct {
+	CollectionRouteGetResourceRevisionStatisticsResponse struct {
 		StatusCount *RevisionStatusCount   `json:"statusCount"`
 		StatusStats []*RevisionStatusStats `json:"statusStats"`
 	}
 )
 
-func (r *CollectionRouteGetServiceRevisionStatisticsRequest) Validate() error {
+func (r *CollectionRouteGetResourceRevisionStatisticsRequest) Validate() error {
 	if err := validation.TimeRange(r.StartTime, r.EndTime); err != nil {
 		return err
 	}
@@ -99,6 +99,6 @@ func (r *CollectionRouteGetServiceRevisionStatisticsRequest) Validate() error {
 	return nil
 }
 
-func (r *CollectionRouteGetServiceRevisionStatisticsRequest) SetGinContext(ctx *gin.Context) {
+func (r *CollectionRouteGetResourceRevisionStatisticsRequest) SetGinContext(ctx *gin.Context) {
 	r.Context = ctx
 }

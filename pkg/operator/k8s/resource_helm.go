@@ -15,12 +15,12 @@ import (
 	"github.com/seal-io/walrus/utils/strs"
 )
 
-// parseResourcesOfHelm parses the given `helm_release` model.ServiceResource,
+// parseResourcesOfHelm parses the given `helm_release` model.ResourceComponent,
 // and keeps resource item which matches.
 func parseResourcesOfHelm(
 	ctx context.Context,
 	op Operator,
-	res *model.ServiceResource,
+	res *model.ResourceComponent,
 	match func(schema.GroupVersionKind) bool,
 ) ([]resource, error) {
 	if match == nil {

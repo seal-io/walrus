@@ -11,7 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
-	"github.com/seal-io/walrus/pkg/dao/model/service"
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/settings"
 	"github.com/seal-io/walrus/pkg/workflow/step/types"
@@ -39,7 +39,7 @@ fi
 
 # If jobType create service.
 if [ "$jobType" == "create" ]; then
-	response=$(curl -s "$commonPath/services" -X "POST" -H "content-type: application/json" -H "Authorization: Bearer $token" -d $attributes $tlsVerify)
+	response=$(curl -s "$commonPath/resources" -X "POST" -H "content-type: application/json" -H "Authorization: Bearer $token" -d $attributes $tlsVerify)
 
 	serviceName=$(echo $response | jq -r '.name')
 	if [ "$serviceName" == "null" ]; then
@@ -51,15 +51,15 @@ fi
 
 # If jobType upgrade service.
 if [ "$jobType" == "upgrade" ]; then
-	response=$(curl -s $commonPath/services/$serviceName/upgrade -X "PUT" -H "content-type: application/json" -H "Authorization: Bearer $token" -d $attributes $tlsVerify)
+	response=$(curl -s $commonPath/resources/$serviceName/upgrade -X "PUT" -H "content-type: application/json" -H "Authorization: Bearer $token" -d $attributes $tlsVerify)
 fi
 
 # Get latest revision id
-revisionResponse=$(curl -s "$commonPath/services/$serviceName/revisions?page=1&perPage=1&sort=-createTime" -X GET -H "Authorization: Bearer $token" $tlsVerify)
+revisionResponse=$(curl -s "$commonPath/resources/$serviceName/revisions?page=1&perPage=1&sort=-createTime" -X GET -H "Authorization: Bearer $token" $tlsVerify)
 revisionID=$(echo $revisionResponse | jq -r '.items[0].id')
 
 # Watch service logs until the service finished.
-curl -o - -s "$commonPath/services/$serviceName/revisions/$revisionID/log?jobType=$watchType&watch=true" -X GET -H "Authorization: Bearer $token" $tlsVerify --compressed
+curl -o - -s "$commonPath/resources/$serviceName/revisions/$revisionID/log?jobType=$watchType&watch=true" -X GET -H "Authorization: Bearer $token" $tlsVerify --compressed
 `
 
 // ServiceStepManager is service to generate service configs.
@@ -100,15 +100,15 @@ func (s *ServiceStepManager) GenerateTemplates(
 
 	// If service exist in environment, job type is upgrade.
 	// Otherwise, job type is create.
-	svc, err := s.mc.Services().Query().
+	svc, err := s.mc.Resources().Query().
 		Select(
-			service.FieldID,
-			service.FieldName,
-			service.FieldEnvironmentID,
+			resource.FieldID,
+			resource.FieldName,
+			resource.FieldEnvironmentID,
 		).
 		Where(
-			service.EnvironmentID(object.ID(environmentID)),
-			service.Name(serviceName),
+			resource.EnvironmentID(object.ID(environmentID)),
+			resource.Name(serviceName),
 		).
 		Only(ctx)
 	if err != nil && !model.IsNotFound(err) {

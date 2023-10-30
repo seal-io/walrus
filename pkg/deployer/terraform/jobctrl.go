@@ -18,7 +18,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	revisionbus "github.com/seal-io/walrus/pkg/bus/servicerevision"
+	revisionbus "github.com/seal-io/walrus/pkg/bus/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -35,10 +35,10 @@ const (
 
 type JobCreateOptions struct {
 	// Type is the deployment type of job, apply or destroy or other.
-	Type              string
-	ServiceRevisionID string
-	Image             string
-	Env               []corev1.EnvVar
+	Type               string
+	ResourceRevisionID string
+	Image              string
+	Env                []corev1.EnvVar
 }
 
 type StreamJobLogsOptions struct {
@@ -112,13 +112,13 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 		return nil
 	}
 
-	appRevision, err := r.ModelClient.ServiceRevisions().Get(ctx, object.ID(appRevisionID))
+	appRevision, err := r.ModelClient.ResourceRevisions().Get(ctx, object.ID(appRevisionID))
 	if err != nil {
 		return err
 	}
 
 	// If the application revision status is not running, then skip it.
-	if !status.ServiceRevisionStatusReady.IsUnknown(appRevision) {
+	if !status.ResourceRevisionStatusReady.IsUnknown(appRevision) {
 		return nil
 	}
 
@@ -126,7 +126,7 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 		return nil
 	}
 
-	status.ServiceRevisionStatusReady.True(appRevision, "")
+	status.ResourceRevisionStatusReady.True(appRevision, "")
 
 	// Get job pods logs.
 	record, err := r.getJobPodsLogs(ctx, job.Name)
@@ -141,15 +141,15 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 
 	if job.Status.Failed > 0 {
 		r.Logger.Info("failed", "application-revision", appRevisionID)
-		status.ServiceRevisionStatusReady.False(appRevision, "")
+		status.ResourceRevisionStatusReady.False(appRevision, "")
 	}
 
 	// Report to application revision.
 	appRevision.Record = record
-	appRevision.Status.SetSummary(status.WalkServiceRevision(&appRevision.Status))
+	appRevision.Status.SetSummary(status.WalkResourceRevision(&appRevision.Status))
 	appRevision.Duration = int(time.Since(*appRevision.CreateTime).Seconds())
 
-	appRevision, err = r.ModelClient.ServiceRevisions().UpdateOne(appRevision).
+	appRevision, err = r.ModelClient.ResourceRevisions().UpdateOne(appRevision).
 		SetStatus(appRevision.Status).
 		SetRecord(appRevision.Record).
 		SetDuration(appRevision.Duration).
@@ -199,8 +199,8 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 
 		backoffLimit            int32 = 0
 		ttlSecondsAfterFinished int32 = 3600
-		name                          = getK8sJobName(_jobNameFormat, opts.Type, opts.ServiceRevisionID)
-		configName                    = _jobSecretPrefix + opts.ServiceRevisionID
+		name                          = getK8sJobName(_jobNameFormat, opts.Type, opts.ResourceRevisionID)
+		configName                    = _jobSecretPrefix + opts.ResourceRevisionID
 	)
 
 	secret, err := clientSet.CoreV1().Secrets(types.WalrusSystemNamespace).Get(ctx, configName, metav1.GetOptions{})
@@ -208,7 +208,7 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 		return err
 	}
 
-	podTemplate := getPodTemplate(opts.ServiceRevisionID, configName, opts)
+	podTemplate := getPodTemplate(opts.ResourceRevisionID, configName, opts)
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,

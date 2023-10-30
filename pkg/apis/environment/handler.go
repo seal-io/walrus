@@ -3,8 +3,8 @@ package environment
 import (
 	"k8s.io/client-go/rest"
 
+	"github.com/seal-io/walrus/pkg/apis/resource"
 	"github.com/seal-io/walrus/pkg/apis/runtime"
-	"github.com/seal-io/walrus/pkg/apis/service"
 	"github.com/seal-io/walrus/pkg/apis/variable"
 	"github.com/seal-io/walrus/pkg/dao/model"
 )
@@ -28,6 +28,6 @@ func (Handler) Kind() string {
 func (h Handler) SubResourceHandlers() []runtime.IResourceHandler {
 	return []runtime.IResourceHandler{
 		variable.Handle(h.modelClient),
-		service.Handle(h.modelClient, h.kubeConfig),
+		resource.Handle(h.modelClient, h.kubeConfig),
 	}
 }
