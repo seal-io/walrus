@@ -21,9 +21,9 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/connector"
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
-	"github.com/seal-io/walrus/pkg/dao/model/service"
-	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
-	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
@@ -158,49 +158,49 @@ func (pc *ProjectCreate) AddSubjectRoles(s ...*SubjectRoleRelationship) *Project
 	return pc.AddSubjectRoleIDs(ids...)
 }
 
-// AddServiceIDs adds the "services" edge to the Service entity by IDs.
-func (pc *ProjectCreate) AddServiceIDs(ids ...object.ID) *ProjectCreate {
-	pc.mutation.AddServiceIDs(ids...)
+// AddResourceIDs adds the "resources" edge to the Resource entity by IDs.
+func (pc *ProjectCreate) AddResourceIDs(ids ...object.ID) *ProjectCreate {
+	pc.mutation.AddResourceIDs(ids...)
 	return pc
 }
 
-// AddServices adds the "services" edges to the Service entity.
-func (pc *ProjectCreate) AddServices(s ...*Service) *ProjectCreate {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// AddResources adds the "resources" edges to the Resource entity.
+func (pc *ProjectCreate) AddResources(r ...*Resource) *ProjectCreate {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return pc.AddServiceIDs(ids...)
+	return pc.AddResourceIDs(ids...)
 }
 
-// AddServiceResourceIDs adds the "service_resources" edge to the ServiceResource entity by IDs.
-func (pc *ProjectCreate) AddServiceResourceIDs(ids ...object.ID) *ProjectCreate {
-	pc.mutation.AddServiceResourceIDs(ids...)
+// AddResourceComponentIDs adds the "resource_components" edge to the ResourceComponent entity by IDs.
+func (pc *ProjectCreate) AddResourceComponentIDs(ids ...object.ID) *ProjectCreate {
+	pc.mutation.AddResourceComponentIDs(ids...)
 	return pc
 }
 
-// AddServiceResources adds the "service_resources" edges to the ServiceResource entity.
-func (pc *ProjectCreate) AddServiceResources(s ...*ServiceResource) *ProjectCreate {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// AddResourceComponents adds the "resource_components" edges to the ResourceComponent entity.
+func (pc *ProjectCreate) AddResourceComponents(r ...*ResourceComponent) *ProjectCreate {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return pc.AddServiceResourceIDs(ids...)
+	return pc.AddResourceComponentIDs(ids...)
 }
 
-// AddServiceRevisionIDs adds the "service_revisions" edge to the ServiceRevision entity by IDs.
-func (pc *ProjectCreate) AddServiceRevisionIDs(ids ...object.ID) *ProjectCreate {
-	pc.mutation.AddServiceRevisionIDs(ids...)
+// AddResourceRevisionIDs adds the "resource_revisions" edge to the ResourceRevision entity by IDs.
+func (pc *ProjectCreate) AddResourceRevisionIDs(ids ...object.ID) *ProjectCreate {
+	pc.mutation.AddResourceRevisionIDs(ids...)
 	return pc
 }
 
-// AddServiceRevisions adds the "service_revisions" edges to the ServiceRevision entity.
-func (pc *ProjectCreate) AddServiceRevisions(s ...*ServiceRevision) *ProjectCreate {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// AddResourceRevisions adds the "resource_revisions" edges to the ResourceRevision entity.
+func (pc *ProjectCreate) AddResourceRevisions(r ...*ResourceRevision) *ProjectCreate {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return pc.AddServiceRevisionIDs(ids...)
+	return pc.AddResourceRevisionIDs(ids...)
 }
 
 // AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
@@ -543,52 +543,52 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.mutation.ServicesIDs(); len(nodes) > 0 {
+	if nodes := pc.mutation.ResourcesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ServicesTable,
-			Columns: []string{project.ServicesColumn},
+			Table:   project.ResourcesTable,
+			Columns: []string{project.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = pc.schemaConfig.Service
+		edge.Schema = pc.schemaConfig.Resource
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.mutation.ServiceResourcesIDs(); len(nodes) > 0 {
+	if nodes := pc.mutation.ResourceComponentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ServiceResourcesTable,
-			Columns: []string{project.ServiceResourcesColumn},
+			Table:   project.ResourceComponentsTable,
+			Columns: []string{project.ResourceComponentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcecomponent.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = pc.schemaConfig.ServiceResource
+		edge.Schema = pc.schemaConfig.ResourceComponent
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.mutation.ServiceRevisionsIDs(); len(nodes) > 0 {
+	if nodes := pc.mutation.ResourceRevisionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ServiceRevisionsTable,
-			Columns: []string{project.ServiceRevisionsColumn},
+			Table:   project.ResourceRevisionsTable,
+			Columns: []string{project.ResourceRevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(servicerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = pc.schemaConfig.ServiceRevision
+		edge.Schema = pc.schemaConfig.ResourceRevision
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

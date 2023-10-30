@@ -69,8 +69,8 @@ type ConnectorEdges struct {
 	Project *Project `json:"project,omitempty"`
 	// Environments holds the value of the environments edge.
 	Environments []*EnvironmentConnectorRelationship `json:"environments,omitempty"`
-	// ServiceResources that use the connector.
-	Resources []*ServiceResource `json:"resources,omitempty"`
+	// ResourceComponents that use the connector.
+	ResourceComponents []*ResourceComponent `json:"resource_components,omitempty"`
 	// CostReports that linked to the connection.
 	CostReports []*CostReport `json:"cost_reports,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -100,13 +100,13 @@ func (e ConnectorEdges) EnvironmentsOrErr() ([]*EnvironmentConnectorRelationship
 	return nil, &NotLoadedError{edge: "environments"}
 }
 
-// ResourcesOrErr returns the Resources value or an error if the edge
+// ResourceComponentsOrErr returns the ResourceComponents value or an error if the edge
 // was not loaded in eager-loading.
-func (e ConnectorEdges) ResourcesOrErr() ([]*ServiceResource, error) {
+func (e ConnectorEdges) ResourceComponentsOrErr() ([]*ResourceComponent, error) {
 	if e.loadedTypes[2] {
-		return e.Resources, nil
+		return e.ResourceComponents, nil
 	}
-	return nil, &NotLoadedError{edge: "resources"}
+	return nil, &NotLoadedError{edge: "resource_components"}
 }
 
 // CostReportsOrErr returns the CostReports value or an error if the edge
@@ -279,9 +279,9 @@ func (c *Connector) QueryEnvironments() *EnvironmentConnectorRelationshipQuery {
 	return NewConnectorClient(c.config).QueryEnvironments(c)
 }
 
-// QueryResources queries the "resources" edge of the Connector entity.
-func (c *Connector) QueryResources() *ServiceResourceQuery {
-	return NewConnectorClient(c.config).QueryResources(c)
+// QueryResourceComponents queries the "resource_components" edge of the Connector entity.
+func (c *Connector) QueryResourceComponents() *ResourceComponentQuery {
+	return NewConnectorClient(c.config).QueryResourceComponents(c)
 }
 
 // QueryCostReports queries the "cost_reports" edge of the Connector entity.

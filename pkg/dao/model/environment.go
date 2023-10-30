@@ -52,12 +52,12 @@ type EnvironmentEdges struct {
 	Project *Project `json:"project,omitempty"`
 	// Connectors holds the value of the connectors edge.
 	Connectors []*EnvironmentConnectorRelationship `json:"connectors,omitempty"`
-	// Services that belong to the environment.
-	Services []*Service `json:"services,omitempty,cli-ignore"`
-	// ServicesRevisions that belong to the environment.
-	ServiceRevisions []*ServiceRevision `json:"service_revisions,omitempty"`
-	// ServiceResources that belong to the environment.
-	ServiceResources []*ServiceResource `json:"service_resources,omitempty"`
+	// Resources that belong to the environment.
+	Resources []*Resource `json:"resources,omitempty,cli-ignore"`
+	// ResourceRevisions that belong to the environment.
+	ResourceRevisions []*ResourceRevision `json:"resource_revisions,omitempty"`
+	// ResourceComponents that belong to the environment.
+	ResourceComponents []*ResourceComponent `json:"resource_components,omitempty"`
 	// Variables that belong to the environment.
 	Variables []*Variable `json:"variables,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -87,31 +87,31 @@ func (e EnvironmentEdges) ConnectorsOrErr() ([]*EnvironmentConnectorRelationship
 	return nil, &NotLoadedError{edge: "connectors"}
 }
 
-// ServicesOrErr returns the Services value or an error if the edge
+// ResourcesOrErr returns the Resources value or an error if the edge
 // was not loaded in eager-loading.
-func (e EnvironmentEdges) ServicesOrErr() ([]*Service, error) {
+func (e EnvironmentEdges) ResourcesOrErr() ([]*Resource, error) {
 	if e.loadedTypes[2] {
-		return e.Services, nil
+		return e.Resources, nil
 	}
-	return nil, &NotLoadedError{edge: "services"}
+	return nil, &NotLoadedError{edge: "resources"}
 }
 
-// ServiceRevisionsOrErr returns the ServiceRevisions value or an error if the edge
+// ResourceRevisionsOrErr returns the ResourceRevisions value or an error if the edge
 // was not loaded in eager-loading.
-func (e EnvironmentEdges) ServiceRevisionsOrErr() ([]*ServiceRevision, error) {
+func (e EnvironmentEdges) ResourceRevisionsOrErr() ([]*ResourceRevision, error) {
 	if e.loadedTypes[3] {
-		return e.ServiceRevisions, nil
+		return e.ResourceRevisions, nil
 	}
-	return nil, &NotLoadedError{edge: "service_revisions"}
+	return nil, &NotLoadedError{edge: "resource_revisions"}
 }
 
-// ServiceResourcesOrErr returns the ServiceResources value or an error if the edge
+// ResourceComponentsOrErr returns the ResourceComponents value or an error if the edge
 // was not loaded in eager-loading.
-func (e EnvironmentEdges) ServiceResourcesOrErr() ([]*ServiceResource, error) {
+func (e EnvironmentEdges) ResourceComponentsOrErr() ([]*ResourceComponent, error) {
 	if e.loadedTypes[4] {
-		return e.ServiceResources, nil
+		return e.ResourceComponents, nil
 	}
-	return nil, &NotLoadedError{edge: "service_resources"}
+	return nil, &NotLoadedError{edge: "resource_components"}
 }
 
 // VariablesOrErr returns the Variables value or an error if the edge
@@ -234,19 +234,19 @@ func (e *Environment) QueryConnectors() *EnvironmentConnectorRelationshipQuery {
 	return NewEnvironmentClient(e.config).QueryConnectors(e)
 }
 
-// QueryServices queries the "services" edge of the Environment entity.
-func (e *Environment) QueryServices() *ServiceQuery {
-	return NewEnvironmentClient(e.config).QueryServices(e)
+// QueryResources queries the "resources" edge of the Environment entity.
+func (e *Environment) QueryResources() *ResourceQuery {
+	return NewEnvironmentClient(e.config).QueryResources(e)
 }
 
-// QueryServiceRevisions queries the "service_revisions" edge of the Environment entity.
-func (e *Environment) QueryServiceRevisions() *ServiceRevisionQuery {
-	return NewEnvironmentClient(e.config).QueryServiceRevisions(e)
+// QueryResourceRevisions queries the "resource_revisions" edge of the Environment entity.
+func (e *Environment) QueryResourceRevisions() *ResourceRevisionQuery {
+	return NewEnvironmentClient(e.config).QueryResourceRevisions(e)
 }
 
-// QueryServiceResources queries the "service_resources" edge of the Environment entity.
-func (e *Environment) QueryServiceResources() *ServiceResourceQuery {
-	return NewEnvironmentClient(e.config).QueryServiceResources(e)
+// QueryResourceComponents queries the "resource_components" edge of the Environment entity.
+func (e *Environment) QueryResourceComponents() *ResourceComponentQuery {
+	return NewEnvironmentClient(e.config).QueryResourceComponents(e)
 }
 
 // QueryVariables queries the "variables" edge of the Environment entity.

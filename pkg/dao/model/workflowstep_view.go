@@ -38,11 +38,11 @@ type WorkflowStepCreateInput struct {
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Attributes of the workflow step.
-	Attributes map[string]any `path:"-" query:"-" json:"attributes,omitempty"`
+	Attributes map[string]interface{} `path:"-" query:"-" json:"attributes,omitempty"`
 	// Inputs of the workflow step.
-	Inputs map[string]any `path:"-" query:"-" json:"inputs,omitempty"`
+	Inputs map[string]interface{} `path:"-" query:"-" json:"inputs,omitempty"`
 	// Outputs of the workflow step.
-	Outputs map[string]any `path:"-" query:"-" json:"outputs,omitempty"`
+	Outputs map[string]interface{} `path:"-" query:"-" json:"outputs,omitempty"`
 	// ID list of the workflow steps that this workflow step depends on.
 	Dependencies []object.ID `path:"-" query:"-" json:"dependencies,omitempty"`
 	// Retry policy of the workflow step.
@@ -130,11 +130,11 @@ type WorkflowStepCreateInputsItem struct {
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Attributes of the workflow step.
-	Attributes map[string]any `path:"-" query:"-" json:"attributes,omitempty"`
+	Attributes map[string]interface{} `path:"-" query:"-" json:"attributes,omitempty"`
 	// Inputs of the workflow step.
-	Inputs map[string]any `path:"-" query:"-" json:"inputs,omitempty"`
+	Inputs map[string]interface{} `path:"-" query:"-" json:"inputs,omitempty"`
 	// Outputs of the workflow step.
-	Outputs map[string]any `path:"-" query:"-" json:"outputs,omitempty"`
+	Outputs map[string]interface{} `path:"-" query:"-" json:"outputs,omitempty"`
 	// ID list of the workflow steps that this workflow step depends on.
 	Dependencies []object.ID `path:"-" query:"-" json:"dependencies,omitempty"`
 	// Retry policy of the workflow step.
@@ -569,11 +569,11 @@ type WorkflowStepUpdateInput struct {
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Attributes of the workflow step.
-	Attributes map[string]any `path:"-" query:"-" json:"attributes,omitempty"`
+	Attributes map[string]interface{} `path:"-" query:"-" json:"attributes,omitempty"`
 	// Inputs of the workflow step.
-	Inputs map[string]any `path:"-" query:"-" json:"inputs,omitempty"`
+	Inputs map[string]interface{} `path:"-" query:"-" json:"inputs,omitempty"`
 	// Outputs of the workflow step.
-	Outputs map[string]any `path:"-" query:"-" json:"outputs,omitempty"`
+	Outputs map[string]interface{} `path:"-" query:"-" json:"outputs,omitempty"`
 	// ID list of the workflow steps that this workflow step depends on.
 	Dependencies []object.ID `path:"-" query:"-" json:"dependencies,omitempty"`
 	// Retry policy of the workflow step.
@@ -636,11 +636,11 @@ type WorkflowStepUpdateInputsItem struct {
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Attributes of the workflow step.
-	Attributes map[string]any `path:"-" query:"-" json:"attributes,omitempty"`
+	Attributes map[string]interface{} `path:"-" query:"-" json:"attributes,omitempty"`
 	// Inputs of the workflow step.
-	Inputs map[string]any `path:"-" query:"-" json:"inputs,omitempty"`
+	Inputs map[string]interface{} `path:"-" query:"-" json:"inputs,omitempty"`
 	// Outputs of the workflow step.
-	Outputs map[string]any `path:"-" query:"-" json:"outputs,omitempty"`
+	Outputs map[string]interface{} `path:"-" query:"-" json:"outputs,omitempty"`
 	// ID list of the workflow steps that this workflow step depends on.
 	Dependencies []object.ID `path:"-" query:"-" json:"dependencies"`
 	// Retry policy of the workflow step.
@@ -803,20 +803,20 @@ func (wsui *WorkflowStepUpdateInputs) ValidateWith(ctx context.Context, cs Clien
 
 // WorkflowStepOutput holds the output of the WorkflowStep entity.
 type WorkflowStepOutput struct {
-	ID            object.ID            `json:"id,omitempty"`
-	Name          string               `json:"name,omitempty"`
-	Description   string               `json:"description,omitempty"`
-	Labels        map[string]string    `json:"labels,omitempty"`
-	CreateTime    *time.Time           `json:"createTime,omitempty"`
-	UpdateTime    *time.Time           `json:"updateTime,omitempty"`
-	Type          string               `json:"type,omitempty"`
-	WorkflowID    object.ID            `json:"workflowID,omitempty"`
-	Attributes    map[string]any       `json:"attributes,omitempty"`
-	Inputs        map[string]any       `json:"inputs,omitempty"`
-	Outputs       map[string]any       `json:"outputs,omitempty"`
-	Dependencies  []object.ID          `json:"dependencies,omitempty"`
-	RetryStrategy *types.RetryStrategy `json:"retryStrategy,omitempty"`
-	Timeout       int                  `json:"timeout,omitempty"`
+	ID            object.ID              `json:"id,omitempty"`
+	Name          string                 `json:"name,omitempty"`
+	Description   string                 `json:"description,omitempty"`
+	Labels        map[string]string      `json:"labels,omitempty"`
+	CreateTime    *time.Time             `json:"createTime,omitempty"`
+	UpdateTime    *time.Time             `json:"updateTime,omitempty"`
+	Type          string                 `json:"type,omitempty"`
+	WorkflowID    object.ID              `json:"workflowID,omitempty"`
+	Attributes    map[string]interface{} `json:"attributes,omitempty"`
+	Inputs        map[string]interface{} `json:"inputs,omitempty"`
+	Outputs       map[string]interface{} `json:"outputs,omitempty"`
+	Dependencies  []object.ID            `json:"dependencies,omitempty"`
+	RetryStrategy *types.RetryStrategy   `json:"retryStrategy,omitempty"`
+	Timeout       int                    `json:"timeout,omitempty"`
 
 	Project *ProjectOutput       `json:"project,omitempty"`
 	Stage   *WorkflowStageOutput `json:"stage,omitempty"`

@@ -21,7 +21,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/costreport"
 	"github.com/seal-io/walrus/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
-	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -194,19 +194,19 @@ func (cc *ConnectorCreate) AddEnvironments(e ...*EnvironmentConnectorRelationshi
 	return cc.AddEnvironmentIDs(ids...)
 }
 
-// AddResourceIDs adds the "resources" edge to the ServiceResource entity by IDs.
-func (cc *ConnectorCreate) AddResourceIDs(ids ...object.ID) *ConnectorCreate {
-	cc.mutation.AddResourceIDs(ids...)
+// AddResourceComponentIDs adds the "resource_components" edge to the ResourceComponent entity by IDs.
+func (cc *ConnectorCreate) AddResourceComponentIDs(ids ...object.ID) *ConnectorCreate {
+	cc.mutation.AddResourceComponentIDs(ids...)
 	return cc
 }
 
-// AddResources adds the "resources" edges to the ServiceResource entity.
-func (cc *ConnectorCreate) AddResources(s ...*ServiceResource) *ConnectorCreate {
-	ids := make([]object.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+// AddResourceComponents adds the "resource_components" edges to the ResourceComponent entity.
+func (cc *ConnectorCreate) AddResourceComponents(r ...*ResourceComponent) *ConnectorCreate {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return cc.AddResourceIDs(ids...)
+	return cc.AddResourceComponentIDs(ids...)
 }
 
 // AddCostReportIDs adds the "cost_reports" edge to the CostReport entity by IDs.
@@ -469,18 +469,18 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := cc.mutation.ResourcesIDs(); len(nodes) > 0 {
+	if nodes := cc.mutation.ResourceComponentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   connector.ResourcesTable,
-			Columns: []string{connector.ResourcesColumn},
+			Table:   connector.ResourceComponentsTable,
+			Columns: []string{connector.ResourceComponentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcecomponent.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = cc.schemaConfig.ServiceResource
+		edge.Schema = cc.schemaConfig.ResourceComponent
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

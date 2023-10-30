@@ -21,12 +21,12 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/perspective"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponentrelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/role"
-	"github.com/seal-io/walrus/pkg/dao/model/service"
-	"github.com/seal-io/walrus/pkg/dao/model/servicerelationship"
-	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
-	"github.com/seal-io/walrus/pkg/dao/model/serviceresourcerelationship"
-	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/setting"
 	"github.com/seal-io/walrus/pkg/dao/model/subject"
 	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
@@ -314,6 +314,141 @@ func (f TraverseProject) Traverse(ctx context.Context, q model.Query) error {
 	return fmt.Errorf("unexpected query type %T. expect *model.ProjectQuery", q)
 }
 
+// The ResourceFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ResourceFunc func(context.Context, *model.ResourceQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f ResourceFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.ResourceQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.ResourceQuery", q)
+}
+
+// The TraverseResource type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseResource func(context.Context, *model.ResourceQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseResource) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseResource) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ResourceQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.ResourceQuery", q)
+}
+
+// The ResourceComponentFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ResourceComponentFunc func(context.Context, *model.ResourceComponentQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f ResourceComponentFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.ResourceComponentQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.ResourceComponentQuery", q)
+}
+
+// The TraverseResourceComponent type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseResourceComponent func(context.Context, *model.ResourceComponentQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseResourceComponent) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseResourceComponent) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ResourceComponentQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.ResourceComponentQuery", q)
+}
+
+// The ResourceComponentRelationshipFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ResourceComponentRelationshipFunc func(context.Context, *model.ResourceComponentRelationshipQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f ResourceComponentRelationshipFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.ResourceComponentRelationshipQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.ResourceComponentRelationshipQuery", q)
+}
+
+// The TraverseResourceComponentRelationship type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseResourceComponentRelationship func(context.Context, *model.ResourceComponentRelationshipQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseResourceComponentRelationship) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseResourceComponentRelationship) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ResourceComponentRelationshipQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.ResourceComponentRelationshipQuery", q)
+}
+
+// The ResourceRelationshipFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ResourceRelationshipFunc func(context.Context, *model.ResourceRelationshipQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f ResourceRelationshipFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.ResourceRelationshipQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.ResourceRelationshipQuery", q)
+}
+
+// The TraverseResourceRelationship type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseResourceRelationship func(context.Context, *model.ResourceRelationshipQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseResourceRelationship) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseResourceRelationship) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ResourceRelationshipQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.ResourceRelationshipQuery", q)
+}
+
+// The ResourceRevisionFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ResourceRevisionFunc func(context.Context, *model.ResourceRevisionQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f ResourceRevisionFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.ResourceRevisionQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.ResourceRevisionQuery", q)
+}
+
+// The TraverseResourceRevision type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseResourceRevision func(context.Context, *model.ResourceRevisionQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseResourceRevision) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseResourceRevision) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ResourceRevisionQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.ResourceRevisionQuery", q)
+}
+
 // The RoleFunc type is an adapter to allow the use of ordinary function as a Querier.
 type RoleFunc func(context.Context, *model.RoleQuery) (model.Value, error)
 
@@ -339,141 +474,6 @@ func (f TraverseRole) Traverse(ctx context.Context, q model.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *model.RoleQuery", q)
-}
-
-// The ServiceFunc type is an adapter to allow the use of ordinary function as a Querier.
-type ServiceFunc func(context.Context, *model.ServiceQuery) (model.Value, error)
-
-// Query calls f(ctx, q).
-func (f ServiceFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
-	if q, ok := q.(*model.ServiceQuery); ok {
-		return f(ctx, q)
-	}
-	return nil, fmt.Errorf("unexpected query type %T. expect *model.ServiceQuery", q)
-}
-
-// The TraverseService type is an adapter to allow the use of ordinary function as Traverser.
-type TraverseService func(context.Context, *model.ServiceQuery) error
-
-// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
-func (f TraverseService) Intercept(next model.Querier) model.Querier {
-	return next
-}
-
-// Traverse calls f(ctx, q).
-func (f TraverseService) Traverse(ctx context.Context, q model.Query) error {
-	if q, ok := q.(*model.ServiceQuery); ok {
-		return f(ctx, q)
-	}
-	return fmt.Errorf("unexpected query type %T. expect *model.ServiceQuery", q)
-}
-
-// The ServiceRelationshipFunc type is an adapter to allow the use of ordinary function as a Querier.
-type ServiceRelationshipFunc func(context.Context, *model.ServiceRelationshipQuery) (model.Value, error)
-
-// Query calls f(ctx, q).
-func (f ServiceRelationshipFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
-	if q, ok := q.(*model.ServiceRelationshipQuery); ok {
-		return f(ctx, q)
-	}
-	return nil, fmt.Errorf("unexpected query type %T. expect *model.ServiceRelationshipQuery", q)
-}
-
-// The TraverseServiceRelationship type is an adapter to allow the use of ordinary function as Traverser.
-type TraverseServiceRelationship func(context.Context, *model.ServiceRelationshipQuery) error
-
-// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
-func (f TraverseServiceRelationship) Intercept(next model.Querier) model.Querier {
-	return next
-}
-
-// Traverse calls f(ctx, q).
-func (f TraverseServiceRelationship) Traverse(ctx context.Context, q model.Query) error {
-	if q, ok := q.(*model.ServiceRelationshipQuery); ok {
-		return f(ctx, q)
-	}
-	return fmt.Errorf("unexpected query type %T. expect *model.ServiceRelationshipQuery", q)
-}
-
-// The ServiceResourceFunc type is an adapter to allow the use of ordinary function as a Querier.
-type ServiceResourceFunc func(context.Context, *model.ServiceResourceQuery) (model.Value, error)
-
-// Query calls f(ctx, q).
-func (f ServiceResourceFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
-	if q, ok := q.(*model.ServiceResourceQuery); ok {
-		return f(ctx, q)
-	}
-	return nil, fmt.Errorf("unexpected query type %T. expect *model.ServiceResourceQuery", q)
-}
-
-// The TraverseServiceResource type is an adapter to allow the use of ordinary function as Traverser.
-type TraverseServiceResource func(context.Context, *model.ServiceResourceQuery) error
-
-// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
-func (f TraverseServiceResource) Intercept(next model.Querier) model.Querier {
-	return next
-}
-
-// Traverse calls f(ctx, q).
-func (f TraverseServiceResource) Traverse(ctx context.Context, q model.Query) error {
-	if q, ok := q.(*model.ServiceResourceQuery); ok {
-		return f(ctx, q)
-	}
-	return fmt.Errorf("unexpected query type %T. expect *model.ServiceResourceQuery", q)
-}
-
-// The ServiceResourceRelationshipFunc type is an adapter to allow the use of ordinary function as a Querier.
-type ServiceResourceRelationshipFunc func(context.Context, *model.ServiceResourceRelationshipQuery) (model.Value, error)
-
-// Query calls f(ctx, q).
-func (f ServiceResourceRelationshipFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
-	if q, ok := q.(*model.ServiceResourceRelationshipQuery); ok {
-		return f(ctx, q)
-	}
-	return nil, fmt.Errorf("unexpected query type %T. expect *model.ServiceResourceRelationshipQuery", q)
-}
-
-// The TraverseServiceResourceRelationship type is an adapter to allow the use of ordinary function as Traverser.
-type TraverseServiceResourceRelationship func(context.Context, *model.ServiceResourceRelationshipQuery) error
-
-// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
-func (f TraverseServiceResourceRelationship) Intercept(next model.Querier) model.Querier {
-	return next
-}
-
-// Traverse calls f(ctx, q).
-func (f TraverseServiceResourceRelationship) Traverse(ctx context.Context, q model.Query) error {
-	if q, ok := q.(*model.ServiceResourceRelationshipQuery); ok {
-		return f(ctx, q)
-	}
-	return fmt.Errorf("unexpected query type %T. expect *model.ServiceResourceRelationshipQuery", q)
-}
-
-// The ServiceRevisionFunc type is an adapter to allow the use of ordinary function as a Querier.
-type ServiceRevisionFunc func(context.Context, *model.ServiceRevisionQuery) (model.Value, error)
-
-// Query calls f(ctx, q).
-func (f ServiceRevisionFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
-	if q, ok := q.(*model.ServiceRevisionQuery); ok {
-		return f(ctx, q)
-	}
-	return nil, fmt.Errorf("unexpected query type %T. expect *model.ServiceRevisionQuery", q)
-}
-
-// The TraverseServiceRevision type is an adapter to allow the use of ordinary function as Traverser.
-type TraverseServiceRevision func(context.Context, *model.ServiceRevisionQuery) error
-
-// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
-func (f TraverseServiceRevision) Intercept(next model.Querier) model.Querier {
-	return next
-}
-
-// Traverse calls f(ctx, q).
-func (f TraverseServiceRevision) Traverse(ctx context.Context, q model.Query) error {
-	if q, ok := q.(*model.ServiceRevisionQuery); ok {
-		return f(ctx, q)
-	}
-	return fmt.Errorf("unexpected query type %T. expect *model.ServiceRevisionQuery", q)
 }
 
 // The SettingFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -846,18 +846,18 @@ func NewQuery(q model.Query) (Query, error) {
 		return &query[*model.PerspectiveQuery, predicate.Perspective, perspective.OrderOption]{typ: model.TypePerspective, tq: q}, nil
 	case *model.ProjectQuery:
 		return &query[*model.ProjectQuery, predicate.Project, project.OrderOption]{typ: model.TypeProject, tq: q}, nil
+	case *model.ResourceQuery:
+		return &query[*model.ResourceQuery, predicate.Resource, resource.OrderOption]{typ: model.TypeResource, tq: q}, nil
+	case *model.ResourceComponentQuery:
+		return &query[*model.ResourceComponentQuery, predicate.ResourceComponent, resourcecomponent.OrderOption]{typ: model.TypeResourceComponent, tq: q}, nil
+	case *model.ResourceComponentRelationshipQuery:
+		return &query[*model.ResourceComponentRelationshipQuery, predicate.ResourceComponentRelationship, resourcecomponentrelationship.OrderOption]{typ: model.TypeResourceComponentRelationship, tq: q}, nil
+	case *model.ResourceRelationshipQuery:
+		return &query[*model.ResourceRelationshipQuery, predicate.ResourceRelationship, resourcerelationship.OrderOption]{typ: model.TypeResourceRelationship, tq: q}, nil
+	case *model.ResourceRevisionQuery:
+		return &query[*model.ResourceRevisionQuery, predicate.ResourceRevision, resourcerevision.OrderOption]{typ: model.TypeResourceRevision, tq: q}, nil
 	case *model.RoleQuery:
 		return &query[*model.RoleQuery, predicate.Role, role.OrderOption]{typ: model.TypeRole, tq: q}, nil
-	case *model.ServiceQuery:
-		return &query[*model.ServiceQuery, predicate.Service, service.OrderOption]{typ: model.TypeService, tq: q}, nil
-	case *model.ServiceRelationshipQuery:
-		return &query[*model.ServiceRelationshipQuery, predicate.ServiceRelationship, servicerelationship.OrderOption]{typ: model.TypeServiceRelationship, tq: q}, nil
-	case *model.ServiceResourceQuery:
-		return &query[*model.ServiceResourceQuery, predicate.ServiceResource, serviceresource.OrderOption]{typ: model.TypeServiceResource, tq: q}, nil
-	case *model.ServiceResourceRelationshipQuery:
-		return &query[*model.ServiceResourceRelationshipQuery, predicate.ServiceResourceRelationship, serviceresourcerelationship.OrderOption]{typ: model.TypeServiceResourceRelationship, tq: q}, nil
-	case *model.ServiceRevisionQuery:
-		return &query[*model.ServiceRevisionQuery, predicate.ServiceRevision, servicerevision.OrderOption]{typ: model.TypeServiceRevision, tq: q}, nil
 	case *model.SettingQuery:
 		return &query[*model.SettingQuery, predicate.Setting, setting.OrderOption]{typ: model.TypeSetting, tq: q}, nil
 	case *model.SubjectQuery:

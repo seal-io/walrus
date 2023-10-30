@@ -33,23 +33,23 @@ type ClientSet interface {
 	// Projects returns the client for interacting with the Project builders.
 	Projects() *ProjectClient
 
+	// Resources returns the client for interacting with the Resource builders.
+	Resources() *ResourceClient
+
+	// ResourceComponents returns the client for interacting with the ResourceComponent builders.
+	ResourceComponents() *ResourceComponentClient
+
+	// ResourceComponentRelationships returns the client for interacting with the ResourceComponentRelationship builders.
+	ResourceComponentRelationships() *ResourceComponentRelationshipClient
+
+	// ResourceRelationships returns the client for interacting with the ResourceRelationship builders.
+	ResourceRelationships() *ResourceRelationshipClient
+
+	// ResourceRevisions returns the client for interacting with the ResourceRevision builders.
+	ResourceRevisions() *ResourceRevisionClient
+
 	// Roles returns the client for interacting with the Role builders.
 	Roles() *RoleClient
-
-	// Services returns the client for interacting with the Service builders.
-	Services() *ServiceClient
-
-	// ServiceRelationships returns the client for interacting with the ServiceRelationship builders.
-	ServiceRelationships() *ServiceRelationshipClient
-
-	// ServiceResources returns the client for interacting with the ServiceResource builders.
-	ServiceResources() *ServiceResourceClient
-
-	// ServiceResourceRelationships returns the client for interacting with the ServiceResourceRelationship builders.
-	ServiceResourceRelationships() *ServiceResourceRelationshipClient
-
-	// ServiceRevisions returns the client for interacting with the ServiceRevision builders.
-	ServiceRevisions() *ServiceRevisionClient
 
 	// Settings returns the client for interacting with the Setting builders.
 	Settings() *SettingClient
@@ -155,40 +155,40 @@ type ProjectClientGetter interface {
 	Projects() *ProjectClient
 }
 
+// ResourceClientGetter is an interface that allows getting ResourceClient.
+type ResourceClientGetter interface {
+	// Resources returns the client for interacting with the Resource builders.
+	Resources() *ResourceClient
+}
+
+// ResourceComponentClientGetter is an interface that allows getting ResourceComponentClient.
+type ResourceComponentClientGetter interface {
+	// ResourceComponents returns the client for interacting with the ResourceComponent builders.
+	ResourceComponents() *ResourceComponentClient
+}
+
+// ResourceComponentRelationshipClientGetter is an interface that allows getting ResourceComponentRelationshipClient.
+type ResourceComponentRelationshipClientGetter interface {
+	// ResourceComponentRelationships returns the client for interacting with the ResourceComponentRelationship builders.
+	ResourceComponentRelationships() *ResourceComponentRelationshipClient
+}
+
+// ResourceRelationshipClientGetter is an interface that allows getting ResourceRelationshipClient.
+type ResourceRelationshipClientGetter interface {
+	// ResourceRelationships returns the client for interacting with the ResourceRelationship builders.
+	ResourceRelationships() *ResourceRelationshipClient
+}
+
+// ResourceRevisionClientGetter is an interface that allows getting ResourceRevisionClient.
+type ResourceRevisionClientGetter interface {
+	// ResourceRevisions returns the client for interacting with the ResourceRevision builders.
+	ResourceRevisions() *ResourceRevisionClient
+}
+
 // RoleClientGetter is an interface that allows getting RoleClient.
 type RoleClientGetter interface {
 	// Roles returns the client for interacting with the Role builders.
 	Roles() *RoleClient
-}
-
-// ServiceClientGetter is an interface that allows getting ServiceClient.
-type ServiceClientGetter interface {
-	// Services returns the client for interacting with the Service builders.
-	Services() *ServiceClient
-}
-
-// ServiceRelationshipClientGetter is an interface that allows getting ServiceRelationshipClient.
-type ServiceRelationshipClientGetter interface {
-	// ServiceRelationships returns the client for interacting with the ServiceRelationship builders.
-	ServiceRelationships() *ServiceRelationshipClient
-}
-
-// ServiceResourceClientGetter is an interface that allows getting ServiceResourceClient.
-type ServiceResourceClientGetter interface {
-	// ServiceResources returns the client for interacting with the ServiceResource builders.
-	ServiceResources() *ServiceResourceClient
-}
-
-// ServiceResourceRelationshipClientGetter is an interface that allows getting ServiceResourceRelationshipClient.
-type ServiceResourceRelationshipClientGetter interface {
-	// ServiceResourceRelationships returns the client for interacting with the ServiceResourceRelationship builders.
-	ServiceResourceRelationships() *ServiceResourceRelationshipClient
-}
-
-// ServiceRevisionClientGetter is an interface that allows getting ServiceRevisionClient.
-type ServiceRevisionClientGetter interface {
-	// ServiceRevisions returns the client for interacting with the ServiceRevision builders.
-	ServiceRevisions() *ServiceRevisionClient
 }
 
 // SettingClientGetter is an interface that allows getting SettingClient.

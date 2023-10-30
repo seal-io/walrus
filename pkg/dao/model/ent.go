@@ -24,12 +24,12 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/perspective"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponentrelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/role"
-	"github.com/seal-io/walrus/pkg/dao/model/service"
-	"github.com/seal-io/walrus/pkg/dao/model/servicerelationship"
-	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
-	"github.com/seal-io/walrus/pkg/dao/model/serviceresourcerelationship"
-	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/setting"
 	"github.com/seal-io/walrus/pkg/dao/model/subject"
 	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
@@ -111,12 +111,12 @@ func checkColumn(table, column string) error {
 			environmentconnectorrelationship.Table: environmentconnectorrelationship.ValidColumn,
 			perspective.Table:                      perspective.ValidColumn,
 			project.Table:                          project.ValidColumn,
+			resource.Table:                         resource.ValidColumn,
+			resourcecomponent.Table:                resourcecomponent.ValidColumn,
+			resourcecomponentrelationship.Table:    resourcecomponentrelationship.ValidColumn,
+			resourcerelationship.Table:             resourcerelationship.ValidColumn,
+			resourcerevision.Table:                 resourcerevision.ValidColumn,
 			role.Table:                             role.ValidColumn,
-			service.Table:                          service.ValidColumn,
-			servicerelationship.Table:              servicerelationship.ValidColumn,
-			serviceresource.Table:                  serviceresource.ValidColumn,
-			serviceresourcerelationship.Table:      serviceresourcerelationship.ValidColumn,
-			servicerevision.Table:                  servicerevision.ValidColumn,
 			setting.Table:                          setting.ValidColumn,
 			subject.Table:                          subject.ValidColumn,
 			subjectrolerelationship.Table:          subjectrolerelationship.ValidColumn,

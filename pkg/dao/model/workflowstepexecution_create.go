@@ -146,7 +146,7 @@ func (wsec *WorkflowStepExecutionCreate) SetType(s string) *WorkflowStepExecutio
 }
 
 // SetAttributes sets the "attributes" field.
-func (wsec *WorkflowStepExecutionCreate) SetAttributes(m map[string]any) *WorkflowStepExecutionCreate {
+func (wsec *WorkflowStepExecutionCreate) SetAttributes(m map[string]interface{}) *WorkflowStepExecutionCreate {
 	wsec.mutation.SetAttributes(m)
 	return wsec
 }
@@ -1066,7 +1066,7 @@ func (u *WorkflowStepExecutionUpsert) ClearStatus() *WorkflowStepExecutionUpsert
 }
 
 // SetAttributes sets the "attributes" field.
-func (u *WorkflowStepExecutionUpsert) SetAttributes(v map[string]any) *WorkflowStepExecutionUpsert {
+func (u *WorkflowStepExecutionUpsert) SetAttributes(v map[string]interface{}) *WorkflowStepExecutionUpsert {
 	u.Set(workflowstepexecution.FieldAttributes, v)
 	return u
 }
@@ -1374,7 +1374,7 @@ func (u *WorkflowStepExecutionUpsertOne) ClearStatus() *WorkflowStepExecutionUps
 }
 
 // SetAttributes sets the "attributes" field.
-func (u *WorkflowStepExecutionUpsertOne) SetAttributes(v map[string]any) *WorkflowStepExecutionUpsertOne {
+func (u *WorkflowStepExecutionUpsertOne) SetAttributes(v map[string]interface{}) *WorkflowStepExecutionUpsertOne {
 	return u.Update(func(s *WorkflowStepExecutionUpsert) {
 		s.SetAttributes(v)
 	})
@@ -1870,7 +1870,7 @@ func (u *WorkflowStepExecutionUpsertBulk) ClearStatus() *WorkflowStepExecutionUp
 }
 
 // SetAttributes sets the "attributes" field.
-func (u *WorkflowStepExecutionUpsertBulk) SetAttributes(v map[string]any) *WorkflowStepExecutionUpsertBulk {
+func (u *WorkflowStepExecutionUpsertBulk) SetAttributes(v map[string]interface{}) *WorkflowStepExecutionUpsertBulk {
 	return u.Update(func(s *WorkflowStepExecutionUpsert) {
 		s.SetAttributes(v)
 	})

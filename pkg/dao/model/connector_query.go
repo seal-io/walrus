@@ -22,22 +22,22 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/internal"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
-	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
 // ConnectorQuery is the builder for querying Connector entities.
 type ConnectorQuery struct {
 	config
-	ctx              *QueryContext
-	order            []connector.OrderOption
-	inters           []Interceptor
-	predicates       []predicate.Connector
-	withProject      *ProjectQuery
-	withEnvironments *EnvironmentConnectorRelationshipQuery
-	withResources    *ServiceResourceQuery
-	withCostReports  *CostReportQuery
-	modifiers        []func(*sql.Selector)
+	ctx                    *QueryContext
+	order                  []connector.OrderOption
+	inters                 []Interceptor
+	predicates             []predicate.Connector
+	withProject            *ProjectQuery
+	withEnvironments       *EnvironmentConnectorRelationshipQuery
+	withResourceComponents *ResourceComponentQuery
+	withCostReports        *CostReportQuery
+	modifiers              []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -124,9 +124,9 @@ func (cq *ConnectorQuery) QueryEnvironments() *EnvironmentConnectorRelationshipQ
 	return query
 }
 
-// QueryResources chains the current query on the "resources" edge.
-func (cq *ConnectorQuery) QueryResources() *ServiceResourceQuery {
-	query := (&ServiceResourceClient{config: cq.config}).Query()
+// QueryResourceComponents chains the current query on the "resource_components" edge.
+func (cq *ConnectorQuery) QueryResourceComponents() *ResourceComponentQuery {
+	query := (&ResourceComponentClient{config: cq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := cq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -137,12 +137,12 @@ func (cq *ConnectorQuery) QueryResources() *ServiceResourceQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(connector.Table, connector.FieldID, selector),
-			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, connector.ResourcesTable, connector.ResourcesColumn),
+			sqlgraph.To(resourcecomponent.Table, resourcecomponent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, connector.ResourceComponentsTable, connector.ResourceComponentsColumn),
 		)
 		schemaConfig := cq.schemaConfig
-		step.To.Schema = schemaConfig.ServiceResource
-		step.Edge.Schema = schemaConfig.ServiceResource
+		step.To.Schema = schemaConfig.ResourceComponent
+		step.Edge.Schema = schemaConfig.ResourceComponent
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -361,15 +361,15 @@ func (cq *ConnectorQuery) Clone() *ConnectorQuery {
 		return nil
 	}
 	return &ConnectorQuery{
-		config:           cq.config,
-		ctx:              cq.ctx.Clone(),
-		order:            append([]connector.OrderOption{}, cq.order...),
-		inters:           append([]Interceptor{}, cq.inters...),
-		predicates:       append([]predicate.Connector{}, cq.predicates...),
-		withProject:      cq.withProject.Clone(),
-		withEnvironments: cq.withEnvironments.Clone(),
-		withResources:    cq.withResources.Clone(),
-		withCostReports:  cq.withCostReports.Clone(),
+		config:                 cq.config,
+		ctx:                    cq.ctx.Clone(),
+		order:                  append([]connector.OrderOption{}, cq.order...),
+		inters:                 append([]Interceptor{}, cq.inters...),
+		predicates:             append([]predicate.Connector{}, cq.predicates...),
+		withProject:            cq.withProject.Clone(),
+		withEnvironments:       cq.withEnvironments.Clone(),
+		withResourceComponents: cq.withResourceComponents.Clone(),
+		withCostReports:        cq.withCostReports.Clone(),
 		// clone intermediate query.
 		sql:  cq.sql.Clone(),
 		path: cq.path,
@@ -398,14 +398,14 @@ func (cq *ConnectorQuery) WithEnvironments(opts ...func(*EnvironmentConnectorRel
 	return cq
 }
 
-// WithResources tells the query-builder to eager-load the nodes that are connected to
-// the "resources" edge. The optional arguments are used to configure the query builder of the edge.
-func (cq *ConnectorQuery) WithResources(opts ...func(*ServiceResourceQuery)) *ConnectorQuery {
-	query := (&ServiceResourceClient{config: cq.config}).Query()
+// WithResourceComponents tells the query-builder to eager-load the nodes that are connected to
+// the "resource_components" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *ConnectorQuery) WithResourceComponents(opts ...func(*ResourceComponentQuery)) *ConnectorQuery {
+	query := (&ResourceComponentClient{config: cq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	cq.withResources = query
+	cq.withResourceComponents = query
 	return cq
 }
 
@@ -501,7 +501,7 @@ func (cq *ConnectorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Co
 		loadedTypes = [4]bool{
 			cq.withProject != nil,
 			cq.withEnvironments != nil,
-			cq.withResources != nil,
+			cq.withResourceComponents != nil,
 			cq.withCostReports != nil,
 		}
 	)
@@ -543,10 +543,12 @@ func (cq *ConnectorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Co
 			return nil, err
 		}
 	}
-	if query := cq.withResources; query != nil {
-		if err := cq.loadResources(ctx, query, nodes,
-			func(n *Connector) { n.Edges.Resources = []*ServiceResource{} },
-			func(n *Connector, e *ServiceResource) { n.Edges.Resources = append(n.Edges.Resources, e) }); err != nil {
+	if query := cq.withResourceComponents; query != nil {
+		if err := cq.loadResourceComponents(ctx, query, nodes,
+			func(n *Connector) { n.Edges.ResourceComponents = []*ResourceComponent{} },
+			func(n *Connector, e *ResourceComponent) {
+				n.Edges.ResourceComponents = append(n.Edges.ResourceComponents, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -619,7 +621,7 @@ func (cq *ConnectorQuery) loadEnvironments(ctx context.Context, query *Environme
 	}
 	return nil
 }
-func (cq *ConnectorQuery) loadResources(ctx context.Context, query *ServiceResourceQuery, nodes []*Connector, init func(*Connector), assign func(*Connector, *ServiceResource)) error {
+func (cq *ConnectorQuery) loadResourceComponents(ctx context.Context, query *ResourceComponentQuery, nodes []*Connector, init func(*Connector), assign func(*Connector, *ResourceComponent)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[object.ID]*Connector)
 	for i := range nodes {
@@ -630,10 +632,10 @@ func (cq *ConnectorQuery) loadResources(ctx context.Context, query *ServiceResou
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(serviceresource.FieldConnectorID)
+		query.ctx.AppendFieldOnce(resourcecomponent.FieldConnectorID)
 	}
-	query.Where(predicate.ServiceResource(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(connector.ResourcesColumn), fks...))
+	query.Where(predicate.ResourceComponent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(connector.ResourceComponentsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

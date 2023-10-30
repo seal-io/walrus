@@ -33,23 +33,23 @@ type Perspective func(*sql.Selector)
 // Project is the predicate function for project builders.
 type Project func(*sql.Selector)
 
+// Resource is the predicate function for resource builders.
+type Resource func(*sql.Selector)
+
+// ResourceComponent is the predicate function for resourcecomponent builders.
+type ResourceComponent func(*sql.Selector)
+
+// ResourceComponentRelationship is the predicate function for resourcecomponentrelationship builders.
+type ResourceComponentRelationship func(*sql.Selector)
+
+// ResourceRelationship is the predicate function for resourcerelationship builders.
+type ResourceRelationship func(*sql.Selector)
+
+// ResourceRevision is the predicate function for resourcerevision builders.
+type ResourceRevision func(*sql.Selector)
+
 // Role is the predicate function for role builders.
 type Role func(*sql.Selector)
-
-// Service is the predicate function for service builders.
-type Service func(*sql.Selector)
-
-// ServiceRelationship is the predicate function for servicerelationship builders.
-type ServiceRelationship func(*sql.Selector)
-
-// ServiceResource is the predicate function for serviceresource builders.
-type ServiceResource func(*sql.Selector)
-
-// ServiceResourceRelationship is the predicate function for serviceresourcerelationship builders.
-type ServiceResourceRelationship func(*sql.Selector)
-
-// ServiceRevision is the predicate function for servicerevision builders.
-type ServiceRevision func(*sql.Selector)
 
 // Setting is the predicate function for setting builders.
 type Setting func(*sql.Selector)
