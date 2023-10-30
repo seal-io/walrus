@@ -17,8 +17,8 @@ import (
 // GetComponents implements operator.Operator.
 func (op Operator) GetComponents(
 	ctx context.Context,
-	res *model.ServiceResource,
-) ([]*model.ServiceResource, error) {
+	res *model.ResourceComponent,
+) ([]*model.ResourceComponent, error) {
 	if res == nil {
 		return nil, nil
 	}
@@ -36,7 +36,7 @@ func (op Operator) GetComponents(
 	}
 
 	// Get components of resources.
-	comps := make([]*model.ServiceResource, 0)
+	comps := make([]*model.ResourceComponent, 0)
 
 	for _, r := range rs {
 		switch r.Resource {
@@ -72,11 +72,11 @@ func (op Operator) GetComponents(
 		// Copy required field from composition resource.
 		comps[i].ProjectID = res.ProjectID
 		comps[i].EnvironmentID = res.EnvironmentID
-		comps[i].ServiceID = res.ServiceID
+		comps[i].ResourceID = res.ResourceID
 		comps[i].CompositionID = res.ID
 		comps[i].ConnectorID = res.ConnectorID
-		comps[i].Mode = types.ServiceResourceModeDiscovered
-		comps[i].Shape = types.ServiceResourceShapeInstance
+		comps[i].Mode = types.ResourceComponentModeDiscovered
+		comps[i].Shape = types.ResourceComponentShapeInstance
 		comps[i].DeployerType = res.DeployerType
 	}
 
@@ -87,7 +87,7 @@ func (op Operator) getComponentOfPersistentVolumeClaim(
 	ctx context.Context,
 	ns,
 	n string,
-) (*model.ServiceResource, error) {
+) (*model.ResourceComponent, error) {
 	// Fetch controlled persistent volume claim.
 	pvc, err := op.CoreCli.PersistentVolumeClaims(ns).
 		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // Non quorum read.
@@ -105,13 +105,13 @@ func (op Operator) getComponentOfPersistentVolumeClaim(
 		return nil, nil
 	}
 
-	return &model.ServiceResource{
+	return &model.ResourceComponent{
 		Type: "kubernetes_persistent_volume_v1",
 		Name: kube.NamespacedName("", pvc.Spec.VolumeName),
 	}, nil
 }
 
-func (op Operator) getComponentsOfCronJob(ctx context.Context, ns, n string) ([]*model.ServiceResource, error) {
+func (op Operator) getComponentsOfCronJob(ctx context.Context, ns, n string) ([]*model.ResourceComponent, error) {
 	psp, err := op.getPodsOfCronJob(ctx, ns, n)
 	if err != nil {
 		return nil, err
@@ -124,10 +124,10 @@ func (op Operator) getComponentsOfCronJob(ctx context.Context, ns, n string) ([]
 	// Convert pod to application resource.
 	ps := *psp
 
-	var rs []*model.ServiceResource
+	var rs []*model.ResourceComponent
 
 	for i := 0; i < len(ps); i++ {
-		rs = append(rs, &model.ServiceResource{
+		rs = append(rs, &model.ResourceComponent{
 			Type: "kubernetes_pod_v1",
 			Name: kube.NamespacedName(ps[i].Namespace, ps[i].Name),
 		})
@@ -141,7 +141,7 @@ func (op Operator) getComponentsOfAny(
 	gvr schema.GroupVersionResource,
 	ns,
 	n string,
-) ([]*model.ServiceResource, error) {
+) ([]*model.ResourceComponent, error) {
 	psp, err := op.getPodsOfAny(ctx, gvr, ns, n)
 	if err != nil {
 		return nil, err
@@ -154,10 +154,10 @@ func (op Operator) getComponentsOfAny(
 	// Convert pod to application resource.
 	ps := *psp
 
-	var rs []*model.ServiceResource
+	var rs []*model.ResourceComponent
 
 	for i := 0; i < len(ps); i++ {
-		rs = append(rs, &model.ServiceResource{
+		rs = append(rs, &model.ResourceComponent{
 			Type: "kubernetes_pod_v1",
 			Name: kube.NamespacedName(ps[i].Namespace, ps[i].Name),
 		})

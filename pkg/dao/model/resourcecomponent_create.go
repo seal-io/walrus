@@ -148,13 +148,13 @@ func (rcc *ResourceComponentCreate) SetShape(s string) *ResourceComponentCreate 
 }
 
 // SetStatus sets the "status" field.
-func (rcc *ResourceComponentCreate) SetStatus(trs types.ServiceResourceStatus) *ResourceComponentCreate {
+func (rcc *ResourceComponentCreate) SetStatus(trs types.ResourceComponentStatus) *ResourceComponentCreate {
 	rcc.mutation.SetStatus(trs)
 	return rcc
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (rcc *ResourceComponentCreate) SetNillableStatus(trs *types.ServiceResourceStatus) *ResourceComponentCreate {
+func (rcc *ResourceComponentCreate) SetNillableStatus(trs *types.ResourceComponentStatus) *ResourceComponentCreate {
 	if trs != nil {
 		rcc.SetStatus(*trs)
 	}
@@ -1011,7 +1011,7 @@ func (u *ResourceComponentUpsert) UpdateUpdateTime() *ResourceComponentUpsert {
 }
 
 // SetStatus sets the "status" field.
-func (u *ResourceComponentUpsert) SetStatus(v types.ServiceResourceStatus) *ResourceComponentUpsert {
+func (u *ResourceComponentUpsert) SetStatus(v types.ResourceComponentStatus) *ResourceComponentUpsert {
 	u.Set(resourcecomponent.FieldStatus, v)
 	return u
 }
@@ -1127,7 +1127,7 @@ func (u *ResourceComponentUpsertOne) UpdateUpdateTime() *ResourceComponentUpsert
 }
 
 // SetStatus sets the "status" field.
-func (u *ResourceComponentUpsertOne) SetStatus(v types.ServiceResourceStatus) *ResourceComponentUpsertOne {
+func (u *ResourceComponentUpsertOne) SetStatus(v types.ResourceComponentStatus) *ResourceComponentUpsertOne {
 	return u.Update(func(s *ResourceComponentUpsert) {
 		s.SetStatus(v)
 	})
@@ -1411,7 +1411,7 @@ func (u *ResourceComponentUpsertBulk) UpdateUpdateTime() *ResourceComponentUpser
 }
 
 // SetStatus sets the "status" field.
-func (u *ResourceComponentUpsertBulk) SetStatus(v types.ServiceResourceStatus) *ResourceComponentUpsertBulk {
+func (u *ResourceComponentUpsertBulk) SetStatus(v types.ResourceComponentStatus) *ResourceComponentUpsertBulk {
 	return u.Update(func(s *ResourceComponentUpsert) {
 		s.SetStatus(v)
 	})

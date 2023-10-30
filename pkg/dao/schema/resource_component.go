@@ -76,10 +76,10 @@ func (ResourceComponent) Fields() []ent.Field {
 			Comment("Shape of the component, it can be class or instance shape.").
 			NotEmpty().
 			Immutable(),
-		field.JSON("status", types.ServiceResourceStatus{}).
+		field.JSON("status", types.ResourceComponentStatus{}).
 			Comment("Status of the component.").
 			Optional(),
-		field.JSON("keys", &types.ServiceResourceOperationKeys{}).
+		field.JSON("keys", &types.ResourceComponentOperationKeys{}).
 			Comment("Keys of the component.").
 			Optional().
 			Annotations(

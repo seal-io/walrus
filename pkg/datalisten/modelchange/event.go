@@ -15,12 +15,12 @@ var (
 	Catalog = topic.Topic(migrate.CatalogsTable.Name)
 	// Connector is the topic for model.Connector.
 	Connector = topic.Topic(migrate.ConnectorsTable.Name)
-	// Service is the topic for model.Service.
-	Service = topic.Topic(migrate.ServicesTable.Name)
-	// ServiceResource is the topic for model.ServiceResource.
-	ServiceResource = topic.Topic(migrate.ServiceResourcesTable.Name)
-	// ServiceRevision is the topic for model.ServiceRevision.
-	ServiceRevision = topic.Topic(migrate.ServiceRevisionsTable.Name)
+	// Resource is the topic for model.Resource.
+	Resource = topic.Topic(migrate.ResourcesTable.Name)
+	// ResourceComponent is the topic for model.ResourceComponent.
+	ResourceComponent = topic.Topic(migrate.ResourceComponentsTable.Name)
+	// ResourceRevision is the topic for model.ResourceRevision.
+	ResourceRevision = topic.Topic(migrate.ResourceRevisionsTable.Name)
 	// Template is the topic for model.Template.
 	Template = topic.Topic(migrate.TemplatesTable.Name)
 	// Workflow is the topic for model.Workflow.
@@ -35,9 +35,9 @@ var tableNameSet = sets.NewString(
 	// Allow subscribing from topic.
 	string(Catalog),
 	string(Connector),
-	string(Service),
-	string(ServiceResource),
-	string(ServiceRevision),
+	string(Resource),
+	string(ResourceComponent),
+	string(ResourceRevision),
 	string(Template),
 	string(Workflow),
 	string(WorkflowExecution),

@@ -13,8 +13,8 @@ import (
 // GetEndpoints implements operator.Operator.
 func (op Operator) GetEndpoints(
 	ctx context.Context,
-	res *model.ServiceResource,
-) ([]types.ServiceResourceEndpoint, error) {
+	res *model.ResourceComponent,
+) ([]types.ResourceComponentEndpoint, error) {
 	if res == nil {
 		return nil, nil
 	}
@@ -30,7 +30,7 @@ func (op Operator) GetEndpoints(
 		return nil, nil
 	}
 
-	var eps []types.ServiceResourceEndpoint
+	var eps []types.ResourceComponentEndpoint
 
 	for _, r := range rs {
 		switch r.Resource {

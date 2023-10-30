@@ -5,38 +5,38 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
-	"github.com/seal-io/walrus/pkg/dao/model/service"
-	"github.com/seal-io/walrus/pkg/dao/model/servicerelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/variable"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
-	pkgresource "github.com/seal-io/walrus/pkg/serviceresources"
+	pkgcomponent "github.com/seal-io/walrus/pkg/resourcecomponents"
 	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
 )
 
-var getServiceFields = service.WithoutFields(
-	service.FieldUpdateTime)
+var getResourceFields = resource.WithoutFields(
+	resource.FieldUpdateTime)
 
 func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse, error) {
-	// Fetch service entities.
-	entities, err := h.modelClient.Services().Query().
-		Where(service.EnvironmentID(req.ID)).
-		Order(model.Desc(service.FieldCreateTime)).
-		Select(getServiceFields...).
+	// Fetch resource entities.
+	entities, err := h.modelClient.Resources().Query().
+		Where(resource.EnvironmentID(req.ID)).
+		Order(model.Desc(resource.FieldCreateTime)).
+		Select(getResourceFields...).
 		// Must extract dependency.
-		WithDependencies(func(dq *model.ServiceRelationshipQuery) {
-			dq.Select(servicerelationship.FieldDependencyID).
+		WithDependencies(func(dq *model.ResourceRelationshipQuery) {
+			dq.Select(resourcerelationship.FieldDependencyID).
 				Where(func(s *sql.Selector) {
-					s.Where(sql.ColumnsNEQ(servicerelationship.FieldServiceID, servicerelationship.FieldDependencyID))
+					s.Where(sql.ColumnsNEQ(resourcerelationship.FieldResourceID, resourcerelationship.FieldDependencyID))
 				})
 		}).
 		// Must extract resource.
-		WithResources(func(rq *model.ServiceResourceQuery) {
-			dao.ServiceResourceShapeClassQuery(rq)
+		WithComponents(func(rq *model.ResourceComponentQuery) {
+			dao.ResourceComponentShapeClassQuery(rq)
 		}).
 		WithTemplate(func(tq *model.TemplateVersionQuery) {
 			tq.Select(template.FieldID).
@@ -62,10 +62,10 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 	for i := 0; i < len(entities); i++ {
 		entity := entities[i]
 
-		// Append Service to vertices.
+		// Append Resource to vertices.
 		vertices = append(vertices, GraphVertex{
 			GraphVertexID: GraphVertexID{
-				Kind: types.VertexKindService,
+				Kind: types.VertexKindResource,
 				ID:   entity.ID,
 			},
 			Name:        entity.Name,
@@ -81,16 +81,16 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 			},
 		})
 
-		// Append the link of related Services to edges.
+		// Append the link of related Resources to edges.
 		for j := 0; j < len(entity.Edges.Dependencies); j++ {
 			edges = append(edges, GraphEdge{
 				Type: types.EdgeTypeDependency,
 				Start: GraphVertexID{
-					Kind: types.VertexKindService,
+					Kind: types.VertexKindResource,
 					ID:   entity.ID,
 				},
 				End: GraphVertexID{
-					Kind: types.VertexKindService,
+					Kind: types.VertexKindResource,
 					ID:   entity.Edges.Dependencies[j].DependencyID,
 				},
 			})
@@ -98,30 +98,30 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 
 		// Set keys for next operations, e.g. Log, Exec and so on.
 		if !req.WithoutKeys {
-			pkgresource.SetKeys(
+			pkgcomponent.SetKeys(
 				req.Context,
 				log.WithName("api").WithName("environment"),
 				h.modelClient,
-				entity.Edges.Resources,
+				entity.Edges.Components,
 				operators)
 		}
 
-		// Append ServiceResource to vertices,
-		// and append the link of related ServiceResources to edges.
-		vertices, edges = pkgresource.GetVerticesAndEdges(
-			entity.Edges.Resources, vertices, edges)
+		// Append ResourceComponent to vertices,
+		// and append the link of related ResourceComponents to edges.
+		vertices, edges = pkgcomponent.GetVerticesAndEdges(
+			entity.Edges.Components, vertices, edges)
 
-		for j := 0; j < len(entity.Edges.Resources); j++ {
-			// Append the link from Service to ServiceResource into edges.
+		for j := 0; j < len(entity.Edges.Components); j++ {
+			// Append the link from Resource to ResourceComponent into edges.
 			edges = append(edges, GraphEdge{
 				Type: types.EdgeTypeComposition,
 				Start: GraphVertexID{
-					Kind: types.VertexKindService,
+					Kind: types.VertexKindResource,
 					ID:   entity.ID,
 				},
 				End: GraphVertexID{
-					Kind: types.VertexKindServiceResourceGroup,
-					ID:   entity.Edges.Resources[j].ID,
+					Kind: types.VertexKindResourceComponentGroup,
+					ID:   entity.Edges.Components[j].ID,
 				},
 			})
 		}
@@ -133,28 +133,28 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 	}, nil
 }
 
-func getCaps(entities model.Services) (int, int) {
+func getCaps(entities model.Resources) (int, int) {
 	// Calculate capacity for allocation.
 	var verticesCap, edgesCap int
 
-	// Count the number of Service.
+	// Count the number of Resource.
 	verticesCap = len(entities)
 	for i := 0; i < len(entities); i++ {
-		// Count the vertex size of ServiceResource,
-		// and the edge size from Service to ServiceResource.
-		verticesCap += len(entities[i].Edges.Resources)
+		// Count the vertex size of ResourceComponent,
+		// and the edge size from Resource to ResourceComponent.
+		verticesCap += len(entities[i].Edges.Components)
 		edgesCap += len(entities[i].Edges.Dependencies)
 
-		for j := 0; j < len(entities[i].Edges.Resources); j++ {
+		for j := 0; j < len(entities[i].Edges.Components); j++ {
 			// Count the vertex size of instances,
-			// and the edge size from ServiceResourceGroup to instance ServiceResource.
-			verticesCap += len(entities[i].Edges.Resources[j].Edges.Instances)
-			edgesCap += len(entities[i].Edges.Resources[j].Edges.Instances) +
-				len(entities[i].Edges.Resources[j].Edges.Dependencies)
+			// and the edge size from ResourceComponentGroup to instance ResourceComponent.
+			verticesCap += len(entities[i].Edges.Components[j].Edges.Instances)
+			edgesCap += len(entities[i].Edges.Components[j].Edges.Instances) +
+				len(entities[i].Edges.Components[j].Edges.Dependencies)
 
-			for k := 0; k < len(entities[i].Edges.Resources[j].Edges.Instances); k++ {
-				verticesCap += len(entities[i].Edges.Resources[j].Edges.Components)
-				edgesCap += len(entities[i].Edges.Resources[j].Edges.Components)
+			for k := 0; k < len(entities[i].Edges.Components[j].Edges.Instances); k++ {
+				verticesCap += len(entities[i].Edges.Components[j].Edges.Components)
+				edgesCap += len(entities[i].Edges.Components[j].Edges.Components)
 			}
 		}
 	}

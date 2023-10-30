@@ -171,23 +171,23 @@ var (
 		initializeFrom("0 */5 * ? * *"),
 		modifyWith(notBlank, cronExpression),
 	)
-	// ResourceStatusSyncCronExpr indicates the cron expression of sync service resource status,
+	// ResourceComponentStatusSyncCronExpr indicates the cron expression of sync resource component status,
 	// default cron expression means stating every 1 minute.
-	ResourceStatusSyncCronExpr = newValue(
-		"ResourceStatusSyncCronExpr",
+	ResourceComponentStatusSyncCronExpr = newValue(
+		"ResourceComponentStatusSyncCronExpr",
 		editable,
 		initializeFrom("0 */1 * ? * *"),
 		modifyWith(notBlank, cronExpression),
 	)
-	// ResourceLabelApplyCronExpr indicates the cron expression of set labels to service resource,
+	// ResourceComponentLabelApplyCronExpr indicates the cron expression of set labels to resource component,
 	// default cron expression means setting every 2 minutes.
-	ResourceLabelApplyCronExpr = newValue(
-		"ResourceLabelApplyCronExpr",
+	ResourceComponentLabelApplyCronExpr = newValue(
+		"ResourceComponentLabelApplyCronExpr",
 		editable,
 		initializeFrom("0 */2 * ? * *"),
 		modifyWith(notBlank, cronExpression),
 	)
-	// ResourceComponentsDiscoverCronExpr indicates the cron expression of discover service resource basics,
+	// ResourceComponentsDiscoverCronExpr indicates the cron expression of discover resource component basics,
 	// default cron expression means discovering every 1 minute.
 	ResourceComponentsDiscoverCronExpr = newValue(
 		"ResourceComponentsDiscoverCronExpr",
@@ -203,10 +203,10 @@ var (
 		initializeFrom("0 */30 * ? * *"),
 		modifyWith(notBlank, cronExpression),
 	)
-	// ServiceRelationshipCheckCronExpr indicates the cron expression of deploy scheduled service,
+	// ResourceRelationshipCheckCronExpr indicates the cron expression of deploy scheduled resource,
 	// default cron expression means deploying every 30 seconds.
-	ServiceRelationshipCheckCronExpr = newValue(
-		"ServiceRelationshipCheckCronExpr",
+	ResourceRelationshipCheckCronExpr = newValue(
+		"ResourceRelationshipCheckCronExpr",
 		editable,
 		initializeFrom("*/30 * * ? * *"),
 		modifyWith(notBlank, cronExpression),

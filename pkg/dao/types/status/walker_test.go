@@ -147,7 +147,7 @@ func TestWalker_multiple(t *testing.T) {
 			},
 		},
 		func(d Decision[ConditionType]) {
-			d.Make(ServiceStatusDeleted,
+			d.Make(ResourceStatusDeleted,
 				func(st ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 					switch st {
 					case ConditionStatusUnknown:

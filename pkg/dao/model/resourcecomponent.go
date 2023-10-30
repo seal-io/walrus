@@ -55,7 +55,7 @@ type ResourceComponent struct {
 	// Shape of the component, it can be class or instance shape.
 	Shape string `json:"shape,omitempty"`
 	// Status of the component.
-	Status types.ServiceResourceStatus `json:"status,omitempty"`
+	Status types.ResourceComponentStatus `json:"status,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ResourceComponentQuery when eager-loading is set.
 	Edges        ResourceComponentEdges `json:"edges,omitempty"`
@@ -63,7 +63,7 @@ type ResourceComponent struct {
 
 	// Keys of the component.
 	// Keys does not store in the database.
-	Keys *types.ServiceResourceOperationKeys `json:"keys,omitempty"`
+	Keys *types.ResourceComponentOperationKeys `json:"keys,omitempty"`
 }
 
 // ResourceComponentEdges holds the relations/edges for other nodes in the graph.

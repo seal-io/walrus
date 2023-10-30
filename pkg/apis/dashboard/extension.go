@@ -9,9 +9,9 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
-	"github.com/seal-io/walrus/pkg/dao/model/service"
-	"github.com/seal-io/walrus/pkg/dao/model/serviceresource"
-	"github.com/seal-io/walrus/pkg/dao/model/servicerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
@@ -19,36 +19,36 @@ import (
 	"github.com/seal-io/walrus/utils/timex"
 )
 
-var getServiceRevisionFields = servicerevision.WithoutFields(
-	servicerevision.FieldRecord,
-	servicerevision.FieldInputPlan,
-	servicerevision.FieldOutput,
-	servicerevision.FieldTemplateName,
-	servicerevision.FieldTemplateVersion,
-	servicerevision.FieldAttributes,
-	servicerevision.FieldVariables,
+var getResourceRevisionFields = resourcerevision.WithoutFields(
+	resourcerevision.FieldRecord,
+	resourcerevision.FieldInputPlan,
+	resourcerevision.FieldOutput,
+	resourcerevision.FieldTemplateName,
+	resourcerevision.FieldTemplateVersion,
+	resourcerevision.FieldAttributes,
+	resourcerevision.FieldVariables,
 )
 
 const summaryStatus = "(status ->> 'summaryStatus')"
 
-func (h Handler) CollectionRouteGetLatestServiceRevisions(
-	req CollectionRouteGetLatestServiceRevisionsRequest,
-) (CollectionRouteGetLatestServiceRevisionsResponse, int, error) {
+func (h Handler) CollectionRouteGetLatestResourceRevisions(
+	req CollectionRouteGetLatestResourceRevisionsRequest,
+) (CollectionRouteGetLatestResourceRevisionsResponse, int, error) {
 	ctx := intercept.WithProjectInterceptor(req.Context)
 
-	entities, err := h.modelClient.ServiceRevisions().Query().
-		Order(model.Desc(servicerevision.FieldCreateTime)).
-		Select(getServiceRevisionFields...).
+	entities, err := h.modelClient.ResourceRevisions().Query().
+		Order(model.Desc(resourcerevision.FieldCreateTime)).
+		Select(getResourceRevisionFields...).
 		WithProject(func(pq *model.ProjectQuery) {
 			pq.Select(
-				service.FieldID,
-				service.FieldName,
+				resource.FieldID,
+				resource.FieldName,
 			)
 		}).
-		WithService(func(sq *model.ServiceQuery) {
+		WithResource(func(sq *model.ResourceQuery) {
 			sq.Select(
-				service.FieldID,
-				service.FieldName,
+				resource.FieldID,
+				resource.FieldName,
 			)
 		}).
 		WithEnvironment(
@@ -63,7 +63,7 @@ func (h Handler) CollectionRouteGetLatestServiceRevisions(
 		return nil, 0, err
 	}
 
-	return model.ExposeServiceRevisions(entities), len(entities), nil
+	return model.ExposeResourceRevisions(entities), len(entities), nil
 }
 
 func (h Handler) CollectionRouteGetBasicInformation(
@@ -93,7 +93,7 @@ func (h Handler) CollectionRouteGetBasicInformation(
 	}
 
 	// Count services below owned projects.
-	serviceNum, err := h.modelClient.Services().Query().
+	serviceNum, err := h.modelClient.Resources().Query().
 		Count(ctx)
 	if err != nil {
 		return nil, err
@@ -101,9 +101,9 @@ func (h Handler) CollectionRouteGetBasicInformation(
 
 	// Count service resources below owned projects if needed.
 	var serviceResourceNum int
-	if req.WithServiceResource {
-		serviceResourceNum, err = h.modelClient.ServiceResources().Query().
-			Where(serviceresource.ModeNEQ(types.ServiceResourceModeData)).
+	if req.WithResourceComponent {
+		serviceResourceNum, err = h.modelClient.ResourceComponents().Query().
+			Where(resourcecomponent.ModeNEQ(types.ResourceComponentModeData)).
 			Count(ctx)
 		if err != nil {
 			return nil, err
@@ -112,8 +112,8 @@ func (h Handler) CollectionRouteGetBasicInformation(
 
 	// Count service revisions below owned projects if needed.
 	var serviceRevisionNum int
-	if req.WithServiceRevision {
-		serviceRevisionNum, err = h.modelClient.ServiceRevisions().Query().
+	if req.WithResourceRevision {
+		serviceRevisionNum, err = h.modelClient.ResourceRevisions().Query().
 			Count(ctx)
 		if err != nil {
 			return nil, err
@@ -121,47 +121,47 @@ func (h Handler) CollectionRouteGetBasicInformation(
 	}
 
 	return &CollectionRouteGetBasicInformationResponse{
-		Project:         projectNum,
-		Environment:     environmentNum,
-		Connector:       connectorNum,
-		Service:         serviceNum,
-		ServiceResource: serviceResourceNum,
-		ServiceRevision: serviceRevisionNum,
+		Project:           projectNum,
+		Environment:       environmentNum,
+		Connector:         connectorNum,
+		Service:           serviceNum,
+		ResourceComponent: serviceResourceNum,
+		ResourceRevision:  serviceRevisionNum,
 	}, nil
 }
 
-func (h Handler) CollectionRouteGetServiceRevisionStatistics(
-	req CollectionRouteGetServiceRevisionStatisticsRequest,
-) (*CollectionRouteGetServiceRevisionStatisticsResponse, error) {
+func (h Handler) CollectionRouteGetResourceRevisionStatistics(
+	req CollectionRouteGetResourceRevisionStatisticsRequest,
+) (*CollectionRouteGetResourceRevisionStatisticsResponse, error) {
 	ctx := intercept.WithProjectInterceptor(req.Context)
 
 	query := h.modelClient.Projects().Query().
-		QueryServiceRevisions()
+		QueryResourceRevisions()
 
-	statusStats, err := getServiceRevisionStatusStats(ctx,
+	statusStats, err := getResourceRevisionStatusStats(ctx,
 		query.Clone(),
 		req.StartTime, req.EndTime, req.Step)
 	if err != nil {
 		return nil, err
 	}
 
-	statusCount, err := getServiceRevisionStatusCount(ctx,
+	statusCount, err := getResourceRevisionStatusCount(ctx,
 		query.Clone())
 	if err != nil {
 		return nil, err
 	}
 
-	return &CollectionRouteGetServiceRevisionStatisticsResponse{
+	return &CollectionRouteGetResourceRevisionStatisticsResponse{
 		StatusStats: statusStats,
 		StatusCount: statusCount,
 	}, nil
 }
 
-// getServiceRevisionStatusStats collects the status counts of service revisions
+// getResourceRevisionStatusStats collects the status counts of service revisions
 // according to the given time range.
-func getServiceRevisionStatusStats(
+func getResourceRevisionStatusStats(
 	ctx context.Context,
-	query *model.ServiceRevisionQuery,
+	query *model.ResourceRevisionQuery,
 	startTime, endTime time.Time,
 	step string,
 ) ([]*RevisionStatusStats, error) {
@@ -181,21 +181,21 @@ func getServiceRevisionStatusStats(
 	}
 	_, offset := startTime.Zone()
 
-	groupBy, err := sqlx.DateTruncWithZoneOffsetSQL(servicerevision.FieldCreateTime, step, offset)
+	groupBy, err := sqlx.DateTruncWithZoneOffsetSQL(resourcerevision.FieldCreateTime, step, offset)
 	if err != nil {
 		return nil, err
 	}
 
 	err = query.
 		Where(
-			servicerevision.CreateTimeGTE(startTime),
-			servicerevision.CreateTimeLTE(endTime)).
+			resourcerevision.CreateTimeGTE(startTime),
+			resourcerevision.CreateTimeLTE(endTime)).
 		Modify(func(q *sql.Selector) {
 			// Count.
 			q.
 				Select(
 					sql.As(sql.Count(summaryStatus), "count"),
-					sql.As(groupBy, servicerevision.FieldCreateTime),
+					sql.As(groupBy, resourcerevision.FieldCreateTime),
 					sql.As(summaryStatus, "summary_status")).
 				GroupBy(
 					groupBy,
@@ -231,11 +231,11 @@ func getServiceRevisionStatusStats(
 		}
 
 		switch c.SummaryStatus {
-		case status.ServiceRevisionSummaryStatusFailed:
+		case status.ResourceRevisionSummaryStatusFailed:
 			statMap[t].Failed = c.Count
-		case status.ServiceRevisionSummaryStatusSucceed:
+		case status.ResourceRevisionSummaryStatusSucceed:
 			statMap[t].Succeed = c.Count
-		case status.ServiceRevisionSummaryStatusRunning:
+		case status.ResourceRevisionSummaryStatusRunning:
 			statMap[t].Running = c.Count
 		}
 	}
@@ -262,10 +262,10 @@ func getServiceRevisionStatusStats(
 	return r, nil
 }
 
-// getServiceRevisionStatusCount returns the status counts by the service revisions.
-func getServiceRevisionStatusCount(
+// getResourceRevisionStatusCount returns the status counts by the service revisions.
+func getResourceRevisionStatusCount(
 	ctx context.Context,
-	query *model.ServiceRevisionQuery,
+	query *model.ResourceRevisionQuery,
 ) (*RevisionStatusCount, error) {
 	// Count by the status group.
 	var counts []struct {
@@ -291,11 +291,11 @@ func getServiceRevisionStatusCount(
 
 	for _, sc := range counts {
 		switch sc.SummaryStatus {
-		case status.ServiceRevisionSummaryStatusFailed:
+		case status.ResourceRevisionSummaryStatusFailed:
 			r.Failed = sc.Count
-		case status.ServiceRevisionSummaryStatusSucceed:
+		case status.ResourceRevisionSummaryStatusSucceed:
 			r.Succeed = sc.Count
-		case status.ServiceRevisionSummaryStatusRunning:
+		case status.ResourceRevisionSummaryStatusRunning:
 			r.Running = sc.Count
 		}
 	}

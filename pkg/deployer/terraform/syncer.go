@@ -3,50 +3,50 @@ package terraform
 import (
 	"context"
 
-	revisionbus "github.com/seal-io/walrus/pkg/bus/servicerevision"
-	"github.com/seal-io/walrus/pkg/dao/model/service"
+	revisionbus "github.com/seal-io/walrus/pkg/bus/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
-// SyncServiceRevisionStatus updates the status of the service according to its recent finished service revision.
-func SyncServiceRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) (err error) {
+// SyncResourceRevisionStatus updates the status of the service according to its recent finished service revision.
+func SyncResourceRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) (err error) {
 	var (
 		mc       = bm.TransactionalModelClient
 		revision = bm.Refer
 	)
 
-	// Report to service.
-	entity, err := mc.Services().Query().
-		Where(service.ID(revision.ServiceID)).
+	// Report to resource.
+	entity, err := mc.Resources().Query().
+		Where(resource.ID(revision.ResourceID)).
 		Select(
-			service.FieldID,
-			service.FieldStatus).
+			resource.FieldID,
+			resource.FieldStatus).
 		Only(ctx)
 	if err != nil {
 		return err
 	}
 
-	if status.ServiceRevisionStatusReady.IsTrue(revision) {
-		if status.ServiceStatusDeleted.IsUnknown(entity) {
-			return mc.Services().DeleteOne(entity).
+	if status.ResourceRevisionStatusReady.IsTrue(revision) {
+		if status.ResourceStatusDeleted.IsUnknown(entity) {
+			return mc.Resources().DeleteOne(entity).
 				Exec(ctx)
 		}
 
-		status.ServiceStatusDeployed.True(entity, "")
-		status.ServiceStatusReady.Unknown(entity, "")
-	} else if status.ServiceRevisionStatusReady.IsFalse(revision) {
-		if status.ServiceStatusDeleted.IsUnknown(entity) {
-			status.ServiceStatusDeleted.False(entity, "")
+		status.ResourceStatusDeployed.True(entity, "")
+		status.ResourceStatusReady.Unknown(entity, "")
+	} else if status.ResourceRevisionStatusReady.IsFalse(revision) {
+		if status.ResourceStatusDeleted.IsUnknown(entity) {
+			status.ResourceStatusDeleted.False(entity, "")
 		} else {
-			status.ServiceStatusDeployed.False(entity, "")
+			status.ResourceStatusDeployed.False(entity, "")
 		}
 
 		entity.Status.SummaryStatusMessage = revision.Status.SummaryStatusMessage
 	}
 
-	entity.Status.SetSummary(status.WalkService(&entity.Status))
+	entity.Status.SetSummary(status.WalkResource(&entity.Status))
 
-	return mc.Services().UpdateOne(entity).
+	return mc.Resources().UpdateOne(entity).
 		SetStatus(entity.Status).
 		Exec(ctx)
 }

@@ -37,24 +37,24 @@ var1    = "ami-0c55b159cbfafe1f0"
 			option: CreateOptions{
 				OutputOptions: []Output{
 					{
-						ServiceName: "test-service",
-						Name:        "test-output",
+						ResourceName: "test-resource",
+						Name:         "test-output",
 					},
 					{
-						ServiceName: "test-service",
-						Name:        "test-output-sensitive",
-						Sensitive:   true,
+						ResourceName: "test-resource",
+						Name:         "test-output-sensitive",
+						Sensitive:    true,
 					},
 				},
 			},
-			expected: []byte(`output "test-service_test-output" {
+			expected: []byte(`output "test-resource_test-output" {
   sensitive = false
-  value     = module.test-service.test-output
+  value     = module.test-resource.test-output
 }
 
-output "test-service_test-output-sensitive" {
+output "test-resource_test-output-sensitive" {
   sensitive = true
-  value     = module.test-service.test-output-sensitive
+  value     = module.test-resource.test-output-sensitive
 }
 
 `),

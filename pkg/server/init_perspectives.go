@@ -199,7 +199,7 @@ func perspectiveProject() *model.Perspective {
 					PerPage: 10,
 				},
 			},
-			// Service cost.
+			// Resource cost.
 			{
 				Filters: types.CostFilters{
 					{

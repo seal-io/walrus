@@ -15,7 +15,7 @@ func init() {
 	// Only consider accessible types.
 	//
 	for _, gvk := range []schema.GroupVersionKind{
-		corev1.SchemeGroupVersion.WithKind("Service"),
+		corev1.SchemeGroupVersion.WithKind("Resource"),
 		networkingv1.SchemeGroupVersion.WithKind("Ingress"),
 		extensionsv1beta1.SchemeGroupVersion.WithKind("Ingress"),
 	} {

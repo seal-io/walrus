@@ -184,7 +184,7 @@ func (i PeriodicReportEvent) setEnvironmentStat(ctx context.Context, props map[s
 }
 
 func (i PeriodicReportEvent) setServiceStat(ctx context.Context, props map[string]any) error {
-	count, err := i.modelClient.Services().Query().Count(ctx)
+	count, err := i.modelClient.Resources().Query().Count(ctx)
 	if err != nil {
 		return err
 	}

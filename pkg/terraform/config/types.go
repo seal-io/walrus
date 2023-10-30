@@ -85,9 +85,9 @@ type (
 	OutputOptions []Output
 	// Output indicate the output name and module.
 	Output struct {
-		ServiceName string
-		Name        string
-		Sensitive   bool
-		Value       []byte
+		ResourceName string
+		Name         string
+		Sensitive    bool
+		Value        []byte
 	}
 )

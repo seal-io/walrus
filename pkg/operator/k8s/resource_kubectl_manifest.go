@@ -9,10 +9,10 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model"
 )
 
-// parseResourcesOfKubectlManifest parses the given `kubectl_manifest` model.ServiceResource,
+// parseResourcesOfKubectlManifest parses the given `kubectl_manifest` model.ResourceComponent,
 // and keeps resource item which matches.
 func parseResourcesOfKubectlManifest(
-	sr *model.ServiceResource,
+	sr *model.ResourceComponent,
 	match func(versionResource schema.GroupVersionResource) bool,
 ) ([]resource, error) {
 	if match == nil {
