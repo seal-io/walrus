@@ -3,18 +3,18 @@ package environment
 import (
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/seal-io/walrus/pkg/dao/model/variable"
-	"github.com/seal-io/walrus/pkg/dao/types/crypto"
-	"github.com/seal-io/walrus/utils/errorx"
-
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/service"
 	"github.com/seal-io/walrus/pkg/dao/model/servicerelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/template"
+	"github.com/seal-io/walrus/pkg/dao/model/variable"
 	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
 	pkgresource "github.com/seal-io/walrus/pkg/serviceresources"
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
 )
 
@@ -37,6 +37,12 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 		// Must extract resource.
 		WithResources(func(rq *model.ServiceResourceQuery) {
 			dao.ServiceResourceShapeClassQuery(rq)
+		}).
+		WithTemplate(func(tq *model.TemplateVersionQuery) {
+			tq.Select(template.FieldID).
+				WithTemplate(func(tq *model.TemplateQuery) {
+					tq.Select(template.FieldIcon)
+				})
 		}).
 		Unique(false).
 		All(req.Context)
@@ -64,6 +70,7 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 			},
 			Name:        entity.Name,
 			Description: entity.Description,
+			Icon:        entity.Edges.Template.Edges.Template.Icon,
 			Labels:      entity.Labels,
 			CreateTime:  entity.CreateTime,
 			UpdateTime:  entity.UpdateTime,
