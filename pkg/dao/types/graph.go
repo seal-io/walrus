@@ -40,6 +40,8 @@ type GraphVertex struct {
 	Name string `json:"name,omitempty"`
 	// Description indicates the detail of the vertex.
 	Description string `json:"description,omitempty"`
+	// Icon indicates the icon of the vertex.
+	Icon string `json:"icon,omitempty"`
 	// Labels indicates the labels of the vertex.
 	Labels map[string]string `json:"labels,omitempty"`
 	// CreateTime indicates the time to create the vertex.
