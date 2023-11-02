@@ -120,7 +120,7 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 			templateversion.FieldName,
 			templateversion.FieldVersion,
 			templateversion.FieldSchema,
-			templateversion.FieldCustomizeOpenAPISchema).
+			templateversion.FieldUiSchema).
 		All(r.Context)
 	if err != nil {
 		return fmt.Errorf("failed to get template version: %w", err)

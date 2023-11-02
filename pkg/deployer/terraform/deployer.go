@@ -27,13 +27,14 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
-	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
 	pkgenv "github.com/seal-io/walrus/pkg/environment"
 	opk8s "github.com/seal-io/walrus/pkg/operator/k8s"
 	pkgservice "github.com/seal-io/walrus/pkg/service"
 	"github.com/seal-io/walrus/pkg/settings"
+	"github.com/seal-io/walrus/pkg/templates/openapi"
+	"github.com/seal-io/walrus/pkg/templates/translator"
 	"github.com/seal-io/walrus/pkg/terraform/config"
 	"github.com/seal-io/walrus/pkg/terraform/parser"
 	"github.com/seal-io/walrus/pkg/terraform/util"
@@ -703,6 +704,7 @@ func (d Deployer) getModuleConfig(
 			templateversion.FieldVersion,
 			templateversion.FieldSource,
 			templateversion.FieldSchema,
+			templateversion.FieldUiSchema,
 		).
 		Where(templateversion.Or(predicates...)).
 		Only(ctx)
@@ -710,7 +712,7 @@ func (d Deployer) getModuleConfig(
 		return nil, nil, err
 	}
 
-	if templateVersion.Schema != nil {
+	if len(templateVersion.Schema.RequiredProviders) != 0 {
 		requiredProviders = append(requiredProviders, templateVersion.Schema.RequiredProviders...)
 	}
 
@@ -777,7 +779,7 @@ func (d Deployer) getPreviousRequiredProviders(
 		return nil, err
 	}
 
-	if templateVersion.Schema != nil {
+	if len(templateVersion.Schema.RequiredProviders) != 0 {
 		prevRequiredProviders = append(prevRequiredProviders, templateVersion.Schema.RequiredProviders...)
 	}
 
@@ -806,85 +808,98 @@ func getModuleConfig(
 	template *model.TemplateVersion,
 	opts createK8sSecretsOptions,
 ) (*config.ModuleConfig, error) {
-	var (
-		props              = make(property.Properties, len(revision.Attributes))
-		typesWith          = revision.Attributes.TypesWith(template.Schema.Variables)
-		sensitiveVariables = sets.Set[string]{}
-	)
-
-	for k, v := range revision.Attributes {
-		props[k] = property.Property{
-			Type:  typesWith[k],
-			Value: v,
-		}
-	}
-
-	attrs, err := props.TypedValues()
-	if err != nil {
-		return nil, err
-	}
-
 	mc := &config.ModuleConfig{
-		Name:       opts.ServiceName,
-		Source:     template.Source,
-		Schema:     template.Schema,
-		Attributes: attrs,
+		Name:   opts.ServiceName,
+		Source: template.Source,
 	}
 
-	if template.Schema == nil {
+	if template.Schema.IsEmpty() {
 		return mc, nil
 	}
 
-	for _, v := range template.Schema.Variables {
-		// Add sensitive from schema variable.
-		if v.Sensitive {
-			sensitiveVariables.Insert(fmt.Sprintf(`var\.%s`, v.Name))
+	mc.SchemaData = template.Schema.TemplateVersionSchemaData
+
+	if template.Schema.OpenAPISchema == nil ||
+		template.Schema.OpenAPISchema.Components == nil ||
+		template.Schema.OpenAPISchema.Components.Schemas == nil {
+		return mc, nil
+	}
+
+	// Variables.
+	var (
+		variablesSchema    = template.Schema.VariableSchemas()
+		outputsSchemas     = template.Schema.OutputSchemas()
+		sensitiveVariables = sets.Set[string]{}
+	)
+
+	if variablesSchema != nil {
+		attrs, err := translator.ToGoTypeValues(revision.Attributes, *variablesSchema)
+		if err != nil {
+			return nil, err
 		}
 
-		// Add seal metadata.
-		var attrValue string
+		mc.Attributes = attrs
 
-		switch v.Name {
-		case WalrusMetadataProjectName:
-			attrValue = opts.ProjectName
-		case WalrusMetadataEnvironmentName:
-			attrValue = opts.EnvironmentName
-		case WalrusMetadataServiceName:
-			attrValue = opts.ServiceName
-		case WalrusMetadataProjectID:
-			attrValue = opts.ProjectID.String()
-		case WalrusMetadataEnvironmentID:
-			attrValue = opts.EnvironmentID.String()
-		case WalrusMetadataServiceID:
-			attrValue = opts.ServiceID.String()
-		case WalrusMetadataNamespaceName:
-			attrValue = opts.ManagedNamespaceName
-		}
+		for n, v := range variablesSchema.Properties {
+			// Add sensitive from schema variable.
+			if v.Value.WriteOnly {
+				sensitiveVariables.Insert(fmt.Sprintf(`var\.%s`, n))
+			}
 
-		if attrValue != "" {
-			mc.Attributes[v.Name] = attrValue
+			// Add walrus metadata.
+			var attrValue string
+
+			switch n {
+			case WalrusMetadataProjectName:
+				attrValue = opts.ProjectName
+			case WalrusMetadataEnvironmentName:
+				attrValue = opts.EnvironmentName
+			case WalrusMetadataServiceName:
+				attrValue = opts.ServiceName
+			case WalrusMetadataProjectID:
+				attrValue = opts.ProjectID.String()
+			case WalrusMetadataEnvironmentID:
+				attrValue = opts.EnvironmentID.String()
+			case WalrusMetadataServiceID:
+				attrValue = opts.ServiceID.String()
+			case WalrusMetadataNamespaceName:
+				attrValue = opts.ManagedNamespaceName
+			}
+
+			if attrValue != "" {
+				mc.Attributes[n] = attrValue
+			}
 		}
 	}
 
-	sensitiveVariableRegex, err := matchAnyRegex(sensitiveVariables.UnsortedList())
-	if err != nil {
-		return nil, err
-	}
+	// Outputs.
+	if outputsSchemas != nil {
+		sps := outputsSchemas.Properties
+		mc.Outputs = make([]config.Output, 0, len(sps))
 
-	mc.Outputs = make([]config.Output, len(template.Schema.Outputs))
-	for i, v := range template.Schema.Outputs {
-		mc.Outputs[i].Sensitive = v.Sensitive
-		mc.Outputs[i].Name = v.Name
-		mc.Outputs[i].ServiceName = opts.ServiceName
-		mc.Outputs[i].Value = v.Value
-
-		if v.Sensitive {
-			continue
+		sensitiveVariableRegex, err := matchAnyRegex(sensitiveVariables.UnsortedList())
+		if err != nil {
+			return nil, err
 		}
 
-		// Update sensitive while output is from sensitive data, like secret.
-		if sensitiveVariables.Len() != 0 && sensitiveVariableRegex.Match(v.Value) {
-			mc.Outputs[i].Sensitive = true
+		for _, v := range sps {
+			valueExpression := openapi.GetOriginalValueExpression(v.Value.Extensions)
+
+			co := config.Output{
+				Sensitive:   v.Value.WriteOnly,
+				Name:        v.Value.Title,
+				ServiceName: opts.ServiceName,
+				Value:       valueExpression,
+			}
+
+			if !v.Value.WriteOnly {
+				// Update sensitive while output is from sensitive data, like secret.
+				if sensitiveVariables.Len() != 0 && sensitiveVariableRegex.Match(valueExpression) {
+					co.Sensitive = true
+				}
+			}
+
+			mc.Outputs = append(mc.Outputs, co)
 		}
 	}
 

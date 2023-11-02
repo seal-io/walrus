@@ -9,6 +9,7 @@ import (
 	"github.com/seal-io/walrus/pkg/apis/projectsubject"
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/apis/template"
+	"github.com/seal-io/walrus/pkg/apis/templateversion"
 	"github.com/seal-io/walrus/pkg/apis/variable"
 	"github.com/seal-io/walrus/pkg/dao/model"
 )
@@ -38,6 +39,7 @@ func (h Handler) SubResourceHandlers() []runtime.IResourceHandler {
 		variable.Handle(h.modelClient),
 		catalog.Handle(h.modelClient),
 		template.Handle(h.modelClient),
+		templateversion.Handle(h.modelClient),
 		runtime.Alias(
 			projectsubject.Handle(h.modelClient),
 			"Subject"),

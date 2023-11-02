@@ -2,12 +2,13 @@ package types
 
 import (
 	"context"
-	"fmt"
+	"net/http"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
 
 	"github.com/seal-io/walrus/pkg/templates/openapi"
+	"github.com/seal-io/walrus/utils/errorx"
 )
 
 // UISchema include the ui schema of template.
@@ -34,7 +35,7 @@ func (s UISchema) Validate() error {
 
 	err := s.T.Validate(context.Background())
 	if err != nil {
-		return fmt.Errorf("invalid schema: %w", err)
+		return errorx.NewHttpError(http.StatusBadRequest, err.Error())
 	}
 
 	return nil
@@ -73,7 +74,7 @@ func (s Schema) Validate() error {
 
 	err := s.OpenAPISchema.Validate(context.Background())
 	if err != nil {
-		return fmt.Errorf("invalid schema: %w", err)
+		return errorx.NewHttpError(http.StatusBadRequest, err.Error())
 	}
 
 	providerExist := len(s.RequiredProviders) != 0
@@ -83,7 +84,8 @@ func (s Schema) Validate() error {
 	outputsExist := s.OpenAPISchema.Components != nil && s.OpenAPISchema.Components.Schemas["outputs"] != nil
 
 	if !providerExist && !variablesExist && !outputsExist {
-		return fmt.Errorf("invalid schema: at least one of requiredProviders, variables, outputs must be specified")
+		return errorx.NewHttpError(http.StatusBadRequest,
+			"invalid schema: at least one of requiredProviders, variables, outputs must be specified")
 	}
 
 	return nil

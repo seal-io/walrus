@@ -22,6 +22,7 @@ import (
 	"github.com/seal-io/walrus/pkg/apis/subject"
 	"github.com/seal-io/walrus/pkg/apis/template"
 	"github.com/seal-io/walrus/pkg/apis/templatecompletion"
+	"github.com/seal-io/walrus/pkg/apis/templateversion"
 	"github.com/seal-io/walrus/pkg/apis/ui"
 	"github.com/seal-io/walrus/pkg/apis/variable"
 	"github.com/seal-io/walrus/pkg/auths"
@@ -95,6 +96,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		r.Routes(setting.Handle(opts.ModelClient))
 		r.Routes(subject.Handle(opts.ModelClient))
 		r.Routes(template.Handle(opts.ModelClient))
+		r.Routes(templateversion.Handle(opts.ModelClient))
 		r.Routes(templatecompletion.Handle(opts.ModelClient))
 		r.Routes(variable.Handle(opts.ModelClient))
 	}

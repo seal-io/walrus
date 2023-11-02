@@ -49,7 +49,8 @@ func (r *CreateRequest) Validate() error {
 		Select(
 			templateversion.FieldID,
 			templateversion.FieldName,
-			templateversion.FieldSchema).
+			templateversion.FieldSchema,
+			templateversion.FieldUiSchema).
 		Only(r.Context)
 	if err != nil {
 		return fmt.Errorf("failed to get template version: %w", err)
@@ -76,9 +77,11 @@ func (r *CreateRequest) Validate() error {
 	}
 
 	// Verify variables with variables schema that defined on the template version.
-	err = r.Attributes.ValidateWith(tv.Schema.Variables)
-	if err != nil {
-		return fmt.Errorf("invalid variables: %w", err)
+	if !tv.Schema.IsEmpty() {
+		err = r.Attributes.ValidateWith(tv.Schema.VariableSchemas())
+		if err != nil {
+			return fmt.Errorf("invalid variables: %w", err)
+		}
 	}
 
 	// Verify that variables in attributes are valid.
@@ -170,7 +173,9 @@ func (r *CollectionCreateRequest) Validate() error {
 			templateversion.FieldID,
 			templateversion.FieldName,
 			templateversion.FieldVersion,
-			templateversion.FieldSchema).
+			templateversion.FieldSchema,
+			templateversion.FieldUiSchema,
+		).
 		All(r.Context)
 	if err != nil {
 		return fmt.Errorf("failed to get template version: %w", err)
@@ -206,9 +211,11 @@ func (r *CollectionCreateRequest) Validate() error {
 
 	for _, svc := range r.Items {
 		// Verify service's variables with variables schema that defined on the template version.
-		err = svc.Attributes.ValidateWith(tvm[svc.Template.ID].Schema.Variables)
-		if err != nil {
-			return fmt.Errorf("invalid variables: %w", err)
+		if !tvm[svc.Template.ID].Schema.IsEmpty() {
+			err = svc.Attributes.ValidateWith(tvm[svc.Template.ID].Schema.VariableSchemas())
+			if err != nil {
+				return fmt.Errorf("invalid variables: %w", err)
+			}
 		}
 
 		// Verify that variables in attributes are valid.
@@ -290,10 +297,12 @@ func validateEnvironment(tv *model.TemplateVersion, env *model.Environment) erro
 		return errorx.NewHttpError(http.StatusBadRequest, "no connectors")
 	}
 
-	providers := make([]string, len(tv.Schema.RequiredProviders))
+	providers := make([]string, 0)
 
-	for i, provider := range tv.Schema.RequiredProviders {
-		providers[i] = provider.Name
+	if len(tv.Schema.RequiredProviders) != 0 {
+		for _, provider := range tv.Schema.RequiredProviders {
+			providers = append(providers, provider.Name)
+		}
 	}
 
 	var connectors model.Connectors

@@ -1,13 +1,11 @@
 package block
 
 import (
-	"encoding/json"
 	"fmt"
-	"sort"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
-	"github.com/zclconf/go-cty/cty"
-	ctyjson "github.com/zclconf/go-cty/cty/json"
+
+	"github.com/seal-io/walrus/pkg/templates/translator"
 )
 
 const (
@@ -137,17 +135,17 @@ func (b *Block) ToHCLBlock() (*hclwrite.Block, error) {
 		}
 	}
 
-	attributes, err := ConvertToCtyWithJson(b.Attributes)
+	if len(b.Attributes) == 0 {
+		return block, nil
+	}
+
+	translator := translator.NewTerraformTranslator()
+
+	attrKeys, attrMap, err := translator.ToOriginalTypeValues(b.Attributes)
 	if err != nil {
 		return nil, err
 	}
 
-	attrKeys := SortValueKeys(attributes)
-	if len(attrKeys) == 0 {
-		return block, nil
-	}
-
-	attrMap := attributes.AsValueMap()
 	for _, attr := range attrKeys {
 		block.Body().SetAttributeValue(attr, attrMap[attr])
 	}
@@ -179,38 +177,6 @@ func (bs *Blocks) GetProviderNames() ([]string, error) {
 	}
 
 	return names, nil
-}
-
-// SortValueKeys will return a sorted list of the keys the val has.
-func SortValueKeys(val cty.Value) []string {
-	if !val.CanIterateElements() {
-		return nil
-	}
-	keys := make([]string, 0, val.LengthInt())
-
-	for it := val.ElementIterator(); it.Next(); {
-		k, _ := it.Element()
-		keys = append(keys, k.AsString())
-	}
-	sort.Strings(keys)
-
-	return keys
-}
-
-// ConvertToCtyWithJson Converts arbitrary go types that are json serializable to a cty Value
-// by using json as an intermediary representation.
-func ConvertToCtyWithJson(val any) (cty.Value, error) {
-	jsonBytes, err := json.Marshal(val)
-	if err != nil {
-		return cty.NilVal, fmt.Errorf("failed to marshal value to json: %w", err)
-	}
-
-	var ctyJsonVal ctyjson.SimpleJSONValue
-	if err := ctyJsonVal.UnmarshalJSON(jsonBytes); err != nil {
-		return cty.NilVal, fmt.Errorf("failed to unmarshal json to cty value: %w", err)
-	}
-
-	return ctyJsonVal.Value, nil
 }
 
 // removeRing will remove the ring in the block tree.

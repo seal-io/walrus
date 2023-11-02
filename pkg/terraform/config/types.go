@@ -19,8 +19,8 @@ type ModuleConfig struct {
 	Name string
 	// Source is the module source.
 	Source string
-	// Schema is the variable schema.
-	Schema *types.TemplateSchema
+	// SchemaData is the data module schema.
+	SchemaData types.TemplateVersionSchemaData
 	// Attributes is the attributes of the module.
 	Attributes map[string]any
 	// Outputs is the module outputs.

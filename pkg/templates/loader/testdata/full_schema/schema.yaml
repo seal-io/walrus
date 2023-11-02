@@ -1,0 +1,76 @@
+openapi: 3.0.3
+info:
+  title: dev
+  version: v1.0.0
+components:
+  schemas:
+    variables:
+      type: object
+      properties:
+        foo:
+          type: string
+          title: Foo Label
+          default: foo
+          enum:
+            - F1
+            - F2
+            - F3
+          x-walrus-ui:
+            group: Test Group
+        bar:
+          title: Bar Label
+          type: string
+          description: description of bar.
+          default: bar
+          enum:
+            - B1
+            - B2
+            - B3
+          x-walrus-ui:
+            group: Test Group
+            show-if: foo=F1
+        thee:
+          type: string
+          default: foo
+          enum:
+            - F1
+            - F2
+            - F3
+          x-walrus-ui:
+            group: Test Group
+        number_options_var:
+          title: number_options_var
+          type: number
+          default: 1
+          enum:
+            - 1
+            - 2
+            - 3
+          x-walrus-ui:
+            group: Basic
+        subgroup1_1:
+          title: Subgroup1_1 Label
+          type: string
+          default: subgroup1_1
+          x-walrus-ui:
+            group: Test Subgroup/Subgroup 1
+        subgroup1_2:
+          title: Subgroup1_2 Label
+          type: string
+          default: subgroup1_2
+          x-walrus-ui:
+            group: Test Subgroup/Subgroup 1
+        subgroup2_1:
+          title: Subgroup2_1 Label
+          type: string
+          default: subgroup2_1
+          x-walrus-ui:
+            widget: Input
+            group: Test Subgroup/Subgroup 2
+        subgroup2_1_hidden:
+          title: subgroup2_1_hidden
+          type: string
+          default: ''
+          x-walrus-ui:
+            group: Test Subgroup/Subgroup 2
+            hidden: true
