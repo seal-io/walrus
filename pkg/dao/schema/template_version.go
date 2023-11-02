@@ -61,9 +61,14 @@ func (TemplateVersion) Fields() []ent.Field {
 			Comment("Source of the template.").
 			NotEmpty().
 			Immutable(),
-		field.JSON("schema", &types.TemplateSchema{}).
-			Comment("Schema of the template.").
-			Default(&types.TemplateSchema{}),
+		field.JSON("schema", types.Schema{}).
+			Comment("Generated schema and data of the template.").
+			Default(types.Schema{}),
+		field.JSON("uiSchema", types.UISchema{}).
+			Comment("ui schema of the template.").
+			Default(types.UISchema{}).
+			Annotations(
+				entx.Input(entx.WithUpdate())),
 		object.IDField("project_id").
 			Comment("ID of the project to belong, empty means for all projects.").
 			Immutable().
