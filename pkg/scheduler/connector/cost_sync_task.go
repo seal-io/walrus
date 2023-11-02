@@ -29,7 +29,7 @@ func NewCollectTask(logger log.Logger, mc model.ClientSet) (in *CollectTask, err
 func (in *CollectTask) Process(ctx context.Context, args ...any) error {
 	cs, err := in.modelClient.Connectors().Query().
 		Where(
-			connector.TypeEQ(types.ConnectorTypeK8s),
+			connector.TypeEQ(types.ConnectorTypeKubernetes),
 			connector.EnableFinOps(true)).
 		All(ctx)
 	if err != nil {

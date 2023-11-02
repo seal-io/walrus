@@ -25,7 +25,7 @@ import (
 	"github.com/seal-io/walrus/utils/log"
 )
 
-const OperatorType = types.ConnectorTypeK8s
+const OperatorType = types.ConnectorTypeKubernetes
 
 // New returns operator.Operator with the given options.
 func New(ctx context.Context, opts optypes.CreateOptions) (optypes.Operator, error) {

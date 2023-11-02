@@ -5,6 +5,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/terraform/block"
 	"github.com/seal-io/walrus/utils/log"
 )
@@ -53,7 +54,7 @@ func toCloudProviderBlock(label string, conn *model.Connector, opts any) (*block
 	)
 
 	for k, v := range conn.ConfigData {
-		attributes[k], _, err = v.GetString()
+		attributes[k], _, err = property.GetString(v.Value)
 		if err != nil {
 			log.Warn("error get config data in connector %s:%s, %w", conn.ID, k, err)
 		}

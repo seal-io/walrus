@@ -1,9 +1,9 @@
 package types
 
 const (
-	ConnectorTypeK8s     string = "Kubernetes"
-	ConnectorTypeAlibaba string = "Alibaba"
-	ConnectorTypeAWS     string = "AWS"
+	ConnectorTypeKubernetes string = "Kubernetes"
+	ConnectorTypeAlibaba    string = "Alibaba"
+	ConnectorTypeAWS        string = "AWS"
 )
 
 const (

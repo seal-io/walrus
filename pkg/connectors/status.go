@@ -124,7 +124,7 @@ func (in *StatusSyncer) SyncFinOpsStatus(ctx context.Context, conn *model.Connec
 }
 
 func (in *StatusSyncer) syncFinOpsData(ctx context.Context, conn model.Connector) (bool, string, error) {
-	if conn.Type != types.ConnectorTypeK8s {
+	if conn.Type != types.ConnectorTypeKubernetes {
 		return false, "", nil
 	}
 
@@ -185,7 +185,7 @@ func (in *StatusSyncer) checkReachable(ctx context.Context, conn model.Connector
 }
 
 func (in *StatusSyncer) checkCostTool(ctx context.Context, conn model.Connector) (bool, error) {
-	if conn.Type != types.ConnectorTypeK8s {
+	if conn.Type != types.ConnectorTypeKubernetes {
 		return false, nil
 	}
 

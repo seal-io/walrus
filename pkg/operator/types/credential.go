@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
+	"github.com/seal-io/walrus/pkg/dao/types/property"
 )
 
 type CredentialKeyType string
@@ -32,17 +33,17 @@ func GetCredential(configData crypto.Properties) (*Credential, error) {
 		err  error
 	)
 
-	cred.AccessKey, ok, err = configData[AccessKey].GetString()
+	cred.AccessKey, ok, err = property.GetString(configData[AccessKey].Value)
 	if !ok || err != nil || cred.AccessKey == "" {
 		return nil, errors.New("accessKey is empty")
 	}
 
-	cred.AccessSecret, ok, err = configData[AccessSecret].GetString()
+	cred.AccessSecret, ok, err = property.GetString(configData[AccessSecret].Value)
 	if !ok || err != nil || cred.AccessSecret == "" {
 		return nil, errors.New("accessSecret is empty")
 	}
 
-	cred.Region, ok, err = configData[Region].GetString()
+	cred.Region, ok, err = property.GetString(configData[Region].Value)
 	if !ok || err != nil || cred.Region == "" {
 		return nil, errors.New("region is empty")
 	}

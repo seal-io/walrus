@@ -16,11 +16,11 @@ type K8sConvertorOptions struct {
 	GetSecretName func(string) string
 }
 
-// K8sConvertor mutate the types.ConnectorTypeK8s connector to Kubernetes provider block.
+// K8sConvertor mutate the types.ConnectorTypeKubernetes connector to Kubernetes provider block.
 type K8sConvertor string
 
 func (m K8sConvertor) IsSupported(connector *model.Connector) bool {
-	return connector.Type == types.ConnectorTypeK8s
+	return connector.Type == types.ConnectorTypeKubernetes
 }
 
 func (m K8sConvertor) ToBlocks(connectors model.Connectors, opts Options) (block.Blocks, error) {

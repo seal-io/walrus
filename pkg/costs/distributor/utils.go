@@ -11,7 +11,7 @@ import (
 
 func connectorIDs(ctx context.Context, client model.ClientSet) ([]object.ID, error) {
 	return client.Connectors().Query().
-		Where(connector.Type(types.ConnectorTypeK8s)).
+		Where(connector.Type(types.ConnectorTypeKubernetes)).
 		IDs(ctx)
 }
 
@@ -28,7 +28,7 @@ func applyItemDisplayName(
 	// Group by connector id.
 	conns, err := client.Connectors().Query().
 		Where(
-			connector.TypeEQ(types.ConnectorTypeK8s),
+			connector.TypeEQ(types.ConnectorTypeKubernetes),
 		).
 		Select(
 			connector.FieldID,
