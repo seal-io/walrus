@@ -51,15 +51,20 @@ func (r *RouteUpgradeRequest) Validate() error {
 
 	tv, err := r.Client.TemplateVersions().Query().
 		Where(templateversion.ID(r.Template.ID)).
-		Select(templateversion.FieldSchema).
+		Select(
+			templateversion.FieldSchema,
+			templateversion.FieldUiSchema,
+		).
 		Only(r.Context)
 	if err != nil {
 		return fmt.Errorf("failed to get template version: %w", err)
 	}
 
 	// Verify attributes with variables schema of the template version.
-	if err = r.Attributes.ValidateWith(tv.Schema.Variables); err != nil {
-		return fmt.Errorf("invalid variables: %w", err)
+	if !tv.Schema.IsEmpty() {
+		if err = r.Attributes.ValidateWith(tv.Schema.VariableSchemas()); err != nil {
+			return fmt.Errorf("invalid variables: %w", err)
+		}
 	}
 
 	// Verify that variables in attributes are valid.

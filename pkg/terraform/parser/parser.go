@@ -17,6 +17,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/templates/translator"
 	"github.com/seal-io/walrus/utils/json"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/strs"
@@ -222,10 +223,14 @@ func ParseStateOutput(revision *model.ServiceRevision) ([]types.OutputValue, err
 			}
 
 			outputs = append(outputs, types.OutputValue{
-				Name:      strings.TrimPrefix(n, sn+"_"), // Name format is serviceName_outputName.
-				Value:     val,
-				Type:      o.Type,
-				Sensitive: o.Sensitive,
+				Name:  strings.TrimPrefix(n, sn+"_"), // Name format is serviceName_outputName.
+				Value: val,
+				Schema: translator.SchemaOfType(
+					o.Type,
+					n,
+					nil,
+					"",
+					o.Sensitive),
 			})
 		}
 	}

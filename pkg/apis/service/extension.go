@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/zclconf/go-cty/cty"
+	"github.com/getkin/kin-openapi/openapi3"
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao"
@@ -233,14 +233,9 @@ func (h Handler) getEndpointsFromOutput(ctx context.Context, id object.ID) ([]Ac
 			continue
 		}
 
-		prop := property.Property{
-			Type:  v.Type,
-			Value: v.Value,
-		}
-
 		switch {
-		case v.Type == cty.String:
-			ep, _, err := prop.GetString()
+		case v.Schema.Type == openapi3.TypeString:
+			ep, _, err := property.GetString(v.Value)
 			if err != nil {
 				return nil, err
 			}
@@ -253,20 +248,14 @@ func (h Handler) getEndpointsFromOutput(ctx context.Context, id object.ID) ([]Ac
 				Endpoints: []string{ep},
 				Name:      v.Name,
 			})
-		case v.Type.IsListType() || v.Type.IsSetType() || v.Type.IsTupleType():
-			if v.Type.IsTupleType() {
-				// For tuple: each element has its own type.
-				for _, tp := range v.Type.TupleElementTypes() {
-					if tp != cty.String {
-						return nil, invalidTypeErr
-					}
-				}
-			} else if v.Type.ElementType() != cty.String {
+		case v.Schema.Type == openapi3.TypeArray:
+			if v.Schema.Items == nil || v.Schema.Items.Value == nil ||
+				v.Schema.Items.Value.Type != openapi3.TypeString {
 				// For list and set: all elements are the same type.
 				return nil, invalidTypeErr
 			}
 
-			eps, _, err := property.GetSlice[string](prop)
+			eps, _, err := property.GetSlice[string](v.Value)
 			if err != nil {
 				return nil, err
 			}

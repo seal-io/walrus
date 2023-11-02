@@ -84,5 +84,22 @@ func (h Handler) RouteGetVersions(
 		return nil, 0, err
 	}
 
-	return model.ExposeTemplateVersions(entities), cnt, nil
+	// Set expose schema.
+	return exposeTemplateVersion(entities), cnt, nil
+}
+
+func exposeTemplateVersion(
+	entities []*model.TemplateVersion,
+) []*model.TemplateVersionOutput {
+	// Set expose schema.
+	for i, v := range entities {
+		if !v.UiSchema.IsEmpty() || v.Schema.IsEmpty() {
+			continue
+		}
+
+		entities[i].UiSchema = entities[i].Schema.
+			Expose()
+	}
+
+	return model.ExposeTemplateVersions(entities)
 }

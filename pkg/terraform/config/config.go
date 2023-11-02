@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 
+	"github.com/seal-io/walrus/pkg/templates/translator"
 	"github.com/seal-io/walrus/pkg/terraform/block"
 	"github.com/seal-io/walrus/pkg/terraform/convertor"
 	"github.com/seal-io/walrus/utils/log"
@@ -147,17 +148,13 @@ func (c *Config) initAttributes() error {
 		return nil
 	}
 
-	attributes, err := block.ConvertToCtyWithJson(c.Attributes)
+	translator := translator.NewTerraformTranslator()
+
+	attrKeys, attrMap, err := translator.ToOriginalTypeValues(c.Attributes)
 	if err != nil {
 		return err
 	}
 
-	attrKeys := block.SortValueKeys(attributes)
-	if len(attrKeys) == 0 {
-		return nil
-	}
-
-	attrMap := attributes.AsValueMap()
 	for _, attr := range attrKeys {
 		c.file.Body().SetAttributeValue(attr, attrMap[attr])
 	}
@@ -324,10 +321,10 @@ func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers block.Blocks) blo
 			continue
 		}
 		// Inject providers alias to the module.
-		if mc.Schema != nil {
+		if len(mc.SchemaData.RequiredProviders) != 0 {
 			moduleProviders := map[string]any{}
 
-			for _, p := range mc.Schema.RequiredProviders {
+			for _, p := range mc.SchemaData.RequiredProviders {
 				if _, ok := providersMap[p.Name]; !ok {
 					logger.Warnf("provider not found, skip provider: %s", p.Name)
 					continue

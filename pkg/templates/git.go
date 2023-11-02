@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/settings"
+	"github.com/seal-io/walrus/pkg/templates/loader"
 	"github.com/seal-io/walrus/pkg/vcs"
 	"github.com/seal-io/walrus/pkg/vcs/driver/gitlab"
 	"github.com/seal-io/walrus/utils/log"
@@ -31,7 +32,7 @@ func CreateTemplateVersionsFromRepo(
 	mc model.ClientSet,
 	entity *model.Template,
 	versions []*version.Version,
-	versionSchema map[*version.Version]*types.TemplateSchema,
+	versionSchema map[*version.Version]types.Schema,
 ) error {
 	logger := log.WithName("template")
 
@@ -77,10 +78,10 @@ func CreateTemplateVersionsFromRepo(
 		templateVersionCreates = append(templateVersionCreates, create)
 	}
 
-	logger.Debugf("create %s versions number: %v", entity.Name, len(templateVersionCreates))
+	logger.Debugf("create %d versions for template: %s", len(templateVersionCreates), entity.Name)
 
-	err = mc.TemplateVersions().CreateBulk(templateVersionCreates...).
-		Exec(ctx)
+	_, err = mc.TemplateVersions().CreateBulk(templateVersionCreates...).
+		Save(ctx)
 	if err != nil {
 		return err
 	}
@@ -138,14 +139,15 @@ func syncTemplateFromRef(
 		return err
 	}
 
-	schema, err := loadTerraformTemplateSchema(w.Filesystem.Root())
+	// Load schema.
+	schema, err := loader.LoadSchema(w.Filesystem.Root(), entity.Name, repo.Reference)
 	if err != nil {
 		return err
 	}
 
+	// Create template.
 	entity.Icon = icon
 
-	// Create template.
 	entity, err = CreateTemplate(ctx, mc, entity)
 	if err != nil {
 		return err
@@ -200,13 +202,11 @@ func syncTemplateFromRef(
 			Name:       entity.Name,
 			Version:    ref,
 			Source:     source + "?ref=" + repo.Reference,
-			Schema:     schema,
+			Schema:     *schema,
 			ProjectID:  entity.ProjectID,
 		}).
 		OnConflict(conflictOptions...).
-		Update(func(up *model.TemplateVersionUpsert) {
-			up.UpdateSchema()
-		}).
+		UpdateNewValues().
 		Exec(ctx)
 }
 
@@ -321,7 +321,7 @@ func SyncTemplateFromGitRepo(
 func GetTemplateVersions(
 	entity *model.Template,
 	newVersions []*version.Version,
-	versionSchema map[*version.Version]*types.TemplateSchema,
+	versionSchema map[*version.Version]types.Schema,
 ) (model.TemplateVersions, error) {
 	var (
 		logger = log.WithName("catalog")
@@ -340,11 +340,6 @@ func GetTemplateVersions(
 		schema, ok := versionSchema[v]
 		if !ok {
 			logger.Warnf("version schema not found, version: %s", tag)
-			continue
-		}
-
-		if !isValidSchema(schema) {
-			logger.Warnf("schema is invalid template: %s, version: %s", entity.Name, tag)
 			continue
 		}
 
@@ -430,7 +425,7 @@ func getValidVersions(
 	entity *model.Template,
 	r *git.Repository,
 	versions []*version.Version,
-) ([]*version.Version, map[*version.Version]*types.TemplateSchema, error) {
+) ([]*version.Version, map[*version.Version]types.Schema, error) {
 	logger := log.WithName("template")
 
 	w, err := r.Worktree()
@@ -439,7 +434,7 @@ func getValidVersions(
 	}
 
 	validVersions := make([]*version.Version, 0, len(versions))
-	versionSchema := make(map[*version.Version]*types.TemplateSchema, 0)
+	versionSchema := make(map[*version.Version]types.Schema)
 
 	for i := range versions {
 		v := versions[i]
@@ -472,18 +467,26 @@ func getValidVersions(
 		logger.Debugf("get \"%s:%s\" of catalog %q schema", entity.Name, tag, entity.CatalogID)
 		dir := w.Filesystem.Root()
 
-		schema, err := loadTerraformTemplateSchema(dir)
+		schema, err := loader.LoadSchema(dir, entity.Name, tag)
 		if err != nil {
 			logger.Warnf("failed to load \"%s:%s\" of catalog %q schema: %v", entity.Name, tag, entity.CatalogID, err)
 			continue
 		}
 
-		if !isValidSchema(schema) {
+		if err = schema.Validate(); err != nil {
+			logger.Warnf(
+				"failed to validate \"%s:%s\" of catalog %q schema: %v",
+				entity.Name,
+				tag,
+				entity.CatalogID,
+				err,
+			)
+
 			continue
 		}
 
 		validVersions = append(validVersions, v)
-		versionSchema[v] = schema
+		versionSchema[v] = *schema
 	}
 
 	return validVersions, versionSchema, nil

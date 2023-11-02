@@ -180,6 +180,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 							templateversion.FieldProjectID)
 						if req.WithSchema {
 							tvq.Select(templateversion.FieldSchema)
+							tvq.Select(templateversion.FieldUiSchema)
 						}
 					}).
 					Unique(false).
@@ -243,7 +244,10 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 				templateversion.FieldVersion,
 				templateversion.FieldProjectID)
 			if req.WithSchema {
-				tvq.Select(templateversion.FieldSchema)
+				tvq.Select(
+					templateversion.FieldSchema,
+					templateversion.FieldUiSchema,
+				)
 			}
 		}).
 		Unique(false).
