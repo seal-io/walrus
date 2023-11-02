@@ -48,8 +48,30 @@ func (tvu *TemplateVersionUpdate) SetUpdateTime(t time.Time) *TemplateVersionUpd
 }
 
 // SetSchema sets the "schema" field.
-func (tvu *TemplateVersionUpdate) SetSchema(ts *types.TemplateSchema) *TemplateVersionUpdate {
-	tvu.mutation.SetSchema(ts)
+func (tvu *TemplateVersionUpdate) SetSchema(t types.Schema) *TemplateVersionUpdate {
+	tvu.mutation.SetSchema(t)
+	return tvu
+}
+
+// SetNillableSchema sets the "schema" field if the given value is not nil.
+func (tvu *TemplateVersionUpdate) SetNillableSchema(t *types.Schema) *TemplateVersionUpdate {
+	if t != nil {
+		tvu.SetSchema(*t)
+	}
+	return tvu
+}
+
+// SetUiSchema sets the "uiSchema" field.
+func (tvu *TemplateVersionUpdate) SetUiSchema(ts types.UISchema) *TemplateVersionUpdate {
+	tvu.mutation.SetUiSchema(ts)
+	return tvu
+}
+
+// SetNillableUiSchema sets the "uiSchema" field if the given value is not nil.
+func (tvu *TemplateVersionUpdate) SetNillableUiSchema(ts *types.UISchema) *TemplateVersionUpdate {
+	if ts != nil {
+		tvu.SetUiSchema(*ts)
+	}
 	return tvu
 }
 
@@ -138,6 +160,16 @@ func (tvu *TemplateVersionUpdate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (tvu *TemplateVersionUpdate) check() error {
+	if v, ok := tvu.mutation.Schema(); ok {
+		if err := v.Validate(); err != nil {
+			return &ValidationError{Name: "schema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.schema": %w`, err)}
+		}
+	}
+	if v, ok := tvu.mutation.UiSchema(); ok {
+		if err := v.Validate(); err != nil {
+			return &ValidationError{Name: "uiSchema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.uiSchema": %w`, err)}
+		}
+	}
 	if _, ok := tvu.mutation.TemplateID(); tvu.mutation.TemplateCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "TemplateVersion.template"`)
 	}
@@ -178,6 +210,7 @@ func (tvu *TemplateVersionUpdate) check() error {
 func (tvu *TemplateVersionUpdate) Set(obj *TemplateVersion) *TemplateVersionUpdate {
 	// Without Default.
 	tvu.SetSchema(obj.Schema)
+	tvu.SetUiSchema(obj.UiSchema)
 
 	// With Default.
 	if obj.UpdateTime != nil {
@@ -213,6 +246,9 @@ func (tvu *TemplateVersionUpdate) sqlSave(ctx context.Context) (n int, err error
 	}
 	if value, ok := tvu.mutation.Schema(); ok {
 		_spec.SetField(templateversion.FieldSchema, field.TypeJSON, value)
+	}
+	if value, ok := tvu.mutation.UiSchema(); ok {
+		_spec.SetField(templateversion.FieldUiSchema, field.TypeJSON, value)
 	}
 	if tvu.mutation.ServicesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -294,8 +330,30 @@ func (tvuo *TemplateVersionUpdateOne) SetUpdateTime(t time.Time) *TemplateVersio
 }
 
 // SetSchema sets the "schema" field.
-func (tvuo *TemplateVersionUpdateOne) SetSchema(ts *types.TemplateSchema) *TemplateVersionUpdateOne {
-	tvuo.mutation.SetSchema(ts)
+func (tvuo *TemplateVersionUpdateOne) SetSchema(t types.Schema) *TemplateVersionUpdateOne {
+	tvuo.mutation.SetSchema(t)
+	return tvuo
+}
+
+// SetNillableSchema sets the "schema" field if the given value is not nil.
+func (tvuo *TemplateVersionUpdateOne) SetNillableSchema(t *types.Schema) *TemplateVersionUpdateOne {
+	if t != nil {
+		tvuo.SetSchema(*t)
+	}
+	return tvuo
+}
+
+// SetUiSchema sets the "uiSchema" field.
+func (tvuo *TemplateVersionUpdateOne) SetUiSchema(ts types.UISchema) *TemplateVersionUpdateOne {
+	tvuo.mutation.SetUiSchema(ts)
+	return tvuo
+}
+
+// SetNillableUiSchema sets the "uiSchema" field if the given value is not nil.
+func (tvuo *TemplateVersionUpdateOne) SetNillableUiSchema(ts *types.UISchema) *TemplateVersionUpdateOne {
+	if ts != nil {
+		tvuo.SetUiSchema(*ts)
+	}
 	return tvuo
 }
 
@@ -397,6 +455,16 @@ func (tvuo *TemplateVersionUpdateOne) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (tvuo *TemplateVersionUpdateOne) check() error {
+	if v, ok := tvuo.mutation.Schema(); ok {
+		if err := v.Validate(); err != nil {
+			return &ValidationError{Name: "schema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.schema": %w`, err)}
+		}
+	}
+	if v, ok := tvuo.mutation.UiSchema(); ok {
+		if err := v.Validate(); err != nil {
+			return &ValidationError{Name: "uiSchema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.uiSchema": %w`, err)}
+		}
+	}
 	if _, ok := tvuo.mutation.TemplateID(); tvuo.mutation.TemplateCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "TemplateVersion.template"`)
 	}
@@ -448,6 +516,9 @@ func (tvuo *TemplateVersionUpdateOne) Set(obj *TemplateVersion) *TemplateVersion
 			// Without Default.
 			if !reflect.DeepEqual(db.Schema, obj.Schema) {
 				tvuo.SetSchema(obj.Schema)
+			}
+			if !reflect.DeepEqual(db.UiSchema, obj.UiSchema) {
+				tvuo.SetUiSchema(obj.UiSchema)
 			}
 
 			// With Default.
@@ -501,6 +572,9 @@ func (tvuo *TemplateVersionUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx
 	} else if x := tvuo.object; x != nil {
 		if _, set := tvuo.mutation.Field(templateversion.FieldSchema); set {
 			obj.Schema = x.Schema
+		}
+		if _, set := tvuo.mutation.Field(templateversion.FieldUiSchema); set {
+			obj.UiSchema = x.UiSchema
 		}
 		obj.Edges = x.Edges
 	}
@@ -577,6 +651,9 @@ func (tvuo *TemplateVersionUpdateOne) sqlSave(ctx context.Context) (_node *Templ
 	}
 	if value, ok := tvuo.mutation.Schema(); ok {
 		_spec.SetField(templateversion.FieldSchema, field.TypeJSON, value)
+	}
+	if value, ok := tvuo.mutation.UiSchema(); ok {
+		_spec.SetField(templateversion.FieldUiSchema, field.TypeJSON, value)
 	}
 	if tvuo.mutation.ServicesCleared() {
 		edge := &sqlgraph.EdgeSpec{

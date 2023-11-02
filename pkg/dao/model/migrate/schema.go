@@ -752,6 +752,7 @@ var (
 		{Name: "version", Type: field.TypeString},
 		{Name: "source", Type: field.TypeString},
 		{Name: "schema", Type: field.TypeJSON},
+		{Name: "ui_schema", Type: field.TypeJSON},
 		{Name: "project_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "template_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
@@ -763,13 +764,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "template_versions_projects_template_versions",
-				Columns:    []*schema.Column{TemplateVersionsColumns[7]},
+				Columns:    []*schema.Column{TemplateVersionsColumns[8]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "template_versions_templates_versions",
-				Columns:    []*schema.Column{TemplateVersionsColumns[8]},
+				Columns:    []*schema.Column{TemplateVersionsColumns[9]},
 				RefColumns: []*schema.Column{TemplatesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -783,7 +784,7 @@ var (
 			{
 				Name:    "templateversion_name_version_project_id",
 				Unique:  true,
-				Columns: []*schema.Column{TemplateVersionsColumns[3], TemplateVersionsColumns[4], TemplateVersionsColumns[7]},
+				Columns: []*schema.Column{TemplateVersionsColumns[3], TemplateVersionsColumns[4], TemplateVersionsColumns[8]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "project_id IS NOT NULL",
 				},
