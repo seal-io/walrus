@@ -11,6 +11,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
+	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/utils/strs"
 	"github.com/seal-io/walrus/utils/version"
 )
@@ -103,7 +104,7 @@ func loadRawConfigV1(data crypto.Properties) (string, error) {
 	// {
 	//      "kubeconfig": "..."
 	// }.
-	kubeconfigText, exist, err := data["kubeconfig"].GetString()
+	kubeconfigText, exist, err := property.GetString(data["kubeconfig"].Value)
 	if err != nil {
 		return "", fmt.Errorf(`failed to get "kubeconfig": %w`, err)
 	}

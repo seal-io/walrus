@@ -79,7 +79,7 @@ func validateConnectorType(ctx context.Context, modelClient model.ClientSet, id 
 		return fmt.Errorf("failed to get connector: %w", err)
 	}
 
-	if conn.Type != types.ConnectorTypeK8s {
+	if conn.Type != types.ConnectorTypeKubernetes {
 		return errors.New("invalid type: not support")
 	}
 

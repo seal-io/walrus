@@ -660,7 +660,7 @@ func (d Deployer) getProviderSecretData(connectors model.Connectors) (map[string
 	secretData := make(map[string][]byte)
 
 	for _, c := range connectors {
-		if c.Type != types.ConnectorTypeK8s {
+		if c.Type != types.ConnectorTypeKubernetes {
 			continue
 		}
 

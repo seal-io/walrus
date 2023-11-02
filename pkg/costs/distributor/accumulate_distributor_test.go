@@ -707,7 +707,7 @@ func newTestConn(ctx context.Context, client *model.Client, nameSuffix string) (
 	conn, err := client.Connector.Create().
 		SetName("connector" + nameSuffix).
 		SetApplicableEnvironmentType(types.EnvironmentDevelopment).
-		SetType(types.ConnectorTypeK8s).
+		SetType(types.ConnectorTypeKubernetes).
 		SetCategory(types.ConnectorCategoryKubernetes).
 		SetConfigVersion("test").
 		SetEnableFinOps(true).

@@ -128,7 +128,7 @@ func (Connector) Hooks() []ent.Hook {
 				return n.Mutate(ctx, m)
 			}
 
-			if v, ok := m.Field("type"); !ok || v.(string) != types.ConnectorTypeK8s {
+			if v, ok := m.Field("type"); !ok || v.(string) != types.ConnectorTypeKubernetes {
 				return n.Mutate(ctx, m)
 			}
 

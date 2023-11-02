@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types/property"
 )
 
 // ParseConnector parses a connector and returns the driver type, raw url, and token for vcs driver.
@@ -19,7 +20,7 @@ func ParseConnector(conn *model.Connector) (rawURL, token, driverType string, er
 
 	driverType = conn.Type
 
-	token, ok, err = conn.ConfigData["token"].GetString()
+	token, ok, err = property.GetString(conn.ConfigData["token"].Value)
 	if err != nil {
 		return "", "", "", fmt.Errorf("failed to get token: %w", err)
 	}
@@ -28,7 +29,7 @@ func ParseConnector(conn *model.Connector) (rawURL, token, driverType string, er
 		return "", "", "", errors.New("token not found")
 	}
 
-	rawURL, ok, err = conn.ConfigData["base_url"].GetString()
+	rawURL, ok, err = property.GetString(conn.ConfigData["base_url"].Value)
 	if err != nil {
 		return "", "", "", fmt.Errorf("failed to get base url: %w", err)
 	}

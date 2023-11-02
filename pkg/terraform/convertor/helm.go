@@ -11,11 +11,11 @@ import (
 	"github.com/seal-io/walrus/pkg/terraform/util"
 )
 
-// HelmConvertor mutate the types.ConnectorTypeK8s connector to TypeHelm provider block.
+// HelmConvertor mutate the types.ConnectorTypeKubernetes connector to TypeHelm provider block.
 type HelmConvertor string
 
 func (m HelmConvertor) IsSupported(connector *model.Connector) bool {
-	return connector.Type == types.ConnectorTypeK8s
+	return connector.Type == types.ConnectorTypeKubernetes
 }
 
 func (m HelmConvertor) ToBlocks(connectors model.Connectors, opts Options) (block.Blocks, error) {
@@ -43,7 +43,7 @@ func (m HelmConvertor) toBlock(connector *model.Connector, opts Options) (*block
 		return nil, errors.New("invalid k8s options")
 	}
 
-	if connector.Type != types.ConnectorTypeK8s {
+	if connector.Type != types.ConnectorTypeKubernetes {
 		return nil, fmt.Errorf("connector type is not k8s, connector: %s", connector.ID)
 	}
 

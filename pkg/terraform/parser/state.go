@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"github.com/zclconf/go-cty/cty"
+
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/utils/json"
 )
@@ -17,7 +19,7 @@ type state struct {
 
 type OutputState struct {
 	Value     property.Value `json:"value"`
-	Type      property.Type  `json:"type"`
+	Type      cty.Type       `json:"type"`
 	Sensitive bool           `json:"sensitive,omitempty"`
 }
 

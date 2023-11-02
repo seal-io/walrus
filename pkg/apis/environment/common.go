@@ -119,7 +119,8 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 			templateversion.FieldID,
 			templateversion.FieldName,
 			templateversion.FieldVersion,
-			templateversion.FieldSchema).
+			templateversion.FieldSchema,
+			templateversion.FieldCustomizeOpenAPISchema).
 		All(r.Context)
 	if err != nil {
 		return fmt.Errorf("failed to get template version: %w", err)
@@ -131,9 +132,8 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 		tvm[tvs[i].ID] = tvs[i]
 	}
 
-	// Verify service's variables with variables schema that defined on the template version.
 	for _, svc := range r.Services {
-		err = svc.Attributes.ValidateWith(tvm[svc.Template.ID].Schema.Variables)
+		err = svc.Attributes.ValidateWith(tvm[svc.Template.ID].Schema.VariableSchemas())
 		if err != nil {
 			return fmt.Errorf("invalid variables: %w", err)
 		}

@@ -249,7 +249,7 @@ func havingSQL(
 		connIDs, err := client.Connectors().Query().
 			Where(
 				connector.NameContainsFold(query),
-				connector.TypeEQ(types.ConnectorTypeK8s),
+				connector.TypeEQ(types.ConnectorTypeKubernetes),
 			).IDs(ctx)
 		if err != nil {
 			return nil, err

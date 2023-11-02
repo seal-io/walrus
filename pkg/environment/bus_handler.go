@@ -49,11 +49,11 @@ func SyncManagedKubernetesNamespace(ctx context.Context, m envbus.BusMessage) er
 
 		for _, c := range connectors {
 			switch {
-			case c.Type == types.ConnectorTypeK8s && m.Event == envbus.EventDelete:
+			case c.Type == types.ConnectorTypeKubernetes && m.Event == envbus.EventDelete:
 				if err = deleteNamespace(ctx, c, nsName); err != nil {
 					return err
 				}
-			case c.Type == types.ConnectorTypeK8s && m.Event != envbus.EventDelete:
+			case c.Type == types.ConnectorTypeKubernetes && m.Event != envbus.EventDelete:
 				if err = createNamespaceIfNotExist(ctx, c, nsName); err != nil {
 					return err
 				}

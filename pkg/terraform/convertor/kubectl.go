@@ -13,7 +13,7 @@ import (
 type KubectlConvertor string
 
 func (m KubectlConvertor) IsSupported(connector *model.Connector) bool {
-	return connector.Type == types.ConnectorTypeK8s
+	return connector.Type == types.ConnectorTypeKubernetes
 }
 
 func (m KubectlConvertor) ToBlocks(connectors model.Connectors, opts Options) (block.Blocks, error) {
