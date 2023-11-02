@@ -1,539 +1,225 @@
 package property
 
 import (
-	"fmt"
-	"reflect"
 	"time"
 
-	"github.com/hashicorp/hcl/v2"
-	"github.com/hashicorp/hcl/v2/ext/typeexpr"
-	"github.com/hashicorp/hcl/v2/hclsyntax"
-	"github.com/zclconf/go-cty/cty"
-	"github.com/zclconf/go-cty/cty/gocty"
-	"k8s.io/apimachinery/pkg/util/sets"
-
 	"github.com/seal-io/walrus/utils/json"
-	"github.com/seal-io/walrus/utils/strs"
 )
 
-// TODO(thxCode): support tuple schema?
-
-// Uint64Property wraps uint64 value into a property.
-func Uint64Property(v uint64) Property {
-	return Property{
-		Type:  cty.Number,
-		Value: json.MustMarshal(v),
+func GetNumber(i Value) (any, bool, error) {
+	iv, ok, _ := GetInt64(i)
+	if ok {
+		return iv, ok, nil
 	}
+
+	uiv, ok, _ := GetUint64(i)
+	if ok {
+		return uiv, ok, nil
+	}
+
+	fv, ok, err := GetFloat64(i)
+	if ok {
+		return fv, ok, nil
+	}
+
+	return 0, false, err
 }
 
-// Uint32Property wraps uint32 value into a property.
-func Uint32Property(v uint32) Property {
-	return Property{
-		Type:  cty.Number,
-		Value: json.MustMarshal(v),
+func GetUint64(i Value) (uint64, bool, error) {
+	if i != nil {
+		var v uint64
+		err := json.Unmarshal(i, &v)
+
+		return v, err == nil, err
 	}
+
+	return 0, false, nil
 }
 
-// Uint16Property wraps uint16 value into a property.
-func Uint16Property(v uint16) Property {
-	return Property{
-		Type:  cty.Number,
-		Value: json.MustMarshal(v),
+func GetUint32(i Value) (uint32, bool, error) {
+	v, ok, err := GetUint64(i)
+	if err == nil && ok {
+		return uint32(v), true, nil
 	}
+
+	return 0, ok, err
 }
 
-// Uint8Property wraps uint8 value into a property.
-func Uint8Property(v uint8) Property {
-	return Property{
-		Type:  cty.Number,
-		Value: json.MustMarshal(v),
+func GetUint16(i Value) (uint16, bool, error) {
+	v, ok, err := GetUint64(i)
+	if err == nil && ok {
+		return uint16(v), true, nil
 	}
+
+	return 0, ok, err
 }
 
-// UintProperty wraps uint value into a property.
-func UintProperty(v uint) Property {
-	return Property{
-		Type:  cty.Number,
-		Value: json.MustMarshal(v),
+func GetUint8(i Value) (uint8, bool, error) {
+	v, ok, err := GetUint64(i)
+	if err == nil && ok {
+		return uint8(v), true, nil
 	}
+
+	return 0, ok, err
 }
 
-// Int64Property wraps int64 value into a property.
-func Int64Property(v int64) Property {
-	return Property{
-		Type:  cty.Number,
-		Value: json.MustMarshal(v),
+func GetUint(i Value) (uint, bool, error) {
+	v, ok, err := GetUint64(i)
+	if err == nil && ok {
+		return uint(v), true, nil
 	}
+
+	return 0, ok, err
 }
 
-// Int32Property wraps int32 value into a property.
-func Int32Property(v int32) Property {
-	return Property{
-		Type:  cty.Number,
-		Value: json.MustMarshal(v),
+func GetInt64(i Value) (int64, bool, error) {
+	if i != nil {
+		var v int64
+		err := json.Unmarshal(i, &v)
+
+		return v, err == nil, err
 	}
+
+	return 0, false, nil
 }
 
-// Int16Property wraps int16 value into a property.
-func Int16Property(v int16) Property {
-	return Property{
-		Type:  cty.Number,
-		Value: json.MustMarshal(v),
+func GetInt32(i Value) (int32, bool, error) {
+	v, ok, err := GetInt64(i)
+	if err == nil && ok {
+		return int32(v), true, nil
 	}
+
+	return 0, ok, err
 }
 
-// Int8Property wraps int8 value into a property.
-func Int8Property(v int8) Property {
-	return Property{
-		Type:  cty.Number,
-		Value: json.MustMarshal(v),
+func GetInt16(i Value) (int16, bool, error) {
+	v, ok, err := GetInt64(i)
+	if err == nil && ok {
+		return int16(v), true, nil
 	}
+
+	return 0, ok, err
 }
 
-// IntProperty wraps int value into a property.
-func IntProperty(v int) Property {
-	return Property{
-		Type:  cty.Number,
-		Value: json.MustMarshal(v),
+func GetInt8(i Value) (int8, bool, error) {
+	v, ok, err := GetInt64(i)
+	if err == nil && ok {
+		return int8(v), true, nil
 	}
+
+	return 0, ok, err
 }
 
-// Float64Property wraps float64 value into a property.
-func Float64Property(v float64) Property {
-	return Property{
-		Type:  cty.Number,
-		Value: json.MustMarshal(v),
+func GetInt(i Value) (int, bool, error) {
+	v, ok, err := GetInt64(i)
+	if err == nil && ok {
+		return int(v), true, nil
 	}
+
+	return 0, ok, err
 }
 
-// Float32Property wraps float32 value into a property.
-func Float32Property(v float32) Property {
-	return Property{
-		Type:  cty.Number,
-		Value: json.MustMarshal(v),
+func GetFloat64(i Value) (float64, bool, error) {
+	if i != nil {
+		var v float64
+		err := json.Unmarshal(i, &v)
+
+		return v, err == nil, err
 	}
+
+	return 0, false, nil
 }
 
-// DurationProperty wraps time.Duration value into a property.
-func DurationProperty(v time.Duration) Property {
-	return Property{
-		Type:  cty.String,
-		Value: json.MustMarshal(v),
+func GetFloat32(i Value) (float32, bool, error) {
+	v, ok, err := GetFloat64(i)
+	if err == nil && ok {
+		return float32(v), true, nil
 	}
+
+	return 0, ok, err
 }
 
-// BoolProperty wraps bool value into a property.
-func BoolProperty(v bool) Property {
-	return Property{
-		Type:  cty.Bool,
-		Value: json.MustMarshal(v),
+func GetDuration(i Value) (time.Duration, bool, error) {
+	if i != nil {
+		var v time.Duration
+		err := json.Unmarshal(i, &v)
+
+		return v, err == nil, err
 	}
+
+	return 0, false, nil
 }
 
-// StringProperty wraps string value into a property.
-func StringProperty(v string) Property {
-	return Property{
-		Type:  cty.String,
-		Value: json.MustMarshal(v),
+func GetBool(i Value) (bool, bool, error) {
+	if i != nil {
+		var v bool
+		err := json.Unmarshal(i, &v)
+
+		return v, err == nil, err
 	}
+
+	return false, false, nil
 }
 
-// SliceProperty wraps slice value into a property.
-func SliceProperty[T any](v []T) Property {
-	ty := toCtyTyp[T]()
+func GetString(i Value) (string, bool, error) {
+	if i != nil {
+		var v string
+		err := json.Unmarshal(i, &v)
 
-	return Property{
-		Type:  cty.List(ty),
-		Value: json.MustMarshal(v),
+		return v, err == nil, err
 	}
+
+	return "", false, nil
 }
 
-// SetProperty wraps set value into a property.
-func SetProperty[T comparable](v sets.Set[T]) Property {
-	ty := toCtyTyp[T]()
+// GetSlice returns the underlay value as a slice with the given generic type,
+// if not found or parse error, returns false.
+func GetSlice[T any](i Value) ([]T, bool, error) {
+	if i != nil {
+		var v []T
+		err := json.Unmarshal(i, &v)
 
-	return Property{
-		Type:  cty.Set(ty),
-		Value: json.MustMarshal(v.UnsortedList()),
+		return v, err == nil, err
 	}
+
+	return nil, false, nil
 }
 
-// MapProperty wraps map value into a property.
-func MapProperty[T any](v map[string]T) Property {
-	ty := toCtyTyp[T]()
+// GetMap returns the underlay value as a string map with the given generic type,
+// if not found or parse error, returns false.
+func GetMap[T any](i Value) (map[string]T, bool, error) {
+	if i != nil {
+		var v map[string]T
+		err := json.Unmarshal(i, &v)
 
-	return Property{
-		Type:  cty.Map(ty),
-		Value: json.MustMarshal(v),
+		return v, err == nil, err
 	}
+
+	return nil, false, nil
 }
 
-// ObjectProperty wraps object value into a property.
-func ObjectProperty[T any](v T) Property {
-	var t T
+// GetObject returns the underlay value as a T object with the given generic type,
+// if not found or parse error, returns false.
+func GetObject[T any](i Value) (T, bool, error) {
+	var v T
 
-	ty, err := gocty.ImpliedType(t)
-	if err != nil {
-		panic(fmt.Errorf("error getting implied type: %w", err))
+	if i != nil {
+		err := json.Unmarshal(i, &v)
+		return v, err == nil, err
 	}
 
-	if !ty.IsObjectType() {
-		panic(fmt.Errorf("implied type is not object: %s", ty.GoString()))
-	}
-
-	return Property{
-		Type:  ty,
-		Value: json.MustMarshal(v),
-	}
+	return v, false, nil
 }
 
-// AnyProperty wraps any value into a property.
-func AnyProperty(v any) Property {
-	return Property{
-		Type:  cty.DynamicPseudoType,
-		Value: json.MustMarshal(v),
-	}
-}
+// GetAny returns the underlay value as the given generic type,
+// if not found or parse error, returns false.
+func GetAny[T any](i Value) (T, bool, error) {
+	var v T
 
-// Uint64Schema returns uint64 schema.
-func Uint64Schema(n string, d *uint64) Schema {
-	s := Schema{
-		Type: cty.Number,
-		Name: n,
-	}
-	if d != nil {
-		s.Default = json.MustMarshal(d)
+	if i != nil {
+		err := json.Unmarshal(i, &v)
+		return v, err == nil, err
 	}
 
-	return s
-}
-
-// Uint32Schema returns uint32 schema.
-func Uint32Schema(n string, d *uint32) Schema {
-	s := Schema{
-		Type: cty.Number,
-		Name: n,
-	}
-	if d != nil {
-		s.Default = json.MustMarshal(d)
-	}
-
-	return s
-}
-
-// Uint16Schema returns uint16 schema.
-func Uint16Schema(n string, d *uint16) Schema {
-	s := Schema{
-		Type: cty.Number,
-		Name: n,
-	}
-	if d != nil {
-		s.Default = json.MustMarshal(d)
-	}
-
-	return s
-}
-
-// Uint8Schema returns uint8 schema.
-func Uint8Schema(n string, d *uint8) Schema {
-	s := Schema{
-		Type: cty.Number,
-		Name: n,
-	}
-	if d != nil {
-		s.Default = json.MustMarshal(d)
-	}
-
-	return s
-}
-
-// UintSchema returns uint schema.
-func UintSchema(n string, d *uint) Schema {
-	s := Schema{
-		Type: cty.Number,
-		Name: n,
-	}
-	if d != nil {
-		s.Default = json.MustMarshal(d)
-	}
-
-	return s
-}
-
-// Int64Schema returns int64 schema.
-func Int64Schema(n string, d *int64) Schema {
-	s := Schema{
-		Type: cty.Number,
-		Name: n,
-	}
-	if d != nil {
-		s.Default = json.MustMarshal(d)
-	}
-
-	return s
-}
-
-// Int32Schema returns int32 schema.
-func Int32Schema(n string, d *int32) Schema {
-	s := Schema{
-		Type: cty.Number,
-		Name: n,
-	}
-	if d != nil {
-		s.Default = json.MustMarshal(d)
-	}
-
-	return s
-}
-
-// Int16Schema returns int16 schema.
-func Int16Schema(n string, d *int16) Schema {
-	s := Schema{
-		Type: cty.Number,
-		Name: n,
-	}
-	if d != nil {
-		s.Default = json.MustMarshal(d)
-	}
-
-	return s
-}
-
-// Int8Schema returns int8 schema.
-func Int8Schema(n string, d *int8) Schema {
-	s := Schema{
-		Type: cty.Number,
-		Name: n,
-	}
-	if d != nil {
-		s.Default = json.MustMarshal(d)
-	}
-
-	return s
-}
-
-// IntSchema returns int schema.
-func IntSchema(n string, d *int) Schema {
-	s := Schema{
-		Type: cty.Number,
-		Name: n,
-	}
-	if d != nil {
-		s.Default = json.MustMarshal(d)
-	}
-
-	return s
-}
-
-// Float64Schema returns float64 schema.
-func Float64Schema(n string, d *float64) Schema {
-	s := Schema{
-		Type: cty.Number,
-		Name: n,
-	}
-	if d != nil {
-		s.Default = json.MustMarshal(d)
-	}
-
-	return s
-}
-
-// Float32Schema returns float32 schema.
-func Float32Schema(n string, d *float32) Schema {
-	s := Schema{
-		Type: cty.Number,
-		Name: n,
-	}
-	if d != nil {
-		s.Default = json.MustMarshal(d)
-	}
-
-	return s
-}
-
-// DurationSchema returns time.Duration schema.
-func DurationSchema(n string, d *time.Duration) Schema {
-	s := Schema{
-		Type: cty.String,
-		Name: n,
-	}
-	if d != nil {
-		s.Default = json.MustMarshal(d)
-	}
-
-	return s
-}
-
-// BoolSchema returns bool schema.
-func BoolSchema(n string, d *bool) Schema {
-	s := Schema{
-		Type: cty.Bool,
-		Name: n,
-	}
-	if d != nil {
-		s.Default = json.MustMarshal(d)
-	}
-
-	return s
-}
-
-// StringSchema returns string schema.
-func StringSchema(n string, d *string) Schema {
-	s := Schema{
-		Type: cty.String,
-		Name: n,
-	}
-	if d != nil {
-		s.Default = json.MustMarshal(d)
-	}
-
-	return s
-}
-
-// SliceSchema returns []T schema.
-func SliceSchema[T any](n string, d []T) Schema {
-	ty := toCtyTyp[T]()
-
-	s := Schema{
-		Type: cty.List(ty),
-		Name: n,
-	}
-	if d != nil {
-		s.Default = json.MustMarshal(d)
-	}
-
-	return s
-}
-
-// SetSchema returns sets.Set[T] schema.
-func SetSchema[T comparable](n string, d []T) Schema {
-	ty := toCtyTyp[T]()
-
-	s := Schema{
-		Type: cty.Set(ty),
-		Name: n,
-	}
-	if d != nil {
-		s.Default = json.MustMarshal(d)
-	}
-
-	return s
-}
-
-// MapSchema returns map[string]T schema.
-func MapSchema[T any](n string, d map[string]T) Schema {
-	ty := toCtyTyp[T]()
-
-	s := Schema{
-		Type: cty.Map(ty),
-		Name: n,
-	}
-	if d != nil {
-		s.Default = json.MustMarshal(d)
-	}
-
-	return s
-}
-
-// ObjectSchema returns T schema.
-func ObjectSchema[T any](n string, d T) Schema {
-	var t T
-
-	ty, err := gocty.ImpliedType(t)
-	if err != nil {
-		panic(fmt.Errorf("error getting implied type: %w", err))
-	}
-
-	if !ty.IsObjectType() {
-		panic(fmt.Errorf("implied type is not object: %s", ty.GoString()))
-	}
-
-	s := Schema{
-		Type: ty,
-		Name: n,
-	}
-	if !reflect.ValueOf(d).IsZero() {
-		s.Default = json.MustMarshal(d)
-	}
-
-	return s
-}
-
-// AnySchema returns any schema.
-func AnySchema(n string, d any) Schema {
-	s := Schema{
-		Type: cty.DynamicPseudoType,
-		Name: n,
-	}
-	if d != nil {
-		s.Default = json.MustMarshal(d)
-	}
-
-	return s
-}
-
-// GuessSchema guesses the schema with the given type and data,
-// returns any schema if blank type and nil data(in fact, terraform validation must not let this pass),
-// returns implied type schema if data is not nil,
-// returns parsed type schema if type is not blank.
-func GuessSchema(n, t string, d any) (Schema, error) {
-	if t == "" {
-		if d == nil {
-			// Return any schema.
-			return AnySchema(n, d), nil
-		}
-
-		// Guess schema from data.
-		ty, err := gocty.ImpliedType(d)
-		if err != nil {
-			// If we cannot guess the type, consider it to be dynamic.
-			ty = cty.DynamicPseudoType
-		}
-
-		return Schema{
-			Type:    ty,
-			Name:    n,
-			Default: json.MustMarshal(d),
-		}, nil
-	}
-
-	// Parse type from type.
-	expr, diags := hclsyntax.ParseExpression(strs.ToBytes(&t), "", hcl.Pos{Line: 1, Column: 1})
-	if diags.HasErrors() {
-		return Schema{}, fmt.Errorf("error parsing expression: %w", diags)
-	}
-
-	ty, _, diags := typeexpr.TypeConstraintWithDefaults(expr)
-	if diags.HasErrors() {
-		return Schema{}, fmt.Errorf("error getting type: %w", diags)
-	}
-
-	var s json.RawMessage
-	if d != nil {
-		s = json.MustMarshal(d)
-	}
-
-	return Schema{
-		Type:    ty,
-		Name:    n,
-		Default: s,
-	}, nil
-}
-
-func toCtyTyp[T any]() (ty cty.Type) {
-	var t T
-
-	if !reflect.ValueOf(t).IsValid() {
-		ty = cty.DynamicPseudoType
-		return
-	}
-
-	var err error
-
-	ty, err = gocty.ImpliedType(t)
-	if err != nil {
-		panic(fmt.Errorf("error getting implied type: %w", err))
-	}
-
-	return
+	return v, false, nil
 }
