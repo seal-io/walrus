@@ -4,8 +4,6 @@ import (
 	"database/sql/driver"
 	"errors"
 
-	"github.com/zclconf/go-cty/cty"
-
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/utils/json"
 	"github.com/seal-io/walrus/utils/strs"
@@ -164,8 +162,8 @@ func (i *Slice[T]) Scan(src any) error {
 // Property wraps the property.Property,
 // and erases the invisible value during output.
 type Property struct {
-	property.Property `json:",inline"`
-
+	// Value specifies the value of this property.
+	Value property.Value `json:"value,omitempty"`
 	// Visible indicates to show the value of this property or not.
 	Visible bool `json:"visible"`
 }
@@ -232,63 +230,4 @@ func (i *Properties) Scan(src any) error {
 	}
 
 	return errors.New("not a valid crypto properties")
-}
-
-// Cty returns the type and value of this property.
-func (i Properties) Cty() (cty.Type, cty.Value, error) {
-	var (
-		ot = make(map[string]cty.Type, len(i))
-		ov = make(map[string]cty.Value, len(i))
-	)
-
-	for x := range i {
-		t, v, err := i[x].Cty()
-		if err != nil {
-			return t, v, err
-		}
-		ot[x] = t
-		ov[x] = v
-	}
-
-	return cty.Object(ot), cty.ObjectVal(ov), nil
-}
-
-// Values returns a map stores the underlay value.
-func (i Properties) Values() property.Values {
-	m := make(property.Values, len(i))
-	for x := range i {
-		m[x] = i[x].GetValue()
-	}
-
-	return m
-}
-
-// TypedValues returns a map stores the typed value.
-func (i Properties) TypedValues() (m map[string]any, err error) {
-	m = make(map[string]any, len(i))
-
-	for x := range i {
-		typ := i[x].GetType()
-
-		switch {
-		case typ == cty.Number:
-			m[x], _, err = i[x].GetNumber()
-		case typ == cty.Bool:
-			m[x], _, err = i[x].GetBool()
-		case typ == cty.String:
-			m[x], _, err = i[x].GetString()
-		case typ.IsListType() || typ.IsTupleType() || typ.IsSetType():
-			m[x], _, err = property.GetSlice[any](i[x])
-		case typ.IsMapType() || typ.IsObjectType():
-			m[x], _, err = property.GetMap[any](i[x])
-		default:
-			m[x], _, err = property.GetAny[any](i[x])
-		}
-
-		if err != nil {
-			return
-		}
-	}
-
-	return
 }
