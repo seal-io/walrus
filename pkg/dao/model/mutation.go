@@ -19905,7 +19905,8 @@ type TemplateVersionMutation struct {
 	name            *string
 	version         *string
 	source          *string
-	schema          **types.TemplateSchema
+	schema          *types.Schema
+	uiSchema        *types.UISchema
 	clearedFields   map[string]struct{}
 	template        *object.ID
 	clearedtemplate bool
@@ -20240,12 +20241,12 @@ func (m *TemplateVersionMutation) ResetSource() {
 }
 
 // SetSchema sets the "schema" field.
-func (m *TemplateVersionMutation) SetSchema(ts *types.TemplateSchema) {
-	m.schema = &ts
+func (m *TemplateVersionMutation) SetSchema(t types.Schema) {
+	m.schema = &t
 }
 
 // Schema returns the value of the "schema" field in the mutation.
-func (m *TemplateVersionMutation) Schema() (r *types.TemplateSchema, exists bool) {
+func (m *TemplateVersionMutation) Schema() (r types.Schema, exists bool) {
 	v := m.schema
 	if v == nil {
 		return
@@ -20256,7 +20257,7 @@ func (m *TemplateVersionMutation) Schema() (r *types.TemplateSchema, exists bool
 // OldSchema returns the old "schema" field's value of the TemplateVersion entity.
 // If the TemplateVersion object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TemplateVersionMutation) OldSchema(ctx context.Context) (v *types.TemplateSchema, err error) {
+func (m *TemplateVersionMutation) OldSchema(ctx context.Context) (v types.Schema, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldSchema is only allowed on UpdateOne operations")
 	}
@@ -20273,6 +20274,42 @@ func (m *TemplateVersionMutation) OldSchema(ctx context.Context) (v *types.Templ
 // ResetSchema resets all changes to the "schema" field.
 func (m *TemplateVersionMutation) ResetSchema() {
 	m.schema = nil
+}
+
+// SetUiSchema sets the "uiSchema" field.
+func (m *TemplateVersionMutation) SetUiSchema(ts types.UISchema) {
+	m.uiSchema = &ts
+}
+
+// UiSchema returns the value of the "uiSchema" field in the mutation.
+func (m *TemplateVersionMutation) UiSchema() (r types.UISchema, exists bool) {
+	v := m.uiSchema
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUiSchema returns the old "uiSchema" field's value of the TemplateVersion entity.
+// If the TemplateVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TemplateVersionMutation) OldUiSchema(ctx context.Context) (v types.UISchema, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUiSchema is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUiSchema requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUiSchema: %w", err)
+	}
+	return oldValue.UiSchema, nil
+}
+
+// ResetUiSchema resets all changes to the "uiSchema" field.
+func (m *TemplateVersionMutation) ResetUiSchema() {
+	m.uiSchema = nil
 }
 
 // SetProjectID sets the "project_id" field.
@@ -20464,7 +20501,7 @@ func (m *TemplateVersionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TemplateVersionMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.create_time != nil {
 		fields = append(fields, templateversion.FieldCreateTime)
 	}
@@ -20485,6 +20522,9 @@ func (m *TemplateVersionMutation) Fields() []string {
 	}
 	if m.schema != nil {
 		fields = append(fields, templateversion.FieldSchema)
+	}
+	if m.uiSchema != nil {
+		fields = append(fields, templateversion.FieldUiSchema)
 	}
 	if m.project != nil {
 		fields = append(fields, templateversion.FieldProjectID)
@@ -20511,6 +20551,8 @@ func (m *TemplateVersionMutation) Field(name string) (ent.Value, bool) {
 		return m.Source()
 	case templateversion.FieldSchema:
 		return m.Schema()
+	case templateversion.FieldUiSchema:
+		return m.UiSchema()
 	case templateversion.FieldProjectID:
 		return m.ProjectID()
 	}
@@ -20536,6 +20578,8 @@ func (m *TemplateVersionMutation) OldField(ctx context.Context, name string) (en
 		return m.OldSource(ctx)
 	case templateversion.FieldSchema:
 		return m.OldSchema(ctx)
+	case templateversion.FieldUiSchema:
+		return m.OldUiSchema(ctx)
 	case templateversion.FieldProjectID:
 		return m.OldProjectID(ctx)
 	}
@@ -20590,11 +20634,18 @@ func (m *TemplateVersionMutation) SetField(name string, value ent.Value) error {
 		m.SetSource(v)
 		return nil
 	case templateversion.FieldSchema:
-		v, ok := value.(*types.TemplateSchema)
+		v, ok := value.(types.Schema)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSchema(v)
+		return nil
+	case templateversion.FieldUiSchema:
+		v, ok := value.(types.UISchema)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUiSchema(v)
 		return nil
 	case templateversion.FieldProjectID:
 		v, ok := value.(object.ID)
@@ -20681,6 +20732,9 @@ func (m *TemplateVersionMutation) ResetField(name string) error {
 		return nil
 	case templateversion.FieldSchema:
 		m.ResetSchema()
+		return nil
+	case templateversion.FieldUiSchema:
+		m.ResetUiSchema()
 		return nil
 	case templateversion.FieldProjectID:
 		m.ResetProjectID()

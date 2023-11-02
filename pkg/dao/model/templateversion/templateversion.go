@@ -35,6 +35,8 @@ const (
 	FieldSource = "source"
 	// FieldSchema holds the string denoting the schema field in the database.
 	FieldSchema = "schema"
+	// FieldUiSchema holds the string denoting the uischema field in the database.
+	FieldUiSchema = "ui_schema"
 	// FieldProjectID holds the string denoting the project_id field in the database.
 	FieldProjectID = "project_id"
 	// EdgeTemplate holds the string denoting the template edge name in mutations.
@@ -78,6 +80,7 @@ var Columns = []string{
 	FieldVersion,
 	FieldSource,
 	FieldSchema,
+	FieldUiSchema,
 	FieldProjectID,
 }
 
@@ -114,7 +117,9 @@ var (
 	// SourceValidator is a validator for the "source" field. It is called by the builders before save.
 	SourceValidator func(string) error
 	// DefaultSchema holds the default value on creation for the "schema" field.
-	DefaultSchema *types.TemplateSchema
+	DefaultSchema types.Schema
+	// DefaultUiSchema holds the default value on creation for the "uiSchema" field.
+	DefaultUiSchema types.UISchema
 )
 
 // OrderOption defines the ordering options for the TemplateVersion queries.

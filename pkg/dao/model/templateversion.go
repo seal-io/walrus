@@ -38,8 +38,10 @@ type TemplateVersion struct {
 	Version string `json:"version,omitempty"`
 	// Source of the template.
 	Source string `json:"source,omitempty"`
-	// Schema of the template.
-	Schema *types.TemplateSchema `json:"schema,omitempty"`
+	// Generated schema and data of the template.
+	Schema types.Schema `json:"schema,omitempty"`
+	// ui schema of the template.
+	UiSchema types.UISchema `json:"uiSchema,omitempty"`
 	// ID of the project to belong, empty means for all projects.
 	ProjectID object.ID `json:"project_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -101,7 +103,7 @@ func (*TemplateVersion) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case templateversion.FieldSchema:
+		case templateversion.FieldSchema, templateversion.FieldUiSchema:
 			values[i] = new([]byte)
 		case templateversion.FieldID, templateversion.FieldTemplateID, templateversion.FieldProjectID:
 			values[i] = new(object.ID)
@@ -174,6 +176,14 @@ func (tv *TemplateVersion) assignValues(columns []string, values []any) error {
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &tv.Schema); err != nil {
 					return fmt.Errorf("unmarshal field schema: %w", err)
+				}
+			}
+		case templateversion.FieldUiSchema:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field uiSchema", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &tv.UiSchema); err != nil {
+					return fmt.Errorf("unmarshal field uiSchema: %w", err)
 				}
 			}
 		case templateversion.FieldProjectID:
@@ -257,6 +267,9 @@ func (tv *TemplateVersion) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("schema=")
 	builder.WriteString(fmt.Sprintf("%v", tv.Schema))
+	builder.WriteString(", ")
+	builder.WriteString("uiSchema=")
+	builder.WriteString(fmt.Sprintf("%v", tv.UiSchema))
 	builder.WriteString(", ")
 	builder.WriteString("project_id=")
 	builder.WriteString(fmt.Sprintf("%v", tv.ProjectID))
