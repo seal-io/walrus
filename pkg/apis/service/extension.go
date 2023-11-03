@@ -56,7 +56,7 @@ func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 
 	// Apply service.
 	applyOpts := pkgservice.Options{
-		TlsCertified: h.tlsCertified,
+		Deployer: dp,
 	}
 
 	ready, err := pkgservice.CheckDependencyStatus(req.Context, h.modelClient, entity)
@@ -68,7 +68,6 @@ func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 		return pkgservice.Apply(
 			req.Context,
 			h.modelClient,
-			dp,
 			entity,
 			applyOpts)
 	}
@@ -116,13 +115,12 @@ func (h Handler) RouteRollback(req RouteRollbackRequest) error {
 	}
 
 	applyOpts := pkgservice.Options{
-		TlsCertified: h.tlsCertified,
+		Deployer: dp,
 	}
 
 	return pkgservice.Apply(
 		req.Context,
 		h.modelClient,
-		dp,
 		entity,
 		applyOpts)
 }
