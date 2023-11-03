@@ -31,13 +31,12 @@ func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 	}
 
 	createOpts := pkgservice.Options{
-		TlsCertified: h.tlsCertified,
+		Deployer: dp,
 	}
 
 	return pkgservice.Create(
 		req.Context,
 		h.modelClient,
-		dp,
 		entity,
 		createOpts,
 	)
@@ -81,13 +80,12 @@ func (h Handler) Delete(req DeleteRequest) (err error) {
 	}
 
 	destroyOpts := pkgservice.Options{
-		TlsCertified: h.tlsCertified,
+		Deployer: dp,
 	}
 
 	return pkgservice.Destroy(
 		req.Context,
 		h.modelClient,
-		dp,
 		req.Model(),
 		destroyOpts)
 }
@@ -291,11 +289,11 @@ func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 		}
 
 		destroyOpts := pkgservice.Options{
-			TlsCertified: h.tlsCertified,
+			Deployer: dp,
 		}
 
 		for _, s := range services {
-			err = pkgservice.Destroy(req.Context, tx, dp, s, destroyOpts)
+			err = pkgservice.Destroy(req.Context, h.modelClient, s, destroyOpts)
 			if err != nil {
 				return err
 			}

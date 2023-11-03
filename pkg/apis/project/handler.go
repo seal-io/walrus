@@ -14,18 +14,16 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model"
 )
 
-func Handle(mc model.ClientSet, kc *rest.Config, tc bool) Handler {
+func Handle(mc model.ClientSet, kc *rest.Config) Handler {
 	return Handler{
-		modelClient:  mc,
-		kubeConfig:   kc,
-		tlsCertified: tc,
+		modelClient: mc,
+		kubeConfig:  kc,
 	}
 }
 
 type Handler struct {
-	modelClient  model.ClientSet
-	kubeConfig   *rest.Config
-	tlsCertified bool
+	modelClient model.ClientSet
+	kubeConfig  *rest.Config
 }
 
 func (Handler) Kind() string {
@@ -35,7 +33,7 @@ func (Handler) Kind() string {
 func (h Handler) SubResourceHandlers() []runtime.IResourceHandler {
 	return []runtime.IResourceHandler{
 		connector.Handle(h.modelClient),
-		environment.Handle(h.modelClient, h.kubeConfig, h.tlsCertified),
+		environment.Handle(h.modelClient, h.kubeConfig),
 		variable.Handle(h.modelClient),
 		catalog.Handle(h.modelClient),
 		template.Handle(h.modelClient),

@@ -131,7 +131,7 @@ func buildServiceRelationshipCheckJobCreator(opts initOptions) (es settings.Valu
 	es = settings.ServiceRelationshipCheckCronExpr
 	jc = func(logger log.Logger, expr string) (cron.Expr, cron.Task, error) {
 		task, err := svcskd.NewServiceRelationshipCheckTask(logger,
-			opts.ModelClient, opts.K8sConfig, opts.SkipTLSVerify)
+			opts.ModelClient, opts.K8sConfig)
 		if err != nil {
 			return nil, nil, err
 		}

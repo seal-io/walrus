@@ -24,13 +24,12 @@ const annotationSubjectIDName = "walrus.seal.io/subject-id"
 
 // Options for deploy or destroy.
 type Options struct {
-	TlsCertified bool
+	Deployer deptypes.Deployer
 }
 
 func Create(
 	ctx context.Context,
 	mc model.ClientSet,
-	dp deptypes.Deployer,
 	entity *model.Service,
 	opts Options,
 ) (*model.ServiceOutput, error) {
@@ -57,9 +56,7 @@ func Create(
 	// Service dependency ready can be applied promptly.
 	if ready {
 		// Deploy service.
-		err = Apply(ctx, mc, dp, entity, Options{
-			TlsCertified: opts.TlsCertified,
-		})
+		err = Apply(ctx, mc, entity, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -88,7 +85,6 @@ func UpdateStatus(
 func Apply(
 	ctx context.Context,
 	mc model.ClientSet,
-	dp deptypes.Deployer,
 	entity *model.Service,
 	opts Options,
 ) (err error) {
@@ -98,11 +94,7 @@ func Apply(
 		return errorx.Errorf("service status is not deploying, service: %s", entity.ID)
 	}
 
-	applyOpts := deptypes.ApplyOptions{
-		SkipTLSVerify: !opts.TlsCertified,
-	}
-
-	err = dp.Apply(ctx, entity, applyOpts)
+	err = opts.Deployer.Apply(ctx, entity, deptypes.ApplyOptions{})
 	if err != nil {
 		err = fmt.Errorf("failed to apply service: %w", err)
 		logger.Error(err)
@@ -122,7 +114,6 @@ func Apply(
 func Destroy(
 	ctx context.Context,
 	mc model.ClientSet,
-	dp deptypes.Deployer,
 	entity *model.Service,
 	opts Options,
 ) (err error) {
@@ -168,11 +159,7 @@ func Destroy(
 		}
 	}
 
-	destroyOpts := deptypes.DestroyOptions{
-		SkipTLSVerify: !opts.TlsCertified,
-	}
-
-	err = dp.Destroy(ctx, entity, destroyOpts)
+	err = opts.Deployer.Destroy(ctx, entity, deptypes.DestroyOptions{})
 	if err != nil {
 		log.Errorf("fail to destroy service: %w", err)
 

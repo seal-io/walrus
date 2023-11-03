@@ -32,17 +32,15 @@ const (
 // RelationshipCheckTask checks services pending on relationships and
 // proceeds applying/destroying services when the check pass.
 type RelationshipCheckTask struct {
-	logger        log.Logger
-	modelClient   model.ClientSet
-	skipTLSVerify bool
-	deployer      deptypes.Deployer
+	logger      log.Logger
+	modelClient model.ClientSet
+	deployer    deptypes.Deployer
 }
 
 func NewServiceRelationshipCheckTask(
 	logger log.Logger,
 	mc model.ClientSet,
 	kc *rest.Config,
-	skipTLSVerify bool,
 ) (in *RelationshipCheckTask, err error) {
 	// Create deployer.
 	opts := deptypes.CreateOptions{
@@ -57,10 +55,9 @@ func NewServiceRelationshipCheckTask(
 	}
 
 	in = &RelationshipCheckTask{
-		logger:        logger,
-		modelClient:   mc,
-		skipTLSVerify: skipTLSVerify,
-		deployer:      dp,
+		logger:      logger,
+		modelClient: mc,
+		deployer:    dp,
 	}
 
 	return
@@ -148,17 +145,15 @@ func (in *RelationshipCheckTask) destroyServices(ctx context.Context) error {
 		return err
 	}
 
-	opts := pkgservice.Options{
-		TlsCertified: in.skipTLSVerify,
-	}
-
 	for _, svc := range services {
 		if status.ServiceStatusProgressing.IsTrue(svc) {
 			// Dependencies resolved and destruction in progress.
 			continue
 		}
 
-		err = pkgservice.Destroy(ctx, in.modelClient, in.deployer, svc, opts)
+		err = pkgservice.Destroy(ctx, in.modelClient, svc, pkgservice.Options{
+			Deployer: in.deployer,
+		})
 		if err != nil {
 			return err
 		}
@@ -232,11 +227,9 @@ func (in *RelationshipCheckTask) deployService(ctx context.Context, entity *mode
 		return err
 	}
 
-	opts := pkgservice.Options{
-		TlsCertified: in.skipTLSVerify,
-	}
-
-	return pkgservice.Apply(ctx, in.modelClient, in.deployer, entity, opts)
+	return pkgservice.Apply(ctx, in.modelClient, entity, pkgservice.Options{
+		Deployer: in.deployer,
+	})
 }
 
 // setServiceStatusFalse sets a service status to false if parent dependencies statuses are false or deleted.

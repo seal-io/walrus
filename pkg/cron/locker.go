@@ -233,6 +233,7 @@ func (lk *Lock) Unlock(ctx context.Context) error {
 	// Delete key.
 	if ctx.Err() != nil {
 		var cancel context.CancelFunc
+
 		ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 	}
