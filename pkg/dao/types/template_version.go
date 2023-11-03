@@ -30,8 +30,11 @@ func (s UISchema) Validate() error {
 	if s.IsEmpty() {
 		return nil
 	}
-	// workaround: inject paths since kin-openapi/openapi3 need it.
+	// workaround: inject paths and version since kin-openapi/openapi3 need it.
 	s.Paths = openapi3.Paths{}
+	if s.Info != nil && s.Info.Version == "" {
+		s.Info.Version = "mock"
+	}
 
 	err := s.T.Validate(context.Background())
 	if err != nil {
