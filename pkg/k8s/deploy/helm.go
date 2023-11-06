@@ -1,4 +1,4 @@
-package deployer
+package deploy
 
 import (
 	"fmt"
@@ -52,7 +52,7 @@ func NewHelm(namespace, kubeconfig string) (*Helm, error) {
 	settings.KubeConfig = kubeconfigFile.Name()
 
 	config := action.Configuration{}
-	logger := log.WithName("cost")
+	logger := log.WithName("deployer")
 
 	if err = config.Init(settings.RESTClientGetter(), namespace, "secrets", func(format string, v ...any) {
 		logger.WithName("helm").Debugf(format, v...)

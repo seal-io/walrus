@@ -158,6 +158,9 @@ ENV IMAGE_OPENCOST="sealio/mirrored-kubecost-cost-model:v1.105.2" \
 RUN mkdir -p ${CHARTS_DIR}
 ADD https://github.com/prometheus-community/helm-charts/releases/download/prometheus-24.0.0/prometheus-24.0.0.tgz ${CHARTS_DIR}/prometheus.tgz
 
+# argo workflows tools
+ADD https://github.com/argoproj/argo-helm/releases/download/argo-workflows-0.36.1/argo-workflows-0.36.1.tgz ${CHARTS_DIR}/argo-workflows.tgz
+
 # walrus cli
 RUN set -eux; \
     mkdir -p /var/lib/walrus/cli
