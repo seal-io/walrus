@@ -14,6 +14,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/k8s/deploy"
 	opk8s "github.com/seal-io/walrus/pkg/operator/k8s"
 	"github.com/seal-io/walrus/pkg/settings"
 	"github.com/seal-io/walrus/utils/log"
@@ -39,7 +40,7 @@ func DeployCostTools(ctx context.Context, mc model.ClientSet, conn *model.Connec
 		return err
 	}
 
-	d, err := New(kubeconfig)
+	d, err := deploy.New(kubeconfig)
 	if err != nil {
 		return fmt.Errorf("error create deployer: %w", err)
 	}
@@ -188,15 +189,7 @@ func opencostRefreshPricingURL(restCfg *rest.Config) (string, error) {
 	return u.String(), nil
 }
 
-type ChartApp struct {
-	Name      string
-	Namespace string
-	ChartPath string
-	ChartURL  string
-	Values    map[string]any
-}
-
-func prometheus(imageRegistry string) (*ChartApp, error) {
+func prometheus(imageRegistry string) (*deploy.ChartApp, error) {
 	scrape, err := opencostScrape()
 	if err != nil {
 		return nil, err
@@ -248,7 +241,7 @@ func prometheus(imageRegistry string) (*ChartApp, error) {
 		},
 	}
 
-	return &ChartApp{
+	return &deploy.ChartApp{
 		Name:      NamePrometheus,
 		Namespace: types.WalrusSystemNamespace,
 		ChartPath: defaultPrometheusChartPath,

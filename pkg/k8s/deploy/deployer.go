@@ -1,4 +1,4 @@
-package deployer
+package deploy
 
 import (
 	"bytes"
@@ -24,6 +24,14 @@ type Deployer struct {
 	restCfg *rest.Config
 	kubeCfg string
 	logger  log.Logger
+}
+
+type ChartApp struct {
+	Name      string
+	Namespace string
+	ChartPath string
+	ChartURL  string
+	Values    map[string]any
 }
 
 func New(kubeCfg string) (*Deployer, error) {

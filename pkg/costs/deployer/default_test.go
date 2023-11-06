@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	k8sdeployer "github.com/seal-io/walrus/pkg/k8s/deploy"
 )
 
 func TestHelm(t *testing.T) {
@@ -21,7 +23,7 @@ func TestHelm(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	deployer, err := New(string(kubeConfigContentByte))
+	deployer, err := k8sdeployer.New(string(kubeConfigContentByte))
 	assert.Nil(t, err, "error create helm")
 
 	yaml, err := opencost("test", "docker.io")
