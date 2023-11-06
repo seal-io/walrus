@@ -72,6 +72,24 @@ type ClientSet interface {
 	// Variables returns the client for interacting with the Variable builders.
 	Variables() *VariableClient
 
+	// Workflows returns the client for interacting with the Workflow builders.
+	Workflows() *WorkflowClient
+
+	// WorkflowExecutions returns the client for interacting with the WorkflowExecution builders.
+	WorkflowExecutions() *WorkflowExecutionClient
+
+	// WorkflowStages returns the client for interacting with the WorkflowStage builders.
+	WorkflowStages() *WorkflowStageClient
+
+	// WorkflowStageExecutions returns the client for interacting with the WorkflowStageExecution builders.
+	WorkflowStageExecutions() *WorkflowStageExecutionClient
+
+	// WorkflowSteps returns the client for interacting with the WorkflowStep builders.
+	WorkflowSteps() *WorkflowStepClient
+
+	// WorkflowStepExecutions returns the client for interacting with the WorkflowStepExecution builders.
+	WorkflowStepExecutions() *WorkflowStepExecutionClient
+
 	// Dialect returns the dialect name of the driver.
 	Dialect() string
 
@@ -213,4 +231,40 @@ type TokenClientGetter interface {
 type VariableClientGetter interface {
 	// Variables returns the client for interacting with the Variable builders.
 	Variables() *VariableClient
+}
+
+// WorkflowClientGetter is an interface that allows getting WorkflowClient.
+type WorkflowClientGetter interface {
+	// Workflows returns the client for interacting with the Workflow builders.
+	Workflows() *WorkflowClient
+}
+
+// WorkflowExecutionClientGetter is an interface that allows getting WorkflowExecutionClient.
+type WorkflowExecutionClientGetter interface {
+	// WorkflowExecutions returns the client for interacting with the WorkflowExecution builders.
+	WorkflowExecutions() *WorkflowExecutionClient
+}
+
+// WorkflowStageClientGetter is an interface that allows getting WorkflowStageClient.
+type WorkflowStageClientGetter interface {
+	// WorkflowStages returns the client for interacting with the WorkflowStage builders.
+	WorkflowStages() *WorkflowStageClient
+}
+
+// WorkflowStageExecutionClientGetter is an interface that allows getting WorkflowStageExecutionClient.
+type WorkflowStageExecutionClientGetter interface {
+	// WorkflowStageExecutions returns the client for interacting with the WorkflowStageExecution builders.
+	WorkflowStageExecutions() *WorkflowStageExecutionClient
+}
+
+// WorkflowStepClientGetter is an interface that allows getting WorkflowStepClient.
+type WorkflowStepClientGetter interface {
+	// WorkflowSteps returns the client for interacting with the WorkflowStep builders.
+	WorkflowSteps() *WorkflowStepClient
+}
+
+// WorkflowStepExecutionClientGetter is an interface that allows getting WorkflowStepExecutionClient.
+type WorkflowStepExecutionClientGetter interface {
+	// WorkflowStepExecutions returns the client for interacting with the WorkflowStepExecution builders.
+	WorkflowStepExecutions() *WorkflowStepExecutionClient
 }

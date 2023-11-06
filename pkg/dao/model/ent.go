@@ -37,6 +37,12 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/model/token"
 	"github.com/seal-io/walrus/pkg/dao/model/variable"
+	"github.com/seal-io/walrus/pkg/dao/model/workflow"
+	"github.com/seal-io/walrus/pkg/dao/model/workflowexecution"
+	"github.com/seal-io/walrus/pkg/dao/model/workflowstage"
+	"github.com/seal-io/walrus/pkg/dao/model/workflowstageexecution"
+	"github.com/seal-io/walrus/pkg/dao/model/workflowstep"
+	"github.com/seal-io/walrus/pkg/dao/model/workflowstepexecution"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -118,6 +124,12 @@ func checkColumn(table, column string) error {
 			templateversion.Table:                  templateversion.ValidColumn,
 			token.Table:                            token.ValidColumn,
 			variable.Table:                         variable.ValidColumn,
+			workflow.Table:                         workflow.ValidColumn,
+			workflowexecution.Table:                workflowexecution.ValidColumn,
+			workflowstage.Table:                    workflowstage.ValidColumn,
+			workflowstageexecution.Table:           workflowstageexecution.ValidColumn,
+			workflowstep.Table:                     workflowstep.ValidColumn,
+			workflowstepexecution.Table:            workflowstepexecution.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

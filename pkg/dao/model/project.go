@@ -63,9 +63,21 @@ type ProjectEdges struct {
 	TemplateVersions []*TemplateVersion `json:"template_versions,omitempty"`
 	// Catalogs that belong to the project.
 	Catalogs []*Catalog `json:"catalogs,omitempty"`
+	// Workflows that belong to the project.
+	Workflows []*Workflow `json:"workflows,omitempty"`
+	// WorkflowStages that belong to the project.
+	WorkflowStages []*WorkflowStage `json:"workflow_stages,omitempty"`
+	// WorkflowSteps that belong to the project.
+	WorkflowSteps []*WorkflowStep `json:"workflow_steps,omitempty"`
+	// WorkflowExecutions that belong to the project.
+	WorkflowExecutions []*WorkflowExecution `json:"workflow_executions,omitempty"`
+	// WorkflowStageExecutions that belong to the project.
+	WorkflowStageExecutions []*WorkflowStageExecution `json:"workflow_stage_executions,omitempty"`
+	// WorkflowStepExecutions that belong to the project.
+	WorkflowStepExecutions []*WorkflowStepExecution `json:"workflow_step_executions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [10]bool
+	loadedTypes [16]bool
 }
 
 // EnvironmentsOrErr returns the Environments value or an error if the edge
@@ -156,6 +168,60 @@ func (e ProjectEdges) CatalogsOrErr() ([]*Catalog, error) {
 		return e.Catalogs, nil
 	}
 	return nil, &NotLoadedError{edge: "catalogs"}
+}
+
+// WorkflowsOrErr returns the Workflows value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) WorkflowsOrErr() ([]*Workflow, error) {
+	if e.loadedTypes[10] {
+		return e.Workflows, nil
+	}
+	return nil, &NotLoadedError{edge: "workflows"}
+}
+
+// WorkflowStagesOrErr returns the WorkflowStages value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) WorkflowStagesOrErr() ([]*WorkflowStage, error) {
+	if e.loadedTypes[11] {
+		return e.WorkflowStages, nil
+	}
+	return nil, &NotLoadedError{edge: "workflow_stages"}
+}
+
+// WorkflowStepsOrErr returns the WorkflowSteps value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) WorkflowStepsOrErr() ([]*WorkflowStep, error) {
+	if e.loadedTypes[12] {
+		return e.WorkflowSteps, nil
+	}
+	return nil, &NotLoadedError{edge: "workflow_steps"}
+}
+
+// WorkflowExecutionsOrErr returns the WorkflowExecutions value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) WorkflowExecutionsOrErr() ([]*WorkflowExecution, error) {
+	if e.loadedTypes[13] {
+		return e.WorkflowExecutions, nil
+	}
+	return nil, &NotLoadedError{edge: "workflow_executions"}
+}
+
+// WorkflowStageExecutionsOrErr returns the WorkflowStageExecutions value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) WorkflowStageExecutionsOrErr() ([]*WorkflowStageExecution, error) {
+	if e.loadedTypes[14] {
+		return e.WorkflowStageExecutions, nil
+	}
+	return nil, &NotLoadedError{edge: "workflow_stage_executions"}
+}
+
+// WorkflowStepExecutionsOrErr returns the WorkflowStepExecutions value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) WorkflowStepExecutionsOrErr() ([]*WorkflowStepExecution, error) {
+	if e.loadedTypes[15] {
+		return e.WorkflowStepExecutions, nil
+	}
+	return nil, &NotLoadedError{edge: "workflow_step_executions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -295,6 +361,36 @@ func (pr *Project) QueryTemplateVersions() *TemplateVersionQuery {
 // QueryCatalogs queries the "catalogs" edge of the Project entity.
 func (pr *Project) QueryCatalogs() *CatalogQuery {
 	return NewProjectClient(pr.config).QueryCatalogs(pr)
+}
+
+// QueryWorkflows queries the "workflows" edge of the Project entity.
+func (pr *Project) QueryWorkflows() *WorkflowQuery {
+	return NewProjectClient(pr.config).QueryWorkflows(pr)
+}
+
+// QueryWorkflowStages queries the "workflow_stages" edge of the Project entity.
+func (pr *Project) QueryWorkflowStages() *WorkflowStageQuery {
+	return NewProjectClient(pr.config).QueryWorkflowStages(pr)
+}
+
+// QueryWorkflowSteps queries the "workflow_steps" edge of the Project entity.
+func (pr *Project) QueryWorkflowSteps() *WorkflowStepQuery {
+	return NewProjectClient(pr.config).QueryWorkflowSteps(pr)
+}
+
+// QueryWorkflowExecutions queries the "workflow_executions" edge of the Project entity.
+func (pr *Project) QueryWorkflowExecutions() *WorkflowExecutionQuery {
+	return NewProjectClient(pr.config).QueryWorkflowExecutions(pr)
+}
+
+// QueryWorkflowStageExecutions queries the "workflow_stage_executions" edge of the Project entity.
+func (pr *Project) QueryWorkflowStageExecutions() *WorkflowStageExecutionQuery {
+	return NewProjectClient(pr.config).QueryWorkflowStageExecutions(pr)
+}
+
+// QueryWorkflowStepExecutions queries the "workflow_step_executions" edge of the Project entity.
+func (pr *Project) QueryWorkflowStepExecutions() *WorkflowStepExecutionQuery {
+	return NewProjectClient(pr.config).QueryWorkflowStepExecutions(pr)
 }
 
 // Update returns a builder for updating this Project.

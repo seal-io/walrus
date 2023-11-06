@@ -71,3 +71,21 @@ type Token func(*sql.Selector)
 
 // Variable is the predicate function for variable builders.
 type Variable func(*sql.Selector)
+
+// Workflow is the predicate function for workflow builders.
+type Workflow func(*sql.Selector)
+
+// WorkflowExecution is the predicate function for workflowexecution builders.
+type WorkflowExecution func(*sql.Selector)
+
+// WorkflowStage is the predicate function for workflowstage builders.
+type WorkflowStage func(*sql.Selector)
+
+// WorkflowStageExecution is the predicate function for workflowstageexecution builders.
+type WorkflowStageExecution func(*sql.Selector)
+
+// WorkflowStep is the predicate function for workflowstep builders.
+type WorkflowStep func(*sql.Selector)
+
+// WorkflowStepExecution is the predicate function for workflowstepexecution builders.
+type WorkflowStepExecution func(*sql.Selector)
