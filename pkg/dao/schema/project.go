@@ -91,6 +91,42 @@ func (Project) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
 				entx.SkipIO()),
+		// Project 1-* Workflows.
+		edge.To("workflows", Workflow.Type).
+			Comment("Workflows that belong to the project.").
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+				entx.SkipIO()),
+		// Project 1-* WorkflowStages.
+		edge.To("workflow_stages", WorkflowStage.Type).
+			Comment("WorkflowStages that belong to the project.").
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+				entx.SkipIO()),
+		// Project 1-* WorkflowSteps.
+		edge.To("workflow_steps", WorkflowStep.Type).
+			Comment("WorkflowSteps that belong to the project.").
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+				entx.SkipIO()),
+		// Project 1-* WorkflowExecutions.
+		edge.To("workflow_executions", WorkflowExecution.Type).
+			Comment("WorkflowExecutions that belong to the project.").
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+				entx.SkipIO()),
+		// Project 1-* WorkflowStageExecutions.
+		edge.To("workflow_stage_executions", WorkflowStageExecution.Type).
+			Comment("WorkflowStageExecutions that belong to the project.").
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+				entx.SkipIO()),
+		// Project 1-* WorkflowStepExecutions.
+		edge.To("workflow_step_executions", WorkflowStepExecution.Type).
+			Comment("WorkflowStepExecutions that belong to the project.").
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+				entx.SkipIO()),
 	}
 }
 
