@@ -59,6 +59,18 @@ type Tx struct {
 	Token *TokenClient
 	// Variable is the client for interacting with the Variable builders.
 	Variable *VariableClient
+	// Workflow is the client for interacting with the Workflow builders.
+	Workflow *WorkflowClient
+	// WorkflowExecution is the client for interacting with the WorkflowExecution builders.
+	WorkflowExecution *WorkflowExecutionClient
+	// WorkflowStage is the client for interacting with the WorkflowStage builders.
+	WorkflowStage *WorkflowStageClient
+	// WorkflowStageExecution is the client for interacting with the WorkflowStageExecution builders.
+	WorkflowStageExecution *WorkflowStageExecutionClient
+	// WorkflowStep is the client for interacting with the WorkflowStep builders.
+	WorkflowStep *WorkflowStepClient
+	// WorkflowStepExecution is the client for interacting with the WorkflowStepExecution builders.
+	WorkflowStepExecution *WorkflowStepExecutionClient
 
 	// lazily loaded.
 	client     *Client
@@ -211,6 +223,12 @@ func (tx *Tx) init() {
 	tx.TemplateVersion = NewTemplateVersionClient(tx.config)
 	tx.Token = NewTokenClient(tx.config)
 	tx.Variable = NewVariableClient(tx.config)
+	tx.Workflow = NewWorkflowClient(tx.config)
+	tx.WorkflowExecution = NewWorkflowExecutionClient(tx.config)
+	tx.WorkflowStage = NewWorkflowStageClient(tx.config)
+	tx.WorkflowStageExecution = NewWorkflowStageExecutionClient(tx.config)
+	tx.WorkflowStep = NewWorkflowStepClient(tx.config)
+	tx.WorkflowStepExecution = NewWorkflowStepExecutionClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.
@@ -379,6 +397,36 @@ func (tx *Tx) Variables() *VariableClient {
 	return tx.Variable
 }
 
+// Workflows implements the ClientSet.
+func (tx *Tx) Workflows() *WorkflowClient {
+	return tx.Workflow
+}
+
+// WorkflowExecutions implements the ClientSet.
+func (tx *Tx) WorkflowExecutions() *WorkflowExecutionClient {
+	return tx.WorkflowExecution
+}
+
+// WorkflowStages implements the ClientSet.
+func (tx *Tx) WorkflowStages() *WorkflowStageClient {
+	return tx.WorkflowStage
+}
+
+// WorkflowStageExecutions implements the ClientSet.
+func (tx *Tx) WorkflowStageExecutions() *WorkflowStageExecutionClient {
+	return tx.WorkflowStageExecution
+}
+
+// WorkflowSteps implements the ClientSet.
+func (tx *Tx) WorkflowSteps() *WorkflowStepClient {
+	return tx.WorkflowStep
+}
+
+// WorkflowStepExecutions implements the ClientSet.
+func (tx *Tx) WorkflowStepExecutions() *WorkflowStepExecutionClient {
+	return tx.WorkflowStepExecution
+}
+
 // Dialect returns the dialect name of the driver.
 func (tx *Tx) Dialect() string {
 	return tx.driver.Dialect()
@@ -407,6 +455,12 @@ func (tx *Tx) Intercept(interceptors ...Interceptor) {
 	tx.TemplateVersion.Intercept(interceptors...)
 	tx.Token.Intercept(interceptors...)
 	tx.Variable.Intercept(interceptors...)
+	tx.Workflow.Intercept(interceptors...)
+	tx.WorkflowExecution.Intercept(interceptors...)
+	tx.WorkflowStage.Intercept(interceptors...)
+	tx.WorkflowStageExecution.Intercept(interceptors...)
+	tx.WorkflowStep.Intercept(interceptors...)
+	tx.WorkflowStepExecution.Intercept(interceptors...)
 }
 
 // ExecContext allows calling the underlying ExecContext method of the transaction if it is supported by it.
@@ -456,6 +510,12 @@ func (tx *Tx) Use(hooks ...Hook) {
 	tx.TemplateVersion.Use(hooks...)
 	tx.Token.Use(hooks...)
 	tx.Variable.Use(hooks...)
+	tx.Workflow.Use(hooks...)
+	tx.WorkflowExecution.Use(hooks...)
+	tx.WorkflowStage.Use(hooks...)
+	tx.WorkflowStageExecution.Use(hooks...)
+	tx.WorkflowStep.Use(hooks...)
+	tx.WorkflowStepExecution.Use(hooks...)
 }
 
 // WithDebug enables the debug mode of the client.

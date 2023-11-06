@@ -264,6 +264,78 @@ func (f VariableFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.VariableMutation", m)
 }
 
+// The WorkflowFunc type is an adapter to allow the use of ordinary
+// function as Workflow mutator.
+type WorkflowFunc func(context.Context, *model.WorkflowMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f WorkflowFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.WorkflowMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.WorkflowMutation", m)
+}
+
+// The WorkflowExecutionFunc type is an adapter to allow the use of ordinary
+// function as WorkflowExecution mutator.
+type WorkflowExecutionFunc func(context.Context, *model.WorkflowExecutionMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f WorkflowExecutionFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.WorkflowExecutionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.WorkflowExecutionMutation", m)
+}
+
+// The WorkflowStageFunc type is an adapter to allow the use of ordinary
+// function as WorkflowStage mutator.
+type WorkflowStageFunc func(context.Context, *model.WorkflowStageMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f WorkflowStageFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.WorkflowStageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.WorkflowStageMutation", m)
+}
+
+// The WorkflowStageExecutionFunc type is an adapter to allow the use of ordinary
+// function as WorkflowStageExecution mutator.
+type WorkflowStageExecutionFunc func(context.Context, *model.WorkflowStageExecutionMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f WorkflowStageExecutionFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.WorkflowStageExecutionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.WorkflowStageExecutionMutation", m)
+}
+
+// The WorkflowStepFunc type is an adapter to allow the use of ordinary
+// function as WorkflowStep mutator.
+type WorkflowStepFunc func(context.Context, *model.WorkflowStepMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f WorkflowStepFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.WorkflowStepMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.WorkflowStepMutation", m)
+}
+
+// The WorkflowStepExecutionFunc type is an adapter to allow the use of ordinary
+// function as WorkflowStepExecution mutator.
+type WorkflowStepExecutionFunc func(context.Context, *model.WorkflowStepExecutionMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f WorkflowStepExecutionFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.WorkflowStepExecutionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.WorkflowStepExecutionMutation", m)
+}
+
 // Condition is a hook condition function.
 type Condition func(context.Context, model.Mutation) bool
 

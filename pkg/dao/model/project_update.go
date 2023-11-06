@@ -31,6 +31,12 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/model/variable"
+	"github.com/seal-io/walrus/pkg/dao/model/workflow"
+	"github.com/seal-io/walrus/pkg/dao/model/workflowexecution"
+	"github.com/seal-io/walrus/pkg/dao/model/workflowstage"
+	"github.com/seal-io/walrus/pkg/dao/model/workflowstageexecution"
+	"github.com/seal-io/walrus/pkg/dao/model/workflowstep"
+	"github.com/seal-io/walrus/pkg/dao/model/workflowstepexecution"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
@@ -249,6 +255,96 @@ func (pu *ProjectUpdate) AddCatalogs(c ...*Catalog) *ProjectUpdate {
 	return pu.AddCatalogIDs(ids...)
 }
 
+// AddWorkflowIDs adds the "workflows" edge to the Workflow entity by IDs.
+func (pu *ProjectUpdate) AddWorkflowIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.AddWorkflowIDs(ids...)
+	return pu
+}
+
+// AddWorkflows adds the "workflows" edges to the Workflow entity.
+func (pu *ProjectUpdate) AddWorkflows(w ...*Workflow) *ProjectUpdate {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return pu.AddWorkflowIDs(ids...)
+}
+
+// AddWorkflowStageIDs adds the "workflow_stages" edge to the WorkflowStage entity by IDs.
+func (pu *ProjectUpdate) AddWorkflowStageIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.AddWorkflowStageIDs(ids...)
+	return pu
+}
+
+// AddWorkflowStages adds the "workflow_stages" edges to the WorkflowStage entity.
+func (pu *ProjectUpdate) AddWorkflowStages(w ...*WorkflowStage) *ProjectUpdate {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return pu.AddWorkflowStageIDs(ids...)
+}
+
+// AddWorkflowStepIDs adds the "workflow_steps" edge to the WorkflowStep entity by IDs.
+func (pu *ProjectUpdate) AddWorkflowStepIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.AddWorkflowStepIDs(ids...)
+	return pu
+}
+
+// AddWorkflowSteps adds the "workflow_steps" edges to the WorkflowStep entity.
+func (pu *ProjectUpdate) AddWorkflowSteps(w ...*WorkflowStep) *ProjectUpdate {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return pu.AddWorkflowStepIDs(ids...)
+}
+
+// AddWorkflowExecutionIDs adds the "workflow_executions" edge to the WorkflowExecution entity by IDs.
+func (pu *ProjectUpdate) AddWorkflowExecutionIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.AddWorkflowExecutionIDs(ids...)
+	return pu
+}
+
+// AddWorkflowExecutions adds the "workflow_executions" edges to the WorkflowExecution entity.
+func (pu *ProjectUpdate) AddWorkflowExecutions(w ...*WorkflowExecution) *ProjectUpdate {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return pu.AddWorkflowExecutionIDs(ids...)
+}
+
+// AddWorkflowStageExecutionIDs adds the "workflow_stage_executions" edge to the WorkflowStageExecution entity by IDs.
+func (pu *ProjectUpdate) AddWorkflowStageExecutionIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.AddWorkflowStageExecutionIDs(ids...)
+	return pu
+}
+
+// AddWorkflowStageExecutions adds the "workflow_stage_executions" edges to the WorkflowStageExecution entity.
+func (pu *ProjectUpdate) AddWorkflowStageExecutions(w ...*WorkflowStageExecution) *ProjectUpdate {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return pu.AddWorkflowStageExecutionIDs(ids...)
+}
+
+// AddWorkflowStepExecutionIDs adds the "workflow_step_executions" edge to the WorkflowStepExecution entity by IDs.
+func (pu *ProjectUpdate) AddWorkflowStepExecutionIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.AddWorkflowStepExecutionIDs(ids...)
+	return pu
+}
+
+// AddWorkflowStepExecutions adds the "workflow_step_executions" edges to the WorkflowStepExecution entity.
+func (pu *ProjectUpdate) AddWorkflowStepExecutions(w ...*WorkflowStepExecution) *ProjectUpdate {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return pu.AddWorkflowStepExecutionIDs(ids...)
+}
+
 // Mutation returns the ProjectMutation object of the builder.
 func (pu *ProjectUpdate) Mutation() *ProjectMutation {
 	return pu.mutation
@@ -462,6 +558,132 @@ func (pu *ProjectUpdate) RemoveCatalogs(c ...*Catalog) *ProjectUpdate {
 		ids[i] = c[i].ID
 	}
 	return pu.RemoveCatalogIDs(ids...)
+}
+
+// ClearWorkflows clears all "workflows" edges to the Workflow entity.
+func (pu *ProjectUpdate) ClearWorkflows() *ProjectUpdate {
+	pu.mutation.ClearWorkflows()
+	return pu
+}
+
+// RemoveWorkflowIDs removes the "workflows" edge to Workflow entities by IDs.
+func (pu *ProjectUpdate) RemoveWorkflowIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.RemoveWorkflowIDs(ids...)
+	return pu
+}
+
+// RemoveWorkflows removes "workflows" edges to Workflow entities.
+func (pu *ProjectUpdate) RemoveWorkflows(w ...*Workflow) *ProjectUpdate {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return pu.RemoveWorkflowIDs(ids...)
+}
+
+// ClearWorkflowStages clears all "workflow_stages" edges to the WorkflowStage entity.
+func (pu *ProjectUpdate) ClearWorkflowStages() *ProjectUpdate {
+	pu.mutation.ClearWorkflowStages()
+	return pu
+}
+
+// RemoveWorkflowStageIDs removes the "workflow_stages" edge to WorkflowStage entities by IDs.
+func (pu *ProjectUpdate) RemoveWorkflowStageIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.RemoveWorkflowStageIDs(ids...)
+	return pu
+}
+
+// RemoveWorkflowStages removes "workflow_stages" edges to WorkflowStage entities.
+func (pu *ProjectUpdate) RemoveWorkflowStages(w ...*WorkflowStage) *ProjectUpdate {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return pu.RemoveWorkflowStageIDs(ids...)
+}
+
+// ClearWorkflowSteps clears all "workflow_steps" edges to the WorkflowStep entity.
+func (pu *ProjectUpdate) ClearWorkflowSteps() *ProjectUpdate {
+	pu.mutation.ClearWorkflowSteps()
+	return pu
+}
+
+// RemoveWorkflowStepIDs removes the "workflow_steps" edge to WorkflowStep entities by IDs.
+func (pu *ProjectUpdate) RemoveWorkflowStepIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.RemoveWorkflowStepIDs(ids...)
+	return pu
+}
+
+// RemoveWorkflowSteps removes "workflow_steps" edges to WorkflowStep entities.
+func (pu *ProjectUpdate) RemoveWorkflowSteps(w ...*WorkflowStep) *ProjectUpdate {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return pu.RemoveWorkflowStepIDs(ids...)
+}
+
+// ClearWorkflowExecutions clears all "workflow_executions" edges to the WorkflowExecution entity.
+func (pu *ProjectUpdate) ClearWorkflowExecutions() *ProjectUpdate {
+	pu.mutation.ClearWorkflowExecutions()
+	return pu
+}
+
+// RemoveWorkflowExecutionIDs removes the "workflow_executions" edge to WorkflowExecution entities by IDs.
+func (pu *ProjectUpdate) RemoveWorkflowExecutionIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.RemoveWorkflowExecutionIDs(ids...)
+	return pu
+}
+
+// RemoveWorkflowExecutions removes "workflow_executions" edges to WorkflowExecution entities.
+func (pu *ProjectUpdate) RemoveWorkflowExecutions(w ...*WorkflowExecution) *ProjectUpdate {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return pu.RemoveWorkflowExecutionIDs(ids...)
+}
+
+// ClearWorkflowStageExecutions clears all "workflow_stage_executions" edges to the WorkflowStageExecution entity.
+func (pu *ProjectUpdate) ClearWorkflowStageExecutions() *ProjectUpdate {
+	pu.mutation.ClearWorkflowStageExecutions()
+	return pu
+}
+
+// RemoveWorkflowStageExecutionIDs removes the "workflow_stage_executions" edge to WorkflowStageExecution entities by IDs.
+func (pu *ProjectUpdate) RemoveWorkflowStageExecutionIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.RemoveWorkflowStageExecutionIDs(ids...)
+	return pu
+}
+
+// RemoveWorkflowStageExecutions removes "workflow_stage_executions" edges to WorkflowStageExecution entities.
+func (pu *ProjectUpdate) RemoveWorkflowStageExecutions(w ...*WorkflowStageExecution) *ProjectUpdate {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return pu.RemoveWorkflowStageExecutionIDs(ids...)
+}
+
+// ClearWorkflowStepExecutions clears all "workflow_step_executions" edges to the WorkflowStepExecution entity.
+func (pu *ProjectUpdate) ClearWorkflowStepExecutions() *ProjectUpdate {
+	pu.mutation.ClearWorkflowStepExecutions()
+	return pu
+}
+
+// RemoveWorkflowStepExecutionIDs removes the "workflow_step_executions" edge to WorkflowStepExecution entities by IDs.
+func (pu *ProjectUpdate) RemoveWorkflowStepExecutionIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.RemoveWorkflowStepExecutionIDs(ids...)
+	return pu
+}
+
+// RemoveWorkflowStepExecutions removes "workflow_step_executions" edges to WorkflowStepExecution entities.
+func (pu *ProjectUpdate) RemoveWorkflowStepExecutions(w ...*WorkflowStepExecution) *ProjectUpdate {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return pu.RemoveWorkflowStepExecutionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1080,6 +1302,294 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pu.mutation.WorkflowsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowsTable,
+			Columns: []string{project.WorkflowsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflow.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.Workflow
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedWorkflowsIDs(); len(nodes) > 0 && !pu.mutation.WorkflowsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowsTable,
+			Columns: []string{project.WorkflowsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflow.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.Workflow
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.WorkflowsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowsTable,
+			Columns: []string{project.WorkflowsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflow.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.Workflow
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pu.mutation.WorkflowStagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStagesTable,
+			Columns: []string{project.WorkflowStagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstage.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.WorkflowStage
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedWorkflowStagesIDs(); len(nodes) > 0 && !pu.mutation.WorkflowStagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStagesTable,
+			Columns: []string{project.WorkflowStagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstage.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.WorkflowStage
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.WorkflowStagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStagesTable,
+			Columns: []string{project.WorkflowStagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstage.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.WorkflowStage
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pu.mutation.WorkflowStepsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStepsTable,
+			Columns: []string{project.WorkflowStepsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstep.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.WorkflowStep
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedWorkflowStepsIDs(); len(nodes) > 0 && !pu.mutation.WorkflowStepsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStepsTable,
+			Columns: []string{project.WorkflowStepsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstep.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.WorkflowStep
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.WorkflowStepsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStepsTable,
+			Columns: []string{project.WorkflowStepsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstep.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.WorkflowStep
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pu.mutation.WorkflowExecutionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowExecutionsTable,
+			Columns: []string{project.WorkflowExecutionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowexecution.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.WorkflowExecution
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedWorkflowExecutionsIDs(); len(nodes) > 0 && !pu.mutation.WorkflowExecutionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowExecutionsTable,
+			Columns: []string{project.WorkflowExecutionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowexecution.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.WorkflowExecution
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.WorkflowExecutionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowExecutionsTable,
+			Columns: []string{project.WorkflowExecutionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowexecution.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.WorkflowExecution
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pu.mutation.WorkflowStageExecutionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStageExecutionsTable,
+			Columns: []string{project.WorkflowStageExecutionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstageexecution.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.WorkflowStageExecution
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedWorkflowStageExecutionsIDs(); len(nodes) > 0 && !pu.mutation.WorkflowStageExecutionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStageExecutionsTable,
+			Columns: []string{project.WorkflowStageExecutionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstageexecution.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.WorkflowStageExecution
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.WorkflowStageExecutionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStageExecutionsTable,
+			Columns: []string{project.WorkflowStageExecutionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstageexecution.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.WorkflowStageExecution
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pu.mutation.WorkflowStepExecutionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStepExecutionsTable,
+			Columns: []string{project.WorkflowStepExecutionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstepexecution.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.WorkflowStepExecution
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedWorkflowStepExecutionsIDs(); len(nodes) > 0 && !pu.mutation.WorkflowStepExecutionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStepExecutionsTable,
+			Columns: []string{project.WorkflowStepExecutionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstepexecution.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.WorkflowStepExecution
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.WorkflowStepExecutionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStepExecutionsTable,
+			Columns: []string{project.WorkflowStepExecutionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstepexecution.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.WorkflowStepExecution
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = pu.schemaConfig.Project
 	ctx = internal.NewSchemaConfigContext(ctx, pu.schemaConfig)
 	_spec.AddModifiers(pu.modifiers...)
@@ -1305,6 +1815,96 @@ func (puo *ProjectUpdateOne) AddCatalogs(c ...*Catalog) *ProjectUpdateOne {
 	return puo.AddCatalogIDs(ids...)
 }
 
+// AddWorkflowIDs adds the "workflows" edge to the Workflow entity by IDs.
+func (puo *ProjectUpdateOne) AddWorkflowIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.AddWorkflowIDs(ids...)
+	return puo
+}
+
+// AddWorkflows adds the "workflows" edges to the Workflow entity.
+func (puo *ProjectUpdateOne) AddWorkflows(w ...*Workflow) *ProjectUpdateOne {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return puo.AddWorkflowIDs(ids...)
+}
+
+// AddWorkflowStageIDs adds the "workflow_stages" edge to the WorkflowStage entity by IDs.
+func (puo *ProjectUpdateOne) AddWorkflowStageIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.AddWorkflowStageIDs(ids...)
+	return puo
+}
+
+// AddWorkflowStages adds the "workflow_stages" edges to the WorkflowStage entity.
+func (puo *ProjectUpdateOne) AddWorkflowStages(w ...*WorkflowStage) *ProjectUpdateOne {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return puo.AddWorkflowStageIDs(ids...)
+}
+
+// AddWorkflowStepIDs adds the "workflow_steps" edge to the WorkflowStep entity by IDs.
+func (puo *ProjectUpdateOne) AddWorkflowStepIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.AddWorkflowStepIDs(ids...)
+	return puo
+}
+
+// AddWorkflowSteps adds the "workflow_steps" edges to the WorkflowStep entity.
+func (puo *ProjectUpdateOne) AddWorkflowSteps(w ...*WorkflowStep) *ProjectUpdateOne {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return puo.AddWorkflowStepIDs(ids...)
+}
+
+// AddWorkflowExecutionIDs adds the "workflow_executions" edge to the WorkflowExecution entity by IDs.
+func (puo *ProjectUpdateOne) AddWorkflowExecutionIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.AddWorkflowExecutionIDs(ids...)
+	return puo
+}
+
+// AddWorkflowExecutions adds the "workflow_executions" edges to the WorkflowExecution entity.
+func (puo *ProjectUpdateOne) AddWorkflowExecutions(w ...*WorkflowExecution) *ProjectUpdateOne {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return puo.AddWorkflowExecutionIDs(ids...)
+}
+
+// AddWorkflowStageExecutionIDs adds the "workflow_stage_executions" edge to the WorkflowStageExecution entity by IDs.
+func (puo *ProjectUpdateOne) AddWorkflowStageExecutionIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.AddWorkflowStageExecutionIDs(ids...)
+	return puo
+}
+
+// AddWorkflowStageExecutions adds the "workflow_stage_executions" edges to the WorkflowStageExecution entity.
+func (puo *ProjectUpdateOne) AddWorkflowStageExecutions(w ...*WorkflowStageExecution) *ProjectUpdateOne {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return puo.AddWorkflowStageExecutionIDs(ids...)
+}
+
+// AddWorkflowStepExecutionIDs adds the "workflow_step_executions" edge to the WorkflowStepExecution entity by IDs.
+func (puo *ProjectUpdateOne) AddWorkflowStepExecutionIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.AddWorkflowStepExecutionIDs(ids...)
+	return puo
+}
+
+// AddWorkflowStepExecutions adds the "workflow_step_executions" edges to the WorkflowStepExecution entity.
+func (puo *ProjectUpdateOne) AddWorkflowStepExecutions(w ...*WorkflowStepExecution) *ProjectUpdateOne {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return puo.AddWorkflowStepExecutionIDs(ids...)
+}
+
 // Mutation returns the ProjectMutation object of the builder.
 func (puo *ProjectUpdateOne) Mutation() *ProjectMutation {
 	return puo.mutation
@@ -1518,6 +2118,132 @@ func (puo *ProjectUpdateOne) RemoveCatalogs(c ...*Catalog) *ProjectUpdateOne {
 		ids[i] = c[i].ID
 	}
 	return puo.RemoveCatalogIDs(ids...)
+}
+
+// ClearWorkflows clears all "workflows" edges to the Workflow entity.
+func (puo *ProjectUpdateOne) ClearWorkflows() *ProjectUpdateOne {
+	puo.mutation.ClearWorkflows()
+	return puo
+}
+
+// RemoveWorkflowIDs removes the "workflows" edge to Workflow entities by IDs.
+func (puo *ProjectUpdateOne) RemoveWorkflowIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.RemoveWorkflowIDs(ids...)
+	return puo
+}
+
+// RemoveWorkflows removes "workflows" edges to Workflow entities.
+func (puo *ProjectUpdateOne) RemoveWorkflows(w ...*Workflow) *ProjectUpdateOne {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return puo.RemoveWorkflowIDs(ids...)
+}
+
+// ClearWorkflowStages clears all "workflow_stages" edges to the WorkflowStage entity.
+func (puo *ProjectUpdateOne) ClearWorkflowStages() *ProjectUpdateOne {
+	puo.mutation.ClearWorkflowStages()
+	return puo
+}
+
+// RemoveWorkflowStageIDs removes the "workflow_stages" edge to WorkflowStage entities by IDs.
+func (puo *ProjectUpdateOne) RemoveWorkflowStageIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.RemoveWorkflowStageIDs(ids...)
+	return puo
+}
+
+// RemoveWorkflowStages removes "workflow_stages" edges to WorkflowStage entities.
+func (puo *ProjectUpdateOne) RemoveWorkflowStages(w ...*WorkflowStage) *ProjectUpdateOne {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return puo.RemoveWorkflowStageIDs(ids...)
+}
+
+// ClearWorkflowSteps clears all "workflow_steps" edges to the WorkflowStep entity.
+func (puo *ProjectUpdateOne) ClearWorkflowSteps() *ProjectUpdateOne {
+	puo.mutation.ClearWorkflowSteps()
+	return puo
+}
+
+// RemoveWorkflowStepIDs removes the "workflow_steps" edge to WorkflowStep entities by IDs.
+func (puo *ProjectUpdateOne) RemoveWorkflowStepIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.RemoveWorkflowStepIDs(ids...)
+	return puo
+}
+
+// RemoveWorkflowSteps removes "workflow_steps" edges to WorkflowStep entities.
+func (puo *ProjectUpdateOne) RemoveWorkflowSteps(w ...*WorkflowStep) *ProjectUpdateOne {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return puo.RemoveWorkflowStepIDs(ids...)
+}
+
+// ClearWorkflowExecutions clears all "workflow_executions" edges to the WorkflowExecution entity.
+func (puo *ProjectUpdateOne) ClearWorkflowExecutions() *ProjectUpdateOne {
+	puo.mutation.ClearWorkflowExecutions()
+	return puo
+}
+
+// RemoveWorkflowExecutionIDs removes the "workflow_executions" edge to WorkflowExecution entities by IDs.
+func (puo *ProjectUpdateOne) RemoveWorkflowExecutionIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.RemoveWorkflowExecutionIDs(ids...)
+	return puo
+}
+
+// RemoveWorkflowExecutions removes "workflow_executions" edges to WorkflowExecution entities.
+func (puo *ProjectUpdateOne) RemoveWorkflowExecutions(w ...*WorkflowExecution) *ProjectUpdateOne {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return puo.RemoveWorkflowExecutionIDs(ids...)
+}
+
+// ClearWorkflowStageExecutions clears all "workflow_stage_executions" edges to the WorkflowStageExecution entity.
+func (puo *ProjectUpdateOne) ClearWorkflowStageExecutions() *ProjectUpdateOne {
+	puo.mutation.ClearWorkflowStageExecutions()
+	return puo
+}
+
+// RemoveWorkflowStageExecutionIDs removes the "workflow_stage_executions" edge to WorkflowStageExecution entities by IDs.
+func (puo *ProjectUpdateOne) RemoveWorkflowStageExecutionIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.RemoveWorkflowStageExecutionIDs(ids...)
+	return puo
+}
+
+// RemoveWorkflowStageExecutions removes "workflow_stage_executions" edges to WorkflowStageExecution entities.
+func (puo *ProjectUpdateOne) RemoveWorkflowStageExecutions(w ...*WorkflowStageExecution) *ProjectUpdateOne {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return puo.RemoveWorkflowStageExecutionIDs(ids...)
+}
+
+// ClearWorkflowStepExecutions clears all "workflow_step_executions" edges to the WorkflowStepExecution entity.
+func (puo *ProjectUpdateOne) ClearWorkflowStepExecutions() *ProjectUpdateOne {
+	puo.mutation.ClearWorkflowStepExecutions()
+	return puo
+}
+
+// RemoveWorkflowStepExecutionIDs removes the "workflow_step_executions" edge to WorkflowStepExecution entities by IDs.
+func (puo *ProjectUpdateOne) RemoveWorkflowStepExecutionIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.RemoveWorkflowStepExecutionIDs(ids...)
+	return puo
+}
+
+// RemoveWorkflowStepExecutions removes "workflow_step_executions" edges to WorkflowStepExecution entities.
+func (puo *ProjectUpdateOne) RemoveWorkflowStepExecutions(w ...*WorkflowStepExecution) *ProjectUpdateOne {
+	ids := make([]object.ID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return puo.RemoveWorkflowStepExecutionIDs(ids...)
 }
 
 // Where appends a list predicates to the ProjectUpdate builder.
@@ -2259,6 +2985,294 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 			},
 		}
 		edge.Schema = puo.schemaConfig.Catalog
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.WorkflowsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowsTable,
+			Columns: []string{project.WorkflowsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflow.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.Workflow
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedWorkflowsIDs(); len(nodes) > 0 && !puo.mutation.WorkflowsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowsTable,
+			Columns: []string{project.WorkflowsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflow.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.Workflow
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.WorkflowsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowsTable,
+			Columns: []string{project.WorkflowsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflow.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.Workflow
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.WorkflowStagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStagesTable,
+			Columns: []string{project.WorkflowStagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstage.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.WorkflowStage
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedWorkflowStagesIDs(); len(nodes) > 0 && !puo.mutation.WorkflowStagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStagesTable,
+			Columns: []string{project.WorkflowStagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstage.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.WorkflowStage
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.WorkflowStagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStagesTable,
+			Columns: []string{project.WorkflowStagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstage.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.WorkflowStage
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.WorkflowStepsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStepsTable,
+			Columns: []string{project.WorkflowStepsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstep.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.WorkflowStep
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedWorkflowStepsIDs(); len(nodes) > 0 && !puo.mutation.WorkflowStepsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStepsTable,
+			Columns: []string{project.WorkflowStepsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstep.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.WorkflowStep
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.WorkflowStepsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStepsTable,
+			Columns: []string{project.WorkflowStepsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstep.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.WorkflowStep
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.WorkflowExecutionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowExecutionsTable,
+			Columns: []string{project.WorkflowExecutionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowexecution.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.WorkflowExecution
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedWorkflowExecutionsIDs(); len(nodes) > 0 && !puo.mutation.WorkflowExecutionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowExecutionsTable,
+			Columns: []string{project.WorkflowExecutionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowexecution.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.WorkflowExecution
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.WorkflowExecutionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowExecutionsTable,
+			Columns: []string{project.WorkflowExecutionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowexecution.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.WorkflowExecution
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.WorkflowStageExecutionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStageExecutionsTable,
+			Columns: []string{project.WorkflowStageExecutionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstageexecution.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.WorkflowStageExecution
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedWorkflowStageExecutionsIDs(); len(nodes) > 0 && !puo.mutation.WorkflowStageExecutionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStageExecutionsTable,
+			Columns: []string{project.WorkflowStageExecutionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstageexecution.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.WorkflowStageExecution
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.WorkflowStageExecutionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStageExecutionsTable,
+			Columns: []string{project.WorkflowStageExecutionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstageexecution.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.WorkflowStageExecution
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.WorkflowStepExecutionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStepExecutionsTable,
+			Columns: []string{project.WorkflowStepExecutionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstepexecution.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.WorkflowStepExecution
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedWorkflowStepExecutionsIDs(); len(nodes) > 0 && !puo.mutation.WorkflowStepExecutionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStepExecutionsTable,
+			Columns: []string{project.WorkflowStepExecutionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstepexecution.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.WorkflowStepExecution
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.WorkflowStepExecutionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.WorkflowStepExecutionsTable,
+			Columns: []string{project.WorkflowStepExecutionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workflowstepexecution.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.WorkflowStepExecution
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

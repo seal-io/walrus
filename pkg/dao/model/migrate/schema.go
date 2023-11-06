@@ -893,6 +893,243 @@ var (
 			},
 		},
 	}
+	// WorkflowsColumns holds the columns for the "workflows" table.
+	WorkflowsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
+		{Name: "annotations", Type: field.TypeJSON, Nullable: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "environment_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "type", Type: field.TypeString},
+		{Name: "parallelism", Type: field.TypeInt, Default: 10},
+		{Name: "timeout", Type: field.TypeInt, Default: 0},
+		{Name: "version", Type: field.TypeInt, Default: 0},
+		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+	}
+	// WorkflowsTable holds the schema information for the "workflows" table.
+	WorkflowsTable = &schema.Table{
+		Name:       "workflows",
+		Columns:    WorkflowsColumns,
+		PrimaryKey: []*schema.Column{WorkflowsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "workflows_projects_workflows",
+				Columns:    []*schema.Column{WorkflowsColumns[12]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "workflow_project_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{WorkflowsColumns[12], WorkflowsColumns[1]},
+			},
+		},
+	}
+	// WorkflowExecutionsColumns holds the columns for the "workflow_executions" table.
+	WorkflowExecutionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
+		{Name: "annotations", Type: field.TypeJSON, Nullable: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeJSON, Nullable: true},
+		{Name: "version", Type: field.TypeInt},
+		{Name: "type", Type: field.TypeString},
+		{Name: "subject_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "execute_time", Type: field.TypeTime, Nullable: true},
+		{Name: "times", Type: field.TypeInt, Default: 1},
+		{Name: "duration", Type: field.TypeInt, Default: 0},
+		{Name: "parallelism", Type: field.TypeInt, Default: 10},
+		{Name: "timeout", Type: field.TypeInt, Default: 0},
+		{Name: "trigger", Type: field.TypeJSON},
+		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "workflow_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+	}
+	// WorkflowExecutionsTable holds the schema information for the "workflow_executions" table.
+	WorkflowExecutionsTable = &schema.Table{
+		Name:       "workflow_executions",
+		Columns:    WorkflowExecutionsColumns,
+		PrimaryKey: []*schema.Column{WorkflowExecutionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "workflow_executions_projects_workflow_executions",
+				Columns:    []*schema.Column{WorkflowExecutionsColumns[17]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "workflow_executions_workflows_executions",
+				Columns:    []*schema.Column{WorkflowExecutionsColumns[18]},
+				RefColumns: []*schema.Column{WorkflowsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// WorkflowStagesColumns holds the columns for the "workflow_stages" table.
+	WorkflowStagesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
+		{Name: "annotations", Type: field.TypeJSON, Nullable: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "dependencies", Type: field.TypeJSON},
+		{Name: "order", Type: field.TypeInt, Default: 0},
+		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "workflow_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+	}
+	// WorkflowStagesTable holds the schema information for the "workflow_stages" table.
+	WorkflowStagesTable = &schema.Table{
+		Name:       "workflow_stages",
+		Columns:    WorkflowStagesColumns,
+		PrimaryKey: []*schema.Column{WorkflowStagesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "workflow_stages_projects_workflow_stages",
+				Columns:    []*schema.Column{WorkflowStagesColumns[9]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "workflow_stages_workflows_stages",
+				Columns:    []*schema.Column{WorkflowStagesColumns[10]},
+				RefColumns: []*schema.Column{WorkflowsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// WorkflowStageExecutionsColumns holds the columns for the "workflow_stage_executions" table.
+	WorkflowStageExecutionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
+		{Name: "annotations", Type: field.TypeJSON, Nullable: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeJSON, Nullable: true},
+		{Name: "workflow_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "workflow_stage_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "execute_time", Type: field.TypeTime, Nullable: true},
+		{Name: "duration", Type: field.TypeInt, Default: 0},
+		{Name: "order", Type: field.TypeInt, Default: 0},
+		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "workflow_execution_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+	}
+	// WorkflowStageExecutionsTable holds the schema information for the "workflow_stage_executions" table.
+	WorkflowStageExecutionsTable = &schema.Table{
+		Name:       "workflow_stage_executions",
+		Columns:    WorkflowStageExecutionsColumns,
+		PrimaryKey: []*schema.Column{WorkflowStageExecutionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "workflow_stage_executions_projects_workflow_stage_executions",
+				Columns:    []*schema.Column{WorkflowStageExecutionsColumns[13]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "workflow_stage_executions_workflow_executions_stages",
+				Columns:    []*schema.Column{WorkflowStageExecutionsColumns[14]},
+				RefColumns: []*schema.Column{WorkflowExecutionsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// WorkflowStepsColumns holds the columns for the "workflow_steps" table.
+	WorkflowStepsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
+		{Name: "annotations", Type: field.TypeJSON, Nullable: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "type", Type: field.TypeString},
+		{Name: "workflow_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "attributes", Type: field.TypeJSON, Nullable: true},
+		{Name: "inputs", Type: field.TypeJSON, Nullable: true},
+		{Name: "outputs", Type: field.TypeJSON, Nullable: true},
+		{Name: "order", Type: field.TypeInt, Default: 0},
+		{Name: "dependencies", Type: field.TypeJSON},
+		{Name: "retry_strategy", Type: field.TypeJSON, Nullable: true},
+		{Name: "timeout", Type: field.TypeInt, Default: 0},
+		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "workflow_stage_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+	}
+	// WorkflowStepsTable holds the schema information for the "workflow_steps" table.
+	WorkflowStepsTable = &schema.Table{
+		Name:       "workflow_steps",
+		Columns:    WorkflowStepsColumns,
+		PrimaryKey: []*schema.Column{WorkflowStepsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "workflow_steps_projects_workflow_steps",
+				Columns:    []*schema.Column{WorkflowStepsColumns[16]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "workflow_steps_workflow_stages_steps",
+				Columns:    []*schema.Column{WorkflowStepsColumns[17]},
+				RefColumns: []*schema.Column{WorkflowStagesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// WorkflowStepExecutionsColumns holds the columns for the "workflow_step_executions" table.
+	WorkflowStepExecutionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
+		{Name: "annotations", Type: field.TypeJSON, Nullable: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeJSON, Nullable: true},
+		{Name: "workflow_step_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "workflow_execution_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "workflow_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "type", Type: field.TypeString},
+		{Name: "attributes", Type: field.TypeJSON, Nullable: true},
+		{Name: "times", Type: field.TypeInt, Default: 1},
+		{Name: "execute_time", Type: field.TypeTime, Nullable: true},
+		{Name: "duration", Type: field.TypeInt, Default: 0},
+		{Name: "retry_strategy", Type: field.TypeJSON, Nullable: true},
+		{Name: "timeout", Type: field.TypeInt, Default: 0},
+		{Name: "order", Type: field.TypeInt, Default: 0},
+		{Name: "record", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "workflow_stage_execution_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+	}
+	// WorkflowStepExecutionsTable holds the schema information for the "workflow_step_executions" table.
+	WorkflowStepExecutionsTable = &schema.Table{
+		Name:       "workflow_step_executions",
+		Columns:    WorkflowStepExecutionsColumns,
+		PrimaryKey: []*schema.Column{WorkflowStepExecutionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "workflow_step_executions_projects_workflow_step_executions",
+				Columns:    []*schema.Column{WorkflowStepExecutionsColumns[20]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "workflow_step_executions_workflow_stage_executions_steps",
+				Columns:    []*schema.Column{WorkflowStepExecutionsColumns[21]},
+				RefColumns: []*schema.Column{WorkflowStageExecutionsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		CatalogsTable,
@@ -916,6 +1153,12 @@ var (
 		TemplateVersionsTable,
 		TokensTable,
 		VariablesTable,
+		WorkflowsTable,
+		WorkflowExecutionsTable,
+		WorkflowStagesTable,
+		WorkflowStageExecutionsTable,
+		WorkflowStepsTable,
+		WorkflowStepExecutionsTable,
 	}
 )
 
@@ -952,4 +1195,15 @@ func init() {
 	TokensTable.ForeignKeys[0].RefTable = SubjectsTable
 	VariablesTable.ForeignKeys[0].RefTable = EnvironmentsTable
 	VariablesTable.ForeignKeys[1].RefTable = ProjectsTable
+	WorkflowsTable.ForeignKeys[0].RefTable = ProjectsTable
+	WorkflowExecutionsTable.ForeignKeys[0].RefTable = ProjectsTable
+	WorkflowExecutionsTable.ForeignKeys[1].RefTable = WorkflowsTable
+	WorkflowStagesTable.ForeignKeys[0].RefTable = ProjectsTable
+	WorkflowStagesTable.ForeignKeys[1].RefTable = WorkflowsTable
+	WorkflowStageExecutionsTable.ForeignKeys[0].RefTable = ProjectsTable
+	WorkflowStageExecutionsTable.ForeignKeys[1].RefTable = WorkflowExecutionsTable
+	WorkflowStepsTable.ForeignKeys[0].RefTable = ProjectsTable
+	WorkflowStepsTable.ForeignKeys[1].RefTable = WorkflowStagesTable
+	WorkflowStepExecutionsTable.ForeignKeys[0].RefTable = ProjectsTable
+	WorkflowStepExecutionsTable.ForeignKeys[1].RefTable = WorkflowStageExecutionsTable
 }

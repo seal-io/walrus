@@ -34,6 +34,12 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/model/token"
 	"github.com/seal-io/walrus/pkg/dao/model/variable"
+	"github.com/seal-io/walrus/pkg/dao/model/workflow"
+	"github.com/seal-io/walrus/pkg/dao/model/workflowexecution"
+	"github.com/seal-io/walrus/pkg/dao/model/workflowstage"
+	"github.com/seal-io/walrus/pkg/dao/model/workflowstageexecution"
+	"github.com/seal-io/walrus/pkg/dao/model/workflowstep"
+	"github.com/seal-io/walrus/pkg/dao/model/workflowstepexecution"
 )
 
 // The Query interface represents an operation that queries a graph.
@@ -659,6 +665,168 @@ func (f TraverseVariable) Traverse(ctx context.Context, q model.Query) error {
 	return fmt.Errorf("unexpected query type %T. expect *model.VariableQuery", q)
 }
 
+// The WorkflowFunc type is an adapter to allow the use of ordinary function as a Querier.
+type WorkflowFunc func(context.Context, *model.WorkflowQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f WorkflowFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.WorkflowQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.WorkflowQuery", q)
+}
+
+// The TraverseWorkflow type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseWorkflow func(context.Context, *model.WorkflowQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseWorkflow) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseWorkflow) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.WorkflowQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.WorkflowQuery", q)
+}
+
+// The WorkflowExecutionFunc type is an adapter to allow the use of ordinary function as a Querier.
+type WorkflowExecutionFunc func(context.Context, *model.WorkflowExecutionQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f WorkflowExecutionFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.WorkflowExecutionQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.WorkflowExecutionQuery", q)
+}
+
+// The TraverseWorkflowExecution type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseWorkflowExecution func(context.Context, *model.WorkflowExecutionQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseWorkflowExecution) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseWorkflowExecution) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.WorkflowExecutionQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.WorkflowExecutionQuery", q)
+}
+
+// The WorkflowStageFunc type is an adapter to allow the use of ordinary function as a Querier.
+type WorkflowStageFunc func(context.Context, *model.WorkflowStageQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f WorkflowStageFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.WorkflowStageQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.WorkflowStageQuery", q)
+}
+
+// The TraverseWorkflowStage type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseWorkflowStage func(context.Context, *model.WorkflowStageQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseWorkflowStage) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseWorkflowStage) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.WorkflowStageQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.WorkflowStageQuery", q)
+}
+
+// The WorkflowStageExecutionFunc type is an adapter to allow the use of ordinary function as a Querier.
+type WorkflowStageExecutionFunc func(context.Context, *model.WorkflowStageExecutionQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f WorkflowStageExecutionFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.WorkflowStageExecutionQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.WorkflowStageExecutionQuery", q)
+}
+
+// The TraverseWorkflowStageExecution type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseWorkflowStageExecution func(context.Context, *model.WorkflowStageExecutionQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseWorkflowStageExecution) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseWorkflowStageExecution) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.WorkflowStageExecutionQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.WorkflowStageExecutionQuery", q)
+}
+
+// The WorkflowStepFunc type is an adapter to allow the use of ordinary function as a Querier.
+type WorkflowStepFunc func(context.Context, *model.WorkflowStepQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f WorkflowStepFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.WorkflowStepQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.WorkflowStepQuery", q)
+}
+
+// The TraverseWorkflowStep type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseWorkflowStep func(context.Context, *model.WorkflowStepQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseWorkflowStep) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseWorkflowStep) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.WorkflowStepQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.WorkflowStepQuery", q)
+}
+
+// The WorkflowStepExecutionFunc type is an adapter to allow the use of ordinary function as a Querier.
+type WorkflowStepExecutionFunc func(context.Context, *model.WorkflowStepExecutionQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f WorkflowStepExecutionFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.WorkflowStepExecutionQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.WorkflowStepExecutionQuery", q)
+}
+
+// The TraverseWorkflowStepExecution type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseWorkflowStepExecution func(context.Context, *model.WorkflowStepExecutionQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseWorkflowStepExecution) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseWorkflowStepExecution) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.WorkflowStepExecutionQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.WorkflowStepExecutionQuery", q)
+}
+
 // NewQuery returns the generic Query interface for the given typed query.
 func NewQuery(q model.Query) (Query, error) {
 	switch q := q.(type) {
@@ -704,6 +872,18 @@ func NewQuery(q model.Query) (Query, error) {
 		return &query[*model.TokenQuery, predicate.Token, token.OrderOption]{typ: model.TypeToken, tq: q}, nil
 	case *model.VariableQuery:
 		return &query[*model.VariableQuery, predicate.Variable, variable.OrderOption]{typ: model.TypeVariable, tq: q}, nil
+	case *model.WorkflowQuery:
+		return &query[*model.WorkflowQuery, predicate.Workflow, workflow.OrderOption]{typ: model.TypeWorkflow, tq: q}, nil
+	case *model.WorkflowExecutionQuery:
+		return &query[*model.WorkflowExecutionQuery, predicate.WorkflowExecution, workflowexecution.OrderOption]{typ: model.TypeWorkflowExecution, tq: q}, nil
+	case *model.WorkflowStageQuery:
+		return &query[*model.WorkflowStageQuery, predicate.WorkflowStage, workflowstage.OrderOption]{typ: model.TypeWorkflowStage, tq: q}, nil
+	case *model.WorkflowStageExecutionQuery:
+		return &query[*model.WorkflowStageExecutionQuery, predicate.WorkflowStageExecution, workflowstageexecution.OrderOption]{typ: model.TypeWorkflowStageExecution, tq: q}, nil
+	case *model.WorkflowStepQuery:
+		return &query[*model.WorkflowStepQuery, predicate.WorkflowStep, workflowstep.OrderOption]{typ: model.TypeWorkflowStep, tq: q}, nil
+	case *model.WorkflowStepExecutionQuery:
+		return &query[*model.WorkflowStepExecutionQuery, predicate.WorkflowStepExecution, workflowstepexecution.OrderOption]{typ: model.TypeWorkflowStepExecution, tq: q}, nil
 	default:
 		return nil, fmt.Errorf("unknown query type %T", q)
 	}
