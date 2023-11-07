@@ -12,6 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 
+	apiconfig "github.com/seal-io/walrus/pkg/apis/config"
 	"github.com/seal-io/walrus/pkg/auths"
 	"github.com/seal-io/walrus/pkg/auths/session"
 	revisionbus "github.com/seal-io/walrus/pkg/bus/servicerevision"
@@ -114,7 +115,6 @@ func (d Deployer) Apply(ctx context.Context, service *model.Service, opts deptyp
 
 	return d.createK8sJob(ctx, createK8sJobOptions{
 		Type:            JobTypeApply,
-		SkipTLSVerify:   opts.SkipTLSVerify,
 		ServiceRevision: revision,
 	})
 }
@@ -157,7 +157,6 @@ func (d Deployer) Destroy(ctx context.Context, service *model.Service, opts dept
 
 	return d.createK8sJob(ctx, createK8sJobOptions{
 		Type:            JobTypeDestroy,
-		SkipTLSVerify:   opts.SkipTLSVerify,
 		ServiceRevision: revision,
 	})
 }
@@ -165,8 +164,6 @@ func (d Deployer) Destroy(ctx context.Context, service *model.Service, opts dept
 type createK8sJobOptions struct {
 	// Type indicates the type of the job.
 	Type string
-	// SkipTLSVerify indicates to skip TLS verification.
-	SkipTLSVerify bool
 	// ServiceRevision indicates the service revision to create the deployment job.
 	ServiceRevision *model.ServiceRevision
 }
@@ -213,7 +210,6 @@ func (d Deployer) createK8sJob(ctx context.Context, opts createK8sJobOptions) er
 
 	// Prepare tfConfig for deployment.
 	secretOpts := createK8sSecretsOptions{
-		SkipTLSVerify:   opts.SkipTLSVerify,
 		ServiceRevision: opts.ServiceRevision,
 		Connectors:      connectors,
 		ProjectID:       proj.ID,
@@ -332,7 +328,6 @@ func (d Deployer) updateRevisionStatus(ctx context.Context, ar *model.ServiceRev
 }
 
 type createK8sSecretsOptions struct {
-	SkipTLSVerify   bool
 	ServiceRevision *model.ServiceRevision
 	Connectors      model.Connectors
 	ProjectID       object.ID
@@ -599,7 +594,7 @@ func (d Deployer) loadConfigsBytes(ctx context.Context, opts createK8sSecretsOpt
 			TerraformOptions: &config.TerraformOptions{
 				Token:                at.AccessToken,
 				Address:              address,
-				SkipTLSVerify:        opts.SkipTLSVerify,
+				SkipTLSVerify:        !apiconfig.TlsCertified.Get(),
 				ProviderRequirements: requiredProviders,
 			},
 			ProviderOptions: &config.ProviderOptions{
