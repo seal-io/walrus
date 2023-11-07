@@ -51,6 +51,15 @@ var (
 		initializeFrom("sealio/terraform-deployer:v0.1.4"),
 		modifyWith(notBlank, containerImageReference),
 	)
+	// WorkflowStepServiceImage indicates the image used by workflow step service.
+	WorkflowStepServiceImage = newValue(
+		"WorkflowStepServiceImage",
+		editable,
+		// When the image is updated, sync the one in server Dockerfile.
+		// TODO replace with seal curl-jq image.
+		initializeFrom("badouralix/curl-jq"),
+		modifyWith(notBlank, containerImageReference),
+	)
 )
 
 // the built-in settings for server.

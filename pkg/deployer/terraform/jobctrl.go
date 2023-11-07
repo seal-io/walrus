@@ -348,31 +348,33 @@ func StreamJobLogs(ctx context.Context, opts StreamJobLogsOptions) error {
 		return nil
 	}
 
-	jobPod := podList.Items[0]
+	jobPod := &podList.Items[0]
 
 	err = wait.PollUntilContextTimeout(ctx, 1*time.Second, 1*time.Minute, true,
 		func(ctx context.Context) (bool, error) {
-			pod, getErr := opts.Cli.Pods(types.WalrusSystemNamespace).Get(ctx, jobPod.Name, metav1.GetOptions{
+			var getErr error
+
+			jobPod, getErr = opts.Cli.Pods(types.WalrusSystemNamespace).Get(ctx, jobPod.Name, metav1.GetOptions{
 				ResourceVersion: "0",
 			})
 			if getErr != nil {
 				return false, getErr
 			}
 
-			return kube.IsPodReady(pod), nil
+			return kube.IsPodReady(jobPod), nil
 		})
 	if err != nil {
 		return err
 	}
 
-	states := kube.GetContainerStates(&jobPod)
+	states := kube.GetContainerStates(jobPod)
 	if len(states) == 0 {
 		return nil
 	}
 
 	var (
 		containerName, containerType = states[0].Name, states[0].Type
-		follow                       = kube.IsContainerRunning(&jobPod, kube.Container{
+		follow                       = kube.IsContainerRunning(jobPod, kube.Container{
 			Type: containerType,
 			Name: containerName,
 		})
