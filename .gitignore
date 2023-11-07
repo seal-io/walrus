@@ -29,3 +29,4 @@ go.work.*
 /.dist
 /log
 /certs
+/cmd/server/.cache
