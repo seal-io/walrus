@@ -23,6 +23,10 @@ var (
 	ServiceRevision = topic.Topic(migrate.ServiceRevisionsTable.Name)
 	// Template is the topic for model.Template.
 	Template = topic.Topic(migrate.TemplatesTable.Name)
+	// Workflow is the topic for model.Workflow.
+	Workflow = topic.Topic(migrate.WorkflowsTable.Name)
+	// WorkflowExecution is the topic for model.WorkflowExecution.
+	WorkflowExecution = topic.Topic(migrate.WorkflowExecutionsTable.Name)
 )
 
 // tableNameSet holds the set for interested table names,
@@ -35,6 +39,8 @@ var tableNameSet = sets.NewString(
 	string(ServiceResource),
 	string(ServiceRevision),
 	string(Template),
+	string(Workflow),
+	string(WorkflowExecution),
 	// Disallow subscribing from topic.
 	migrate.SettingsTable.Name,
 )

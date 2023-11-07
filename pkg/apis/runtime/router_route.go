@@ -369,6 +369,14 @@ func Alias(handler IResourceHandler, withKind string) IResourceHandler {
 	}
 }
 
+func (h aliasKindHandler) SubResourceHandlers() []IResourceHandler {
+	if v, ok := h.IResourceHandler.(subResourceHandlersGetter); ok {
+		return v.SubResourceHandlers()
+	}
+
+	return nil
+}
+
 // routeHandler returns the resource handlers of the given resource handler.
 func routeHandler(
 	basePath string,

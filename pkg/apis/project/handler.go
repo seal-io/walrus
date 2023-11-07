@@ -11,6 +11,7 @@ import (
 	"github.com/seal-io/walrus/pkg/apis/template"
 	"github.com/seal-io/walrus/pkg/apis/templateversion"
 	"github.com/seal-io/walrus/pkg/apis/variable"
+	"github.com/seal-io/walrus/pkg/apis/workflow"
 	"github.com/seal-io/walrus/pkg/dao/model"
 )
 
@@ -35,6 +36,7 @@ func (h Handler) SubResourceHandlers() []runtime.IResourceHandler {
 		connector.Handle(h.modelClient),
 		environment.Handle(h.modelClient, h.kubeConfig),
 		variable.Handle(h.modelClient),
+		workflow.Handle(h.modelClient, h.kubeConfig),
 		catalog.Handle(h.modelClient),
 		template.Handle(h.modelClient),
 		templateversion.Handle(h.modelClient),
