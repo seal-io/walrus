@@ -35,62 +35,7 @@ type (
 )
 
 func (r *CreateRequest) Validate() error {
-	if err := r.ServiceCreateInput.Validate(); err != nil {
-		return err
-	}
-
-	if err := validation.IsDNSLabel(r.Name); err != nil {
-		return fmt.Errorf("invalid name: %w", err)
-	}
-
-	// Get template version.
-	tv, err := r.Client.TemplateVersions().Query().
-		Where(templateversion.ID(r.Template.ID)).
-		Select(
-			templateversion.FieldID,
-			templateversion.FieldName,
-			templateversion.FieldSchema,
-			templateversion.FieldUiSchema).
-		Only(r.Context)
-	if err != nil {
-		return fmt.Errorf("failed to get template version: %w", err)
-	}
-
-	// Get environment.
-	env, err := r.Client.Environments().Query().
-		Where(environment.ID(r.Environment.ID)).
-		Select(
-			environment.FieldID,
-			environment.FieldName).
-		WithConnectors(func(rq *model.EnvironmentConnectorRelationshipQuery) {
-			// Includes connectors.
-			rq.WithConnector()
-		}).
-		Only(r.Context)
-	if err != nil {
-		return fmt.Errorf("failed to get environment: %w", err)
-	}
-
-	// Validate template version whether match the target environment.
-	if err = validateEnvironment(tv, env); err != nil {
-		return err
-	}
-
-	// Verify variables with variables schema that defined on the template version.
-	if !tv.Schema.IsEmpty() {
-		err = r.Attributes.ValidateWith(tv.Schema.VariableSchemas())
-		if err != nil {
-			return fmt.Errorf("invalid variables: %w", err)
-		}
-	}
-
-	// Verify that variables in attributes are valid.
-	err = validateVariable(r.Context, r.Client, r.Attributes, r.Name, r.Project.ID, r.Environment.ID)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return ValidateCreateInput(r.ServiceCreateInput)
 }
 
 type (
@@ -368,4 +313,63 @@ func validateVariable(
 	_, _, err := terraform.ParseModuleAttributes(ctx, mc, attrs, true, opts)
 
 	return err
+}
+
+func ValidateCreateInput(sci model.ServiceCreateInput) error {
+	if err := sci.Validate(); err != nil {
+		return err
+	}
+
+	if err := validation.IsDNSLabel(sci.Name); err != nil {
+		return fmt.Errorf("invalid name: %w", err)
+	}
+
+	// Get template version.
+	tv, err := sci.Client.TemplateVersions().Query().
+		Where(templateversion.ID(sci.Template.ID)).
+		Select(
+			templateversion.FieldID,
+			templateversion.FieldName,
+			templateversion.FieldSchema,
+			templateversion.FieldUiSchema).
+		Only(sci.Context)
+	if err != nil {
+		return fmt.Errorf("failed to get template version: %w", err)
+	}
+
+	// Get environment.
+	env, err := sci.Client.Environments().Query().
+		Where(environment.ID(sci.Environment.ID)).
+		Select(
+			environment.FieldID,
+			environment.FieldName).
+		WithConnectors(func(rq *model.EnvironmentConnectorRelationshipQuery) {
+			// Includes connectors.
+			rq.WithConnector()
+		}).
+		Only(sci.Context)
+	if err != nil {
+		return fmt.Errorf("failed to get environment: %w", err)
+	}
+
+	// Validate template version whether match the target environment.
+	if err = validateEnvironment(tv, env); err != nil {
+		return err
+	}
+
+	// Verify variables with variables schema that defined on the template version.
+	if !tv.Schema.IsEmpty() {
+		err = sci.Attributes.ValidateWith(tv.Schema.VariableSchemas())
+		if err != nil {
+			return fmt.Errorf("invalid variables: %w", err)
+		}
+	}
+
+	// Verify that variables in attributes are valid.
+	err = validateVariable(sci.Context, sci.Client, sci.Attributes, sci.Name, sci.Project.ID, sci.Environment.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
