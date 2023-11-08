@@ -62,7 +62,7 @@ func (r *RouteUpgradeRequest) Validate() error {
 
 	// Verify attributes with variables schema of the template version.
 	if !tv.Schema.IsEmpty() {
-		if err = r.Attributes.ValidateWith(tv.Schema.VariableSchemas()); err != nil {
+		if err = r.Attributes.ValidateWith(tv.Schema.VariableSchema()); err != nil {
 			return fmt.Errorf("invalid variables: %w", err)
 		}
 	}

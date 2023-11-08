@@ -32,7 +32,7 @@ func CreateTemplateVersionsFromRepo(
 	mc model.ClientSet,
 	entity *model.Template,
 	versions []*version.Version,
-	versionSchema map[*version.Version]types.Schema,
+	versionSchema map[*version.Version]types.TemplateVersionSchema,
 ) error {
 	logger := log.WithName("template")
 
@@ -321,7 +321,7 @@ func SyncTemplateFromGitRepo(
 func GetTemplateVersions(
 	entity *model.Template,
 	newVersions []*version.Version,
-	versionSchema map[*version.Version]types.Schema,
+	versionSchema map[*version.Version]types.TemplateVersionSchema,
 ) (model.TemplateVersions, error) {
 	var (
 		logger = log.WithName("catalog")
@@ -425,7 +425,7 @@ func getValidVersions(
 	entity *model.Template,
 	r *git.Repository,
 	versions []*version.Version,
-) ([]*version.Version, map[*version.Version]types.Schema, error) {
+) ([]*version.Version, map[*version.Version]types.TemplateVersionSchema, error) {
 	logger := log.WithName("template")
 
 	w, err := r.Worktree()
@@ -434,7 +434,7 @@ func getValidVersions(
 	}
 
 	validVersions := make([]*version.Version, 0, len(versions))
-	versionSchema := make(map[*version.Version]types.Schema)
+	versionSchema := make(map[*version.Version]types.TemplateVersionSchema)
 
 	for i := range versions {
 		v := versions[i]

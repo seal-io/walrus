@@ -61,9 +61,9 @@ func (TemplateVersion) Fields() []ent.Field {
 			Comment("Source of the template.").
 			NotEmpty().
 			Immutable(),
-		field.JSON("schema", types.Schema{}).
+		field.JSON("schema", types.TemplateVersionSchema{}).
 			Comment("Generated schema and data of the template.").
-			Default(types.Schema{}),
+			Default(types.TemplateVersionSchema{}),
 		field.JSON("uiSchema", types.UISchema{}).
 			Comment("ui schema of the template.").
 			Default(types.UISchema{}).

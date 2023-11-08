@@ -911,8 +911,8 @@ func getModuleConfig(
 
 	// Variables.
 	var (
-		variablesSchema    = template.Schema.VariableSchemas()
-		outputsSchemas     = template.Schema.OutputSchemas()
+		variablesSchema    = template.Schema.VariableSchema()
+		outputsSchemas     = template.Schema.OutputSchema()
 		sensitiveVariables = sets.Set[string]{}
 	)
 

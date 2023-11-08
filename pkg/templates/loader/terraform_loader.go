@@ -41,7 +41,7 @@ func NewTerraformLoader() SchemaLoader {
 // Load loads the internal template version schema and data.
 func (l *TerraformLoader) Load(
 	rootDir, templateName, templateVersion string,
-) (*types.Schema, error) {
+) (*types.TemplateVersionSchema, error) {
 	if !l.match(rootDir) {
 		return nil, nil
 	}
@@ -61,8 +61,10 @@ func (l *TerraformLoader) Load(
 		return nil, err
 	}
 
-	return &types.Schema{
-		OpenAPISchema:             s,
+	return &types.TemplateVersionSchema{
+		Schema: types.Schema{
+			OpenAPISchema: s,
+		},
 		TemplateVersionSchemaData: d,
 	}, nil
 }

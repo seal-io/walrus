@@ -8,11 +8,11 @@ import (
 
 // SchemaLoader define the interface for loading schema from template.
 type SchemaLoader interface {
-	Load(rootDir, templateName, templateVersion string) (*types.Schema, error)
+	Load(rootDir, templateName, templateVersion string) (*types.TemplateVersionSchema, error)
 }
 
 // LoadSchema loads schema from template.
-func LoadSchema(rootDir, templateName, templateVersion string) (s *types.Schema, err error) {
+func LoadSchema(rootDir, templateName, templateVersion string) (s *types.TemplateVersionSchema, err error) {
 	// Terraform.
 	tf := NewTerraformLoader()
 

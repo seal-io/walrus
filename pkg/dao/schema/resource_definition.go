@@ -9,6 +9,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/entx"
 	"github.com/seal-io/walrus/pkg/dao/schema/mixin"
+	"github.com/seal-io/walrus/pkg/dao/types"
 )
 
 type ResourceDefinition struct {
@@ -35,6 +36,17 @@ func (ResourceDefinition) Fields() []ent.Field {
 		field.String("type").
 			Comment("Type of the resources generated from the resource definition.").
 			Immutable(),
+		field.JSON("schema", types.Schema{}).
+			Comment("Generated schema of the resource definition.").
+			Default(types.Schema{}).
+			Annotations(
+				entx.SkipInput(),
+			),
+		field.JSON("uiSchema", types.UISchema{}).
+			Comment("UI schema of the resource definition.").
+			Default(types.UISchema{}).
+			Annotations(
+				entx.Input(entx.WithUpdate())),
 	}
 }
 
