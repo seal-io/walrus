@@ -134,7 +134,7 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 
 	// Verify resource's variables with variables schema that defined on the template version.
 	for _, res := range r.Resources {
-		err = res.Attributes.ValidateWith(tvm[res.Template.ID].Schema.VariableSchemas())
+		err = res.Attributes.ValidateWith(tvm[res.Template.ID].Schema.VariableSchema())
 		if err != nil {
 			return fmt.Errorf("invalid variables: %w", err)
 		}

@@ -1,18 +1,30 @@
 package resourcedefinition
 
 import (
+	"context"
+	"fmt"
+
+	"github.com/getkin/kin-openapi/openapi3"
+
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
+	"github.com/seal-io/walrus/pkg/templates/openapi"
 	"github.com/seal-io/walrus/utils/topic"
 )
 
 func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 	entity := req.Model()
+
+	if err := generateSchema(req.Context, req.Client, entity); err != nil {
+		return nil, fmt.Errorf("failed to generate schema: %w", err)
+	}
 
 	err := h.modelClient.WithTx(req.Context, func(tx *model.Tx) (err error) {
 		entity, err = tx.ResourceDefinitions().Create().
@@ -55,11 +67,19 @@ func (h Handler) Get(req GetRequest) (GetResponse, error) {
 		return nil, err
 	}
 
+	if entity.UiSchema.IsEmpty() {
+		entity.UiSchema = entity.Schema.Expose()
+	}
+
 	return model.ExposeResourceDefinition(entity), nil
 }
 
 func (h Handler) Update(req UpdateRequest) error {
 	entity := req.Model()
+
+	if err := generateSchema(req.Context, req.Client, entity); err != nil {
+		return fmt.Errorf("failed to generate schema: %w", err)
+	}
 
 	err := h.modelClient.WithTx(req.Context, func(tx *model.Tx) (err error) {
 		entity, err = tx.ResourceDefinitions().UpdateOne(entity).
@@ -81,7 +101,7 @@ var (
 	queryFields = []string{
 		resourcedefinition.FieldName,
 	}
-	getFields  = resourcedefinition.WithoutFields()
+	getFields  = resourcedefinition.WithoutFields(resourcedefinition.FieldSchema, resourcedefinition.FieldUiSchema)
 	sortFields = []string{
 		resourcedefinition.FieldName,
 		resourcedefinition.FieldCreateTime,
@@ -199,4 +219,41 @@ func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 
 		return err
 	})
+}
+
+// generateSchema generates definition schema with inputs/outputs intersection of matching template versions.
+func generateSchema(ctx context.Context, mc model.ClientSet, definition *model.ResourceDefinition) error {
+	tvIDs := make([]object.ID, len(definition.Edges.MatchingRules))
+	for i, rule := range definition.Edges.MatchingRules {
+		tvIDs[i] = rule.TemplateID
+	}
+
+	templateVersions, err := mc.TemplateVersions().Query().
+		Where(templateversion.IDIn(tvIDs...)).
+		All(ctx)
+	if err != nil {
+		return err
+	}
+
+	if len(templateVersions) == 0 {
+		return nil
+	}
+
+	definition.Schema = types.Schema{
+		OpenAPISchema: &openapi3.T{
+			OpenAPI: openapi.OpenAPIVersion,
+			Info: &openapi3.Info{
+				Title:   fmt.Sprintf("OpenAPI schema for resource definition %s", definition.Name),
+				Version: "v0.0.0",
+			},
+			Components: templateVersions[0].Schema.OpenAPISchema.Components,
+		},
+	}
+	for i := 1; i < len(templateVersions); i++ {
+		definition.Schema.Intersect(&types.Schema{
+			OpenAPISchema: templateVersions[i].Schema.OpenAPISchema,
+		})
+	}
+
+	return nil
 }

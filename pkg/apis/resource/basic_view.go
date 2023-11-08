@@ -215,7 +215,7 @@ func (r *CollectionCreateRequest) Validate() error {
 		if res.Template != nil {
 			// Verify resource's variables with variables schema that defined on the template version.
 			if !tvm[res.Template.ID].Schema.IsEmpty() {
-				err = res.Attributes.ValidateWith(tvm[res.Template.ID].Schema.VariableSchemas())
+				err = res.Attributes.ValidateWith(tvm[res.Template.ID].Schema.VariableSchema())
 				if err != nil {
 					return fmt.Errorf("invalid variables: %w", err)
 				}
@@ -443,7 +443,7 @@ func ValidateCreateInput(rci *model.ResourceCreateInput) error {
 
 		// Verify variables with variables schema that defined on the template version.
 		if !tv.Schema.IsEmpty() {
-			err = rci.Attributes.ValidateWith(tv.Schema.VariableSchemas())
+			err = rci.Attributes.ValidateWith(tv.Schema.VariableSchema())
 			if err != nil {
 				return fmt.Errorf("invalid variables: %w", err)
 			}
