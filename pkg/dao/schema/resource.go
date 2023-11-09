@@ -49,7 +49,10 @@ func (Resource) Fields() []ent.Field {
 		field.String("type").
 			Comment("Type of the resource referring to a resource definition type.").
 			Immutable().
-			Optional(),
+			Optional().
+			Annotations(
+				entx.Input(),
+			),
 		object.IDField("resource_definition_id").
 			Comment("ID of the resource definition to which the resource use.").
 			Immutable().
