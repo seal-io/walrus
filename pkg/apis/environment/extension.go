@@ -69,15 +69,13 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 	for i := 0; i < len(entities); i++ {
 		entity := entities[i]
 
-		// Append Resource to vertices.
-		vertices = append(vertices, GraphVertex{
+		vertex := GraphVertex{
 			GraphVertexID: GraphVertexID{
 				Kind: types.VertexKindResource,
 				ID:   entity.ID,
 			},
 			Name:        entity.Name,
 			Description: entity.Description,
-			Icon:        entity.Edges.Template.Edges.Template.Icon,
 			Labels:      entity.Labels,
 			CreateTime:  entity.CreateTime,
 			UpdateTime:  entity.UpdateTime,
@@ -85,8 +83,18 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 			Extensions: map[string]any{
 				"projectID":     entity.ProjectID,
 				"environmentID": entity.EnvironmentID,
+				"labels":        entity.Labels,
+				"isService":     entity.TemplateID != nil,
 			},
-		})
+		}
+
+		// TODO resource definition icon.
+		if entity.TemplateID != nil {
+			vertex.Icon = entity.Edges.Template.Edges.Template.Icon
+		}
+
+		// Append Resource to vertices.
+		vertices = append(vertices, vertex)
 
 		// Append the link of related Resources to edges.
 		for j := 0; j < len(entity.Edges.Dependencies); j++ {
