@@ -295,7 +295,14 @@ func (l *TerraformLoader) getVariableSchemaFromFile(rootDir string) (*openapi3.S
 		}
 	}
 
-	it, err := openapi3.NewLoader().LoadFromFile(schemaFile)
+	content, err := os.ReadFile(schemaFile)
+	if err != nil {
+		return nil, fmt.Errorf("error reading schema file %s: %w", schemaFile, err)
+	}
+
+	// Openapi loader will cache the data with file path as key if we use LoadFromFile,
+	// since the repo with different tag the schema.yaml file is the same, so we use LoadFromData to skip the cache.
+	it, err := openapi3.NewLoader().LoadFromData(content)
 	if err != nil {
 		return nil, fmt.Errorf("error loading schema file %s: %w", schemaFile, err)
 	}
