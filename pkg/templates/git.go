@@ -140,7 +140,7 @@ func syncTemplateFromRef(
 	}
 
 	// Load schema.
-	schema, err := loader.LoadSchema(w.Filesystem.Root(), entity.Name, repo.Reference)
+	schema, err := loader.LoadSchemaPreferFile(w.Filesystem.Root(), entity.Name)
 	if err != nil {
 		return err
 	}
@@ -467,7 +467,7 @@ func getValidVersions(
 		logger.Debugf("get \"%s:%s\" of catalog %q schema", entity.Name, tag, entity.CatalogID)
 		dir := w.Filesystem.Root()
 
-		schema, err := loader.LoadSchema(dir, entity.Name, tag)
+		schema, err := loader.LoadSchemaPreferFile(dir, entity.Name)
 		if err != nil {
 			logger.Warnf("failed to load \"%s:%s\" of catalog %q schema: %v", entity.Name, tag, entity.CatalogID, err)
 			continue

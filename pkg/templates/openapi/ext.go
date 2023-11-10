@@ -16,9 +16,10 @@ const (
 	ExtUIWidget    = "widget"
 
 	// Extension for original value.
-	ExtOriginal                = "x-walrus-original"
-	ExtOriginalType            = "type"
-	ExtOriginalValueExpression = "value-expression"
+	ExtOriginal                  = "x-walrus-original"
+	ExtOriginalType              = "type"
+	ExtOriginalValueExpression   = "value-expression"
+	ExtOriginalVariablesSequence = "sequence"
 )
 
 type Ext map[string]map[string]any
@@ -52,6 +53,16 @@ func (e Ext) SetOriginalValueExpression(ve []byte) Ext {
 	}
 
 	e[ExtOriginal][ExtOriginalValueExpression] = string(ve)
+
+	return e
+}
+
+func (e Ext) SetOriginalVariablesSequence(s []string) Ext {
+	if e[ExtOriginal] == nil {
+		e[ExtOriginal] = map[string]any{}
+	}
+
+	e[ExtOriginal][ExtOriginalVariablesSequence] = s
 
 	return e
 }
@@ -155,6 +166,39 @@ func GetOriginalValueExpression(e map[string]any) []byte {
 	vb, _ := val.([]byte)
 
 	return vb
+}
+
+func GetOriginalVariablesSequence(e map[string]any) []string {
+	if e[ExtOriginal] == nil {
+		return nil
+	}
+
+	eo, ok := e[ExtOriginal].(map[string]any)
+	if !ok {
+		return nil
+	}
+
+	val, ok := eo[ExtOriginalVariablesSequence]
+	if !ok {
+		return nil
+	}
+
+	switch v := val.(type) {
+	case []string:
+		return v
+	case []any:
+		var vb []string
+
+		for _, vq := range v {
+			if s, ok := vq.(string); ok {
+				vb = append(vb, s)
+			}
+		}
+
+		return vb
+	}
+
+	return nil
 }
 
 func GetUIGroup(e map[string]any) string {

@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/hashicorp/hcl/v2/ext/typeexpr"
 	"github.com/zclconf/go-cty/cty"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
 
@@ -38,8 +39,11 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 
 	switch {
 	case typ == cty.Bool:
-		s := openapi3.NewBoolSchema().
-			WithDefault(def)
+		// Schema.
+		s := openapi3.NewBoolSchema()
+
+		// Default.
+		setDefault(s, def)
 
 		s.Title = name
 		s.Description = description
@@ -50,8 +54,11 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 
 		return s
 	case typ == cty.Number:
-		s := openapi3.NewFloat64Schema().
-			WithDefault(def)
+		// Schema.
+		s := openapi3.NewFloat64Schema()
+
+		// Default.
+		setDefault(s, def)
 
 		s.Title = name
 		s.Description = description
@@ -62,8 +69,11 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 
 		return s
 	case typ == cty.String:
-		s := openapi3.NewStringSchema().
-			WithDefault(def)
+		// Schema.
+		s := openapi3.NewStringSchema()
+
+		// Default.
+		setDefault(s, def)
 
 		s.Title = name
 		s.Description = description
@@ -74,11 +84,21 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 
 		return s
 	case typ.IsListType() || typ.IsSetType():
-		it := t.SchemaOfOriginalType(typ.ElementType(), "", nil, "", sensitive)
+		// Schema.
+		s := openapi3.NewArraySchema()
 
-		s := openapi3.NewArraySchema().
-			WithDefault(def).
-			WithItems(it)
+		// Default.
+		var etpDef any
+		switch def.(type) {
+		case *typeexpr.Defaults:
+			etpDef = getPropDefault(def, "")
+		default:
+			setDefault(s, def)
+		}
+
+		// Property.
+		it := t.SchemaOfOriginalType(typ.ElementType(), "", etpDef, "", sensitive)
+		s.WithItems(it)
 
 		s.Title = name
 		s.Description = description
@@ -89,6 +109,13 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 
 		return s
 	case typ.IsTupleType():
+		// Schema.
+		s := openapi3.NewArraySchema()
+
+		// Default.
+		setDefault(s, def)
+
+		// Property.
 		var (
 			ts   = typ.TupleElementTypes()
 			refs = make([]*openapi3.SchemaRef, len(ts))
@@ -99,9 +126,7 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 				NewRef()
 		}
 
-		s := openapi3.NewArraySchema().
-			WithDefault(def).
-			WithLength(int64(len(ts))).
+		s.WithLength(int64(len(ts))).
 			WithItems(&openapi3.Schema{
 				OneOf: refs,
 			})
@@ -115,14 +140,25 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 
 		return s
 	case typ.IsMapType():
+		// Schema.
+		s := openapi3.NewObjectSchema()
+
+		// Default.
 		var (
-			s = openapi3.NewObjectSchema().
-				WithDefault(def)
-			mtp = typ.MapElementType()
+			mtp    = typ.MapElementType()
+			mtpDef any
 		)
 
+		switch def.(type) {
+		case *typeexpr.Defaults:
+			mtpDef = getPropDefault(def, "")
+		default:
+			setDefault(s, def)
+		}
+
+		// Property.
 		if mtp != nil {
-			it := t.SchemaOfOriginalType(*mtp, "", nil, "", sensitive)
+			it := t.SchemaOfOriginalType(*mtp, "", mtpDef, "", sensitive)
 			s.WithAdditionalProperties(it)
 		}
 
@@ -135,11 +171,42 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 
 		return s
 	case typ.IsObjectType():
-		s := openapi3.NewObjectSchema().
-			WithDefault(def)
+		// Schema.
+		s := openapi3.NewObjectSchema()
 
+		// Default.
+		var (
+			defaultValues = make(map[string]cty.Value)
+			childDefaults = make(map[string]*typeexpr.Defaults)
+		)
+
+		switch dv := def.(type) {
+		case *typeexpr.Defaults:
+			if dv != nil {
+				if dv.DefaultValues != nil && len(dv.DefaultValues) > 0 {
+					defaultValues = dv.DefaultValues
+				}
+
+				if dv.Children != nil && len(dv.Children) > 0 {
+					childDefaults = dv.Children
+				}
+			}
+		default:
+			setDefault(s, def)
+		}
+
+		// Property.
 		for n, tt := range typ.AttributeTypes() {
-			st := t.SchemaOfOriginalType(tt, n, nil, "", sensitive)
+			var propDef any
+			if defaultValues[n].IsKnown() {
+				propDef = defaultValues[n]
+			}
+
+			if childDefaults[n] != nil {
+				propDef = childDefaults[n]
+			}
+
+			st := t.SchemaOfOriginalType(tt, n, propDef, "", sensitive)
 
 			s.WithProperty(n, st)
 
@@ -159,8 +226,10 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 		return s
 	case typ == cty.DynamicPseudoType:
 		// Empty Type.
-		s := openapi3.NewSchema().
-			WithDefault(def)
+		s := openapi3.NewSchema()
+
+		// Default.
+		setDefault(s, def)
 
 		s.Title = name
 		s.Description = description
@@ -269,4 +338,69 @@ func (t TerraformTranslator) GetOriginalType(schema *openapi3.Schema) cty.Type {
 func (t TerraformTranslator) SchemaMatched(schema openapi3.Schema) bool {
 	// Language matching, always true since only terraform template now.
 	return true
+}
+
+func mustHclToGoValue(in any) any {
+	if in == nil {
+		return nil
+	}
+
+	val, ok := in.(cty.Value)
+	if !ok {
+		return nil
+	}
+
+	if !val.IsWhollyKnown() {
+		return nil
+	}
+
+	valJSON, err := ctyjson.Marshal(val, val.Type())
+	if err != nil {
+		log.Warnf("failed to serialize value as JSON: %s", err)
+		return nil
+	}
+
+	var goValue any
+
+	err = json.Unmarshal(valJSON, &goValue)
+	if err != nil {
+		log.Warnf("failed re-parse value from JSON: %s", err)
+		return nil
+	}
+
+	return goValue
+}
+
+func setDefault(s *openapi3.Schema, def any) {
+	if def == nil {
+		return
+	}
+
+	switch def.(type) {
+	case cty.Value:
+		s.WithDefault(mustHclToGoValue(def))
+	default:
+		s.WithDefault(def)
+	}
+}
+
+func getPropDefault(def any, key string) any {
+	if def == nil {
+		return nil
+	}
+
+	pdef, ok := def.(*typeexpr.Defaults)
+	if !ok || pdef == nil {
+		return nil
+	}
+
+	if pdef.DefaultValues != nil && len(pdef.DefaultValues) > 0 && pdef.DefaultValues[key].IsKnown() {
+		return pdef.DefaultValues[key]
+	}
+
+	if pdef.Children != nil && len(pdef.Children) > 0 && pdef.Children[key] != nil {
+		return pdef.Children[key]
+	}
+
+	return nil
 }
