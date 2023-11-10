@@ -14,16 +14,23 @@ import (
 	"github.com/seal-io/walrus/pkg/cli/api"
 	"github.com/seal-io/walrus/pkg/cli/ask"
 	"github.com/seal-io/walrus/pkg/cli/config"
+	"github.com/seal-io/walrus/pkg/cli/schema"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/strs"
 )
 
+// Flags for config command.
 const (
 	flagNameServer      = "server"
 	flagNameToken       = "token"
 	flagNameInsecure    = "insecure"
 	flagNameProject     = "project"
 	flagNameEnvironment = "environment"
+)
+
+// Flags for schema command.
+const (
+	flagSchemaTemplateDirName = "dir"
 )
 
 var (
@@ -58,6 +65,7 @@ func NewRootCmd() *cobra.Command {
 	})
 	cmd.AddCommand(
 		NewConfigCmd(),
+		NewSchemaCmd(),
 	)
 	cmd.PersistentFlags().AddFlagSet(globalFlags())
 
@@ -146,7 +154,51 @@ func NewConfigCmd() *cobra.Command {
 	return configCmd
 }
 
-// globalFlags define global flags.
+// NewSchemaCmd generate ui schema command.
+func NewSchemaCmd() *cobra.Command {
+	// Command ui schema generate.
+	cfg := schema.GenerateOption{}
+	generateCmdFlags := pflag.NewFlagSet("schema generate", pflag.ExitOnError)
+	generateCmdFlags.StringVar(
+		&cfg.Dir,
+		flagSchemaTemplateDirName,
+		"",
+		"Template dir to generate",
+	)
+
+	// Command config setup.
+	generateCmd := &cobra.Command{
+		Use:   "generate short-name",
+		Short: "Generate schema for template",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			// Configuration value from environment variables.
+			viper.SetEnvPrefix("WALRUS")
+			viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+			viper.AutomaticEnv()
+			bindFlags(cmd)
+		},
+		Run: func(cmd *cobra.Command, args []string) {
+			err := schema.Generate(cfg)
+			if err != nil {
+				panic(err)
+			}
+		},
+	}
+	generateCmd.Flags().AddFlagSet(generateCmdFlags)
+
+	// Command schema.
+	schemaCmd := &cobra.Command{
+		Use:   "schema",
+		Short: "Manage schema for templates",
+	}
+	schemaCmd.AddCommand(
+		generateCmd,
+	)
+
+	return schemaCmd
+}
+
+// define global flags.
 func globalFlags() *pflag.FlagSet {
 	gf := &pflag.FlagSet{}
 	gf.StringVarP(&globalConfig.Format, "output", "o", "table", "Output format [table, json, yaml]")
