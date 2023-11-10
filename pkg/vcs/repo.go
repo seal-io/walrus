@@ -27,6 +27,8 @@ type Repository struct {
 	Link string `json:"link"`
 	// Reference is the reference of the repository. E.G: main, dev, v0.0.1.
 	Reference string `json:"reference"`
+	// Topics of the repository.
+	Topics []string `json:"topics"`
 	// Driver is the driver of the repository. E.G: github.
 	Driver string `json:"driver"`
 }
