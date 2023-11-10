@@ -49,3 +49,17 @@ type (
 func (r *CollectionGetRequest) SetStream(stream runtime.RequestUnidiStream) {
 	r.Stream = &stream
 }
+
+type (
+	DeleteRequest struct {
+		model.WorkflowExecutionQueryInput `path:",inline"`
+	}
+
+	DeleteResponse = *model.WorkflowExecutionDeleteInput
+)
+
+func (r *DeleteRequest) Validate() error {
+	return r.WorkflowExecutionQueryInput.Validate()
+}
+
+type CollectionDeleteRequest = model.WorkflowExecutionDeleteInputs
