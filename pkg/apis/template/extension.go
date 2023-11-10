@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	modbus "github.com/seal-io/walrus/pkg/bus/template"
+	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
@@ -85,21 +86,5 @@ func (h Handler) RouteGetVersions(
 	}
 
 	// Set expose schema.
-	return exposeTemplateVersion(entities), cnt, nil
-}
-
-func exposeTemplateVersion(
-	entities []*model.TemplateVersion,
-) []*model.TemplateVersionOutput {
-	// Set expose schema.
-	for i, v := range entities {
-		if !v.UiSchema.IsEmpty() || v.Schema.IsEmpty() {
-			continue
-		}
-
-		entities[i].UiSchema = entities[i].Schema.
-			Expose()
-	}
-
-	return model.ExposeTemplateVersions(entities)
+	return dao.ExposeTemplateVersions(entities), cnt, nil
 }

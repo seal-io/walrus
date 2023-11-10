@@ -269,5 +269,5 @@ func (h Handler) RouteGetResourceDefinitions(
 		}
 	}
 
-	return model.ExposeResourceDefinitions(availableRds), nil
+	return dao.ExposeResourceDefinitions(availableRds), nil
 }

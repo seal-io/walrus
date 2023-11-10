@@ -67,7 +67,8 @@ func (s *Schema) Expose() UISchema {
 
 // VariableSchema returns the variables' schema.
 func (s *Schema) VariableSchema() *openapi3.Schema {
-	if s.OpenAPISchema.Components == nil ||
+	if s.OpenAPISchema == nil ||
+		s.OpenAPISchema.Components == nil ||
 		s.OpenAPISchema.Components.Schemas == nil ||
 		s.OpenAPISchema.Components.Schemas[variableSchemaKey] == nil ||
 		s.OpenAPISchema.Components.Schemas[variableSchemaKey].Value == nil {
@@ -103,7 +104,8 @@ func (s *Schema) ensureInit() {
 
 // OutputSchema returns the outputs' schema.
 func (s *Schema) OutputSchema() *openapi3.Schema {
-	if s.OpenAPISchema.Components == nil ||
+	if s.OpenAPISchema == nil ||
+		s.OpenAPISchema.Components == nil ||
 		s.OpenAPISchema.Components.Schemas == nil ||
 		s.OpenAPISchema.Components.Schemas[outputSchemaKey] == nil ||
 		s.OpenAPISchema.Components.Schemas[outputSchemaKey].Value == nil {
