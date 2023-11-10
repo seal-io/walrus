@@ -18,7 +18,6 @@ import (
 	"github.com/seal-io/walrus/pkg/auths"
 	"github.com/seal-io/walrus/pkg/auths/session"
 	"github.com/seal-io/walrus/pkg/dao/model"
-	"github.com/seal-io/walrus/pkg/dao/model/workflowexecution"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/k8s"
@@ -55,9 +54,12 @@ type (
 	// SubmitOptions is the options for submitting a workflow.
 	// WorkflowExecution's Edge WorkflowStageExecutions and their Edge WorkflowStepExecutions must be set.
 	ResumeOptions struct {
-		// Only used when Type is "workflow".
+		// Approve or deny of the workflow approval step execution.
+		Approve bool
+
+		// WorkflowExecution is the workflow execution to be resumed.
 		WorkflowExecution *model.WorkflowExecution
-		// Only used when Type is "step".
+		// WorkflowStepExecution is the workflow step execution to be resumed.
 		WorkflowStepExecution *model.WorkflowStepExecution
 	}
 
@@ -161,7 +163,8 @@ func (s *ArgoWorkflowClient) Resume(ctx context.Context, opts ResumeOptions) err
 		return err
 	}
 
-	if err = approvalSpec.SetApprovedUser(subject.ID); err != nil {
+	err = approvalSpec.SetUserApproval(subject.ID, opts.Approve)
+	if err != nil {
 		return err
 	}
 
@@ -173,30 +176,32 @@ func (s *ArgoWorkflowClient) Resume(ctx context.Context, opts ResumeOptions) err
 		return err
 	}
 
-	// If not approved, do nothing.
-	if !approvalSpec.IsApproved() {
-		return nil
-	}
+	if approvalSpec.IsRejected() {
+		// Stop workflow step execution if rejected.
+		_, err = s.apiClient.NewWorkflowServiceClient().StopWorkflow(s.apiClient.Ctx, &workflow.WorkflowStopRequest{
+			Name:              getWorkflowName(opts.WorkflowExecution),
+			Namespace:         types.WalrusSystemNamespace,
+			NodeFieldSelector: fmt.Sprintf("templateName=suspend-%s", opts.WorkflowStepExecution.ID.String()),
+		})
+	} else {
+		// If not approved, do nothing.
+		if !approvalSpec.IsApproved() {
+			return nil
+		}
 
-	workflowExecution, err := s.mc.WorkflowExecutions().Query().
-		Where(workflowexecution.ID(opts.WorkflowStepExecution.WorkflowExecutionID)).
-		Only(ctx)
-	if err != nil {
-		return err
-	}
+		// Update secret token.
+		err = s.updateWorkflowExecutionToken(ctx, opts.WorkflowExecution)
+		if err != nil {
+			return err
+		}
 
-	// Update secret token.
-	err = s.updateWorkflowExecutionToken(ctx, workflowExecution)
-	if err != nil {
-		return err
+		// Resume workflow step execution.
+		_, err = s.apiClient.NewWorkflowServiceClient().ResumeWorkflow(s.apiClient.Ctx, &workflow.WorkflowResumeRequest{
+			Name:              getWorkflowName(opts.WorkflowExecution),
+			Namespace:         types.WalrusSystemNamespace,
+			NodeFieldSelector: fmt.Sprintf("templateName=suspend-%s", opts.WorkflowStepExecution.ID.String()),
+		})
 	}
-
-	// Resume workflow step execution.
-	_, err = s.apiClient.NewWorkflowServiceClient().ResumeWorkflow(s.apiClient.Ctx, &workflow.WorkflowResumeRequest{
-		Name:              getWorkflowName(workflowExecution),
-		Namespace:         types.WalrusSystemNamespace,
-		NodeFieldSelector: fmt.Sprintf("templateName=suspend-%s", opts.WorkflowStepExecution.ID.String()),
-	})
 
 	return err
 }

@@ -29,6 +29,8 @@ type RouteApproveRequest struct {
 	_ struct{} `route:"POST=/approve"`
 
 	model.WorkflowStepExecutionQueryInput `path:",inline"`
+
+	Approve bool `json:"approve"`
 }
 
 func (r *RouteApproveRequest) Validate() error {

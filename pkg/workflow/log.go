@@ -163,6 +163,10 @@ func ArchiveWorkflowStepExecutionLogs(ctx context.Context, opts StepExecutionLog
 		return err
 	}
 
+	if len(logs) == 0 {
+		return nil
+	}
+
 	return opts.ModelClient.WorkflowStepExecutions().UpdateOne(opts.StepExecution).
 		SetRecord(string(logs)).
 		Exec(ctx)

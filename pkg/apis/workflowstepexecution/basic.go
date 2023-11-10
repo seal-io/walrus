@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/subject"
 	"github.com/seal-io/walrus/pkg/dao/model/workflowstepexecution"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -13,6 +14,7 @@ import (
 	pkgworkflow "github.com/seal-io/walrus/pkg/workflow"
 	"github.com/seal-io/walrus/utils/gopool"
 	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/strs"
 	"github.com/seal-io/walrus/utils/topic"
 )
 
@@ -41,7 +43,15 @@ func (h Handler) Update(req UpdateRequest) error {
 	case types.ExecutionStatusSucceeded:
 		status.WorkflowStepExecutionStatusRunning.True(entity, "")
 	case types.ExecutionStatusFailed, types.ExecutionStatusError:
-		status.WorkflowStepExecutionStatusRunning.False(entity, "")
+		message := ""
+		if entity.Type == types.WorkflowStepTypeApproval {
+			message, err = h.getRejectMessage(req.Context, entity)
+			if err != nil {
+				return err
+			}
+		}
+
+		status.WorkflowStepExecutionStatusRunning.False(entity, message)
 	case types.ExecutionStatusRunning:
 		status.WorkflowExecutionStatusPending.True(entity, "")
 		status.WorkflowStepExecutionStatusRunning.Unknown(entity, "")
@@ -91,4 +101,33 @@ func (h Handler) Update(req UpdateRequest) error {
 	})
 
 	return nil
+}
+
+func (h Handler) getRejectMessage(ctx context.Context, entity *model.WorkflowStepExecution) (string, error) {
+	message := ""
+
+	approvalSpec, err := types.NewWorkflowStepApprovalSpec(entity.Attributes)
+	if err != nil {
+		return "", err
+	}
+
+	if approvalSpec.IsRejected() {
+		rejectedUsers := approvalSpec.RejectedUsers
+		rejectedUserNames := make([]string, len(rejectedUsers))
+
+		subjects, err := h.modelClient.Subjects().Query().
+			Where(subject.IDIn(rejectedUsers...)).
+			All(ctx)
+		if err != nil {
+			return "", err
+		}
+
+		for i := range subjects {
+			rejectedUserNames[i] = subjects[i].Name
+		}
+
+		message = "rejected by " + strs.Join[string](",", rejectedUserNames...)
+	}
+
+	return message, nil
 }
