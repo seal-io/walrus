@@ -58,11 +58,14 @@ const (
 	WorkflowStepApprovalUsers = "approvalUsers"
 	// WorkflowStepApprovedUsers is the key of approved users in spec.
 	WorkflowStepApprovedUsers = "approvedUsers"
+	// WorkflowStepRejectedUsers is the key of reject users in spec.
+	WorkflowStepRejectedUsers = "rejectedUsers"
 )
 
 type WorkflowStepApprovalSpec struct {
 	ApprovalUsers []object.ID `json:"approvalUsers"`
 	ApprovedUsers []object.ID `json:"approvedUsers"`
+	RejectedUsers []object.ID `json:"rejectedUsers"`
 	Type          string      `json:"approvalType"`
 }
 
@@ -83,26 +86,46 @@ func NewWorkflowStepApprovalSpec(spec map[string]any) (*WorkflowStepApprovalSpec
 		return nil, errors.New("invalid input: invalid approval type")
 	}
 
-	if v, ok := spec[WorkflowStepApprovalUsers].([]any); ok {
-		users, err := toObjectIDs(v)
-		if err != nil {
-			return nil, err
-		}
-		s.ApprovalUsers = removeDuplicatedUsers(users)
+	userIndexes := []string{
+		WorkflowStepApprovalUsers,
+		WorkflowStepApprovedUsers,
+		WorkflowStepRejectedUsers,
 	}
 
-	if v, ok := spec[WorkflowStepApprovedUsers].([]any); ok {
-		users, err := toObjectIDs(v)
-		if err != nil {
-			return nil, err
+	for i := range userIndexes {
+		if _, ok := spec[userIndexes[i]]; !ok {
+			continue
 		}
-		s.ApprovedUsers = removeDuplicatedUsers(users)
+
+		if v, ok := spec[userIndexes[i]].([]any); ok {
+			users, err := toObjectIDs(v)
+			if err != nil {
+				return nil, err
+			}
+
+			switch userIndexes[i] {
+			case WorkflowStepApprovalUsers:
+				s.ApprovalUsers = users
+			case WorkflowStepApprovedUsers:
+				s.ApprovedUsers = users
+			case WorkflowStepRejectedUsers:
+				s.RejectedUsers = users
+			}
+		}
 	}
 
 	return s, nil
 }
 
+func (s *WorkflowStepApprovalSpec) IsRejected() bool {
+	return len(s.RejectedUsers) > 0
+}
+
 func (s *WorkflowStepApprovalSpec) IsApproved() bool {
+	if s.IsRejected() {
+		return false
+	}
+
 	if s.Type == WorkflowStepApprovalTypeOr {
 		return len(s.ApprovedUsers) > 0
 	}
@@ -115,7 +138,7 @@ func (s *WorkflowStepApprovalSpec) IsApproved() bool {
 	return false
 }
 
-func (s *WorkflowStepApprovalSpec) SetApprovedUser(user object.ID) error {
+func (s *WorkflowStepApprovalSpec) IsApprovalUser(user object.ID) bool {
 	isApprovalUser := false
 
 	for i := range s.ApprovalUsers {
@@ -126,14 +149,42 @@ func (s *WorkflowStepApprovalSpec) SetApprovedUser(user object.ID) error {
 		isApprovalUser = true
 	}
 
-	if !isApprovalUser {
+	return isApprovalUser
+}
+
+// SetUserApproval sets the user approval status.
+func (s *WorkflowStepApprovalSpec) SetUserApproval(user object.ID, approved bool) error {
+	if approved {
+		return s.SetApprovedUser(user)
+	}
+
+	return s.SetRejectedUser(user)
+}
+
+func (s *WorkflowStepApprovalSpec) SetApprovedUser(user object.ID) error {
+	if !s.IsApprovalUser(user) {
 		return errors.New("user is not an approval users")
+	}
+
+	if isExist(user, s.ApprovedUsers) {
+		return nil
 	}
 
 	s.ApprovedUsers = append(s.ApprovedUsers, user)
 
-	// Remove duplicated users.
-	s.ApprovedUsers = removeDuplicatedUsers(s.ApprovedUsers)
+	return nil
+}
+
+func (s *WorkflowStepApprovalSpec) SetRejectedUser(user object.ID) error {
+	if !s.IsApprovalUser(user) {
+		return errors.New("user is not an approval users")
+	}
+
+	if isExist(user, s.ApprovedUsers) {
+		return nil
+	}
+
+	s.RejectedUsers = append(s.RejectedUsers, user)
 
 	return nil
 }
@@ -143,27 +194,13 @@ func (s *WorkflowStepApprovalSpec) ToAttributes() map[string]any {
 		WorkflowStepApprovalType:  s.Type,
 		WorkflowStepApprovalUsers: s.ApprovalUsers,
 		WorkflowStepApprovedUsers: s.ApprovedUsers,
+		WorkflowStepRejectedUsers: s.RejectedUsers,
 	}
-}
-
-func removeDuplicatedUsers(users []object.ID) []object.ID {
-	m := make(map[object.ID]struct{}, len(users))
-
-	for i := range users {
-		m[users[i]] = struct{}{}
-	}
-
-	newUsers := make([]object.ID, 0, len(m))
-
-	for k := range m {
-		newUsers = append(newUsers, k)
-	}
-
-	return newUsers
 }
 
 func toObjectIDs(users []any) ([]object.ID, error) {
 	ids := make([]object.ID, 0, len(users))
+	um := make(map[object.ID]struct{}, len(users))
 
 	for i := range users {
 		if v, ok := users[i].(string); ok {
@@ -172,9 +209,25 @@ func toObjectIDs(users []any) ([]object.ID, error) {
 				return nil, fmt.Errorf("invalid user id: %s", v)
 			}
 
+			if _, ok := um[id]; ok {
+				continue
+			}
+
 			ids = append(ids, id)
+			um[id] = struct{}{}
 		}
 	}
 
 	return ids, nil
+}
+
+// isExist checks if user is in users.
+func isExist(user object.ID, users []object.ID) bool {
+	for i := range users {
+		if users[i] == user {
+			return true
+		}
+	}
+
+	return false
 }

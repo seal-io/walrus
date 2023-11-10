@@ -27,8 +27,7 @@ projectID="{{workflow.parameters.projectID}}"
 environmentID="{{inputs.parameters.environmentID}}"
 token="{{inputs.parameters.token}}"
 jobType="{{inputs.parameters.jobType}}"
-attributes='{{inputs.parameters.attributes}}'
-serviceName="{{inputs.parameters.serviceName}}"
+resourceName="{{inputs.parameters.resourceName}}"
 commonPath="$serverURL/v1/projects/$projectID/environments/$environmentID"
 
 # if skip tls verify
@@ -37,29 +36,33 @@ if [ "{{workflow.parameters.tlsVerify}}" == "true" ]; then
 	tlsVerify=""
 fi
 
-# If jobType create service.
+# If jobType create resource.
 if [ "$jobType" == "create" ]; then
-	response=$(curl -s "$commonPath/resources" -X "POST" -H "content-type: application/json" -H "Authorization: Bearer $token" -d $attributes $tlsVerify)
+	response=$(curl -s "$commonPath/resources" -X "POST" -H "content-type: application/json" -H "Authorization: Bearer $token" -d '{{inputs.parameters.attributes}}' $tlsVerify)
 
-	serviceName=$(echo $response | jq -r '.name')
-	if [ "$serviceName" == "null" ]; then
-		echo "service name is null"
-		echo "create response: $response"
+	resourceName=$(echo $response | jq -r '.name')
+	if [ "$resourceName" == "null" ]; then
+		echo "failed create resource, response: $response"
 		exit 1
 	fi
 fi
 
-# If jobType upgrade service.
+# If jobType upgrade resource.
 if [ "$jobType" == "upgrade" ]; then
-	response=$(curl -s $commonPath/resources/$serviceName/upgrade -X "PUT" -H "content-type: application/json" -H "Authorization: Bearer $token" -d $attributes $tlsVerify)
+	response=$(curl -s "$commonPath/resources/$resourceName/upgrade" -X "PUT" -H "content-type: application/json" -H "Authorization: Bearer $token" -d '{{inputs.parameters.attributes}}' $tlsVerify)
+	resourceName=$(echo $response | jq -r '.name')
+	if [ "$resourceName" == "null" ]; then
+		echo "failed upgrade resource, response: $response"
+		exit 1
+	fi
 fi
 
 # Get latest revision id
-revisionResponse=$(curl -s "$commonPath/resources/$serviceName/revisions?page=1&perPage=1&sort=-createTime" -X GET -H "Authorization: Bearer $token" $tlsVerify)
+revisionResponse=$(curl -s "$commonPath/resources/$resourceName/revisions?page=1&perPage=1&sort=-createTime" -X GET -H "Authorization: Bearer $token" $tlsVerify)
 revisionID=$(echo $revisionResponse | jq -r '.items[0].id')
 
 # Watch service logs until the service finished.
-curl -o - -s "$commonPath/resources/$serviceName/revisions/$revisionID/log?jobType=$watchType&watch=true" -X GET -H "Authorization: Bearer $token" $tlsVerify --compressed
+curl -o - -s "$commonPath/resources/$resourceName/revisions/$revisionID/log?jobType=$watchType&watch=true" -X GET -H "Authorization: Bearer $token" $tlsVerify --compressed
 `
 
 // ServiceStepManager is service to generate service configs.
@@ -93,12 +96,12 @@ func (s *ServiceStepManager) GenerateTemplates(
 		return nil, nil, errors.New("environment id is not found")
 	}
 
-	serviceName, ok := stepExecution.Attributes["name"].(string)
+	resourceName, ok := stepExecution.Attributes["name"].(string)
 	if !ok {
 		return nil, nil, errors.New("service name is not found")
 	}
 
-	// If service exist in environment, job type is upgrade.
+	// If resource exist in environment, job type is upgrade.
 	// Otherwise, job type is create.
 	svc, err := s.mc.Resources().Query().
 		Select(
@@ -108,7 +111,7 @@ func (s *ServiceStepManager) GenerateTemplates(
 		).
 		Where(
 			resource.EnvironmentID(object.ID(environmentID)),
-			resource.Name(serviceName),
+			resource.Name(resourceName),
 		).
 		Only(ctx)
 	if err != nil && !model.IsNotFound(err) {
@@ -157,8 +160,8 @@ func (s *ServiceStepManager) GenerateTemplates(
 					Name: "token",
 				},
 				{
-					Name:  "serviceName",
-					Value: v1alpha1.AnyStringPtr(serviceName),
+					Name:  "resourceName",
+					Value: v1alpha1.AnyStringPtr(resourceName),
 				},
 			},
 		},
