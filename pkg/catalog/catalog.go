@@ -23,6 +23,9 @@ import (
 	"github.com/seal-io/walrus/utils/version"
 )
 
+// WalrusServiceRepositoryTopic indicates the repository stores a service template.
+const WalrusServiceRepositoryTopic = "walrus-service"
+
 // getRepos returns org and a list of repositories from the given catalog.
 func getRepos(ctx context.Context, c *model.Catalog, ua string, skipTLSVerify bool) ([]*vcs.Repository, error) {
 	var (
@@ -63,6 +66,7 @@ func getRepos(ctx context.Context, c *model.Catalog, ua string, skipTLSVerify bo
 			Name:        repos[i].Name,
 			Description: repos[i].Description,
 			Link:        repos[i].Link,
+			Topics:      repos[i].Topics,
 		}
 	}
 
@@ -149,6 +153,12 @@ func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) er
 					ProjectID:   c.ProjectID,
 				}
 
+				if isServiceTemplateRepo(repo.Topics) {
+					t.Labels = map[string]string{
+						types.LabelWalrusCategory: "service",
+					}
+				}
+
 				logger.Debugf("syncing  \"%s:%s\" of catalog %q", c.Name, repo.Name, c.ID)
 
 				serr := templates.SyncTemplateFromGitRepo(ctx, mc, t, repo)
@@ -172,6 +182,16 @@ func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) er
 	}
 
 	return wg.Wait()
+}
+
+func isServiceTemplateRepo(topics []string) bool {
+	for _, t := range topics {
+		if t == WalrusServiceRepositoryTopic {
+			return true
+		}
+	}
+
+	return false
 }
 
 type catalogSyncer struct {
