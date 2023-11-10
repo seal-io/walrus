@@ -37,7 +37,7 @@ func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 		return nil, err
 	}
 
-	return model.ExposeResourceDefinition(entity), nil
+	return dao.ExposeResourceDefinition(entity), nil
 }
 
 func (h Handler) Get(req GetRequest) (GetResponse, error) {
@@ -67,11 +67,7 @@ func (h Handler) Get(req GetRequest) (GetResponse, error) {
 		return nil, err
 	}
 
-	if entity.UiSchema.IsEmpty() {
-		entity.UiSchema = entity.Schema.Expose()
-	}
-
-	return model.ExposeResourceDefinition(entity), nil
+	return dao.ExposeResourceDefinition(entity), nil
 }
 
 func (h Handler) Update(req UpdateRequest) error {
@@ -101,7 +97,7 @@ var (
 	queryFields = []string{
 		resourcedefinition.FieldName,
 	}
-	getFields  = resourcedefinition.WithoutFields(resourcedefinition.FieldSchema, resourcedefinition.FieldUiSchema)
+	getFields  = resourcedefinition.WithoutFields()
 	sortFields = []string{
 		resourcedefinition.FieldName,
 		resourcedefinition.FieldCreateTime,
@@ -157,7 +153,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 					return nil, 0, err
 				}
 
-				items = model.ExposeResourceDefinitions(entities)
+				items = dao.ExposeResourceDefinitions(entities)
 			case modelchange.EventTypeDelete:
 				items = make([]*model.ResourceDefinitionOutput, len(dm.IDs))
 				for i := range dm.IDs {
@@ -206,7 +202,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 		return nil, 0, err
 	}
 
-	return model.ExposeResourceDefinitions(entities), cnt, nil
+	return dao.ExposeResourceDefinitions(entities), cnt, nil
 }
 
 func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
