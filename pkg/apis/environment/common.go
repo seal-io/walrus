@@ -13,10 +13,13 @@ import (
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/connector"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	pkgresource "github.com/seal-io/walrus/pkg/resource"
+	"github.com/seal-io/walrus/pkg/resourcedefinitions"
 	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/validation"
 )
@@ -74,6 +77,23 @@ func createEnvironment(
 }
 
 func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
+	for _, res := range r.Resources {
+		if res == nil {
+			return errors.New("empty resource")
+		}
+
+		if err := validation.IsDNSLabel(res.Name); err != nil {
+			return fmt.Errorf("invalid resource name: %w", err)
+		}
+
+		if res.Type != "" {
+			// Resource type maps to type in definition edge.
+			res.ResourceDefinition = &model.ResourceDefinitionQueryInput{
+				Type: res.Type,
+			}
+		}
+	}
+
 	if err := r.Validate(); err != nil {
 		return err
 	}
@@ -96,23 +116,19 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 		return err
 	}
 
-	// Verify resources.
-	for i := range r.Resources {
-		if r.Resources[i] == nil {
-			return errors.New("empty resource")
-		}
+	// Collects template version and resource definition info.
+	tvIDs := make([]object.ID, 0, len(r.Resources))
+	resourceTypes := make([]string, 0, len(r.Resources))
 
-		if err := validation.IsDNSLabel(r.Resources[i].Name); err != nil {
-			return fmt.Errorf("invalid resource name: %w", err)
+	for _, res := range r.Resources {
+		if res.Template != nil {
+			tvIDs = append(tvIDs, res.Template.ID)
+		} else if res.Type != "" {
+			resourceTypes = append(resourceTypes, res.Type)
 		}
 	}
 
 	// Get template versions.
-	tvIDs := make([]object.ID, len(r.Resources))
-	for i := range r.Resources {
-		tvIDs[i] = r.Resources[i].Template.ID
-	}
-
 	tvs, err := r.Client.TemplateVersions().Query().
 		Where(templateversion.IDIn(tvIDs...)).
 		Select(
@@ -132,11 +148,56 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 		tvm[tvs[i].ID] = tvs[i]
 	}
 
+	// Get resource definitions.
+	rds, err := r.Client.ResourceDefinitions().Query().
+		Where(resourcedefinition.TypeIn(resourceTypes...)).
+		Select(
+			resourcedefinition.FieldID,
+			resourcedefinition.FieldName,
+			resourcedefinition.FieldType,
+		).
+		WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
+			rq.Order(model.Desc(resourcedefinitionmatchingrule.FieldCreateTime)).
+				Select(resourcedefinitionmatchingrule.FieldResourceDefinitionID).
+				Unique(false).
+				Select(resourcedefinitionmatchingrule.FieldTemplateID).
+				WithTemplate(func(tq *model.TemplateVersionQuery) {
+					tq.Select(
+						templateversion.FieldID,
+						templateversion.FieldVersion,
+						templateversion.FieldName,
+					)
+				})
+		}).
+		All(r.Context)
+	if err != nil {
+		return fmt.Errorf("failed to get resource definition: %w", err)
+	}
+
+	rdm := make(map[string]*model.ResourceDefinition, len(rds))
+	for _, rd := range rds {
+		rdm[rd.Type] = rd
+	}
+
 	// Verify resource's variables with variables schema that defined on the template version.
 	for _, res := range r.Resources {
-		err = res.Attributes.ValidateWith(tvm[res.Template.ID].Schema.VariableSchema())
-		if err != nil {
-			return fmt.Errorf("invalid variables: %w", err)
+		if res.Template != nil {
+			err = res.Attributes.ValidateWith(tvm[res.Template.ID].Schema.VariableSchema())
+			if err != nil {
+				return fmt.Errorf("invalid variables: %w", err)
+			}
+		} else if res.Type != "" {
+			rule := resourcedefinitions.Match(
+				rdm[res.Type].Edges.MatchingRules,
+				r.Project.Name,
+				r.Name,
+				r.Type,
+				r.Labels,
+				res.Labels,
+			)
+			if rule == nil {
+				return fmt.Errorf("no matching resource definition for %q", res.Name)
+			}
 		}
 	}
 

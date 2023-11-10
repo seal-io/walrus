@@ -119,13 +119,14 @@ func (r *CollectionCreateRequest) Validate() error {
 		}
 	}
 
-	var tvIDs []object.ID
+	tvIDs := make([]object.ID, 0, len(r.Items))
 	// Get template versions.
 	for i := range r.Items {
 		if r.Items[i].Template == nil {
 			continue
 		}
-		tvIDs[i] = r.Items[i].Template.ID
+
+		tvIDs = append(tvIDs, r.Items[i].Template.ID)
 	}
 
 	tvs, err := r.Client.TemplateVersions().Query().
