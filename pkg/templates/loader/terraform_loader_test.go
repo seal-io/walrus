@@ -14,8 +14,7 @@ import (
 )
 
 var mockInfo = &openapi3.Info{
-	Title:   "OpenAPI schema for template dev-template",
-	Version: "dev",
+	Title: "OpenAPI schema for template dev-template",
 }
 
 func TestLoadTerraformSchema(t *testing.T) {
@@ -121,6 +120,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 											},
 										},
 										Extensions: openapi.NewExt(nil).
+											SetOriginalVariablesSequence([]string{"foo"}).
 											Export(),
 									},
 								},
@@ -158,6 +158,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 											},
 										},
 										Extensions: openapi.NewExt(nil).
+											SetOriginalVariablesSequence([]string{"foo"}).
 											Export(),
 									},
 								},
@@ -313,7 +314,18 @@ func TestLoadTerraformSchema(t *testing.T) {
 												},
 											},
 										},
-										Extensions: map[string]any{},
+										Extensions: openapi.NewExt(nil).
+											SetOriginalVariablesSequence([]string{
+												"foo",
+												"bar",
+												"thee",
+												"number_options_var",
+												"subgroup1_1",
+												"subgroup1_2",
+												"subgroup2_1",
+												"subgroup2_1_hidden",
+											}).
+											Export(),
 									},
 								},
 								"outputs": {
@@ -668,6 +680,16 @@ func TestLoadTerraformSchema(t *testing.T) {
 											"tuple",
 										},
 										Extensions: openapi.NewExt(nil).
+											SetOriginalVariablesSequence([]string{
+												"any",
+												"any_map",
+												"string_map",
+												"string_slice",
+												"object",
+												"object_nested",
+												"list_object",
+												"tuple",
+											}).
 											Export(),
 									},
 								},
@@ -684,7 +706,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			loader := NewTerraformLoader()
 
-			actualOutput, actualError := loader.Load(tc.input, "dev-template", "dev")
+			actualOutput, actualError := loader.Load(tc.input, "dev-template", ModeSchemaFile)
 			if tc.expectedError {
 				assert.Error(t, actualError)
 			} else {

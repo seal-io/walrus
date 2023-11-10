@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
 	"github.com/zclconf/go-cty/cty"
+	ctyjson "github.com/zclconf/go-cty/cty/json"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/walrus/pkg/dao/types"
@@ -22,6 +23,7 @@ import (
 	"github.com/seal-io/walrus/pkg/templates/translator"
 	"github.com/seal-io/walrus/utils/files"
 	"github.com/seal-io/walrus/utils/gopool"
+	"github.com/seal-io/walrus/utils/json"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/strs"
 )
@@ -40,7 +42,7 @@ func NewTerraformLoader() SchemaLoader {
 
 // Load loads the internal template version schema and data.
 func (l *TerraformLoader) Load(
-	rootDir, templateName, templateVersion string,
+	rootDir, templateName string, mode Mode,
 ) (*types.TemplateVersionSchema, error) {
 	if !l.match(rootDir) {
 		return nil, nil
@@ -51,7 +53,7 @@ func (l *TerraformLoader) Load(
 		return nil, err
 	}
 
-	s, err := l.loadSchema(rootDir, mod, templateName, templateVersion)
+	s, err := l.loadSchema(rootDir, mod, templateName, mode)
 	if err != nil {
 		return nil, err
 	}
@@ -89,21 +91,13 @@ func (l *TerraformLoader) loadMod(rootDir string) (*tfconfig.Module, error) {
 func (l *TerraformLoader) loadSchema(
 	rootDir string,
 	mod *tfconfig.Module,
-	template, version string,
+	template string,
+	mode Mode,
 ) (*openapi3.T, error) {
 	// Variables.
-	vs, err := l.getVariableSchemaFromTerraform(mod)
+	vs, err := l.getVariableSchema(rootDir, mod, mode)
 	if err != nil {
 		return nil, err
-	}
-
-	vsf, err := l.getVariableSchemaFromFile(rootDir)
-	if err != nil {
-		log.Warnf("error loading schema from file: %v", err)
-	}
-
-	if vsf != nil {
-		vs = l.mergeVariableSchema(vs, vsf)
 	}
 
 	// Outputs.
@@ -121,8 +115,7 @@ func (l *TerraformLoader) loadSchema(
 	t := &openapi3.T{
 		OpenAPI: openapi.OpenAPIVersion,
 		Info: &openapi3.Info{
-			Title:   fmt.Sprintf("OpenAPI schema for template %s", template),
-			Version: version,
+			Title: fmt.Sprintf("OpenAPI schema for template %s", template),
 		},
 		Components: &openapi3.Components{
 			Schemas: openapi3.Schemas{},
@@ -140,19 +133,59 @@ func (l *TerraformLoader) loadSchema(
 	return t, nil
 }
 
-// mergeVariableSchema merges the schema generate from terraform files and customized in schema.yaml.
-func (l *TerraformLoader) mergeVariableSchema(generated, customized *openapi3.Schema) *openapi3.Schema {
+func (l *TerraformLoader) getVariableSchema(
+	rootDir string,
+	mod *tfconfig.Module,
+	mode Mode,
+) (*openapi3.Schema, error) {
+	fromOriginal, err := l.getVariableSchemaFromTerraform(mod)
+	if err != nil {
+		return nil, err
+	}
+
+	switch mode {
+	case ModeOriginal:
+		return fromOriginal, nil
+	case ModeSchemaFile:
+		fromFile, err := l.getVariableSchemaFromFile(rootDir)
+		if err != nil {
+			log.Warnf("error loading schema from file: %v", err)
+		}
+
+		return l.injectVariableSchemaExt(fromOriginal, fromFile), nil
+	default:
+		// Merge, apply customized schema to generated schema.
+		fromFile, err := l.getVariableSchemaFromFile(rootDir)
+		if err != nil {
+			log.Warnf("error loading schema from file: %v", err)
+		}
+
+		if fromFile == nil {
+			return fromOriginal, nil
+		}
+
+		// Generate merged variables in sequence.
+		merged, err := openapi.UnionSchema(fromOriginal, fromFile)
+		if err != nil {
+			return nil, err
+		}
+
+		return merged, nil
+	}
+}
+
+// injectVariableSchemaExt add extension to the customized ui schema in schema.yaml.
+func (l *TerraformLoader) injectVariableSchemaExt(generated, customized *openapi3.Schema) *openapi3.Schema {
 	if customized == nil {
 		return generated
 	}
 
-	merged := *customized
-	if len(merged.Extensions) == 0 && len(generated.Extensions) != 0 {
-		merged.Extensions = make(map[string]any)
+	s := *customized
+	if len(s.Extensions) == 0 && len(generated.Extensions) != 0 {
+		s.Extensions = generated.Extensions
 	}
-	// Merged.Extensions[openapi.ExtOriginal] = generated.Extensions[openapi.ExtOriginal].
 
-	for n, v := range merged.Properties {
+	for n, v := range s.Properties {
 		in := generated.Properties[n]
 		if in == nil || in.Value == nil {
 			continue
@@ -160,19 +193,19 @@ func (l *TerraformLoader) mergeVariableSchema(generated, customized *openapi3.Sc
 
 		// Title.
 		if v.Value.Title == "" {
-			merged.Properties[n].Value.Title = generated.Properties[n].Value.Title
+			s.Properties[n].Value.Title = generated.Properties[n].Value.Title
 		}
 
 		// Extensions.
 		if len(in.Value.Extensions) != 0 {
 			if len(v.Value.Extensions) == 0 {
-				merged.Properties[n].Value.Extensions = make(map[string]any)
+				s.Properties[n].Value.Extensions = make(map[string]any)
 			}
-			merged.Properties[n].Value.Extensions[openapi.ExtOriginal] = in.Value.Extensions[openapi.ExtOriginal]
+			s.Properties[n].Value.Extensions[openapi.ExtOriginal] = in.Value.Extensions[openapi.ExtOriginal]
 		}
 	}
 
-	return &merged
+	return &s
 }
 
 // getVariableSchemaFromTerraform generate variable schemas from terraform files.
@@ -184,23 +217,48 @@ func (l *TerraformLoader) getVariableSchemaFromTerraform(mod *tfconfig.Module) (
 	var (
 		varSchemas = openapi3.NewObjectSchema()
 		required   []string
+		keys       = make([]string, len(mod.Variables))
 	)
 
 	// Variables.
-	for _, v := range sortVariables(mod.Variables) {
+	for i, v := range sortVariables(mod.Variables) {
 		// Parse tf expression from type.
-		tfType := cty.DynamicPseudoType
+		var (
+			tfType = cty.DynamicPseudoType
+			def    = v.Default
+		)
 
 		if v.Type != "" {
+			// Type exists.
 			expr, diags := hclsyntax.ParseExpression(strs.ToBytes(&v.Type), "", hcl.Pos{Line: 1, Column: 1})
 			if diags.HasErrors() {
 				return nil, fmt.Errorf("error parsing expression: %w", diags)
 			}
 
-			tfType, diags = typeexpr.TypeConstraint(expr)
+			var conDef *typeexpr.Defaults
+
+			tfType, conDef, diags = typeexpr.TypeConstraintWithDefaults(expr)
 			if diags.HasErrors() {
 				return nil, fmt.Errorf("error getting type: %w", diags)
 			}
+
+			if conDef != nil && conDef.DefaultValues != nil && conDef.Children != nil {
+				def = conDef
+			}
+		} else if v.Default != nil {
+			// Empty type, use default value to get type.
+			b, err := json.Marshal(v.Default)
+			if err != nil {
+				return nil, fmt.Errorf("error while marshal terraform variable default value: %w", err)
+			}
+
+			var sjv ctyjson.SimpleJSONValue
+
+			err = sjv.UnmarshalJSON(b)
+			if err != nil {
+				return nil, fmt.Errorf("error while unmarshal terraform variable default value: %w", err)
+			}
+			tfType = sjv.Type()
 		}
 
 		// Generate json schema from tf type.
@@ -209,18 +267,20 @@ func (l *TerraformLoader) getVariableSchemaFromTerraform(mod *tfconfig.Module) (
 			l.translator.SchemaOfOriginalType(
 				tfType,
 				v.Name,
-				v.Default,
+				def,
 				v.Description,
 				v.Sensitive))
 
 		if v.Required {
 			required = append(required, v.Name)
 		}
+		keys[i] = v.Name
 	}
 
 	sort.Strings(required)
 	varSchemas.Required = required
 	varSchemas.Extensions = openapi.NewExt(varSchemas.Extensions).
+		SetOriginalVariablesSequence(keys).
 		Export()
 
 	return varSchemas, nil

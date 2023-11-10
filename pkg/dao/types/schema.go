@@ -137,6 +137,15 @@ func (s UISchema) IsEmpty() bool {
 		s.OpenAPISchema.Components.Schemas[variableSchemaKey].Value == nil
 }
 
+// VariableSchema returns the variables' schema.
+func (s *UISchema) VariableSchema() *openapi3.Schema {
+	if s.IsEmpty() {
+		return nil
+	}
+
+	return s.OpenAPISchema.Components.Schemas[variableSchemaKey].Value
+}
+
 // TemplateVersionSchema include the internal template variables schema and template data.
 type TemplateVersionSchema struct {
 	Schema `json:",inline"`
