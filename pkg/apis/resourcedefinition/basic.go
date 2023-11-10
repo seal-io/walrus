@@ -37,7 +37,7 @@ func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 		return nil, err
 	}
 
-	return dao.ExposeResourceDefinition(entity), nil
+	return model.ExposeResourceDefinition(entity), nil
 }
 
 func (h Handler) Get(req GetRequest) (GetResponse, error) {

@@ -16,6 +16,10 @@ func IntersectSchema(s1, s2 *openapi3.Schema) *openapi3.Schema {
 		return s1
 	}
 
+	if s1.Type != s2.Type {
+		return nil
+	}
+
 	r1 := sets.New[string](s1.Required...)
 	p1 := sets.KeySet[string](s1.Properties)
 
@@ -25,7 +29,9 @@ func IntersectSchema(s1, s2 *openapi3.Schema) *openapi3.Schema {
 	required := r1.Intersection(r2)
 	propertyKeys := p1.Intersection(p2)
 
-	s := &openapi3.Schema{}
+	s := &openapi3.Schema{
+		Type: s1.Type,
+	}
 	s.Required = required.UnsortedList()
 	s.Properties = make(openapi3.Schemas)
 
