@@ -20,8 +20,14 @@ func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 }
 
 func (h Handler) Get(req GetRequest) (GetResponse, error) {
-	entity, err := h.modelClient.Environments().Query().
-		Where(environment.ID(req.ID)).
+	query := h.modelClient.Environments().Query().
+		Where(environment.ID(req.ID))
+
+	if req.IncludeSummary {
+		query.WithResources()
+	}
+
+	entity, err := query.
 		WithProject(func(pq *model.ProjectQuery) {
 			pq.Select(project.FieldName)
 		}).
@@ -44,7 +50,7 @@ func (h Handler) Get(req GetRequest) (GetResponse, error) {
 		return nil, err
 	}
 
-	return model.ExposeEnvironment(entity), nil
+	return exposeEnvironment(entity), nil
 }
 
 func (h Handler) Update(req UpdateRequest) error {
@@ -100,6 +106,10 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 	query := h.modelClient.Environments().Query().
 		Where(environment.ProjectID(req.Project.ID))
 
+	if req.IncludeSummary {
+		query.WithResources()
+	}
+
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
 	}
@@ -145,7 +155,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 		return nil, 0, err
 	}
 
-	return model.ExposeEnvironments(entities), cnt, nil
+	return exposeEnvironments(entities), cnt, nil
 }
 
 func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {

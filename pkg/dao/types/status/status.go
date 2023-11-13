@@ -99,3 +99,10 @@ type Summary struct {
 	Error                bool   `json:"error,omitempty"`
 	Transitioning        bool   `json:"transitioning,omitempty"`
 }
+
+// Count is the count of status.
+type Count struct {
+	Error         int `json:"error"`
+	Ready         int `json:"ready"`
+	Transitioning int `json:"transitioning"`
+}

@@ -8,6 +8,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/utils/validation"
 )
 
@@ -26,9 +27,11 @@ func (r *CreateRequest) Validate() error {
 type (
 	GetRequest struct {
 		model.EnvironmentQueryInput `path:",inline"`
+
+		IncludeSummary bool `query:"includeSummary,omitempty"`
 	}
 
-	GetResponse = *model.EnvironmentOutput
+	GetResponse = *environmentOutput
 )
 
 type UpdateRequest struct {
@@ -65,9 +68,46 @@ type (
 		runtime.RequestCollection[
 			predicate.Environment, environment.OrderOption,
 		] `query:",inline"`
+
+		IncludeSummary bool `query:"includeSummary,omitempty"`
 	}
 
-	CollectionGetResponse = []*model.EnvironmentOutput
+	CollectionGetResponse = []*environmentOutput
 )
 
 type CollectionDeleteRequest = model.EnvironmentDeleteInputs
+
+type environmentOutput struct {
+	model.EnvironmentOutput `json:",inline"`
+	StatusSummary           status.Count `json:"statusSummary"`
+}
+
+func exposeEnvironment(entity *model.Environment) *environmentOutput {
+	output := &environmentOutput{
+		EnvironmentOutput: *model.ExposeEnvironment(entity),
+	}
+
+	if len(entity.Edges.Resources) > 0 {
+		for _, v := range entity.Edges.Resources {
+			switch {
+			case v.Status.Error:
+				output.StatusSummary.Error++
+			case v.Status.Transitioning:
+				output.StatusSummary.Transitioning++
+			default:
+				output.StatusSummary.Ready++
+			}
+		}
+	}
+
+	return output
+}
+
+func exposeEnvironments(entities []*model.Environment) []*environmentOutput {
+	output := make([]*environmentOutput, len(entities))
+	for i, v := range entities {
+		output[i] = exposeEnvironment(v)
+	}
+
+	return output
+}
