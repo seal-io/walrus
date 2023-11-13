@@ -17,7 +17,7 @@ import (
 )
 
 func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
-	return createEnvironment(req.Context, h.modelClient, req.Model())
+	return createEnvironment(req.Context, h.modelClient, req.Model(), false)
 }
 
 func (h Handler) Get(req GetRequest) (GetResponse, error) {

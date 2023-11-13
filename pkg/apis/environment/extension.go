@@ -16,6 +16,9 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/deployer"
+	deployertf "github.com/seal-io/walrus/pkg/deployer/terraform"
+	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
 	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	pkgcomponent "github.com/seal-io/walrus/pkg/resourcecomponents"
@@ -219,7 +222,7 @@ func (h Handler) RouteCloneEnvironment(req RouteCloneEnvironmentRequest) (*Route
 		}
 	}
 
-	return createEnvironment(req.Context, h.modelClient, entity)
+	return createEnvironment(req.Context, h.modelClient, entity, req.Draft)
 }
 
 func (h Handler) RouteGetResourceDefinitions(
@@ -271,4 +274,76 @@ func (h Handler) RouteGetResourceDefinitions(
 	}
 
 	return dao.ExposeResourceDefinitions(availableRds), nil
+}
+
+func (h Handler) RouteStart(req RouteStartRequest) error {
+	resources, err := req.Client.Resources().Query().
+		Where(resource.EnvironmentID(req.ID)).
+		WithTemplate(func(tvq *model.TemplateVersionQuery) {
+			tvq.Select(
+				templateversion.FieldID,
+				templateversion.FieldTemplateID,
+				templateversion.FieldName,
+				templateversion.FieldVersion,
+				templateversion.FieldProjectID)
+		}).
+		WithProject(func(pq *model.ProjectQuery) {
+			pq.Select(project.FieldName)
+		}).
+		WithEnvironment(func(eq *model.EnvironmentQuery) {
+			eq.Select(environment.FieldName)
+		}).
+		All(req.Context)
+	if err != nil {
+		return err
+	}
+
+	toStartResources := make(model.Resources, 0, len(resources))
+
+	for _, r := range resources {
+		if pkgresource.CanBeStarted(r) {
+			toStartResources = append(toStartResources, r)
+		}
+	}
+
+	err = h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
+		if err := pkgresource.SetSubjectID(req.Context, toStartResources...); err != nil {
+			return err
+		}
+
+		return pkgresource.SetResourceStatusScheduled(req.Context, tx, toStartResources...)
+	})
+	if err != nil {
+		return errorx.Wrap(err, "failed to start environment")
+	}
+
+	return nil
+}
+
+func (h Handler) RouteStop(req RouteStopRequest) error {
+	return h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
+		deployerOpts := deptypes.CreateOptions{
+			Type:        deployertf.DeployerType,
+			ModelClient: tx,
+			KubeConfig:  h.kubeConfig,
+		}
+
+		dp, err := deployer.Get(req.Context, deployerOpts)
+		if err != nil {
+			return err
+		}
+
+		destroyOpts := pkgresource.Options{
+			Deployer: dp,
+		}
+
+		for _, s := range req.stoppableResources {
+			err = pkgresource.Stop(req.Context, tx, s, destroyOpts)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }

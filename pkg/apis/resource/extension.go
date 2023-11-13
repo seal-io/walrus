@@ -125,6 +125,63 @@ func (h Handler) RouteRollback(req RouteRollbackRequest) error {
 		applyOpts)
 }
 
+func (h Handler) RouteStart(req RouteStartRequest) error {
+	entity := req.resource
+
+	status.ResourceStatusUnDeployed.Remove(entity)
+	status.ResourceStatusStopped.Remove(entity)
+	status.ResourceStatusDeployed.Reset(entity, "Deploying")
+	entity.Status.SetSummary(status.WalkResource(&entity.Status))
+
+	err := h.modelClient.WithTx(req.Context, func(tx *model.Tx) (err error) {
+		entity, err = tx.Resources().UpdateOne(entity).
+			Set(entity).
+			SaveE(req.Context, dao.ResourceDependenciesEdgeSave)
+
+		return err
+	})
+	if err != nil {
+		return errorx.Wrap(err, "error updating resource")
+	}
+
+	dp, err := h.getDeployer(req.Context)
+	if err != nil {
+		return err
+	}
+
+	applyOpts := pkgresource.Options{
+		Deployer: dp,
+	}
+
+	ready, err := pkgresource.CheckDependencyStatus(req.Context, h.modelClient, entity)
+	if err != nil {
+		return errorx.Wrap(err, "error checking dependency status")
+	}
+
+	if ready {
+		return pkgresource.Apply(
+			req.Context,
+			h.modelClient,
+			entity,
+			applyOpts)
+	}
+
+	return nil
+}
+
+func (h Handler) RouteStop(req RouteStopRequest) error {
+	dp, err := h.getDeployer(req.Context)
+	if err != nil {
+		return err
+	}
+
+	opts := pkgresource.Options{
+		Deployer: dp,
+	}
+
+	return pkgresource.Stop(req.Context, req.Client, req.Model(), opts)
+}
+
 func (h Handler) RouteGetAccessEndpoints(req RouteGetAccessEndpointsRequest) (RouteGetAccessEndpointsResponse, error) {
 	if stream := req.Stream; stream != nil {
 		t, err := topic.Subscribe(modelchange.ResourceRevision)

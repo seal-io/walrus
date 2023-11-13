@@ -143,10 +143,6 @@ func manageResources(
 		return err
 	}
 
-	if observedRess == nil {
-		return nil
-	}
-
 	// Get record resources from local.
 	recordRess, err := modelClient.ResourceComponents().Query().
 		Where(resourcecomponent.ResourceID(entity.ResourceID)).
@@ -358,8 +354,9 @@ func reconcileResources(
 		return fmt.Errorf("cannot get service: %w", err)
 	}
 
-	if status.ResourceStatusDeleted.Exist(svc) {
-		// Skip if the service is on deleting.
+	if status.ResourceStatusDeleted.Exist(svc) ||
+		status.ResourceStatusStopped.Exist(svc) {
+		// Skip if the service is on deleting or stopping.
 		return nil
 	}
 

@@ -27,17 +27,23 @@ func SyncResourceRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) 
 	}
 
 	if status.ResourceRevisionStatusReady.IsTrue(revision) {
-		if status.ResourceStatusDeleted.IsUnknown(entity) {
+		switch {
+		case status.ResourceStatusDeleted.IsUnknown(entity):
 			return mc.Resources().DeleteOne(entity).
 				Exec(ctx)
+		case status.ResourceStatusStopped.IsUnknown(entity):
+			// Stopping -> Stopped.
+			status.ResourceStatusStopped.True(entity, "")
+		default:
+			// Deployed.
+			status.ResourceStatusDeployed.True(entity, "")
+			status.ResourceStatusReady.Unknown(entity, "")
 		}
-
-		status.ResourceStatusDeployed.True(entity, "")
-		status.ResourceStatusReady.Unknown(entity, "")
 	} else if status.ResourceRevisionStatusReady.IsFalse(revision) {
-		if status.ResourceStatusDeleted.IsUnknown(entity) {
+		switch {
+		case status.ResourceStatusDeleted.IsUnknown(entity):
 			status.ResourceStatusDeleted.False(entity, "")
-		} else {
+		default:
 			status.ResourceStatusDeployed.False(entity, "")
 		}
 

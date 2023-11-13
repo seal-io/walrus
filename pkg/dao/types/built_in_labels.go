@@ -22,4 +22,7 @@ const (
 
 	// LabelWalrusCategory indicates the category of the resource.
 	LabelWalrusCategory string = "walrus.seal.io/category"
+
+	// LabelResourceStoppable indicates if the resource is stoppable.
+	LabelResourceStoppable string = "walrus.seal.io/stoppable"
 )

@@ -28,6 +28,7 @@ func createEnvironment(
 	ctx *gin.Context,
 	mc model.ClientSet,
 	entity *model.Environment,
+	draft bool,
 ) (*model.EnvironmentOutput, error) {
 	// Validate the creating environment has the same use with subject.
 	sj := session.MustGetSubject(ctx)
@@ -60,9 +61,17 @@ func createEnvironment(
 			return err
 		}
 
-		resources, err := pkgresource.CreateScheduledResources(ctx, tx, resourceInputs)
-		if err != nil {
-			return err
+		var resources model.Resources
+		if draft {
+			resources, err = pkgresource.CreateDraftResources(ctx, tx, resourceInputs...)
+			if err != nil {
+				return err
+			}
+		} else {
+			resources, err = pkgresource.CreateScheduledResources(ctx, tx, resourceInputs)
+			if err != nil {
+				return err
+			}
 		}
 
 		entity.Edges.Resources = resources
