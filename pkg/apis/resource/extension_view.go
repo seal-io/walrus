@@ -3,8 +3,10 @@ package resource
 import (
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
+	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
@@ -16,7 +18,10 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
+	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	"github.com/seal-io/walrus/pkg/resourcedefinitions"
+	"github.com/seal-io/walrus/utils/errorx"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 type AccessEndpoint struct {
@@ -138,7 +143,7 @@ func (r *RouteUpgradeRequest) Validate() error {
 		return err
 	}
 
-	if err = validateRevisionsStatus(r.Context, r.Client, r.ID); err != nil {
+	if err = ValidateRevisionsStatus(r.Context, r.Client, r.ID); err != nil {
 		return err
 	}
 
@@ -170,6 +175,106 @@ func (r *RouteRollbackRequest) Validate() error {
 	if status.ResourceRevisionStatusReady.IsUnknown(latestRevision) {
 		return errors.New("latest revision is running")
 	}
+
+	return nil
+}
+
+type RouteStopRequest struct {
+	_ struct{} `route:"POST=/stop"`
+
+	model.ResourceDeleteInput `path:",inline"`
+}
+
+func (r *RouteStopRequest) Validate() error {
+	if err := r.ResourceDeleteInput.Validate(); err != nil {
+		return err
+	}
+
+	res, err := r.Client.Resources().Get(r.Context, r.ID)
+	if err != nil {
+		return err
+	}
+
+	if !pkgresource.IsStoppable(res) {
+		return errorx.HttpErrorf(
+			http.StatusBadRequest,
+			"resource %s is non-stoppable",
+			res.Name,
+		)
+	}
+
+	if !pkgresource.CanBeStopped(res) {
+		return errorx.HttpErrorf(
+			http.StatusBadRequest,
+			"cannot stop resource %q: in %q status",
+			res.Name, res.Status.SummaryStatus,
+		)
+	}
+
+	ids, err := dao.GetResourceDependantIDs(r.Context, r.Client, r.ID)
+	if err != nil {
+		return fmt.Errorf("failed to get resource relationships: %w", err)
+	}
+
+	if len(ids) > 0 {
+		names, err := dao.GetResourceNamesByIDs(r.Context, r.Client, ids...)
+		if err != nil {
+			return fmt.Errorf("failed to get resources: %w", err)
+		}
+
+		return errorx.HttpErrorf(
+			http.StatusConflict,
+			"resource about to be stopped is the dependency of: %v",
+			strs.Join(", ", names...),
+		)
+	}
+
+	return nil
+}
+
+type RouteStartRequest struct {
+	_ struct{} `route:"POST=/start"`
+
+	model.ResourceQueryInput `path:",inline"`
+
+	resource *model.Resource `json:"-"`
+}
+
+func (r *RouteStartRequest) Validate() error {
+	if err := r.ResourceQueryInput.Validate(); err != nil {
+		return err
+	}
+
+	res, err := r.Client.Resources().Query().
+		Where(resource.ID(r.ID)).
+		WithTemplate(func(tvq *model.TemplateVersionQuery) {
+			tvq.Select(
+				templateversion.FieldID,
+				templateversion.FieldTemplateID,
+				templateversion.FieldName,
+				templateversion.FieldVersion,
+				templateversion.FieldProjectID)
+		}).
+		WithProject(func(pq *model.ProjectQuery) {
+			pq.Select(project.FieldName)
+		}).
+		WithEnvironment(func(eq *model.EnvironmentQuery) {
+			eq.Select(environment.FieldName)
+		}).
+		Only(r.Context)
+	if err != nil {
+		return err
+	}
+
+	if !pkgresource.CanBeStarted(res) {
+		return errorx.HttpErrorf(
+			http.StatusBadRequest,
+			"cannot start resource %q: in %q status",
+			res.Name, res.Status.SummaryStatus,
+		)
+	}
+
+	r.resource = res
 
 	return nil
 }

@@ -21,6 +21,11 @@ import (
 func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 	entity := req.Model()
 
+	if req.Draft {
+		_, err := pkgresource.CreateDraftResources(req.Context, req.Client, entity)
+		return model.ExposeResource(entity), err
+	}
+
 	dp, err := h.getDeployer(req.Context)
 	if err != nil {
 		return nil, err
@@ -95,6 +100,11 @@ func (h Handler) CollectionCreate(req CollectionCreateRequest) (CollectionCreate
 
 	err := h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
 		if err := pkgresource.SetSubjectID(req.Context, entities...); err != nil {
+			return err
+		}
+
+		if req.Draft {
+			_, err := pkgresource.CreateDraftResources(req.Context, tx, entities...)
 			return err
 		}
 

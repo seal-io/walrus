@@ -12,6 +12,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
@@ -169,6 +170,65 @@ func Destroy(
 	return nil
 }
 
+// Stop stops given resource.
+func Stop(
+	ctx context.Context,
+	mc model.ClientSet,
+	entity *model.Resource,
+	opts Options,
+) (err error) {
+	logger := log.WithName("resource")
+
+	updateFailedStatus := func(err error) {
+		status.ResourceStatusStopped.False(entity, err.Error())
+
+		err = UpdateStatus(ctx, mc, entity)
+		if err != nil {
+			logger.Errorf("error updating status of resource %s: %v", entity.ID, err)
+		}
+	}
+
+	// Check dependants.
+	dependants, err := dao.GetResourceDependantNames(ctx, mc, entity)
+	if err != nil {
+		updateFailedStatus(err)
+		return err
+	}
+
+	if len(dependants) > 0 {
+		msg := fmt.Sprintf("Waiting for dependants to be stopped: %s", strs.Join(", ", dependants...))
+		if !status.ResourceStatusProgressing.IsUnknown(entity) ||
+			status.ResourceStatusStopped.GetMessage(entity) != msg {
+			// Mark status to stopping with dependency message.
+			status.ResourceStatusStopped.Reset(entity, msg)
+			status.ResourceStatusProgressing.Unknown(entity, "")
+
+			if err = UpdateStatus(ctx, mc, entity); err != nil {
+				return fmt.Errorf("failed to update resource status: %w", err)
+			}
+		}
+
+		return nil
+	} else {
+		// Mark status to stopping.
+		status.ResourceStatusStopped.Reset(entity, "")
+		status.ResourceStatusProgressing.True(entity, "Resolved dependencies")
+
+		if err = UpdateStatus(ctx, mc, entity); err != nil {
+			return fmt.Errorf("failed to update resource status: %w", err)
+		}
+	}
+
+	err = opts.Deployer.Destroy(ctx, entity, deptypes.DestroyOptions{})
+	if err != nil {
+		log.Errorf("fail to destroy resource: %w", err)
+
+		updateFailedStatus(err)
+	}
+
+	return nil
+}
+
 func GetSubjectID(entity *model.Resource) (object.ID, error) {
 	if entity == nil {
 		return "", fmt.Errorf("resource is nil")
@@ -195,25 +255,51 @@ func SetSubjectID(ctx context.Context, resources ...*model.Resource) error {
 	return nil
 }
 
-// SetResourceStatusScheduled sets the status of the resource to scheduled.
-func SetResourceStatusScheduled(ctx context.Context, mc model.ClientSet, entity *model.Resource) error {
-	if entity == nil {
-		return fmt.Errorf("resource is nil")
+// SetResourceStatusScheduled sets the status of the resources to scheduled.
+func SetResourceStatusScheduled(ctx context.Context, mc model.ClientSet, entities ...*model.Resource) error {
+	for i := range entities {
+		if entities[i] == nil {
+			return fmt.Errorf("resource is nil")
+		}
+		dependencyNames := dao.ResourceRelationshipGetDependencyNames(entities[i])
+
+		msg := ""
+		if len(dependencyNames) > 0 {
+			msg = fmt.Sprintf("Waiting for dependent resources to be ready: %s", strs.Join(", ", dependencyNames...))
+		}
+
+		status.ResourceStatusProgressing.Reset(entities[i], msg)
+		entities[i].Status.SetSummary(status.WalkResource(&entities[i].Status))
+
+		if err := mc.Resources().UpdateOne(entities[i]).
+			SetStatus(entities[i].Status).
+			Exec(ctx); err != nil {
+			return err
+		}
 	}
 
-	dependencyNames := dao.ResourceRelationshipGetDependencyNames(entity)
+	return nil
+}
 
-	msg := ""
-	if len(dependencyNames) > 0 {
-		msg = fmt.Sprintf("Waiting for dependent resources to be ready: %s", strs.Join(", ", dependencyNames...))
+// CreateDraftResources creates undeployed resources but do no deployment.
+func CreateDraftResources(
+	ctx context.Context,
+	mc model.ClientSet,
+	entities ...*model.Resource,
+) (model.Resources, error) {
+	for _, entity := range entities {
+		status.ResourceStatusUnDeployed.True(entity, "Draft")
+		entity.Status.SetSummary(status.WalkResource(&entity.Status))
 	}
 
-	status.ResourceStatusProgressing.Reset(entity, msg)
-	entity.Status.SetSummary(status.WalkResource(&entity.Status))
+	entities, err := mc.Resources().CreateBulk().
+		Set(entities...).
+		Save(ctx)
+	if err != nil {
+		return entities, err
+	}
 
-	return mc.Resources().UpdateOne(entity).
-		SetStatus(entity.Status).
-		Exec(ctx)
+	return entities, nil
 }
 
 // CreateScheduledResources creates scheduled resources.
@@ -355,4 +441,34 @@ func IsService(r *model.Resource) bool {
 	}
 
 	return r.TemplateID != nil
+}
+
+// IsStoppable tells whether the given resource is stoppable.
+func IsStoppable(r *model.Resource) bool {
+	if r == nil {
+		return false
+	}
+
+	if r.Labels[types.LabelResourceStoppable] == "true" ||
+		(r.TemplateID != nil && r.Labels[types.LabelResourceStoppable] != "false") {
+		return true
+	}
+
+	return false
+}
+
+// CanBeStopped tells whether the given resource can be stopped.
+func CanBeStopped(r *model.Resource) bool {
+	return status.ResourceStatusDeployed.IsTrue(r)
+}
+
+// CanBeStarted tells whether the given resource can be started.
+func CanBeStarted(r *model.Resource) bool {
+	if r == nil {
+		return false
+	}
+
+	// The resource need to be in undeployed or stopped status to start.
+	return r.Status.SummaryStatus == status.ResourceStatusUnDeployed.String() ||
+		r.Status.SummaryStatus == status.ResourceStatusStopped.String()
 }

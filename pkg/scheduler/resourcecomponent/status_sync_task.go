@@ -156,8 +156,10 @@ func (in *StatusSyncTask) process(
 	}
 
 	// State resource.
-	if status.ResourceStatusDeleted.Exist(svc) {
-		// Skip if the service is on deleting.
+	if status.ResourceStatusUnDeployed.IsTrue(svc) ||
+		status.ResourceStatusDeleted.Exist(svc) ||
+		status.ResourceStatusStopped.Exist(svc) {
+		// Skip if the service is undeployed, on deleting or stopping.
 		return berr
 	}
 

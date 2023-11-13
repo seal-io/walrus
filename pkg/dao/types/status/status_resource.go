@@ -1,6 +1,8 @@
 package status
 
 const (
+	ResourceStatusUnDeployed  ConditionType = "Undeployed"
+	ResourceStatusStopped     ConditionType = "Stopped"
 	ResourceStatusDeployed    ConditionType = "Deployed"
 	ResourceStatusDeleted     ConditionType = "Deleted"
 	ResourceStatusReady       ConditionType = "Ready"
@@ -17,8 +19,14 @@ const (
 //	| Deployed         | Unknown                 | Deploying             | Transitioning         |
 //	| Deployed         | False                   | DeployFailed          | Error                 |
 //	| Deployed         | True                    | Deployed              |                       |
+//	| UnDeployed       | Unknown                 | Transitioning         | Transitioning         |
+//	| UnDeployed       | False                   | Error                 | Error                 |
+//	| UnDeployed       | True                    | Undeployed            |                       |
+//	| Stopped          | Unknown                 | Stopping              | Transitioning         |
+//	| Stopped          | False                   | StopFailed            | Error                 |
+//	| Stopped          | True                    | Stopped               |                       |
 //	| Ready            | Unknown                 | Preparing             | Transitioning         |
-//	| Ready            | False                   | NotReady               | Error                 |
+//	| Ready            | False                   | NotReady              | Error                 |
 //	| Ready            | True                    | Ready                 |                       |
 //	| Deleted          | Unknown                 | Deleting              | Transitioning         |
 //	| Deleted          | False                   | DeleteFailed          | Error                 |
@@ -29,6 +37,8 @@ var resourceStatusPaths = NewWalker(
 			ResourceStatusDeleted,
 			ResourceStatusProgressing,
 			ResourceStatusDeployed,
+			ResourceStatusUnDeployed,
+			ResourceStatusStopped,
 			ResourceStatusReady,
 		},
 	},
@@ -42,6 +52,17 @@ var resourceStatusPaths = NewWalker(
 					return "DeleteFailed", true, false
 				}
 				return "", false, false
+			})
+		d.Make(ResourceStatusStopped,
+			func(st ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+				// Both Stopping and Stopped are considered as transitioning.
+				switch st {
+				case ConditionStatusUnknown:
+					return "Stopping", false, true
+				case ConditionStatusFalse:
+					return "StopFailed", true, false
+				}
+				return "Stopped", false, true
 			})
 	},
 )

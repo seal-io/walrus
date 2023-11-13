@@ -33,6 +33,8 @@ import (
 type (
 	CreateRequest struct {
 		model.ResourceCreateInput `path:",inline" json:",inline"`
+
+		Draft bool `json:"draft,default=false"`
 	}
 
 	CreateResponse = *model.ResourceOutput
@@ -78,7 +80,7 @@ func (r *DeleteRequest) Validate() error {
 	}
 
 	if !r.WithoutCleanup {
-		if err = validateRevisionsStatus(r.Context, r.Client, r.ID); err != nil {
+		if err = ValidateRevisionsStatus(r.Context, r.Client, r.ID); err != nil {
 			return err
 		}
 	}
@@ -89,6 +91,8 @@ func (r *DeleteRequest) Validate() error {
 type (
 	CollectionCreateRequest struct {
 		model.ResourceCreateInputs `path:",inline" json:",inline"`
+
+		Draft bool `json:"draft,default=false"`
 	}
 
 	CollectionCreateResponse = []*model.ResourceOutput
@@ -302,7 +306,7 @@ func (r *CollectionDeleteRequest) Validate() error {
 	}
 
 	if r.WithoutCleanup {
-		if err = validateRevisionsStatus(r.Context, r.Client, ids...); err != nil {
+		if err = ValidateRevisionsStatus(r.Context, r.Client, ids...); err != nil {
 			return err
 		}
 	}
@@ -336,7 +340,8 @@ func validateEnvironment(tv *model.TemplateVersion, env *model.Environment) erro
 	return err
 }
 
-func validateRevisionsStatus(ctx context.Context, mc model.ClientSet, ids ...object.ID) error {
+// ValidateRevisionsStatus validates revision status of given resource IDs.
+func ValidateRevisionsStatus(ctx context.Context, mc model.ClientSet, ids ...object.ID) error {
 	revisions, err := dao.GetLatestRevisions(ctx, mc, ids...)
 	if err != nil {
 		return fmt.Errorf("failed to get resource revisions: %w", err)
