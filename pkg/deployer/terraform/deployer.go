@@ -451,6 +451,7 @@ func (d Deployer) createRevision(
 			resource.FieldProjectID,
 			resource.FieldEnvironmentID,
 			resource.FieldType,
+			resource.FieldLabels,
 			resource.FieldAttributes).
 		Only(ctx)
 	if err != nil {
