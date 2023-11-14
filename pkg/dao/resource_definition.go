@@ -34,6 +34,7 @@ func ResourceDefinitionMatchingRulesEdgeSave(
 			return errors.New("invalid input: nil relationship")
 		}
 		newItems[i].ResourceDefinitionID = entity.ID
+		newItems[i].Order = i
 
 		newItemsKeySet.Insert(newItems[i].Name)
 	}

@@ -44,7 +44,7 @@ func (h Handler) Get(req GetRequest) (GetResponse, error) {
 	entity, err := h.modelClient.ResourceDefinitions().Query().
 		Where(resourcedefinition.ID(req.ID)).
 		WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
-			rq.Order(model.Desc(resourcedefinitionmatchingrule.FieldCreateTime)).
+			rq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
 				Unique(false).
 				Select(
 					resourcedefinitionmatchingrule.FieldName,

@@ -226,7 +226,7 @@ func (h Handler) RouteGetResourceDefinitions(
 ) (RouteGetResourceDefinitionsResponse, error) {
 	rds, err := h.modelClient.ResourceDefinitions().Query().
 		WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
-			rq.Order(model.Desc(resourcedefinitionmatchingrule.FieldCreateTime)).
+			rq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
 				Select(resourcedefinitionmatchingrule.FieldResourceDefinitionID).
 				Unique(false).
 				Select(resourcedefinitionmatchingrule.FieldTemplateID).

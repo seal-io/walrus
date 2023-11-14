@@ -157,7 +157,7 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 			resourcedefinition.FieldType,
 		).
 		WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
-			rq.Order(model.Desc(resourcedefinitionmatchingrule.FieldCreateTime)).
+			rq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
 				Select(resourcedefinitionmatchingrule.FieldResourceDefinitionID).
 				Unique(false).
 				Select(resourcedefinitionmatchingrule.FieldTemplateID).
