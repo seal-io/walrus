@@ -190,7 +190,7 @@ func (r *CollectionCreateRequest) Validate() error {
 			resourcedefinition.FieldName,
 		).
 		WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
-			rq.Order(model.Desc(resourcedefinitionmatchingrule.FieldCreateTime)).
+			rq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
 				Select(resourcedefinitionmatchingrule.FieldResourceDefinitionID).
 				Unique(false).
 				Select(resourcedefinitionmatchingrule.FieldTemplateID).
@@ -454,7 +454,7 @@ func ValidateCreateInput(rci *model.ResourceCreateInput) error {
 		rd, err := rci.Client.ResourceDefinitions().Query().
 			Where(resourcedefinition.Type(rci.Type)).
 			WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
-				rq.Order(model.Desc(resourcedefinitionmatchingrule.FieldCreateTime)).
+				rq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
 					Select(resourcedefinitionmatchingrule.FieldResourceDefinitionID).
 					Unique(false).
 					Select(resourcedefinitionmatchingrule.FieldTemplateID).

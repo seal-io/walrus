@@ -431,12 +431,13 @@ func (d Deployer) createRevision(
 		}).
 		WithResourceDefinition(func(rd *model.ResourceDefinitionQuery) {
 			rd.Select(resourcedefinition.FieldType)
-			rd.WithMatchingRules(func(mrs *model.ResourceDefinitionMatchingRuleQuery) {
-				mrs.Select(
-					resourcedefinitionmatchingrule.FieldName,
-					resourcedefinitionmatchingrule.FieldSelector,
-					resourcedefinitionmatchingrule.FieldAttributes,
-				).
+			rd.WithMatchingRules(func(mrq *model.ResourceDefinitionMatchingRuleQuery) {
+				mrq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
+					Select(
+						resourcedefinitionmatchingrule.FieldName,
+						resourcedefinitionmatchingrule.FieldSelector,
+						resourcedefinitionmatchingrule.FieldAttributes,
+					).
 					WithTemplate(func(tvq *model.TemplateVersionQuery) {
 						tvq.Select(
 							templateversion.FieldID,
