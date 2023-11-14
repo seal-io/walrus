@@ -57,6 +57,19 @@ func (rdmru *ResourceDefinitionMatchingRuleUpdate) ClearAttributes() *ResourceDe
 	return rdmru
 }
 
+// SetOrder sets the "order" field.
+func (rdmru *ResourceDefinitionMatchingRuleUpdate) SetOrder(i int) *ResourceDefinitionMatchingRuleUpdate {
+	rdmru.mutation.ResetOrder()
+	rdmru.mutation.SetOrder(i)
+	return rdmru
+}
+
+// AddOrder adds i to the "order" field.
+func (rdmru *ResourceDefinitionMatchingRuleUpdate) AddOrder(i int) *ResourceDefinitionMatchingRuleUpdate {
+	rdmru.mutation.AddOrder(i)
+	return rdmru
+}
+
 // Mutation returns the ResourceDefinitionMatchingRuleMutation object of the builder.
 func (rdmru *ResourceDefinitionMatchingRuleUpdate) Mutation() *ResourceDefinitionMatchingRuleMutation {
 	return rdmru.mutation
@@ -137,6 +150,7 @@ func (rdmru *ResourceDefinitionMatchingRuleUpdate) Set(obj *ResourceDefinitionMa
 	if !reflect.ValueOf(obj.Attributes).IsZero() {
 		rdmru.SetAttributes(obj.Attributes)
 	}
+	rdmru.SetOrder(obj.Order)
 
 	// With Default.
 
@@ -172,6 +186,12 @@ func (rdmru *ResourceDefinitionMatchingRuleUpdate) sqlSave(ctx context.Context) 
 	}
 	if rdmru.mutation.AttributesCleared() {
 		_spec.ClearField(resourcedefinitionmatchingrule.FieldAttributes, field.TypeOther)
+	}
+	if value, ok := rdmru.mutation.Order(); ok {
+		_spec.SetField(resourcedefinitionmatchingrule.FieldOrder, field.TypeInt, value)
+	}
+	if value, ok := rdmru.mutation.AddedOrder(); ok {
+		_spec.AddField(resourcedefinitionmatchingrule.FieldOrder, field.TypeInt, value)
 	}
 	_spec.Node.Schema = rdmru.schemaConfig.ResourceDefinitionMatchingRule
 	ctx = internal.NewSchemaConfigContext(ctx, rdmru.schemaConfig)
@@ -213,6 +233,19 @@ func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) SetAttributes(pr property
 // ClearAttributes clears the value of the "attributes" field.
 func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) ClearAttributes() *ResourceDefinitionMatchingRuleUpdateOne {
 	rdmruo.mutation.ClearAttributes()
+	return rdmruo
+}
+
+// SetOrder sets the "order" field.
+func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) SetOrder(i int) *ResourceDefinitionMatchingRuleUpdateOne {
+	rdmruo.mutation.ResetOrder()
+	rdmruo.mutation.SetOrder(i)
+	return rdmruo
+}
+
+// AddOrder adds i to the "order" field.
+func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) AddOrder(i int) *ResourceDefinitionMatchingRuleUpdateOne {
+	rdmruo.mutation.AddOrder(i)
 	return rdmruo
 }
 
@@ -323,6 +356,9 @@ func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) Set(obj *ResourceDefiniti
 					rdmruo.SetAttributes(obj.Attributes)
 				}
 			}
+			if db.Order != obj.Order {
+				rdmruo.SetOrder(obj.Order)
+			}
 
 			// With Default.
 
@@ -375,6 +411,9 @@ func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) SaveE(ctx context.Context
 		}
 		if _, set := rdmruo.mutation.Field(resourcedefinitionmatchingrule.FieldAttributes); set {
 			obj.Attributes = x.Attributes
+		}
+		if _, set := rdmruo.mutation.Field(resourcedefinitionmatchingrule.FieldOrder); set {
+			obj.Order = x.Order
 		}
 		obj.Edges = x.Edges
 	}
@@ -454,6 +493,12 @@ func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) sqlSave(ctx context.Conte
 	}
 	if rdmruo.mutation.AttributesCleared() {
 		_spec.ClearField(resourcedefinitionmatchingrule.FieldAttributes, field.TypeOther)
+	}
+	if value, ok := rdmruo.mutation.Order(); ok {
+		_spec.SetField(resourcedefinitionmatchingrule.FieldOrder, field.TypeInt, value)
+	}
+	if value, ok := rdmruo.mutation.AddedOrder(); ok {
+		_spec.AddField(resourcedefinitionmatchingrule.FieldOrder, field.TypeInt, value)
 	}
 	_spec.Node.Schema = rdmruo.schemaConfig.ResourceDefinitionMatchingRule
 	ctx = internal.NewSchemaConfigContext(ctx, rdmruo.schemaConfig)
