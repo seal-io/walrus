@@ -360,7 +360,7 @@ func loadVariableBlocks(opts *VariableOptions) block.Blocks {
 	for k, o := range opts.DependencyOutputs {
 		blocks = append(blocks, &block.Block{
 			Type:   block.TypeVariable,
-			Labels: []string{opts.ServicePrefix + k},
+			Labels: []string{opts.ResourcePrefix + k},
 			Attributes: map[string]any{
 				"type":      `{{string}}`,
 				"sensitive": o.Sensitive,

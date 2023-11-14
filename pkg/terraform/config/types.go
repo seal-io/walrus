@@ -73,8 +73,8 @@ type (
 	VariableOptions struct {
 		// VariablePrefix is the prefix of the variable name.
 		VariablePrefix string
-		// SecretServicePrefix is the prefix of the secret service name.
-		ServicePrefix string
+		// ResourcePrefix is the prefix of the Walrus resource variable name.
+		ResourcePrefix string
 		// Variables is map with name in key and sensitive flag in value.
 		Variables map[string]bool
 		// DependencyOutputs is the map of the variable name and value.

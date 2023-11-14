@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"entgo.io/ent/dialect/sql"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -16,6 +17,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	"github.com/seal-io/walrus/pkg/terraform/parser"
 )
 
@@ -65,19 +67,21 @@ func ParseModuleAttributes(
 	}
 
 	if !onlyValidated {
+		dependOutputMap := toDependOutputMap(dependencyResourceOutputs)
+
 		outputs, err = getServiceDependencyOutputsByID(
 			ctx,
 			mc,
 			opts.ResourceRevision.ResourceID,
-			dependencyResourceOutputs)
+			dependOutputMap)
 		if err != nil {
 			return nil, nil, err
 		}
 
 		// Check if all dependency resource outputs are found.
-		for _, o := range dependencyResourceOutputs {
-			if _, ok := outputs[o]; !ok {
-				return nil, nil, fmt.Errorf("resource %s dependency output %s not found", opts.ResourceName, o)
+		for outputName := range dependOutputMap {
+			if _, ok := outputs[outputName]; !ok {
+				return nil, nil, fmt.Errorf("resource %s dependency output %s not found", opts.ResourceName, outputName)
 			}
 		}
 	}
@@ -85,9 +89,26 @@ func ParseModuleAttributes(
 	return variables, outputs, nil
 }
 
+// toDependOutputMap splits the dependencyResourceOutputs from {service/resource}_{resource_name}_{output_name}
+// to a map of {resource_name}_{output_name}:{service/resource}.
+func toDependOutputMap(dependencyResourceOutputs []string) map[string]string {
+	dependOutputMap := make(map[string]string, 0)
+
+	for _, dependOutput := range dependencyResourceOutputs {
+		ss := strings.SplitN(dependOutput, "_", 2)
+		if len(ss) != 2 {
+			continue
+		}
+		dependOutputMap[ss[1]] = ss[0]
+	}
+
+	return dependOutputMap
+}
+
 // parseAttributeReplace parses attribute variable ${var.name} replaces it with ${var._variablePrefix+name},
-// resource reference ${service.name.output} replaces it with ${var._servicePrefix+name}
-// and returns variable names and resource names.
+// service reference ${service.name.output} replaces it with ${var._resourcePrefix+name},
+// resource reference ${resource.name.output} replaces it with ${var._resourcePrefix+name}
+// and returns variable names and output names.
 // Replaced flag indicates whether to replace the module attribute variable with prefix string.
 func parseAttributeReplace(
 	attributes map[string]any,
@@ -115,7 +136,7 @@ func parseAttributeReplace(
 		case reflect.String:
 			str := value.(string)
 			matches := _variableReg.FindAllStringSubmatch(str, -1)
-			serviceMatches := _serviceReg.FindAllStringSubmatch(str, -1)
+			serviceMatches := _resourceReg.FindAllStringSubmatch(str, -1)
 
 			var matched []string
 
@@ -128,8 +149,11 @@ func parseAttributeReplace(
 			var serviceMatched []string
 
 			for _, match := range serviceMatches {
-				if len(match) > 1 {
-					serviceMatched = append(serviceMatched, match[1]+"_"+match[2])
+				if len(match) > 3 {
+					// Resource outputs are in the form:
+					// - service_{resource_name}_{output_name} or
+					// - resource_{resource_name}_{output_name}.
+					serviceMatched = append(serviceMatched, match[1]+"_"+match[2]+"_"+match[3])
 				}
 			}
 
@@ -138,10 +162,10 @@ func parseAttributeReplace(
 			str = _variableReg.ReplaceAllString(str, variableRepl)
 
 			resourceOutputs = append(resourceOutputs, serviceMatched...)
-			serviceRepl := "${var." + _servicePrefix + "${1}_${2}}"
+			resourceRepl := "${var." + _resourcePrefix + "${2}_${3}}"
 
 			if replaced {
-				attributes[key] = _serviceReg.ReplaceAllString(str, serviceRepl)
+				attributes[key] = _resourceReg.ReplaceAllString(str, resourceRepl)
 			}
 		case reflect.Slice:
 			if _, ok := value.([]any); !ok {
@@ -273,7 +297,7 @@ func getServiceDependencyOutputsByID(
 	ctx context.Context,
 	client model.ClientSet,
 	resourceID object.ID,
-	dependOutputs []string,
+	dependOutputs map[string]string,
 ) (map[string]parser.OutputState, error) {
 	entity, err := client.Resources().Query().
 		Where(resource.ID(resourceID)).
@@ -305,7 +329,7 @@ func getServiceDependencyOutputs(
 	ctx context.Context,
 	client model.ClientSet,
 	dependencyResourceIDs []object.ID,
-	dependOutputs []string,
+	dependOutputs map[string]string,
 ) (map[string]parser.OutputState, error) {
 	dependencyRevisions, err := client.ResourceRevisions().Query().
 		Select(
@@ -330,14 +354,20 @@ func getServiceDependencyOutputs(
 			// Query the latest revision of the resource.
 			s.Where(sql.EQ(s.C("row_number"), 1)).
 				From(sq)
-		}).Where(resourcerevision.ResourceIDIn(dependencyResourceIDs...)).
+		}).
+		Where(resourcerevision.ResourceIDIn(dependencyResourceIDs...)).
+		WithResource(func(rq *model.ResourceQuery) {
+			rq.Select(
+				resource.FieldTemplateID,
+				resource.FieldResourceDefinitionID,
+			)
+		}).
 		All(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	outputs := make(map[string]parser.OutputState, 0)
-	dependSets := sets.NewString(dependOutputs...)
 
 	for _, r := range dependencyRevisions {
 		revisionOutput, err := parser.ParseStateOutputRawMap(r)
@@ -346,9 +376,17 @@ func getServiceDependencyOutputs(
 		}
 
 		for n, o := range revisionOutput {
-			if dependSets.Has(n) {
-				outputs[n] = o
+			outputRefKind, ok := dependOutputs[n]
+			if !ok {
+				continue
 			}
+
+			if outputRefKind == "service" && !pkgresource.IsService(r.Edges.Resource) {
+				// An output reference in format ${service.name.output_name} only applies to resource of service type.
+				continue
+			}
+
+			outputs[n] = o
 		}
 	}
 
