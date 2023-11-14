@@ -31,6 +31,8 @@ const (
 	FieldSelector = "selector"
 	// FieldAttributes holds the string denoting the attributes field in the database.
 	FieldAttributes = "attributes"
+	// FieldOrder holds the string denoting the order field in the database.
+	FieldOrder = "order"
 	// EdgeResourceDefinition holds the string denoting the resource_definition edge name in mutations.
 	EdgeResourceDefinition = "resource_definition"
 	// EdgeTemplate holds the string denoting the template edge name in mutations.
@@ -62,6 +64,7 @@ var Columns = []string{
 	FieldName,
 	FieldSelector,
 	FieldAttributes,
+	FieldOrder,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -122,6 +125,11 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByAttributes orders the results by the attributes field.
 func ByAttributes(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAttributes, opts...).ToFunc()
+}
+
+// ByOrder orders the results by the order field.
+func ByOrder(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOrder, opts...).ToFunc()
 }
 
 // ByResourceDefinitionField orders the results by resource_definition field.

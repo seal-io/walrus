@@ -39,6 +39,8 @@ type ResourceDefinitionMatchingRule struct {
 	Selector types.Selector `json:"selector,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
+	// Order of the matching rule.
+	Order int `json:"order,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ResourceDefinitionMatchingRuleQuery when eager-loading is set.
 	Edges        ResourceDefinitionMatchingRuleEdges `json:"edges,omitempty"`
@@ -93,6 +95,8 @@ func (*ResourceDefinitionMatchingRule) scanValues(columns []string) ([]any, erro
 			values[i] = new(object.ID)
 		case resourcedefinitionmatchingrule.FieldAttributes:
 			values[i] = new(property.Values)
+		case resourcedefinitionmatchingrule.FieldOrder:
+			values[i] = new(sql.NullInt64)
 		case resourcedefinitionmatchingrule.FieldName:
 			values[i] = new(sql.NullString)
 		case resourcedefinitionmatchingrule.FieldCreateTime:
@@ -156,6 +160,12 @@ func (rdmr *ResourceDefinitionMatchingRule) assignValues(columns []string, value
 				return fmt.Errorf("unexpected type %T for field attributes", values[i])
 			} else if value != nil {
 				rdmr.Attributes = *value
+			}
+		case resourcedefinitionmatchingrule.FieldOrder:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field order", values[i])
+			} else if value.Valid {
+				rdmr.Order = int(value.Int64)
 			}
 		default:
 			rdmr.selectValues.Set(columns[i], values[i])
@@ -222,6 +232,9 @@ func (rdmr *ResourceDefinitionMatchingRule) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("attributes=")
 	builder.WriteString(fmt.Sprintf("%v", rdmr.Attributes))
+	builder.WriteString(", ")
+	builder.WriteString("order=")
+	builder.WriteString(fmt.Sprintf("%v", rdmr.Order))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -87,6 +87,11 @@ func Attributes(v property.Values) predicate.ResourceDefinitionMatchingRule {
 	return predicate.ResourceDefinitionMatchingRule(sql.FieldEQ(FieldAttributes, v))
 }
 
+// Order applies equality check predicate on the "order" field. It's identical to OrderEQ.
+func Order(v int) predicate.ResourceDefinitionMatchingRule {
+	return predicate.ResourceDefinitionMatchingRule(sql.FieldEQ(FieldOrder, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.ResourceDefinitionMatchingRule {
 	return predicate.ResourceDefinitionMatchingRule(sql.FieldEQ(FieldCreateTime, v))
@@ -380,6 +385,46 @@ func AttributesIsNil() predicate.ResourceDefinitionMatchingRule {
 // AttributesNotNil applies the NotNil predicate on the "attributes" field.
 func AttributesNotNil() predicate.ResourceDefinitionMatchingRule {
 	return predicate.ResourceDefinitionMatchingRule(sql.FieldNotNull(FieldAttributes))
+}
+
+// OrderEQ applies the EQ predicate on the "order" field.
+func OrderEQ(v int) predicate.ResourceDefinitionMatchingRule {
+	return predicate.ResourceDefinitionMatchingRule(sql.FieldEQ(FieldOrder, v))
+}
+
+// OrderNEQ applies the NEQ predicate on the "order" field.
+func OrderNEQ(v int) predicate.ResourceDefinitionMatchingRule {
+	return predicate.ResourceDefinitionMatchingRule(sql.FieldNEQ(FieldOrder, v))
+}
+
+// OrderIn applies the In predicate on the "order" field.
+func OrderIn(vs ...int) predicate.ResourceDefinitionMatchingRule {
+	return predicate.ResourceDefinitionMatchingRule(sql.FieldIn(FieldOrder, vs...))
+}
+
+// OrderNotIn applies the NotIn predicate on the "order" field.
+func OrderNotIn(vs ...int) predicate.ResourceDefinitionMatchingRule {
+	return predicate.ResourceDefinitionMatchingRule(sql.FieldNotIn(FieldOrder, vs...))
+}
+
+// OrderGT applies the GT predicate on the "order" field.
+func OrderGT(v int) predicate.ResourceDefinitionMatchingRule {
+	return predicate.ResourceDefinitionMatchingRule(sql.FieldGT(FieldOrder, v))
+}
+
+// OrderGTE applies the GTE predicate on the "order" field.
+func OrderGTE(v int) predicate.ResourceDefinitionMatchingRule {
+	return predicate.ResourceDefinitionMatchingRule(sql.FieldGTE(FieldOrder, v))
+}
+
+// OrderLT applies the LT predicate on the "order" field.
+func OrderLT(v int) predicate.ResourceDefinitionMatchingRule {
+	return predicate.ResourceDefinitionMatchingRule(sql.FieldLT(FieldOrder, v))
+}
+
+// OrderLTE applies the LTE predicate on the "order" field.
+func OrderLTE(v int) predicate.ResourceDefinitionMatchingRule {
+	return predicate.ResourceDefinitionMatchingRule(sql.FieldLTE(FieldOrder, v))
 }
 
 // HasResourceDefinition applies the HasEdge predicate on the "resource_definition" edge.

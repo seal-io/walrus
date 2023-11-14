@@ -502,6 +502,7 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "selector", Type: field.TypeJSON},
 		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
+		{Name: "order", Type: field.TypeInt},
 		{Name: "resource_definition_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "template_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
@@ -513,13 +514,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "resource_definition_matching_rules_resource_definitions_resource_definition",
-				Columns:    []*schema.Column{ResourceDefinitionMatchingRulesColumns[5]},
+				Columns:    []*schema.Column{ResourceDefinitionMatchingRulesColumns[6]},
 				RefColumns: []*schema.Column{ResourceDefinitionsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "resource_definition_matching_rules_template_versions_template",
-				Columns:    []*schema.Column{ResourceDefinitionMatchingRulesColumns[6]},
+				Columns:    []*schema.Column{ResourceDefinitionMatchingRulesColumns[7]},
 				RefColumns: []*schema.Column{TemplateVersionsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
@@ -533,7 +534,7 @@ var (
 			{
 				Name:    "resourcedefinitionmatchingrule_resource_definition_id_template_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{ResourceDefinitionMatchingRulesColumns[5], ResourceDefinitionMatchingRulesColumns[6], ResourceDefinitionMatchingRulesColumns[2]},
+				Columns: []*schema.Column{ResourceDefinitionMatchingRulesColumns[6], ResourceDefinitionMatchingRulesColumns[7], ResourceDefinitionMatchingRulesColumns[2]},
 			},
 		},
 	}

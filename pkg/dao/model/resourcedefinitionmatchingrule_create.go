@@ -79,6 +79,12 @@ func (rdmrc *ResourceDefinitionMatchingRuleCreate) SetAttributes(pr property.Val
 	return rdmrc
 }
 
+// SetOrder sets the "order" field.
+func (rdmrc *ResourceDefinitionMatchingRuleCreate) SetOrder(i int) *ResourceDefinitionMatchingRuleCreate {
+	rdmrc.mutation.SetOrder(i)
+	return rdmrc
+}
+
 // SetID sets the "id" field.
 func (rdmrc *ResourceDefinitionMatchingRuleCreate) SetID(o object.ID) *ResourceDefinitionMatchingRuleCreate {
 	rdmrc.mutation.SetID(o)
@@ -174,6 +180,9 @@ func (rdmrc *ResourceDefinitionMatchingRuleCreate) check() error {
 	if _, ok := rdmrc.mutation.Selector(); !ok {
 		return &ValidationError{Name: "selector", err: errors.New(`model: missing required field "ResourceDefinitionMatchingRule.selector"`)}
 	}
+	if _, ok := rdmrc.mutation.Order(); !ok {
+		return &ValidationError{Name: "order", err: errors.New(`model: missing required field "ResourceDefinitionMatchingRule.order"`)}
+	}
 	if _, ok := rdmrc.mutation.ResourceDefinitionID(); !ok {
 		return &ValidationError{Name: "resource_definition", err: errors.New(`model: missing required edge "ResourceDefinitionMatchingRule.resource_definition"`)}
 	}
@@ -232,6 +241,10 @@ func (rdmrc *ResourceDefinitionMatchingRuleCreate) createSpec() (*ResourceDefini
 	if value, ok := rdmrc.mutation.Attributes(); ok {
 		_spec.SetField(resourcedefinitionmatchingrule.FieldAttributes, field.TypeOther, value)
 		_node.Attributes = value
+	}
+	if value, ok := rdmrc.mutation.Order(); ok {
+		_spec.SetField(resourcedefinitionmatchingrule.FieldOrder, field.TypeInt, value)
+		_node.Order = value
 	}
 	if nodes := rdmrc.mutation.ResourceDefinitionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -296,6 +309,7 @@ func (rdmrc *ResourceDefinitionMatchingRuleCreate) Set(obj *ResourceDefinitionMa
 	rdmrc.SetTemplateID(obj.TemplateID)
 	rdmrc.SetName(obj.Name)
 	rdmrc.SetSelector(obj.Selector)
+	rdmrc.SetOrder(obj.Order)
 
 	// Optional.
 	if obj.CreateTime != nil {
@@ -366,6 +380,9 @@ func (rdmrc *ResourceDefinitionMatchingRuleCreate) SaveE(ctx context.Context, cb
 		}
 		if _, set := rdmrc.mutation.Field(resourcedefinitionmatchingrule.FieldAttributes); set {
 			obj.Attributes = x.Attributes
+		}
+		if _, set := rdmrc.mutation.Field(resourcedefinitionmatchingrule.FieldOrder); set {
+			obj.Order = x.Order
 		}
 		obj.Edges = x.Edges
 	}
@@ -495,6 +512,9 @@ func (rdmrcb *ResourceDefinitionMatchingRuleCreateBulk) SaveE(ctx context.Contex
 			}
 			if _, set := rdmrcb.builders[i].mutation.Field(resourcedefinitionmatchingrule.FieldAttributes); set {
 				objs[i].Attributes = x[i].Attributes
+			}
+			if _, set := rdmrcb.builders[i].mutation.Field(resourcedefinitionmatchingrule.FieldOrder); set {
+				objs[i].Order = x[i].Order
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -652,6 +672,24 @@ func (u *ResourceDefinitionMatchingRuleUpsert) ClearAttributes() *ResourceDefini
 	return u
 }
 
+// SetOrder sets the "order" field.
+func (u *ResourceDefinitionMatchingRuleUpsert) SetOrder(v int) *ResourceDefinitionMatchingRuleUpsert {
+	u.Set(resourcedefinitionmatchingrule.FieldOrder, v)
+	return u
+}
+
+// UpdateOrder sets the "order" field to the value that was provided on create.
+func (u *ResourceDefinitionMatchingRuleUpsert) UpdateOrder() *ResourceDefinitionMatchingRuleUpsert {
+	u.SetExcluded(resourcedefinitionmatchingrule.FieldOrder)
+	return u
+}
+
+// AddOrder adds v to the "order" field.
+func (u *ResourceDefinitionMatchingRuleUpsert) AddOrder(v int) *ResourceDefinitionMatchingRuleUpsert {
+	u.Add(resourcedefinitionmatchingrule.FieldOrder, v)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -744,6 +782,27 @@ func (u *ResourceDefinitionMatchingRuleUpsertOne) UpdateAttributes() *ResourceDe
 func (u *ResourceDefinitionMatchingRuleUpsertOne) ClearAttributes() *ResourceDefinitionMatchingRuleUpsertOne {
 	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
 		s.ClearAttributes()
+	})
+}
+
+// SetOrder sets the "order" field.
+func (u *ResourceDefinitionMatchingRuleUpsertOne) SetOrder(v int) *ResourceDefinitionMatchingRuleUpsertOne {
+	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
+		s.SetOrder(v)
+	})
+}
+
+// AddOrder adds v to the "order" field.
+func (u *ResourceDefinitionMatchingRuleUpsertOne) AddOrder(v int) *ResourceDefinitionMatchingRuleUpsertOne {
+	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
+		s.AddOrder(v)
+	})
+}
+
+// UpdateOrder sets the "order" field to the value that was provided on create.
+func (u *ResourceDefinitionMatchingRuleUpsertOne) UpdateOrder() *ResourceDefinitionMatchingRuleUpsertOne {
+	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
+		s.UpdateOrder()
 	})
 }
 
@@ -1004,6 +1063,27 @@ func (u *ResourceDefinitionMatchingRuleUpsertBulk) UpdateAttributes() *ResourceD
 func (u *ResourceDefinitionMatchingRuleUpsertBulk) ClearAttributes() *ResourceDefinitionMatchingRuleUpsertBulk {
 	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
 		s.ClearAttributes()
+	})
+}
+
+// SetOrder sets the "order" field.
+func (u *ResourceDefinitionMatchingRuleUpsertBulk) SetOrder(v int) *ResourceDefinitionMatchingRuleUpsertBulk {
+	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
+		s.SetOrder(v)
+	})
+}
+
+// AddOrder adds v to the "order" field.
+func (u *ResourceDefinitionMatchingRuleUpsertBulk) AddOrder(v int) *ResourceDefinitionMatchingRuleUpsertBulk {
+	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
+		s.AddOrder(v)
+	})
+}
+
+// UpdateOrder sets the "order" field to the value that was provided on create.
+func (u *ResourceDefinitionMatchingRuleUpsertBulk) UpdateOrder() *ResourceDefinitionMatchingRuleUpsertBulk {
+	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
+		s.UpdateOrder()
 	})
 }
 
