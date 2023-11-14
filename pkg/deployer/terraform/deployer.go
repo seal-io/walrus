@@ -498,13 +498,13 @@ func (d Deployer) createRevision(
 			return nil, err
 		}
 
-		// Merge the attributes from resource definition.
-		attributes = res.Attributes
+		// Merge attributes. Resource attributes take precedence over resource definition attributes.
+		attributes = matchRule.Attributes
 		if attributes == nil {
 			attributes = make(property.Values)
 		}
 
-		for k, v := range matchRule.Attributes {
+		for k, v := range res.Attributes {
 			attributes[k] = v
 		}
 	default:
