@@ -54,6 +54,10 @@ func (ResourceDefinitionMatchingRule) Fields() []ent.Field {
 		property.ValuesField("attributes").
 			Comment("Attributes to configure the template.").
 			Optional(),
+		field.Int("order").
+			Comment("Order of the matching rule.").
+			Annotations(
+				entx.SkipIO()),
 	}
 }
 
