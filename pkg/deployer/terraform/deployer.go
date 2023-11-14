@@ -62,15 +62,15 @@ const (
 	// _variablePrefix the prefix of the variable name.
 	_variablePrefix = "_walrus_var_"
 
-	// _servicePrefix the prefix of the service output name.
-	_servicePrefix = "_walrus_service_"
+	// _resourcePrefix the prefix of the service output name.
+	_resourcePrefix = "_walrus_resource_"
 )
 
 var (
 	// _variableReg the regexp to match the variable.
 	_variableReg = regexp.MustCompile(`\${var\.([a-zA-Z0-9_-]+)}`)
-	// _serviceReg the regexp to match the service output.
-	_serviceReg = regexp.MustCompile(`\${service\.([^.}]+)\.([^.}]+)}`)
+	// _resourceReg the regexp to match the service/resource output.
+	_resourceReg = regexp.MustCompile(`\${(service|resource)\.([^.}]+)\.([^.}]+)}`)
 )
 
 // Deployer terraform deployer to deploy the resource.
@@ -694,7 +694,7 @@ func (d Deployer) loadConfigsBytes(ctx context.Context, opts createK8sSecretsOpt
 			},
 			VariableOptions: &config.VariableOptions{
 				VariablePrefix:    _variablePrefix,
-				ServicePrefix:     _servicePrefix,
+				ResourcePrefix:    _resourcePrefix,
 				Variables:         wrapVariables,
 				DependencyOutputs: dependencyOutputs,
 			},
@@ -881,7 +881,7 @@ func getVarConfigOptions(
 
 	// Setup resource outputs.
 	for n, v := range resourceOutputs {
-		varsConfigOpts.Attributes[_servicePrefix+n] = v.Value
+		varsConfigOpts.Attributes[_resourcePrefix+n] = v.Value
 	}
 
 	return varsConfigOpts

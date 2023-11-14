@@ -347,3 +347,12 @@ func CheckDependencyStatus(ctx context.Context, mc model.ClientSet, entity *mode
 
 	return true, nil
 }
+
+// IsService tells if the given resource is of service type.
+func IsService(r *model.Resource) bool {
+	if r == nil {
+		return false
+	}
+
+	return r.TemplateID != nil
+}

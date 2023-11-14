@@ -17,6 +17,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
+	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	pkgcomponent "github.com/seal-io/walrus/pkg/resourcecomponents"
 	"github.com/seal-io/walrus/pkg/resourcedefinitions"
 	"github.com/seal-io/walrus/utils/errorx"
@@ -84,12 +85,12 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 				"projectID":     entity.ProjectID,
 				"environmentID": entity.EnvironmentID,
 				"labels":        entity.Labels,
-				"isService":     entity.TemplateID != nil,
+				"isService":     pkgresource.IsService(entity),
 			},
 		}
 
 		// TODO resource definition icon.
-		if entity.TemplateID != nil {
+		if pkgresource.IsService(entity) {
 			vertex.Icon = entity.Edges.Template.Edges.Template.Icon
 		}
 
