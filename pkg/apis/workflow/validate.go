@@ -3,7 +3,6 @@ package workflow
 import (
 	"encoding/json"
 	"fmt"
-	"regexp"
 
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/gin-gonic/gin"
@@ -61,7 +60,7 @@ func validateStep(ctx *gin.Context, client *model.Client, step *model.WorkflowSt
 		return fmt.Errorf("unknown step type: %s", step.Type)
 	}
 
-	err := checkAttributes(step.Attributes)
+	err := validation.MapStringNoMustache(step.Attributes)
 	if err != nil {
 		return fmt.Errorf("invalid attributes: %w", err)
 	}
@@ -204,22 +203,3 @@ func (s *WorkflowStepApprovalValidator) Validate(ctx *gin.Context, client *model
 }
 
 var stepValidatorCreators = map[string]func(*model.WorkflowStepCreateInput) WorkflowStepValidator{}
-
-// checkAttributes check the attributes of workflow step contains any {{xxx}}.
-func checkAttributes(attrs map[string]any) error {
-	bs, err := json.Marshal(attrs)
-	if err != nil {
-		return err
-	}
-
-	// Argo workflow template use {{xxx}} as template keyword.
-	// Make sure the attributes does not contain any {{xxx}}.
-	keywordsReg := regexp.MustCompile(`{{.*}}`)
-	matches := keywordsReg.FindAll(bs, -1)
-
-	if len(matches) > 0 {
-		return fmt.Errorf("attributes contains keywords: %s", string(matches[0]))
-	}
-
-	return nil
-}

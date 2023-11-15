@@ -3,6 +3,7 @@ package workflow
 import (
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/workflow"
 )
 
 type RouteGetLatestExecutionRequest struct {
@@ -18,7 +19,7 @@ type RouteRunRequest struct {
 
 	model.WorkflowQueryInput `path:",inline" json:",inline"`
 
-	Params      map[string]string `json:"params"`
+	Variables   map[string]string `json:"variables,omitempty"`
 	Description string            `json:"description,omitempty"`
 }
 
@@ -30,5 +31,14 @@ func (r *RouteRunRequest) Validate() error {
 		return err
 	}
 
-	return dao.CheckParams(r.Params)
+	wf, err := r.Client.Workflows().Query().
+		Where(workflow.ID(r.ID)).
+		Only(r.Context)
+	if err != nil {
+		return err
+	}
+
+	_, err = dao.OverwriteWorkflowVariables(r.Variables, wf.Variables)
+
+	return err
 }
