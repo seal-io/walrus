@@ -13,6 +13,7 @@ import (
 	"github.com/seal-io/walrus/pkg/templates/openapi"
 	"github.com/seal-io/walrus/utils/json"
 	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 // TerraformTranslator translates between terraform types and go types with openapi schema.
@@ -45,7 +46,7 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 		// Default.
 		setDefault(s, def)
 
-		s.Title = name
+		s.Title = strs.Title(name)
 		s.Description = description
 		s.WriteOnly = sensitive
 		s.Extensions = openapi.NewExt(s.Extensions).
@@ -60,7 +61,7 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 		// Default.
 		setDefault(s, def)
 
-		s.Title = name
+		s.Title = strs.Title(name)
 		s.Description = description
 		s.WriteOnly = sensitive
 		s.Extensions = openapi.NewExt(s.Extensions).
@@ -75,7 +76,7 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 		// Default.
 		setDefault(s, def)
 
-		s.Title = name
+		s.Title = strs.Title(name)
 		s.Description = description
 		s.WriteOnly = sensitive
 		s.Extensions = openapi.NewExt(s.Extensions).
@@ -100,7 +101,7 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 		it := t.SchemaOfOriginalType(typ.ElementType(), "", etpDef, "", sensitive)
 		s.WithItems(it)
 
-		s.Title = name
+		s.Title = strs.Title(name)
 		s.Description = description
 		s.WriteOnly = sensitive
 		s.Extensions = openapi.NewExt(s.Extensions).
@@ -131,7 +132,7 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 				OneOf: refs,
 			})
 
-		s.Title = name
+		s.Title = strs.Title(name)
 		s.Description = description
 		s.WriteOnly = sensitive
 		s.Extensions = openapi.NewExt(s.Extensions).
@@ -162,7 +163,7 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 			s.WithAdditionalProperties(it)
 		}
 
-		s.Title = name
+		s.Title = strs.Title(name)
 		s.Description = description
 		s.WriteOnly = sensitive
 		s.Extensions = openapi.NewExt(s.Extensions).
@@ -215,7 +216,7 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 			}
 		}
 
-		s.Title = name
+		s.Title = strs.Title(name)
 		s.Description = description
 		s.WriteOnly = sensitive
 		s.Extensions = openapi.NewExt(s.Extensions).
@@ -226,12 +227,12 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 		return s
 	case typ == cty.DynamicPseudoType:
 		// Empty Type.
-		s := openapi3.NewSchema()
+		s := openapi3.NewObjectSchema()
 
 		// Default.
 		setDefault(s, def)
 
-		s.Title = name
+		s.Title = strs.Title(name)
 		s.Description = description
 		s.WriteOnly = sensitive
 		s.Extensions = openapi.NewExt(s.Extensions).

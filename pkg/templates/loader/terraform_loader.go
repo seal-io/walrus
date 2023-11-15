@@ -28,6 +28,10 @@ import (
 	"github.com/seal-io/walrus/utils/strs"
 )
 
+const (
+	defaultGroup = "Basic"
+)
+
 // TerraformLoader for load terraform template schema and data.
 type TerraformLoader struct {
 	translator translator.Translator
@@ -136,6 +140,7 @@ func (l *TerraformLoader) loadSchema(
 	return t, nil
 }
 
+// getVariableSchema generate variable schemas from terraform files or schema.yaml.
 func (l *TerraformLoader) getVariableSchema(
 	rootDir string,
 	mod *tfconfig.Module,
@@ -155,7 +160,7 @@ func (l *TerraformLoader) getVariableSchema(
 			log.Warnf("error loading schema from file: %v", err)
 		}
 
-		return l.injectVariableSchemaExt(fromOriginal, fromFile), info, nil
+		return l.applyMissingConfig(fromOriginal, fromFile), info, nil
 	default:
 		// Merge, apply customized schema to generated schema.
 		fromFile, info, err := l.getVariableSchemaAndInfoFromFile(rootDir)
@@ -177,8 +182,8 @@ func (l *TerraformLoader) getVariableSchema(
 	}
 }
 
-// injectVariableSchemaExt add extension to the customized ui schema in schema.yaml.
-func (l *TerraformLoader) injectVariableSchemaExt(generated, customized *openapi3.Schema) *openapi3.Schema {
+// applyMissingConfig apply the missing config to schema generate from schema.yaml.
+func (l *TerraformLoader) applyMissingConfig(generated, customized *openapi3.Schema) *openapi3.Schema {
 	if customized == nil {
 		return generated
 	}
@@ -231,6 +236,13 @@ func (l *TerraformLoader) getVariableSchemaFromTerraform(mod *tfconfig.Module) (
 			def    = v.Default
 		)
 
+		// Required and keys.
+		if v.Required {
+			required = append(required, v.Name)
+		}
+		keys[i] = v.Name
+
+		// Generate json schema from tf type or default value.
 		if v.Type != "" {
 			// Type exists.
 			expr, diags := hclsyntax.ParseExpression(strs.ToBytes(&v.Type), "", hcl.Pos{Line: 1, Column: 1})
@@ -264,7 +276,6 @@ func (l *TerraformLoader) getVariableSchemaFromTerraform(mod *tfconfig.Module) (
 			tfType = sjv.Type()
 		}
 
-		// Generate json schema from tf type.
 		varSchemas.WithProperty(
 			v.Name,
 			l.translator.SchemaOfOriginalType(
@@ -273,18 +284,17 @@ func (l *TerraformLoader) getVariableSchemaFromTerraform(mod *tfconfig.Module) (
 				def,
 				v.Description,
 				v.Sensitive))
-
-		if v.Required {
-			required = append(required, v.Name)
-		}
-		keys[i] = v.Name
 	}
 
+	// Inject extension sequence.
 	sort.Strings(required)
 	varSchemas.Required = required
 	varSchemas.Extensions = openapi.NewExt(varSchemas.Extensions).
 		SetOriginalVariablesSequence(keys).
 		Export()
+
+	// Inject extensions.
+	l.injectExts(varSchemas)
 
 	return varSchemas, nil
 }
@@ -510,6 +520,29 @@ func (l *TerraformLoader) getRequiredProviders(
 	})
 
 	return
+}
+
+// injectExts injects extension for variables.
+func (l *TerraformLoader) injectExts(vs *openapi3.Schema) {
+	for n, v := range vs.Properties {
+		if v.Value == nil || v.Value.IsEmpty() {
+			continue
+		}
+
+		// Group.
+		if gp := openapi.GetUIGroup(v.Value.Extensions); gp == "" {
+			vs.Properties[n].Value.Extensions = openapi.NewExt(vs.Properties[n].Value.Extensions).
+				SetUIGroup(defaultGroup).
+				Export()
+		}
+
+		// Walrus Context.
+		if n == "context" {
+			vs.Properties[n].Value.Extensions = openapi.NewExt(vs.Properties[n].Value.Extensions).
+				SetUIHidden().
+				Export()
+		}
+	}
 }
 
 func sortVariables(m map[string]*tfconfig.Variable) (s []*tfconfig.Variable) {

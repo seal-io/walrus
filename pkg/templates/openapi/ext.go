@@ -388,7 +388,7 @@ func GetWalrusVersion(e map[string]any) string {
 }
 
 func IsSchemaRefEmpty(s *openapi3.SchemaRef) bool {
-	return s == nil || s.Value == nil || s.Value.IsEmpty()
+	return s == nil || s.Value == nil || s.Value.IsEmpty() || len(s.Value.Extensions) == 0
 }
 
 func RemoveExt(key string, s *openapi3.Schema) *openapi3.Schema {

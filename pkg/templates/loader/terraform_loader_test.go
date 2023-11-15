@@ -63,23 +63,27 @@ func TestLoadTerraformSchema(t *testing.T) {
 										Properties: map[string]*openapi3.SchemaRef{
 											"first": {
 												Value: &openapi3.Schema{
-													Title:       "first",
+													Title:       "First",
+													Type:        openapi3.TypeObject,
 													Description: "The first output.",
 													Extensions: openapi.NewExt(nil).
 														SetOriginalType(cty.DynamicPseudoType).
 														SetOriginalValueExpression([]byte("1")).
 														Export(),
+													Properties: map[string]*openapi3.SchemaRef{},
 												},
 											},
 											"second": {
 												Value: &openapi3.Schema{
-													Title:       "second",
+													Title:       "Second",
+													Type:        openapi3.TypeObject,
 													Description: "The second output.",
 													Extensions: openapi.NewExt(nil).
 														SetOriginalType(cty.DynamicPseudoType).
 														SetOriginalValueExpression([]byte("2")).
 														Export(),
-													WriteOnly: true,
+													WriteOnly:  true,
+													Properties: map[string]*openapi3.SchemaRef{},
 												},
 											},
 										},
@@ -110,11 +114,12 @@ func TestLoadTerraformSchema(t *testing.T) {
 										Properties: map[string]*openapi3.SchemaRef{
 											"foo": {
 												Value: &openapi3.Schema{
-													Title:   "foo",
+													Title:   "Foo",
 													Type:    openapi3.TypeString,
 													Default: "bar",
 													Extensions: openapi.NewExt(nil).
 														SetOriginalType(cty.String).
+														SetUIGroup("Basic").
 														Export(),
 												},
 											},
@@ -147,12 +152,13 @@ func TestLoadTerraformSchema(t *testing.T) {
 										Properties: map[string]*openapi3.SchemaRef{
 											"foo": {
 												Value: &openapi3.Schema{
-													Title:       "foo",
+													Title:       "Foo",
 													Type:        "string",
 													Description: "description of foo.",
 													Default:     "bar",
 													Extensions: openapi.NewExt(nil).
 														SetOriginalType(cty.String).
+														SetUIGroup("Basic").
 														Export(),
 												},
 											},
@@ -237,7 +243,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 											},
 											"thee": {
 												Value: &openapi3.Schema{
-													Title:   "thee",
+													Title:   "Thee",
 													Type:    openapi3.TypeString,
 													Default: "foo",
 													Enum: []any{
@@ -334,23 +340,27 @@ func TestLoadTerraformSchema(t *testing.T) {
 										Properties: map[string]*openapi3.SchemaRef{
 											"first": {
 												Value: &openapi3.Schema{
-													Title:       "first",
+													Title:       "First",
+													Type:        openapi3.TypeObject,
 													Description: "The first output.",
 													Extensions: openapi.NewExt(nil).
 														SetOriginalType(cty.DynamicPseudoType).
 														SetOriginalValueExpression([]byte("null_resource.test.id")).
 														Export(),
+													Properties: map[string]*openapi3.SchemaRef{},
 												},
 											},
 											"second": {
 												Value: &openapi3.Schema{
-													Title:       "second",
+													Title:       "Second",
+													Type:        openapi3.TypeObject,
 													Description: "The second output.",
 													WriteOnly:   true,
 													Extensions: openapi.NewExt(nil).
 														SetOriginalType(cty.DynamicPseudoType).
 														SetOriginalValueExpression([]byte(`"some value"`)).
 														Export(),
+													Properties: map[string]*openapi3.SchemaRef{},
 												},
 											},
 										},
@@ -380,35 +390,41 @@ func TestLoadTerraformSchema(t *testing.T) {
 										Properties: map[string]*openapi3.SchemaRef{
 											"any": {
 												Value: &openapi3.Schema{
-													Title: "any",
+													Title: "Any",
+													Type:  openapi3.TypeObject,
 													Extensions: openapi.NewExt(nil).
 														SetOriginalType(cty.DynamicPseudoType).
+														SetUIGroup("Basic").
 														Export(),
+													Properties: map[string]*openapi3.SchemaRef{},
 												},
 											},
 											"any_map": {
 												Value: &openapi3.Schema{
-													Title:      "any_map",
+													Title:      "Any Map",
 													Type:       "object",
 													Properties: map[string]*openapi3.SchemaRef{},
 													AdditionalProperties: openapi3.AdditionalProperties{
 														Schema: &openapi3.SchemaRef{
 															Value: &openapi3.Schema{
+																Type: openapi3.TypeObject,
 																Extensions: openapi.NewExt(nil).
 																	SetOriginalType(cty.DynamicPseudoType).
 																	Export(),
+																Properties: map[string]*openapi3.SchemaRef{},
 															},
 														},
 													},
 													Extensions: openapi.NewExt(nil).
 														SetOriginalType(cty.Map(cty.DynamicPseudoType)).
+														SetUIGroup("Basic").
 														Export(),
 												},
 											},
 											"string_map": {
 												Value: &openapi3.Schema{
-													Title: "string_map",
-													Type:  "object",
+													Title: "String Map",
+													Type:  openapi3.TypeObject,
 													Default: map[string]any{
 														"a": "a",
 														"b": "1",
@@ -418,7 +434,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 													AdditionalProperties: openapi3.AdditionalProperties{
 														Schema: &openapi3.SchemaRef{
 															Value: &openapi3.Schema{
-																Type: "string",
+																Type: openapi3.TypeString,
 																Extensions: openapi.NewExt(nil).
 																	SetOriginalType(cty.String).
 																	Export(),
@@ -427,17 +443,18 @@ func TestLoadTerraformSchema(t *testing.T) {
 													},
 													Extensions: openapi.NewExt(nil).
 														SetOriginalType(cty.Map(cty.String)).
+														SetUIGroup("Basic").
 														Export(),
 												},
 											},
 											"string_slice": {
 												Value: &openapi3.Schema{
-													Title:   "string_slice",
+													Title:   "String Slice",
 													Type:    "array",
 													Default: []any{"x", "y", "z"},
 													Items: &openapi3.SchemaRef{
 														Value: &openapi3.Schema{
-															Type: "string",
+															Type: openapi3.TypeString,
 															Extensions: openapi.NewExt(nil).
 																SetOriginalType(cty.String).
 																Export(),
@@ -445,13 +462,14 @@ func TestLoadTerraformSchema(t *testing.T) {
 													},
 													Extensions: openapi.NewExt(nil).
 														SetOriginalType(cty.List(cty.String)).
+														SetUIGroup("Basic").
 														Export(),
 												},
 											},
 											"object": {
 												Value: &openapi3.Schema{
-													Title: "object",
-													Type:  "object",
+													Title: "Object",
+													Type:  openapi3.TypeObject,
 													Default: map[string]any{
 														"a": "a",
 														"b": float64(1),
@@ -460,8 +478,8 @@ func TestLoadTerraformSchema(t *testing.T) {
 													Properties: map[string]*openapi3.SchemaRef{
 														"a": {
 															Value: &openapi3.Schema{
-																Title: "a",
-																Type:  "string",
+																Title: "A",
+																Type:  openapi3.TypeString,
 																Extensions: openapi.NewExt(nil).
 																	SetOriginalType(cty.String).
 																	Export(),
@@ -469,8 +487,8 @@ func TestLoadTerraformSchema(t *testing.T) {
 														},
 														"b": {
 															Value: &openapi3.Schema{
-																Title: "b",
-																Type:  "number",
+																Title: "B",
+																Type:  openapi3.TypeNumber,
 																Extensions: openapi.NewExt(nil).
 																	SetOriginalType(cty.Number).
 																	Export(),
@@ -478,8 +496,8 @@ func TestLoadTerraformSchema(t *testing.T) {
 														},
 														"c": {
 															Value: &openapi3.Schema{
-																Title: "c",
-																Type:  "boolean",
+																Title: "C",
+																Type:  openapi3.TypeBoolean,
 																Extensions: openapi.NewExt(nil).
 																	SetOriginalType(cty.Bool).
 																	Export(),
@@ -496,13 +514,14 @@ func TestLoadTerraformSchema(t *testing.T) {
 																	"c": cty.Bool,
 																},
 															)).
+														SetUIGroup("Basic").
 														Export(),
 												},
 											},
 											"object_nested": {
 												Value: &openapi3.Schema{
-													Title: "object_nested",
-													Type:  "object",
+													Title: "Object Nested",
+													Type:  openapi3.TypeObject,
 													Default: map[string]any{
 														"a": "a",
 														"b": []any{
@@ -515,8 +534,8 @@ func TestLoadTerraformSchema(t *testing.T) {
 													Properties: map[string]*openapi3.SchemaRef{
 														"a": {
 															Value: &openapi3.Schema{
-																Title: "a",
-																Type:  "string",
+																Title: "A",
+																Type:  openapi3.TypeString,
 																Extensions: openapi.NewExt(nil).
 																	SetOriginalType(cty.String).
 																	Export(),
@@ -524,16 +543,16 @@ func TestLoadTerraformSchema(t *testing.T) {
 														},
 														"b": {
 															Value: &openapi3.Schema{
-																Title: "b",
-																Type:  "array",
+																Title: "B",
+																Type:  openapi3.TypeArray,
 																Items: &openapi3.SchemaRef{
 																	Value: &openapi3.Schema{
 																		Type: "object",
 																		Properties: map[string]*openapi3.SchemaRef{
 																			"c": {
 																				Value: &openapi3.Schema{
-																					Title: "c",
-																					Type:  "boolean",
+																					Title: "C",
+																					Type:  openapi3.TypeBoolean,
 																					Extensions: openapi.NewExt(nil).
 																						SetOriginalType(cty.Bool).
 																						Export(),
@@ -566,21 +585,22 @@ func TestLoadTerraformSchema(t *testing.T) {
 																		"c": cty.Bool,
 																	})),
 															})).
+														SetUIGroup("Basic").
 														Export(),
 												},
 											},
 											"list_object": {
 												Value: &openapi3.Schema{
-													Title: "list_object",
-													Type:  "array",
+													Title: "List Object",
+													Type:  openapi3.TypeArray,
 													Items: &openapi3.SchemaRef{
 														Value: &openapi3.Schema{
 															Type: "object",
 															Properties: map[string]*openapi3.SchemaRef{
 																"a": {
 																	Value: &openapi3.Schema{
-																		Title: "a",
-																		Type:  "string",
+																		Title: "A",
+																		Type:  openapi3.TypeString,
 																		Extensions: openapi.NewExt(nil).
 																			SetOriginalType(cty.String).
 																			Export(),
@@ -588,8 +608,8 @@ func TestLoadTerraformSchema(t *testing.T) {
 																},
 																"b": {
 																	Value: &openapi3.Schema{
-																		Title: "b",
-																		Type:  "number",
+																		Title: "B",
+																		Type:  openapi3.TypeNumber,
 																		Extensions: openapi.NewExt(nil).
 																			SetOriginalType(cty.Number).
 																			Export(),
@@ -597,8 +617,8 @@ func TestLoadTerraformSchema(t *testing.T) {
 																},
 																"c": {
 																	Value: &openapi3.Schema{
-																		Title: "c",
-																		Type:  "boolean",
+																		Title: "C",
+																		Type:  openapi3.TypeBoolean,
 																		Extensions: openapi.NewExt(nil).
 																			SetOriginalType(cty.Bool).
 																			Export(),
@@ -625,12 +645,13 @@ func TestLoadTerraformSchema(t *testing.T) {
 																		"b": cty.Number,
 																		"c": cty.Bool,
 																	}))).
+														SetUIGroup("Basic").
 														Export(),
 												},
 											},
 											"tuple": {
 												Value: &openapi3.Schema{
-													Title:     "tuple",
+													Title:     "Tuple",
 													Type:      "array",
 													MaxLength: &length,
 													MinLength: 3,
@@ -639,7 +660,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 															OneOf: openapi3.SchemaRefs{
 																{
 																	Value: &openapi3.Schema{
-																		Type: "string",
+																		Type: openapi3.TypeString,
 																		Extensions: openapi.NewExt(nil).
 																			SetOriginalType(cty.String).
 																			Export(),
@@ -647,7 +668,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 																},
 																{
 																	Value: &openapi3.Schema{
-																		Type: "boolean",
+																		Type: openapi3.TypeBoolean,
 																		Extensions: openapi.NewExt(nil).
 																			SetOriginalType(cty.Bool).
 																			Export(),
@@ -655,7 +676,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 																},
 																{
 																	Value: &openapi3.Schema{
-																		Type: "number",
+																		Type: openapi3.TypeNumber,
 																		Extensions: openapi.NewExt(nil).
 																			SetOriginalType(cty.Number).
 																			Export(),
@@ -670,6 +691,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 																[]cty.Type{
 																	cty.String, cty.Bool, cty.Number,
 																})).
+														SetUIGroup("Basic").
 														Export(),
 												},
 											},
