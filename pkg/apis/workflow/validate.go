@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	wfv1 "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/gin-gonic/gin"
 	"k8s.io/apimachinery/pkg/util/sets"
 
@@ -13,6 +13,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/subject"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/validation"
 )
 
 func init() {
@@ -69,10 +70,10 @@ func validateStep(ctx *gin.Context, client *model.Client, step *model.WorkflowSt
 
 	if step.RetryStrategy != nil {
 		switch step.RetryStrategy.RetryPolicy {
-		case v1alpha1.RetryPolicyAlways,
-			v1alpha1.RetryPolicyOnFailure,
-			v1alpha1.RetryPolicyOnError,
-			v1alpha1.RetryPolicyOnTransientError:
+		case wfv1.RetryPolicyAlways,
+			wfv1.RetryPolicyOnFailure,
+			wfv1.RetryPolicyOnError,
+			wfv1.RetryPolicyOnTransientError:
 		default:
 			return fmt.Errorf("invalid retry policy: %s", step.RetryStrategy.RetryPolicy)
 		}

@@ -6,6 +6,8 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/workflowexecution"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/utils/errorx"
 )
 
 type (
@@ -62,4 +64,27 @@ func (r *DeleteRequest) Validate() error {
 	return r.WorkflowExecutionQueryInput.Validate()
 }
 
-type CollectionDeleteRequest = model.WorkflowExecutionDeleteInputs
+type CollectionDeleteRequest struct {
+	model.WorkflowExecutionDeleteInputs
+}
+
+func (r *CollectionDeleteRequest) Validate() error {
+	ids := r.IDs()
+
+	executions, err := r.Client.WorkflowExecutions().Query().
+		Where(workflowexecution.IDIn(ids...)).
+		Select(workflowexecution.FieldID).
+		All(r.Context)
+	if err != nil {
+		return err
+	}
+
+	for i := range executions {
+		execution := executions[i]
+		if status.WorkflowExecutionStatusRunning.IsUnknown(execution) {
+			return errorx.Errorf("workflow execution %s is running", execution.ID.String())
+		}
+	}
+
+	return nil
+}

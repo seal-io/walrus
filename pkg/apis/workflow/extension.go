@@ -9,7 +9,9 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/workflowstageexecution"
 	"github.com/seal-io/walrus/pkg/dao/model/workflowstep"
 	"github.com/seal-io/walrus/pkg/dao/model/workflowstepexecution"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 	pkgworkflow "github.com/seal-io/walrus/pkg/workflow"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 func (h Handler) RouteGetLatestExecutionRequest(req RouteGetLatestExecutionRequest) (
@@ -38,10 +40,16 @@ func (h Handler) RouteGetLatestExecutionRequest(req RouteGetLatestExecutionReque
 }
 
 func (h Handler) RouteRunRequest(req RouteRunRequest) (RouteRunResponse, error) {
-	var wfe *model.WorkflowExecution
+	var (
+		logger = log.WithName("workflow")
 
-	err := h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
-		wf, err := tx.Workflows().Query().
+		err error
+		wf  *model.Workflow
+		wfe *model.WorkflowExecution
+	)
+
+	err = h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
+		wf, err = tx.Workflows().Query().
 			Where(workflow.ID(req.ID)).
 			ForUpdate().
 			WithStages(func(wsq *model.WorkflowStageQuery) {
@@ -54,22 +62,35 @@ func (h Handler) RouteRunRequest(req RouteRunRequest) (RouteRunResponse, error) 
 			return err
 		}
 
-		wfe, err = pkgworkflow.Run(req.Context, tx, wf, dao.ExecuteOptions{
-			RestCfg:     h.k8sConfig,
-			Params:      req.Params,
+		wfe, err = dao.CreateWorkflowExecution(req.Context, tx, dao.CreateWorkflowExecutionOptions{
+			Workflow:    wf,
 			Description: req.Description,
 			Variables:   req.Variables,
 		})
 		if err != nil {
 			return err
 		}
-
 		// Update workflow version.
 		return tx.Workflows().UpdateOne(wf).
 			AddVersion(1).
 			Exec(req.Context)
 	})
 	if err != nil {
+		return nil, err
+	}
+
+	err = pkgworkflow.Run(req.Context, h.modelClient, h.workflowClient, wfe)
+	if err != nil {
+		status.WorkflowExecutionStatusPending.False(wfe, err.Error())
+		wfe.Status.SetSummary(status.WalkWorkflowExecution(&wfe.Status))
+
+		rerr := h.modelClient.WorkflowExecutions().UpdateOne(wfe).
+			SetStatus(wfe.Status).
+			Exec(req.Context)
+		if rerr != nil {
+			logger.Errorf("failed to update workflow execution status: %v", rerr)
+		}
+
 		return nil, err
 	}
 

@@ -3,11 +3,12 @@ package workflow
 import (
 	"context"
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
-	apisworkflow "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
+	wfv1 "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
 	corev1 "k8s.io/api/core/v1"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -21,6 +22,8 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/k8s"
+	optypes "github.com/seal-io/walrus/pkg/operator/types"
+	"github.com/seal-io/walrus/pkg/workflow/step"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/pointer"
 	"github.com/seal-io/walrus/utils/strs"
@@ -36,6 +39,12 @@ type Client interface {
 	Resubmit(context.Context, ResubmitOptions) error
 	// Delete deletes a workflow from the workflow engine.
 	Delete(context.Context, DeleteOptions) error
+	// GetLogs gets logs of a workflow step execution.
+	GetLogs(context.Context, LogsOptions) ([]byte, error)
+	// StreamLogs streams logs of a workflow execution.
+	StreamLogs(context.Context, StreamLogsOptions) error
+	// Terminate terminates a workflow execution.
+	Terminate(context.Context, TerminateOptions) error
 }
 
 type (
@@ -72,6 +81,26 @@ type (
 		WorkflowExecution *model.WorkflowExecution
 		Params            map[string]string
 	}
+
+	// TerminateOptions is the options for terminating a workflow execution.
+	TerminateOptions struct {
+		WorkflowExecution *model.WorkflowExecution
+	}
+
+	// LogsOptions is the options for getting logs of a workflow step execution.
+	LogsOptions struct {
+		optypes.LogOptions
+
+		WorkflowExecution *model.WorkflowExecution
+		StepExecution     *model.WorkflowStepExecution
+	}
+
+	// StreamLogsOptions is the options for streaming logs of a workflow execution.
+	StreamLogsOptions struct {
+		LogsOptions
+
+		Out io.Writer
+	}
 )
 
 type ArgoWorkflowClient struct {
@@ -83,19 +112,14 @@ type ArgoWorkflowClient struct {
 	apiClient *ArgoAPIClient
 }
 
-func NewArgoWorkflowClient(mc model.ClientSet, restCfg *rest.Config) (Client, error) {
-	apiClient, err := NewArgoAPIClient(restCfg)
-	if err != nil {
-		return nil, err
-	}
-
+func NewArgoWorkflowClient(mc model.ClientSet, restCfg *rest.Config) Client {
 	return &ArgoWorkflowClient{
 		Logger:    log.WithName("workflow-service"),
 		mc:        mc,
 		kc:        restCfg,
 		tm:        NewTemplateManager(mc),
-		apiClient: apiClient,
-	}, nil
+		apiClient: NewArgoAPIClient(restCfg),
+	}
 }
 
 func (s *ArgoWorkflowClient) Submit(ctx context.Context, opts SubmitOptions) error {
@@ -136,8 +160,8 @@ func (s *ArgoWorkflowClient) Submit(ctx context.Context, opts SubmitOptions) err
 	// Set ownerReferences to secret with the workflow.
 	secret.ObjectMeta.OwnerReferences = []metav1.OwnerReference{
 		{
-			APIVersion: apisworkflow.APIVersion,
-			Kind:       apisworkflow.WorkflowKind,
+			APIVersion: wfv1.APIVersion,
+			Kind:       wfv1.WorkflowKind,
 			Name:       awf.Name,
 			UID:        awf.UID,
 		},
@@ -168,42 +192,49 @@ func (s *ArgoWorkflowClient) Resume(ctx context.Context, opts ResumeOptions) err
 		return err
 	}
 
-	// Update workflow step execution approval attributes.
-	err = s.mc.WorkflowStepExecutions().UpdateOne(opts.WorkflowStepExecution).
-		SetAttributes(approvalSpec.ToAttributes()).
-		Exec(ctx)
-	if err != nil {
-		return err
-	}
-
-	if approvalSpec.IsRejected() {
-		// Stop workflow step execution if rejected.
-		_, err = s.apiClient.NewWorkflowServiceClient().StopWorkflow(s.apiClient.Ctx, &workflow.WorkflowStopRequest{
-			Name:              getWorkflowName(opts.WorkflowExecution),
-			Namespace:         types.WalrusSystemNamespace,
-			NodeFieldSelector: fmt.Sprintf("templateName=suspend-%s", opts.WorkflowStepExecution.ID.String()),
-		})
-	} else {
-		// If not approved, do nothing.
-		if !approvalSpec.IsApproved() {
-			return nil
-		}
-
-		// Update secret token.
-		err = s.updateWorkflowExecutionToken(ctx, opts.WorkflowExecution)
+	return s.mc.WithTx(ctx, func(tx *model.Tx) error {
+		// Update workflow step execution approval attributes.
+		err = tx.WorkflowStepExecutions().UpdateOne(opts.WorkflowStepExecution).
+			SetAttributes(approvalSpec.ToAttributes()).
+			Exec(ctx)
 		if err != nil {
 			return err
 		}
 
-		// Resume workflow step execution.
-		_, err = s.apiClient.NewWorkflowServiceClient().ResumeWorkflow(s.apiClient.Ctx, &workflow.WorkflowResumeRequest{
-			Name:              getWorkflowName(opts.WorkflowExecution),
-			Namespace:         types.WalrusSystemNamespace,
-			NodeFieldSelector: fmt.Sprintf("templateName=suspend-%s", opts.WorkflowStepExecution.ID.String()),
-		})
-	}
+		if approvalSpec.IsRejected() {
+			// Stop workflow step execution if rejected.
+			_, err = s.apiClient.NewWorkflowServiceClient().StopWorkflow(s.apiClient.Ctx, &workflow.WorkflowStopRequest{
+				Name:              getWorkflowName(opts.WorkflowExecution),
+				Namespace:         types.WalrusSystemNamespace,
+				NodeFieldSelector: fmt.Sprintf("templateName=%s", step.StepTemplateName(opts.WorkflowStepExecution)),
+			})
+		} else {
+			// If not approved, do nothing.
+			if !approvalSpec.IsApproved() {
+				return nil
+			}
 
-	return err
+			// Update secret token.
+			err = s.updateWorkflowExecutionToken(ctx, opts.WorkflowExecution)
+			if err != nil {
+				return err
+			}
+
+			// Resume workflow step execution.
+			_, err = s.apiClient.NewWorkflowServiceClient().ResumeWorkflow(
+				s.apiClient.Ctx,
+				&workflow.WorkflowResumeRequest{
+					Name:      getWorkflowName(opts.WorkflowExecution),
+					Namespace: types.WalrusSystemNamespace,
+					NodeFieldSelector: fmt.Sprintf(
+						"templateName=%s",
+						step.StepTemplateName(opts.WorkflowStepExecution),
+					),
+				})
+		}
+
+		return err
+	})
 }
 
 func (s *ArgoWorkflowClient) Resubmit(ctx context.Context, opts ResubmitOptions) error {
@@ -222,9 +253,6 @@ func (s *ArgoWorkflowClient) Resubmit(ctx context.Context, opts ResubmitOptions)
 				Namespace: types.WalrusSystemNamespace,
 				Memoized:  false,
 			})
-		if err != nil {
-			return err
-		}
 	} else {
 		subject := session.MustGetSubject(ctx)
 
@@ -232,12 +260,15 @@ func (s *ArgoWorkflowClient) Resubmit(ctx context.Context, opts ResubmitOptions)
 			WorkflowExecution: opts.WorkflowExecution,
 			SubjectID:         subject.ID,
 		})
-		if err != nil {
-			return err
-		}
 	}
 
-	return ResetWorkflowExecutionStatus(ctx, s.mc, opts.WorkflowExecution)
+	if err != nil {
+		return err
+	}
+
+	return s.mc.WithTx(ctx, func(tx *model.Tx) error {
+		return ResetWorkflowExecutionStatus(ctx, tx, opts.WorkflowExecution)
+	})
 }
 
 func (s *ArgoWorkflowClient) Delete(ctx context.Context, opts DeleteOptions) error {
@@ -245,6 +276,22 @@ func (s *ArgoWorkflowClient) Delete(ctx context.Context, opts DeleteOptions) err
 		Name:      opts.Workflow.Name,
 		Namespace: types.WalrusSystemNamespace,
 	})
+	if err != nil && !kerrors.IsNotFound(err) {
+		return err
+	}
+
+	return nil
+}
+
+// Terminate terminates a workflow execution.
+// It will stop all nodes of the workflow execution.
+func (s *ArgoWorkflowClient) Terminate(ctx context.Context, opts TerminateOptions) error {
+	_, err := s.apiClient.NewWorkflowServiceClient().TerminateWorkflow(
+		s.apiClient.Ctx,
+		&workflow.WorkflowTerminateRequest{
+			Name:      getWorkflowName(opts.WorkflowExecution),
+			Namespace: types.WalrusSystemNamespace,
+		})
 	if err != nil && !kerrors.IsNotFound(err) {
 		return err
 	}
@@ -349,23 +396,20 @@ type ArgoAPIClient struct {
 	Ctx context.Context
 }
 
-func NewArgoAPIClient(restCfg *rest.Config) (*ArgoAPIClient, error) {
+func NewArgoAPIClient(restCfg *rest.Config) *ArgoAPIClient {
 	apiConfig := k8s.ToClientCmdApiConfig(restCfg)
 	clientConfig := clientcmd.NewDefaultClientConfig(apiConfig, nil)
 
-	ctx, apiClient, err := apiclient.NewClientFromOpts(apiclient.Opts{
+	ctx, apiClient, _ := apiclient.NewClientFromOpts(apiclient.Opts{
 		ClientConfigSupplier: func() clientcmd.ClientConfig {
 			return clientConfig
 		},
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	return &ArgoAPIClient{
 		Client: apiClient,
 		Ctx:    ctx,
-	}, nil
+	}
 }
 
 // getWorkflowName returns the target workflow name of a workflow execution.

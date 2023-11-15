@@ -1,13 +1,14 @@
 package dao
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
 
-	"k8s.io/client-go/rest"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/walrus/pkg/auths/session"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -17,6 +18,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 func WorkflowStagesEdgeSave(ctx context.Context, mc model.ClientSet, entity *model.Workflow) error {
@@ -141,26 +143,23 @@ func WorkflowStageStepsEdgeSave(ctx context.Context, mc model.ClientSet, entity 
 }
 
 type (
+	CreateWorkflowExecutionOptions struct {
+		Workflow *model.Workflow
 		// Execution parameters that replace workflow variables config value.
 		Variables map[string]string
 		// Description is the description of the workflow execution.
 		Description string
 	}
-	CreateWorkflowExecutionOptions struct {
-		ExecuteOptions `json:",inline"`
-
-		Workflow *model.Workflow
-	}
 
 	CreateWorkflowStageExecutionOptions struct {
-		ExecuteOptions `json:",inline"`
+		CreateWorkflowExecutionOptions `json:",inline"`
 
 		WorkflowExecution *model.WorkflowExecution
 		Stage             *model.WorkflowStage
 	}
 
 	CreateWorkflowStepExecutionOptions struct {
-		ExecuteOptions `json:",inline"`
+		CreateWorkflowExecutionOptions `json:",inline"`
 
 		StageExecution *model.WorkflowStageExecution
 		Step           *model.WorkflowStep
@@ -229,9 +228,9 @@ func CreateWorkflowExecution(
 	for i, stage := range wf.Edges.Stages {
 		// Create workflow stage execution.
 		stageExecution, err := CreateWorkflowStageExecution(ctx, mc, CreateWorkflowStageExecutionOptions{
-			ExecuteOptions:    opts.ExecuteOptions,
-			WorkflowExecution: entity,
-			Stage:             stage,
+			CreateWorkflowExecutionOptions: opts,
+			WorkflowExecution:              entity,
+			Stage:                          stage,
 		})
 		if err != nil {
 			return nil, err
@@ -280,9 +279,9 @@ func CreateWorkflowStageExecution(
 	for i, step := range stage.Edges.Steps {
 		// Create workflow step execution.
 		stepExecution, err := CreateWorkflowStepExecution(ctx, mc, CreateWorkflowStepExecutionOptions{
-			ExecuteOptions: opts.ExecuteOptions,
-			StageExecution: entity,
-			Step:           step,
+			CreateWorkflowExecutionOptions: opts.CreateWorkflowExecutionOptions,
+			StageExecution:                 entity,
+			Step:                           step,
 		})
 		if err != nil {
 			return nil, err
@@ -361,7 +360,7 @@ func parseWorkflowVariables(
 
 		if val, ok := params[string(name)]; ok {
 			return []byte(val)
-	}
+		}
 
 		return s
 	})
@@ -407,17 +406,94 @@ func OverwriteWorkflowVariables(vars map[string]string, config types.WorkflowVar
 	return vars, nil
 }
 
-// CheckParams checks if the params contain keywords.
-// These keywords will reconginzed as the params like "{{input.parameters.xxx}}"
-// of argo that may cause workflow execution failure.
-func CheckParams(params map[string]string) error {
-	keywordsReg := regexp.MustCompile(`{{.*}}`)
+// GetRejectMessage returns the reject message of the workflow approval step execution.
+func GetRejectMessage(ctx context.Context, mc model.ClientSet, entity *model.WorkflowStepExecution) (string, error) {
+	message := ""
 
-	for k, v := range params {
-		if keywordsReg.MatchString(v) {
-			return fmt.Errorf("params contain keywords: %s=%s", k, v)
-		}
+	approvalSpec, err := types.NewWorkflowStepApprovalSpec(entity.Attributes)
+	if err != nil {
+		return "", err
 	}
 
-	return nil
+	if approvalSpec.IsRejected() {
+		rejectedUsers := approvalSpec.RejectedUsers
+		rejectedUserNames := make([]string, len(rejectedUsers))
+
+		subjects, err := mc.Subjects().Query().
+			Where(subject.IDIn(rejectedUsers...)).
+			All(ctx)
+		if err != nil {
+			return "", err
+		}
+
+		for i := range subjects {
+			rejectedUserNames[i] = subjects[i].Name
+		}
+
+		message = "rejected by " + strs.Join[string](",", rejectedUserNames...)
+	}
+
+	return message, nil
+}
+
+// ResetWorkflowExecution resets the workflow execution and add execution times by 1.
+// The workflow execution will be reset when rerun the workflow execution.
+func ResetWorkflowExecution(ctx context.Context, mc model.ClientSet, workflowExecution *model.WorkflowExecution) error {
+	status.WorkflowExecutionStatusPending.Reset(workflowExecution, "")
+	workflowExecution.Status.SetSummary(status.WalkWorkflowExecution(&workflowExecution.Status))
+
+	return mc.WorkflowExecutions().UpdateOne(workflowExecution).
+		SetStatus(workflowExecution.Status).
+		AddTimes(1).
+		ClearExecuteTime().
+		SetDuration(0).
+		Exec(ctx)
+}
+
+// ResetWorkflowStageExecution resets the workflow stage execution and add execution times by 1.
+// The workflow stage execution will be reset when rerun the workflow execution.
+func ResetWorkflowStageExecution(
+	ctx context.Context,
+	mc model.ClientSet,
+	stageExecution *model.WorkflowStageExecution,
+) error {
+	status.WorkflowStageExecutionStatusPending.Reset(stageExecution, "")
+	stageExecution.Status.SetSummary(status.WalkWorkflowStageExecution(&stageExecution.Status))
+
+	return mc.WorkflowStageExecutions().UpdateOne(stageExecution).
+		SetStatus(stageExecution.Status).
+		ClearExecuteTime().
+		SetDuration(0).
+		Exec(ctx)
+}
+
+// ResetWorkflowStepExecution resets the workflow step execution and add execution times by 1.
+// The workflow step execution will be reset when rerun the workflow execution.
+func ResetWorkflowStepExecution(
+	ctx context.Context,
+	mc model.ClientSet,
+	stepExecution *model.WorkflowStepExecution,
+) error {
+	status.WorkflowStepExecutionStatusPending.Reset(stepExecution, "")
+	stepExecution.Status.SetSummary(status.WalkWorkflowStepExecution(&stepExecution.Status))
+
+	// Reset the approval spec.
+	if stepExecution.Type == types.WorkflowStepTypeApproval {
+		approvalSpec, err := types.NewWorkflowStepApprovalSpec(stepExecution.Attributes)
+		if err != nil {
+			return err
+		}
+
+		approvalSpec.Reset()
+
+		stepExecution.Attributes = approvalSpec.ToAttributes()
+	}
+
+	return mc.WorkflowStepExecutions().UpdateOne(stepExecution).
+		SetStatus(stepExecution.Status).
+		AddTimes(1).
+		ClearExecuteTime().
+		SetAttributes(stepExecution.Attributes).
+		SetDuration(0).
+		Exec(ctx)
 }

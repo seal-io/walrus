@@ -7,7 +7,11 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/workflowexecution"
 	"github.com/seal-io/walrus/pkg/dao/model/workflowstepexecution"
-	"github.com/seal-io/walrus/pkg/workflow"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
+	optypes "github.com/seal-io/walrus/pkg/operator/types"
+	pkgworkflow "github.com/seal-io/walrus/pkg/workflow"
+	"github.com/seal-io/walrus/utils/topic"
 )
 
 func (h Handler) RouteLog(req RouteLogRequest) error {
@@ -31,11 +35,23 @@ func (h Handler) RouteLog(req RouteLogRequest) error {
 		return err
 	}
 
-	return workflow.StreamWorkflowStepExecutionLogs(ctx, workflow.StreamWorkflowStepExecutionLogsOptions{
-		StepExecutionLogOptions: workflow.StepExecutionLogOptions{
-			RestCfg:       h.k8sConfig,
-			ModelClient:   h.modelClient,
-			StepExecution: wse,
+	wfe, err := h.modelClient.WorkflowExecutions().Query().
+		Where(workflowexecution.ID(wse.WorkflowExecutionID)).
+		Only(ctx)
+	if err != nil {
+		return err
+	}
+
+	return h.workflowClient.StreamLogs(ctx, pkgworkflow.StreamLogsOptions{
+		LogsOptions: pkgworkflow.LogsOptions{
+			LogOptions: optypes.LogOptions{
+				Previous:     req.Previous,
+				SinceSeconds: req.SinceSeconds,
+				TailLines:    req.TailLines,
+				Timestamps:   req.Timestamps,
+			},
+			WorkflowExecution: wfe,
+			StepExecution:     wse,
 		},
 		Out: out,
 	})
@@ -56,16 +72,19 @@ func (h Handler) RouteApprove(req RouteApproveRequest) error {
 		return err
 	}
 
-	return h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
-		client, err := workflow.NewArgoWorkflowClient(h.modelClient, h.k8sConfig)
-		if err != nil {
-			return err
-		}
-
-		return client.Resume(req.Context, workflow.ResumeOptions{
+	err = h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
+		return h.workflowClient.Resume(req.Context, pkgworkflow.ResumeOptions{
 			Approve:               req.Approve,
 			WorkflowExecution:     workflowExecution,
 			WorkflowStepExecution: stepExecution,
 		})
+	})
+	if err != nil {
+		return err
+	}
+
+	return topic.Publish(req.Context, modelchange.WorkflowExecution, modelchange.Event{
+		Type: modelchange.EventTypeUpdate,
+		IDs:  []object.ID{workflowExecution.ID},
 	})
 }
