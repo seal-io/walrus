@@ -20,7 +20,6 @@ import (
 )
 
 type (
-	//nolint:staticcheck
 	X struct {
 		BytesValue  []byte           `json:"bytesValue,cli-ignore"`
 		Int64Value  int64            `json:"int64Value"`

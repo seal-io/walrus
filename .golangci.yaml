@@ -79,7 +79,7 @@ linters:
 
 linters-settings:
   staticcheck:
-    checks: ["all", "-SA1019", "-SA2002"]
+    checks: ["all", "-SA1019", "-SA2002", "-SA5008"]
   stylecheck:
     checks: ["all", "-ST1003"]
   gosec:
