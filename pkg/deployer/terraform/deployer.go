@@ -939,12 +939,12 @@ func getModuleConfig(
 			return nil, err
 		}
 
-		for _, v := range sps {
+		for k, v := range sps {
 			valueExpression := openapi.GetOriginalValueExpression(v.Value.Extensions)
 
 			co := config.Output{
 				Sensitive:    v.Value.WriteOnly,
-				Name:         v.Value.Title,
+				Name:         k,
 				ResourceName: opts.Context.Resource.Name,
 				Value:        valueExpression,
 			}
