@@ -11,10 +11,6 @@ import (
 	"github.com/seal-io/walrus/utils/json"
 )
 
-const (
-	defaultGroup = "Basic"
-)
-
 var schemaSequence = []string{
 	"title",
 	"type",
@@ -84,7 +80,6 @@ func FormattedOpenAPI(s types.Schema) ([]byte, error) {
 
 	// Expose Variables.
 	es := s.Expose()
-	injectVariablesExtGroup(&es)
 
 	// Sorted Variables to the same sequence original defined, since the properties is a map,
 	// so need to generate sorted map.
@@ -152,23 +147,6 @@ func FormattedOpenAPI(s types.Schema) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
-}
-
-// injectVariablesExtGroup default injects group extension for variables.
-func injectVariablesExtGroup(s *types.UISchema) {
-	// Inject group extension.
-	vs := s.VariableSchema()
-	for n, v := range vs.Properties {
-		if v.Value == nil || v.Value.IsEmpty() {
-			continue
-		}
-
-		if gp := openapi.GetUIGroup(v.Value.Extensions); gp == "" {
-			vs.Properties[n].Value.Extensions = openapi.NewExt(vs.Properties[n].Value.Extensions).
-				SetUIGroup(defaultGroup).
-				Export()
-		}
-	}
 }
 
 func sortWithSequence(seq []string, m map[string]any) yaml.MapSlice {
