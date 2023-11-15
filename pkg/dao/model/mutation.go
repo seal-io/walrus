@@ -25047,6 +25047,8 @@ type WorkflowMutation struct {
 	addtimeout        *int
 	version           *int
 	addversion        *int
+	variables         *types.WorkflowVariables
+	appendvariables   types.WorkflowVariables
 	clearedFields     map[string]struct{}
 	project           *object.ID
 	clearedproject    bool
@@ -25709,6 +25711,71 @@ func (m *WorkflowMutation) ResetVersion() {
 	m.addversion = nil
 }
 
+// SetVariables sets the "variables" field.
+func (m *WorkflowMutation) SetVariables(tv types.WorkflowVariables) {
+	m.variables = &tv
+	m.appendvariables = nil
+}
+
+// Variables returns the value of the "variables" field in the mutation.
+func (m *WorkflowMutation) Variables() (r types.WorkflowVariables, exists bool) {
+	v := m.variables
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVariables returns the old "variables" field's value of the Workflow entity.
+// If the Workflow object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkflowMutation) OldVariables(ctx context.Context) (v types.WorkflowVariables, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVariables is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVariables requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVariables: %w", err)
+	}
+	return oldValue.Variables, nil
+}
+
+// AppendVariables adds tv to the "variables" field.
+func (m *WorkflowMutation) AppendVariables(tv types.WorkflowVariables) {
+	m.appendvariables = append(m.appendvariables, tv...)
+}
+
+// AppendedVariables returns the list of values that were appended to the "variables" field in this mutation.
+func (m *WorkflowMutation) AppendedVariables() (types.WorkflowVariables, bool) {
+	if len(m.appendvariables) == 0 {
+		return nil, false
+	}
+	return m.appendvariables, true
+}
+
+// ClearVariables clears the value of the "variables" field.
+func (m *WorkflowMutation) ClearVariables() {
+	m.variables = nil
+	m.appendvariables = nil
+	m.clearedFields[workflow.FieldVariables] = struct{}{}
+}
+
+// VariablesCleared returns if the "variables" field was cleared in this mutation.
+func (m *WorkflowMutation) VariablesCleared() bool {
+	_, ok := m.clearedFields[workflow.FieldVariables]
+	return ok
+}
+
+// ResetVariables resets all changes to the "variables" field.
+func (m *WorkflowMutation) ResetVariables() {
+	m.variables = nil
+	m.appendvariables = nil
+	delete(m.clearedFields, workflow.FieldVariables)
+}
+
 // ClearProject clears the "project" edge to the Project entity.
 func (m *WorkflowMutation) ClearProject() {
 	m.clearedproject = true
@@ -25877,7 +25944,7 @@ func (m *WorkflowMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *WorkflowMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.name != nil {
 		fields = append(fields, workflow.FieldName)
 	}
@@ -25914,6 +25981,9 @@ func (m *WorkflowMutation) Fields() []string {
 	if m.version != nil {
 		fields = append(fields, workflow.FieldVersion)
 	}
+	if m.variables != nil {
+		fields = append(fields, workflow.FieldVariables)
+	}
 	return fields
 }
 
@@ -25946,6 +26016,8 @@ func (m *WorkflowMutation) Field(name string) (ent.Value, bool) {
 		return m.Timeout()
 	case workflow.FieldVersion:
 		return m.Version()
+	case workflow.FieldVariables:
+		return m.Variables()
 	}
 	return nil, false
 }
@@ -25979,6 +26051,8 @@ func (m *WorkflowMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldTimeout(ctx)
 	case workflow.FieldVersion:
 		return m.OldVersion(ctx)
+	case workflow.FieldVariables:
+		return m.OldVariables(ctx)
 	}
 	return nil, fmt.Errorf("unknown Workflow field %s", name)
 }
@@ -26072,6 +26146,13 @@ func (m *WorkflowMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetVersion(v)
 		return nil
+	case workflow.FieldVariables:
+		v, ok := value.(types.WorkflowVariables)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVariables(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Workflow field %s", name)
 }
@@ -26153,6 +26234,9 @@ func (m *WorkflowMutation) ClearedFields() []string {
 	if m.FieldCleared(workflow.FieldEnvironmentID) {
 		fields = append(fields, workflow.FieldEnvironmentID)
 	}
+	if m.FieldCleared(workflow.FieldVariables) {
+		fields = append(fields, workflow.FieldVariables)
+	}
 	return fields
 }
 
@@ -26178,6 +26262,9 @@ func (m *WorkflowMutation) ClearField(name string) error {
 		return nil
 	case workflow.FieldEnvironmentID:
 		m.ClearEnvironmentID()
+		return nil
+	case workflow.FieldVariables:
+		m.ClearVariables()
 		return nil
 	}
 	return fmt.Errorf("unknown Workflow nullable field %s", name)
@@ -26222,6 +26309,9 @@ func (m *WorkflowMutation) ResetField(name string) error {
 		return nil
 	case workflow.FieldVersion:
 		m.ResetVersion()
+		return nil
+	case workflow.FieldVariables:
+		m.ResetVariables()
 		return nil
 	}
 	return fmt.Errorf("unknown Workflow field %s", name)

@@ -989,6 +989,7 @@ var (
 		{Name: "parallelism", Type: field.TypeInt, Default: 10},
 		{Name: "timeout", Type: field.TypeInt, Default: 0},
 		{Name: "version", Type: field.TypeInt, Default: 0},
+		{Name: "variables", Type: field.TypeJSON, Nullable: true},
 		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// WorkflowsTable holds the schema information for the "workflows" table.
@@ -999,7 +1000,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "workflows_projects_workflows",
-				Columns:    []*schema.Column{WorkflowsColumns[12]},
+				Columns:    []*schema.Column{WorkflowsColumns[13]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -1008,7 +1009,7 @@ var (
 			{
 				Name:    "workflow_project_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{WorkflowsColumns[12], WorkflowsColumns[1]},
+				Columns: []*schema.Column{WorkflowsColumns[13], WorkflowsColumns[1]},
 			},
 		},
 	}

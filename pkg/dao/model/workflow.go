@@ -15,6 +15,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/workflow"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/utils/json"
 )
@@ -48,6 +49,8 @@ type Workflow struct {
 	Timeout int `json:"timeout,omitempty"`
 	// Execution version of the workflow.
 	Version int `json:"version,omitempty"`
+	// Configs of workflow variables.
+	Variables types.WorkflowVariables `json:"variables,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WorkflowQuery when eager-loading is set.
 	Edges        WorkflowEdges `json:"edges,omitempty"`
@@ -103,7 +106,7 @@ func (*Workflow) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case workflow.FieldLabels, workflow.FieldAnnotations:
+		case workflow.FieldLabels, workflow.FieldAnnotations, workflow.FieldVariables:
 			values[i] = new([]byte)
 		case workflow.FieldID, workflow.FieldProjectID, workflow.FieldEnvironmentID:
 			values[i] = new(object.ID)
@@ -212,6 +215,14 @@ func (w *Workflow) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				w.Version = int(value.Int64)
 			}
+		case workflow.FieldVariables:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field variables", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &w.Variables); err != nil {
+					return fmt.Errorf("unmarshal field variables: %w", err)
+				}
+			}
 		default:
 			w.selectValues.Set(columns[i], values[i])
 		}
@@ -302,6 +313,9 @@ func (w *Workflow) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("version=")
 	builder.WriteString(fmt.Sprintf("%v", w.Version))
+	builder.WriteString(", ")
+	builder.WriteString("variables=")
+	builder.WriteString(fmt.Sprintf("%v", w.Variables))
 	builder.WriteByte(')')
 	return builder.String()
 }

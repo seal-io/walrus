@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/workflow"
 	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
@@ -39,6 +40,8 @@ type WorkflowCreateInput struct {
 	Parallelism int `path:"-" query:"-" json:"parallelism,omitempty"`
 	// Timeout seconds of the workflow.
 	Timeout int `path:"-" query:"-" json:"timeout,omitempty"`
+	// Configs of workflow variables.
+	Variables types.WorkflowVariables `path:"-" query:"-" json:"variables,omitempty"`
 
 	// Stages specifies full inserting the new WorkflowStage entities of the Workflow entity.
 	Stages []*WorkflowStageCreateInput `uri:"-" query:"-" json:"stages,omitempty"`
@@ -59,6 +62,7 @@ func (wci *WorkflowCreateInput) Model() *Workflow {
 		EnvironmentID: wci.EnvironmentID,
 		Parallelism:   wci.Parallelism,
 		Timeout:       wci.Timeout,
+		Variables:     wci.Variables,
 	}
 
 	if wci.Project != nil {
@@ -138,6 +142,8 @@ type WorkflowCreateInputsItem struct {
 	Parallelism int `path:"-" query:"-" json:"parallelism,omitempty"`
 	// Timeout seconds of the workflow.
 	Timeout int `path:"-" query:"-" json:"timeout,omitempty"`
+	// Configs of workflow variables.
+	Variables types.WorkflowVariables `path:"-" query:"-" json:"variables,omitempty"`
 
 	// Stages specifies full inserting the new WorkflowStage entities.
 	Stages []*WorkflowStageCreateInput `uri:"-" query:"-" json:"stages,omitempty"`
@@ -200,6 +206,7 @@ func (wci *WorkflowCreateInputs) Model() []*Workflow {
 			EnvironmentID: wci.Items[i].EnvironmentID,
 			Parallelism:   wci.Items[i].Parallelism,
 			Timeout:       wci.Items[i].Timeout,
+			Variables:     wci.Items[i].Variables,
 		}
 
 		if wci.Project != nil {
@@ -586,6 +593,8 @@ type WorkflowUpdateInput struct {
 	Parallelism int `path:"-" query:"-" json:"parallelism,omitempty"`
 	// Timeout seconds of the workflow.
 	Timeout int `path:"-" query:"-" json:"timeout,omitempty"`
+	// Configs of workflow variables.
+	Variables types.WorkflowVariables `path:"-" query:"-" json:"variables,omitempty"`
 
 	// Stages indicates replacing the stale WorkflowStage entities.
 	Stages []*WorkflowStageCreateInput `uri:"-" query:"-" json:"stages,omitempty"`
@@ -605,6 +614,7 @@ func (wui *WorkflowUpdateInput) Model() *Workflow {
 		Labels:      wui.Labels,
 		Parallelism: wui.Parallelism,
 		Timeout:     wui.Timeout,
+		Variables:   wui.Variables,
 	}
 
 	if wui.Stages != nil {
@@ -672,6 +682,8 @@ type WorkflowUpdateInputsItem struct {
 	Parallelism int `path:"-" query:"-" json:"parallelism"`
 	// Timeout seconds of the workflow.
 	Timeout int `path:"-" query:"-" json:"timeout"`
+	// Configs of workflow variables.
+	Variables types.WorkflowVariables `path:"-" query:"-" json:"variables,omitempty"`
 
 	// Stages indicates replacing the stale WorkflowStage entities.
 	Stages []*WorkflowStageCreateInput `uri:"-" query:"-" json:"stages,omitempty"`
@@ -733,6 +745,7 @@ func (wui *WorkflowUpdateInputs) Model() []*Workflow {
 			Labels:      wui.Items[i].Labels,
 			Parallelism: wui.Items[i].Parallelism,
 			Timeout:     wui.Items[i].Timeout,
+			Variables:   wui.Items[i].Variables,
 		}
 
 		if wui.Items[i].Stages != nil {
@@ -869,17 +882,18 @@ func (wui *WorkflowUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet,
 
 // WorkflowOutput holds the output of the Workflow entity.
 type WorkflowOutput struct {
-	ID            object.ID         `json:"id,omitempty"`
-	Name          string            `json:"name,omitempty"`
-	Description   string            `json:"description,omitempty"`
-	Labels        map[string]string `json:"labels,omitempty"`
-	CreateTime    *time.Time        `json:"createTime,omitempty"`
-	UpdateTime    *time.Time        `json:"updateTime,omitempty"`
-	EnvironmentID object.ID         `json:"environmentID,omitempty"`
-	Type          string            `json:"type,omitempty"`
-	Parallelism   int               `json:"parallelism,omitempty"`
-	Timeout       int               `json:"timeout,omitempty"`
-	Version       int               `json:"version,omitempty"`
+	ID            object.ID               `json:"id,omitempty"`
+	Name          string                  `json:"name,omitempty"`
+	Description   string                  `json:"description,omitempty"`
+	Labels        map[string]string       `json:"labels,omitempty"`
+	CreateTime    *time.Time              `json:"createTime,omitempty"`
+	UpdateTime    *time.Time              `json:"updateTime,omitempty"`
+	EnvironmentID object.ID               `json:"environmentID,omitempty"`
+	Type          string                  `json:"type,omitempty"`
+	Parallelism   int                     `json:"parallelism,omitempty"`
+	Timeout       int                     `json:"timeout,omitempty"`
+	Version       int                     `json:"version,omitempty"`
+	Variables     types.WorkflowVariables `json:"variables,omitempty"`
 
 	Project    *ProjectOutput             `json:"project,omitempty"`
 	Stages     []*WorkflowStageOutput     `json:"stages,omitempty"`
@@ -914,6 +928,7 @@ func ExposeWorkflow(_w *Workflow) *WorkflowOutput {
 		Parallelism:   _w.Parallelism,
 		Timeout:       _w.Timeout,
 		Version:       _w.Version,
+		Variables:     _w.Variables,
 	}
 
 	if _w.Edges.Project != nil {
