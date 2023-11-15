@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -156,6 +157,11 @@ func (m *Manager) Start(ctx context.Context, opts StartOptions) error {
 func (m *Manager) doStart(ctx context.Context, restConfig *rest.Config, setupOpts SetupOptions) error {
 	// Notify the manager is not ready.
 	m.isReady.Store(false)
+
+	restConfig = rest.CopyConfig(restConfig)
+	restConfig.QPS = 64
+	restConfig.Burst = 128
+	restConfig.ContentType = runtime.ContentTypeJSON
 
 	// Create manager.
 	mgr, err := ctrl.NewManager(restConfig, m.options)

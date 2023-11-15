@@ -3,8 +3,11 @@ package step
 import (
 	"fmt"
 
+	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/workflow/step/types"
 )
+
+const StepNamePrefix = "workflow-step-execution-"
 
 var managerCreators map[types.Type]func(types.CreateOptions) types.StepManager
 
@@ -22,4 +25,8 @@ func GetStepManager(opts types.CreateOptions) (types.StepManager, error) {
 	}
 
 	return constructor(opts), nil
+}
+
+func StepTemplateName(stepExecution *model.WorkflowStepExecution) string {
+	return fmt.Sprintf("%s%s", StepNamePrefix, stepExecution.ID.String())
 }

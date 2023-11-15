@@ -6,20 +6,23 @@ import (
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
+
+	wfv1 "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/deployer/terraform"
+	pkgworkflow "github.com/seal-io/walrus/pkg/workflow"
 )
 
 func init() {
 	// Register none native kubernetes resource scheme below.
-
-	// Utilruntime.Must(something.AddToScheme(scheme.Scheme)).
+	_ = wfv1.AddToScheme(scheme.Scheme)
 }
 
 // SetupOptions holds the options for creating the controller.
@@ -63,9 +66,16 @@ func (m *Manager) Setup(ctx context.Context, opts SetupOptions) ([]Reconciler, e
 	return []Reconciler{
 		terraform.JobReconciler{
 			Logger:      opts.GetLogger().WithName("deployer").WithName("tf"),
-			KubeClient:  opts.GetClient(),
 			Kubeconfig:  opts.GetConfig(),
+			KubeClient:  opts.GetClient(),
 			ModelClient: opts.ModelClient,
+		},
+		pkgworkflow.WorkflowReconciler{
+			Logger:     opts.GetLogger().WithName("workflow"),
+			KubeClient: opts.GetClient(),
+			StatusSyncer: pkgworkflow.NewStatusSyncer(
+				opts.ModelClient,
+				pkgworkflow.NewArgoWorkflowClient(opts.ModelClient, opts.GetConfig())),
 		},
 	}, nil
 }

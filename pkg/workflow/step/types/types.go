@@ -3,7 +3,7 @@ package types
 import (
 	"context"
 
-	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	wfv1 "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
@@ -29,5 +29,5 @@ type StepManager interface {
 	GenerateTemplates(
 		context.Context,
 		*model.WorkflowStepExecution,
-	) (mainTemplate *v1alpha1.Template, subTemplates []*v1alpha1.Template, err error)
+	) (mainTemplate *wfv1.Template, subTemplates []*wfv1.Template, err error)
 }

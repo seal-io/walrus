@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	wfv1 "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -39,9 +39,9 @@ fi
 # If jobType create resource.
 if [ "$jobType" == "create" ]; then
 	response=$(curl -s "$commonPath/resources" -X "POST" -H "content-type: application/json" -H "Authorization: Bearer $token" -d '{{inputs.parameters.attributes}}' $tlsVerify)
+	name=$(echo $response | jq -r '.name')
 
-	resourceName=$(echo $response | jq -r '.name')
-	if [ "$resourceName" == "null" ]; then
+	if [ "$name" == "null" ]; then
 		echo "failed create resource, response: $response"
 		exit 1
 	fi
@@ -49,10 +49,11 @@ fi
 
 # If jobType upgrade resource.
 if [ "$jobType" == "upgrade" ]; then
-	response=$(curl -s "$commonPath/resources/$resourceName/upgrade" -X "PUT" -H "content-type: application/json" -H "Authorization: Bearer $token" -d '{{inputs.parameters.attributes}}' $tlsVerify)
-	resourceName=$(echo $response | jq -r '.name')
-	if [ "$resourceName" == "null" ]; then
-		echo "failed upgrade resource, response: $response"
+	status=$(curl -s -w "%{http_code}" -o /dev/null "$commonPath/resources/$resourceName/upgrade" -X "PUT" -H "content-type: application/json" -H "Authorization: Bearer $token" -d '{{inputs.parameters.attributes}}' $tlsVerify)
+
+	# if not status >= 200 and status < 300
+	if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+		echo "failed upgrade resource, response status: $status"
 		exit 1
 	fi
 fi
@@ -83,7 +84,7 @@ func NewServiceStepManager(opts types.CreateOptions) types.StepManager {
 func (s *ServiceStepManager) GenerateTemplates(
 	ctx context.Context,
 	stepExecution *model.WorkflowStepExecution,
-) (main *v1alpha1.Template, subTemplates []*v1alpha1.Template, err error) {
+) (main *wfv1.Template, subTemplates []*wfv1.Template, err error) {
 	deployerImage := settings.WorkflowStepServiceImage.ShouldValue(ctx, s.mc)
 
 	environment, ok := stepExecution.Attributes["environment"].(map[string]any)
@@ -135,37 +136,37 @@ func (s *ServiceStepManager) GenerateTemplates(
 	// An service type workflow template
 	// Interact with walrus server to create or update service.
 	// Watch service logs until the service finished.
-	main = &v1alpha1.Template{
-		Name: fmt.Sprintf("step-execution-%s", stepExecution.ID.String()),
-		Metadata: v1alpha1.Metadata{
+	main = &wfv1.Template{
+		Name: StepTemplateName(stepExecution),
+		Metadata: wfv1.Metadata{
 			Labels: map[string]string{
 				"step-execution-id": stepExecution.ID.String(),
 			},
 		},
-		Inputs: v1alpha1.Inputs{
-			Parameters: []v1alpha1.Parameter{
+		Inputs: wfv1.Inputs{
+			Parameters: []wfv1.Parameter{
 				{
 					Name:  "environmentID",
-					Value: v1alpha1.AnyStringPtr(environmentID),
+					Value: wfv1.AnyStringPtr(environmentID),
 				},
 				{
 					Name:  "attributes",
-					Value: v1alpha1.AnyStringPtr(string(attrs)),
+					Value: wfv1.AnyStringPtr(string(attrs)),
 				},
 				{
 					Name:  "jobType",
-					Value: v1alpha1.AnyStringPtr(jobType),
+					Value: wfv1.AnyStringPtr(jobType),
 				},
 				{
 					Name: "token",
 				},
 				{
 					Name:  "resourceName",
-					Value: v1alpha1.AnyStringPtr(resourceName),
+					Value: wfv1.AnyStringPtr(resourceName),
 				},
 			},
 		},
-		Script: &v1alpha1.ScriptTemplate{
+		Script: &wfv1.ScriptTemplate{
 			Container: apiv1.Container{
 				Image:           deployerImage,
 				ImagePullPolicy: apiv1.PullIfNotPresent,
@@ -177,7 +178,7 @@ func (s *ServiceStepManager) GenerateTemplates(
 
 	if stepExecution.RetryStrategy != nil {
 		limit := intstr.FromInt(stepExecution.RetryStrategy.Limit)
-		main.RetryStrategy = &v1alpha1.RetryStrategy{
+		main.RetryStrategy = &wfv1.RetryStrategy{
 			Limit:       &limit,
 			RetryPolicy: stepExecution.RetryStrategy.RetryPolicy,
 			Backoff:     stepExecution.RetryStrategy.Backoff,

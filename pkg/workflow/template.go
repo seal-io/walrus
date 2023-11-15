@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
-	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	wfv1 "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -27,9 +28,12 @@ const (
 	templateTypeStage    = "stage"
 	templateTypeWorkflow = "workflow"
 
-	templateEnter = "enter"
-	templateMain  = "main"
-	templateExit  = "exit"
+	// Stages represents the stage of the template task.
+	// E.G. A step execution may have enter, main and exit stages
+	// of its generated templates.
+	templateStageEnter = "enter"
+	templateStageMain  = "main"
+	templateStageExit  = "exit"
 
 	workflowEntrypointTemplateName = "entrypoint"
 	workflowEnterTemplateName      = "workflowEnter"
@@ -61,10 +65,10 @@ var (
 	factor = intstr.FromInt(2)
 	// The status retry strategy of updating status of workflow,
 	// stage and step.
-	statusUpdateRetryStrategy = &v1alpha1.RetryStrategy{
+	statusUpdateRetryStrategy = &wfv1.RetryStrategy{
 		Limit:       &limit,
-		RetryPolicy: v1alpha1.RetryPolicyOnFailure,
-		Backoff: &v1alpha1.Backoff{
+		RetryPolicy: wfv1.RetryPolicyOnFailure,
+		Backoff: &wfv1.Backoff{
 			Duration:    "1",
 			Factor:      &factor,
 			MaxDuration: "1m",
@@ -91,7 +95,7 @@ func (t *TemplateManager) ToArgoWorkflow(
 	ctx context.Context,
 	workflowExecution *model.WorkflowExecution,
 	token string,
-) (*v1alpha1.Workflow, error) {
+) (*wfv1.Workflow, error) {
 	// Prepare address for terraform backend.
 	serverAddress, err := settings.ServeUrl.Value(ctx, t.mc)
 	if err != nil {
@@ -107,44 +111,41 @@ func (t *TemplateManager) ToArgoWorkflow(
 		return nil, err
 	}
 
-	workflowTemplates := make([]v1alpha1.Template, 0, len(wfTemplates)+2)
+	workflowTemplates := make([]wfv1.Template, 0, len(wfTemplates)+2)
 	for _, tpl := range wfTemplates {
 		workflowTemplates = append(workflowTemplates, *tpl)
 	}
 
-	enterHandler := t.GetWorkflowExecutionEnterTemplate(workflowExecution)
-	exitHandler := t.GetWorkflowExecutionExitTemplate(workflowExecution)
-	workflowTemplates = append(workflowTemplates, *exitHandler)
-	workflowTemplates = append(workflowTemplates, *enterHandler)
-
-	wf := &v1alpha1.Workflow{
+	wf := &wfv1.Workflow{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: fmt.Sprintf("%s-%s", workflowExecution.Name, workflowExecution.ID.String()),
+			Labels: map[string]string{
+				workflowExecutionIDLabel: workflowExecution.ID.String(),
+			},
 		},
-		Spec: v1alpha1.WorkflowSpec{
+		Spec: wfv1.WorkflowSpec{
 			Entrypoint: workflowEntrypointTemplateName,
-			OnExit:     workflowExitTemplateName,
-			Arguments: v1alpha1.Arguments{
-				Parameters: []v1alpha1.Parameter{
+			Arguments: wfv1.Arguments{
+				Parameters: []wfv1.Parameter{
 					{
 						Name:  "server",
-						Value: v1alpha1.AnyStringPtr(serverAddress),
+						Value: wfv1.AnyStringPtr(serverAddress),
 					},
 					{
 						Name:  "projectID",
-						Value: v1alpha1.AnyStringPtr(workflowExecution.ProjectID.String()),
+						Value: wfv1.AnyStringPtr(workflowExecution.ProjectID.String()),
 					},
 					{
 						Name:  "workflowID",
-						Value: v1alpha1.AnyStringPtr(workflowExecution.WorkflowID.String()),
+						Value: wfv1.AnyStringPtr(workflowExecution.WorkflowID.String()),
 					},
 					{
 						Name:  "tlsVerify",
-						Value: v1alpha1.AnyStringPtr(apiconfig.TlsCertified.Get()),
+						Value: wfv1.AnyStringPtr(apiconfig.TlsCertified.Get()),
 					},
 					{
 						Name:  "token",
-						Value: v1alpha1.AnyStringPtr(token),
+						Value: wfv1.AnyStringPtr(token),
 					},
 				},
 			},
@@ -152,7 +153,7 @@ func (t *TemplateManager) ToArgoWorkflow(
 				RunAsNonRoot: pointer.Bool(true),
 				RunAsUser:    pointer.Int64(1000),
 			},
-			TTLStrategy: &v1alpha1.TTLStrategy{
+			TTLStrategy: &wfv1.TTLStrategy{
 				SecondsAfterCompletion: pointer.Int32(600),
 			},
 			ServiceAccountName: types.WorkflowServiceAccountName,
@@ -175,47 +176,44 @@ func (t *TemplateManager) ToArgoWorkflow(
 func (t *TemplateManager) GetWorkflowExecutionTemplates(
 	ctx context.Context,
 	stageExecutions model.WorkflowStageExecutions,
-) ([]*v1alpha1.Template, error) {
+) ([]*wfv1.Template, error) {
 	// Calculate the length of workflow templates.
-	workflowTemplateLen := 2
+	workflowTemplateLen := 1
 
 	for i := range stageExecutions {
 		stageExec := stageExecutions[i]
-		workflowTemplateLen += (len(stageExec.Edges.Steps) + 1) * 4
+		workflowTemplateLen += len(stageExec.Edges.Steps)*2 + 1
 	}
 
-	workflowTemplates := make([]*v1alpha1.Template, 0, workflowTemplateLen)
-	tasks := make([]v1alpha1.DAGTask, len(stageExecutions)+1)
-	entrypoint := &v1alpha1.Template{
+	workflowTemplates := make([]*wfv1.Template, 0, workflowTemplateLen)
+	tasks := make([]wfv1.DAGTask, len(stageExecutions))
+	entrypoint := &wfv1.Template{
 		Name: workflowEntrypointTemplateName,
-		DAG: &v1alpha1.DAGTemplate{
+		DAG: &wfv1.DAGTemplate{
 			Tasks: tasks,
 		},
 	}
 	workflowTemplates = append(workflowTemplates, entrypoint)
 
-	tasks[0] = v1alpha1.DAGTask{
-		Name:     workflowEnterTemplateName,
-		Template: workflowEnterTemplateName,
-	}
-
 	for i, stageExec := range stageExecutions {
-		stageExtendTemplate, stageTemplates, err := t.GetStageExecutionExtendTemplates(ctx, stageExec)
+		stageTemplate, stageSubTemplates, err := t.GetStageExecutionTemplates(ctx, stageExec)
 		if err != nil {
 			return nil, err
 		}
 
-		workflowTemplates = append(workflowTemplates, stageExtendTemplate)
-		workflowTemplates = append(workflowTemplates, stageTemplates...)
+		workflowTemplates = append(workflowTemplates, stageTemplate)
+		workflowTemplates = append(workflowTemplates, stageSubTemplates...)
 
 		var dependencies []string
 
-		// Add previous stage task as dependency.
-		dependencies = append(dependencies, entrypoint.DAG.Tasks[i].Name)
+		if i > 0 {
+			// Add previous stage task as dependency.
+			dependencies = append(dependencies, entrypoint.DAG.Tasks[i-1].Name)
+		}
 
-		entrypoint.DAG.Tasks[i+1] = v1alpha1.DAGTask{
-			Name:         templateName(stageExec.ID, templateTypeStage),
-			Template:     stageExtendTemplate.Name,
+		entrypoint.DAG.Tasks[i] = wfv1.DAGTask{
+			Name:         statusTemplateName(stageExec.ID, templateTypeStage, templateStageEnter),
+			Template:     stageTemplate.Name,
 			Dependencies: dependencies,
 		}
 	}
@@ -229,32 +227,32 @@ func (t *TemplateManager) GetWorkflowExecutionTemplates(
 func (t *TemplateManager) GetWorkflowExecutionStatusTemplate(
 	name string,
 	wf *model.WorkflowExecution,
-) *v1alpha1.Template {
+) *wfv1.Template {
 	status := "{{workflow.status}}"
 	if name == workflowEnterTemplateName {
 		status = types.ExecutionStatusRunning
 	}
 
-	return &v1alpha1.Template{
+	return &wfv1.Template{
 		Name: name,
-		Inputs: v1alpha1.Inputs{
-			Parameters: []v1alpha1.Parameter{
+		Inputs: wfv1.Inputs{
+			Parameters: []wfv1.Parameter{
 				{
 					Name:  "id",
-					Value: v1alpha1.AnyStringPtr(wf.ID.String()),
+					Value: wfv1.AnyStringPtr(wf.ID.String()),
 				},
 				{
 					Name:  "status",
-					Value: v1alpha1.AnyStringPtr(status),
+					Value: wfv1.AnyStringPtr(status),
 				},
 			},
 		},
-		HTTP: &v1alpha1.HTTP{
+		HTTP: &wfv1.HTTP{
 			URL: "{{workflow.parameters.server}}/v1/projects/{{workflow.parameters.projectID}}" +
 				"/workflows/{{workflow.parameters.workflowID}}" +
 				"/executions/{{inputs.parameters.id}}",
 			Method: http.MethodPut,
-			Headers: v1alpha1.HTTPHeaders{
+			Headers: wfv1.HTTPHeaders{
 				{
 					Name:  "Content-Type",
 					Value: "application/json",
@@ -274,139 +272,47 @@ func (t *TemplateManager) GetWorkflowExecutionStatusTemplate(
 }
 
 // GetWorkflowExecutionEnterTemplate returns the enter template of a workflow execution.
-func (t *TemplateManager) GetWorkflowExecutionEnterTemplate(wf *model.WorkflowExecution) *v1alpha1.Template {
+func (t *TemplateManager) GetWorkflowExecutionEnterTemplate(wf *model.WorkflowExecution) *wfv1.Template {
 	return t.GetWorkflowExecutionStatusTemplate(workflowEnterTemplateName, wf)
 }
 
 // getExitTemplate returns template for workflow exit handler.
-func (t *TemplateManager) GetWorkflowExecutionExitTemplate(wf *model.WorkflowExecution) *v1alpha1.Template {
+func (t *TemplateManager) GetWorkflowExecutionExitTemplate(wf *model.WorkflowExecution) *wfv1.Template {
 	return t.GetWorkflowExecutionStatusTemplate(workflowExitTemplateName, wf)
 }
 
-// GetStageExecutionExtendTemplates extends one stage execution to three stage executions,
-// enter template, main template, and exit template and its step templates.
-// The extend templates are used to manager lifecycle of the stage execution.
-func (t *TemplateManager) GetStageExecutionExtendTemplates(
-	ctx context.Context,
-	stageExecution *model.WorkflowStageExecution,
-) (extendTemplate *v1alpha1.Template, stageTemplates []*v1alpha1.Template, err error) {
-	stageTemplates, err = t.GetStageExecutionTemplates(ctx, stageExecution)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	main := statusTemplateName(stageExecution.ID, templateTypeStage, templateMain)
-
-	// Extend one stage template to three stage templates, enter template, main template,
-	// and exit template.
-	extendTemplate = &v1alpha1.Template{
-		Name: fmt.Sprintf("stage-execution-%s-extend", stageExecution.ID.String()),
-		Steps: []v1alpha1.ParallelSteps{
-			{
-				Steps: []v1alpha1.WorkflowStep{
-					{
-						Name:     statusTemplateName(stageExecution.ID, templateTypeStage, templateEnter),
-						Template: stageTemplates[0].Name,
-						Arguments: v1alpha1.Arguments{
-							Parameters: []v1alpha1.Parameter{
-								{
-									Name:  "status",
-									Value: v1alpha1.AnyStringPtr("Running"),
-								},
-							},
-						},
-					},
-				},
-			},
-			{
-				Steps: []v1alpha1.WorkflowStep{
-					{
-						Name:     main,
-						Template: stageTemplates[1].Name,
-						Hooks: v1alpha1.LifecycleHooks{
-							"failed": getLifecycleHook(
-								stageTemplates[2].Name,
-								types.ExecutionStatusFailed,
-								fmt.Sprintf("steps[\"%s\"].status == \"Failed\"",
-									main,
-								),
-								"",
-							),
-							"succeeded": getLifecycleHook(
-								stageTemplates[2].Name,
-								types.ExecutionStatusSucceeded,
-								fmt.Sprintf("steps[\"%s\"].status == \"Succeeded\"",
-									main,
-								),
-								"",
-							),
-							"error": getLifecycleHook(
-								stageTemplates[2].Name,
-								types.ExecutionStatusError,
-								fmt.Sprintf("steps[\"%s\"].status == \"Error\"",
-									main,
-								),
-								"",
-							),
-						},
-					},
-				},
-			},
-		},
-	}
-
-	return extendTemplate, stageTemplates, nil
-}
-
-// GetStageExecutionTemplates extends one stage execution to three stage executions,
-// enter template, main template, and exit template and its step templates.
+// GetStageExecutionTemplates extends one stage execution to template,
+// return stage template and its step templates.
 func (t *TemplateManager) GetStageExecutionTemplates(
 	ctx context.Context,
 	stageExecution *model.WorkflowStageExecution,
-) ([]*v1alpha1.Template, error) {
-	var (
-		enterTemplate = t.GetStageExecutionEnterTemplate(stageExecution)
-		exitTemplate  = t.GetStageExecutionExitTemplate(stageExecution)
-		stageTemplate = &v1alpha1.Template{
-			Name: templateName(stageExecution.ID, templateTypeStage),
-			DAG:  &v1alpha1.DAGTemplate{},
-		}
+) (stageTemplate *wfv1.Template, subTemplates []*wfv1.Template, err error) {
+	stageTemplate = &wfv1.Template{
+		Name: statusTemplateName(stageExecution.ID, templateTypeStage, templateStageMain),
+		DAG:  &wfv1.DAGTemplate{},
+	}
 
-		// StageTemplates stores tempalate of the stage own.
-		stageTemplates = []*v1alpha1.Template{
-			enterTemplate,
-			stageTemplate,
-			exitTemplate,
-		}
-
-		// StageStepTemplates stores all step templates of the stage.
-		stageStepTemplates = make([]*v1alpha1.Template, 0)
-	)
-
-	tasks := make([]v1alpha1.DAGTask, 0, len(stageExecution.Edges.Steps))
+	tasks := make([]wfv1.DAGTask, 0, len(stageExecution.Edges.Steps))
 
 	// Get step templates with step executions.
 	for _, stepExecution := range stageExecution.Edges.Steps {
 		extendTemplate, stepTemplates, err := t.GetStepExecutionExtendTemplates(ctx, stepExecution)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
-		stageStepTemplates = append(stageStepTemplates, stepTemplates...)
-		stageStepTemplates = append(stageStepTemplates, extendTemplate)
+		subTemplates = append(subTemplates, stepTemplates...)
+		subTemplates = append(subTemplates, extendTemplate)
 
-		tasks = append(tasks, v1alpha1.DAGTask{
-			Name:     "step-execution-" + stepExecution.ID.String(),
+		tasks = append(tasks, wfv1.DAGTask{
+			Name:     statusTemplateName(stepExecution.ID, templateTypeStep, templateStageEnter),
 			Template: extendTemplate.Name,
 		})
 	}
 
 	stageTemplate.DAG.Tasks = tasks
 
-	// Add step templates to templates list.
-	stageTemplates = append(stageTemplates, stageStepTemplates...)
-
-	return stageTemplates, nil
+	return
 }
 
 // GetStageExecutionStatusTemplate returns the status template of a stage execution.
@@ -414,28 +320,28 @@ func (t *TemplateManager) GetStageExecutionTemplates(
 func (t *TemplateManager) GetStageExecutionStatusTemplate(
 	name string,
 	stageExecution *model.WorkflowStageExecution,
-) *v1alpha1.Template {
-	return &v1alpha1.Template{
+) *wfv1.Template {
+	return &wfv1.Template{
 		Name: name,
-		Inputs: v1alpha1.Inputs{
-			Parameters: []v1alpha1.Parameter{
+		Inputs: wfv1.Inputs{
+			Parameters: []wfv1.Parameter{
 				{
 					Name:  "id",
-					Value: v1alpha1.AnyStringPtr(stageExecution.ID.String()),
+					Value: wfv1.AnyStringPtr(stageExecution.ID.String()),
 				},
 				{
 					Name:  "workflowExecutionID",
-					Value: v1alpha1.AnyStringPtr(stageExecution.WorkflowExecutionID.String()),
+					Value: wfv1.AnyStringPtr(stageExecution.WorkflowExecutionID.String()),
 				},
 				{
 					Name: "status",
 				},
 			},
 		},
-		HTTP: &v1alpha1.HTTP{
+		HTTP: &wfv1.HTTP{
 			URL:    stageExecutionUpdateURL,
 			Method: http.MethodPut,
-			Headers: v1alpha1.HTTPHeaders{
+			Headers: wfv1.HTTPHeaders{
 				{
 					Name:  "Authorization",
 					Value: "Bearer {{workflow.parameters.token}}",
@@ -458,12 +364,12 @@ func (t *TemplateManager) GetStageExecutionStatusTemplate(
 // The template handler sync the status of the stage execution to "Running".
 func (t *TemplateManager) GetStageExecutionEnterTemplate(
 	stageExecution *model.WorkflowStageExecution,
-) *v1alpha1.Template {
+) *wfv1.Template {
 	return t.GetStageExecutionStatusTemplate(
 		statusTemplateName(
 			stageExecution.ID,
 			templateTypeStage,
-			templateEnter,
+			templateStageEnter,
 		),
 		stageExecution,
 	)
@@ -473,12 +379,12 @@ func (t *TemplateManager) GetStageExecutionEnterTemplate(
 // The template handler sync the status of the stage execution to "Succeeded" or "Failed".
 func (t *TemplateManager) GetStageExecutionExitTemplate(
 	stageExecution *model.WorkflowStageExecution,
-) *v1alpha1.Template {
+) *wfv1.Template {
 	return t.GetStageExecutionStatusTemplate(
 		statusTemplateName(
 			stageExecution.ID,
 			templateTypeStage,
-			templateExit,
+			templateStageExit,
 		),
 		stageExecution,
 	)
@@ -490,7 +396,7 @@ func (t *TemplateManager) GetStageExecutionExitTemplate(
 func (t *TemplateManager) GetStepExecutionExtendTemplates(
 	ctx context.Context,
 	stepExecution *model.WorkflowStepExecution,
-) (extendTemplate *v1alpha1.Template, stepTemplates []*v1alpha1.Template, err error) {
+) (extendTemplate *wfv1.Template, stepTemplates []*wfv1.Template, err error) {
 	secretName := fmt.Sprintf("workflow-execution-%s", stepExecution.WorkflowExecutionID.String())
 	secretTemplate := getSecretTemplate(
 		statusTemplateName(stepExecution.ID, templateTypeStep, "secret"),
@@ -507,26 +413,25 @@ func (t *TemplateManager) GetStepExecutionExtendTemplates(
 
 	tokenRef := fmt.Sprintf("{{=fromBase64(steps['%s'].outputs.parameters.secretValue)}}", secretTemplate.Name)
 
-	main := statusTemplateName(stepExecution.ID, templateTypeStep, templateMain)
 	// Extend one step template to three step templates, enter template, main template,
 	// and exit template.
-	extendTemplate = &v1alpha1.Template{
-		Name: fmt.Sprintf("step-execution-%s-extend", stepExecution.ID.String()),
-		Steps: []v1alpha1.ParallelSteps{
+	extendTemplate = &wfv1.Template{
+		Name: fmt.Sprintf("%s-extend", step.StepTemplateName(stepExecution)),
+		Steps: []wfv1.ParallelSteps{
 			{
-				Steps: []v1alpha1.WorkflowStep{
+				Steps: []wfv1.WorkflowStep{
 					{
 						Name:     secretTemplate.Name,
 						Template: secretTemplate.Name,
-						Arguments: v1alpha1.Arguments{
-							Parameters: []v1alpha1.Parameter{
+						Arguments: wfv1.Arguments{
+							Parameters: []wfv1.Parameter{
 								{
 									Name:  "secretName",
-									Value: v1alpha1.AnyStringPtr(secretName),
+									Value: wfv1.AnyStringPtr(secretName),
 								},
 								{
 									Name:  "secretKey",
-									Value: v1alpha1.AnyStringPtr("token"),
+									Value: wfv1.AnyStringPtr("token"),
 								},
 							},
 						},
@@ -534,63 +439,17 @@ func (t *TemplateManager) GetStepExecutionExtendTemplates(
 				},
 			},
 			{
-				Steps: []v1alpha1.WorkflowStep{
+				Steps: []wfv1.WorkflowStep{
 					{
-						Name:     statusTemplateName(stepExecution.ID, templateTypeStep, templateEnter),
+						Name:     statusTemplateName(stepExecution.ID, templateTypeStep, templateStageMain),
 						Template: stepTemplates[0].Name,
-						Arguments: v1alpha1.Arguments{
-							Parameters: []v1alpha1.Parameter{
-								{
-									Name:  "status",
-									Value: v1alpha1.AnyStringPtr("Running"),
-								},
+						Arguments: wfv1.Arguments{
+							Parameters: []wfv1.Parameter{
 								{
 									Name:  "token",
-									Value: v1alpha1.AnyStringPtr(tokenRef),
+									Value: wfv1.AnyStringPtr(tokenRef),
 								},
 							},
-						},
-					},
-				},
-			},
-			{
-				Steps: []v1alpha1.WorkflowStep{
-					{
-						Name:     statusTemplateName(stepExecution.ID, templateTypeStep, templateMain),
-						Template: stepTemplates[1].Name,
-						Arguments: v1alpha1.Arguments{
-							Parameters: []v1alpha1.Parameter{
-								{
-									Name:  "token",
-									Value: v1alpha1.AnyStringPtr(tokenRef),
-								},
-							},
-						},
-						Hooks: v1alpha1.LifecycleHooks{
-							"succeeded": getLifecycleHook(
-								stepTemplates[2].Name,
-								types.ExecutionStatusSucceeded,
-								fmt.Sprintf("steps[\"%s\"].status == \"Succeeded\"",
-									main,
-								),
-								tokenRef,
-							),
-							"failed": getLifecycleHook(
-								stepTemplates[2].Name,
-								types.ExecutionStatusFailed,
-								fmt.Sprintf("steps[\"%s\"].status == \"Failed\"",
-									main,
-								),
-								tokenRef,
-							),
-							"error": getLifecycleHook(
-								stepTemplates[2].Name,
-								types.ExecutionStatusError,
-								fmt.Sprintf("steps[\"%s\"].status == \"Error\"",
-									main,
-								),
-								tokenRef,
-							),
 						},
 					},
 				},
@@ -606,11 +465,7 @@ func (t *TemplateManager) GetStepExecutionExtendTemplates(
 func (t *TemplateManager) GetStepExecutionTemplates(
 	ctx context.Context,
 	stepExecution *model.WorkflowStepExecution,
-) ([]*v1alpha1.Template, error) {
-	// Get enter template.
-	enterTemplate := t.stepExecutionEnterTemplate(stepExecution)
-	exitTemplate := t.stepExecutionExitTemplate(stepExecution)
-
+) ([]*wfv1.Template, error) {
 	stepService, err := step.GetStepManager(steptypes.CreateOptions{
 		Type:        steptypes.Type(stepExecution.Type),
 		ModelClient: t.mc,
@@ -625,10 +480,8 @@ func (t *TemplateManager) GetStepExecutionTemplates(
 		return nil, err
 	}
 
-	templates := []*v1alpha1.Template{
-		enterTemplate,
+	templates := []*wfv1.Template{
 		mainTemplate,
-		exitTemplate,
 	}
 
 	templates = append(templates, subTemplates...)
@@ -642,22 +495,22 @@ func (t *TemplateManager) GetStepExecutionTemplates(
 func (t *TemplateManager) GetStepExecutionStatusTemplate(
 	name string,
 	stepExecution *model.WorkflowStepExecution,
-) *v1alpha1.Template {
-	return &v1alpha1.Template{
+) *wfv1.Template {
+	return &wfv1.Template{
 		Name: name,
-		Inputs: v1alpha1.Inputs{
-			Parameters: []v1alpha1.Parameter{
+		Inputs: wfv1.Inputs{
+			Parameters: []wfv1.Parameter{
 				{
 					Name:  "id",
-					Value: v1alpha1.AnyStringPtr(stepExecution.ID.String()),
+					Value: wfv1.AnyStringPtr(stepExecution.ID.String()),
 				},
 				{
 					Name:  "workflowStageExecutionID",
-					Value: v1alpha1.AnyStringPtr(stepExecution.WorkflowStageExecutionID.String()),
+					Value: wfv1.AnyStringPtr(stepExecution.WorkflowStageExecutionID.String()),
 				},
 				{
 					Name:  "workflowExecutionID",
-					Value: v1alpha1.AnyStringPtr(stepExecution.WorkflowExecutionID.String()),
+					Value: wfv1.AnyStringPtr(stepExecution.WorkflowExecutionID.String()),
 				},
 				{
 					Name: "status",
@@ -667,10 +520,10 @@ func (t *TemplateManager) GetStepExecutionStatusTemplate(
 				},
 			},
 		},
-		HTTP: &v1alpha1.HTTP{
+		HTTP: &wfv1.HTTP{
 			URL:    stepExecutionUpdateURL,
 			Method: http.MethodPut,
-			Headers: v1alpha1.HTTPHeaders{
+			Headers: wfv1.HTTPHeaders{
 				{
 					Name:  "Authorization",
 					Value: "Bearer {{inputs.parameters.token}}",
@@ -689,96 +542,68 @@ func (t *TemplateManager) GetStepExecutionStatusTemplate(
 	}
 }
 
-// stepExecutionEnterTemplate returns the enter template of a step execution. The enter template is used to
-// update the status of the step execution to "Running".
-func (t *TemplateManager) stepExecutionEnterTemplate(stepExecution *model.WorkflowStepExecution) *v1alpha1.Template {
-	return t.GetStepExecutionStatusTemplate(
-		statusTemplateName(
-			stepExecution.ID,
-			templateTypeStep,
-			templateEnter,
-		),
-		stepExecution,
-	)
-}
-
-// stepExecutionExitTemplate returns the exit template of a step execution. The exit template is used to
-// update the status of the step execution to "Succeeded" or "Failed".
-func (t *TemplateManager) stepExecutionExitTemplate(stepExecution *model.WorkflowStepExecution) *v1alpha1.Template {
-	return t.GetStepExecutionStatusTemplate(
-		statusTemplateName(
-			stepExecution.ID,
-			templateTypeStep,
-			templateExit,
-		),
-		stepExecution,
-	)
-}
-
-// getLifecycleHook returns a lifecycle hook of target tasks or steps.
-func getLifecycleHook(templateName, status, expression, token string) v1alpha1.LifecycleHook {
-	hook := v1alpha1.LifecycleHook{
-		Template: templateName,
-		Arguments: v1alpha1.Arguments{
-			Parameters: []v1alpha1.Parameter{
-				{
-					Name:  "status",
-					Value: v1alpha1.AnyStringPtr(status),
-				},
-			},
-		},
-		Expression: expression,
-	}
-
-	if token != "" {
-		hook.Arguments.Parameters = append(hook.Arguments.Parameters, v1alpha1.Parameter{
-			Name:  "token",
-			Value: v1alpha1.AnyStringPtr(token),
-		})
-	}
-
-	return hook
-}
-
 func statusTemplateName(id object.ID, templateType, stage string) string {
-	return strs.Join("-", templateName(id, templateType), stage)
+	return strs.Join("-", templateType, stage, id.String())
 }
 
-func templateName(id object.ID, templateType string) string {
-	return strs.Join("-", templateType, id.String())
+func parseTemplateName(s string) (templateType, stage string, id object.ID, ok bool) {
+	splits := strings.Split(s, "-")
+	if len(splits) != 3 {
+		return
+	}
+
+	templateType, stage, id = splits[0], splits[1], object.ID(splits[2])
+
+	if !id.Valid() {
+		return "", "", "", false
+	}
+
+	ok = true
+
+	return
 }
 
 // getSecretTemplate returns a template for getting a secret.
 // It will get step execution token from the secret.
 // This template will get k8s secret from k8s api server.
-func getSecretTemplate(name, secretName, secretKey string) *v1alpha1.Template {
-	return &v1alpha1.Template{
+func getSecretTemplate(name, secretName, secretKey string) *wfv1.Template {
+	return &wfv1.Template{
 		Name: name,
-		Inputs: v1alpha1.Inputs{
-			Parameters: []v1alpha1.Parameter{
+		Inputs: wfv1.Inputs{
+			Parameters: []wfv1.Parameter{
 				{
 					Name:  "secretName",
-					Value: v1alpha1.AnyStringPtr(secretName),
+					Value: wfv1.AnyStringPtr(secretName),
 				}, {
 					Name:  "secretKey",
-					Value: v1alpha1.AnyStringPtr(secretKey),
+					Value: wfv1.AnyStringPtr(secretKey),
 				}, {
 					Name:  "secretNamespace",
-					Value: v1alpha1.AnyStringPtr(types.WalrusSystemNamespace),
+					Value: wfv1.AnyStringPtr(types.WalrusSystemNamespace),
 				},
 			},
 		},
-		Outputs: v1alpha1.Outputs{
-			Parameters: []v1alpha1.Parameter{
+		Outputs: wfv1.Outputs{
+			Parameters: []wfv1.Parameter{
 				{
 					Name: "secretValue",
-					ValueFrom: &v1alpha1.ValueFrom{
+					ValueFrom: &wfv1.ValueFrom{
 						JSONPath: "{.data.{{inputs.parameters.secretKey}}}",
 					},
 				},
 			},
 		},
-		Resource: &v1alpha1.ResourceTemplate{
+		Timeout: "10s",
+		RetryStrategy: &wfv1.RetryStrategy{
+			Limit:       &limit,
+			RetryPolicy: wfv1.RetryPolicyOnFailure,
+			Backoff: &wfv1.Backoff{
+				Duration:    "5",
+				Factor:      &factor,
+				MaxDuration: "1m",
+			},
+		},
+		Resource: &wfv1.ResourceTemplate{
 			Action: "get",
 			Manifest: `apiVersion: v1
 kind: Secret

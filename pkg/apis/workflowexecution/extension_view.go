@@ -11,3 +11,13 @@ type RouteRerunRequest struct {
 func (r *RouteRerunRequest) Validate() error {
 	return r.WorkflowExecutionQueryInput.Validate()
 }
+
+type RouteStopRequest struct {
+	_ struct{} `route:"PUT=/stop"`
+
+	model.WorkflowExecutionQueryInput `path:",inline"`
+}
+
+func (r *RouteStopRequest) Validate() error {
+	return r.WorkflowExecutionQueryInput.Validate()
+}

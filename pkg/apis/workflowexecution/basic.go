@@ -1,16 +1,11 @@
 package workflowexecution
 
 import (
-	"time"
-
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/workflowexecution"
 	"github.com/seal-io/walrus/pkg/dao/model/workflowstageexecution"
 	"github.com/seal-io/walrus/pkg/dao/model/workflowstepexecution"
-	"github.com/seal-io/walrus/pkg/dao/types"
-	"github.com/seal-io/walrus/pkg/dao/types/object"
-	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	"github.com/seal-io/walrus/utils/topic"
 )
@@ -32,51 +27,6 @@ func (h Handler) Get(req GetRequest) (GetResponse, error) {
 	}
 
 	return model.ExposeWorkflowExecution(entity), nil
-}
-
-func (h Handler) Update(req UpdateRequest) error {
-	entity, err := h.modelClient.WorkflowExecutions().Query().
-		Where(workflowexecution.ID(req.ID)).
-		Only(req.Context)
-	if err != nil {
-		return err
-	}
-
-	update := h.modelClient.WorkflowExecutions().UpdateOne(entity)
-
-	switch req.Status {
-	case types.ExecutionStatusSucceeded:
-		status.WorkflowExecutionStatusRunning.True(entity, "")
-	case types.ExecutionStatusFailed, types.ExecutionStatusError:
-		status.WorkflowExecutionStatusRunning.False(entity, "")
-	case types.ExecutionStatusRunning:
-		status.WorkflowExecutionStatusPending.True(entity, "")
-		status.WorkflowExecutionStatusRunning.Unknown(entity, "")
-
-		update.SetExecuteTime(time.Now())
-	default:
-		return nil
-	}
-
-	entity.Status.SetSummary(status.WalkWorkflowExecution(&entity.Status))
-	update.SetStatus(entity.Status)
-
-	// If workflow execution is not running, set duration.
-	if req.Status != types.ExecutionStatusRunning {
-		update.SetDuration(int(time.Since(entity.ExecuteTime).Seconds()))
-	}
-
-	entity, err = update.Save(req.Context)
-	if err != nil {
-		return err
-	}
-
-	// Publish workflow topic.
-	// Execution update will trigger workflow update of the workflow list.
-	return topic.Publish(req.Context, modelchange.Workflow, modelchange.Event{
-		Type: modelchange.EventTypeUpdate,
-		IDs:  []object.ID{entity.WorkflowID},
-	})
 }
 
 var (

@@ -33,6 +33,25 @@ func (h Handler) RouteRerunRequest(req RouteRerunRequest) error {
 	}
 
 	return h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
-		return pkgworkflow.Rerun(req.Context, h.modelClient, h.k8sConfig, entity)
+		return pkgworkflow.Rerun(req.Context, h.modelClient, h.workflowClient, entity)
+	})
+}
+
+// RouteStopRequest terminates the workflow execution.
+func (h Handler) RouteStopRequest(req RouteStopRequest) error {
+	entity, err := h.modelClient.WorkflowExecutions().Query().
+		Where(workflowexecution.ID(req.ID)).
+		Only(req.Context)
+	if err != nil {
+		return err
+	}
+
+	if status.WorkflowExecutionStatusPending.IsUnknown(entity) ||
+		status.WorkflowExecutionStatusRunning.IsUnknown(entity) {
+		return fmt.Errorf("workflow execution is pending or running")
+	}
+
+	return h.workflowClient.Terminate(req.Context, pkgworkflow.TerminateOptions{
+		WorkflowExecution: entity,
 	})
 }
