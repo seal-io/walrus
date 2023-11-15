@@ -1,6 +1,8 @@
 package validation
 
 import (
+	"encoding/json"
+	"regexp"
 	"strings"
 	"time"
 
@@ -92,6 +94,27 @@ func IsValidEndpoints(eps []string) error {
 		if err := IsValidEndpoint(v); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+// MapStringNoMustache checks if the map string value contains mustache.
+func MapStringNoMustache(params map[string]any) error {
+	bs, err := json.Marshal(params)
+	if err != nil {
+		return err
+	}
+
+	return StringNoMustache(string(bs))
+}
+
+// StringNoMustache checks if the string contains keywords.
+// These keywords will reconginzed as the params like "{{ variable }}".
+func StringNoMustache(s string) error {
+	mustacheReg := regexp.MustCompile(`{{.*?}}`)
+	if mustacheReg.MatchString(s) {
+		return errorx.Errorf("value contains {{}} mustache keywords is not allowed: %s", s)
 	}
 
 	return nil

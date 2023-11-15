@@ -10,6 +10,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/entx"
 	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/schema/mixin"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
@@ -58,6 +59,9 @@ func (Workflow) Fields() []ent.Field {
 			Default(0).
 			Annotations(
 				entx.SkipInput()),
+		field.JSON("variables", types.WorkflowVariables{}).
+			Comment("Configs of workflow variables.").
+			Optional(),
 	}
 }
 
