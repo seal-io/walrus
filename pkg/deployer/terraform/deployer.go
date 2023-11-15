@@ -219,15 +219,12 @@ func (d Deployer) createK8sJob(ctx context.Context, opts createK8sJobOptions) er
 	secretOpts := createK8sSecretsOptions{
 		ResourceRevision: opts.ResourceRevision,
 		Connectors:       connectors,
-		ProjectID:        proj.ID,
-		EnvironmentID:    env.ID,
 		SubjectID:        subjectID,
-		// Metadata.
-		ProjectName:          proj.Name,
-		EnvironmentName:      env.Name,
-		ResourceName:         res.Name,
-		ResourceID:           res.ID,
-		ManagedNamespaceName: pkgenv.GetManagedNamespaceName(env),
+		// Walrus Context.
+		Context: *NewContext().
+			SetProject(proj.ID, proj.Name).
+			SetEnvironment(env.ID, env.Name, pkgenv.GetManagedNamespaceName(env)).
+			SetResource(res.ID, res.Name),
 	}
 	if err = d.createK8sSecrets(ctx, secretOpts); err != nil {
 		return err
@@ -337,15 +334,9 @@ func (d Deployer) updateRevisionStatus(ctx context.Context, ar *model.ResourceRe
 type createK8sSecretsOptions struct {
 	ResourceRevision *model.ResourceRevision
 	Connectors       model.Connectors
-	ProjectID        object.ID
-	EnvironmentID    object.ID
 	SubjectID        object.ID
-	// Metadata.
-	ProjectName          string
-	EnvironmentName      string
-	ResourceName         string
-	ResourceID           object.ID
-	ManagedNamespaceName string
+	// Walrus Context.
+	Context Context
 }
 
 // createK8sSecrets creates the k8s secrets for deployment.
@@ -624,9 +615,9 @@ func (d Deployer) loadConfigsBytes(ctx context.Context, opts createK8sSecretsOpt
 
 	revisionOpts := RevisionOpts{
 		ResourceRevision: opts.ResourceRevision,
-		ResourceName:     opts.ResourceName,
-		ProjectID:        opts.ProjectID,
-		EnvironmentID:    opts.EnvironmentID,
+		ResourceName:     opts.Context.Resource.Name,
+		ProjectID:        opts.Context.Project.ID,
+		EnvironmentID:    opts.Context.Environment.ID,
 	}
 	// Parse module attributes.
 	variables, dependencyOutputs, err := ParseModuleAttributes(
@@ -657,9 +648,9 @@ func (d Deployer) loadConfigsBytes(ctx context.Context, opts createK8sSecretsOpt
 	}
 	address := fmt.Sprintf("%s%s", serverAddress,
 		fmt.Sprintf(_backendAPI,
-			opts.ProjectID,
-			opts.EnvironmentID,
-			opts.ResourceID,
+			opts.Context.Project.ID,
+			opts.Context.Environment.ID,
+			opts.Context.Resource.ID,
 			opts.ResourceRevision.ID))
 
 	// Prepare API token for terraform backend.
@@ -895,7 +886,7 @@ func getModuleConfig(
 	opts createK8sSecretsOptions,
 ) (*config.ModuleConfig, error) {
 	mc := &config.ModuleConfig{
-		Name:   opts.ResourceName,
+		Name:   opts.Context.Resource.Name,
 		Source: template.Source,
 	}
 
@@ -932,28 +923,8 @@ func getModuleConfig(
 				sensitiveVariables.Insert(fmt.Sprintf(`var\.%s`, n))
 			}
 
-			// Add walrus metadata.
-			var attrValue string
-
-			switch n {
-			case WalrusMetadataProjectName:
-				attrValue = opts.ProjectName
-			case WalrusMetadataEnvironmentName:
-				attrValue = opts.EnvironmentName
-			case WalrusMetadataServiceName:
-				attrValue = opts.ResourceName
-			case WalrusMetadataProjectID:
-				attrValue = opts.ProjectID.String()
-			case WalrusMetadataEnvironmentID:
-				attrValue = opts.EnvironmentID.String()
-			case WalrusMetadataResourceID:
-				attrValue = opts.ResourceID.String()
-			case WalrusMetadataNamespaceName:
-				attrValue = opts.ManagedNamespaceName
-			}
-
-			if attrValue != "" {
-				mc.Attributes[n] = attrValue
+			if n == WalrusContextVariableName {
+				mc.Attributes[n] = opts.Context
 			}
 		}
 	}
@@ -974,7 +945,7 @@ func getModuleConfig(
 			co := config.Output{
 				Sensitive:    v.Value.WriteOnly,
 				Name:         v.Value.Title,
-				ResourceName: opts.ResourceName,
+				ResourceName: opts.Context.Resource.Name,
 				Value:        valueExpression,
 			}
 
