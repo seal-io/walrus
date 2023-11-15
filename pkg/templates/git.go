@@ -145,6 +145,15 @@ func syncTemplateFromRef(
 		return err
 	}
 
+	satisfy, err := isConstraintSatisfied(schema)
+	if err != nil {
+		return err
+	}
+
+	if !satisfy {
+		return fmt.Errorf("%s:%s does not satisfy server version constraint", entity.Name, repo.Reference)
+	}
+
 	// Create template.
 	entity.Icon = icon
 
@@ -279,7 +288,10 @@ func SyncTemplateFromGitRepo(
 
 		// If template exists, update template status.
 		t, err := mc.Templates().Query().
-			Where(template.Name(entity.Name)).
+			Where(
+				template.Name(entity.Name),
+				template.ProjectID(entity.ProjectID),
+			).
 			Only(ctx)
 		if err != nil {
 			if !model.IsNotFound(err) {
@@ -418,76 +430,4 @@ func GetRepoFileRaw(repo *vcs.Repository, file string) (string, error) {
 	}
 
 	return "", nil
-}
-
-// getValidVersions get valid terraform module versions.
-func getValidVersions(
-	entity *model.Template,
-	r *git.Repository,
-	versions []*version.Version,
-) ([]*version.Version, map[*version.Version]types.TemplateVersionSchema, error) {
-	logger := log.WithName("template")
-
-	w, err := r.Worktree()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	validVersions := make([]*version.Version, 0, len(versions))
-	versionSchema := make(map[*version.Version]types.TemplateVersionSchema)
-
-	for i := range versions {
-		v := versions[i]
-		tag := v.Original()
-
-		resetRef, err := vcs.GetRepoRef(r, tag)
-		if err != nil {
-			logger.Warnf("failed to get \"%s:%s\" of catalog %q git reference: %v",
-				entity.Name, tag, entity.CatalogID, err)
-			continue
-		}
-
-		hash := resetRef.Hash()
-
-		// If tag is not a commit hash, get commit hash from tag object target.
-		object, err := r.TagObject(hash)
-		if err == nil {
-			hash = object.Target
-		}
-
-		err = w.Reset(&git.ResetOptions{
-			Commit: hash,
-			Mode:   git.HardReset,
-		})
-		if err != nil {
-			logger.Warnf("failed set \"%s:%s\" of catalog %q: %v", entity.Name, tag, entity.CatalogID, err)
-			continue
-		}
-
-		logger.Debugf("get \"%s:%s\" of catalog %q schema", entity.Name, tag, entity.CatalogID)
-		dir := w.Filesystem.Root()
-
-		schema, err := loader.LoadSchemaPreferFile(dir, entity.Name)
-		if err != nil {
-			logger.Warnf("failed to load \"%s:%s\" of catalog %q schema: %v", entity.Name, tag, entity.CatalogID, err)
-			continue
-		}
-
-		if err = schema.Validate(); err != nil {
-			logger.Warnf(
-				"failed to validate \"%s:%s\" of catalog %q schema: %v",
-				entity.Name,
-				tag,
-				entity.CatalogID,
-				err,
-			)
-
-			continue
-		}
-
-		validVersions = append(validVersions, v)
-		versionSchema[v] = *schema
-	}
-
-	return validVersions, versionSchema, nil
 }

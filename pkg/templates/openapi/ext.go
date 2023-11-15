@@ -14,12 +14,68 @@ const (
 	ExtUIHidden    = "hidden"
 	ExtUIImmutable = "immutable"
 	ExtUIWidget    = "widget"
+	/* UI is under schema extension.
+		   Example:
+		   ```yaml
+		   components:
+		     schemas:
+		       variables:
+		         type: object
+		         properties:
+	                   image:
+		             title: Image Name
+		   	     type: string
+		             description: Docker image name
+		             x-walrus-ui:
+		   	       group: Basic
+		               showIf:
+		               hidden:
+		               immutable:
+		   	       widget:
+		   ```
+	*/
+)
 
+const (
 	// Extension for original value.
 	ExtOriginal                  = "x-walrus-original"
 	ExtOriginalType              = "type"
 	ExtOriginalValueExpression   = "value-expression"
 	ExtOriginalVariablesSequence = "sequence"
+	/* Origin is under schema extension.
+	   Example:
+	   ```yaml
+	   components:
+	     schemas:
+	       variables:
+	         type: object
+	         properties:
+	           image:
+	             title: Image Name
+	             type: string
+	             description: Docker image name
+	             x-walrus-original:
+	               type: list
+	   ```
+	*/
+)
+
+const (
+	// Extension for walrus.
+	ExtWalrus        = "x-walrus"
+	ExtWalrusVersion = "version"
+
+	/* Version Constraint is under info extension.
+	   Example:
+	   ```yaml
+	   openapi: 3.0.3
+	   info:
+	     title: OpenAPI schema for template webservice
+	     x-walrus:
+	   	version: '>=0.4.0-rc1'
+	    ```
+	*/
+
 )
 
 type Ext map[string]map[string]any
@@ -113,6 +169,16 @@ func (e Ext) SetUIShowIf(showIf string) Ext {
 	}
 
 	e[ExtUI][ExtUIShowIf] = showIf
+
+	return e
+}
+
+func (e Ext) SetWalrusVersion(s string) Ext {
+	if e[ExtWalrus] == nil {
+		e[ExtWalrus] = map[string]any{}
+	}
+
+	e[ExtWalrus][ExtWalrusVersion] = s
 
 	return e
 }
@@ -292,6 +358,26 @@ func GetUIWidget(e map[string]any) string {
 	}
 
 	val, ok := eo[ExtUIWidget]
+	if !ok {
+		return ""
+	}
+
+	vb, _ := val.(string)
+
+	return vb
+}
+
+func GetWalrusVersion(e map[string]any) string {
+	if e[ExtWalrus] == nil {
+		return ""
+	}
+
+	eo, ok := e[ExtWalrus].(map[string]any)
+	if !ok {
+		return ""
+	}
+
+	val, ok := eo[ExtWalrusVersion]
 	if !ok {
 		return ""
 	}
