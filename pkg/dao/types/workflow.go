@@ -4,9 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	wfv1 "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/validation"
 )
 
 const (
@@ -17,9 +18,50 @@ const (
 // RetryStrategy is the retry strategy of a workflow step.
 // See https://raw.githubusercontent.com/argoproj/argo-workflows/master/examples/retry-conditional.yaml
 type RetryStrategy struct {
-	Limit       int                  `json:"limit"`
-	RetryPolicy v1alpha1.RetryPolicy `json:"retryPolicy"`
-	Backoff     *v1alpha1.Backoff    `json:"backoff"`
+	Limit       int              `json:"limit"`
+	RetryPolicy wfv1.RetryPolicy `json:"retryPolicy"`
+	Backoff     *wfv1.Backoff    `json:"backoff"`
+}
+
+// WorkflowVariable is the config of a workflow parameter.
+// Parameters could be reconfigured in workflow execution.
+type WorkflowVariable struct {
+	// Name is the name of the parameter.
+	Name        string `json:"name"`
+	Value       string `json:"value"`
+	Overwrite   bool   `json:"overwrite"`
+	Description string `json:"description,omitempty"`
+}
+
+func (c *WorkflowVariable) Validate() error {
+	if c.Name == "" {
+		return errors.New("invalid input: empty name")
+	}
+
+	if c.Value == "" {
+		return errors.New("invalid input: empty value")
+	}
+
+	// Mustache syntax is not allowed.
+	// Argo workflow will try parse the value as a template parameter like {{workflow.parameters.name}}.
+	// Walrus workflow will parse the pattern ${workflow.var.name} as a template parameter.
+	if validation.StringNoMustache(c.Value) != nil {
+		return fmt.Errorf("invalid input parameter value: %s, mustache syntax is not allowed", c.Value)
+	}
+
+	return nil
+}
+
+type WorkflowVariables []*WorkflowVariable
+
+func (c WorkflowVariables) Validate() error {
+	for i := range c {
+		if err := c[i].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 const (
@@ -196,6 +238,11 @@ func (s *WorkflowStepApprovalSpec) ToAttributes() map[string]any {
 		WorkflowStepApprovedUsers: s.ApprovedUsers,
 		WorkflowStepRejectedUsers: s.RejectedUsers,
 	}
+}
+
+func (s *WorkflowStepApprovalSpec) Reset() {
+	s.ApprovedUsers = nil
+	s.RejectedUsers = nil
 }
 
 func toObjectIDs(users []any) ([]object.ID, error) {
