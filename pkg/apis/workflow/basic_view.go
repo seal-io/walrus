@@ -24,6 +24,10 @@ func (r *CreateRequest) Validate() error {
 		return err
 	}
 
+	if err := r.WorkflowCreateInput.Variables.Validate(); err != nil {
+		return fmt.Errorf("invalid variables configs: %w", err)
+	}
+
 	if err := validation.IsDNSLabel(r.Name); err != nil {
 		return fmt.Errorf("invalid name: %w", err)
 	}

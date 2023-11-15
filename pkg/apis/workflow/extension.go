@@ -58,6 +58,7 @@ func (h Handler) RouteRunRequest(req RouteRunRequest) (RouteRunResponse, error) 
 			RestCfg:     h.k8sConfig,
 			Params:      req.Params,
 			Description: req.Description,
+			Variables:   req.Variables,
 		})
 		if err != nil {
 			return err

@@ -141,9 +141,8 @@ func WorkflowStageStepsEdgeSave(ctx context.Context, mc model.ClientSet, entity 
 }
 
 type (
-	ExecuteOptions struct {
-		RestCfg *rest.Config
-		Params  map[string]string
+		// Execution parameters that replace workflow variables config value.
+		Variables map[string]string
 		// Description is the description of the workflow execution.
 		Description string
 	}
@@ -303,12 +302,12 @@ func CreateWorkflowStepExecution(
 	opts CreateWorkflowStepExecutionOptions,
 ) (*model.WorkflowStepExecution, error) {
 	var (
-		step   = opts.Step
-		wse    = opts.StageExecution
-		params = opts.Params
+		step = opts.Step
+		wse  = opts.StageExecution
+		vars = opts.Variables
 	)
 
-	attrs, err := parseParams(step.Attributes, params)
+	attrs, err := parseWorkflowVariables(step.Attributes, vars, opts.Workflow.Variables)
 	if err != nil {
 		return nil, err
 	}
@@ -336,12 +335,17 @@ func CreateWorkflowStepExecution(
 		Save(ctx)
 }
 
-// parseParams parses the params into the attributes.
+// parseWorkflowVariables parses the params into the attributes.
 // The params are the key-value pairs that are used to replace the keywords in the attributes.
-// The keywords are the strings that are wrapped by dollar sign and curly braces, like "${key}".
-// The keyword is "${key}" will be replaced by the value of the key in the params.
-func parseParams(attrs map[string]any, params map[string]string) (map[string]any, error) {
-	if err := CheckParams(params); err != nil {
+// The keywords are the strings that are wrapped by dollar sign and curly braces, like "${workflow.var.key}".
+// The keyword is "${workflow.var.key}" will be replaced by the value of the key in the params.
+func parseWorkflowVariables(
+	attrs map[string]any,
+	params map[string]string,
+	config types.WorkflowVariables,
+) (map[string]any, error) {
+	params, err := OverwriteWorkflowVariables(params, config)
+	if err != nil {
 		return nil, err
 	}
 
@@ -350,21 +354,57 @@ func parseParams(attrs map[string]any, params map[string]string) (map[string]any
 		return nil, err
 	}
 
-	fmt.Println(string(bs))
+	re := regexp.MustCompile(`\$\{\s*workflow\.var\.(\w+)\s*\}`)
+	replaced := re.ReplaceAllFunc(bs, func(s []byte) []byte {
+		name := re.FindSubmatch(s)[1]
+		name = bytes.TrimSpace(name)
 
-	for k, v := range params {
-		paramReg := regexp.MustCompile(fmt.Sprintf(`\$\{\s*%s\s*\}`, k))
-		bs = paramReg.ReplaceAll(bs, []byte(v))
+		if val, ok := params[string(name)]; ok {
+			return []byte(val)
 	}
+
+		return s
+	})
 
 	var replacedSpec map[string]any
 
-	err = json.Unmarshal(bs, &replacedSpec)
+	err = json.Unmarshal(replaced, &replacedSpec)
 	if err != nil {
 		return nil, err
 	}
 
 	return replacedSpec, nil
+}
+
+// OverwriteWorkflowVariables merges the variables into the config.
+func OverwriteWorkflowVariables(vars map[string]string, config types.WorkflowVariables) (map[string]string, error) {
+	configKeys := sets.NewString()
+
+	if vars == nil {
+		vars = make(map[string]string)
+	}
+
+	for _, c := range config {
+		// Only overwritable params can be replaced.
+		if c.Overwrite {
+			configKeys.Insert(c.Name)
+		}
+	}
+
+	for k := range vars {
+		if !configKeys.Has(k) {
+			return nil, fmt.Errorf("invalid variables: %s", k)
+		}
+	}
+
+	for i := range config {
+		name, value := config[i].Name, config[i].Value
+		if _, ok := vars[name]; !ok {
+			vars[name] = value
+		}
+	}
+
+	return vars, nil
 }
 
 // CheckParams checks if the params contain keywords.
