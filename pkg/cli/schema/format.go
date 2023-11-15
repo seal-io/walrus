@@ -67,7 +67,8 @@ type WrapOpenAPI struct {
 
 // WrapInfo is a wrapper of openapi3.Info and removed field version, used to generated formatted yaml.
 type WrapInfo struct {
-	Title string `json:"title" yaml:"title"`
+	Title      string         `json:"title" yaml:"title"`
+	Extensions map[string]any `json:",inline" yaml:",inline"`
 }
 
 // WrapComponents is a wrapper of openapi3.Components, used to generated formatted yaml.
@@ -132,7 +133,8 @@ func FormattedOpenAPI(s types.Schema) ([]byte, error) {
 	w := WrapOpenAPI{
 		OpenAPI: es.OpenAPISchema.OpenAPI,
 		Info: WrapInfo{
-			Title: es.OpenAPISchema.Info.Title,
+			Title:      es.OpenAPISchema.Info.Title,
+			Extensions: es.OpenAPISchema.Info.Extensions,
 		},
 		Components: WrapComponents{
 			Schemas: map[string]any{
