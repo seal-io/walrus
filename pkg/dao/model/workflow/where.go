@@ -686,6 +686,16 @@ func VersionLTE(v int) predicate.Workflow {
 	return predicate.Workflow(sql.FieldLTE(FieldVersion, v))
 }
 
+// VariablesIsNil applies the IsNil predicate on the "variables" field.
+func VariablesIsNil() predicate.Workflow {
+	return predicate.Workflow(sql.FieldIsNull(FieldVariables))
+}
+
+// VariablesNotNil applies the NotNil predicate on the "variables" field.
+func VariablesNotNil() predicate.Workflow {
+	return predicate.Workflow(sql.FieldNotNull(FieldVariables))
+}
+
 // HasProject applies the HasEdge predicate on the "project" edge.
 func HasProject() predicate.Workflow {
 	return predicate.Workflow(func(s *sql.Selector) {

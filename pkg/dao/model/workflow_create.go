@@ -21,6 +21,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/workflow"
 	"github.com/seal-io/walrus/pkg/dao/model/workflowexecution"
 	"github.com/seal-io/walrus/pkg/dao/model/workflowstage"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
@@ -159,6 +160,12 @@ func (wc *WorkflowCreate) SetNillableVersion(i *int) *WorkflowCreate {
 	if i != nil {
 		wc.SetVersion(*i)
 	}
+	return wc
+}
+
+// SetVariables sets the "variables" field.
+func (wc *WorkflowCreate) SetVariables(tv types.WorkflowVariables) *WorkflowCreate {
+	wc.mutation.SetVariables(tv)
 	return wc
 }
 
@@ -333,6 +340,11 @@ func (wc *WorkflowCreate) check() error {
 			return &ValidationError{Name: "version", err: fmt.Errorf(`model: validator failed for field "Workflow.version": %w`, err)}
 		}
 	}
+	if v, ok := wc.mutation.Variables(); ok {
+		if err := v.Validate(); err != nil {
+			return &ValidationError{Name: "variables", err: fmt.Errorf(`model: validator failed for field "Workflow.variables": %w`, err)}
+		}
+	}
 	if _, ok := wc.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "Workflow.project"`)}
 	}
@@ -416,6 +428,10 @@ func (wc *WorkflowCreate) createSpec() (*Workflow, *sqlgraph.CreateSpec) {
 	if value, ok := wc.mutation.Version(); ok {
 		_spec.SetField(workflow.FieldVersion, field.TypeInt, value)
 		_node.Version = value
+	}
+	if value, ok := wc.mutation.Variables(); ok {
+		_spec.SetField(workflow.FieldVariables, field.TypeJSON, value)
+		_node.Variables = value
 	}
 	if nodes := wc.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -518,6 +534,9 @@ func (wc *WorkflowCreate) Set(obj *Workflow) *WorkflowCreate {
 	if obj.EnvironmentID != "" {
 		wc.SetEnvironmentID(obj.EnvironmentID)
 	}
+	if !reflect.ValueOf(obj.Variables).IsZero() {
+		wc.SetVariables(obj.Variables)
+	}
 
 	// Record the given object.
 	wc.object = obj
@@ -579,6 +598,9 @@ func (wc *WorkflowCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Con
 		}
 		if _, set := wc.mutation.Field(workflow.FieldType); set {
 			obj.Type = x.Type
+		}
+		if _, set := wc.mutation.Field(workflow.FieldVariables); set {
+			obj.Variables = x.Variables
 		}
 		obj.Edges = x.Edges
 	}
@@ -707,6 +729,9 @@ func (wcb *WorkflowCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx contex
 			}
 			if _, set := wcb.builders[i].mutation.Field(workflow.FieldType); set {
 				objs[i].Type = x[i].Type
+			}
+			if _, set := wcb.builders[i].mutation.Field(workflow.FieldVariables); set {
+				objs[i].Variables = x[i].Variables
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -954,6 +979,24 @@ func (u *WorkflowUpsert) AddVersion(v int) *WorkflowUpsert {
 	return u
 }
 
+// SetVariables sets the "variables" field.
+func (u *WorkflowUpsert) SetVariables(v types.WorkflowVariables) *WorkflowUpsert {
+	u.Set(workflow.FieldVariables, v)
+	return u
+}
+
+// UpdateVariables sets the "variables" field to the value that was provided on create.
+func (u *WorkflowUpsert) UpdateVariables() *WorkflowUpsert {
+	u.SetExcluded(workflow.FieldVariables)
+	return u
+}
+
+// ClearVariables clears the value of the "variables" field.
+func (u *WorkflowUpsert) ClearVariables() *WorkflowUpsert {
+	u.SetNull(workflow.FieldVariables)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -1154,6 +1197,27 @@ func (u *WorkflowUpsertOne) AddVersion(v int) *WorkflowUpsertOne {
 func (u *WorkflowUpsertOne) UpdateVersion() *WorkflowUpsertOne {
 	return u.Update(func(s *WorkflowUpsert) {
 		s.UpdateVersion()
+	})
+}
+
+// SetVariables sets the "variables" field.
+func (u *WorkflowUpsertOne) SetVariables(v types.WorkflowVariables) *WorkflowUpsertOne {
+	return u.Update(func(s *WorkflowUpsert) {
+		s.SetVariables(v)
+	})
+}
+
+// UpdateVariables sets the "variables" field to the value that was provided on create.
+func (u *WorkflowUpsertOne) UpdateVariables() *WorkflowUpsertOne {
+	return u.Update(func(s *WorkflowUpsert) {
+		s.UpdateVariables()
+	})
+}
+
+// ClearVariables clears the value of the "variables" field.
+func (u *WorkflowUpsertOne) ClearVariables() *WorkflowUpsertOne {
+	return u.Update(func(s *WorkflowUpsert) {
+		s.ClearVariables()
 	})
 }
 
@@ -1522,6 +1586,27 @@ func (u *WorkflowUpsertBulk) AddVersion(v int) *WorkflowUpsertBulk {
 func (u *WorkflowUpsertBulk) UpdateVersion() *WorkflowUpsertBulk {
 	return u.Update(func(s *WorkflowUpsert) {
 		s.UpdateVersion()
+	})
+}
+
+// SetVariables sets the "variables" field.
+func (u *WorkflowUpsertBulk) SetVariables(v types.WorkflowVariables) *WorkflowUpsertBulk {
+	return u.Update(func(s *WorkflowUpsert) {
+		s.SetVariables(v)
+	})
+}
+
+// UpdateVariables sets the "variables" field to the value that was provided on create.
+func (u *WorkflowUpsertBulk) UpdateVariables() *WorkflowUpsertBulk {
+	return u.Update(func(s *WorkflowUpsert) {
+		s.UpdateVariables()
+	})
+}
+
+// ClearVariables clears the value of the "variables" field.
+func (u *WorkflowUpsertBulk) ClearVariables() *WorkflowUpsertBulk {
+	return u.Update(func(s *WorkflowUpsert) {
+		s.ClearVariables()
 	})
 }
 

@@ -43,6 +43,8 @@ const (
 	FieldTimeout = "timeout"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
+	// FieldVariables holds the string denoting the variables field in the database.
+	FieldVariables = "variables"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeStages holds the string denoting the stages edge name in mutations.
@@ -89,6 +91,7 @@ var Columns = []string{
 	FieldParallelism,
 	FieldTimeout,
 	FieldVersion,
+	FieldVariables,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

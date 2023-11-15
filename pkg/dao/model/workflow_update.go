@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/walrus/pkg/dao/model/internal"
@@ -23,6 +24,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/workflow"
 	"github.com/seal-io/walrus/pkg/dao/model/workflowexecution"
 	"github.com/seal-io/walrus/pkg/dao/model/workflowstage"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
@@ -151,6 +153,24 @@ func (wu *WorkflowUpdate) SetNillableVersion(i *int) *WorkflowUpdate {
 // AddVersion adds i to the "version" field.
 func (wu *WorkflowUpdate) AddVersion(i int) *WorkflowUpdate {
 	wu.mutation.AddVersion(i)
+	return wu
+}
+
+// SetVariables sets the "variables" field.
+func (wu *WorkflowUpdate) SetVariables(tv types.WorkflowVariables) *WorkflowUpdate {
+	wu.mutation.SetVariables(tv)
+	return wu
+}
+
+// AppendVariables appends tv to the "variables" field.
+func (wu *WorkflowUpdate) AppendVariables(tv types.WorkflowVariables) *WorkflowUpdate {
+	wu.mutation.AppendVariables(tv)
+	return wu
+}
+
+// ClearVariables clears the value of the "variables" field.
+func (wu *WorkflowUpdate) ClearVariables() *WorkflowUpdate {
+	wu.mutation.ClearVariables()
 	return wu
 }
 
@@ -290,6 +310,11 @@ func (wu *WorkflowUpdate) check() error {
 			return &ValidationError{Name: "version", err: fmt.Errorf(`model: validator failed for field "Workflow.version": %w`, err)}
 		}
 	}
+	if v, ok := wu.mutation.Variables(); ok {
+		if err := v.Validate(); err != nil {
+			return &ValidationError{Name: "variables", err: fmt.Errorf(`model: validator failed for field "Workflow.variables": %w`, err)}
+		}
+	}
 	if _, ok := wu.mutation.ProjectID(); wu.mutation.ProjectCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "Workflow.project"`)
 	}
@@ -345,6 +370,11 @@ func (wu *WorkflowUpdate) Set(obj *Workflow) *WorkflowUpdate {
 	wu.SetParallelism(obj.Parallelism)
 	wu.SetTimeout(obj.Timeout)
 	wu.SetVersion(obj.Version)
+	if !reflect.ValueOf(obj.Variables).IsZero() {
+		wu.SetVariables(obj.Variables)
+	} else {
+		wu.ClearVariables()
+	}
 
 	// With Default.
 	if obj.UpdateTime != nil {
@@ -416,6 +446,17 @@ func (wu *WorkflowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := wu.mutation.AddedVersion(); ok {
 		_spec.AddField(workflow.FieldVersion, field.TypeInt, value)
+	}
+	if value, ok := wu.mutation.Variables(); ok {
+		_spec.SetField(workflow.FieldVariables, field.TypeJSON, value)
+	}
+	if value, ok := wu.mutation.AppendedVariables(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, workflow.FieldVariables, value)
+		})
+	}
+	if wu.mutation.VariablesCleared() {
+		_spec.ClearField(workflow.FieldVariables, field.TypeJSON)
 	}
 	if wu.mutation.StagesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -651,6 +692,24 @@ func (wuo *WorkflowUpdateOne) AddVersion(i int) *WorkflowUpdateOne {
 	return wuo
 }
 
+// SetVariables sets the "variables" field.
+func (wuo *WorkflowUpdateOne) SetVariables(tv types.WorkflowVariables) *WorkflowUpdateOne {
+	wuo.mutation.SetVariables(tv)
+	return wuo
+}
+
+// AppendVariables appends tv to the "variables" field.
+func (wuo *WorkflowUpdateOne) AppendVariables(tv types.WorkflowVariables) *WorkflowUpdateOne {
+	wuo.mutation.AppendVariables(tv)
+	return wuo
+}
+
+// ClearVariables clears the value of the "variables" field.
+func (wuo *WorkflowUpdateOne) ClearVariables() *WorkflowUpdateOne {
+	wuo.mutation.ClearVariables()
+	return wuo
+}
+
 // AddStageIDs adds the "stages" edge to the WorkflowStage entity by IDs.
 func (wuo *WorkflowUpdateOne) AddStageIDs(ids ...object.ID) *WorkflowUpdateOne {
 	wuo.mutation.AddStageIDs(ids...)
@@ -800,6 +859,11 @@ func (wuo *WorkflowUpdateOne) check() error {
 			return &ValidationError{Name: "version", err: fmt.Errorf(`model: validator failed for field "Workflow.version": %w`, err)}
 		}
 	}
+	if v, ok := wuo.mutation.Variables(); ok {
+		if err := v.Validate(); err != nil {
+			return &ValidationError{Name: "variables", err: fmt.Errorf(`model: validator failed for field "Workflow.variables": %w`, err)}
+		}
+	}
 	if _, ok := wuo.mutation.ProjectID(); wuo.mutation.ProjectCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "Workflow.project"`)
 	}
@@ -877,6 +941,13 @@ func (wuo *WorkflowUpdateOne) Set(obj *Workflow) *WorkflowUpdateOne {
 			if db.Version != obj.Version {
 				wuo.SetVersion(obj.Version)
 			}
+			if !reflect.ValueOf(obj.Variables).IsZero() {
+				if !reflect.DeepEqual(db.Variables, obj.Variables) {
+					wuo.SetVariables(obj.Variables)
+				}
+			} else {
+				wuo.ClearVariables()
+			}
 
 			// With Default.
 			if (obj.UpdateTime != nil) && (!reflect.DeepEqual(db.UpdateTime, obj.UpdateTime)) {
@@ -944,6 +1015,9 @@ func (wuo *WorkflowUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context
 		}
 		if _, set := wuo.mutation.Field(workflow.FieldVersion); set {
 			obj.Version = x.Version
+		}
+		if _, set := wuo.mutation.Field(workflow.FieldVariables); set {
+			obj.Variables = x.Variables
 		}
 		obj.Edges = x.Edges
 	}
@@ -1056,6 +1130,17 @@ func (wuo *WorkflowUpdateOne) sqlSave(ctx context.Context) (_node *Workflow, err
 	}
 	if value, ok := wuo.mutation.AddedVersion(); ok {
 		_spec.AddField(workflow.FieldVersion, field.TypeInt, value)
+	}
+	if value, ok := wuo.mutation.Variables(); ok {
+		_spec.SetField(workflow.FieldVariables, field.TypeJSON, value)
+	}
+	if value, ok := wuo.mutation.AppendedVariables(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, workflow.FieldVariables, value)
+		})
+	}
+	if wuo.mutation.VariablesCleared() {
+		_spec.ClearField(workflow.FieldVariables, field.TypeJSON)
 	}
 	if wuo.mutation.StagesCleared() {
 		edge := &sqlgraph.EdgeSpec{
