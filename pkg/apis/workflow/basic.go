@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqljson"
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao"
@@ -11,7 +12,9 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/workflowstage"
 	"github.com/seal-io/walrus/pkg/dao/model/workflowstageexecution"
 	"github.com/seal-io/walrus/pkg/dao/model/workflowstep"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/topic"
 )
 
@@ -82,6 +85,34 @@ func (h Handler) Get(req GetRequest) (GetResponse, error) {
 }
 
 func (h Handler) Delete(req DeleteRequest) (err error) {
+	wf, err := h.modelClient.Workflows().Query().
+		Select(
+			workflow.FieldID,
+			workflow.FieldName,
+		).
+		Where(workflow.ID(req.ID)).
+		WithExecutions(func(weq *model.WorkflowExecutionQuery) {
+			weq.Select(
+				workflowexecution.FieldID,
+				workflowexecution.FieldStatus,
+				workflowexecution.FieldWorkflowID,
+			).Where(func(s *sql.Selector) {
+				s.Where(sqljson.ValueEQ(
+					workflowexecution.FieldStatus,
+					status.WorkflowExecutionStatusRunning,
+					sqljson.Path("summaryStatus"),
+				))
+			})
+		}).
+		Only(req.Context)
+	if err != nil {
+		return err
+	}
+
+	if len(wf.Edges.Executions) > 0 {
+		return errorx.Errorf("workflow %s has running executions", wf.Name)
+	}
+
 	return h.modelClient.Workflows().DeleteOneID(req.ID).
 		Exec(req.Context)
 }
@@ -232,7 +263,38 @@ func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 	ids := req.IDs()
 
 	return h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
-		_, err := tx.Workflows().Delete().
+		workflows, err := tx.Workflows().Query().
+			Select(
+				workflow.FieldID,
+				workflow.FieldName,
+			).
+			Where(workflow.IDIn(ids...)).
+			WithExecutions(func(weq *model.WorkflowExecutionQuery) {
+				weq.Select(
+					workflowexecution.FieldID,
+					workflowexecution.FieldStatus,
+					workflowexecution.FieldWorkflowID,
+				).Where(func(s *sql.Selector) {
+					s.Where(sqljson.ValueEQ(
+						workflowexecution.FieldStatus,
+						status.WorkflowExecutionStatusRunning,
+						sqljson.Path("summaryStatus"),
+					))
+				})
+			}).
+			All(req.Context)
+		if err != nil {
+			return err
+		}
+
+		for i := range workflows {
+			wf := workflows[i]
+			if len(wf.Edges.Executions) > 0 {
+				return errorx.Errorf("workflow %s has running executions", wf.Name)
+			}
+		}
+
+		_, err = tx.Workflows().Delete().
 			Where(workflow.IDIn(ids...)).
 			Exec(req.Context)
 		if err != nil {

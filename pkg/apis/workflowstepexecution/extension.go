@@ -3,8 +3,8 @@ package workflowstepexecution
 import (
 	"context"
 	"io"
+	"log"
 
-	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/workflowexecution"
 	"github.com/seal-io/walrus/pkg/dao/model/workflowstepexecution"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -72,14 +72,20 @@ func (h Handler) RouteApprove(req RouteApproveRequest) error {
 		return err
 	}
 
-	err = h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
-		return h.workflowClient.Resume(req.Context, pkgworkflow.ResumeOptions{
-			Approve:               req.Approve,
-			WorkflowExecution:     workflowExecution,
-			WorkflowStepExecution: stepExecution,
-		})
+	err = h.workflowClient.Resume(req.Context, pkgworkflow.ResumeOptions{
+		Approve:               req.Approve,
+		WorkflowExecution:     workflowExecution,
+		WorkflowStepExecution: stepExecution,
 	})
 	if err != nil {
+		// Reset approval attributes.
+		rerr := h.modelClient.WorkflowStepExecutions().UpdateOne(stepExecution).
+			SetAttributes(stepExecution.Attributes).
+			Exec(req.Context)
+		if rerr != nil {
+			log.Printf("failed to update workflow step execution status: %v", rerr)
+		}
+
 		return err
 	}
 
