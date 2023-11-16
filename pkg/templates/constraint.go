@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"path/filepath"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
@@ -21,6 +22,7 @@ func getValidVersions(
 	entity *model.Template,
 	r *git.Repository,
 	versions []*version.Version,
+	subPath string,
 ) ([]*version.Version, map[*version.Version]types.TemplateVersionSchema, error) {
 	logger := log.WithName("template")
 
@@ -62,6 +64,10 @@ func getValidVersions(
 
 		logger.Debugf("get \"%s:%s\" of catalog %q schema", entity.Name, tag, entity.CatalogID)
 		dir := w.Filesystem.Root()
+
+		if subPath != "" {
+			dir = filepath.Join(dir, subPath)
+		}
 
 		schema, err := loader.LoadSchemaPreferFile(dir, entity.Name)
 		if err != nil {

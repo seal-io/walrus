@@ -118,7 +118,7 @@ func syncTemplateFromRef(
 		return err
 	}
 
-	iconFile, err := getGitRepoIcon(r)
+	iconFile, err := getGitRepoIcon(r, repo.SubPath)
 	if err != nil {
 		logger.Errorf("failed to get icon url: %v", err)
 		return err
@@ -139,8 +139,14 @@ func syncTemplateFromRef(
 		return err
 	}
 
+	rootDir := w.Filesystem.Root()
+
+	if repo.SubPath != "" {
+		rootDir = filepath.Join(rootDir, repo.SubPath)
+	}
+
 	// Load schema.
-	schema, err := loader.LoadSchemaPreferFile(w.Filesystem.Root(), entity.Name)
+	schema, err := loader.LoadSchemaPreferFile(rootDir, entity.Name)
 	if err != nil {
 		return err
 	}
@@ -262,7 +268,7 @@ func SyncTemplateFromGitRepo(
 	}
 
 	// Get icon image name.
-	iconFile, err := getGitRepoIcon(r)
+	iconFile, err := getGitRepoIcon(r, repo.SubPath)
 	if err != nil {
 		logger.Errorf("failed to get icon url: %v", err)
 		return err
@@ -278,7 +284,7 @@ func SyncTemplateFromGitRepo(
 		return err
 	}
 
-	versions, versionSchema, err := getValidVersions(entity, r, versions)
+	versions, versionSchema, err := getValidVersions(entity, r, versions, repo.SubPath)
 	if err != nil {
 		return err
 	}
@@ -369,7 +375,7 @@ func GetTemplateVersions(
 }
 
 // getGitRepoIcon retrieves template icon from a git repository and return icon URL.
-func getGitRepoIcon(repoLocal *git.Repository) (string, error) {
+func getGitRepoIcon(repoLocal *git.Repository, subPath string) (string, error) {
 	var (
 		err error
 		// Valid icon files.
@@ -388,6 +394,9 @@ func getGitRepoIcon(repoLocal *git.Repository) (string, error) {
 
 	// Get icon URL.
 	for _, icon := range icons {
+		if subPath != "" {
+			icon = filepath.Join(subPath, icon)
+		}
 		// If icon exists, get icon rawURL.
 		if _, err := w.Filesystem.Stat(icon); err == nil {
 			return icon, nil
