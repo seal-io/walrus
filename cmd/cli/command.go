@@ -47,7 +47,6 @@ func NewRootCmd() *cobra.Command {
 		Example: configSetupExample,
 		Args:    cobra.MinimumNArgs(1),
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			log.SetLevel(log.InfoLevel)
 			if globalConfig.Debug {
 				log.SetLevel(log.DebugLevel)
 			}
@@ -87,7 +86,7 @@ func NewConfigCmd() *cobra.Command {
 	setupCmd := &cobra.Command{
 		Use:   "setup short-name",
 		Short: "Connect Walrus server and setup cli",
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		PreRun: func(cmd *cobra.Command, args []string) {
 			// Configuration value from environment variables.
 			viper.SetEnvPrefix("WALRUS")
 			viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
@@ -170,7 +169,7 @@ func NewSchemaCmd() *cobra.Command {
 	generateCmd := &cobra.Command{
 		Use:   "generate short-name",
 		Short: "Generate schema for template",
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		PreRun: func(cmd *cobra.Command, args []string) {
 			// Configuration value from environment variables.
 			viper.SetEnvPrefix("WALRUS")
 			viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))

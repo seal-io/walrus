@@ -40,6 +40,7 @@ import (
 	"github.com/seal-io/walrus/utils/files"
 	"github.com/seal-io/walrus/utils/gopool"
 	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/runtimex"
 	"github.com/seal-io/walrus/utils/strs"
 	"github.com/seal-io/walrus/utils/version"
 )
@@ -455,6 +456,9 @@ func (r *Server) Before(cmd *cli.Command) {
 		if pb != nil {
 			return pb(c)
 		}
+
+		// Init set GOMAXPROCS.
+		runtimex.Init()
 
 		return nil
 	}
