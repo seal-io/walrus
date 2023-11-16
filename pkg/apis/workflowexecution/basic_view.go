@@ -61,7 +61,23 @@ type (
 )
 
 func (r *DeleteRequest) Validate() error {
-	return r.WorkflowExecutionQueryInput.Validate()
+	err := r.WorkflowExecutionQueryInput.Validate()
+	if err != nil {
+		return err
+	}
+
+	workflowExecution, err := r.Client.WorkflowExecutions().Query().
+		Where(workflowexecution.ID(r.ID)).
+		Only(r.Context)
+	if err != nil {
+		return err
+	}
+
+	if status.WorkflowExecutionStatusRunning.IsUnknown(workflowExecution) {
+		return errorx.Errorf("workflow execution %s is running", workflowExecution.ID.String())
+	}
+
+	return nil
 }
 
 type CollectionDeleteRequest struct {

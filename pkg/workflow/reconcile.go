@@ -26,7 +26,7 @@ type WorkflowReconciler struct {
 
 // Reconcile reconciles the workflow.
 func (r WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := log.WithName("workflow-reconciler")
+	logger := log.WithName("workflow").WithName("reconcile")
 	wf := &wfv1.Workflow{}
 
 	err := r.KubeClient.Get(ctx, req.NamespacedName, wf)

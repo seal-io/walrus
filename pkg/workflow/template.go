@@ -118,7 +118,7 @@ func (t *TemplateManager) ToArgoWorkflow(
 
 	wf := &wfv1.Workflow{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: fmt.Sprintf("%s-%s", workflowExecution.Name, workflowExecution.ID.String()),
+			Name: getWorkflowName(workflowExecution),
 			Labels: map[string]string{
 				workflowExecutionIDLabel: workflowExecution.ID.String(),
 			},

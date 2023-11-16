@@ -64,6 +64,31 @@ revisionID=$(echo $revisionResponse | jq -r '.items[0].id')
 
 # Watch service logs until the service finished.
 curl -o - -s "$commonPath/resources/$resourceName/revisions/$revisionID/log?jobType=$watchType&watch=true" -X GET -H "Authorization: Bearer $token" $tlsVerify --compressed
+
+# Check revision status. wait until revision status is ready.
+timeout=30
+factor=1
+while true; do
+	statusResponse=$(curl -s "$commonPath/resources/$resourceName/revisions/$revisionID" -X GET -H "Authorization: Bearer $token" $tlsVerify)
+	statusSummary=$(echo $statusResponse | jq -r '.status.summaryStatus')
+
+	if [ "$statusSummary" == "Succeeded" ]; then
+		break
+	fi
+
+	# If status is failed, exit.
+	if [ "$statusSummary" == "Failed" ]; then
+		exit 1
+	fi
+
+	if [ "$timeout" -le 0 ]; then
+		exit 1
+	fi
+
+	sleep $((factor * 2))
+	factor=$((factor * 2))
+	timeout=$((timeout - factor))
+done
 `
 
 // ServiceStepManager is service to generate service configs.

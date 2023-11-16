@@ -9,6 +9,8 @@ import (
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
 	wfv1 "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
+	"google.golang.org/grpc/codes"
+	grpcstatus "google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -53,11 +55,11 @@ type (
 		SubjectID         object.ID
 	}
 	GetOptions struct {
-		Workflow *model.WorkflowExecution
+		WorkflowExecution *model.WorkflowExecution
 	}
 
 	DeleteOptions struct {
-		Workflow *model.WorkflowExecution
+		WorkflowExecution *model.WorkflowExecution
 	}
 
 	// SubmitOptions is the options for submitting a workflow.
@@ -192,77 +194,60 @@ func (s *ArgoWorkflowClient) Resume(ctx context.Context, opts ResumeOptions) err
 		return err
 	}
 
-	return s.mc.WithTx(ctx, func(tx *model.Tx) error {
-		// Update workflow step execution approval attributes.
-		err = tx.WorkflowStepExecutions().UpdateOne(opts.WorkflowStepExecution).
-			SetAttributes(approvalSpec.ToAttributes()).
-			Exec(ctx)
+	// Update workflow step execution approval attributes.
+	err = s.mc.WorkflowStepExecutions().UpdateOne(opts.WorkflowStepExecution).
+		SetAttributes(approvalSpec.ToAttributes()).
+		Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	if approvalSpec.IsRejected() {
+		// Stop workflow step execution if rejected.
+		_, err = s.apiClient.NewWorkflowServiceClient().StopWorkflow(s.apiClient.Ctx, &workflow.WorkflowStopRequest{
+			Name:              getWorkflowName(opts.WorkflowExecution),
+			Namespace:         types.WalrusSystemNamespace,
+			NodeFieldSelector: fmt.Sprintf("templateName=%s", step.StepTemplateName(opts.WorkflowStepExecution)),
+		})
+	} else {
+		// If not approved, do nothing.
+		if !approvalSpec.IsApproved() {
+			return nil
+		}
+
+		// Update secret token.
+		err = s.updateWorkflowExecutionToken(ctx, opts.WorkflowExecution)
 		if err != nil {
 			return err
 		}
 
-		if approvalSpec.IsRejected() {
-			// Stop workflow step execution if rejected.
-			_, err = s.apiClient.NewWorkflowServiceClient().StopWorkflow(s.apiClient.Ctx, &workflow.WorkflowStopRequest{
-				Name:              getWorkflowName(opts.WorkflowExecution),
-				Namespace:         types.WalrusSystemNamespace,
-				NodeFieldSelector: fmt.Sprintf("templateName=%s", step.StepTemplateName(opts.WorkflowStepExecution)),
+		// Resume workflow step execution.
+		_, err = s.apiClient.NewWorkflowServiceClient().ResumeWorkflow(
+			s.apiClient.Ctx,
+			&workflow.WorkflowResumeRequest{
+				Name:      getWorkflowName(opts.WorkflowExecution),
+				Namespace: types.WalrusSystemNamespace,
+				NodeFieldSelector: fmt.Sprintf(
+					"templateName=%s",
+					step.StepTemplateName(opts.WorkflowStepExecution),
+				),
 			})
-		} else {
-			// If not approved, do nothing.
-			if !approvalSpec.IsApproved() {
-				return nil
-			}
+	}
 
-			// Update secret token.
-			err = s.updateWorkflowExecutionToken(ctx, opts.WorkflowExecution)
-			if err != nil {
-				return err
-			}
-
-			// Resume workflow step execution.
-			_, err = s.apiClient.NewWorkflowServiceClient().ResumeWorkflow(
-				s.apiClient.Ctx,
-				&workflow.WorkflowResumeRequest{
-					Name:      getWorkflowName(opts.WorkflowExecution),
-					Namespace: types.WalrusSystemNamespace,
-					NodeFieldSelector: fmt.Sprintf(
-						"templateName=%s",
-						step.StepTemplateName(opts.WorkflowStepExecution),
-					),
-				})
-		}
-
-		return err
-	})
+	return err
 }
 
 func (s *ArgoWorkflowClient) Resubmit(ctx context.Context, opts ResubmitOptions) error {
-	awf, err := s.apiClient.NewWorkflowServiceClient().GetWorkflow(s.apiClient.Ctx, &workflow.WorkflowGetRequest{
-		Name:      getWorkflowName(opts.WorkflowExecution),
-		Namespace: types.WalrusSystemNamespace,
-	})
-	if err != nil && kerrors.IsNotFound(err) {
+	if err := s.Delete(ctx, DeleteOptions(opts)); err != nil {
 		return err
 	}
 
-	if awf != nil {
-		_, err = s.apiClient.NewWorkflowServiceClient().
-			ResubmitWorkflow(s.apiClient.Ctx, &workflow.WorkflowResubmitRequest{
-				Name:      getWorkflowName(opts.WorkflowExecution),
-				Namespace: types.WalrusSystemNamespace,
-				Memoized:  false,
-			})
-	} else {
-		subject := session.MustGetSubject(ctx)
+	subject := session.MustGetSubject(ctx)
 
-		err = s.Submit(ctx, SubmitOptions{
-			WorkflowExecution: opts.WorkflowExecution,
-			SubjectID:         subject.ID,
-		})
-	}
-
-	if err != nil {
+	if err := s.Submit(ctx, SubmitOptions{
+		WorkflowExecution: opts.WorkflowExecution,
+		SubjectID:         subject.ID,
+	}); err != nil {
 		return err
 	}
 
@@ -271,16 +256,34 @@ func (s *ArgoWorkflowClient) Resubmit(ctx context.Context, opts ResubmitOptions)
 	})
 }
 
+func isNotFoundErr(err error) bool {
+	if st, ok := grpcstatus.FromError(err); ok {
+		return st.Code() == codes.NotFound
+	}
+
+	return false
+}
+
 func (s *ArgoWorkflowClient) Delete(ctx context.Context, opts DeleteOptions) error {
 	_, err := s.apiClient.NewWorkflowServiceClient().DeleteWorkflow(s.apiClient.Ctx, &workflow.WorkflowDeleteRequest{
-		Name:      opts.Workflow.Name,
+		Name:      getWorkflowName(opts.WorkflowExecution),
 		Namespace: types.WalrusSystemNamespace,
 	})
-	if err != nil && !kerrors.IsNotFound(err) {
+	if err != nil && !isNotFoundErr(err) {
 		return err
 	}
 
-	return nil
+	_, err = s.setK8sSecret(ctx, k8sSecretOptions{
+		Action: "delete",
+		Secret: &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      fmt.Sprintf("workflow-execution-%s", opts.WorkflowExecution.ID.String()),
+				Namespace: types.WalrusSystemNamespace,
+			},
+		},
+	})
+
+	return err
 }
 
 // Terminate terminates a workflow execution.
@@ -380,6 +383,12 @@ func (s *ArgoWorkflowClient) setK8sSecret(
 			Update(ctx, opts.Secret, metav1.UpdateOptions{})
 		if err != nil {
 			return
+		}
+	case "delete":
+		err = clientSet.CoreV1().Secrets(types.WalrusSystemNamespace).
+			Delete(ctx, opts.Secret.Name, metav1.DeleteOptions{})
+		if err != nil && kerrors.IsNotFound(err) {
+			return nil, nil
 		}
 	default:
 		err = fmt.Errorf("invalid action: %s", opts.Action)

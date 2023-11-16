@@ -281,7 +281,7 @@ func (m *StatusSyncer) SyncStepExecutionStatus(
 		m.Logger.Debugf("step %s is succeeded", wse.ID.String())
 
 	case wfv1.NodeSkipped, wfv1.NodeOmitted:
-		m.Logger.Debugf("step %s is skipped or omitted", wse.ID.String(), "message", node.Message)
+		m.Logger.Debugf("step %s is skipped or omitted, message %s", wse.ID.String(), node.Message)
 
 		return nil
 	case wfv1.NodeFailed, wfv1.NodeError:
