@@ -8,7 +8,7 @@ import (
 	"github.com/seal-io/walrus/utils/log"
 )
 
-func init() {
+func Init() {
 	_, _ = maxprocs.Set(maxprocs.Logger(log.WithName("maxprocs").Printf))
 }
 

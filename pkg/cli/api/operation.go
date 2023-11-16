@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
 	"text/template"
 
@@ -18,7 +17,6 @@ import (
 	"github.com/seal-io/walrus/pkg/cli/config"
 	"github.com/seal-io/walrus/pkg/cli/formatter"
 	"github.com/seal-io/walrus/utils/json"
-	"github.com/seal-io/walrus/utils/log"
 )
 
 // Operation represents an API action, e.g. list-things or create-user.
@@ -77,27 +75,13 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 		Args:       argSpec,
 		Hidden:     o.Hidden,
 		Deprecated: o.Deprecated,
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			var err error
-
-			debug := cmd.Flags().Lookup("debug")
-			if debug != nil {
-				sc.Debug, err = strconv.ParseBool(debug.Value.String())
-				if err != nil {
-					fmt.Fprintln(os.Stderr, err)
-				}
-			}
-			log.SetLevel(log.InfoLevel)
-			if sc.Debug {
-				log.SetLevel(log.DebugLevel)
-			}
-
+		PreRun: func(cmd *cobra.Command, args []string) {
 			format := cmd.Flags().Lookup("output")
 			if format != nil {
 				sc.Format = format.Value.String()
 			}
 
-			err = sc.Inject(cmd)
+			err := sc.Inject(cmd)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)

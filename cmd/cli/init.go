@@ -11,6 +11,7 @@ import (
 	"github.com/seal-io/walrus/pkg/cli/api"
 	"github.com/seal-io/walrus/pkg/cli/config"
 	"github.com/seal-io/walrus/utils/json"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 const (
@@ -35,6 +36,9 @@ func Init() error {
 
 // initConfig init config dir and load server context from cache.
 func initConfig() error {
+	// Log Level.
+	log.SetLevel(log.InfoLevel)
+
 	// Config dir.
 	configDir := getConfigDir()
 
