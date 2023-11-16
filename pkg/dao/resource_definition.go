@@ -46,7 +46,6 @@ func ResourceDefinitionMatchingRulesEdgeSave(
 			OnConflict(
 				sql.ConflictColumns(
 					resourcedefinitionmatchingrule.FieldResourceDefinitionID,
-					resourcedefinitionmatchingrule.FieldTemplateID,
 					resourcedefinitionmatchingrule.FieldName,
 				),
 			).

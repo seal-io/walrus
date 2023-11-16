@@ -28,6 +28,8 @@ func (ResourceDefinitionMatchingRule) Mixin() []ent.Mixin {
 
 func (ResourceDefinitionMatchingRule) Indexes() []ent.Index {
 	return []ent.Index{
+		index.Fields("resource_definition_id", "name").
+			Unique(),
 		index.Fields("resource_definition_id", "template_id", "name").
 			Unique(),
 	}
