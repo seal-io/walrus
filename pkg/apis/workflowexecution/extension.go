@@ -46,11 +46,6 @@ func (h Handler) RouteStopRequest(req RouteStopRequest) error {
 		return err
 	}
 
-	if status.WorkflowExecutionStatusPending.IsUnknown(entity) ||
-		status.WorkflowExecutionStatusRunning.IsUnknown(entity) {
-		return fmt.Errorf("workflow execution is pending or running")
-	}
-
 	return h.workflowClient.Terminate(req.Context, pkgworkflow.TerminateOptions{
 		WorkflowExecution: entity,
 	})

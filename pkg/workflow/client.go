@@ -295,7 +295,7 @@ func (s *ArgoWorkflowClient) Terminate(ctx context.Context, opts TerminateOption
 			Name:      getWorkflowName(opts.WorkflowExecution),
 			Namespace: types.WalrusSystemNamespace,
 		})
-	if err != nil && !kerrors.IsNotFound(err) {
+	if err != nil && !isNotFoundErr(err) {
 		return err
 	}
 
