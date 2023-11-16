@@ -532,6 +532,11 @@ var (
 				Columns: []*schema.Column{ResourceDefinitionMatchingRulesColumns[1]},
 			},
 			{
+				Name:    "resourcedefinitionmatchingrule_resource_definition_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{ResourceDefinitionMatchingRulesColumns[6], ResourceDefinitionMatchingRulesColumns[2]},
+			},
+			{
 				Name:    "resourcedefinitionmatchingrule_resource_definition_id_template_id_name",
 				Unique:  true,
 				Columns: []*schema.Column{ResourceDefinitionMatchingRulesColumns[6], ResourceDefinitionMatchingRulesColumns[7], ResourceDefinitionMatchingRulesColumns[2]},
