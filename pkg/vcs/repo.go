@@ -31,9 +31,11 @@ type Repository struct {
 	Topics []string `json:"topics"`
 	// Driver is the driver of the repository. E.G: github.
 	Driver string `json:"driver"`
+	// SubPath is the sub path of the repository.
+	SubPath string `json:"subPath"`
 }
 
-// ParseURLToGit parses a raw URL to a git repository.
+// ParseURLToRepo parses a raw URL to a git repository.
 // Since the return repository only contains the namespace and name,
 // It only used for create template from catalog.
 func ParseURLToRepo(rawURL string) (*Repository, error) {
@@ -42,6 +44,7 @@ func ParseURLToRepo(rawURL string) (*Repository, error) {
 	ref := ""
 	name := ""
 	namespace := ""
+	subPath := ""
 
 	endpoint, err := transport.NewEndpoint(rawURL)
 	if err != nil {
@@ -56,6 +59,18 @@ func ParseURLToRepo(rawURL string) (*Repository, error) {
 		ref = parts[1]
 		path = strings.TrimSuffix(path, "?ref="+ref)
 		rawURL = strings.TrimSuffix(rawURL, "?ref="+ref)
+	}
+
+	// Get sub path from path.
+	if strings.Contains(path, "//") {
+		paths := strings.Split(path, "//")
+		if len(paths) > 2 {
+			return nil, errors.New("git url contains more than one //")
+		}
+		subPath = paths[1]
+
+		path = strings.TrimSuffix(path, "//"+subPath)
+		rawURL = strings.TrimSuffix(rawURL, "//"+subPath)
 	}
 
 	// Trim .git suffix.
@@ -101,6 +116,7 @@ func ParseURLToRepo(rawURL string) (*Repository, error) {
 		Link:      rawURL,
 		Reference: ref,
 		Driver:    driver,
+		SubPath:   subPath,
 	}, nil
 }
 

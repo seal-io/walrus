@@ -11,6 +11,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/vcs"
 	"github.com/seal-io/walrus/utils/validation"
 )
 
@@ -32,6 +33,10 @@ func (r *CreateRequest) Validate() error {
 	}
 
 	if _, err := getter.Detect(r.Source, "", getter.Detectors); err != nil {
+		return fmt.Errorf("invalid source: %w", err)
+	}
+
+	if _, err := vcs.ParseURLToRepo(r.Source); err != nil {
 		return fmt.Errorf("invalid source: %w", err)
 	}
 
