@@ -20,7 +20,9 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/internal"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
+	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 )
 
@@ -36,6 +38,12 @@ type ResourceDefinitionMatchingRuleUpdate struct {
 // Where appends a list predicates to the ResourceDefinitionMatchingRuleUpdate builder.
 func (rdmru *ResourceDefinitionMatchingRuleUpdate) Where(ps ...predicate.ResourceDefinitionMatchingRule) *ResourceDefinitionMatchingRuleUpdate {
 	rdmru.mutation.Where(ps...)
+	return rdmru
+}
+
+// SetTemplateID sets the "template_id" field.
+func (rdmru *ResourceDefinitionMatchingRuleUpdate) SetTemplateID(o object.ID) *ResourceDefinitionMatchingRuleUpdate {
+	rdmru.mutation.SetTemplateID(o)
 	return rdmru
 }
 
@@ -70,9 +78,20 @@ func (rdmru *ResourceDefinitionMatchingRuleUpdate) AddOrder(i int) *ResourceDefi
 	return rdmru
 }
 
+// SetTemplate sets the "template" edge to the TemplateVersion entity.
+func (rdmru *ResourceDefinitionMatchingRuleUpdate) SetTemplate(t *TemplateVersion) *ResourceDefinitionMatchingRuleUpdate {
+	return rdmru.SetTemplateID(t.ID)
+}
+
 // Mutation returns the ResourceDefinitionMatchingRuleMutation object of the builder.
 func (rdmru *ResourceDefinitionMatchingRuleUpdate) Mutation() *ResourceDefinitionMatchingRuleMutation {
 	return rdmru.mutation
+}
+
+// ClearTemplate clears the "template" edge to the TemplateVersion entity.
+func (rdmru *ResourceDefinitionMatchingRuleUpdate) ClearTemplate() *ResourceDefinitionMatchingRuleUpdate {
+	rdmru.mutation.ClearTemplate()
+	return rdmru
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -104,6 +123,11 @@ func (rdmru *ResourceDefinitionMatchingRuleUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (rdmru *ResourceDefinitionMatchingRuleUpdate) check() error {
+	if v, ok := rdmru.mutation.TemplateID(); ok {
+		if err := resourcedefinitionmatchingrule.TemplateIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "template_id", err: fmt.Errorf(`model: validator failed for field "ResourceDefinitionMatchingRule.template_id": %w`, err)}
+		}
+	}
 	if _, ok := rdmru.mutation.ResourceDefinitionID(); rdmru.mutation.ResourceDefinitionCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "ResourceDefinitionMatchingRule.resource_definition"`)
 	}
@@ -146,6 +170,7 @@ func (rdmru *ResourceDefinitionMatchingRuleUpdate) check() error {
 //	}
 func (rdmru *ResourceDefinitionMatchingRuleUpdate) Set(obj *ResourceDefinitionMatchingRule) *ResourceDefinitionMatchingRuleUpdate {
 	// Without Default.
+	rdmru.SetTemplateID(obj.TemplateID)
 	rdmru.SetSelector(obj.Selector)
 	if !reflect.ValueOf(obj.Attributes).IsZero() {
 		rdmru.SetAttributes(obj.Attributes)
@@ -193,6 +218,37 @@ func (rdmru *ResourceDefinitionMatchingRuleUpdate) sqlSave(ctx context.Context) 
 	if value, ok := rdmru.mutation.AddedOrder(); ok {
 		_spec.AddField(resourcedefinitionmatchingrule.FieldOrder, field.TypeInt, value)
 	}
+	if rdmru.mutation.TemplateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   resourcedefinitionmatchingrule.TemplateTable,
+			Columns: []string{resourcedefinitionmatchingrule.TemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(templateversion.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = rdmru.schemaConfig.ResourceDefinitionMatchingRule
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rdmru.mutation.TemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   resourcedefinitionmatchingrule.TemplateTable,
+			Columns: []string{resourcedefinitionmatchingrule.TemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(templateversion.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = rdmru.schemaConfig.ResourceDefinitionMatchingRule
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = rdmru.schemaConfig.ResourceDefinitionMatchingRule
 	ctx = internal.NewSchemaConfigContext(ctx, rdmru.schemaConfig)
 	_spec.AddModifiers(rdmru.modifiers...)
@@ -216,6 +272,12 @@ type ResourceDefinitionMatchingRuleUpdateOne struct {
 	mutation  *ResourceDefinitionMatchingRuleMutation
 	modifiers []func(*sql.UpdateBuilder)
 	object    *ResourceDefinitionMatchingRule
+}
+
+// SetTemplateID sets the "template_id" field.
+func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) SetTemplateID(o object.ID) *ResourceDefinitionMatchingRuleUpdateOne {
+	rdmruo.mutation.SetTemplateID(o)
+	return rdmruo
 }
 
 // SetSelector sets the "selector" field.
@@ -249,9 +311,20 @@ func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) AddOrder(i int) *Resource
 	return rdmruo
 }
 
+// SetTemplate sets the "template" edge to the TemplateVersion entity.
+func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) SetTemplate(t *TemplateVersion) *ResourceDefinitionMatchingRuleUpdateOne {
+	return rdmruo.SetTemplateID(t.ID)
+}
+
 // Mutation returns the ResourceDefinitionMatchingRuleMutation object of the builder.
 func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) Mutation() *ResourceDefinitionMatchingRuleMutation {
 	return rdmruo.mutation
+}
+
+// ClearTemplate clears the "template" edge to the TemplateVersion entity.
+func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) ClearTemplate() *ResourceDefinitionMatchingRuleUpdateOne {
+	rdmruo.mutation.ClearTemplate()
+	return rdmruo
 }
 
 // Where appends a list predicates to the ResourceDefinitionMatchingRuleUpdate builder.
@@ -296,6 +369,11 @@ func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) ExecX(ctx context.Context
 
 // check runs all checks and user-defined validators on the builder.
 func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) check() error {
+	if v, ok := rdmruo.mutation.TemplateID(); ok {
+		if err := resourcedefinitionmatchingrule.TemplateIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "template_id", err: fmt.Errorf(`model: validator failed for field "ResourceDefinitionMatchingRule.template_id": %w`, err)}
+		}
+	}
 	if _, ok := rdmruo.mutation.ResourceDefinitionID(); rdmruo.mutation.ResourceDefinitionCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "ResourceDefinitionMatchingRule.resource_definition"`)
 	}
@@ -348,6 +426,9 @@ func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) Set(obj *ResourceDefiniti
 			}
 
 			// Without Default.
+			if db.TemplateID != obj.TemplateID {
+				rdmruo.SetTemplateID(obj.TemplateID)
+			}
 			if !reflect.DeepEqual(db.Selector, obj.Selector) {
 				rdmruo.SetSelector(obj.Selector)
 			}
@@ -406,6 +487,9 @@ func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) SaveE(ctx context.Context
 	if obj == nil {
 		obj = rdmruo.object
 	} else if x := rdmruo.object; x != nil {
+		if _, set := rdmruo.mutation.Field(resourcedefinitionmatchingrule.FieldTemplateID); set {
+			obj.TemplateID = x.TemplateID
+		}
 		if _, set := rdmruo.mutation.Field(resourcedefinitionmatchingrule.FieldSelector); set {
 			obj.Selector = x.Selector
 		}
@@ -499,6 +583,37 @@ func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) sqlSave(ctx context.Conte
 	}
 	if value, ok := rdmruo.mutation.AddedOrder(); ok {
 		_spec.AddField(resourcedefinitionmatchingrule.FieldOrder, field.TypeInt, value)
+	}
+	if rdmruo.mutation.TemplateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   resourcedefinitionmatchingrule.TemplateTable,
+			Columns: []string{resourcedefinitionmatchingrule.TemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(templateversion.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = rdmruo.schemaConfig.ResourceDefinitionMatchingRule
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rdmruo.mutation.TemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   resourcedefinitionmatchingrule.TemplateTable,
+			Columns: []string{resourcedefinitionmatchingrule.TemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(templateversion.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = rdmruo.schemaConfig.ResourceDefinitionMatchingRule
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = rdmruo.schemaConfig.ResourceDefinitionMatchingRule
 	ctx = internal.NewSchemaConfigContext(ctx, rdmruo.schemaConfig)
