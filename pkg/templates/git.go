@@ -293,11 +293,16 @@ func SyncTemplateFromGitRepo(
 		logger.Warnf("no versions found for %s", repo.Name)
 
 		// If template exists, update template status.
-		t, err := mc.Templates().Query().
-			Where(
-				template.Name(entity.Name),
-				template.ProjectID(entity.ProjectID),
-			).
+		query := mc.Templates().Query().
+			Where(template.Name(entity.Name))
+
+		if entity.ProjectID.Valid() {
+			query.Where(template.ProjectID(entity.ProjectID))
+		} else {
+			query.Where(template.ProjectIDIsNil())
+		}
+
+		t, err := query.
 			Only(ctx)
 		if err != nil {
 			if !model.IsNotFound(err) {
