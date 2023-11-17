@@ -140,10 +140,13 @@ func (h Handler) CollectionRouteGetFieldValues(
 		*/
 		err := h.modelClient.Connectors().Query().
 			Modify(func(s *sql.Selector) {
-				s.SelectExpr(
-					sql.Expr(fmt.Sprintf(`%s AS label`, connector.FieldName)),
-					sql.Expr(fmt.Sprintf(`%s AS value`, connector.FieldID)),
-				)
+				s.
+					Where(
+						sql.EQ(connector.FieldCategory, types.ConnectorCategoryKubernetes)).
+					SelectExpr(
+						sql.Expr(fmt.Sprintf(`%s AS label`, connector.FieldName)),
+						sql.Expr(fmt.Sprintf(`%s AS value`, connector.FieldID)),
+					)
 			}).
 			Scan(req.Context, &pvalues)
 		if err != nil {
