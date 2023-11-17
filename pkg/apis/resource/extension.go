@@ -304,10 +304,20 @@ func (h Handler) getEndpointsFromOutput(ctx context.Context, id object.ID) ([]Ac
 				Name:      v.Name,
 			})
 		case v.Schema.Type == openapi3.TypeArray:
-			if v.Schema.Items == nil || v.Schema.Items.Value == nil ||
-				v.Schema.Items.Value.Type != openapi3.TypeString {
-				// For list and set: all elements are the same type.
-				return nil, invalidTypeErr
+			if v.Schema.Items != nil && v.Schema.Items.Value != nil {
+				// Array.
+				if v.Schema.Items.Value.Type != "" && v.Schema.Items.Value.Type != openapi3.TypeString {
+					return nil, invalidTypeErr
+				}
+
+				// Tuple.
+				if len(v.Schema.Items.Value.OneOf) != 0 {
+					for _, sv := range v.Schema.Items.Value.OneOf {
+						if sv.Value != nil && sv.Value.Type != openapi3.TypeString {
+							return nil, invalidTypeErr
+						}
+					}
+				}
 			}
 
 			eps, _, err := property.GetSlice[string](v.Value)
@@ -317,6 +327,10 @@ func (h Handler) getEndpointsFromOutput(ctx context.Context, id object.ID) ([]Ac
 
 			if err := validation.IsValidEndpoints(eps); err != nil {
 				return nil, err
+			}
+
+			if len(eps) == 0 {
+				continue
 			}
 
 			endpoints = append(endpoints, AccessEndpoint{

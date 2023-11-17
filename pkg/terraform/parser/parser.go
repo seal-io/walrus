@@ -225,15 +225,17 @@ func ParseStateOutput(revision *model.ResourceRevision) ([]types.OutputValue, er
 				val = []byte(`"<sensitive>"`)
 			}
 
+			s := translator.SchemaOfType(
+				o.Type,
+				n,
+				nil,
+				"",
+				o.Sensitive, count)
+
 			outputs = append(outputs, types.OutputValue{
-				Name:  strings.TrimPrefix(n, sn+"_"), // Name format is serviceName_outputName.
-				Value: val,
-				Schema: translator.SchemaOfType(
-					o.Type,
-					n,
-					nil,
-					"",
-					o.Sensitive, count),
+				Name:   strings.TrimPrefix(n, sn+"_"), // Name format is serviceName_outputName.
+				Value:  val,
+				Schema: s,
 			})
 
 			count++
