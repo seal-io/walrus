@@ -28,7 +28,7 @@ components:
             - B3
           x-walrus-ui:
             group: Test Group
-            show-if: foo=F1
+            showIf: foo=F1
         thee:
           type: string
           default: foo

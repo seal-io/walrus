@@ -12,7 +12,13 @@ import (
 // Translator translates between original template language and go types with openapi schema.
 type Translator interface {
 	// SchemaOfOriginalType generates openAPI schema from original type.
-	SchemaOfOriginalType(typ any, name string, def any, description string, sensitive bool) *openapi3.Schema
+	SchemaOfOriginalType(
+		typ any,
+		name string,
+		def any,
+		description string,
+		sensitive bool,
+		order int) *openapi3.Schema
 	// ToGoTypeValues converts values to go types.
 	ToGoTypeValues(values map[string]json.RawMessage, schema openapi3.Schema) (map[string]any, error)
 }
@@ -24,13 +30,14 @@ func SchemaOfType(
 	def any,
 	description string,
 	sensitive bool,
+	order int,
 ) (schema openapi3.Schema) {
 	var s *openapi3.Schema
 
 	// Terraform.
 	tf := NewTerraformTranslator()
 
-	s = tf.SchemaOfOriginalType(typ, name, def, description, sensitive)
+	s = tf.SchemaOfOriginalType(typ, name, def, description, sensitive, order)
 	if s != nil {
 		return *s
 	}

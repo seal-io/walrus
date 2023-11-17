@@ -205,12 +205,16 @@ func (l *TerraformLoader) applyMissingConfig(generated, customized *openapi3.Sch
 		}
 
 		// Extensions.
-		if len(in.Value.Extensions) != 0 {
-			if len(v.Value.Extensions) == 0 {
-				s.Properties[n].Value.Extensions = make(map[string]any)
-			}
-			s.Properties[n].Value.Extensions[openapi.ExtOriginal] = in.Value.Extensions[openapi.ExtOriginal]
-		}
+		var (
+			genExt = openapi.NewExtFromMap(in.Value.Extensions)
+			ext    = openapi.NewExtFromMap(v.Value.Extensions)
+		)
+
+		ext.WithOriginal(in.Value.Extensions[openapi.ExtOriginalKey])
+		ext.WithUIOrder(genExt.Order)
+		ext.WithUIColSpan(genExt.ColSpan)
+
+		s.Properties[n].Value.Extensions = ext.Export()
 	}
 
 	return &s
@@ -234,6 +238,7 @@ func (l *TerraformLoader) getVariableSchemaFromTerraform(mod *tfconfig.Module) (
 		var (
 			tfType = cty.DynamicPseudoType
 			def    = v.Default
+			order  = i + 1
 		)
 
 		// Required and keys.
@@ -283,14 +288,15 @@ func (l *TerraformLoader) getVariableSchemaFromTerraform(mod *tfconfig.Module) (
 				v.Name,
 				def,
 				v.Description,
-				v.Sensitive))
+				v.Sensitive,
+				order))
 	}
 
 	// Inject extension sequence.
 	sort.Strings(required)
 	varSchemas.Required = required
-	varSchemas.Extensions = openapi.NewExt(varSchemas.Extensions).
-		SetOriginalVariablesSequence(keys).
+	varSchemas.Extensions = openapi.NewExtFromMap(varSchemas.Extensions).
+		WithOriginalVariablesSequence(keys).
 		Export()
 
 	// Inject extensions.
@@ -341,7 +347,8 @@ func (l *TerraformLoader) getOutputSchemaFromTerraform(mod *tfconfig.Module) (*o
 		outputSchemas = openapi3.NewObjectSchema()
 	)
 
-	for _, v := range sortOutput(mod.Outputs) {
+	for i, v := range sortOutput(mod.Outputs) {
+		order := i + 1
 		// Use dynamic type for output.
 		outputSchemas.WithProperty(
 			v.Name,
@@ -350,7 +357,8 @@ func (l *TerraformLoader) getOutputSchemaFromTerraform(mod *tfconfig.Module) (*o
 				v.Name,
 				nil,
 				v.Description,
-				v.Sensitive))
+				v.Sensitive,
+				order))
 
 		filenames.Insert(v.Pos.Filename)
 	}
@@ -361,13 +369,14 @@ func (l *TerraformLoader) getOutputSchemaFromTerraform(mod *tfconfig.Module) (*o
 	}
 
 	for n, v := range values {
-		outputSchemas.Properties[n].Value.Extensions = openapi.NewExt(outputSchemas.Properties[n].Value.Extensions).
-			SetOriginalValueExpression(v).
-			SetOriginalType(cty.DynamicPseudoType).
+		ext := outputSchemas.Properties[n].Value.Extensions
+		outputSchemas.Properties[n].Value.Extensions = openapi.NewExtFromMap(ext).
+			WithOriginalValueExpression(v).
+			WithOriginalType(cty.DynamicPseudoType).
 			Export()
 	}
 
-	outputSchemas.Extensions = openapi.NewExt(outputSchemas.Extensions).
+	outputSchemas.Extensions = openapi.NewExt().
 		Export()
 
 	return outputSchemas, nil
@@ -530,16 +539,16 @@ func (l *TerraformLoader) injectExts(vs *openapi3.Schema) {
 		}
 
 		// Group.
-		if gp := openapi.GetUIGroup(v.Value.Extensions); gp == "" {
-			vs.Properties[n].Value.Extensions = openapi.NewExt(vs.Properties[n].Value.Extensions).
-				SetUIGroup(defaultGroup).
+		if extUI := openapi.GetExtUI(v.Value.Extensions); extUI.Group == "" {
+			vs.Properties[n].Value.Extensions = openapi.NewExtFromMap(vs.Properties[n].Value.Extensions).
+				WithUIGroup(defaultGroup).
 				Export()
 		}
 
 		// Walrus Context.
 		if n == "context" {
-			vs.Properties[n].Value.Extensions = openapi.NewExt(vs.Properties[n].Value.Extensions).
-				SetUIHidden().
+			vs.Properties[n].Value.Extensions = openapi.NewExtFromMap(vs.Properties[n].Value.Extensions).
+				WithUIHidden().
 				Export()
 		}
 	}
