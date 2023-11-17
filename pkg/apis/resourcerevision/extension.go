@@ -151,6 +151,8 @@ func manageResources(
 		return err
 	}
 
+	recordStatus(recordRess, observedRess)
+
 	// Calculate creating list, deleting list and updating list.
 	observedRessIndex := dao.ResourceComponentToMap(observedRess)
 
@@ -261,6 +263,30 @@ func manageResources(
 	})
 
 	return nil
+}
+
+func recordStatus(recordRess, observedRess []*model.ResourceComponent) {
+	recordRessMap := make(map[string]*model.ResourceComponent, len(recordRess))
+
+	for i := range recordRess {
+		k := dao.ResourceComponentGetUniqueKey(recordRess[i])
+		recordRessMap[k] = recordRess[i]
+	}
+
+	// Record the status of the observed resources if it exists in the record resources.
+	for i := range observedRess {
+		k := dao.ResourceComponentGetUniqueKey(observedRess[i])
+		if recordRessMap[k] != nil {
+			observedRess[i].Status = recordRessMap[k].Status
+		}
+
+		for j := range observedRess[i].Edges.Instances {
+			k := dao.ResourceComponentGetUniqueKey(observedRess[i].Edges.Instances[j])
+			if recordRessMap[k] != nil {
+				observedRess[i].Edges.Instances[j].Status = recordRessMap[k].Status
+			}
+		}
+	}
 }
 
 // reconcileResources reconciles the resources,
