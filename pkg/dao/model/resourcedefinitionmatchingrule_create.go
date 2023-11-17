@@ -352,18 +352,6 @@ func (rdmrc *ResourceDefinitionMatchingRuleCreate) SaveE(ctx context.Context, cb
 	}
 
 	mc := rdmrc.getClientSet()
-	if rdmrc.fromUpsert {
-		q := mc.ResourceDefinitionMatchingRules().Query().
-			Where(
-				resourcedefinitionmatchingrule.ResourceDefinitionID(obj.ResourceDefinitionID),
-				resourcedefinitionmatchingrule.TemplateID(obj.TemplateID),
-				resourcedefinitionmatchingrule.Name(obj.Name),
-			)
-		obj.ID, err = q.OnlyID(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("model: failed to query id of ResourceDefinitionMatchingRule entity: %w", err)
-		}
-	}
 
 	if x := rdmrc.object; x != nil {
 		if _, set := rdmrc.mutation.Field(resourcedefinitionmatchingrule.FieldResourceDefinitionID); set {
@@ -480,21 +468,6 @@ func (rdmrcb *ResourceDefinitionMatchingRuleCreateBulk) SaveE(ctx context.Contex
 	}
 
 	mc := rdmrcb.getClientSet()
-	if rdmrcb.fromUpsert {
-		for i := range objs {
-			obj := objs[i]
-			q := mc.ResourceDefinitionMatchingRules().Query().
-				Where(
-					resourcedefinitionmatchingrule.ResourceDefinitionID(obj.ResourceDefinitionID),
-					resourcedefinitionmatchingrule.TemplateID(obj.TemplateID),
-					resourcedefinitionmatchingrule.Name(obj.Name),
-				)
-			objs[i].ID, err = q.OnlyID(ctx)
-			if err != nil {
-				return nil, fmt.Errorf("model: failed to query id of ResourceDefinitionMatchingRule entity: %w", err)
-			}
-		}
-	}
 
 	if x := rdmrcb.objects; x != nil {
 		for i := range x {
@@ -642,6 +615,18 @@ type (
 	}
 )
 
+// SetTemplateID sets the "template_id" field.
+func (u *ResourceDefinitionMatchingRuleUpsert) SetTemplateID(v object.ID) *ResourceDefinitionMatchingRuleUpsert {
+	u.Set(resourcedefinitionmatchingrule.FieldTemplateID, v)
+	return u
+}
+
+// UpdateTemplateID sets the "template_id" field to the value that was provided on create.
+func (u *ResourceDefinitionMatchingRuleUpsert) UpdateTemplateID() *ResourceDefinitionMatchingRuleUpsert {
+	u.SetExcluded(resourcedefinitionmatchingrule.FieldTemplateID)
+	return u
+}
+
 // SetSelector sets the "selector" field.
 func (u *ResourceDefinitionMatchingRuleUpsert) SetSelector(v types.Selector) *ResourceDefinitionMatchingRuleUpsert {
 	u.Set(resourcedefinitionmatchingrule.FieldSelector, v)
@@ -713,9 +698,6 @@ func (u *ResourceDefinitionMatchingRuleUpsertOne) UpdateNewValues() *ResourceDef
 		if _, exists := u.create.mutation.ResourceDefinitionID(); exists {
 			s.SetIgnore(resourcedefinitionmatchingrule.FieldResourceDefinitionID)
 		}
-		if _, exists := u.create.mutation.TemplateID(); exists {
-			s.SetIgnore(resourcedefinitionmatchingrule.FieldTemplateID)
-		}
 		if _, exists := u.create.mutation.Name(); exists {
 			s.SetIgnore(resourcedefinitionmatchingrule.FieldName)
 		}
@@ -748,6 +730,20 @@ func (u *ResourceDefinitionMatchingRuleUpsertOne) Update(set func(*ResourceDefin
 		set(&ResourceDefinitionMatchingRuleUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetTemplateID sets the "template_id" field.
+func (u *ResourceDefinitionMatchingRuleUpsertOne) SetTemplateID(v object.ID) *ResourceDefinitionMatchingRuleUpsertOne {
+	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
+		s.SetTemplateID(v)
+	})
+}
+
+// UpdateTemplateID sets the "template_id" field to the value that was provided on create.
+func (u *ResourceDefinitionMatchingRuleUpsertOne) UpdateTemplateID() *ResourceDefinitionMatchingRuleUpsertOne {
+	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
+		s.UpdateTemplateID()
+	})
 }
 
 // SetSelector sets the "selector" field.
@@ -993,9 +989,6 @@ func (u *ResourceDefinitionMatchingRuleUpsertBulk) UpdateNewValues() *ResourceDe
 			if _, exists := b.mutation.ResourceDefinitionID(); exists {
 				s.SetIgnore(resourcedefinitionmatchingrule.FieldResourceDefinitionID)
 			}
-			if _, exists := b.mutation.TemplateID(); exists {
-				s.SetIgnore(resourcedefinitionmatchingrule.FieldTemplateID)
-			}
 			if _, exists := b.mutation.Name(); exists {
 				s.SetIgnore(resourcedefinitionmatchingrule.FieldName)
 			}
@@ -1029,6 +1022,20 @@ func (u *ResourceDefinitionMatchingRuleUpsertBulk) Update(set func(*ResourceDefi
 		set(&ResourceDefinitionMatchingRuleUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetTemplateID sets the "template_id" field.
+func (u *ResourceDefinitionMatchingRuleUpsertBulk) SetTemplateID(v object.ID) *ResourceDefinitionMatchingRuleUpsertBulk {
+	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
+		s.SetTemplateID(v)
+	})
+}
+
+// UpdateTemplateID sets the "template_id" field to the value that was provided on create.
+func (u *ResourceDefinitionMatchingRuleUpsertBulk) UpdateTemplateID() *ResourceDefinitionMatchingRuleUpsertBulk {
+	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
+		s.UpdateTemplateID()
+	})
 }
 
 // SetSelector sets the "selector" field.
