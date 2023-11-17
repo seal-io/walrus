@@ -43,8 +43,7 @@ func (ResourceDefinitionMatchingRule) Fields() []ent.Field {
 			Immutable(),
 		object.IDField("template_id").
 			Comment("ID of the template version to which the relationship connects.").
-			NotEmpty().
-			Immutable(),
+			NotEmpty(),
 		field.String("name").
 			Comment("Name of the matching rule.").
 			NotEmpty().
@@ -79,7 +78,6 @@ func (ResourceDefinitionMatchingRule) Edges() []ent.Edge {
 			Comment("Template version that connect to the relationship.").
 			Unique().
 			Required().
-			Immutable().
 			Annotations(
 				entsql.OnDelete(entsql.Restrict),
 				entx.Input(entx.WithUpdate())),
