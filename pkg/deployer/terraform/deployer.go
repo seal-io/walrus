@@ -24,7 +24,6 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
@@ -148,19 +147,6 @@ func (d Deployer) Destroy(ctx context.Context, resource *model.Resource, opts de
 		// Report to resource revision.
 		_ = d.updateRevisionStatus(ctx, revision)
 	}()
-
-	// If no resource exists, skip job and set revision status succeed.
-	exist, err := d.modelClient.ResourceComponents().Query().
-		Where(resourcecomponent.ResourceID(resource.ID)).
-		Exist(ctx)
-	if err != nil {
-		return err
-	}
-
-	if !exist {
-		status.ResourceRevisionStatusReady.True(revision, "")
-		return d.updateRevisionStatus(ctx, revision)
-	}
 
 	return d.createK8sJob(ctx, createK8sJobOptions{
 		Type:             JobTypeDestroy,

@@ -11,6 +11,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
@@ -118,6 +119,18 @@ func Destroy(
 	opts Options,
 ) (err error) {
 	logger := log.WithName("resource")
+
+	// If no resource component exists, skip calling deployer destroy and do straight deletion.
+	exist, err := mc.ResourceComponents().Query().
+		Where(resourcecomponent.ResourceID(entity.ID)).
+		Exist(ctx)
+	if err != nil {
+		return err
+	}
+
+	if !exist {
+		return mc.Resources().DeleteOneID(entity.ID).Exec(ctx)
+	}
 
 	updateFailedStatus := func(err error) {
 		status.ResourceStatusDeleted.False(entity, err.Error())
