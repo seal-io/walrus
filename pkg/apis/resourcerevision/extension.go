@@ -189,6 +189,14 @@ func manageResources(
 
 	// Diff by transactional session.
 	err = modelClient.WithTx(ctx, func(tx *model.Tx) error {
+		// Update resources with new instances.
+		for _, r := range updatedRess {
+			err = dao.ResourceComponentInstancesEdgeSave(ctx, tx, r)
+			if err != nil {
+				return err
+			}
+		}
+
 		// Create new resources.
 		if len(createRess) != 0 {
 			createRess, err = tx.ResourceComponents().CreateBulk().
@@ -212,14 +220,6 @@ func manageResources(
 				Where(resourcecomponent.IDIn(deleteRessIDs...)).
 				Exec(ctx)
 			if err != nil && !errors.Is(err, sql.ErrNoRows) {
-				return err
-			}
-		}
-
-		// Update resources with new instances.
-		for _, r := range updatedRess {
-			err = dao.ResourceComponentInstancesEdgeSave(ctx, tx, r)
-			if err != nil {
 				return err
 			}
 		}
