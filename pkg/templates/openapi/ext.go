@@ -2,18 +2,32 @@ package openapi
 
 import (
 	"github.com/getkin/kin-openapi/openapi3"
+
+	"github.com/seal-io/walrus/utils/json"
 )
 
 const OpenAPIVersion = "3.0.3"
 
 const (
+	// Extension for walrus.
+	ExtWalrusKey = "x-walrus"
+	// ExtWalrusVersionKey is a string, for walrus version constraint.
+	ExtWalrusVersionKey = "version"
+	/* Version Constraint is under info extension.
+	   Example:
+	   ```yaml
+	   openapi: 3.0.3
+	   info:
+	     title: OpenAPI schema for template webservice
+	     x-walrus:
+	   	version: '>=0.4.0-rc1'
+	    ```
+	*/
+)
+
+const (
 	// Extension for UI.
-	ExtUI          = "x-walrus-ui"
-	ExtUIGroup     = "group"
-	ExtUIShowIf    = "show-if"
-	ExtUIHidden    = "hidden"
-	ExtUIImmutable = "immutable"
-	ExtUIWidget    = "widget"
+	ExtUIKey = "x-walrus-ui"
 	/* UI is under schema extension.
 		   Example:
 		   ```yaml
@@ -32,16 +46,44 @@ const (
 		               hidden:
 		               immutable:
 		   	       widget:
+	                       order:
+	                       colSpan:
 		   ```
 	*/
 )
 
+// ExtUI is a struct wrap the UI extension.
+type ExtUI struct {
+	// Group is a string, for grouping the properties.
+	Group string `json:"group,omitempty" yaml:"group,omitempty"`
+	// ShowIf is a string, for showing the property.
+	ShowIf string `json:"showIf,omitempty" yaml:"showIf,omitempty"`
+	// Hidden is a boolean, for hiding the property.
+	Hidden bool `json:"hidden,omitempty" yaml:"hidden,omitempty"`
+	// Immutable is a boolean, for making the property immutable.
+	Immutable bool `json:"immutable,omitempty" yaml:"immutable,omitempty"`
+	// Widget is a string, for customizing the UI widget.
+	Widget string `json:"widget,omitempty" yaml:"widget,omitempty"`
+	// Order is a number, for ordering the properties in the UI.
+	Order int `json:"order,omitempty" yaml:"order,omitempty"`
+	// ColSpan is a number between 1 and 12, for typical 12-column grid systems.
+	ColSpan int `json:"colSpan,omitempty" yaml:"colSpan,omitempty"`
+}
+
+// IsEmpty reports if the extension is empty.
+func (e ExtUI) IsEmpty() bool {
+	return e.Group == "" &&
+		e.ShowIf == "" &&
+		!e.Hidden &&
+		!e.Immutable &&
+		e.Widget == "" &&
+		e.Order <= 0 &&
+		e.ColSpan <= 0
+}
+
 const (
-	// Extension for original value.
-	ExtOriginal                  = "x-walrus-original"
-	ExtOriginalType              = "type"
-	ExtOriginalValueExpression   = "value-expression"
-	ExtOriginalVariablesSequence = "sequence"
+	// ExtOriginalKey for original value.
+	ExtOriginalKey = "x-walrus-original"
 	/* Origin is under schema extension.
 	   Example:
 	   ```yaml
@@ -60,324 +102,195 @@ const (
 	*/
 )
 
-const (
-	// Extension for walrus.
-	ExtWalrus        = "x-walrus"
-	ExtWalrusVersion = "version"
+// ExtOriginal is a struct wrap the original extension.
+type ExtOriginal struct {
+	// Type is a string, for original type.
+	Type any `json:"type,omitempty" yaml:"type,omitempty"`
+	// ValueExpression is a string, for original value expression.
+	ValueExpression []byte `json:"value-expression,omitempty" yaml:"value-expression,omitempty"`
+	// VariablesSequence is a list, for original variables sequence.
+	VariablesSequence []string `json:"sequence,omitempty" yaml:"sequence,omitempty"`
+}
 
-	/* Version Constraint is under info extension.
-	   Example:
-	   ```yaml
-	   openapi: 3.0.3
-	   info:
-	     title: OpenAPI schema for template webservice
-	     x-walrus:
-	   	version: '>=0.4.0-rc1'
-	    ```
-	*/
+// IsEmpty reports if the extension is empty.
+func (e ExtOriginal) IsEmpty() bool {
+	return e.Type == nil && len(e.ValueExpression) == 0 && len(e.VariablesSequence) == 0
+}
 
-)
+// Ext is a struct wrap the extension.
+type Ext struct {
+	ExtUI
+	ExtOriginal
+}
 
-type Ext map[string]map[string]any
+// NewExt creates a new Ext.
+func NewExt() *Ext {
+	return &Ext{}
+}
 
-func NewExt(c map[string]any) Ext {
-	if c == nil {
-		return Ext{}
+// NewExtFromMap creates a new Ext from extension map.
+func NewExtFromMap(m map[string]any) *Ext {
+	e := NewExt()
+	if len(m) == 0 {
+		return e
 	}
 
-	e := Ext{}
-	for k, v := range c {
-		e[k] = v.(map[string]any)
+	ui, ok := m[ExtUIKey]
+	if ok {
+		e.ExtUI, ok = ui.(ExtUI)
+		if !ok {
+			b, err := json.Marshal(m[ExtUIKey])
+			if err == nil {
+				_ = json.Unmarshal(b, &e.ExtUI)
+			}
+		}
+	}
+
+	origin, ok := m[ExtOriginalKey]
+	if ok {
+		e.ExtOriginal, ok = origin.(ExtOriginal)
+		if !ok {
+			b, err := json.Marshal(m[ExtOriginalKey])
+			if err == nil {
+				_ = json.Unmarshal(b, &e.ExtOriginal)
+			}
+		}
 	}
 
 	return e
 }
 
-func (e Ext) SetOriginalType(t any) Ext {
-	if e[ExtOriginal] == nil {
-		e[ExtOriginal] = map[string]any{}
+func (e *Ext) WithOriginal(origin any) *Ext {
+	o, ok := origin.(ExtOriginal)
+	if ok {
+		e.ExtOriginal = o
 	}
-
-	e[ExtOriginal][ExtOriginalType] = t
 
 	return e
 }
 
-func (e Ext) SetOriginalValueExpression(ve []byte) Ext {
-	if e[ExtOriginal] == nil {
-		e[ExtOriginal] = map[string]any{}
-	}
+func (e *Ext) WithOriginalType(ty any) *Ext {
+	e.Type = ty
+	return e
+}
 
-	e[ExtOriginal][ExtOriginalValueExpression] = string(ve)
+func (e *Ext) WithOriginalValueExpression(ve []byte) *Ext {
+	e.ValueExpression = ve
+	return e
+}
+
+func (e *Ext) WithOriginalVariablesSequence(vq []string) *Ext {
+	e.VariablesSequence = vq
+	return e
+}
+
+func (e *Ext) WithUIGroup(gp string) *Ext {
+	e.Group = gp
+	return e
+}
+
+func (e *Ext) WithUIShowIf(showIf string) *Ext {
+	e.ShowIf = showIf
+	return e
+}
+
+func (e *Ext) WithUIHidden() *Ext {
+	e.Hidden = true
+	return e
+}
+
+func (e *Ext) WithUIImmutable() *Ext {
+	e.Immutable = true
+	return e
+}
+
+func (e *Ext) WithUIWidget(widget string) *Ext {
+	e.Widget = widget
+	return e
+}
+
+func (e *Ext) WithUIOrder(order int) *Ext {
+	if order > 0 {
+		e.Order = order
+	}
 
 	return e
 }
 
-func (e Ext) SetOriginalVariablesSequence(s []string) Ext {
-	if e[ExtOriginal] == nil {
-		e[ExtOriginal] = map[string]any{}
+func (e *Ext) WithUIColSpan(cs int) *Ext {
+	if cs > 0 {
+		e.ColSpan = cs
 	}
-
-	e[ExtOriginal][ExtOriginalVariablesSequence] = s
 
 	return e
 }
 
-func (e Ext) SetUIGroup(gp string) Ext {
-	if e[ExtUI] == nil {
-		e[ExtUI] = map[string]any{}
-	}
-
-	e[ExtUI][ExtUIGroup] = gp
-
-	return e
-}
-
-func (e Ext) SetUIWidget(w string) Ext {
-	if e[ExtUI] == nil {
-		e[ExtUI] = map[string]any{}
-	}
-
-	e[ExtUI][ExtUIWidget] = w
-
-	return e
-}
-
-func (e Ext) SetUIHidden() Ext {
-	if e[ExtUI] == nil {
-		e[ExtUI] = map[string]any{}
-	}
-
-	e[ExtUI][ExtUIHidden] = true
-
-	return e
-}
-
-func (e Ext) SetUIImmutable() Ext {
-	if e[ExtUI] == nil {
-		e[ExtUI] = map[string]any{}
-	}
-
-	e[ExtUI][ExtUIImmutable] = true
-
-	return e
-}
-
-func (e Ext) SetUIShowIf(showIf string) Ext {
-	if e[ExtUI] == nil {
-		e[ExtUI] = map[string]any{}
-	}
-
-	e[ExtUI][ExtUIShowIf] = showIf
-
-	return e
-}
-
-func (e Ext) SetWalrusVersion(s string) Ext {
-	if e[ExtWalrus] == nil {
-		e[ExtWalrus] = map[string]any{}
-	}
-
-	e[ExtWalrus][ExtWalrusVersion] = s
-
-	return e
-}
-
-func (e Ext) Export() map[string]any {
-	if len(e) == 0 {
+func (e *Ext) Export() map[string]any {
+	if e.ExtUI.IsEmpty() && e.ExtOriginal.IsEmpty() {
 		return nil
 	}
 
 	result := make(map[string]any)
-	for k := range e {
-		result[k] = e[k]
+	if !e.ExtUI.IsEmpty() {
+		result[ExtUIKey] = e.ExtUI
+	}
+
+	if !e.ExtOriginal.IsEmpty() {
+		result[ExtOriginalKey] = e.ExtOriginal
 	}
 
 	return result
 }
 
-func GetOriginalType(e map[string]any) any {
-	if e[ExtOriginal] == nil {
-		return nil
+func GetExtOriginal(e map[string]any) ExtOriginal {
+	if e[ExtOriginalKey] == nil {
+		return ExtOriginal{}
 	}
 
-	eo, ok := e[ExtOriginal].(map[string]any)
-	if !ok {
-		return nil
+	eo, ok := e[ExtOriginalKey].(ExtOriginal)
+	if ok {
+		return eo
 	}
 
-	val, ok := eo[ExtOriginalType]
-	if !ok {
-		return nil
+	b, err := json.Marshal(e[ExtOriginalKey])
+	if err == nil {
+		_ = json.Unmarshal(b, &eo)
+		return eo
 	}
 
-	return val
+	return ExtOriginal{}
 }
 
-func GetOriginalValueExpression(e map[string]any) []byte {
-	if e[ExtOriginal] == nil {
-		return nil
+func GetExtUI(e map[string]any) ExtUI {
+	if e[ExtUIKey] == nil {
+		return ExtUI{}
 	}
 
-	eo, ok := e[ExtOriginal].(map[string]any)
-	if !ok {
-		return nil
+	eo, ok := e[ExtUIKey].(ExtUI)
+	if ok {
+		return eo
 	}
 
-	val, ok := eo[ExtOriginalValueExpression]
-	if !ok {
-		return nil
+	b, err := json.Marshal(e[ExtUIKey])
+	if err == nil {
+		_ = json.Unmarshal(b, &eo)
+		return eo
 	}
 
-	vb, _ := val.([]byte)
-
-	return vb
+	return ExtUI{}
 }
 
-func GetOriginalVariablesSequence(e map[string]any) []string {
-	if e[ExtOriginal] == nil {
-		return nil
-	}
-
-	eo, ok := e[ExtOriginal].(map[string]any)
-	if !ok {
-		return nil
-	}
-
-	val, ok := eo[ExtOriginalVariablesSequence]
-	if !ok {
-		return nil
-	}
-
-	switch v := val.(type) {
-	case []string:
-		return v
-	case []any:
-		var vb []string
-
-		for _, vq := range v {
-			if s, ok := vq.(string); ok {
-				vb = append(vb, s)
-			}
-		}
-
-		return vb
-	}
-
-	return nil
-}
-
-func GetUIGroup(e map[string]any) string {
-	if e[ExtUI] == nil {
+func GetExtWalrusVersion(e map[string]any) string {
+	if e[ExtWalrusKey] == nil {
 		return ""
 	}
 
-	eo, ok := e[ExtUI].(map[string]any)
+	eo, ok := e[ExtWalrusKey].(map[string]any)
 	if !ok {
 		return ""
 	}
 
-	val, ok := eo[ExtUIGroup]
-	if !ok {
-		return ""
-	}
-
-	vb, _ := val.(string)
-
-	return vb
-}
-
-func GetUIShowIf(e map[string]any) string {
-	if e[ExtUI] == nil {
-		return ""
-	}
-
-	eo, ok := e[ExtUI].(map[string]any)
-	if !ok {
-		return ""
-	}
-
-	val, ok := eo[ExtUIShowIf]
-	if !ok {
-		return ""
-	}
-
-	vb, _ := val.(string)
-
-	return vb
-}
-
-func GetUIHidden(e map[string]any) bool {
-	if e[ExtUI] == nil {
-		return false
-	}
-
-	eo, ok := e[ExtUI].(map[string]any)
-	if !ok {
-		return false
-	}
-
-	val, ok := eo[ExtUIHidden]
-	if !ok {
-		return false
-	}
-
-	vb, _ := val.(bool)
-
-	return vb
-}
-
-func GetUIImmutable(e map[string]any) bool {
-	if e[ExtUI] == nil {
-		return false
-	}
-
-	eo, ok := e[ExtUI].(map[string]any)
-	if !ok {
-		return false
-	}
-
-	val, ok := eo[ExtUIImmutable]
-	if !ok {
-		return false
-	}
-
-	vb, _ := val.(bool)
-
-	return vb
-}
-
-func GetUIWidget(e map[string]any) string {
-	if e[ExtUI] == nil {
-		return ""
-	}
-
-	eo, ok := e[ExtUI].(map[string]any)
-	if !ok {
-		return ""
-	}
-
-	val, ok := eo[ExtUIWidget]
-	if !ok {
-		return ""
-	}
-
-	vb, _ := val.(string)
-
-	return vb
-}
-
-func GetWalrusVersion(e map[string]any) string {
-	if e[ExtWalrus] == nil {
-		return ""
-	}
-
-	eo, ok := e[ExtWalrus].(map[string]any)
-	if !ok {
-		return ""
-	}
-
-	val, ok := eo[ExtWalrusVersion]
+	val, ok := eo[ExtWalrusVersionKey]
 	if !ok {
 		return ""
 	}
@@ -437,9 +350,9 @@ func RemoveExt(key string, s *openapi3.Schema) *openapi3.Schema {
 }
 
 func RemoveExtOriginal(s *openapi3.Schema) *openapi3.Schema {
-	return RemoveExt(ExtOriginal, s)
+	return RemoveExt(ExtOriginalKey, s)
 }
 
 func RemoveExtUI(s *openapi3.Schema) *openapi3.Schema {
-	return RemoveExt(ExtUI, s)
+	return RemoveExt(ExtUIKey, s)
 }

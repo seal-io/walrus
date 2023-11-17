@@ -63,11 +63,16 @@ func UnionSchema(s1, s2 *openapi3.Schema) (*openapi3.Schema, error) {
 	}
 
 	// Set sequence extension while existed.
-	sequence := GetOriginalVariablesSequence(s2.Extensions)
-	s1Sequence := GetOriginalVariablesSequence(s1.Extensions)
-	diff := sets.NewString(s1Sequence...).Difference(sets.NewString(sequence...))
 
-	for _, v := range s1Sequence {
+	var (
+		s2o  = GetExtOriginal(s2.Extensions)
+		s1o  = GetExtOriginal(s1.Extensions)
+		diff = sets.NewString(s1o.VariablesSequence...).
+			Difference(sets.NewString(s2o.VariablesSequence...))
+		sequence = s2o.VariablesSequence
+	)
+
+	for _, v := range s1o.VariablesSequence {
 		if diff.Has(v) {
 			sequence = append(sequence, v)
 		}
@@ -85,7 +90,7 @@ func UnionSchema(s1, s2 *openapi3.Schema) (*openapi3.Schema, error) {
 	if err != nil {
 		return nil, err
 	}
-	merged.Extensions = NewExt(merged.Extensions).SetOriginalVariablesSequence(sequence).Export()
+	merged.Extensions = NewExtFromMap(merged.Extensions).WithOriginalVariablesSequence(sequence).Export()
 
 	return &merged, nil
 }

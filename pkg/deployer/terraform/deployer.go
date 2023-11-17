@@ -926,18 +926,17 @@ func getModuleConfig(
 		}
 
 		for k, v := range sps {
-			valueExpression := openapi.GetOriginalValueExpression(v.Value.Extensions)
-
+			origin := openapi.GetExtOriginal(v.Value.Extensions)
 			co := config.Output{
 				Sensitive:    v.Value.WriteOnly,
 				Name:         k,
 				ResourceName: opts.Context.Resource.Name,
-				Value:        valueExpression,
+				Value:        origin.ValueExpression,
 			}
 
 			if !v.Value.WriteOnly {
 				// Update sensitive while output is from sensitive data, like secret.
-				if sensitiveVariables.Len() != 0 && sensitiveVariableRegex.Match(valueExpression) {
+				if sensitiveVariables.Len() != 0 && sensitiveVariableRegex.Match(origin.ValueExpression) {
 					co.Sensitive = true
 				}
 			}

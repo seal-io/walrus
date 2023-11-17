@@ -31,6 +31,7 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 	def any,
 	description string,
 	sensitive bool,
+	order int,
 ) *openapi3.Schema {
 	// Isn't terraform type.
 	typ, ok := tp.(cty.Type)
@@ -49,8 +50,9 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 		s.Title = strs.Title(name)
 		s.Description = description
 		s.WriteOnly = sensitive
-		s.Extensions = openapi.NewExt(s.Extensions).
-			SetOriginalType(typ).
+		s.Extensions = openapi.NewExt().
+			WithOriginalType(typ).
+			WithUIOrder(order).
 			Export()
 
 		return s
@@ -64,8 +66,9 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 		s.Title = strs.Title(name)
 		s.Description = description
 		s.WriteOnly = sensitive
-		s.Extensions = openapi.NewExt(s.Extensions).
-			SetOriginalType(typ).
+		s.Extensions = openapi.NewExt().
+			WithOriginalType(typ).
+			WithUIOrder(order).
 			Export()
 
 		return s
@@ -76,11 +79,15 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 		// Default.
 		setDefault(s, def)
 
+		if sensitive {
+			s.Format = "password"
+		}
 		s.Title = strs.Title(name)
 		s.Description = description
 		s.WriteOnly = sensitive
-		s.Extensions = openapi.NewExt(s.Extensions).
-			SetOriginalType(typ).
+		s.Extensions = openapi.NewExt().
+			WithOriginalType(typ).
+			WithUIOrder(order).
 			Export()
 
 		return s
@@ -98,14 +105,16 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 		}
 
 		// Property.
-		it := t.SchemaOfOriginalType(typ.ElementType(), "", etpDef, "", sensitive)
+		it := t.SchemaOfOriginalType(typ.ElementType(), "", etpDef, "", sensitive, -1)
 		s.WithItems(it)
 
 		s.Title = strs.Title(name)
 		s.Description = description
 		s.WriteOnly = sensitive
-		s.Extensions = openapi.NewExt(s.Extensions).
-			SetOriginalType(typ).
+		s.Extensions = openapi.NewExt().
+			WithOriginalType(typ).
+			WithUIOrder(order).
+			WithUIColSpan(12).
 			Export()
 
 		return s
@@ -123,7 +132,7 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 		)
 
 		for i, tt := range ts {
-			refs[i] = t.SchemaOfOriginalType(tt, "", nil, "", sensitive).
+			refs[i] = t.SchemaOfOriginalType(tt, "", nil, "", sensitive, -1).
 				NewRef()
 		}
 
@@ -135,8 +144,10 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 		s.Title = strs.Title(name)
 		s.Description = description
 		s.WriteOnly = sensitive
-		s.Extensions = openapi.NewExt(s.Extensions).
-			SetOriginalType(typ).
+		s.Extensions = openapi.NewExt().
+			WithOriginalType(typ).
+			WithUIOrder(order).
+			WithUIColSpan(12).
 			Export()
 
 		return s
@@ -159,15 +170,17 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 
 		// Property.
 		if mtp != nil {
-			it := t.SchemaOfOriginalType(*mtp, "", mtpDef, "", sensitive)
+			it := t.SchemaOfOriginalType(*mtp, "", mtpDef, "", sensitive, -1)
 			s.WithAdditionalProperties(it)
 		}
 
 		s.Title = strs.Title(name)
 		s.Description = description
 		s.WriteOnly = sensitive
-		s.Extensions = openapi.NewExt(s.Extensions).
-			SetOriginalType(typ).
+		s.Extensions = openapi.NewExt().
+			WithOriginalType(typ).
+			WithUIOrder(order).
+			WithUIColSpan(12).
 			Export()
 
 		return s
@@ -207,7 +220,7 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 				propDef = childDefaults[n]
 			}
 
-			st := t.SchemaOfOriginalType(tt, n, propDef, "", sensitive)
+			st := t.SchemaOfOriginalType(tt, n, propDef, "", sensitive, -1)
 
 			s.WithProperty(n, st)
 
@@ -219,8 +232,10 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 		s.Title = strs.Title(name)
 		s.Description = description
 		s.WriteOnly = sensitive
-		s.Extensions = openapi.NewExt(s.Extensions).
-			SetOriginalType(typ).
+		s.Extensions = openapi.NewExt().
+			WithOriginalType(typ).
+			WithUIOrder(order).
+			WithUIColSpan(12).
 			Export()
 		sort.Strings(s.Required)
 
@@ -235,8 +250,10 @@ func (t TerraformTranslator) SchemaOfOriginalType(
 		s.Title = strs.Title(name)
 		s.Description = description
 		s.WriteOnly = sensitive
-		s.Extensions = openapi.NewExt(s.Extensions).
-			SetOriginalType(cty.DynamicPseudoType).
+		s.Extensions = openapi.NewExt().
+			WithOriginalType(cty.DynamicPseudoType).
+			WithUIOrder(order).
+			WithUIColSpan(12).
 			Export()
 
 		return s
@@ -325,7 +342,7 @@ func (t TerraformTranslator) ToOriginalTypeValues(values map[string]any) ([]stri
 // GetOriginalType returns the original type of the schema.
 func (t TerraformTranslator) GetOriginalType(schema *openapi3.Schema) cty.Type {
 	if schema != nil {
-		ta := openapi.GetOriginalType(schema.Extensions)
+		ta := openapi.GetExtOriginal(schema.Extensions).Type
 		if ta != nil {
 			if typ, ok := ta.(cty.Type); ok {
 				return typ

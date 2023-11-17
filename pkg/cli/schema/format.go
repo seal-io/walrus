@@ -76,7 +76,7 @@ type WrapComponents struct {
 func FormattedOpenAPI(s types.Schema) ([]byte, error) {
 	// Get variables sequence.
 	vs := s.VariableSchema()
-	seq := openapi.GetOriginalVariablesSequence(vs.Extensions)
+	seq := openapi.GetExtOriginal(vs.Extensions).VariablesSequence
 
 	// Expose Variables.
 	es := s.Expose()

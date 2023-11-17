@@ -213,7 +213,10 @@ func ParseStateOutput(revision *model.ResourceRevision) ([]types.OutputValue, er
 
 	sn := revision.Edges.Resource.Name
 
-	var outputs []types.OutputValue
+	var (
+		outputs []types.OutputValue
+		count   = 1
+	)
 
 	for n, o := range revisionState.Outputs {
 		if strings.Index(n, sn) == 0 {
@@ -230,8 +233,10 @@ func ParseStateOutput(revision *model.ResourceRevision) ([]types.OutputValue, er
 					n,
 					nil,
 					"",
-					o.Sensitive),
+					o.Sensitive, count),
 			})
+
+			count++
 		}
 	}
 

@@ -130,7 +130,7 @@ func isConstraintSatisfied(schema *types.TemplateVersionSchema) (bool, error) {
 		return false, err
 	}
 
-	semc := openapi.GetWalrusVersion(schema.OpenAPISchema.Info.Extensions)
+	semc := openapi.GetExtWalrusVersion(schema.OpenAPISchema.Info.Extensions)
 	if semc == "" {
 		return true, nil
 	}
