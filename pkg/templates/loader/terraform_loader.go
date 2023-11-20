@@ -236,9 +236,10 @@ func (l *TerraformLoader) getVariableSchemaFromTerraform(mod *tfconfig.Module) (
 	for i, v := range sortVariables(mod.Variables) {
 		// Parse tf expression from type.
 		var (
-			tfType = cty.DynamicPseudoType
-			def    = v.Default
-			order  = i + 1
+			tfType       = cty.DynamicPseudoType
+			def          = v.Default
+			order        = i + 1
+			tyExpression any
 		)
 
 		// Required and keys.
@@ -265,6 +266,7 @@ func (l *TerraformLoader) getVariableSchemaFromTerraform(mod *tfconfig.Module) (
 			if conDef != nil && conDef.DefaultValues != nil && conDef.Children != nil {
 				def = conDef
 			}
+			tyExpression = expr
 		} else if v.Default != nil {
 			// Empty type, use default value to get type.
 			b, err := json.Marshal(v.Default)
@@ -285,11 +287,14 @@ func (l *TerraformLoader) getVariableSchemaFromTerraform(mod *tfconfig.Module) (
 			v.Name,
 			l.translator.SchemaOfOriginalType(
 				tfType,
-				v.Name,
-				def,
-				v.Description,
-				v.Sensitive,
-				order))
+				translator.Options{
+					Name:        v.Name,
+					Default:     def,
+					Description: v.Description,
+					Sensitive:   v.Sensitive,
+					Order:       order,
+					TypeExpress: tyExpression,
+				}))
 	}
 
 	// Inject extension sequence.
@@ -354,11 +359,12 @@ func (l *TerraformLoader) getOutputSchemaFromTerraform(mod *tfconfig.Module) (*o
 			v.Name,
 			l.translator.SchemaOfOriginalType(
 				cty.DynamicPseudoType,
-				v.Name,
-				nil,
-				v.Description,
-				v.Sensitive,
-				order))
+				translator.Options{
+					Name:        v.Name,
+					Description: v.Description,
+					Sensitive:   v.Sensitive,
+					Order:       order,
+				}))
 
 		filenames.Insert(v.Pos.Filename)
 	}

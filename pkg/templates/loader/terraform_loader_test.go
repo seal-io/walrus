@@ -509,6 +509,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 																Type:  openapi3.TypeString,
 																Extensions: openapi.NewExt().
 																	WithOriginalType(cty.String).
+																	WithUIOrder(1).
 																	Export(),
 															},
 														},
@@ -518,6 +519,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 																Type:  openapi3.TypeNumber,
 																Extensions: openapi.NewExt().
 																	WithOriginalType(cty.Number).
+																	WithUIOrder(2).
 																	Export(),
 															},
 														},
@@ -527,6 +529,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 																Type:  openapi3.TypeBoolean,
 																Extensions: openapi.NewExt().
 																	WithOriginalType(cty.Bool).
+																	WithUIOrder(3).
 																	Export(),
 															},
 														},
@@ -567,6 +570,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 																Type:  openapi3.TypeString,
 																Extensions: openapi.NewExt().
 																	WithOriginalType(cty.String).
+																	WithUIOrder(1).
 																	Export(),
 															},
 														},
@@ -584,6 +588,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 																					Type:  openapi3.TypeBoolean,
 																					Extensions: openapi.NewExt().
 																						WithOriginalType(cty.Bool).
+																						WithUIOrder(1).
 																						Export(),
 																				},
 																			},
@@ -603,6 +608,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 																		cty.Object(map[string]cty.Type{
 																			"c": cty.Bool,
 																		}))).
+																	WithUIOrder(2).
 																	WithUIColSpan(12).
 																	Export(),
 															},
@@ -637,6 +643,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 																		Type:  openapi3.TypeString,
 																		Extensions: openapi.NewExt().
 																			WithOriginalType(cty.String).
+																			WithUIOrder(1).
 																			Export(),
 																	},
 																},
@@ -646,6 +653,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 																		Type:  openapi3.TypeNumber,
 																		Extensions: openapi.NewExt().
 																			WithOriginalType(cty.Number).
+																			WithUIOrder(2).
 																			Export(),
 																	},
 																},
@@ -655,6 +663,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 																		Type:  openapi3.TypeBoolean,
 																		Extensions: openapi.NewExt().
 																			WithOriginalType(cty.Bool).
+																			WithUIOrder(3).
 																			Export(),
 																	},
 																},

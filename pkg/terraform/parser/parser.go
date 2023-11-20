@@ -227,10 +227,11 @@ func ParseStateOutput(revision *model.ResourceRevision) ([]types.OutputValue, er
 
 			s := translator.SchemaOfType(
 				o.Type,
-				n,
-				nil,
-				"",
-				o.Sensitive, count)
+				translator.Options{
+					Name:      n,
+					Sensitive: o.Sensitive,
+					Order:     count,
+				})
 
 			outputs = append(outputs, types.OutputValue{
 				Name:   strings.TrimPrefix(n, sn+"_"), // Name format is serviceName_outputName.

@@ -12,32 +12,28 @@ import (
 // Translator translates between original template language and go types with openapi schema.
 type Translator interface {
 	// SchemaOfOriginalType generates openAPI schema from original type.
-	SchemaOfOriginalType(
-		typ any,
-		name string,
-		def any,
-		description string,
-		sensitive bool,
-		order int) *openapi3.Schema
+	SchemaOfOriginalType(typ any, opts Options) *openapi3.Schema
 	// ToGoTypeValues converts values to go types.
 	ToGoTypeValues(values map[string]json.RawMessage, schema openapi3.Schema) (map[string]any, error)
 }
 
+type Options struct {
+	Name        string
+	Default     any
+	Description string
+	Sensitive   bool
+	Order       int
+	TypeExpress any
+}
+
 // SchemaOfType generates openAPI schema from original type.
-func SchemaOfType(
-	typ any,
-	name string,
-	def any,
-	description string,
-	sensitive bool,
-	order int,
-) (schema openapi3.Schema) {
+func SchemaOfType(typ any, opts Options) (schema openapi3.Schema) {
 	var s *openapi3.Schema
 
 	// Terraform.
 	tf := NewTerraformTranslator()
 
-	s = tf.SchemaOfOriginalType(typ, name, def, description, sensitive, order)
+	s = tf.SchemaOfOriginalType(typ, opts)
 	if s != nil {
 		return *s
 	}
@@ -45,14 +41,14 @@ func SchemaOfType(
 	// Continue with other translator in the future.
 
 	// No translator found.
-	log.Warnf("no supported translator found for type %v, name %s", typ, name)
+	log.Warnf("no supported translator found for type %v, name %s", typ, opts.Name)
 
 	// Default unknown type.
 	s = openapi3.NewSchema().
-		WithDefault(def)
-	s.Title = name
-	s.Description = description
-	s.WriteOnly = sensitive
+		WithDefault(opts.Default)
+	s.Title = opts.Name
+	s.Description = opts.Description
+	s.WriteOnly = opts.Sensitive
 
 	return *s
 }
