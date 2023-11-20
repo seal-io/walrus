@@ -48,7 +48,7 @@ var (
 		"DeployerImage",
 		editable,
 		// When the image is updated, sync the one in server Dockerfile.
-		initializeFrom("sealio/terraform-deployer:v0.1.4"),
+		initializeFromEnv("sealio/terraform-deployer:v0.1.4"),
 		modifyWith(notBlank, containerImageReference),
 	)
 	// WorkflowStepServiceImage indicates the image used by workflow step service.
@@ -57,7 +57,7 @@ var (
 		editable,
 		// When the image is updated, sync the one in server Dockerfile.
 		// TODO replace with seal curl-jq image.
-		initializeFrom("badouralix/curl-jq"),
+		initializeFromEnv("badouralix/curl-jq"),
 		modifyWith(notBlank, containerImageReference),
 	)
 )
@@ -125,30 +125,30 @@ var (
 	EnableTelemetry = newValue(
 		"EnableTelemetry",
 		editable,
-		initializeFrom("true"),
+		initializeFromEnv("true"),
 		modifyWith(notBlank))
 	// EnableSyncCatalog keeps the user config for enable sync catalog or not.
 	EnableSyncCatalog = newValue(
 		"EnableSyncCatalog",
 		editable,
-		initializeFrom("true"),
+		initializeFromEnv("true"),
 		modifyWith(notBlank))
 	// ImageRegistry config the image registry for seal tools, like finOps tools.
 	ImageRegistry = newValue(
 		"ImageRegistry",
 		editable,
-		initializeFrom("docker.io"),
+		initializeFromEnv("docker.io"),
 		modifyWith(notBlank))
 	EnableBuiltinCatalog = newValue(
 		"EnableBuiltinCatalog",
 		editable,
-		initializeFrom("true"),
+		initializeFromEnv("true"),
 		modifyWith(notBlank))
 	// SkipRemoteTLSVerify indicates whether skip SSL verification when accessing remote server.
 	SkipRemoteTLSVerify = newValue(
 		"SkipRemoteTLSVerify",
 		editable,
-		initializeFrom("false"),
+		initializeFromEnv("false"),
 		modifyWith(notBlank))
 )
 
@@ -160,7 +160,7 @@ var (
 	ConnectorCostCollectCronExpr = newValue(
 		"ConnectorCostCollectCronExpr",
 		editable,
-		initializeFrom("0 0 * ? * *"),
+		initializeFromEnv("0 0 * ? * *"),
 		modifyWith(notBlank, cronExpression),
 	)
 	// ConnectorStatusSyncCronExpr indicates the cron expression of sync connector status,
@@ -168,7 +168,7 @@ var (
 	ConnectorStatusSyncCronExpr = newValue(
 		"ConnectorStatusSyncCronExpr",
 		editable,
-		initializeFrom("0 */5 * ? * *"),
+		initializeFromEnv("0 */5 * ? * *"),
 		modifyWith(notBlank, cronExpression),
 	)
 	// ResourceComponentStatusSyncCronExpr indicates the cron expression of sync resource component status,
@@ -176,7 +176,7 @@ var (
 	ResourceComponentStatusSyncCronExpr = newValue(
 		"ResourceComponentStatusSyncCronExpr",
 		editable,
-		initializeFrom("0 */1 * ? * *"),
+		initializeFromEnv("0 */1 * ? * *"),
 		modifyWith(notBlank, cronExpression),
 	)
 	// ResourceComponentLabelApplyCronExpr indicates the cron expression of set labels to resource component,
@@ -184,7 +184,7 @@ var (
 	ResourceComponentLabelApplyCronExpr = newValue(
 		"ResourceComponentLabelApplyCronExpr",
 		editable,
-		initializeFrom("0 */2 * ? * *"),
+		initializeFromEnv("0 */2 * ? * *"),
 		modifyWith(notBlank, cronExpression),
 	)
 	// ResourceComponentsDiscoverCronExpr indicates the cron expression of discover resource component basics,
@@ -192,7 +192,7 @@ var (
 	ResourceComponentsDiscoverCronExpr = newValue(
 		"ResourceComponentsDiscoverCronExpr",
 		editable,
-		initializeFrom("0 */1 * ? * *"),
+		initializeFromEnv("0 */1 * ? * *"),
 		modifyWith(notBlank, cronExpression),
 	)
 	// TokenDeploymentExpiredCleanCronExpr indicates the cron expression of clean expired deployment token,
@@ -208,7 +208,7 @@ var (
 	ResourceRelationshipCheckCronExpr = newValue(
 		"ResourceRelationshipCheckCronExpr",
 		editable,
-		initializeFrom("*/30 * * ? * *"),
+		initializeFromEnv("*/30 * * ? * *"),
 		modifyWith(notBlank, cronExpression),
 	)
 	// TelemetryPeriodicReportCronExpr indicates the cron expression of telemetry synchronization event,
