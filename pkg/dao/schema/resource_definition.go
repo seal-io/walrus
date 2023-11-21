@@ -42,10 +42,12 @@ func (ResourceDefinition) Fields() []ent.Field {
 			Annotations(
 				entx.SkipInput(),
 			),
-		field.JSON("uiSchema", types.UISchema{}).
+		field.JSON("uiSchema", &types.UISchema{}).
 			Comment("UI schema of the resource definition.").
-			Default(types.UISchema{}).
+			Default(&types.UISchema{}).
+			Optional().
 			Annotations(
+				entx.SkipClearingOptionalField(),
 				entx.Input(entx.WithUpdate())),
 	}
 }

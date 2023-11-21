@@ -10,8 +10,9 @@ func ExposeResourceDefinition(_rd *model.ResourceDefinition) *model.ResourceDefi
 		return nil
 	}
 
-	if _rd.UiSchema.IsEmpty() {
-		_rd.UiSchema = _rd.Schema.Expose()
+	if _rd.UiSchema != nil && _rd.UiSchema.IsEmpty() {
+		uiSchema := _rd.Schema.Expose()
+		_rd.UiSchema = &uiSchema
 	}
 
 	return model.ExposeResourceDefinition(_rd)
