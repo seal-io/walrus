@@ -338,6 +338,10 @@ func (h Handler) RouteStop(req RouteStopRequest) error {
 		}
 
 		for _, s := range req.stoppableResources {
+			if !pkgresource.CanBeStopped(s) {
+				continue
+			}
+
 			err = pkgresource.Stop(req.Context, tx, s, destroyOpts)
 			if err != nil {
 				return err
