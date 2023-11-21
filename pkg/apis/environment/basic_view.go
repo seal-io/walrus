@@ -9,6 +9,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
+	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	"github.com/seal-io/walrus/utils/validation"
 )
 
@@ -94,6 +95,9 @@ func exposeEnvironment(entity *model.Environment) *environmentOutput {
 				output.StatusSummary.Error++
 			case v.Status.Transitioning:
 				output.StatusSummary.Transitioning++
+			// TODO make package status aware of inactive status.
+			case pkgresource.IsInactive(v):
+				output.StatusSummary.Inactive++
 			default:
 				output.StatusSummary.Ready++
 			}
