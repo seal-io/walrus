@@ -107,16 +107,14 @@ func (rdu *ResourceDefinitionUpdate) SetNillableSchema(t *types.Schema) *Resourc
 }
 
 // SetUiSchema sets the "uiSchema" field.
-func (rdu *ResourceDefinitionUpdate) SetUiSchema(ts types.UISchema) *ResourceDefinitionUpdate {
+func (rdu *ResourceDefinitionUpdate) SetUiSchema(ts *types.UISchema) *ResourceDefinitionUpdate {
 	rdu.mutation.SetUiSchema(ts)
 	return rdu
 }
 
-// SetNillableUiSchema sets the "uiSchema" field if the given value is not nil.
-func (rdu *ResourceDefinitionUpdate) SetNillableUiSchema(ts *types.UISchema) *ResourceDefinitionUpdate {
-	if ts != nil {
-		rdu.SetUiSchema(*ts)
-	}
+// ClearUiSchema clears the value of the "uiSchema" field.
+func (rdu *ResourceDefinitionUpdate) ClearUiSchema() *ResourceDefinitionUpdate {
+	rdu.mutation.ClearUiSchema()
 	return rdu
 }
 
@@ -286,7 +284,9 @@ func (rdu *ResourceDefinitionUpdate) Set(obj *ResourceDefinition) *ResourceDefin
 		rdu.SetAnnotations(obj.Annotations)
 	}
 	rdu.SetSchema(obj.Schema)
-	rdu.SetUiSchema(obj.UiSchema)
+	if !reflect.ValueOf(obj.UiSchema).IsZero() {
+		rdu.SetUiSchema(obj.UiSchema)
+	}
 
 	// With Default.
 	if obj.UpdateTime != nil {
@@ -340,6 +340,9 @@ func (rdu *ResourceDefinitionUpdate) sqlSave(ctx context.Context) (n int, err er
 	}
 	if value, ok := rdu.mutation.UiSchema(); ok {
 		_spec.SetField(resourcedefinition.FieldUiSchema, field.TypeJSON, value)
+	}
+	if rdu.mutation.UiSchemaCleared() {
+		_spec.ClearField(resourcedefinition.FieldUiSchema, field.TypeJSON)
 	}
 	if rdu.mutation.MatchingRulesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -527,16 +530,14 @@ func (rduo *ResourceDefinitionUpdateOne) SetNillableSchema(t *types.Schema) *Res
 }
 
 // SetUiSchema sets the "uiSchema" field.
-func (rduo *ResourceDefinitionUpdateOne) SetUiSchema(ts types.UISchema) *ResourceDefinitionUpdateOne {
+func (rduo *ResourceDefinitionUpdateOne) SetUiSchema(ts *types.UISchema) *ResourceDefinitionUpdateOne {
 	rduo.mutation.SetUiSchema(ts)
 	return rduo
 }
 
-// SetNillableUiSchema sets the "uiSchema" field if the given value is not nil.
-func (rduo *ResourceDefinitionUpdateOne) SetNillableUiSchema(ts *types.UISchema) *ResourceDefinitionUpdateOne {
-	if ts != nil {
-		rduo.SetUiSchema(*ts)
-	}
+// ClearUiSchema clears the value of the "uiSchema" field.
+func (rduo *ResourceDefinitionUpdateOne) ClearUiSchema() *ResourceDefinitionUpdateOne {
+	rduo.mutation.ClearUiSchema()
 	return rduo
 }
 
@@ -737,8 +738,10 @@ func (rduo *ResourceDefinitionUpdateOne) Set(obj *ResourceDefinition) *ResourceD
 			if !reflect.DeepEqual(db.Schema, obj.Schema) {
 				rduo.SetSchema(obj.Schema)
 			}
-			if !reflect.DeepEqual(db.UiSchema, obj.UiSchema) {
-				rduo.SetUiSchema(obj.UiSchema)
+			if !reflect.ValueOf(obj.UiSchema).IsZero() {
+				if !reflect.DeepEqual(db.UiSchema, obj.UiSchema) {
+					rduo.SetUiSchema(obj.UiSchema)
+				}
 			}
 
 			// With Default.
@@ -898,6 +901,9 @@ func (rduo *ResourceDefinitionUpdateOne) sqlSave(ctx context.Context) (_node *Re
 	}
 	if value, ok := rduo.mutation.UiSchema(); ok {
 		_spec.SetField(resourcedefinition.FieldUiSchema, field.TypeJSON, value)
+	}
+	if rduo.mutation.UiSchemaCleared() {
+		_spec.ClearField(resourcedefinition.FieldUiSchema, field.TypeJSON)
 	}
 	if rduo.mutation.MatchingRulesCleared() {
 		edge := &sqlgraph.EdgeSpec{

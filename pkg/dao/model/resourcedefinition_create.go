@@ -115,16 +115,8 @@ func (rdc *ResourceDefinitionCreate) SetNillableSchema(t *types.Schema) *Resourc
 }
 
 // SetUiSchema sets the "uiSchema" field.
-func (rdc *ResourceDefinitionCreate) SetUiSchema(ts types.UISchema) *ResourceDefinitionCreate {
+func (rdc *ResourceDefinitionCreate) SetUiSchema(ts *types.UISchema) *ResourceDefinitionCreate {
 	rdc.mutation.SetUiSchema(ts)
-	return rdc
-}
-
-// SetNillableUiSchema sets the "uiSchema" field if the given value is not nil.
-func (rdc *ResourceDefinitionCreate) SetNillableUiSchema(ts *types.UISchema) *ResourceDefinitionCreate {
-	if ts != nil {
-		rdc.SetUiSchema(*ts)
-	}
 	return rdc
 }
 
@@ -261,9 +253,6 @@ func (rdc *ResourceDefinitionCreate) check() error {
 			return &ValidationError{Name: "schema", err: fmt.Errorf(`model: validator failed for field "ResourceDefinition.schema": %w`, err)}
 		}
 	}
-	if _, ok := rdc.mutation.UiSchema(); !ok {
-		return &ValidationError{Name: "uiSchema", err: errors.New(`model: missing required field "ResourceDefinition.uiSchema"`)}
-	}
 	return nil
 }
 
@@ -397,7 +386,6 @@ func (rdc *ResourceDefinitionCreate) Set(obj *ResourceDefinition) *ResourceDefin
 	rdc.SetName(obj.Name)
 	rdc.SetType(obj.Type)
 	rdc.SetSchema(obj.Schema)
-	rdc.SetUiSchema(obj.UiSchema)
 
 	// Optional.
 	if obj.Description != "" {
@@ -414,6 +402,9 @@ func (rdc *ResourceDefinitionCreate) Set(obj *ResourceDefinition) *ResourceDefin
 	}
 	if obj.UpdateTime != nil {
 		rdc.SetUpdateTime(*obj.UpdateTime)
+	}
+	if !reflect.ValueOf(obj.UiSchema).IsZero() {
+		rdc.SetUiSchema(obj.UiSchema)
 	}
 
 	// Record the given object.
@@ -796,7 +787,7 @@ func (u *ResourceDefinitionUpsert) UpdateSchema() *ResourceDefinitionUpsert {
 }
 
 // SetUiSchema sets the "uiSchema" field.
-func (u *ResourceDefinitionUpsert) SetUiSchema(v types.UISchema) *ResourceDefinitionUpsert {
+func (u *ResourceDefinitionUpsert) SetUiSchema(v *types.UISchema) *ResourceDefinitionUpsert {
 	u.Set(resourcedefinition.FieldUiSchema, v)
 	return u
 }
@@ -804,6 +795,12 @@ func (u *ResourceDefinitionUpsert) SetUiSchema(v types.UISchema) *ResourceDefini
 // UpdateUiSchema sets the "uiSchema" field to the value that was provided on create.
 func (u *ResourceDefinitionUpsert) UpdateUiSchema() *ResourceDefinitionUpsert {
 	u.SetExcluded(resourcedefinition.FieldUiSchema)
+	return u
+}
+
+// ClearUiSchema clears the value of the "uiSchema" field.
+func (u *ResourceDefinitionUpsert) ClearUiSchema() *ResourceDefinitionUpsert {
+	u.SetNull(resourcedefinition.FieldUiSchema)
 	return u
 }
 
@@ -956,7 +953,7 @@ func (u *ResourceDefinitionUpsertOne) UpdateSchema() *ResourceDefinitionUpsertOn
 }
 
 // SetUiSchema sets the "uiSchema" field.
-func (u *ResourceDefinitionUpsertOne) SetUiSchema(v types.UISchema) *ResourceDefinitionUpsertOne {
+func (u *ResourceDefinitionUpsertOne) SetUiSchema(v *types.UISchema) *ResourceDefinitionUpsertOne {
 	return u.Update(func(s *ResourceDefinitionUpsert) {
 		s.SetUiSchema(v)
 	})
@@ -966,6 +963,13 @@ func (u *ResourceDefinitionUpsertOne) SetUiSchema(v types.UISchema) *ResourceDef
 func (u *ResourceDefinitionUpsertOne) UpdateUiSchema() *ResourceDefinitionUpsertOne {
 	return u.Update(func(s *ResourceDefinitionUpsert) {
 		s.UpdateUiSchema()
+	})
+}
+
+// ClearUiSchema clears the value of the "uiSchema" field.
+func (u *ResourceDefinitionUpsertOne) ClearUiSchema() *ResourceDefinitionUpsertOne {
+	return u.Update(func(s *ResourceDefinitionUpsert) {
+		s.ClearUiSchema()
 	})
 }
 
@@ -1283,7 +1287,7 @@ func (u *ResourceDefinitionUpsertBulk) UpdateSchema() *ResourceDefinitionUpsertB
 }
 
 // SetUiSchema sets the "uiSchema" field.
-func (u *ResourceDefinitionUpsertBulk) SetUiSchema(v types.UISchema) *ResourceDefinitionUpsertBulk {
+func (u *ResourceDefinitionUpsertBulk) SetUiSchema(v *types.UISchema) *ResourceDefinitionUpsertBulk {
 	return u.Update(func(s *ResourceDefinitionUpsert) {
 		s.SetUiSchema(v)
 	})
@@ -1293,6 +1297,13 @@ func (u *ResourceDefinitionUpsertBulk) SetUiSchema(v types.UISchema) *ResourceDe
 func (u *ResourceDefinitionUpsertBulk) UpdateUiSchema() *ResourceDefinitionUpsertBulk {
 	return u.Update(func(s *ResourceDefinitionUpsert) {
 		s.UpdateUiSchema()
+	})
+}
+
+// ClearUiSchema clears the value of the "uiSchema" field.
+func (u *ResourceDefinitionUpsertBulk) ClearUiSchema() *ResourceDefinitionUpsertBulk {
+	return u.Update(func(s *ResourceDefinitionUpsert) {
+		s.ClearUiSchema()
 	})
 }
 

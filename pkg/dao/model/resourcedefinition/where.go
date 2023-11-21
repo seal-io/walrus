@@ -391,6 +391,16 @@ func TypeContainsFold(v string) predicate.ResourceDefinition {
 	return predicate.ResourceDefinition(sql.FieldContainsFold(FieldType, v))
 }
 
+// UiSchemaIsNil applies the IsNil predicate on the "uiSchema" field.
+func UiSchemaIsNil() predicate.ResourceDefinition {
+	return predicate.ResourceDefinition(sql.FieldIsNull(FieldUiSchema))
+}
+
+// UiSchemaNotNil applies the NotNil predicate on the "uiSchema" field.
+func UiSchemaNotNil() predicate.ResourceDefinition {
+	return predicate.ResourceDefinition(sql.FieldNotNull(FieldUiSchema))
+}
+
 // HasMatchingRules applies the HasEdge predicate on the "matching_rules" edge.
 func HasMatchingRules() predicate.ResourceDefinition {
 	return predicate.ResourceDefinition(func(s *sql.Selector) {

@@ -31,7 +31,7 @@ type ResourceDefinitionCreateInput struct {
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// UI schema of the resource definition.
-	UiSchema types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
+	UiSchema *types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
 
 	// MatchingRules specifies full inserting the new ResourceDefinitionMatchingRule entities of the ResourceDefinition entity.
 	MatchingRules []*ResourceDefinitionMatchingRuleCreateInput `uri:"-" query:"-" json:"matchingRules,omitempty"`
@@ -113,7 +113,7 @@ type ResourceDefinitionCreateInputsItem struct {
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// UI schema of the resource definition.
-	UiSchema types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
+	UiSchema *types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
 
 	// MatchingRules specifies full inserting the new ResourceDefinitionMatchingRule entities.
 	MatchingRules []*ResourceDefinitionMatchingRuleCreateInput `uri:"-" query:"-" json:"matchingRules,omitempty"`
@@ -501,7 +501,7 @@ type ResourceDefinitionUpdateInput struct {
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// UI schema of the resource definition.
-	UiSchema types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
+	UiSchema *types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
 
 	// MatchingRules indicates replacing the stale ResourceDefinitionMatchingRule entities.
 	MatchingRules []*ResourceDefinitionMatchingRuleCreateInput `uri:"-" query:"-" json:"matchingRules,omitempty"`
@@ -584,7 +584,7 @@ type ResourceDefinitionUpdateInputsItem struct {
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// UI schema of the resource definition.
-	UiSchema types.UISchema `path:"-" query:"-" json:"uiSchema"`
+	UiSchema *types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
 
 	// MatchingRules indicates replacing the stale ResourceDefinitionMatchingRule entities.
 	MatchingRules []*ResourceDefinitionMatchingRuleCreateInput `uri:"-" query:"-" json:"matchingRules,omitempty"`
@@ -775,7 +775,7 @@ type ResourceDefinitionOutput struct {
 	UpdateTime  *time.Time        `json:"updateTime,omitempty"`
 	Type        string            `json:"type,omitempty"`
 	Schema      types.Schema      `json:"schema,omitempty"`
-	UiSchema    types.UISchema    `json:"uiSchema,omitempty"`
+	UiSchema    *types.UISchema   `json:"uiSchema,omitempty"`
 
 	MatchingRules []*ResourceDefinitionMatchingRuleOutput `json:"matchingRules,omitempty"`
 }
