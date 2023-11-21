@@ -67,6 +67,7 @@ func (in *RelationshipCheckTask) Process(ctx context.Context, args ...any) error
 	checkers := []func(context.Context) error{
 		in.applyResources,
 		in.destroyResources,
+		in.stopResources,
 	}
 
 	// Merge the errors to return them all at once,
@@ -110,6 +111,10 @@ func (in *RelationshipCheckTask) applyResources(ctx context.Context) error {
 	}
 
 	for _, svc := range resources {
+		if status.ResourceStatusStopped.Exist(svc) {
+			continue
+		}
+
 		ok, err := in.checkDependencies(ctx, svc)
 		if err != nil {
 			return err
@@ -152,6 +157,39 @@ func (in *RelationshipCheckTask) destroyResources(ctx context.Context) error {
 		}
 
 		err = pkgresource.Destroy(ctx, in.modelClient, res, pkgresource.Options{
+			Deployer: in.deployer,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// stopResources stops all resources that are in the progressing and stopping state.
+func (in *RelationshipCheckTask) stopResources(ctx context.Context) error {
+	resources, err := in.modelClient.Resources().Query().
+		Where(
+			func(s *sql.Selector) {
+				s.Where(sqljson.ValueEQ(
+					resource.FieldStatus,
+					summaryStatusProgressing,
+					sqljson.Path("summaryStatus"),
+				))
+			},
+		).
+		All(ctx)
+	if err != nil && !model.IsNotFound(err) {
+		return err
+	}
+
+	for _, res := range resources {
+		if !status.ResourceStatusStopped.IsUnknown(res) {
+			continue
+		}
+
+		err = pkgresource.Stop(ctx, in.modelClient, res, pkgresource.Options{
 			Deployer: in.deployer,
 		})
 		if err != nil {
