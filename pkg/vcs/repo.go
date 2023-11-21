@@ -254,7 +254,7 @@ func GetOrgRepos(ctx context.Context, client *scm.Client, orgName string) ([]*sc
 		}
 
 		for _, src := range repos {
-			if src != nil {
+			if src != nil && !src.Archived {
 				list = append(list, src)
 			}
 		}
