@@ -110,14 +110,6 @@ func (r *RouteStopRequest) Validate() error {
 
 	for _, r := range resources {
 		if pkgresource.IsStoppable(r) {
-			if !pkgresource.CanBeStopped(r) {
-				return errorx.HttpErrorf(
-					http.StatusBadRequest,
-					"cannot stop resource %q: in %q status",
-					r.Name, r.Status.SummaryStatus,
-				)
-			}
-
 			stoppableResources = append(stoppableResources, r)
 			stoppableResourceIDs = append(stoppableResourceIDs, r.ID)
 		}
