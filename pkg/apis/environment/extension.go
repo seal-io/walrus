@@ -301,7 +301,7 @@ func (h Handler) RouteStart(req RouteStartRequest) error {
 	toStartResources := make(model.Resources, 0, len(resources))
 
 	for _, r := range resources {
-		if pkgresource.CanBeStarted(r) {
+		if pkgresource.IsInactive(r) {
 			toStartResources = append(toStartResources, r)
 		}
 	}

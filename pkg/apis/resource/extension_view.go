@@ -35,6 +35,8 @@ type RouteUpgradeRequest struct {
 	_ struct{} `route:"PUT=/upgrade"`
 
 	model.ResourceUpdateInput `path:",inline" json:",inline"`
+
+	Draft bool `json:"draft,default=false"`
 }
 
 func (r *RouteUpgradeRequest) Validate() error {
@@ -49,21 +51,29 @@ func (r *RouteUpgradeRequest) Validate() error {
 		return err
 	}
 
+	entity, err := r.Client.Resources().Query().
+		Where(resource.ID(r.ID)).
+		Select(
+			resource.FieldTemplateID,
+			resource.FieldStatus,
+		).
+		WithTemplate(func(tvq *model.TemplateVersionQuery) {
+			tvq.Select(
+				templateversion.FieldName,
+				templateversion.FieldVersion)
+		}).
+		Only(r.Context)
+	if err != nil {
+		return fmt.Errorf("failed to get resource: %w", err)
+	}
+
+	if r.Draft && !pkgresource.IsInactive(entity) {
+		return errorx.HttpErrorf(http.StatusBadRequest,
+			"cannot update resource draft in %q status", entity.Status.SummaryStatus)
+	}
+
 	switch {
 	case r.Template != nil:
-		entity, err := r.Client.Resources().Query().
-			Where(resource.ID(r.ID)).
-			Select(resource.FieldTemplateID).
-			WithTemplate(func(tvq *model.TemplateVersionQuery) {
-				tvq.Select(
-					templateversion.FieldName,
-					templateversion.FieldVersion)
-			}).
-			Only(r.Context)
-		if err != nil {
-			return fmt.Errorf("failed to get service: %w", err)
-		}
-
 		if r.Template.Name != entity.Edges.Template.Name {
 			return errors.New("invalid template name: immutable")
 		}
@@ -138,8 +148,7 @@ func (r *RouteUpgradeRequest) Validate() error {
 	}
 
 	// Verify that variables in attributes are valid.
-	err := validateVariable(r.Context, r.Client, r.Attributes, r.Name, r.Project.ID, r.Environment.ID)
-	if err != nil {
+	if err = validateVariable(r.Context, r.Client, r.Attributes, r.Name, r.Project.ID, r.Environment.ID); err != nil {
 		return err
 	}
 
@@ -266,7 +275,7 @@ func (r *RouteStartRequest) Validate() error {
 		return err
 	}
 
-	if !pkgresource.CanBeStarted(res) {
+	if !pkgresource.IsInactive(res) {
 		return errorx.HttpErrorf(
 			http.StatusBadRequest,
 			"cannot start resource %q: in %q status",
