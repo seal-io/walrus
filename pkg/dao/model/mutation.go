@@ -14276,7 +14276,7 @@ type ResourceDefinitionMutation struct {
 	update_time           *time.Time
 	_type                 *string
 	schema                *types.Schema
-	uiSchema              *types.UISchema
+	uiSchema              **types.UISchema
 	clearedFields         map[string]struct{}
 	matching_rules        map[object.ID]struct{}
 	removedmatching_rules map[object.ID]struct{}
@@ -14721,12 +14721,12 @@ func (m *ResourceDefinitionMutation) ResetSchema() {
 }
 
 // SetUiSchema sets the "uiSchema" field.
-func (m *ResourceDefinitionMutation) SetUiSchema(ts types.UISchema) {
+func (m *ResourceDefinitionMutation) SetUiSchema(ts *types.UISchema) {
 	m.uiSchema = &ts
 }
 
 // UiSchema returns the value of the "uiSchema" field in the mutation.
-func (m *ResourceDefinitionMutation) UiSchema() (r types.UISchema, exists bool) {
+func (m *ResourceDefinitionMutation) UiSchema() (r *types.UISchema, exists bool) {
 	v := m.uiSchema
 	if v == nil {
 		return
@@ -14737,7 +14737,7 @@ func (m *ResourceDefinitionMutation) UiSchema() (r types.UISchema, exists bool) 
 // OldUiSchema returns the old "uiSchema" field's value of the ResourceDefinition entity.
 // If the ResourceDefinition object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ResourceDefinitionMutation) OldUiSchema(ctx context.Context) (v types.UISchema, err error) {
+func (m *ResourceDefinitionMutation) OldUiSchema(ctx context.Context) (v *types.UISchema, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUiSchema is only allowed on UpdateOne operations")
 	}
@@ -14751,9 +14751,22 @@ func (m *ResourceDefinitionMutation) OldUiSchema(ctx context.Context) (v types.U
 	return oldValue.UiSchema, nil
 }
 
+// ClearUiSchema clears the value of the "uiSchema" field.
+func (m *ResourceDefinitionMutation) ClearUiSchema() {
+	m.uiSchema = nil
+	m.clearedFields[resourcedefinition.FieldUiSchema] = struct{}{}
+}
+
+// UiSchemaCleared returns if the "uiSchema" field was cleared in this mutation.
+func (m *ResourceDefinitionMutation) UiSchemaCleared() bool {
+	_, ok := m.clearedFields[resourcedefinition.FieldUiSchema]
+	return ok
+}
+
 // ResetUiSchema resets all changes to the "uiSchema" field.
 func (m *ResourceDefinitionMutation) ResetUiSchema() {
 	m.uiSchema = nil
+	delete(m.clearedFields, resourcedefinition.FieldUiSchema)
 }
 
 // AddMatchingRuleIDs adds the "matching_rules" edge to the ResourceDefinitionMatchingRule entity by ids.
@@ -15045,7 +15058,7 @@ func (m *ResourceDefinitionMutation) SetField(name string, value ent.Value) erro
 		m.SetSchema(v)
 		return nil
 	case resourcedefinition.FieldUiSchema:
-		v, ok := value.(types.UISchema)
+		v, ok := value.(*types.UISchema)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -15090,6 +15103,9 @@ func (m *ResourceDefinitionMutation) ClearedFields() []string {
 	if m.FieldCleared(resourcedefinition.FieldAnnotations) {
 		fields = append(fields, resourcedefinition.FieldAnnotations)
 	}
+	if m.FieldCleared(resourcedefinition.FieldUiSchema) {
+		fields = append(fields, resourcedefinition.FieldUiSchema)
+	}
 	return fields
 }
 
@@ -15112,6 +15128,9 @@ func (m *ResourceDefinitionMutation) ClearField(name string) error {
 		return nil
 	case resourcedefinition.FieldAnnotations:
 		m.ClearAnnotations()
+		return nil
+	case resourcedefinition.FieldUiSchema:
+		m.ClearUiSchema()
 		return nil
 	}
 	return fmt.Errorf("unknown ResourceDefinition nullable field %s", name)

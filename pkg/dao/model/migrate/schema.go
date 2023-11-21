@@ -475,7 +475,7 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "type", Type: field.TypeString},
 		{Name: "schema", Type: field.TypeJSON},
-		{Name: "ui_schema", Type: field.TypeJSON},
+		{Name: "ui_schema", Type: field.TypeJSON, Nullable: true},
 	}
 	// ResourceDefinitionsTable holds the schema information for the "resource_definitions" table.
 	ResourceDefinitionsTable = &schema.Table{

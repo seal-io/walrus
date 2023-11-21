@@ -508,7 +508,7 @@ func init() {
 	// resourcedefinitionDescUiSchema is the schema descriptor for uiSchema field.
 	resourcedefinitionDescUiSchema := resourcedefinitionFields[2].Descriptor()
 	// resourcedefinition.DefaultUiSchema holds the default value on creation for the uiSchema field.
-	resourcedefinition.DefaultUiSchema = resourcedefinitionDescUiSchema.Default.(types.UISchema)
+	resourcedefinition.DefaultUiSchema = resourcedefinitionDescUiSchema.Default.(*types.UISchema)
 	resourcedefinitionmatchingruleMixin := schema.ResourceDefinitionMatchingRule{}.Mixin()
 	resourcedefinitionmatchingruleMixinHooks0 := resourcedefinitionmatchingruleMixin[0].Hooks()
 	resourcedefinitionmatchingrule.Hooks[0] = resourcedefinitionmatchingruleMixinHooks0[0]

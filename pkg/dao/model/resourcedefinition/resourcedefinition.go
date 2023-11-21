@@ -107,7 +107,7 @@ var (
 	// DefaultSchema holds the default value on creation for the "schema" field.
 	DefaultSchema types.Schema
 	// DefaultUiSchema holds the default value on creation for the "uiSchema" field.
-	DefaultUiSchema types.UISchema
+	DefaultUiSchema *types.UISchema
 )
 
 // OrderOption defines the ordering options for the ResourceDefinition queries.

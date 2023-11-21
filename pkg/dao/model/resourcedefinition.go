@@ -41,7 +41,7 @@ type ResourceDefinition struct {
 	// Generated schema of the resource definition.
 	Schema types.Schema `json:"schema,omitempty"`
 	// UI schema of the resource definition.
-	UiSchema types.UISchema `json:"uiSchema,omitempty"`
+	UiSchema *types.UISchema `json:"uiSchema,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ResourceDefinitionQuery when eager-loading is set.
 	Edges        ResourceDefinitionEdges `json:"edges,omitempty"`
