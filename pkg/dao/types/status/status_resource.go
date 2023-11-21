@@ -53,17 +53,6 @@ var resourceStatusPaths = NewWalker(
 				}
 				return "", false, false
 			})
-		d.Make(ResourceStatusStopped,
-			func(st ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
-				// Both Stopping and Stopped are considered as transitioning.
-				switch st {
-				case ConditionStatusUnknown:
-					return "Stopping", false, true
-				case ConditionStatusFalse:
-					return "StopFailed", true, false
-				}
-				return "Stopped", false, true
-			})
 	},
 )
 

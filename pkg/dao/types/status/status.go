@@ -105,4 +105,5 @@ type Count struct {
 	Error         int `json:"error"`
 	Ready         int `json:"ready"`
 	Transitioning int `json:"transitioning"`
+	Inactive      int `json:"inactive"`
 }
