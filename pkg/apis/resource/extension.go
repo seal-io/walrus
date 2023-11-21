@@ -305,18 +305,9 @@ func (h Handler) getEndpointsFromOutput(ctx context.Context, id object.ID) ([]Ac
 			})
 		case v.Schema.Type == openapi3.TypeArray:
 			if v.Schema.Items != nil && v.Schema.Items.Value != nil {
-				// Array.
-				if v.Schema.Items.Value.Type != "" && v.Schema.Items.Value.Type != openapi3.TypeString {
+				if v.Schema.Items.Value.Type != openapi3.TypeObject &&
+					v.Schema.Items.Value.Type != openapi3.TypeString {
 					return nil, invalidTypeErr
-				}
-
-				// Tuple.
-				if len(v.Schema.Items.Value.OneOf) != 0 {
-					for _, sv := range v.Schema.Items.Value.OneOf {
-						if sv.Value != nil && sv.Value.Type != openapi3.TypeString {
-							return nil, invalidTypeErr
-						}
-					}
 				}
 			}
 

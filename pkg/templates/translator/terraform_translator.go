@@ -39,44 +39,39 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 		description = opts.Description
 		sensitive   = opts.Sensitive
 		order       = opts.Order
+		s           *openapi3.Schema
 	)
 
 	switch {
 	case typ == cty.Bool:
 		// Schema.
-		s := openapi3.NewBoolSchema()
+		s = openapi3.NewBoolSchema()
 
 		// Default.
 		setDefault(s, opts.Default)
 
-		s.Title = title
-		s.Description = description
-		s.WriteOnly = sensitive
+		// Extensions.
 		s.Extensions = openapi.NewExt().
 			WithOriginalType(typ).
 			WithUIOrder(order).
 			Export()
 
-		return s
 	case typ == cty.Number:
 		// Schema.
-		s := openapi3.NewFloat64Schema()
+		s = openapi3.NewFloat64Schema()
 
 		// Default.
 		setDefault(s, def)
 
-		s.Title = title
-		s.Description = description
-		s.WriteOnly = sensitive
+		// Extensions.
 		s.Extensions = openapi.NewExt().
 			WithOriginalType(typ).
 			WithUIOrder(order).
 			Export()
 
-		return s
 	case typ == cty.String:
 		// Schema.
-		s := openapi3.NewStringSchema()
+		s = openapi3.NewStringSchema()
 
 		// Default.
 		setDefault(s, def)
@@ -84,18 +79,16 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 		if sensitive {
 			s.Format = "password"
 		}
-		s.Title = title
-		s.Description = description
-		s.WriteOnly = sensitive
+
+		// Extensions.
 		s.Extensions = openapi.NewExt().
 			WithOriginalType(typ).
 			WithUIOrder(order).
 			Export()
 
-		return s
 	case typ.IsListType() || typ.IsSetType():
 		// Schema.
-		s := openapi3.NewArraySchema()
+		s = openapi3.NewArraySchema()
 
 		// Default.
 		var etpDef any
@@ -115,33 +108,23 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 		})
 		s.WithItems(it)
 
-		s.Title = title
-		s.Description = description
-		s.WriteOnly = sensitive
+		// Extensions.
 		s.Extensions = openapi.NewExt().
 			WithOriginalType(typ).
 			WithUIOrder(order).
 			WithUIColSpan(12).
 			Export()
 
-		return s
 	case typ.IsTupleType():
 		// Schema.
-		s := openapi3.NewArraySchema()
-
-		// Default.
-		setDefault(s, def)
+		s = openapi3.NewArraySchema()
 
 		// Property.
 		var (
 			ts   = typ.TupleElementTypes()
-			refs = make([]*openapi3.SchemaRef, len(ts))
+			refs = make([]*openapi3.Schema, len(ts))
 			te   []hclsyntax.Expression
 		)
-
-		if opts.TypeExpress != nil {
-			te = getTupleItemExpression(opts.TypeExpress)
-		}
 
 		for i, tt := range ts {
 			o := Options{
@@ -152,27 +135,46 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 				o.TypeExpress = te[i]
 			}
 
-			refs[i] = t.SchemaOfOriginalType(tt, o).NewRef()
+			refs[i] = t.SchemaOfOriginalType(tt, o)
 		}
 
-		s.WithLength(int64(len(ts))).
-			WithItems(&openapi3.Schema{
-				OneOf: refs,
-			})
+		switch {
+		case len(refs) == 1:
+			s.WithItems(refs[0]).
+				WithLength(1)
+		case len(refs) > 1:
+			var diffSchema bool
 
-		s.Title = title
-		s.Description = description
-		s.WriteOnly = sensitive
+			for i := 0; i < len(refs); i++ {
+				for j := i + 1; j < len(refs); j++ {
+					if refs[i] != refs[j] {
+						diffSchema = true
+						break
+					}
+				}
+			}
+
+			if diffSchema {
+				s.WithItems(openapi3.NewObjectSchema()).
+					WithLength(int64(len(ts)))
+			} else {
+				s.WithItems(refs[0]).
+					WithLength(int64(len(ts)))
+			}
+		default:
+			s.WithItems(openapi3.NewObjectSchema())
+		}
+
+		// Extensions.
 		s.Extensions = openapi.NewExt().
 			WithOriginalType(typ).
 			WithUIOrder(order).
 			WithUIColSpan(12).
 			Export()
 
-		return s
 	case typ.IsMapType():
 		// Schema.
-		s := openapi3.NewObjectSchema()
+		s = openapi3.NewObjectSchema()
 
 		// Default.
 		var (
@@ -198,19 +200,16 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 			s.WithAdditionalProperties(it)
 		}
 
-		s.Title = title
-		s.Description = description
-		s.WriteOnly = sensitive
+		// Extensions.
 		s.Extensions = openapi.NewExt().
 			WithOriginalType(typ).
 			WithUIOrder(order).
 			WithUIColSpan(12).
 			Export()
 
-		return s
 	case typ.IsObjectType():
 		// Schema.
-		s := openapi3.NewObjectSchema()
+		s = openapi3.NewObjectSchema()
 
 		// Default.
 		var (
@@ -269,9 +268,7 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 			}
 		}
 
-		s.Title = title
-		s.Description = description
-		s.WriteOnly = sensitive
+		// Extensions.
 		s.Extensions = openapi.NewExt().
 			WithOriginalType(typ).
 			WithUIOrder(order).
@@ -279,29 +276,31 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 			Export()
 		sort.Strings(s.Required)
 
-		return s
 	case typ == cty.DynamicPseudoType:
 		// Empty Type.
-		s := openapi3.NewObjectSchema()
+		s = openapi3.NewObjectSchema()
 
 		// Default.
 		setDefault(s, def)
 
-		s.Title = title
-		s.Description = description
-		s.WriteOnly = sensitive
+		// Extensions.
 		s.Extensions = openapi.NewExt().
 			WithOriginalType(cty.DynamicPseudoType).
 			WithUIOrder(order).
 			WithUIColSpan(12).
 			Export()
-
-		return s
-	default:
-		log.Warnf("unsupported terraform type %s", typ.FriendlyName())
 	}
 
-	return nil
+	if s == nil {
+		log.Warnf("unsupported terraform type %s", typ.FriendlyName())
+		return nil
+	}
+
+	s.Title = title
+	s.Description = description
+	s.WriteOnly = sensitive
+
+	return s
 }
 
 // ToGoTypeValues converts the values to go types.
@@ -526,22 +525,4 @@ func getMapItemExpression(expr any) hclsyntax.Expression {
 	}
 
 	return getMapItemExpression(fe.Args[0])
-}
-
-func getTupleItemExpression(expr any) []hclsyntax.Expression {
-	fe, ok := expr.(*hclsyntax.FunctionCallExpr)
-	if !ok || len(fe.Args) == 0 {
-		return nil
-	}
-
-	if fe.Name == "tuple" {
-		te, ok := fe.Args[0].(*hclsyntax.TupleConsExpr)
-		if ok {
-			return te.Exprs
-		}
-
-		return nil
-	}
-
-	return getTupleItemExpression(fe.Args[0])
 }
