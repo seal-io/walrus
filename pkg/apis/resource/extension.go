@@ -86,19 +86,23 @@ func (h Handler) RouteRollback(req RouteRollbackRequest) error {
 		return err
 	}
 
-	tv, err := h.modelClient.TemplateVersions().Query().
-		Where(
-			templateversion.Version(rev.TemplateVersion),
-			templateversion.TemplateID(rev.TemplateID)).
-		Only(req.Context)
-	if err != nil {
-		return err
+	entity := rev.Edges.Resource
+	entity.Attributes = rev.Attributes
+
+	if entity.TemplateID != nil {
+		// Find previous template version when the resource is using template not definition.
+		tv, err := h.modelClient.TemplateVersions().Query().
+			Where(
+				templateversion.Version(rev.TemplateVersion),
+				templateversion.TemplateID(rev.TemplateID)).
+			Only(req.Context)
+		if err != nil {
+			return err
+		}
+
+		entity.TemplateID = &tv.ID
 	}
 
-	entity := rev.Edges.Resource
-
-	entity.Attributes = rev.Attributes
-	entity.TemplateID = &tv.ID
 	status.ResourceStatusDeployed.Reset(entity, "Rolling back")
 	entity.Status.SetSummary(status.WalkResource(&entity.Status))
 
