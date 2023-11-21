@@ -475,13 +475,12 @@ func CanBeStopped(r *model.Resource) bool {
 	return status.ResourceStatusDeployed.IsTrue(r)
 }
 
-// CanBeStarted tells whether the given resource can be started.
-func CanBeStarted(r *model.Resource) bool {
+// IsInactive tells whether the given resource is inactive.
+func IsInactive(r *model.Resource) bool {
 	if r == nil {
 		return false
 	}
 
-	// The resource need to be in undeployed or stopped status to start.
 	return r.Status.SummaryStatus == status.ResourceStatusUnDeployed.String() ||
 		r.Status.SummaryStatus == status.ResourceStatusStopped.String()
 }

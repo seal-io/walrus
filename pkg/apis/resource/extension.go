@@ -34,6 +34,15 @@ import (
 func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 	entity := req.Model()
 
+	if req.Draft {
+		_, err := h.modelClient.Resources().
+			UpdateOne(entity).
+			Set(entity).
+			Save(req.Context)
+
+		return err
+	}
+
 	// Update service, mark status from deploying.
 	status.ResourceStatusDeployed.Reset(entity, "Upgrading")
 	entity.Status.SetSummary(status.WalkResource(&entity.Status))
