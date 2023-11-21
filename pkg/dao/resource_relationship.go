@@ -76,10 +76,12 @@ func ResourceRelationshipGetDependencyNames(entity *model.Resource) []string {
 }
 
 // GetResourceDependantNames gets names of resources that depends on the given resource.
+// ExcludeStatus is an optional string slice of dependant resource status to exclude.
 func GetResourceDependantNames(
 	ctx context.Context,
 	modelClient model.ClientSet,
 	entity *model.Resource,
+	excludeStatus ...any,
 ) ([]string, error) {
 	var names []string
 
@@ -94,6 +96,14 @@ func GetResourceDependantNames(
 				On(t.C(resource.FieldID), resourcerelationship.FieldResourceID).
 				Select(resource.FieldName).
 				Distinct()
+
+			if len(excludeStatus) > 0 {
+				s.Where(sqljson.ValueNotIn(
+					resource.FieldStatus,
+					excludeStatus,
+					sqljson.Path("summaryStatus"),
+				))
+			}
 		}).
 		Scan(ctx, &names)
 	if err != nil {

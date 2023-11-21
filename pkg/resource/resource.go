@@ -202,7 +202,7 @@ func Stop(
 	}
 
 	// Check dependants.
-	dependants, err := dao.GetResourceDependantNames(ctx, mc, entity)
+	dependants, err := dao.GetResourceDependantNames(ctx, mc, entity, status.ResourceStatusStopped.String())
 	if err != nil {
 		updateFailedStatus(err)
 		return err
@@ -213,8 +213,8 @@ func Stop(
 		if !status.ResourceStatusProgressing.IsUnknown(entity) ||
 			status.ResourceStatusStopped.GetMessage(entity) != msg {
 			// Mark status to stopping with dependency message.
-			status.ResourceStatusStopped.Reset(entity, msg)
-			status.ResourceStatusProgressing.Unknown(entity, "")
+			status.ResourceStatusStopped.Reset(entity, "")
+			status.ResourceStatusProgressing.Unknown(entity, msg)
 
 			if err = UpdateStatus(ctx, mc, entity); err != nil {
 				return fmt.Errorf("failed to update resource status: %w", err)
