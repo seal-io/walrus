@@ -702,36 +702,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 													Type:      "array",
 													MaxLength: &length,
 													MinLength: 3,
-													Items: &openapi3.SchemaRef{
-														Value: &openapi3.Schema{
-															OneOf: openapi3.SchemaRefs{
-																{
-																	Value: &openapi3.Schema{
-																		Type: openapi3.TypeString,
-																		Extensions: openapi.NewExt().
-																			WithOriginalType(cty.String).
-																			Export(),
-																	},
-																},
-																{
-																	Value: &openapi3.Schema{
-																		Type: openapi3.TypeBoolean,
-																		Extensions: openapi.NewExt().
-																			WithOriginalType(cty.Bool).
-																			Export(),
-																	},
-																},
-																{
-																	Value: &openapi3.Schema{
-																		Type: openapi3.TypeNumber,
-																		Extensions: openapi.NewExt().
-																			WithOriginalType(cty.Number).
-																			Export(),
-																	},
-																},
-															},
-														},
-													},
+													Items:     openapi3.NewObjectSchema().NewRef(),
 													Extensions: openapi.NewExt().
 														WithOriginalType(
 															cty.Tuple(
