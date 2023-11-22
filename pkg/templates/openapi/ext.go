@@ -56,6 +56,8 @@ const (
 type ExtUI struct {
 	// Group is a string, for grouping the properties.
 	Group string `json:"group,omitempty" yaml:"group,omitempty"`
+	// GroupOrder is a list, for ordering the group in the UI.
+	GroupOrder []string `json:"groupOrder,omitempty" yaml:"groupOrder,omitempty"`
 	// ShowIf is a string, for showing the property.
 	ShowIf string `json:"showIf,omitempty" yaml:"showIf,omitempty"`
 	// Hidden is a boolean, for hiding the property.
@@ -78,7 +80,8 @@ func (e ExtUI) IsEmpty() bool {
 		!e.Immutable &&
 		e.Widget == "" &&
 		e.Order <= 0 &&
-		e.ColSpan <= 0
+		e.ColSpan <= 0 &&
+		len(e.GroupOrder) == 0
 }
 
 const (
@@ -186,6 +189,15 @@ func (e *Ext) WithOriginalVariablesSequence(vq []string) *Ext {
 
 func (e *Ext) WithUIGroup(gp string) *Ext {
 	e.Group = gp
+	return e
+}
+
+func (e *Ext) WithUIGroupOrder(grd ...string) *Ext {
+	if len(grd) == 0 {
+		return e
+	}
+	e.GroupOrder = grd
+
 	return e
 }
 

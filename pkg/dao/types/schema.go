@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
 
 	"github.com/seal-io/walrus/pkg/templates/openapi"
+	"github.com/seal-io/walrus/utils/json"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 const (
@@ -50,6 +52,21 @@ func (s *Schema) Expose() UISchema {
 		return UISchema{}
 	}
 
+	// In order to prevent the remove ext affact the original schema, serialize and deserialize to copy the schema.
+	b, err := json.Marshal(vs)
+	if err != nil {
+		log.Warnf("error marshal variable schema while expost: %v", err)
+		return UISchema{}
+	}
+
+	var cps openapi3.Schema
+
+	err = json.Unmarshal(b, &cps)
+	if err != nil {
+		log.Warnf("error unmarshal variable schema while expost: %v", err)
+		return UISchema{}
+	}
+
 	return UISchema{
 		OpenAPISchema: &openapi3.T{
 			OpenAPI: s.OpenAPISchema.OpenAPI,
@@ -57,7 +74,7 @@ func (s *Schema) Expose() UISchema {
 			Components: &openapi3.Components{
 				Schemas: map[string]*openapi3.SchemaRef{
 					variableSchemaKey: {
-						Value: openapi.RemoveExtOriginal(vs),
+						Value: openapi.RemoveExtOriginal(&cps),
 					},
 				},
 			},

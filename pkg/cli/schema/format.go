@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"sort"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	"gopkg.in/yaml.v2"
 
 	"github.com/seal-io/walrus/pkg/dao/types"
@@ -74,12 +75,15 @@ type WrapComponents struct {
 
 // FormattedOpenAPI generates formatted openapi yaml.
 func FormattedOpenAPI(s types.Schema) ([]byte, error) {
+	// Expose Variables.
+	es := s.Expose()
+	if es.IsEmpty() {
+		return nil, nil
+	}
+
 	// Get variables sequence.
 	vs := s.VariableSchema()
 	seq := openapi.GetExtOriginal(vs.Extensions).VariablesSequence
-
-	// Expose Variables.
-	es := s.Expose()
 
 	// Sorted Variables to the same sequence original defined, since the properties is a map,
 	// so need to generate sorted map.
@@ -110,20 +114,6 @@ func FormattedOpenAPI(s types.Schema) ([]byte, error) {
 
 	// 4. Generate key sorted variables.
 	esv := *es.OpenAPISchema.Components.Schemas["variables"].Value
-	sortedVariablesSchema := yaml.MapSlice{
-		{
-			Key:   "required",
-			Value: esv.Required,
-		},
-		{
-			Key:   "type",
-			Value: "object",
-		},
-		{
-			Key:   "properties",
-			Value: sortedProps,
-		},
-	}
 
 	w := WrapOpenAPI{
 		OpenAPI: es.OpenAPISchema.OpenAPI,
@@ -133,7 +123,7 @@ func FormattedOpenAPI(s types.Schema) ([]byte, error) {
 		},
 		Components: WrapComponents{
 			Schemas: map[string]any{
-				"variables": sortedVariablesSchema,
+				"variables": genVariable(esv, sortedProps),
 			},
 		},
 	}
@@ -147,6 +137,39 @@ func FormattedOpenAPI(s types.Schema) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+func genVariable(esv openapi3.Schema, props yaml.MapSlice) yaml.MapSlice {
+	sortedVariablesSchema := yaml.MapSlice{
+		{
+			Key:   "type",
+			Value: "object",
+		},
+	}
+
+	if len(esv.Required) != 0 {
+		sortedVariablesSchema = append(sortedVariablesSchema, yaml.MapItem{
+			Key:   "required",
+			Value: esv.Required,
+		})
+	}
+
+	if len(props) != 0 {
+		sortedVariablesSchema = append(sortedVariablesSchema, yaml.MapItem{
+			Key:   "properties",
+			Value: props,
+		})
+	}
+
+	extUI := openapi.GetExtUI(esv.Extensions)
+	if !extUI.IsEmpty() {
+		sortedVariablesSchema = append(sortedVariablesSchema, yaml.MapItem{
+			Key:   openapi.ExtUIKey,
+			Value: extUI,
+		})
+	}
+
+	return sortedVariablesSchema
 }
 
 func sortWithSequence(seq []string, m map[string]any) yaml.MapSlice {

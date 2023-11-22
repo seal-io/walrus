@@ -151,35 +151,35 @@ func (l *TerraformLoader) getVariableSchema(
 		return nil, nil, err
 	}
 
+	fromFile, info, err := l.getVariableSchemaAndInfoFromFile(rootDir)
+	if err != nil {
+		log.Warnf("error loading schema from file: %v", err)
+	}
+
+	var final *openapi3.Schema
+
 	switch mode {
 	case ModeOriginal:
-		return fromOriginal, nil, nil
+		final = fromOriginal
 	case ModeSchemaFile:
-		fromFile, info, err := l.getVariableSchemaAndInfoFromFile(rootDir)
-		if err != nil {
-			log.Warnf("error loading schema from file: %v", err)
-		}
-
-		return l.applyMissingConfig(fromOriginal, fromFile), info, nil
+		final = l.applyMissingConfig(fromOriginal, fromFile)
 	default:
 		// Merge, apply customized schema to generated schema.
-		fromFile, info, err := l.getVariableSchemaAndInfoFromFile(rootDir)
-		if err != nil {
-			log.Warnf("error loading schema from file: %v", err)
-		}
-
 		if fromFile == nil {
 			return fromOriginal, nil, nil
 		}
 
 		// Generate merged variables in sequence.
-		merged, err := openapi.UnionSchema(fromOriginal, fromFile)
+		final, err = openapi.UnionSchema(fromOriginal, fromFile)
 		if err != nil {
 			return nil, nil, err
 		}
-
-		return merged, info, nil
 	}
+
+	// Inject extensions.
+	l.injectExts(final)
+
+	return final, info, nil
 }
 
 // applyMissingConfig apply the missing config to schema generate from schema.yaml.
@@ -304,9 +304,6 @@ func (l *TerraformLoader) getVariableSchemaFromTerraform(mod *tfconfig.Module) (
 		WithOriginalVariablesSequence(keys).
 		Export()
 
-	// Inject extensions.
-	l.injectExts(varSchemas)
-
 	return varSchemas, nil
 }
 
@@ -322,6 +319,10 @@ func (l *TerraformLoader) getVariableSchemaAndInfoFromFile(rootDir string) (*ope
 	content, err := os.ReadFile(schemaFile)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error reading schema file %s: %w", schemaFile, err)
+	}
+
+	if len(content) == 0 {
+		return nil, nil, nil
 	}
 
 	// Openapi loader will cache the data with file path as key if we use LoadFromFile,
@@ -539,16 +540,15 @@ func (l *TerraformLoader) getRequiredProviders(
 
 // injectExts injects extension for variables.
 func (l *TerraformLoader) injectExts(vs *openapi3.Schema) {
+	if vs == nil {
+		return
+	}
+
+	groupOrder := make(map[string]int)
+
 	for n, v := range vs.Properties {
 		if v.Value == nil || v.Value.IsEmpty() {
 			continue
-		}
-
-		// Group.
-		if extUI := openapi.GetExtUI(v.Value.Extensions); extUI.Group == "" {
-			vs.Properties[n].Value.Extensions = openapi.NewExtFromMap(vs.Properties[n].Value.Extensions).
-				WithUIGroup(defaultGroup).
-				Export()
 		}
 
 		// Walrus Context.
@@ -557,7 +557,50 @@ func (l *TerraformLoader) injectExts(vs *openapi3.Schema) {
 				WithUIHidden().
 				Export()
 		}
+
+		// Group.
+		extUI := openapi.GetExtUI(v.Value.Extensions)
+		if extUI.Group == "" {
+			extUI.Group = defaultGroup
+
+			vs.Properties[n].Value.Extensions = openapi.NewExtFromMap(vs.Properties[n].Value.Extensions).
+				WithUIGroup(defaultGroup).
+				Export()
+		}
+
+		if _, ok := groupOrder[extUI.Group]; !ok {
+			groupOrder[extUI.Group] = extUI.Order
+		}
 	}
+
+	ep := openapi.NewExtFromMap(vs.Extensions).
+		WithUIGroupOrder(sortMapValue(groupOrder)...).
+		Export()
+	vs.Extensions = ep
+}
+
+func sortMapValue(m map[string]int) []string {
+	type keyValue struct {
+		Key   string
+		Value int
+	}
+
+	s := make([]keyValue, 0)
+
+	for key, value := range m {
+		s = append(s, keyValue{Key: key, Value: value})
+	}
+
+	sort.Slice(s, func(i, j int) bool {
+		return s[i].Value < s[j].Value
+	})
+
+	keys := make([]string, len(s))
+	for i, kv := range s {
+		keys[i] = kv.Key
+	}
+
+	return keys
 }
 
 func sortVariables(m map[string]*tfconfig.Variable) (s []*tfconfig.Variable) {
