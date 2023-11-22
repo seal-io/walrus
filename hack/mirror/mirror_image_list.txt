@@ -4,3 +4,6 @@ quay.io/prometheus-operator/prometheus-config-reloader:v0.67.0  docker.io/sealio
 quay.io/prometheus/prometheus:v2.46.0                           docker.io/sealio/mirrored-prometheus:v2.46.0
 registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.9.2    docker.io/sealio/mirrored-kube-state-metrics:v2.9.2
 quay.io/kubecost1/kubecost-cost-model:1.105.2                   docker.io/sealio/mirrored-kubecost-cost-model:v1.105.2
+quay.io/argoproj/workflow-controller:v3.5.0                     docker.io/sealio/mirrored-workflow-controller:v3.5.0
+quay.io/argoproj/argoexec:v3.5.0                                docker.io/sealio/mirrored-argoexec:v3.5.0
+quay.io/argoproj/argocli:v3.5.0                                 docker.io/sealio/mirrored-argocli:v3.5.0

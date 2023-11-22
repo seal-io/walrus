@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"path"
 
 	wfv1 "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	apiv1 "k8s.io/api/core/v1"
@@ -111,6 +112,9 @@ func (s *ServiceStepManager) GenerateTemplates(
 	stepExecution *model.WorkflowStepExecution,
 ) (main *wfv1.Template, subTemplates []*wfv1.Template, err error) {
 	deployerImage := settings.WorkflowStepServiceImage.ShouldValue(ctx, s.mc)
+	imageRegistry := settings.ImageRegistry.ShouldValue(ctx, s.mc)
+
+	deployerImage = path.Join(imageRegistry, deployerImage)
 
 	environment, ok := stepExecution.Attributes["environment"].(map[string]any)
 	if !ok {
