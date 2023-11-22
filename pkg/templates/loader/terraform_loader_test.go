@@ -131,6 +131,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 										},
 										Extensions: openapi.NewExt().
 											WithOriginalVariablesSequence([]string{"foo"}).
+											WithUIGroupOrder("Basic").
 											Export(),
 									},
 								},
@@ -171,6 +172,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 										},
 										Extensions: openapi.NewExt().
 											WithOriginalVariablesSequence([]string{"foo"}).
+											WithUIGroupOrder("Basic").
 											Export(),
 									},
 								},
@@ -345,6 +347,12 @@ func TestLoadTerraformSchema(t *testing.T) {
 												"subgroup2_1",
 												"subgroup2_1_hidden",
 											}).
+											WithUIGroupOrder(
+												"Test Group",
+												"Basic",
+												"Test Subgroup/Subgroup 1",
+												"Test Subgroup/Subgroup 2",
+											).
 											Export(),
 									},
 								},
@@ -732,6 +740,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 												"list_object",
 												"tuple",
 											}).
+											WithUIGroupOrder("Basic").
 											Export(),
 									},
 								},
