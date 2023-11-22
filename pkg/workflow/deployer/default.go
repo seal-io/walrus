@@ -8,12 +8,21 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
+	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/k8s"
 	"github.com/seal-io/walrus/pkg/k8s/deploy"
+	"github.com/seal-io/walrus/pkg/settings"
 )
 
 const NameWorkflow = "walrus-workflow"
+
+const (
+	imageServer     = "sealio/mirrored-argocli"
+	imageController = "sealio/mirrored-workflow-controller"
+	imageExecutor   = "sealio/mirrored-argoexec"
+	tag             = "v3.5.0"
+)
 
 const (
 	defaultWorkflowChartURL = "https://github.com/argoproj/argo-helm/releases/download/" +
@@ -41,10 +50,30 @@ var defaultWorkflowChartPath = func() string {
 	return path.Join(cdir, defaultWorkflowChart)
 }()
 
-func workflow() *deploy.ChartApp {
+func workflow(imageRegistry string) *deploy.ChartApp {
+	imageConfig := func(repo string) map[string]any {
+		cfg := map[string]any{
+			"registry": imageRegistry,
+			"tag":      tag,
+		}
+
+		if repo != "" {
+			cfg["repository"] = repo
+		}
+
+		return cfg
+	}
+
 	values := map[string]any{
+		"server": map[string]any{
+			"image": imageConfig(imageServer),
+		},
 		"controller": map[string]any{
-			"name": "controller",
+			"name":  "controller",
+			"image": imageConfig(imageController),
+		},
+		"executor": map[string]any{
+			"image": imageConfig(imageExecutor),
 		},
 		"fullnameOverride": NameWorkflow,
 		"crds": map[string]any{
@@ -61,8 +90,11 @@ func workflow() *deploy.ChartApp {
 	}
 }
 
-func DeployArgoWorkflow(ctx context.Context, config *rest.Config) error {
-	clientConfig := k8s.ToClientCmdApiConfig(config)
+func DeployArgoWorkflow(ctx context.Context, mc model.ClientSet, config *rest.Config) error {
+	var (
+		imageRegistry = settings.ImageRegistry.ShouldValue(ctx, mc)
+		clientConfig  = k8s.ToClientCmdApiConfig(config)
+	)
 
 	kubeCfg, err := clientcmd.Write(clientConfig)
 	if err != nil {
@@ -74,5 +106,5 @@ func DeployArgoWorkflow(ctx context.Context, config *rest.Config) error {
 		return err
 	}
 
-	return d.EnsureChart(workflow(), false)
+	return d.EnsureChart(workflow(imageRegistry), false)
 }

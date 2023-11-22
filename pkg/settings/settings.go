@@ -56,8 +56,7 @@ var (
 		"WorkflowStepServiceImage",
 		editable,
 		// When the image is updated, sync the one in server Dockerfile.
-		// TODO replace with seal curl-jq image.
-		initializeFromEnv("badouralix/curl-jq"),
+		initializeFromEnv("sealio/curl-jq:v0.0.1"),
 		modifyWith(notBlank, containerImageReference),
 	)
 )

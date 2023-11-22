@@ -12,6 +12,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
+	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/workflow/deployer"
 	"github.com/seal-io/walrus/utils/gopool"
@@ -39,7 +40,7 @@ func (r *Server) setupWorkflowRuntime(ctx context.Context, opts initOptions) err
 		}
 	}
 
-	applyWorkflowDeployment(ctx, opts.K8sConfig)
+	applyWorkflowDeployment(opts.ModelClient, opts.K8sConfig)
 
 	return nil
 }
@@ -246,9 +247,9 @@ func applyWorkflowPermission(ctx context.Context, cli *kubernetes.Clientset) err
 	return nil
 }
 
-func applyWorkflowDeployment(_ context.Context, config *rest.Config) {
+func applyWorkflowDeployment(mc model.ClientSet, config *rest.Config) {
 	gopool.Go(func() {
-		err := deployer.DeployArgoWorkflow(context.Background(), config)
+		err := deployer.DeployArgoWorkflow(context.Background(), mc, config)
 		if err != nil {
 			log.WithName("workflow").Errorf("failed to deploy argo workflow: %v", err)
 		}
