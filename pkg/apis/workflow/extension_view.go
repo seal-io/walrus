@@ -17,7 +17,7 @@ type RouteGetLatestExecutionResponse = *model.WorkflowExecutionOutput
 type RouteRunRequest struct {
 	_ struct{} `route:"POST=/run"`
 
-	model.WorkflowQueryInput `path:",inline" json:",inline"`
+	model.WorkflowQueryInput `path:",inline"`
 
 	Variables   map[string]string `json:"variables,omitempty"`
 	Description string            `json:"description,omitempty"`
