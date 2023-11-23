@@ -263,7 +263,7 @@ func (l *TerraformLoader) getVariableSchemaFromTerraform(mod *tfconfig.Module) (
 				return nil, fmt.Errorf("error getting type: %w", diags)
 			}
 
-			if conDef != nil && conDef.DefaultValues != nil && conDef.Children != nil {
+			if conDef != nil && (conDef.DefaultValues != nil || conDef.Children != nil) {
 				def = conDef
 			}
 			tyExpression = expr

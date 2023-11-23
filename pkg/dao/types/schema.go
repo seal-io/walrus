@@ -34,7 +34,10 @@ func (s *Schema) Validate() error {
 		s.OpenAPISchema.Info.Version = "v0.0.0"
 	}
 
-	if err := s.OpenAPISchema.Validate(context.Background()); err != nil {
+	if err := s.OpenAPISchema.Validate(
+		context.Background(),
+		openapi3.DisableSchemaDefaultsValidation(),
+	); err != nil {
 		return err
 	}
 
