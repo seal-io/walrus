@@ -48,6 +48,274 @@ func TestLoadTerraformSchema(t *testing.T) {
 			expectedError: false,
 		},
 		{
+			name:  "Any variable",
+			input: "testdata/any_variable",
+			expectedOutput: &types.TemplateVersionSchema{
+				Schema: types.Schema{
+					OpenAPISchema: &openapi3.T{
+						OpenAPI: openapi.OpenAPIVersion,
+						Info:    mockInfo,
+						Components: &openapi3.Components{
+							Schemas: map[string]*openapi3.SchemaRef{
+								"variables": {
+									Value: &openapi3.Schema{
+										Required: []string{
+											"list_object_with_any_default",
+											"map_object_with_any_default",
+											"object_with_any_default",
+										},
+										Type: openapi3.TypeObject,
+										Properties: map[string]*openapi3.SchemaRef{
+											"list_any_with_default": {
+												Value: &openapi3.Schema{
+													Title: "List Any With Default",
+													Type:  openapi3.TypeArray,
+													Items: &openapi3.SchemaRef{
+														Value: &openapi3.Schema{
+															Type: openapi3.TypeObject,
+															Extensions: openapi.NewExt().
+																WithOriginalType(cty.DynamicPseudoType).
+																WithUIColSpan(12).
+																Export(),
+															Properties: map[string]*openapi3.SchemaRef{},
+														},
+													},
+													Default: []any{map[string]any{"name": "default-name"}},
+													Extensions: openapi.NewExt().
+														WithOriginalType(cty.List(cty.DynamicPseudoType)).
+														WithUIGroup("Basic").
+														WithUIColSpan(12).
+														WithUIOrder(1).
+														Export(),
+												},
+											},
+											"map_any_with_default": {
+												Value: &openapi3.Schema{
+													Title:   "Map Any With Default",
+													Type:    openapi3.TypeObject,
+													Default: map[string]any{"name": "default-name"},
+													AdditionalProperties: openapi3.AdditionalProperties{
+														Schema: &openapi3.SchemaRef{
+															Value: &openapi3.Schema{
+																Type:       openapi3.TypeObject,
+																Properties: map[string]*openapi3.SchemaRef{},
+																Extensions: openapi.NewExt().
+																	WithOriginalType(cty.DynamicPseudoType).
+																	WithUIColSpan(12).
+																	Export(),
+															},
+														},
+													},
+													Properties: map[string]*openapi3.SchemaRef{},
+													Extensions: openapi.NewExt().
+														WithOriginalType(cty.Map(cty.DynamicPseudoType)).
+														WithUIGroup("Basic").
+														WithUIColSpan(12).
+														WithUIOrder(2).
+														Export(),
+												},
+											},
+											"list_map_any_with_default": {
+												Value: &openapi3.Schema{
+													Title:   "List Map Any With Default",
+													Type:    openapi3.TypeArray,
+													Default: []any{map[string]any{"name": "default-name"}},
+													Items: &openapi3.SchemaRef{
+														Value: &openapi3.Schema{
+															Type:       openapi3.TypeObject,
+															Properties: map[string]*openapi3.SchemaRef{},
+															AdditionalProperties: openapi3.AdditionalProperties{
+																Schema: &openapi3.SchemaRef{
+																	Value: &openapi3.Schema{
+																		Type:       openapi3.TypeObject,
+																		Properties: map[string]*openapi3.SchemaRef{},
+																		Extensions: openapi.NewExt().
+																			WithOriginalType(cty.DynamicPseudoType).
+																			WithUIColSpan(12).
+																			Export(),
+																	},
+																},
+															},
+															Extensions: openapi.NewExt().
+																WithOriginalType(cty.Map(cty.DynamicPseudoType)).
+																WithUIColSpan(12).
+																Export(),
+														},
+													},
+													Extensions: openapi.NewExt().
+														WithOriginalType(cty.List(cty.Map(cty.DynamicPseudoType))).
+														WithUIGroup("Basic").
+														WithUIOrder(3).
+														WithUIColSpan(12).
+														Export(),
+												},
+											},
+											"object_with_any_default": {
+												Value: &openapi3.Schema{
+													Title: "Object With Any Default",
+													Type:  openapi3.TypeObject,
+													Properties: map[string]*openapi3.SchemaRef{
+														"any_data": {
+															Value: &openapi3.Schema{
+																Title: "Any Data",
+																Type:  openapi3.TypeObject,
+																Default: map[string]any{
+																	"headers": map[string]any{
+																		"X-Forwarded-Proto": "https",
+																	},
+																	"port": float64(80),
+																},
+																Properties: map[string]*openapi3.SchemaRef{},
+																Extensions: openapi.NewExt().
+																	WithOriginalType(cty.DynamicPseudoType).
+																	WithUIOrder(1).
+																	WithUIColSpan(12).
+																	Export(),
+															},
+														},
+													},
+													Extensions: openapi.NewExt().
+														WithOriginalType(
+															cty.ObjectWithOptionalAttrs(
+																map[string]cty.Type{
+																	"any_data": cty.DynamicPseudoType,
+																},
+																[]string{"any_data"})).
+														WithUIGroup("Basic").
+														WithUIOrder(4).
+														WithUIColSpan(12).
+														Export(),
+												},
+											},
+											"list_object_with_any_default": {
+												Value: &openapi3.Schema{
+													Title: "List Object With Any Default",
+													Type:  openapi3.TypeArray,
+													Items: &openapi3.SchemaRef{
+														Value: &openapi3.Schema{
+															Type: openapi3.TypeObject,
+															Properties: map[string]*openapi3.SchemaRef{
+																"any_data": {
+																	Value: &openapi3.Schema{
+																		Title: "Any Data",
+																		Type:  openapi3.TypeObject,
+																		Default: map[string]any{
+																			"headers": map[string]any{
+																				"X-Forwarded-Proto": "https",
+																			},
+																			"port": float64(80),
+																		},
+																		Properties: map[string]*openapi3.SchemaRef{},
+																		Extensions: openapi.NewExt().
+																			WithOriginalType(cty.DynamicPseudoType).
+																			WithUIOrder(1).
+																			WithUIColSpan(12).
+																			Export(),
+																	},
+																},
+															},
+															Extensions: openapi.NewExt().
+																WithOriginalType(
+																	cty.ObjectWithOptionalAttrs(
+																		map[string]cty.Type{
+																			"any_data": cty.DynamicPseudoType,
+																		},
+																		[]string{"any_data"})).
+																WithUIColSpan(12).
+																Export(),
+														},
+													},
+													Extensions: openapi.NewExt().
+														WithOriginalType(
+															cty.List(
+																cty.ObjectWithOptionalAttrs(
+																	map[string]cty.Type{
+																		"any_data": cty.DynamicPseudoType,
+																	},
+																	[]string{"any_data"}))).
+														WithUIGroup("Basic").
+														WithUIOrder(5).
+														WithUIColSpan(12).
+														Export(),
+												},
+											},
+											"map_object_with_any_default": {
+												Value: &openapi3.Schema{
+													Title:      "Map Object With Any Default",
+													Type:       openapi3.TypeObject,
+													Properties: map[string]*openapi3.SchemaRef{},
+													AdditionalProperties: openapi3.AdditionalProperties{
+														Schema: &openapi3.SchemaRef{
+															Value: &openapi3.Schema{
+																Type: openapi3.TypeObject,
+																Properties: map[string]*openapi3.SchemaRef{
+																	"any_data": {
+																		Value: &openapi3.Schema{
+																			Title: "Any Data",
+																			Type:  openapi3.TypeObject,
+																			Default: map[string]any{
+																				"headers": map[string]any{
+																					"X-Forwarded-Proto": "https",
+																				},
+																				"port": float64(80),
+																			},
+																			Properties: map[string]*openapi3.SchemaRef{},
+																			Extensions: openapi.NewExt().
+																				WithOriginalType(cty.DynamicPseudoType).
+																				WithUIOrder(1).
+																				WithUIColSpan(12).
+																				Export(),
+																		},
+																	},
+																},
+																Extensions: openapi.NewExt().
+																	WithOriginalType(
+																		cty.ObjectWithOptionalAttrs(
+																			map[string]cty.Type{
+																				"any_data": cty.DynamicPseudoType,
+																			},
+																			[]string{"any_data"})).
+																	WithUIColSpan(12).
+																	Export(),
+															},
+														},
+													},
+													Extensions: openapi.NewExt().
+														WithOriginalType(
+															cty.Map(
+																cty.ObjectWithOptionalAttrs(
+																	map[string]cty.Type{
+																		"any_data": cty.DynamicPseudoType,
+																	},
+																	[]string{"any_data"}))).
+														WithUIGroup("Basic").
+														WithUIOrder(6).
+														WithUIColSpan(12).
+														Export(),
+												},
+											},
+										},
+										Extensions: openapi.NewExt().
+											WithOriginalVariablesSequence(
+												[]string{
+													"list_any_with_default",
+													"map_any_with_default",
+													"list_map_any_with_default",
+													"object_with_any_default",
+													"list_object_with_any_default",
+													"map_object_with_any_default",
+												}).
+											Export(),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedError: false,
+		},
+		{
 			name:  "With output",
 			input: "testdata/with_output",
 			expectedOutput: &types.TemplateVersionSchema{
