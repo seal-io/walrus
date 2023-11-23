@@ -40,13 +40,6 @@ type RouteUpgradeRequest struct {
 }
 
 func (r *RouteUpgradeRequest) Validate() error {
-	// Resource type maps to type in definition edge.
-	if r.Type != "" {
-		r.ResourceDefinition = &model.ResourceDefinitionQueryInput{
-			Type: r.Type,
-		}
-	}
-
 	if err := r.ResourceUpdateInput.Validate(); err != nil {
 		return err
 	}
@@ -55,12 +48,18 @@ func (r *RouteUpgradeRequest) Validate() error {
 		Where(resource.ID(r.ID)).
 		Select(
 			resource.FieldTemplateID,
+			resource.FieldResourceDefinitionID,
 			resource.FieldStatus,
 		).
 		WithTemplate(func(tvq *model.TemplateVersionQuery) {
 			tvq.Select(
 				templateversion.FieldName,
 				templateversion.FieldVersion)
+		}).
+		WithResourceDefinition(func(rdq *model.ResourceDefinitionQuery) {
+			rdq.Select(
+				resourcedefinition.FieldType,
+			)
 		}).
 		Only(r.Context)
 	if err != nil {
@@ -70,6 +69,13 @@ func (r *RouteUpgradeRequest) Validate() error {
 	if r.Draft && !pkgresource.IsInactive(entity) {
 		return errorx.HttpErrorf(http.StatusBadRequest,
 			"cannot update resource draft in %q status", entity.Status.SummaryStatus)
+	}
+
+	if entity.ResourceDefinitionID != nil {
+		r.ResourceDefinition = &model.ResourceDefinitionQueryInput{
+			Type: entity.Edges.ResourceDefinition.Type,
+			ID:   *entity.ResourceDefinitionID,
+		}
 	}
 
 	switch {
@@ -95,9 +101,9 @@ func (r *RouteUpgradeRequest) Validate() error {
 				return fmt.Errorf("invalid variables: %w", err)
 			}
 		}
-	case r.Type != "":
+	case r.ResourceDefinition != nil:
 		rd, err := r.Client.ResourceDefinitions().Query().
-			Where(resourcedefinition.Type(r.Type)).
+			Where(resourcedefinition.Type(r.ResourceDefinition.Type)).
 			WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
 				rq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
 					Select(resourcedefinitionmatchingrule.FieldResourceDefinitionID).
