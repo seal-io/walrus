@@ -578,10 +578,13 @@ func (l *TerraformLoader) injectExts(vs *openapi3.Schema) {
 		}
 	}
 
-	ep := openapi.NewExtFromMap(vs.Extensions).
-		WithUIGroupOrder(sortMapValue(groupOrder)...).
-		Export()
-	vs.Extensions = ep
+	vsExtUI := openapi.GetExtUI(vs.Extensions)
+	if len(vsExtUI.GroupOrder) == 0 {
+		ep := openapi.NewExtFromMap(vs.Extensions).
+			WithUIGroupOrder(sortMapValue(groupOrder)...).
+			Export()
+		vs.Extensions = ep
+	}
 }
 
 func sortMapValue(m map[string]int) []string {
