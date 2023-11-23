@@ -573,7 +573,8 @@ func (l *TerraformLoader) injectExts(vs *openapi3.Schema) {
 				Export()
 		}
 
-		if _, ok := groupOrder[extUI.Group]; !ok {
+		od, ok := groupOrder[extUI.Group]
+		if !ok || od > extUI.Order {
 			groupOrder[extUI.Group] = extUI.Order
 		}
 	}
