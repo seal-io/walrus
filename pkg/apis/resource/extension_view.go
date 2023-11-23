@@ -89,9 +89,16 @@ func (r *RouteUpgradeRequest) Validate() error {
 			return fmt.Errorf("failed to get template version: %w", err)
 		}
 
-		// Verify attributes with variables schema of the template version.
-		if !tv.Schema.IsEmpty() {
-			if err = r.Attributes.ValidateWith(tv.Schema.VariableSchema()); err != nil {
+		// Verify attributes with schema.
+		// TODO(thxCode): migrate schema to ui schema, then reduce if-else.
+		if s := tv.UiSchema; !s.IsEmpty() {
+			err = r.Attributes.ValidateWith(s.VariableSchema())
+			if err != nil {
+				return fmt.Errorf("invalid variables: violate ui schema: %w", err)
+			}
+		} else if s := tv.Schema; !s.IsEmpty() {
+			err = r.Attributes.ValidateWith(s.VariableSchema())
+			if err != nil {
 				return fmt.Errorf("invalid variables: %w", err)
 			}
 		}

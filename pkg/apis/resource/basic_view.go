@@ -217,31 +217,39 @@ func (r *CollectionCreateRequest) Validate() error {
 	}
 
 	for _, res := range r.Items {
-		if res.Template != nil {
-			// Verify resource's variables with variables schema that defined on the template version.
-			if !tvm[res.Template.ID].Schema.IsEmpty() {
-				err = res.Attributes.ValidateWith(tvm[res.Template.ID].Schema.VariableSchema())
+		switch {
+		case res.Template != nil:
+			// Verify attributes with schema.
+			// TODO(thxCode): migrate schema to ui schema, then reduce if-else.
+			if s := tvm[res.Template.ID].UiSchema; !s.IsEmpty() {
+				err = res.Attributes.ValidateWith(s.VariableSchema())
+				if err != nil {
+					return fmt.Errorf("invalid variables: violate ui schema: %w", err)
+				}
+			} else if s := tvm[res.Template.ID].Schema; !s.IsEmpty() {
+				err = res.Attributes.ValidateWith(s.VariableSchema())
 				if err != nil {
 					return fmt.Errorf("invalid variables: %w", err)
 				}
-			} else if res.Type != "" {
-				rule := resourcedefinitions.Match(
-					rdm[res.Type].Edges.MatchingRules,
-					env.Edges.Project.Name,
-					env.Name,
-					env.Type,
-					env.Labels,
-					res.Labels,
-				)
-				if rule == nil {
-					return fmt.Errorf("no matching resource definition for %q", res.Name)
-				}
 			}
-			// Verify that variables in attributes are valid.
-			err = validateVariable(r.Context, r.Client, res.Attributes, res.Name, r.Project.ID, r.Environment.ID)
-			if err != nil {
-				return err
+		case res.Type != "":
+			rule := resourcedefinitions.Match(
+				rdm[res.Type].Edges.MatchingRules,
+				env.Edges.Project.Name,
+				env.Name,
+				env.Type,
+				env.Labels,
+				res.Labels,
+			)
+			if rule == nil {
+				return fmt.Errorf("no matching resource definition for %q", res.Name)
 			}
+		}
+
+		// Verify that variables in attributes are valid.
+		err = validateVariable(r.Context, r.Client, res.Attributes, res.Name, r.Project.ID, r.Environment.ID)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -447,14 +455,19 @@ func ValidateCreateInput(rci *model.ResourceCreateInput) error {
 			return err
 		}
 
-		// Verify variables with variables schema that defined on the template version.
-		if !tv.Schema.IsEmpty() {
-			err = rci.Attributes.ValidateWith(tv.Schema.VariableSchema())
+		// Verify variables with schema.
+		// TODO(thxCode): migrate schema to ui schema, then reduce if-else.
+		if s := tv.UiSchema; !s.IsEmpty() {
+			err = rci.Attributes.ValidateWith(s.VariableSchema())
+			if err != nil {
+				return fmt.Errorf("invalid variables: violate ui schema: %w", err)
+			}
+		} else if s := tv.Schema; !s.IsEmpty() {
+			err = rci.Attributes.ValidateWith(s.VariableSchema())
 			if err != nil {
 				return fmt.Errorf("invalid variables: %w", err)
 			}
 		}
-
 	case rci.Type != "":
 		rd, err := rci.Client.ResourceDefinitions().Query().
 			Where(resourcedefinition.Type(rci.Type)).

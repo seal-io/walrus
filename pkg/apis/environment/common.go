@@ -188,14 +188,23 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 		rdm[rd.Type] = rd
 	}
 
-	// Verify resource's variables with variables schema that defined on the template version.
 	for _, res := range r.Resources {
-		if res.Template != nil {
-			err = res.Attributes.ValidateWith(tvm[res.Template.ID].Schema.VariableSchema())
-			if err != nil {
-				return fmt.Errorf("invalid variables: %w", err)
+		switch {
+		case res.Template != nil:
+			// Verify attributes with schema.
+			// TODO(thxCode): migrate schema to ui schema, then reduce if-else.
+			if s := tvm[res.Template.ID].UiSchema; !s.IsEmpty() {
+				err = res.Attributes.ValidateWith(s.VariableSchema())
+				if err != nil {
+					return fmt.Errorf("invalid variables: violate ui schema: %w", err)
+				}
+			} else if s := tvm[res.Template.ID].Schema; !s.IsEmpty() {
+				err = res.Attributes.ValidateWith(s.VariableSchema())
+				if err != nil {
+					return fmt.Errorf("invalid variables: %w", err)
+				}
 			}
-		} else if res.Type != "" {
+		case res.Type != "":
 			rule := resourcedefinitions.Match(
 				rdm[res.Type].Edges.MatchingRules,
 				r.Project.Name,
