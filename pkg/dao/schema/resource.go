@@ -51,7 +51,7 @@ func (Resource) Fields() []ent.Field {
 			Immutable().
 			Optional().
 			Annotations(
-				entx.Input(),
+				entx.Input(entx.WithCreate(), entx.WithQuery()),
 			),
 		object.IDField("resource_definition_id").
 			Comment("ID of the resource definition to which the resource use.").
