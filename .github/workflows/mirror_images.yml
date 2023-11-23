@@ -32,19 +32,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          
+
           # login to dockerhub
           crane auth login docker.io -u ${{ secrets.CI_DOCKERHUB_USERNAME }} -p ${{ secrets.CI_DOCKERHUB_PASSWORD }}
-          
+
           # mirror images
-          while IFS= read -r line; do
+          while IFS= read -r line || [[ -n "$line" ]]; do
             if [[ "$line" == \#* ]]; then
               continue
             fi
-          
+
             source_image=$(echo "$line" | awk '{print $1}')
             target_image=$(echo "$line" | awk '{print $2}')
-          
+
             echo "Mirror image $source_image to $target_image"
             crane copy $source_image $target_image
           done < ${{ github.workspace }}/hack/mirror/mirror_image_list.txt
