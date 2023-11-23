@@ -39,7 +39,7 @@ func (h Handler) RouteGetLatestExecutionRequest(req RouteGetLatestExecutionReque
 	return model.ExposeWorkflowExecution(wf), nil
 }
 
-func (h Handler) RouteRunRequest(req RouteRunRequest) (RouteRunResponse, error) {
+func (h Handler) RouteRun(req RouteRunRequest) (RouteRunResponse, error) {
 	var (
 		logger = log.WithName("workflow")
 
