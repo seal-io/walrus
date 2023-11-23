@@ -240,12 +240,16 @@ func (l *TerraformLoader) getVariableSchemaFromTerraform(mod *tfconfig.Module) (
 			def          = v.Default
 			order        = i + 1
 			tyExpression any
+			nullable     bool
 		)
 
 		// Required and keys.
 		if v.Required {
 			required = append(required, v.Name)
+		} else {
+			nullable = true
 		}
+
 		keys[i] = v.Name
 
 		// Generate json schema from tf type or default value.
@@ -294,6 +298,7 @@ func (l *TerraformLoader) getVariableSchemaFromTerraform(mod *tfconfig.Module) (
 					Sensitive:   v.Sensitive,
 					Order:       order,
 					TypeExpress: tyExpression,
+					Nullable:    nullable,
 				}))
 	}
 

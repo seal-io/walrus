@@ -24,6 +24,7 @@ type Options struct {
 	Sensitive   bool
 	Order       int
 	TypeExpress any
+	Nullable    bool
 }
 
 // SchemaOfType generates openAPI schema from original type.

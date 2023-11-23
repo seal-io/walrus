@@ -39,6 +39,7 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 		description = opts.Description
 		sensitive   = opts.Sensitive
 		order       = opts.Order
+		nullable    = opts.Nullable
 		s           *openapi3.Schema
 	)
 
@@ -244,7 +245,11 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 
 		// Property.
 		for n, tt := range typ.AttributeTypes() {
-			var propDef any
+			var (
+				propDef      any
+				propNullable bool
+			)
+
 			if defaultValues[n].IsKnown() {
 				propDef = defaultValues[n]
 			}
@@ -253,19 +258,22 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 				propDef = childDefaults[n]
 			}
 
+			if !typ.AttributeOptional(n) {
+				s.Required = append(s.Required, n)
+			} else {
+				propNullable = true
+			}
+
 			st := t.SchemaOfOriginalType(tt, Options{
 				Name:        n,
 				Default:     propDef,
 				Sensitive:   sensitive,
 				Order:       propOrder[n],
 				TypeExpress: propExpr[n],
+				Nullable:    propNullable,
 			})
 
 			s.WithProperty(n, st)
-
-			if !typ.AttributeOptional(n) {
-				s.Required = append(s.Required, n)
-			}
 		}
 
 		// Extensions.
@@ -299,6 +307,7 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 	s.Title = title
 	s.Description = description
 	s.WriteOnly = sensitive
+	s.Nullable = nullable
 
 	return s
 }

@@ -30,7 +30,7 @@ variable "list_map_any_with_default" {
 variable "object_with_any_default" {
   type = object({
     any_data = optional(any, {
-      port    = 80
+      method    = "GET"
       headers = {
         "X-Forwarded-Proto" = "https"
       }
@@ -41,7 +41,7 @@ variable "object_with_any_default" {
 variable "list_object_with_any_default" {
   type = list(object({
     any_data = optional(any, {
-      port    = 80
+      method    = "GET"
       headers = {
         "X-Forwarded-Proto" = "https"
       }
@@ -52,7 +52,7 @@ variable "list_object_with_any_default" {
 variable "map_object_with_any_default" {
   type = map(object({
     any_data = optional(any, {
-      port    = 80
+      method    = "GET"
       headers = {
         "X-Forwarded-Proto" = "https"
       }
