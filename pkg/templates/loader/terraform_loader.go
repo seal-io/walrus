@@ -211,8 +211,14 @@ func (l *TerraformLoader) applyMissingConfig(generated, customized *openapi3.Sch
 		)
 
 		ext.WithOriginal(in.Value.Extensions[openapi.ExtOriginalKey])
-		ext.WithUIOrder(genExt.Order)
-		ext.WithUIColSpan(genExt.ColSpan)
+
+		if ext.ExtUI.Order == 0 {
+			ext.WithUIOrder(genExt.Order)
+		}
+
+		if ext.ExtUI.ColSpan == 0 {
+			ext.WithUIColSpan(genExt.ColSpan)
+		}
 
 		s.Properties[n].Value.Extensions = ext.Export()
 	}
