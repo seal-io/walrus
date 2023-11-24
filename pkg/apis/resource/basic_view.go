@@ -192,6 +192,7 @@ func (r *CollectionCreateRequest) Validate() error {
 		Select(
 			resourcedefinition.FieldID,
 			resourcedefinition.FieldName,
+			resourcedefinition.FieldType,
 		).
 		WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
 			rq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
