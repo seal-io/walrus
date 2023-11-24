@@ -65,3 +65,9 @@ variable "list_object" {
 variable "tuple" {
   type = tuple([string, bool, number])
 }
+
+variable "object_tuple" {
+  type = object({
+    data = optional(tuple([string, bool]), ["foo", true])
+  })
+}

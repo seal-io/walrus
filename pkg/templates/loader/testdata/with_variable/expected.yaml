@@ -1,0 +1,29 @@
+openAPISchema:
+  components:
+    schemas:
+      variables:
+        properties:
+          foo:
+            default: bar
+            nullable: true
+            title: Foo
+            type: string
+            x-walrus-original:
+              type: string
+            x-walrus-ui:
+              group: Basic
+              order: 1
+        type: object
+        x-walrus-original:
+          sequence:
+          - foo
+        x-walrus-ui:
+          groupOrder:
+          - Basic
+  info:
+    title: OpenAPI schema for template dev-template
+    version: ""
+  openapi: 3.0.3
+  paths: null
+readme: ""
+requiredProviders: null
