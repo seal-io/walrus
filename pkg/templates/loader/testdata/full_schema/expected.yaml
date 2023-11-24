@@ -1,0 +1,151 @@
+openAPISchema:
+  components:
+    schemas:
+      outputs:
+        properties:
+          first:
+            description: The first output.
+            title: First
+            type: object
+            x-walrus-original:
+              type: dynamic
+              value-expression: bnVsbF9yZXNvdXJjZS50ZXN0Lmlk
+            x-walrus-ui:
+              colSpan: 12
+              order: 1
+          second:
+            description: The second output.
+            title: Second
+            type: object
+            writeOnly: true
+            x-walrus-original:
+              type: dynamic
+              value-expression: InNvbWUgdmFsdWUi
+            x-walrus-ui:
+              colSpan: 12
+              order: 2
+        type: object
+      variables:
+        properties:
+          bar:
+            default: bar
+            description: description of bar.
+            enum:
+            - B1
+            - B2
+            - B3
+            title: Bar Label
+            type: string
+            x-walrus-original:
+              type: string
+            x-walrus-ui:
+              group: Test Group
+              order: 2
+              showIf: foo=F1
+          foo:
+            default: foo
+            enum:
+            - F1
+            - F2
+            - F3
+            title: Foo Label
+            type: string
+            x-walrus-original:
+              type: string
+            x-walrus-ui:
+              group: Test Group
+              order: 1
+          number_options_var:
+            default: 1
+            enum:
+            - 1
+            - 2
+            - 3
+            title: number_options_var
+            type: number
+            x-walrus-original:
+              type: number
+            x-walrus-ui:
+              group: Basic
+              order: 4
+          subgroup1_1:
+            default: subgroup1_1
+            title: Subgroup1_1 Label
+            type: string
+            x-walrus-original:
+              type: string
+            x-walrus-ui:
+              group: Test Subgroup/Subgroup 1
+              order: 5
+          subgroup1_2:
+            default: subgroup1_2
+            title: Subgroup1_2 Label
+            type: string
+            x-walrus-original:
+              type: string
+            x-walrus-ui:
+              group: Test Subgroup/Subgroup 1
+              order: 6
+          subgroup2_1:
+            default: subgroup2_1
+            title: Subgroup2_1 Label
+            type: string
+            x-walrus-original:
+              type: string
+            x-walrus-ui:
+              group: Test Subgroup/Subgroup 2
+              order: 7
+              widget: Input
+          subgroup2_1_hidden:
+            default: ""
+            title: subgroup2_1_hidden
+            type: string
+            x-walrus-original:
+              type: string
+            x-walrus-ui:
+              group: Test Subgroup/Subgroup 2
+              hidden: true
+              order: 8
+          thee:
+            default: foo
+            enum:
+            - F1
+            - F2
+            - F3
+            title: Thee
+            type: string
+            x-walrus-original:
+              type: string
+            x-walrus-ui:
+              group: Test Group
+              order: 3
+        type: object
+        x-walrus-original:
+          sequence:
+          - foo
+          - bar
+          - thee
+          - number_options_var
+          - subgroup1_1
+          - subgroup1_2
+          - subgroup2_1
+          - subgroup2_1_hidden
+        x-walrus-ui:
+          groupOrder:
+          - Test Group
+          - Basic
+          - Test Subgroup/Subgroup 1
+          - Test Subgroup/Subgroup 2
+  info:
+    title: dev
+    version: v1.0.0
+  openapi: 3.0.3
+  paths: null
+readme: '# test readme'
+requiredProviders:
+- name: mycloud
+  source: mycorp/mycloud
+  version_constraints:
+  - ~> 1.0
+- name: "null"
+  source: hashicorp/null

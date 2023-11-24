@@ -120,6 +120,14 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 		// Schema.
 		s = openapi3.NewArraySchema()
 
+		// Default.
+		switch def.(type) {
+		case *typeexpr.Defaults:
+			// TODO(michelia): support tuple items default.
+		default:
+			setDefault(s, def)
+		}
+
 		// Property.
 		var (
 			ts   = typ.TupleElementTypes()
@@ -141,26 +149,24 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 
 		switch {
 		case len(refs) == 1:
-			s.WithItems(refs[0]).
-				WithLength(1)
+			s.WithItems(refs[0])
 		case len(refs) > 1:
-			var diffSchema bool
+			var schemaEqual bool
 
 			for i := 0; i < len(refs); i++ {
 				for j := i + 1; j < len(refs); j++ {
-					if refs[i] != refs[j] {
-						diffSchema = true
+					schemaEqual = openapi.MustSchemaEqual(refs[i], refs[j])
+					if !schemaEqual {
 						break
 					}
 				}
 			}
 
-			if diffSchema {
-				s.WithItems(openapi3.NewObjectSchema()).
-					WithLength(int64(len(ts)))
+			if !schemaEqual {
+				// NB: if the tuple items type are different, we use object schema to represent.
+				s.WithItems(openapi3.NewObjectSchema())
 			} else {
-				s.WithItems(refs[0]).
-					WithLength(int64(len(ts)))
+				s.WithItems(refs[0])
 			}
 		default:
 			s.WithItems(openapi3.NewObjectSchema())

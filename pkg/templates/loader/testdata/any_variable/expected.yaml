@@ -1,0 +1,195 @@
+openAPISchema:
+  components:
+    schemas:
+      variables:
+        properties:
+          list_any_with_default:
+            default:
+            - name: default-name
+            items:
+              type: object
+              x-walrus-original:
+                type: dynamic
+              x-walrus-ui:
+                colSpan: 12
+            nullable: true
+            title: List Any With Default
+            type: array
+            x-walrus-original:
+              type:
+              - list
+              - dynamic
+            x-walrus-ui:
+              colSpan: 12
+              group: Basic
+              order: 1
+          list_map_any_with_default:
+            default:
+            - name: default-name
+            items:
+              additionalProperties:
+                type: object
+                x-walrus-original:
+                  type: dynamic
+                x-walrus-ui:
+                  colSpan: 12
+              type: object
+              x-walrus-original:
+                type:
+                - map
+                - dynamic
+              x-walrus-ui:
+                colSpan: 12
+            nullable: true
+            title: List Map Any With Default
+            type: array
+            x-walrus-original:
+              type:
+              - list
+              - - map
+                - dynamic
+            x-walrus-ui:
+              colSpan: 12
+              group: Basic
+              order: 3
+          list_object_with_any_default:
+            items:
+              properties:
+                any_data:
+                  default:
+                    headers:
+                      X-Forwarded-Proto: https
+                    method: GET
+                  nullable: true
+                  title: Any Data
+                  type: object
+                  x-walrus-original:
+                    type: dynamic
+                  x-walrus-ui:
+                    colSpan: 12
+                    order: 1
+              type: object
+              x-walrus-original:
+                type:
+                - object
+                - any_data: dynamic
+                - - any_data
+              x-walrus-ui:
+                colSpan: 12
+            title: List Object With Any Default
+            type: array
+            x-walrus-original:
+              type:
+              - list
+              - - object
+                - any_data: dynamic
+                - - any_data
+            x-walrus-ui:
+              colSpan: 12
+              group: Basic
+              order: 5
+          map_any_with_default:
+            additionalProperties:
+              type: object
+              x-walrus-original:
+                type: dynamic
+              x-walrus-ui:
+                colSpan: 12
+            default:
+              name: default-name
+            nullable: true
+            title: Map Any With Default
+            type: object
+            x-walrus-original:
+              type:
+              - map
+              - dynamic
+            x-walrus-ui:
+              colSpan: 12
+              group: Basic
+              order: 2
+          map_object_with_any_default:
+            additionalProperties:
+              properties:
+                any_data:
+                  default:
+                    headers:
+                      X-Forwarded-Proto: https
+                    method: GET
+                  nullable: true
+                  title: Any Data
+                  type: object
+                  x-walrus-original:
+                    type: dynamic
+                  x-walrus-ui:
+                    colSpan: 12
+                    order: 1
+              type: object
+              x-walrus-original:
+                type:
+                - object
+                - any_data: dynamic
+                - - any_data
+              x-walrus-ui:
+                colSpan: 12
+            title: Map Object With Any Default
+            type: object
+            x-walrus-original:
+              type:
+              - map
+              - - object
+                - any_data: dynamic
+                - - any_data
+            x-walrus-ui:
+              colSpan: 12
+              group: Basic
+              order: 6
+          object_with_any_default:
+            properties:
+              any_data:
+                default:
+                  headers:
+                    X-Forwarded-Proto: https
+                  method: GET
+                nullable: true
+                title: Any Data
+                type: object
+                x-walrus-original:
+                  type: dynamic
+                x-walrus-ui:
+                  colSpan: 12
+                  order: 1
+            title: Object With Any Default
+            type: object
+            x-walrus-original:
+              type:
+              - object
+              - any_data: dynamic
+              - - any_data
+            x-walrus-ui:
+              colSpan: 12
+              group: Basic
+              order: 4
+        required:
+        - list_object_with_any_default
+        - map_object_with_any_default
+        - object_with_any_default
+        type: object
+        x-walrus-original:
+          sequence:
+          - list_any_with_default
+          - map_any_with_default
+          - list_map_any_with_default
+          - object_with_any_default
+          - list_object_with_any_default
+          - map_object_with_any_default
+        x-walrus-ui:
+          groupOrder:
+          - Basic
+  info:
+    title: OpenAPI schema for template dev-template
+    version: ""
+  openapi: 3.0.3
+  paths: null
+readme: ""
+requiredProviders: null
