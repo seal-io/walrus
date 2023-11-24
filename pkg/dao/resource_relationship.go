@@ -16,6 +16,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/strs"
 )
@@ -122,6 +123,37 @@ func GetResourceDependantIDs(ctx context.Context, mc model.ClientSet, resourceID
 			resourcerelationship.ResourceIDNotIn(resourceIDs...),
 			resourcerelationship.DependencyIDIn(resourceIDs...),
 		).
+		Select(resourcerelationship.FieldResourceID).
+		Scan(ctx, &ids)
+
+	return ids, err
+}
+
+// GetNonStoppedResourceDependantIDs gets IDs of resources that depend on the given resources
+// and is not in stopped status.
+func GetNonStoppedResourceDependantIDs(
+	ctx context.Context,
+	mc model.ClientSet,
+	resourceIDs ...object.ID,
+) ([]object.ID, error) {
+	var ids []object.ID
+
+	err := mc.ResourceRelationships().Query().
+		Where(
+			resourcerelationship.ResourceIDNotIn(resourceIDs...),
+			resourcerelationship.DependencyIDIn(resourceIDs...),
+		).
+		Modify(func(s *sql.Selector) {
+			t := sql.Table(resource.Table).As("s")
+			s.RightJoin(t).
+				On(t.C(resource.FieldID), resourcerelationship.FieldResourceID).
+				Distinct().
+				Where(sqljson.ValueNEQ(
+					resource.FieldStatus,
+					status.ResourceStatusStopped.String(),
+					sqljson.Path("summaryStatus"),
+				))
+		}).
 		Select(resourcerelationship.FieldResourceID).
 		Scan(ctx, &ids)
 

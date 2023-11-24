@@ -117,7 +117,7 @@ func (r *RouteStopRequest) Validate() error {
 
 	r.stoppableResources = stoppableResources
 
-	dependantIDs, err := dao.GetResourceDependantIDs(r.Context, r.Client, stoppableResourceIDs...)
+	dependantIDs, err := dao.GetNonStoppedResourceDependantIDs(r.Context, r.Client, stoppableResourceIDs...)
 	if err != nil {
 		return fmt.Errorf("failed to get resource dependencies: %w", err)
 	}
