@@ -233,7 +233,7 @@ func (r *RouteStopRequest) Validate() error {
 		)
 	}
 
-	ids, err := dao.GetResourceDependantIDs(r.Context, r.Client, r.ID)
+	ids, err := dao.GetNonStoppedResourceDependantIDs(r.Context, r.Client, r.ID)
 	if err != nil {
 		return fmt.Errorf("failed to get resource relationships: %w", err)
 	}
