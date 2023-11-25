@@ -140,11 +140,20 @@ RUN set -exo pipefail; \
       chmod a+x /usr/bin/crane && \
       rm -f /tmp/crane.tar.gz;
 
-# get deployer image
+# get airgap images.
 RUN set -exo pipefail; \
         DEPLOYER_IMAGE="sealio/terraform-deployer:v0.1.4"; \
-        crane pull --platform=${TARGETPLATFORM} ${DEPLOYER_IMAGE} ${K3S_DATA_DIR}/agent/images/terraform-deployer.tar;
-
+	crane pull --platform=${TARGETPLATFORM} ${DEPLOYER_IMAGE} ${K3S_DATA_DIR}/agent/images/terraform-deployer.tar; \
+	DEPLOYER_AIRGAP_IMAGE="sealio/terraform-deployer:v0.1.4-airgap"; \
+	crane pull --platform=${TARGETPLATFORM} ${DEPLOYER_AIRGAP_IMAGE} ${K3S_DATA_DIR}/agent/images/terraform-deployer-airgap.tar; \
+	WORKFLOW_SERVER_IMAGE="sealio/mirrored-argocli:v3.5.0"; \
+	crane pull --platform=${TARGETPLATFORM} ${WORKFLOW_SERVER_IMAGE} ${K3S_DATA_DIR}/agent/images/workflow-server.tar; \
+	WORKFLOW_CONTROLLER_IMAGE="sealio/mirrored-workflow-controller:v3.5.0"; \
+	crane pull --platform=${TARGETPLATFORM} ${WORKFLOW_CONTROLLER_IMAGE} ${K3S_DATA_DIR}/agent/images/workflow-controller.tar; \
+	WORKFLOW_EXECUTOR_IMAGE="sealio/mirrored-argoexec:v3.5.0"; \
+	crane pull --platform=${TARGETPLATFORM} ${WORKFLOW_EXECUTOR_IMAGE} ${K3S_DATA_DIR}/agent/images/workflow-executor.tar; \
+	WORKFLOW_STEP_IMAGE="docker.io/sealio/curl-jq:v0.0.1"; \
+	crane pull --platform=${TARGETPLATFORM} ${WORKFLOW_STEP_IMAGE} ${K3S_DATA_DIR}/agent/images/workflow-step.tar;
 
 # get casdoor
 ENV BEEGO_CONFIG_PATH="/etc/casdoor/app.conf"
