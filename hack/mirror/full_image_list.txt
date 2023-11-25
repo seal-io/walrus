@@ -7,6 +7,7 @@ docker.io/sealio/mirrored-workflow-controller:v3.5.0
 docker.io/sealio/mirrored-argoexec:v3.5.0
 docker.io/sealio/mirrored-argocli:v3.5.0
 docker.io/sealio/terraform-deployer:v0.1.4
+docker.io/sealio/terraform-deployer:v0.1.4-airgap
 docker.io/sealio/walrus:v0.4.0
 docker.io/sealio/casdoor:v1.344.0-seal.1
 docker.io/sealio/curl-jq:v0.0.1
