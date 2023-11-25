@@ -65,6 +65,9 @@ func workflow(imageRegistry string) *deploy.ChartApp {
 	}
 
 	values := map[string]any{
+		"images": map[string]any{
+			"pullPolicy": "IfNotPresent",
+		},
 		"server": map[string]any{
 			"image": imageConfig(imageServer),
 		},
