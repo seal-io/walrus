@@ -231,9 +231,12 @@ func (h Handler) RouteGetResourceDefinitions(
 	rds, err := h.modelClient.ResourceDefinitions().Query().
 		WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
 			rq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
-				Select(resourcedefinitionmatchingrule.FieldResourceDefinitionID).
 				Unique(false).
-				Select(resourcedefinitionmatchingrule.FieldTemplateID).
+				Select(
+					resourcedefinitionmatchingrule.FieldResourceDefinitionID,
+					resourcedefinitionmatchingrule.FieldTemplateID,
+					resourcedefinitionmatchingrule.FieldSelector,
+				).
 				WithTemplate(func(tq *model.TemplateVersionQuery) {
 					tq.Select(
 						templateversion.FieldID,
