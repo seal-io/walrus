@@ -3,6 +3,7 @@ package catalog
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -146,7 +147,7 @@ func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) er
 				repo.Driver = c.Type
 
 				t := &model.Template{
-					Name:        repo.Name,
+					Name:        normalizeTemplateName(repo.Name),
 					Description: repo.Description,
 					Source:      repo.Link,
 					CatalogID:   c.ID,
@@ -182,6 +183,10 @@ func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) er
 	}
 
 	return wg.Wait()
+}
+
+func normalizeTemplateName(name string) string {
+	return strings.TrimPrefix(name, "terraform-")
 }
 
 func isServiceTemplateRepo(topics []string) bool {
