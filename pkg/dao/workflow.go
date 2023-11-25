@@ -377,33 +377,35 @@ func parseWorkflowVariables(
 
 // OverwriteWorkflowVariables merges the variables into the config.
 func OverwriteWorkflowVariables(vars map[string]string, config types.WorkflowVariables) (map[string]string, error) {
-	configKeys := sets.NewString()
+	mergedVars := make(map[string]string, len(config)+len(vars))
+	overwriteKeys := sets.NewString()
 
 	if vars == nil {
 		vars = make(map[string]string)
 	}
 
-	for _, c := range config {
+	for i := range config {
+		c := config[i]
 		// Only overwritable params can be replaced.
 		if c.Overwrite {
-			configKeys.Insert(c.Name)
+			overwriteKeys.Insert(c.Name)
 		}
+
+		name, value := c.Name, c.Value
+		if _, ok := vars[name]; ok && c.Overwrite {
+			value = vars[name]
+		}
+
+		mergedVars[name] = value
 	}
 
 	for k := range vars {
-		if !configKeys.Has(k) {
+		if !overwriteKeys.Has(k) {
 			return nil, fmt.Errorf("invalid variables: %s", k)
 		}
 	}
 
-	for i := range config {
-		name, value := config[i].Name, config[i].Value
-		if _, ok := vars[name]; !ok {
-			vars[name] = value
-		}
-	}
-
-	return vars, nil
+	return mergedVars, nil
 }
 
 // GetRejectMessage returns the reject message of the workflow approval step execution.

@@ -108,3 +108,145 @@ func TestParseParams(t *testing.T) {
 		}
 	}
 }
+
+func TestOverwriteWorkflowVariables(t *testing.T) {
+	cases := []struct {
+		name      string
+		vars      map[string]string
+		config    types.WorkflowVariables
+		expected  map[string]string
+		wantError bool
+	}{
+		{
+			name: "overwrite",
+			vars: map[string]string{
+				"replace": "newValue",
+			},
+			config: types.WorkflowVariables{
+				{
+					Name:      "replace",
+					Value:     "oldValue",
+					Overwrite: true,
+				},
+			},
+			expected: map[string]string{
+				"replace": "newValue",
+			},
+			wantError: false,
+		},
+		{
+			name: "overwrite multi configs",
+			vars: map[string]string{
+				"replace": "newValue",
+			},
+			config: types.WorkflowVariables{
+				{
+					Name:      "replace",
+					Value:     "oldValue",
+					Overwrite: true,
+				},
+				{
+					Name:      "var1",
+					Value:     "var1",
+					Overwrite: true,
+				},
+			},
+			expected: map[string]string{
+				"replace": "newValue",
+				"var1":    "var1",
+			},
+			wantError: false,
+		},
+		{
+			name: "overwrite multi configs with one not overwrite",
+			vars: map[string]string{
+				"replace":   "newValue",
+				"notConfig": "notConfig",
+			},
+			config: types.WorkflowVariables{
+				{
+					Name:      "replace",
+					Value:     "oldValue",
+					Overwrite: true,
+				},
+				{
+					Name:      "var1",
+					Value:     "var1",
+					Overwrite: false,
+				},
+			},
+			expected: map[string]string{
+				"replace": "newValue",
+				"var1":    "var1",
+			},
+			wantError: true,
+		},
+		{
+			name: "overwrite multi configs with correct overwrite",
+			vars: map[string]string{
+				"replace": "newValue",
+				"var1":    "newVar",
+			},
+			config: types.WorkflowVariables{
+				{
+					Name:      "replace",
+					Value:     "oldValue",
+					Overwrite: true,
+				},
+				{
+					Name:      "var1",
+					Value:     "var1",
+					Overwrite: true,
+				},
+				{
+					Name:      "var2",
+					Value:     "var2",
+					Overwrite: false,
+				},
+			},
+			expected: map[string]string{
+				"replace": "newValue",
+				"var1":    "newVar",
+				"var2":    "var2",
+			},
+			wantError: false,
+		},
+		{
+			name: "not overwrite",
+			vars: map[string]string{
+				"replace": "newValue",
+			},
+			config: types.WorkflowVariables{
+				{
+					Name:      "replace",
+					Value:     "oldValue",
+					Overwrite: false,
+				},
+			},
+			wantError: true,
+		},
+		{
+			name: "no config",
+			vars: map[string]string{
+				"replace": "newValue",
+			},
+			config:    types.WorkflowVariables{},
+			wantError: true,
+		},
+	}
+
+	for _, c := range cases {
+		actual, err := OverwriteWorkflowVariables(c.vars, c.config)
+		if err != nil && c.wantError == false {
+			t.Errorf("overwrite workflow variables error: expected nil, got %v", err)
+		}
+
+		if c.wantError == true {
+			continue
+		}
+
+		if reflect.DeepEqual(actual, c.expected) == false {
+			t.Errorf("overwrite workflow variables error: expected %v, got %v", c.expected, actual)
+		}
+	}
+}
