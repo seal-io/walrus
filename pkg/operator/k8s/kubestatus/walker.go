@@ -49,6 +49,38 @@ var podStatusPaths = status.NewWalker(
 		},
 	},
 	func(d status.Decision[core.PodConditionType]) {
+		const reasonPodCompleted = "PodCompleted"
+
+		d.Make(core.ContainersReady,
+			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+				switch st {
+				case status.ConditionStatusTrue:
+					return "ContainersReady", false, false
+				case status.ConditionStatusFalse:
+					if reason == reasonPodCompleted {
+						// Completed job.
+						return "ContainersCompleted", false, false
+					}
+					return "ContainersNotReady", true, false
+				}
+				return "ContainersPreparing", false, true
+			})
+
+		d.Make(core.PodReady,
+			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+				switch st {
+				case status.ConditionStatusTrue:
+					return "Ready", false, false
+				case status.ConditionStatusFalse:
+					if reason == reasonPodCompleted {
+						// Completed job.
+						return "Completed", false, false
+					}
+					return "NotReady", true, false
+				}
+				return "Preparing", false, true //nolint: goconst
+			})
+
 		d.Make(core.DisruptionTarget,
 			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 				switch st {
