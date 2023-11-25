@@ -210,6 +210,10 @@ func syncTemplateFromRef(
 		)
 	}
 
+	if repo.SubPath != "" {
+		source += "//" + repo.SubPath
+	}
+
 	// Create or update a template version.
 	return mc.TemplateVersions().Create().
 		Set(&model.TemplateVersion{
@@ -356,6 +360,11 @@ func GetTemplateVersions(
 		return nil, err
 	}
 
+	repo, err := vcs.ParseURLToRepo(entity.Source)
+	if err != nil {
+		return nil, err
+	}
+
 	for i := range newVersions {
 		v := newVersions[i]
 		tag := v.Original()
@@ -364,6 +373,10 @@ func GetTemplateVersions(
 		if !ok {
 			logger.Warnf("version schema not found, version: %s", tag)
 			continue
+		}
+
+		if repo.SubPath != "" {
+			source += "//" + repo.SubPath
 		}
 
 		tvs = append(tvs, &model.TemplateVersion{
