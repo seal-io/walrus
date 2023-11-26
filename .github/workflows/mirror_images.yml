@@ -12,7 +12,7 @@ defaults:
 on:
   push:
     paths:
-      - "hack/mirror/mirror_image_list.txt"
+      - "hack/mirror/mirror-images.txt"
   workflow_dispatch: {}
 
 jobs:
@@ -47,4 +47,4 @@ jobs:
 
             echo "Mirror image $source_image to $target_image"
             crane copy $source_image $target_image
-          done < ${{ github.workspace }}/hack/mirror/mirror_image_list.txt
+          done < ${{ github.workspace }}/hack/mirror/mirror-images.txt
