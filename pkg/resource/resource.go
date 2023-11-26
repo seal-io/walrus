@@ -295,24 +295,43 @@ func SetResourceStatusScheduled(ctx context.Context, mc model.ClientSet, entitie
 }
 
 // CreateDraftResources creates undeployed resources but do no deployment.
+// TODO refactor and coordinate with CreateScheduledResources.
 func CreateDraftResources(
 	ctx context.Context,
 	mc model.ClientSet,
 	entities ...*model.Resource,
 ) (model.Resources, error) {
-	for _, entity := range entities {
-		status.ResourceStatusUnDeployed.True(entity, "Draft")
-		entity.Status.SetSummary(status.WalkResource(&entity.Status))
-	}
+	results := make(model.Resources, 0, len(entities))
 
-	entities, err := mc.Resources().CreateBulk().
-		Set(entities...).
-		Save(ctx)
+	sortedResources, err := TopologicalSortResources(entities)
 	if err != nil {
-		return entities, err
+		return nil, err
 	}
 
-	return entities, nil
+	err = mc.WithTx(ctx, func(tx *model.Tx) error {
+		for i := range sortedResources {
+			entity := sortedResources[i]
+
+			status.ResourceStatusUnDeployed.True(entity, "Draft")
+			entity.Status.SetSummary(status.WalkResource(&entity.Status))
+
+			entity, err = tx.Resources().Create().
+				Set(entity).
+				SaveE(ctx, dao.ResourceDependenciesEdgeSave)
+			if err != nil {
+				return err
+			}
+
+			results = append(results, entity)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }
 
 // CreateScheduledResources creates scheduled resources.
