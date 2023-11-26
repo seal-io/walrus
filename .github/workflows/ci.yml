@@ -218,4 +218,6 @@ jobs:
           tag_name: ${{ steps.metadata.outputs.version }}
           files: |
             .dist/package/${{ matrix.target }}/${{ matrix.task }}/build/cli/*
-            hack/mirror/full_image_list.txt
+            hack/mirror/walrus-images.txt
+            hack/mirror/walrus-load-images.sh
+            hack/mirror/walrus-save-images.sh
