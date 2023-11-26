@@ -402,7 +402,13 @@ func getStatefulSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 func getJob(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	statusConditions, exist, _ := unstructured.NestedSlice(o.Object, "status", "conditions")
 	if !exist {
-		return nil, errors.New("not found 'job' status conditions")
+		return &typestatus.Status{
+			Summary: typestatus.Summary{
+				SummaryStatus: string(typestatus.ResourceStatusProgressing),
+				Error:         false,
+				Transitioning: true,
+			},
+		}, nil
 	}
 
 	st := &typestatus.Status{}
