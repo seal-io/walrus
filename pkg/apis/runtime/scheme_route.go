@@ -787,6 +787,7 @@ func getSchemaOfGoType(
 			s.Items == nil &&
 			!(s.Type == openapi3.TypeString &&
 				slices.Contains([]string{stringTypeFormatBinary, stringTypeFormatByte}, s.Format)) {
+			visited.Delete(id)
 			return nil
 		}
 
