@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/drone/go-scm/scm"
 	"github.com/go-git/go-git/v5"
@@ -183,7 +184,10 @@ func CloneGitRepo(ctx context.Context, link, dir string, skipTLSVerify bool) (*g
 		return nil, err
 	}
 
-	options := []getter.ClientOption{getter.WithContext(ctx)}
+	getterCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
+	defer cancel()
+
+	options := []getter.ClientOption{getter.WithContext(getterCtx)}
 	if skipTLSVerify {
 		options = append(options, getter.WithInsecure())
 	}
