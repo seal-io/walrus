@@ -71,10 +71,16 @@ type (
 		] `query:",inline"`
 
 		IncludeSummary bool `query:"includeSummary,omitempty"`
+
+		Stream *runtime.RequestUnidiStream
 	}
 
 	CollectionGetResponse = []*environmentOutput
 )
+
+func (r *CollectionGetRequest) SetStream(stream runtime.RequestUnidiStream) {
+	r.Stream = &stream
+}
 
 type CollectionDeleteRequest = model.EnvironmentDeleteInputs
 

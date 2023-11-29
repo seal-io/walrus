@@ -3,6 +3,9 @@ package environment
 import (
 	"net/http"
 
+	"entgo.io/ent/dialect/sql"
+
+	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/auths/session"
 	envbus "github.com/seal-io/walrus/pkg/bus/environment"
 	"github.com/seal-io/walrus/pkg/dao"
@@ -12,8 +15,10 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/topic"
 )
 
 func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
@@ -114,6 +119,80 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
 	}
+
+	if stream := req.Stream; stream != nil {
+		// Handle stream request.
+		if fields, ok := req.Extracting(getFields, getFields...); ok {
+			query.Select(fields...)
+		}
+
+		if orders, ok := req.Sorting(sortFields, model.Desc(environment.FieldCreateTime)); ok {
+			query.Order(orders...)
+		}
+
+		t, err := topic.Subscribe(modelchange.Resource)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		defer func() { t.Unsubscribe() }()
+
+		for {
+			event, err := t.Receive(stream)
+			if err != nil {
+				return nil, 0, err
+			}
+
+			dm, ok := event.Data.(modelchange.Event)
+			if !ok {
+				continue
+			}
+
+			ids := make([]any, len(dm.IDs))
+			for i := range dm.IDs {
+				ids[i] = dm.IDs[i]
+			}
+
+			entities, err := query.Clone().
+				Where(environment.HasResourcesWith(func(selector *sql.Selector) {
+					selector.Where(sql.In(resource.FieldID, ids...))
+				})).
+				// Must append project ID.
+				Select(environment.FieldProjectID).
+				// Must extract connectors.
+				Select(environment.FieldID).
+				WithResources(func(rq *model.ResourceQuery) {
+					rq.Select(
+						resource.FieldID,
+						resource.FieldStatus,
+						resource.FieldEnvironmentID,
+					)
+				}).
+				WithConnectors(func(rq *model.EnvironmentConnectorRelationshipQuery) {
+					// Includes connectors.
+					rq.Order(model.Desc(environmentconnectorrelationship.FieldCreateTime)).
+						WithConnector(func(cq *model.ConnectorQuery) {
+							cq.Select(
+								connector.FieldID,
+								connector.FieldType,
+								connector.FieldName,
+								connector.FieldProjectID)
+						})
+				}).
+				Unique(false).
+				All(stream)
+			if err != nil {
+				return nil, 0, err
+			}
+
+			resp := runtime.TypedResponse(modelchange.EventTypeUpdate.String(), exposeEnvironments(entities))
+			if err := stream.SendJSON(resp); err != nil {
+				return nil, 0, err
+			}
+		}
+	}
+
+	// Handle normal request.
 
 	// Get count.
 	cnt, err := query.Clone().Count(req.Context)
