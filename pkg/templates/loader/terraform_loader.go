@@ -48,10 +48,6 @@ func NewTerraformLoader() SchemaLoader {
 func (l *TerraformLoader) Load(
 	rootDir, templateName string, mode Mode,
 ) (*types.TemplateVersionSchema, error) {
-	if !l.match(rootDir) {
-		return nil, nil
-	}
-
 	mod, err := l.loadMod(rootDir)
 	if err != nil {
 		return nil, err
@@ -73,12 +69,6 @@ func (l *TerraformLoader) Load(
 		},
 		TemplateVersionSchemaData: d,
 	}, nil
-}
-
-// Match checks if the template is a terraform template.
-func (l *TerraformLoader) match(rootDir string) bool {
-	_, err := os.Stat(filepath.Join(rootDir, "main.tf"))
-	return err == nil
 }
 
 // loadMod load the terraform module.
