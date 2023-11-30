@@ -1,10 +1,7 @@
 package resourcedefinition
 
 import (
-	"context"
 	"fmt"
-
-	"github.com/getkin/kin-openapi/openapi3"
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao"
@@ -12,10 +9,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
-	"github.com/seal-io/walrus/pkg/dao/types"
-	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
-	"github.com/seal-io/walrus/pkg/templates/openapi"
 	"github.com/seal-io/walrus/utils/topic"
 )
 
@@ -215,41 +209,4 @@ func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 
 		return err
 	})
-}
-
-// generateSchema generates definition schema with inputs/outputs intersection of matching template versions.
-func generateSchema(ctx context.Context, mc model.ClientSet, definition *model.ResourceDefinition) error {
-	tvIDs := make([]object.ID, len(definition.Edges.MatchingRules))
-	for i, rule := range definition.Edges.MatchingRules {
-		tvIDs[i] = rule.TemplateID
-	}
-
-	templateVersions, err := mc.TemplateVersions().Query().
-		Where(templateversion.IDIn(tvIDs...)).
-		All(ctx)
-	if err != nil {
-		return err
-	}
-
-	if len(templateVersions) == 0 {
-		return nil
-	}
-
-	definition.Schema = types.Schema{
-		OpenAPISchema: &openapi3.T{
-			OpenAPI: openapi.OpenAPIVersion,
-			Info: &openapi3.Info{
-				Title:   fmt.Sprintf("OpenAPI schema for resource definition %s", definition.Name),
-				Version: "v0.0.0",
-			},
-			Components: templateVersions[0].Schema.OpenAPISchema.Components,
-		},
-	}
-	for i := 1; i < len(templateVersions); i++ {
-		definition.Schema.Intersect(&types.Schema{
-			OpenAPISchema: templateVersions[i].Schema.OpenAPISchema,
-		})
-	}
-
-	return nil
 }

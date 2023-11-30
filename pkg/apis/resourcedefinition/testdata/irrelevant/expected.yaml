@@ -1,0 +1,72 @@
+info:
+  title: OpenAPI schema for resource definition type "mysql"
+  version: v0.0.0
+paths: {}
+openapi: 3.0.3
+components:
+  schemas:
+    outputs:
+      type: object
+      properties:
+        refer:
+          type: object
+          title: Refer
+          writeOnly: true
+          description: The refer, a map, including hosts, ports and account, which
+            is used for dependencies or collaborations.
+          x-walrus-ui:
+            order: 2
+            colSpan: 12
+        address:
+          type: object
+          title: Address
+          description: The address, a string only has host, might be a comma separated
+            string or a single string.
+          x-walrus-ui:
+            order: 5
+            colSpan: 12
+        context:
+          type: object
+          title: Context
+          description: The input context, a map, which is used for orchestration.
+          x-walrus-ui:
+            order: 1
+            colSpan: 12
+        endpoints:
+          type: object
+          title: Endpoints
+          description: The endpoints, a list of string combined host and port.
+          x-walrus-ui:
+            order: 11
+            colSpan: 12
+        connection:
+          type: object
+          title: Connection
+          description: The connection, a string combined host and port, might be a
+            comma separated string or a single string.
+          x-walrus-ui:
+            order: 3
+            colSpan: 12
+    variables:
+      type: object
+      properties:
+        context:
+          type: object
+          title: Context
+          default: {}
+          nullable: true
+          description: Receive contextual information. When Walrus deploys, Walrus
+            will inject specific contextual information into this field.
+          x-walrus-ui:
+            group: Advanced
+            order: 1
+            hidden: true
+            colSpan: 12
+          additionalProperties:
+            type: object
+            x-walrus-ui:
+              colSpan: 12
+      x-walrus-ui:
+        groupOrder:
+          - Basic
+          - Advanced

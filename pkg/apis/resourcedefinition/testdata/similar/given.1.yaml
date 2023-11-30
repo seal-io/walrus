@@ -1,0 +1,449 @@
+info:
+  title: OpenAPI schema for template terraform-alicloud-rds-mysql
+  version: v0.0.0
+paths: {}
+openapi: 3.0.3
+components:
+  schemas:
+    outputs:
+      type: object
+      properties:
+        port:
+          type: object
+          title: Port
+          description: The port of the service.
+          x-walrus-ui:
+            order: 7
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: bG9jYWwucG9ydA==
+        refer:
+          type: object
+          title: Refer
+          writeOnly: true
+          description: The refer, a map, including hosts, ports and account, which
+            is used for dependencies or collaborations.
+          x-walrus-ui:
+            order: 2
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: ewogICAgc2NoZW1hID0gImFsaWNsb3VkOnJkczpteXNxbCIKICAgIHBhcmFtcyA9IHsKICAgICAgc2VsZWN0b3IgICAgICAgICAgID0gbG9jYWwudGFncwogICAgICBob3N0cyAgICAgICAgICAgICAgPSBsb2NhbC5ob3N0cwogICAgICBob3N0c19yZWFkb25seSAgICAgPSBsb2NhbC5ob3N0c19yZWFkb25seQogICAgICBwb3J0ICAgICAgICAgICAgICAgPSBsb2NhbC5wb3J0CiAgICAgIGVuZHBvaW50cyAgICAgICAgICA9IGxvY2FsLmVuZHBvaW50cwogICAgICBlbmRwb2ludHNfcmVhZG9ubHkgPSBsb2NhbC5lbmRwb2ludHNfcmVhZG9ubHkKICAgICAgZGF0YWJhc2UgICAgICAgICAgID0gbG9jYWwuZGF0YWJhc2UKICAgICAgdXNlcm5hbWUgICAgICAgICAgID0gbG9jYWwudXNlcm5hbWUKICAgICAgcGFzc3dvcmQgICAgICAgICAgID0gbm9uc2Vuc2l0aXZlKGxvY2FsLnBhc3N3b3JkKQogICAgfQogIH0=
+        address:
+          type: object
+          title: Address
+          description: The address, a string only has host, might be a comma separated
+            string or a single string.
+          x-walrus-ui:
+            order: 5
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: am9pbigiLCIsIGxvY2FsLmhvc3RzKQ==
+        context:
+          type: object
+          title: Context
+          description: The input context, a map, which is used for orchestration.
+          x-walrus-ui:
+            order: 1
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: dmFyLmNvbnRleHQ=
+        database:
+          type: object
+          title: Database
+          description: The name of MySQL database to access.
+          x-walrus-ui:
+            order: 8
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: bG9jYWwuZGF0YWJhc2U=
+        password:
+          type: object
+          title: Password
+          writeOnly: true
+          description: The password of the account to access the database.
+          x-walrus-ui:
+            order: 10
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: bG9jYWwucGFzc3dvcmQ=
+        username:
+          type: object
+          title: Username
+          description: The username of the account to access the database.
+          x-walrus-ui:
+            order: 9
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: bG9jYWwudXNlcm5hbWU=
+        endpoints:
+          type: object
+          title: Endpoints
+          description: The endpoints, a list of string combined host and port.
+          x-walrus-ui:
+            order: 11
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: bG9jYWwuZW5kcG9pbnRz
+        connection:
+          type: object
+          title: Connection
+          description: The connection, a string combined host and port, might be a
+            comma separated string or a single string.
+          x-walrus-ui:
+            order: 3
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: am9pbigiLCIsIGxvY2FsLmVuZHBvaW50cyk=
+        address_readonly:
+          type: object
+          title: Address Readonly
+          description: The readonly address, a string only has host, might be a comma
+            separated string or a single string.
+          x-walrus-ui:
+            order: 6
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: am9pbigiLCIsIGxvY2FsLmhvc3RzX3JlYWRvbmx5KQ==
+        endpoints_readonly:
+          type: object
+          title: Endpoints Readonly
+          description: The readonly endpoints, a list of string combined host and
+            port.
+          x-walrus-ui:
+            order: 12
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: bG9jYWwuZW5kcG9pbnRzX3JlYWRvbmx5
+        connection_readonly:
+          type: object
+          title: Connection Readonly
+          description: The readonly connection, a string combined host and port, might
+            be a comma separated string or a single string.
+          x-walrus-ui:
+            order: 4
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: am9pbigiLCIsIGxvY2FsLmVuZHBvaW50c19yZWFkb25seSk=
+    variables:
+      type: object
+      required:
+        - infrastructure
+        - architecture
+        - engine_version
+      properties:
+        context:
+          type: object
+          title: Context
+          default: {}
+          nullable: true
+          description: 'Receive contextual information. When Walrus deploys, Walrus
+            will inject specific contextual information into this field.
+
+            '
+          x-walrus-ui:
+            group: Advanced
+            order: 1
+            hidden: true
+            colSpan: 12
+          x-walrus-original:
+            type:
+              - map
+              - dynamic
+          additionalProperties:
+            type: object
+            x-walrus-ui:
+              colSpan: 12
+        storage:
+          type: object
+          title: Storage
+          default:
+            size: 20480
+            class: local_ssd
+          nullable: true
+          properties:
+            size:
+              type: number
+              title: Size(MiB)
+              default: 20480
+              minimum: 10240
+              nullable: true
+              description: 'Specify the storage size. Unit is megabyte.
+
+                '
+              x-walrus-ui:
+                order: 2
+            class:
+              type: string
+              title: Class
+              default: local_ssd
+              nullable: true
+              description: 'Specify the storage class. See https://registry.terraform.io/providers/aliyun/alicloud/latest/docs/resources/db_instance#db_instance_storage_type.
+
+                '
+              x-walrus-ui:
+                order: 1
+          description: |
+            Specify the storage resources, select from local_ssd, cloud_ssd, cloud_essd, cloud_essd2 or cloud_essd3.
+            Choosing the storage resource is also related to the computing resource, please view the specification document for more information.
+          x-walrus-ui:
+            group: Basic
+            order: 11
+            colSpan: 12
+          x-walrus-original:
+            type:
+              - object
+              - size: number
+                class: string
+              - - class
+                - size
+        database:
+          type: string
+          title: Database
+          default: mydb
+          nullable: true
+          maxLength: 64
+          minLength: 2
+          description: "Specify the database name. The database name must be 2-64
+            characters long and start with any lower letter, combined with number,
+            or symbols: - _. \nThe database name cannot be MySQL forbidden keyword.\nSee
+            https://www.alibabacloud.com/help/en/rds/developer-reference/api-rds-2014-08-15-createdatabase.\n"
+          x-walrus-ui:
+            group: Basic
+            order: 9
+          x-walrus-original:
+            type: string
+        password:
+          type: string
+          title: Password
+          format: password
+          nullable: true
+          maxLength: 32
+          minLength: 8
+          writeOnly: true
+          description: |
+            Specify the account password. The password must be 8-32 characters long and start with any letter, number, or symbols: ! # $ % ^ & * ( ) _ + - =.
+            If not specified, it will generate a random password.
+            See https://www.alibabacloud.com/help/en/rds/developer-reference/api-rds-2014-08-15-createaccount.
+          x-walrus-ui:
+            group: Basic
+            order: 8
+          x-walrus-original:
+            type: string
+        username:
+          type: string
+          title: Username
+          default: rdsuser
+          nullable: true
+          maxLength: 16
+          minLength: 2
+          description: |
+            Specify the account username. The username must be 2-16 characters long and start with lower letter, combined with number, or symbol: _.
+            The username cannot be MySQL forbidden keyword and root.
+            See https://www.alibabacloud.com/help/en/rds/developer-reference/api-rds-2014-08-15-createaccount.
+          x-walrus-ui:
+            group: Basic
+            order: 7
+          x-walrus-original:
+            type: string
+        resources:
+          type: object
+          title: Resources
+          default:
+            class: rds.mysql.s2.large
+          nullable: true
+          properties:
+            class:
+              type: string
+              title: Class
+              default: rds.mysql.s2.large
+              nullable: true
+              description: "Specify the computing resources for primary instance.
+                \nSee https://www.alibabacloud.com/help/en/rds/apsaradb-rds-for-mysql/primary-apsaradb-rds-for-mysql-instance-types,
+                https://www.alibabacloud.com/help/en/rds/apsaradb-rds-for-mysql/primary-apsaradb-rds-for-mysql-instance-types-5.\n"
+              x-walrus-ui:
+                order: 1
+            readonly_class:
+              type: string
+              title: Readonly Class
+              nullable: true
+              description: |
+                Specify the computing resources for readonly instance.
+                Configure this field when `architecture` is `replication`, if not specified, it will use the same value as `class`.
+                See https://www.alibabacloud.com/help/en/rds/apsaradb-rds-for-mysql/read-only-apsaradb-rds-for-mysql-instance-types, https://www.alibabacloud.com/help/en/rds/apsaradb-rds-for-mysql/read-only-apsaradb-rds-for-mysql-instance-types-5.
+              x-walrus-ui:
+                order: 2
+          description: |
+            Specify the computing resources.
+            The computing resource design of Alibaba Cloud is very complex, it also needs to consider on the storage resource, please view the specification document for more information.
+          x-walrus-ui:
+            group: Basic
+            order: 10
+            colSpan: 12
+          x-walrus-original:
+            type:
+              - object
+              - class: string
+                readonly_class: string
+              - - class
+                - readonly_class
+        architecture:
+          enum:
+            - standalone
+            - replication
+          type: string
+          title: Architecture
+          default: standalone
+          description: 'Specify the deployment architecture, select from standalone
+            or replication.
+
+            '
+          x-walrus-ui:
+            group: Basic
+            order: 3
+          x-walrus-original:
+            type: string
+        engine_version:
+          enum:
+            - '8.0'
+            - '5.7'
+          type: string
+          title: Engine Version
+          default: '8.0'
+          description: 'Specify the deployment engine version. See https://www.alibabacloud.com/help/en/rds/developer-reference/api-rds-2014-08-15-createdbinstance.
+
+            '
+          x-walrus-ui:
+            group: Basic
+            order: 5
+          x-walrus-original:
+            type: string
+        infrastructure:
+          type: object
+          title: Infrastructure
+          required:
+            - vpc_id
+          properties:
+            vpc_id:
+              type: string
+              title: Vpc Id
+              description: 'Specify the ID of the VPC where the MySQL service applies.
+
+                '
+              x-walrus-ui:
+                order: 1
+            kms_key_id:
+              type: string
+              title: Kms Key Id
+              nullable: true
+              description: 'Specify the KMS key ID which to encrypt the MySQL data.
+                If not specified, the MySQL data will not be encrypted.
+
+                '
+              x-walrus-ui:
+                order: 2
+            domain_suffix:
+              type: string
+              title: Domain Suffix
+              nullable: true
+              description: 'Specify the domain suffix of the PrivateZone. The domain
+                suffix must be a valid DNS name.
+
+                '
+              x-walrus-ui:
+                order: 3
+            publicly_accessible:
+              type: boolean
+              title: Publicly Accessible
+              default: false
+              nullable: true
+              description: 'Specify whether to enable public access. If enabled, the
+                MySQL service can be accessed from the public network.
+
+                '
+              x-walrus-ui:
+                order: 4
+          description: 'Specify the infrastructure information for deploying.
+
+            '
+          x-walrus-ui:
+            group: Advanced
+            order: 2
+            colSpan: 12
+          x-walrus-original:
+            type:
+              - object
+              - vpc_id: string
+                kms_key_id: string
+                domain_suffix: string
+                publicly_accessible: bool
+              - - domain_suffix
+                - kms_key_id
+                - publicly_accessible
+        engine_parameters:
+          type: array
+          items:
+            type: object
+            required:
+              - name
+              - value
+            properties:
+              name:
+                type: string
+                title: Name
+              value:
+                type: string
+                title: Value
+            x-walrus-ui:
+              colSpan: 12
+          title: Engine Parameters
+          default: []
+          nullable: true
+          description: 'Specify the deployment engine parameters. See https://www.alibabacloud.com/help/en/rds/developer-reference/api-rds-2014-08-15-describeparametertemplates.
+
+            '
+          x-walrus-ui:
+            group: Basic
+            order: 6
+            hidden: true
+            colSpan: 12
+          x-walrus-original:
+            type:
+              - list
+              - - object
+                - name: string
+                  value: string
+        replication_readonly_replicas:
+          enum:
+            - 1
+            - 3
+            - 5
+          type: number
+          title: Replication Readonly Replicas
+          default: 1
+          nullable: true
+          description: 'Specify the number of read-only replicas under the replication
+            deployment.
+
+            '
+          x-walrus-ui:
+            group: Basic
+            order: 4
+            showIf: architecture=replication
+          x-walrus-original:
+            type: number
+      x-walrus-ui:
+        groupOrder:
+          - Basic
+          - Advanced

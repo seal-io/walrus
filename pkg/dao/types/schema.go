@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	variableSchemaKey = "variables"
-	outputSchemaKey   = "outputs"
+	VariableSchemaKey = "variables"
+	OutputSchemaKey   = "outputs"
 )
 
 // Schema specifies the openAPI schema with variables and outputs.
@@ -76,7 +76,7 @@ func (s *Schema) Expose() UISchema {
 			Info:    s.OpenAPISchema.Info,
 			Components: &openapi3.Components{
 				Schemas: map[string]*openapi3.SchemaRef{
-					variableSchemaKey: {
+					VariableSchemaKey: {
 						Value: openapi.RemoveExtOriginal(&cps),
 					},
 				},
@@ -90,22 +90,22 @@ func (s *Schema) VariableSchema() *openapi3.Schema {
 	if s.OpenAPISchema == nil ||
 		s.OpenAPISchema.Components == nil ||
 		s.OpenAPISchema.Components.Schemas == nil ||
-		s.OpenAPISchema.Components.Schemas[variableSchemaKey] == nil ||
-		s.OpenAPISchema.Components.Schemas[variableSchemaKey].Value == nil {
+		s.OpenAPISchema.Components.Schemas[VariableSchemaKey] == nil ||
+		s.OpenAPISchema.Components.Schemas[VariableSchemaKey].Value == nil {
 		return nil
 	}
 
-	return s.OpenAPISchema.Components.Schemas[variableSchemaKey].Value
+	return s.OpenAPISchema.Components.Schemas[VariableSchemaKey].Value
 }
 
 func (s *Schema) SetVariableSchema(v *openapi3.Schema) {
 	s.ensureInit()
-	s.OpenAPISchema.Components.Schemas[variableSchemaKey].Value = v
+	s.OpenAPISchema.Components.Schemas[VariableSchemaKey].Value = v
 }
 
 func (s *Schema) SetOutputSchema(v *openapi3.Schema) {
 	s.ensureInit()
-	s.OpenAPISchema.Components.Schemas[outputSchemaKey].Value = v
+	s.OpenAPISchema.Components.Schemas[OutputSchemaKey].Value = v
 }
 
 func (s *Schema) ensureInit() {
@@ -127,12 +127,12 @@ func (s *Schema) OutputSchema() *openapi3.Schema {
 	if s.OpenAPISchema == nil ||
 		s.OpenAPISchema.Components == nil ||
 		s.OpenAPISchema.Components.Schemas == nil ||
-		s.OpenAPISchema.Components.Schemas[outputSchemaKey] == nil ||
-		s.OpenAPISchema.Components.Schemas[outputSchemaKey].Value == nil {
+		s.OpenAPISchema.Components.Schemas[OutputSchemaKey] == nil ||
+		s.OpenAPISchema.Components.Schemas[OutputSchemaKey].Value == nil {
 		return nil
 	}
 
-	return s.OpenAPISchema.Components.Schemas[outputSchemaKey].Value
+	return s.OpenAPISchema.Components.Schemas[OutputSchemaKey].Value
 }
 
 // Intersect sets variables & outputs schema of s to intersection of s and s2.
@@ -155,8 +155,8 @@ func (s UISchema) IsEmpty() bool {
 	return s.OpenAPISchema == nil ||
 		s.OpenAPISchema.Components == nil ||
 		len(s.OpenAPISchema.Components.Schemas) == 0 ||
-		s.OpenAPISchema.Components.Schemas[variableSchemaKey] == nil ||
-		s.OpenAPISchema.Components.Schemas[variableSchemaKey].Value == nil
+		s.OpenAPISchema.Components.Schemas[VariableSchemaKey] == nil ||
+		s.OpenAPISchema.Components.Schemas[VariableSchemaKey].Value == nil
 }
 
 // VariableSchema returns the variables' schema.
@@ -165,7 +165,7 @@ func (s *UISchema) VariableSchema() *openapi3.Schema {
 		return nil
 	}
 
-	return s.OpenAPISchema.Components.Schemas[variableSchemaKey].Value
+	return s.OpenAPISchema.Components.Schemas[VariableSchemaKey].Value
 }
 
 // TemplateVersionSchema include the internal template variables schema and template data.
