@@ -4,13 +4,17 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
 	"time"
 
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart/loader"
-	"helm.sh/helm/v3/pkg/cli"
 	"helm.sh/helm/v3/pkg/release"
+	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/client-go/discovery"
+	memcached "k8s.io/client-go/discovery/cached/memory"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/restmapper"
+	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/req"
@@ -21,51 +25,32 @@ const (
 )
 
 type Helm struct {
-	settings     *cli.EnvSettings
-	actionConfig *action.Configuration
-	kubeCfgFile  *os.File
-	namespace    string
-	logger       log.Logger
+	logger          log.Logger
+	actionConfig    *action.Configuration
+	namespace       string
+	createNamespace bool
 }
 
-func NewHelm(namespace, kubeconfig string) (*Helm, error) {
-	pwd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
+type Options struct {
+	CreateNamespace bool
+	Namespace       string
+}
 
-	storeBaseDir := path.Join(pwd, "./.cache")
-	if err = os.MkdirAll(storeBaseDir, 0o777); err != nil {
-		return nil, err
-	}
-
-	kubeconfigFile, err := os.CreateTemp(storeBaseDir, "kubeconfig")
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err = kubeconfigFile.WriteString(kubeconfig); err != nil {
-		return nil, err
-	}
-
-	settings := cli.New()
-	settings.KubeConfig = kubeconfigFile.Name()
-
+func NewHelm(restCfg *rest.Config, opts Options) (*Helm, error) {
 	config := action.Configuration{}
 	logger := log.WithName("deployer")
 
-	if err = config.Init(settings.RESTClientGetter(), namespace, "secrets", func(format string, v ...any) {
+	if err := config.Init(restClientGetter(*restCfg), opts.Namespace, "secrets", func(format string, v ...any) {
 		logger.WithName("helm").Debugf(format, v...)
 	}); err != nil {
 		return nil, err
 	}
 
 	return &Helm{
-		settings:     settings,
-		actionConfig: &config,
-		kubeCfgFile:  kubeconfigFile,
-		namespace:    namespace,
-		logger:       logger,
+		actionConfig:    &config,
+		namespace:       opts.Namespace,
+		createNamespace: opts.CreateNamespace,
+		logger:          logger,
 	}, nil
 }
 
@@ -80,7 +65,7 @@ func (h *Helm) Install(name, chartPath string, values map[string]any) error {
 	install.Replace = true
 	install.Timeout = timeout
 	install.Namespace = h.namespace
-	install.CreateNamespace = true
+	install.CreateNamespace = h.createNamespace
 	install.IncludeCRDs = true
 	install.ReleaseName = name
 	install.Wait = true
@@ -153,13 +138,6 @@ func (h *Helm) GetRelease(name string) (*release.Release, error) {
 	return rel, nil
 }
 
-func (h *Helm) Clean() {
-	err := os.RemoveAll(h.kubeCfgFile.Name())
-	if err != nil {
-		h.logger.Warnf("error clean temp kubeconfig %s", h.kubeCfgFile.Name())
-	}
-}
-
 func isSucceed(res *release.Release) bool {
 	if res.Info == nil {
 		return false
@@ -186,4 +164,42 @@ func isFailed(res *release.Release) bool {
 	status := res.Info.Status
 
 	return status == release.StatusFailed
+}
+
+// restClientGetter is a RESTClientGetter interface implementation for the
+// Helm Go packages.
+type restClientGetter rest.Config
+
+func (g restClientGetter) ToRESTConfig() (*rest.Config, error) {
+	r := rest.Config(g)
+	return &r, nil
+}
+
+func (g restClientGetter) ToDiscoveryClient() (discovery.CachedDiscoveryInterface, error) {
+	config, err := g.ToRESTConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	return memcached.NewMemCacheClient(discovery.NewDiscoveryClientForConfigOrDie(config)), nil
+}
+
+func (g restClientGetter) ToRESTMapper() (meta.RESTMapper, error) {
+	discoveryClient, err := g.ToDiscoveryClient()
+	if err != nil {
+		return nil, err
+	}
+
+	mapper := restmapper.NewDeferredDiscoveryRESTMapper(discoveryClient)
+	expander := restmapper.NewShortcutExpander(mapper, discoveryClient)
+
+	return expander, nil
+}
+
+func (g restClientGetter) ToRawKubeConfigLoader() clientcmd.ClientConfig {
+	// Build our config and client.
+	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		clientcmd.NewDefaultClientConfigLoadingRules(),
+		&clientcmd.ConfigOverrides{},
+	)
 }

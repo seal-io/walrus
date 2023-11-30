@@ -9,11 +9,11 @@ import (
 	pkgworkflow "github.com/seal-io/walrus/pkg/workflow"
 )
 
-func Handle(mc model.ClientSet, kc *rest.Config) Handler {
+func Handle(mc model.ClientSet, kc *rest.Config, wc pkgworkflow.Client) Handler {
 	return Handler{
 		modelClient:    mc,
 		k8sConfig:      kc,
-		workflowClient: pkgworkflow.NewArgoWorkflowClient(mc, kc),
+		workflowClient: wc,
 	}
 }
 
@@ -30,7 +30,7 @@ func (Handler) Kind() string {
 func (h Handler) SubResourceHandlers() []runtime.IResourceHandler {
 	return []runtime.IResourceHandler{
 		runtime.Alias(
-			workflowstageexecution.Handle(h.modelClient, h.k8sConfig),
+			workflowstageexecution.Handle(h.modelClient, h.k8sConfig, h.workflowClient),
 			"StageExecution",
 		),
 	}

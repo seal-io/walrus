@@ -40,7 +40,7 @@ func DeployCostTools(ctx context.Context, mc model.ClientSet, conn *model.Connec
 		return err
 	}
 
-	d, err := deploy.New(kubeconfig)
+	d, err := deploy.NewWithKubeconfig(kubeconfig)
 	if err != nil {
 		return fmt.Errorf("error create deployer: %w", err)
 	}
@@ -64,7 +64,7 @@ func DeployCostTools(ctx context.Context, mc model.ClientSet, conn *model.Connec
 		return err
 	}
 
-	return d.EnsureChart(app, replace)
+	return d.EnsureChart(app, true, replace)
 }
 
 func CostToolsStatus(ctx context.Context, conn *model.Connector) error {

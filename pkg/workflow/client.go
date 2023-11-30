@@ -62,7 +62,7 @@ type (
 		WorkflowExecution *model.WorkflowExecution
 	}
 
-	// SubmitOptions is the options for submitting a workflow.
+	// ResumeOptions is the options for submitting a workflow.
 	// WorkflowExecution's Edge WorkflowStageExecutions and their Edge WorkflowStepExecutions must be set.
 	ResumeOptions struct {
 		// Approve or deny of the workflow approval step execution.
@@ -114,14 +114,19 @@ type ArgoWorkflowClient struct {
 	apiClient *ArgoAPIClient
 }
 
-func NewArgoWorkflowClient(mc model.ClientSet, restCfg *rest.Config) Client {
+func NewArgoWorkflowClient(mc model.ClientSet, restCfg *rest.Config) (Client, error) {
+	apiclient, err := NewArgoAPIClient(restCfg)
+	if err != nil {
+		return nil, err
+	}
+
 	return &ArgoWorkflowClient{
 		Logger:    log.WithName("workflow-service"),
 		mc:        mc,
 		kc:        restCfg,
 		tm:        NewTemplateManager(mc),
-		apiClient: NewArgoAPIClient(restCfg),
-	}
+		apiClient: apiclient,
+	}, nil
 }
 
 func (s *ArgoWorkflowClient) Submit(ctx context.Context, opts SubmitOptions) error {
@@ -405,20 +410,26 @@ type ArgoAPIClient struct {
 	Ctx context.Context
 }
 
-func NewArgoAPIClient(restCfg *rest.Config) *ArgoAPIClient {
-	apiConfig := k8s.ToClientCmdApiConfig(restCfg)
-	clientConfig := clientcmd.NewDefaultClientConfig(apiConfig, nil)
+func NewArgoAPIClient(restCfg *rest.Config) (*ArgoAPIClient, error) {
+	apiConfig, err := k8s.ToClientCmdApiConfig(restCfg)
+	if err != nil {
+		return nil, err
+	}
+	clientConfig := clientcmd.NewDefaultClientConfig(*apiConfig, nil)
 
-	ctx, apiClient, _ := apiclient.NewClientFromOpts(apiclient.Opts{
+	ctx, apiClient, err := apiclient.NewClientFromOpts(apiclient.Opts{
 		ClientConfigSupplier: func() clientcmd.ClientConfig {
 			return clientConfig
 		},
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	return &ArgoAPIClient{
 		Client: apiClient,
 		Ctx:    ctx,
-	}
+	}, nil
 }
 
 // getWorkflowName returns the target workflow name of a workflow execution.

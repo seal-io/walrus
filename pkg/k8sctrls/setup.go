@@ -62,6 +62,11 @@ type Reconciler interface {
 }
 
 func (m *Manager) Setup(ctx context.Context, opts SetupOptions) ([]Reconciler, error) {
+	workflowClient, err := pkgworkflow.NewArgoWorkflowClient(opts.ModelClient, opts.GetConfig())
+	if err != nil {
+		return nil, err
+	}
+
 	// Setup reconciler below.
 	return []Reconciler{
 		terraform.JobReconciler{
@@ -75,7 +80,7 @@ func (m *Manager) Setup(ctx context.Context, opts SetupOptions) ([]Reconciler, e
 			KubeClient: opts.GetClient(),
 			StatusSyncer: pkgworkflow.NewStatusSyncer(
 				opts.ModelClient,
-				pkgworkflow.NewArgoWorkflowClient(opts.ModelClient, opts.GetConfig())),
+				workflowClient),
 		},
 	}, nil
 }
