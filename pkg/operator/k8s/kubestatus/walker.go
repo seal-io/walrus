@@ -49,7 +49,24 @@ var podStatusPaths = status.NewWalker(
 		},
 	},
 	func(d status.Decision[core.PodConditionType]) {
-		const reasonPodCompleted = "PodCompleted"
+		const (
+			reasonContainersNotInitialized = "ContainersNotInitialized"
+			reasonPodCompleted             = "PodCompleted"
+		)
+
+		d.Make(core.PodInitialized,
+			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+				switch st {
+				case status.ConditionStatusTrue:
+					return "Initialized", false, false
+				case status.ConditionStatusFalse:
+					if reason == reasonContainersNotInitialized {
+						return "Initializing", false, true
+					}
+					return "InitializeFailed", true, false
+				}
+				return "Initializing", false, true
+			})
 
 		d.Make(core.ContainersReady,
 			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
