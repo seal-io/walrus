@@ -29,6 +29,7 @@ import (
 	"github.com/seal-io/walrus/pkg/apis/variable"
 	"github.com/seal-io/walrus/pkg/auths"
 	"github.com/seal-io/walrus/pkg/dao/model"
+	pkgworkflow "github.com/seal-io/walrus/pkg/workflow"
 )
 
 type SetupOptions struct {
@@ -56,6 +57,11 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		}),
 	)
 	i18n := runtime.I18n()
+
+	wc, err := pkgworkflow.NewArgoWorkflowClient(opts.ModelClient, opts.K8sConfig)
+	if err != nil {
+		return nil, err
+	}
 
 	// Initial router.
 	apisOpts := []runtime.RouterOption{
@@ -93,7 +99,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		r.Routes(cost.Handle(opts.ModelClient))
 		r.Routes(dashboard.Handle(opts.ModelClient))
 		r.Routes(perspective.Handle(opts.ModelClient))
-		r.Routes(project.Handle(opts.ModelClient, opts.K8sConfig))
+		r.Routes(project.Handle(opts.ModelClient, opts.K8sConfig, wc))
 		r.Routes(resourcedefinition.Handle(opts.ModelClient))
 		r.Routes(role.Handle(opts.ModelClient))
 		r.Routes(setting.Handle(opts.ModelClient))

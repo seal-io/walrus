@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -108,30 +109,81 @@ func IsConnected(ctx context.Context, r rest.Interface) error {
 }
 
 // ToClientCmdApiConfig using a rest.Config to generate a clientcmdapi.Config.
-func ToClientCmdApiConfig(restConfig *rest.Config) clientcmdapi.Config {
-	clusters := make(map[string]*clientcmdapi.Cluster)
-	clusters["default-cluster"] = &clientcmdapi.Cluster{
-		Server:                   restConfig.Host,
-		CertificateAuthorityData: restConfig.CAData,
+// Warning this helper is only used for the cases that the caller only accept
+// a clientcmdapi.Config. Try to use rest.Config directly if possible.
+func ToClientCmdApiConfig(restCfg *rest.Config) (*clientcmdapi.Config, error) {
+	logger := log.WithName("k8s")
+
+	contextName := "default-context"
+	kubeConfig := clientcmdapi.NewConfig()
+	kubeConfig.Contexts = map[string]*clientcmdapi.Context{
+		contextName: {
+			Cluster:  contextName,
+			AuthInfo: contextName,
+		},
 	}
-	contexts := make(map[string]*clientcmdapi.Context)
-	contexts["default-context"] = &clientcmdapi.Context{
-		Cluster:  "default-cluster",
-		AuthInfo: "default-user",
+	kubeConfig.Clusters = map[string]*clientcmdapi.Cluster{
+		contextName: {
+			Server:                   restCfg.Host,
+			InsecureSkipTLSVerify:    restCfg.Insecure,
+			CertificateAuthorityData: restCfg.CAData,
+			CertificateAuthority:     restCfg.CAFile,
+		},
 	}
-	authinfos := make(map[string]*clientcmdapi.AuthInfo)
-	authinfos["default-user"] = &clientcmdapi.AuthInfo{
-		ClientCertificateData: restConfig.CertData,
-		ClientKeyData:         restConfig.KeyData,
+	kubeConfig.AuthInfos = map[string]*clientcmdapi.AuthInfo{
+		contextName: {
+			Token:                 restCfg.BearerToken,
+			TokenFile:             restCfg.BearerTokenFile,
+			Impersonate:           restCfg.Impersonate.UserName,
+			ImpersonateGroups:     restCfg.Impersonate.Groups,
+			ImpersonateUserExtra:  restCfg.Impersonate.Extra,
+			ClientCertificate:     restCfg.CertFile,
+			ClientCertificateData: restCfg.CertData,
+			ClientKey:             restCfg.KeyFile,
+			ClientKeyData:         restCfg.KeyData,
+			Username:              restCfg.Username,
+			Password:              restCfg.Password,
+			AuthProvider:          restCfg.AuthProvider,
+			Exec:                  restCfg.ExecProvider,
+		},
 	}
-	clientConfig := clientcmdapi.Config{
-		Kind:           "Config",
-		APIVersion:     "v1",
-		Clusters:       clusters,
-		Contexts:       contexts,
-		CurrentContext: "default-context",
-		AuthInfos:      authinfos,
+	kubeConfig.CurrentContext = contextName
+
+	// Resolve certificate.
+	if kubeConfig.Clusters[contextName].CertificateAuthorityData == nil &&
+		kubeConfig.Clusters[contextName].CertificateAuthority != "" {
+		o, err := os.ReadFile(kubeConfig.Clusters[contextName].CertificateAuthority)
+		if err != nil {
+			return nil, err
+		}
+
+		kubeConfig.Clusters[contextName].CertificateAuthority = ""
+		kubeConfig.Clusters[contextName].CertificateAuthorityData = o
 	}
 
-	return clientConfig
+	// Fill in data.
+	if kubeConfig.AuthInfos[contextName].ClientCertificateData == nil &&
+		kubeConfig.AuthInfos[contextName].ClientCertificate != "" {
+		o, err := os.ReadFile(kubeConfig.AuthInfos[contextName].ClientCertificate)
+		if err != nil {
+			logger.Errorf("failed to read client certificate: %v", err)
+			return nil, err
+		}
+
+		kubeConfig.AuthInfos[contextName].ClientCertificate = ""
+		kubeConfig.AuthInfos[contextName].ClientCertificateData = o
+	}
+
+	if kubeConfig.AuthInfos[contextName].ClientKeyData == nil && kubeConfig.AuthInfos[contextName].ClientKey != "" {
+		o, err := os.ReadFile(kubeConfig.AuthInfos[contextName].ClientKey)
+		if err != nil {
+			logger.Errorf("failed to read client key: %v", err)
+			return nil, err
+		}
+
+		kubeConfig.AuthInfos[contextName].ClientKey = ""
+		kubeConfig.AuthInfos[contextName].ClientKeyData = o
+	}
+
+	return kubeConfig, nil
 }

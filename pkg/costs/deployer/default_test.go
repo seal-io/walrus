@@ -23,7 +23,7 @@ func TestHelm(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	deployer, err := k8sdeployer.New(string(kubeConfigContentByte))
+	deployer, err := k8sdeployer.NewWithKubeconfig(string(kubeConfigContentByte))
 	assert.Nil(t, err, "error create helm")
 
 	yaml, err := opencost("test", "docker.io")
@@ -32,7 +32,7 @@ func TestHelm(t *testing.T) {
 	app, err := prometheus("docker.io")
 	assert.Nil(t, err, "error create prometheus app")
 
-	err = deployer.EnsureChart(app, true)
+	err = deployer.EnsureChart(app, true, true)
 	assert.Nil(t, err, "error ensure prometheus chart")
 
 	err = deployer.EnsureYaml(ctx, yaml)

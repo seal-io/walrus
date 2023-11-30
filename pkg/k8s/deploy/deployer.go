@@ -21,9 +21,9 @@ import (
 )
 
 type Deployer struct {
+	logger log.Logger
+
 	restCfg *rest.Config
-	kubeCfg string
-	logger  log.Logger
 }
 
 type ChartApp struct {
@@ -34,26 +34,27 @@ type ChartApp struct {
 	Values    map[string]any
 }
 
-func New(kubeCfg string) (*Deployer, error) {
-	clientCfg, err := clientcmd.NewClientConfigFromBytes([]byte(kubeCfg))
-	if err != nil {
-		return nil, err
-	}
+func New(restCfg *rest.Config) (*Deployer, error) {
+	copyCfg := rest.CopyConfig(restCfg)
 
-	restCfg, err := clientCfg.ClientConfig()
-	if err != nil {
-		return nil, err
-	}
-	restCfg.Timeout = 0
-	restCfg.QPS = 16
-	restCfg.Burst = 64
-	restCfg.UserAgent = version.GetUserAgent()
+	copyCfg.Timeout = 0
+	copyCfg.QPS = 16
+	copyCfg.Burst = 64
+	copyCfg.UserAgent = version.GetUserAgent()
 
 	return &Deployer{
-		restCfg: restCfg,
-		kubeCfg: kubeCfg,
-		logger:  log.WithName("cost").WithName("deployer"),
+		restCfg: copyCfg,
+		logger:  log.WithName("k8s").WithName("deployer"),
 	}, nil
+}
+
+func NewWithKubeconfig(kubeconfig string) (*Deployer, error) {
+	restCfg, err := clientcmd.RESTConfigFromKubeConfig([]byte(kubeconfig))
+	if err != nil {
+		return nil, err
+	}
+
+	return New(restCfg)
 }
 
 func (d *Deployer) EnsureYaml(ctx context.Context, yamlContent []byte) error {
@@ -134,15 +135,16 @@ func (d *Deployer) EnsureYaml(ctx context.Context, yamlContent []byte) error {
 	return nil
 }
 
-func (d *Deployer) EnsureChart(app *ChartApp, replace bool) error {
+func (d *Deployer) EnsureChart(app *ChartApp, createNamespace, replace bool) error {
 	d.logger.Debugf("ensuring helm chart")
 
-	helm, err := NewHelm(app.Namespace, d.kubeCfg)
+	helm, err := NewHelm(d.restCfg, Options{
+		CreateNamespace: createNamespace,
+		Namespace:       app.Namespace,
+	})
 	if err != nil {
 		return err
 	}
-
-	defer helm.Clean()
 
 	res, err := helm.GetRelease(app.Name)
 	if err != nil {

@@ -6,11 +6,9 @@ import (
 	"path"
 
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
-	"github.com/seal-io/walrus/pkg/k8s"
 	"github.com/seal-io/walrus/pkg/k8s/deploy"
 	"github.com/seal-io/walrus/pkg/settings"
 )
@@ -69,18 +67,31 @@ func workflow(imageRegistry string) *deploy.ChartApp {
 			"pullPolicy": "IfNotPresent",
 		},
 		"server": map[string]any{
-			"image": imageConfig(imageServer),
+			"image":   imageConfig(imageServer),
+			"enabled": false,
 		},
 		"controller": map[string]any{
 			"name":  "controller",
 			"image": imageConfig(imageController),
+			// Note(alex): Disable clusterWorkflowTemplates for now.
+			"clusterWorkflowTemplates": map[string]any{
+				"enabled": false,
+			},
 		},
 		"executor": map[string]any{
 			"image": imageConfig(imageExecutor),
 		},
 		"fullnameOverride": NameWorkflow,
 		"crds": map[string]any{
-			"keep": false,
+			"annotations": map[string]any{
+				types.LabelWalrusManaged: "true",
+			},
+		},
+		"singleNamespace": true,
+		"workflow": map[string]any{
+			"rbac": map[string]any{
+				"create": false,
+			},
 		},
 	}
 
@@ -94,20 +105,12 @@ func workflow(imageRegistry string) *deploy.ChartApp {
 }
 
 func DeployArgoWorkflow(ctx context.Context, mc model.ClientSet, config *rest.Config) error {
-	var (
-		imageRegistry = settings.ImageRegistry.ShouldValue(ctx, mc)
-		clientConfig  = k8s.ToClientCmdApiConfig(config)
-	)
+	imageRegistry := settings.ImageRegistry.ShouldValue(ctx, mc)
 
-	kubeCfg, err := clientcmd.Write(clientConfig)
+	d, err := deploy.New(config)
 	if err != nil {
 		return err
 	}
 
-	d, err := deploy.New(string(kubeCfg))
-	if err != nil {
-		return err
-	}
-
-	return d.EnsureChart(workflow(imageRegistry), false)
+	return d.EnsureChart(workflow(imageRegistry), false, false)
 }
