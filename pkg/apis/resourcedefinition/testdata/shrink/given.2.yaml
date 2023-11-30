@@ -1,0 +1,448 @@
+info:
+  title: OpenAPI schema for template terraform-aws-rds-mysql
+  version: v0.0.0
+paths: {}
+openapi: 3.0.3
+components:
+  schemas:
+    outputs:
+      type: object
+      properties:
+        port:
+          type: object
+          title: Port
+          description: The port of the service.
+          x-walrus-ui:
+            order: 7
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: bG9jYWwucG9ydA==
+        refer:
+          type: object
+          title: Refer
+          writeOnly: true
+          description: The refer, a map, including hosts, ports and account, which
+            is used for dependencies or collaborations.
+          x-walrus-ui:
+            order: 2
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: ewogICAgc2NoZW1hID0gImF3czpyZHM6bXlzcWwiCiAgICBwYXJhbXMgPSB7CiAgICAgIHNlbGVjdG9yICAgICAgICAgICA9IGxvY2FsLnRhZ3MKICAgICAgaG9zdHMgICAgICAgICAgICAgID0gbG9jYWwuaG9zdHMKICAgICAgaG9zdHNfcmVhZG9ubHkgICAgID0gbG9jYWwuaG9zdHNfcmVhZG9ubHkKICAgICAgcG9ydCAgICAgICAgICAgICAgID0gbG9jYWwucG9ydAogICAgICBlbmRwb2ludHMgICAgICAgICAgPSBsb2NhbC5lbmRwb2ludHMKICAgICAgZW5kcG9pbnRzX3JlYWRvbmx5ID0gbG9jYWwuZW5kcG9pbnRzX3JlYWRvbmx5CiAgICAgIGRhdGFiYXNlICAgICAgICAgICA9IGxvY2FsLmRhdGFiYXNlCiAgICAgIHVzZXJuYW1lICAgICAgICAgICA9IGxvY2FsLnVzZXJuYW1lCiAgICAgIHBhc3N3b3JkICAgICAgICAgICA9IG5vbnNlbnNpdGl2ZShsb2NhbC5wYXNzd29yZCkKICAgIH0KICB9
+        address:
+          type: object
+          title: Address
+          description: The address, a string only has host, might be a comma separated
+            string or a single string.
+          x-walrus-ui:
+            order: 5
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: am9pbigiLCIsIGxvY2FsLmhvc3RzKQ==
+        context:
+          type: object
+          title: Context
+          description: The input context, a map, which is used for orchestration.
+          x-walrus-ui:
+            order: 1
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: dmFyLmNvbnRleHQ=
+        database:
+          type: object
+          title: Database
+          description: The name of MySQL database to access.
+          x-walrus-ui:
+            order: 8
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: bG9jYWwuZGF0YWJhc2U=
+        password:
+          type: object
+          title: Password
+          writeOnly: true
+          description: The password of the account to access the database.
+          x-walrus-ui:
+            order: 10
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: bG9jYWwucGFzc3dvcmQ=
+        username:
+          type: object
+          title: Username
+          description: The username of the account to access the database.
+          x-walrus-ui:
+            order: 9
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: bG9jYWwudXNlcm5hbWU=
+        endpoints:
+          type: object
+          title: Endpoints
+          description: The endpoints, a list of string combined host and port.
+          x-walrus-ui:
+            order: 11
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: bG9jYWwuZW5kcG9pbnRz
+        connection:
+          type: object
+          title: Connection
+          description: The connection, a string combined host and port, might be a
+            comma separated string or a single string.
+          x-walrus-ui:
+            order: 3
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: am9pbigiLCIsIGxvY2FsLmVuZHBvaW50cyk=
+        address_readonly:
+          type: object
+          title: Address Readonly
+          description: The readonly address, a string only has host, might be a comma
+            separated string or a single string.
+          x-walrus-ui:
+            order: 6
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: am9pbigiLCIsIGxvY2FsLmhvc3RzX3JlYWRvbmx5KQ==
+        endpoints_readonly:
+          type: object
+          title: Endpoints Readonly
+          description: The readonly endpoints, a list of string combined host and
+            port.
+          x-walrus-ui:
+            order: 12
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: bG9jYWwuZW5kcG9pbnRzX3JlYWRvbmx5
+        connection_readonly:
+          type: object
+          title: Connection Readonly
+          description: The readonly connection, a string combined host and port, might
+            be a comma separated string or a single string.
+          x-walrus-ui:
+            order: 4
+            colSpan: 12
+          x-walrus-original:
+            type: dynamic
+            value-expression: am9pbigiLCIsIGxvY2FsLmVuZHBvaW50c19yZWFkb25seSk=
+    variables:
+      type: object
+      required:
+        - infrastructure
+        - architecture
+        - engine_version
+      properties:
+        context:
+          type: object
+          title: Context
+          default: {}
+          nullable: true
+          description: 'Receive contextual information. When Walrus deploys, Walrus
+            will inject specific contextual information into this field.
+
+            '
+          x-walrus-ui:
+            group: Advanced
+            order: 1
+            hidden: true
+            colSpan: 12
+          x-walrus-original:
+            type:
+              - map
+              - dynamic
+          additionalProperties:
+            type: object
+            x-walrus-ui:
+              colSpan: 12
+        storage:
+          type: object
+          title: Storage
+          default:
+            size: 20480
+            class: gp2
+          nullable: true
+          properties:
+            test_size:
+              type: number
+              title: Test Size
+              default: 50001
+              exclusiveMinimum: true
+              minimum: 50000
+              maximum: 60000
+              nullable: true
+              x-walrus-ui:
+                order: 3
+            size:
+              type: number
+              title: Size(MiB)
+              default: 50000
+              minimum: 50000
+              maximum: 60000
+              nullable: true
+              description: 'Specify the storage size. Unit is megabyte.
+
+                '
+              x-walrus-ui:
+                order: 2
+            class:
+              type: string
+              title: Class
+              default: gp2
+              nullable: true
+              description: 'Specify the storage class. See https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html.
+
+                '
+              x-walrus-ui:
+                order: 1
+          description: 'Specify the storage resources.
+
+            '
+          x-walrus-ui:
+            group: Basic
+            order: 11
+            colSpan: 12
+          x-walrus-original:
+            type:
+              - object
+              - size: number
+                class: string
+              - - class
+                - size
+        database:
+          type: string
+          title: Database
+          default: mydb
+          nullable: true
+          maxLength: 15
+          minLength: 2
+          description: "Specify the database name. The database name must be 2-15
+            characters long and start with any lower letter, combined with number,
+            or symbols: - _. \nThe database name cannot be MySQL forbidden keyword.\n"
+          x-walrus-ui:
+            group: Basic
+            order: 9
+          x-walrus-original:
+            type: string
+        password:
+          type: string
+          title: Password
+          format: password
+          nullable: true
+          maxLength: 32
+          minLength: 8
+          writeOnly: true
+          description: |
+            Specify the account password. The password must be 8-32 characters long and start with any letter, number, or symbols: ! # $ % ^ & * ( ) _ + - =.
+            If not specified, it will generate a random password.
+            See https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Limits.html#RDS_Limits.Constraints.
+          x-walrus-ui:
+            group: Basic
+            order: 8
+          x-walrus-original:
+            type: string
+        username:
+          type: string
+          title: Username
+          default: rdsuser
+          nullable: true
+          maxLength: 16
+          minLength: 2
+          description: |
+            Specify the account username. The username must be 2-16 characters long and start with lower letter, combined with number, or symbol: _.
+            The username cannot be MySQL forbidden keyword.
+            See https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MySQL.KnownIssuesAndLimitations.html#MySQL.Concepts.KnownIssuesAndLimitations.KillProcedures.
+          x-walrus-ui:
+            group: Basic
+            order: 7
+          x-walrus-original:
+            type: string
+        resources:
+          type: object
+          title: Resources
+          default:
+            class: db.t3.medium
+          nullable: true
+          properties:
+            class:
+              type: string
+              title: Class
+              default: db.t3.medium
+              nullable: true
+              description: 'Specify the computing resources. See https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html#Concepts.DBInstanceClass.Summary.
+
+                '
+          description: 'Specify the computing resources.
+
+            '
+          x-walrus-ui:
+            group: Basic
+            order: 10
+            colSpan: 12
+          x-walrus-original:
+            type:
+              - object
+              - class: string
+              - - class
+        architecture:
+          enum:
+            - standalone
+            - replication
+          type: string
+          title: Architecture
+          default: standalone
+          description: 'Specify the deployment architecture, select from standalone
+            or replication.
+
+            '
+          x-walrus-ui:
+            group: Basic
+            order: 3
+          x-walrus-original:
+            type: string
+        engine_version:
+          type: string
+          title: Engine Version
+          enum:
+            - '8.0'
+            - '5.7'
+          description: 'Specify the deployment engine version, select from https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MySQL.Concepts.VersionMgmt.html.
+
+            '
+          x-walrus-ui:
+            group: Basic
+            order: 5
+          x-walrus-original:
+            type: string
+        infrastructure:
+          type: object
+          title: Infrastructure
+          required:
+            - vpc_id
+          properties:
+            vpc_id:
+              type: string
+              title: Vpc Id
+              description: 'Specify the ID of the VPC where the MySQL service applies.
+
+                '
+              x-walrus-ui:
+                order: 1
+            kms_key_id:
+              type: string
+              title: Kms Key Id
+              nullable: true
+              description: 'Specify the KMS key ID which to encrypt the MySQL data.
+                If not specified, the MySQL data will not be encrypted.
+
+                '
+              x-walrus-ui:
+                order: 2
+            domain_suffix:
+              type: string
+              title: Domain Suffix
+              nullable: true
+              description: 'Specify the domain suffix of the CloudMap. The domain
+                suffix must be a valid DNS name.
+
+                '
+              x-walrus-ui:
+                order: 3
+            publicly_accessible:
+              type: boolean
+              title: Publicly Accessible
+              default: false
+              nullable: true
+              description: 'Specify whether to enable public access. If enabled, the
+                MySQL service can be accessed from the public network.
+
+                '
+              x-walrus-ui:
+                order: 4
+          description: 'Specify the infrastructure information for deploying.
+
+            '
+          x-walrus-ui:
+            group: Advanced
+            order: 2
+            colSpan: 12
+          x-walrus-original:
+            type:
+              - object
+              - vpc_id: string
+                kms_key_id: string
+                domain_suffix: string
+                publicly_accessible: bool
+              - - domain_suffix
+                - kms_key_id
+                - publicly_accessible
+        engine_parameters:
+          type: array
+          items:
+            type: object
+            required:
+              - name
+              - value
+            properties:
+              name:
+                type: string
+                title: Name
+              value:
+                type: string
+                title: Value
+            x-walrus-ui:
+              colSpan: 12
+          title: Engine Parameters
+          default: []
+          nullable: true
+          description: 'Specify the deployment engine parameters, select for https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Appendix.MySQL.Parameters.html.
+
+            '
+          x-walrus-ui:
+            group: Basic
+            order: 6
+            hidden: true
+            colSpan: 12
+          x-walrus-original:
+            type:
+              - list
+              - - object
+                - name: string
+                  value: string
+        test_replication_readonly_replicas:
+          enum:
+            - 5
+            - 7
+          type: number
+        replication_readonly_replicas:
+          enum:
+            - 3
+            - 5
+          type: number
+          title: Replication Readonly Replicas
+          default: 1
+          nullable: true
+          description: 'Specify the number of read-only replicas under the replication
+            deployment.
+
+            '
+          x-walrus-ui:
+            group: Basic
+            order: 4
+            showIf: architecture=replication
+          x-walrus-original:
+            type: number
+      x-walrus-ui:
+        groupOrder:
+          - Basic
+          - Advanced
