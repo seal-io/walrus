@@ -222,7 +222,7 @@ func (h Handler) RouteGetAccessEndpoints(req RouteGetAccessEndpointsRequest) (Ro
 				continue
 			}
 
-			for _, id := range dm.IDs {
+			for _, id := range dm.IDs() {
 				ar, err := h.modelClient.ResourceRevisions().Query().
 					Where(resourcerevision.ID(id)).
 					Only(stream)
@@ -424,7 +424,7 @@ func (h Handler) RouteGetOutputs(req RouteGetOutputsRequest) (RouteGetOutputsRes
 				continue
 			}
 
-			for _, id := range dm.IDs {
+			for _, id := range dm.IDs() {
 				ar, err := h.modelClient.ResourceRevisions().Query().
 					Where(resourcerevision.ID(id)).
 					Only(stream)

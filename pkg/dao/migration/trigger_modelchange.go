@@ -37,40 +37,53 @@ CREATE OR REPLACE FUNCTION {{ .Function }}() RETURNS TRIGGER
 AS 
 $$
 DECLARE
-    ids        json;
-    ids_length integer;
-    payload    text;
+    ids                 jsonb;
+    ids_length          int;
+    column_count        int;
+    payload             text;
 BEGIN
-    
-    -- Select ID list from transition table,
-    -- and convert the result to a JSON string array.
+
+    -- Check if the table has project_id and environment_id columns. 
+    -- For entity tables, project_id is always present when environment_id is present.
+    SELECT count(1) FROM information_schema.columns 
+    WHERE table_name = TG_TABLE_NAME 
+        AND column_name IN ('project_id', 'environment_id') 
+    INTO column_count;
+
+    -- Build the ID list.
+    ids := '[]'::jsonb;
+
     CASE TG_OP
-    WHEN 'INSERT' THEN
-        SELECT array_to_json(array(SELECT id::text FROM new_table)) INTO ids;
-    WHEN 'UPDATE' THEN
-        SELECT array_to_json(array(SELECT id::text FROM new_table)) INTO ids;
+    WHEN 'INSERT', 'UPDATE' THEN
+        EXECUTE 'SELECT jsonb_agg(jsonb_build_object(''id'', id::text' ||
+            CASE WHEN column_count >= 1 THEN ', ''project_id'', project_id::text' ELSE '' END ||
+            CASE WHEN column_count = 2 THEN ', ''environment_id'', environment_id::text' ELSE '' END ||
+            ')) FROM new_table' INTO ids;
     WHEN 'DELETE' THEN
-        SELECT array_to_json(array(SELECT id::text FROM old_table)) INTO ids;
+        EXECUTE 'SELECT jsonb_agg(jsonb_build_object(''id'', id::text' ||
+            CASE WHEN column_count >= 1 THEN ', ''project_id'', project_id::text' ELSE '' END ||
+            CASE WHEN column_count = 2 THEN ', ''environment_id'', environment_id::text' ELSE '' END ||
+            ')) FROM old_table' INTO ids;
     ELSE
         RAISE EXCEPTION 'Unknown Operation';
     END CASE;
-    
+
     -- Validate the length of ID list.
-    ids_length := json_array_length(ids);
+    ids_length := jsonb_array_length(ids);
     IF (ids_length = 0) THEN
         RETURN NULL;
     END IF;
 
     -- Build the notification payload.
     payload := json_build_object(
-        'ts',current_timestamp,
-        'op',lower(TG_OP),
-        'tb_s',TG_TABLE_SCHEMA,
-        'tb_n',TG_TABLE_NAME,
-        'ids',ids)::text;
-    
+        'ts', current_timestamp,
+        'op', lower(TG_OP),
+        'tb_s', TG_TABLE_SCHEMA,
+        'tb_n', TG_TABLE_NAME,
+        'ids', ids)::text;
+
     -- Notify the channel.
-    PERFORM pg_notify('{{ .Channel }}',payload);
+    PERFORM pg_notify('{{ .Channel }}', payload);
 
     RETURN NULL;
 END;

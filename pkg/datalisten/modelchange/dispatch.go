@@ -75,11 +75,15 @@ func (h handler) Handle(ctx context.Context, _, payload string) {
 	}
 
 	var le struct {
-		Timestamp   time.Time   `json:"ts"`
-		Operation   operation   `json:"op"`
-		TableSchema string      `json:"tb_s"`
-		TableName   string      `json:"tb_n"`
-		RowIDs      []object.ID `json:"ids"`
+		Timestamp   time.Time `json:"ts"`
+		Operation   operation `json:"op"`
+		TableSchema string    `json:"tb_s"`
+		TableName   string    `json:"tb_n"`
+		Rows        []struct {
+			ID            object.ID `json:"id"`
+			ProjectID     object.ID `json:"project_id"`
+			EnvironmentID object.ID `json:"environment_id"`
+		} `json:"ids"`
 	}
 
 	if err := json.Unmarshal(strs.ToBytes(&payload), &le); err != nil {
@@ -94,11 +98,24 @@ func (h handler) Handle(ctx context.Context, _, payload string) {
 
 	logger := h.logger.WithValues("event", le)
 
+	data := make([]EventData, len(le.Rows))
+
+	for i := range le.Rows {
+		data[i].ID = le.Rows[i].ID
+		data[i].ProjectID = le.Rows[i].ProjectID
+		data[i].EnvironmentID = le.Rows[i].EnvironmentID
+	}
+
+	event := Event{
+		Type: le.Operation.EventType(),
+		Data: data,
+	}
+
 	// If the event is a settings update, notify the setting bus.
 	if le.TableName == migrate.SettingsTable.Name {
 		if le.Operation == operationUpdate {
 			settings, err := h.modelClient.Settings().Query().
-				Where(setting.IDIn(le.RowIDs...)).
+				Where(setting.IDIn(event.IDs()...)).
 				Select(
 					setting.FieldID,
 					setting.FieldName,
@@ -118,9 +135,5 @@ func (h handler) Handle(ctx context.Context, _, payload string) {
 	}
 
 	// Otherwise, write event to the corresponding topic.
-	h.buffer.Write(ctx, topic.Topic(le.TableName),
-		Event{
-			Type: le.Operation.EventType(),
-			IDs:  le.RowIDs,
-		})
+	h.buffer.Write(ctx, topic.Topic(le.TableName), event)
 }

@@ -71,10 +71,12 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 			var items []*model.ResourceRevisionOutput
 
+			ids := dm.IDs()
+
 			switch dm.Type {
 			case modelchange.EventTypeCreate, modelchange.EventTypeUpdate:
 				revisions, err := query.Clone().
-					Where(resourcerevision.IDIn(dm.IDs...)).
+					Where(resourcerevision.IDIn(ids...)).
 					// Must append service ID.
 					Select(resourcerevision.FieldResourceID).
 					Unique(false).
@@ -85,10 +87,10 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 				items = model.ExposeResourceRevisions(revisions)
 			case modelchange.EventTypeDelete:
-				items = make([]*model.ResourceRevisionOutput, len(dm.IDs))
-				for i := range dm.IDs {
+				items = make([]*model.ResourceRevisionOutput, len(ids))
+				for i := range ids {
 					items[i] = &model.ResourceRevisionOutput{
-						ID: dm.IDs[i],
+						ID: ids[i],
 					}
 				}
 			}

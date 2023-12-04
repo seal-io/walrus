@@ -85,10 +85,12 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 			var items []*model.WorkflowExecutionOutput
 
+			ids := dm.IDs()
+
 			switch dm.Type {
 			case modelchange.EventTypeCreate, modelchange.EventTypeUpdate:
 				entities, err := query.Clone().
-					Where(workflowexecution.IDIn(dm.IDs...)).
+					Where(workflowexecution.IDIn(ids...)).
 					WithStages(func(wsgq *model.WorkflowStageExecutionQuery) {
 						wsgq.WithSteps(func(wseq *model.WorkflowStepExecutionQuery) {
 							wseq.Select(workflowstepexecution.WithoutFields(workflowstepexecution.FieldRecord)...).
@@ -103,10 +105,10 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 				items = model.ExposeWorkflowExecutions(entities)
 			case modelchange.EventTypeDelete:
-				items = make([]*model.WorkflowExecutionOutput, len(dm.IDs))
-				for i := range dm.IDs {
+				items = make([]*model.WorkflowExecutionOutput, len(ids))
+				for i := range ids {
 					items[i] = &model.WorkflowExecutionOutput{
-						ID: dm.IDs[i],
+						ID: ids[i],
 					}
 				}
 			}

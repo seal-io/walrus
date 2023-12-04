@@ -9,7 +9,6 @@ import (
 	"go.uber.org/multierr"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/utils/gopool"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/topic"
@@ -152,26 +151,26 @@ func mergeEvents(in []topicalEvent) []topicalEvent {
 
 	// Merge events by type.
 	for et, es := range tes {
-		ids := [_EventTypeLength]sets.Set[object.ID]{}
+		data := [_EventTypeLength]sets.Set[EventData]{}
 		for i := range es {
-			if s := ids[es[i].Type]; s != nil {
-				s.Insert(es[i].IDs...)
+			if s := data[es[i].Type]; s != nil {
+				s.Insert(es[i].Data...)
 				continue
 			}
-			ids[es[i].Type] = sets.New(es[i].IDs...)
+			data[es[i].Type] = sets.New(es[i].Data...)
 		}
 
 		var i int
 
 		// Ignore unknown events and empty sets,
 		// and replace in place.
-		for t := range ids {
+		for t := range data {
 			if EventType(t) == _EventTypeUnknown ||
-				ids[t] == nil || ids[t].Len() == 0 {
+				data[t] == nil || data[t].Len() == 0 {
 				continue
 			}
 
-			tes[et][i] = Event{Type: EventType(t), IDs: ids[t].UnsortedList()}
+			tes[et][i] = Event{Type: EventType(t), Data: data[t].UnsortedList()}
 			i++
 		}
 

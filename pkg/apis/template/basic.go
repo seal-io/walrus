@@ -162,12 +162,14 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 			var items []*model.TemplateOutput
 
+			ids := dm.IDs()
+
 			switch dm.Type {
 			case modelchange.EventTypeCreate, modelchange.EventTypeUpdate:
 				entities, err := query.Clone().
 					// Must extract catalog ID.
 					Select(template.FieldCatalogID).
-					Where(template.IDIn(dm.IDs...)).
+					Where(template.IDIn(ids...)).
 					Unique(false).
 					All(stream)
 				if err != nil {
@@ -176,10 +178,10 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 				items = model.ExposeTemplates(entities)
 			case modelchange.EventTypeDelete:
-				items = make([]*model.TemplateOutput, len(dm.IDs))
-				for i := range dm.IDs {
+				items = make([]*model.TemplateOutput, len(ids))
+				for i := range ids {
 					items[i] = &model.TemplateOutput{
-						ID: dm.IDs[i],
+						ID: ids[i],
 					}
 				}
 			}
