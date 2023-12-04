@@ -10,7 +10,6 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/hashicorp/go-version"
-	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
@@ -36,36 +35,8 @@ func CreateTemplateVersionsFromRepo(
 ) error {
 	logger := log.WithName("template")
 
-	var ovs []string
-	// Old versions.
-	err := mc.TemplateVersions().Query().
-		Select(templateversion.FieldVersion).
-		Where(templateversion.TemplateID(entity.ID)).
-		Modify(func(s *sql.Selector) {
-			s.Select(templateversion.FieldVersion)
-		}).
-		Scan(ctx, &ovs)
-	if err != nil {
-		return err
-	}
-	// Old versions set.
-	oldSet := sets.NewString(ovs...)
-	// New versions set.
-	newSet := sets.NewString()
-	newVersions := make([]*version.Version, 0, len(versions))
-
-	for i := range versions {
-		newSet.Insert(versions[i].Original())
-
-		if oldSet.Has(versions[i].Original()) {
-			continue
-		}
-
-		newVersions = append(newVersions, versions[i])
-	}
-
 	// Create template versions.
-	templateVersions, err := GetTemplateVersions(entity, newVersions, versionSchema)
+	templateVersions, err := GetTemplateVersions(entity, versions, versionSchema)
 	if err != nil {
 		return err
 	}
@@ -74,32 +45,20 @@ func CreateTemplateVersionsFromRepo(
 
 	for i := range templateVersions {
 		create := mc.TemplateVersions().Create().Set(templateVersions[i])
-
 		templateVersionCreates = append(templateVersionCreates, create)
 	}
 
 	logger.Debugf("create %d versions for template: %s", len(templateVersionCreates), entity.Name)
 
-	_, err = mc.TemplateVersions().CreateBulk(templateVersionCreates...).
-		Save(ctx)
-	if err != nil {
-		return err
-	}
+	conflictOptions := getTemplateVersionUpsertConflictOptions(entity)
 
-	// Delete versions that are not in the repository tag version anymore.
-	deleteVersions := sets.NewString(ovs...).Difference(newSet).List()
-
-	_, err = mc.TemplateVersions().Delete().
-		Where(
-			templateversion.TemplateID(entity.ID),
-			templateversion.VersionIn(deleteVersions...),
-		).
+	return mc.TemplateVersions().CreateBulk(templateVersionCreates...).
+		OnConflict(conflictOptions...).
+		UpdateNewValues().
 		Exec(ctx)
-
-	return err
 }
 
-// SyncTemplateFromRef clones a git repository create template and template version with reference.
+// syncTemplateFromRef clones a git repository create template and template version with reference.
 // The reference can be a commit hash or a tag. The specified reference will not check semver format.
 func syncTemplateFromRef(
 	ctx context.Context,
@@ -186,29 +145,7 @@ func syncTemplateFromRef(
 		ref = v.Original()
 	}
 
-	var conflictOptions []sql.ConflictOption
-	if entity.ProjectID == "" {
-		conflictOptions = append(
-			conflictOptions,
-			sql.ConflictWhere(sql.P().
-				IsNull(templateversion.FieldProjectID)),
-			sql.ConflictColumns(
-				templateversion.FieldName,
-				templateversion.FieldVersion,
-			),
-		)
-	} else {
-		conflictOptions = append(
-			conflictOptions,
-			sql.ConflictWhere(sql.P().
-				NotNull(templateversion.FieldProjectID)),
-			sql.ConflictColumns(
-				templateversion.FieldName,
-				templateversion.FieldVersion,
-				templateversion.FieldProjectID,
-			),
-		)
-	}
+	conflictOptions := getTemplateVersionUpsertConflictOptions(entity)
 
 	if repo.SubPath != "" {
 		source += "//" + repo.SubPath
@@ -227,6 +164,30 @@ func syncTemplateFromRef(
 		OnConflict(conflictOptions...).
 		UpdateNewValues().
 		Exec(ctx)
+}
+
+// getTemplateVersionUpsertConflictOptions returns template version conflict options with template project id.
+func getTemplateVersionUpsertConflictOptions(entity *model.Template) []sql.ConflictOption {
+	if entity.ProjectID == "" {
+		return []sql.ConflictOption{
+			sql.ConflictWhere(sql.P().
+				IsNull(templateversion.FieldProjectID)),
+			sql.ConflictColumns(
+				templateversion.FieldName,
+				templateversion.FieldVersion,
+			),
+		}
+	}
+
+	return []sql.ConflictOption{
+		sql.ConflictWhere(sql.P().
+			NotNull(templateversion.FieldProjectID)),
+		sql.ConflictColumns(
+			templateversion.FieldName,
+			templateversion.FieldVersion,
+			templateversion.FieldProjectID,
+		),
+	}
 }
 
 // updateTemplateStatus updates template status.
