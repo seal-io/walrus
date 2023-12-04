@@ -170,10 +170,12 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 			var items []*model.ConnectorOutput
 
+			ids := dm.IDs()
+
 			switch dm.Type {
 			case modelchange.EventTypeCreate, modelchange.EventTypeUpdate:
 				entities, err := query.Clone().
-					Where(connector.IDIn(dm.IDs...)).
+					Where(connector.IDIn(ids...)).
 					// Must append project ID.
 					Select(connector.FieldProjectID).
 					Unique(false).
@@ -184,10 +186,10 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 				items = model.ExposeConnectors(entities)
 			case modelchange.EventTypeDelete:
-				items = make([]*model.ConnectorOutput, len(dm.IDs))
-				for i := range dm.IDs {
+				items = make([]*model.ConnectorOutput, len(ids))
+				for i := range ids {
 					items[i] = &model.ConnectorOutput{
-						ID: dm.IDs[i],
+						ID: ids[i],
 					}
 				}
 			}

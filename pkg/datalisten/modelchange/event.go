@@ -10,6 +10,7 @@ import (
 
 // Available topics,
 // which is used for model change subscription.
+// Do not support relationship tables.
 var (
 	// Catalog is the topic for model.Catalog.
 	Catalog = topic.Topic(migrate.CatalogsTable.Name)
@@ -72,9 +73,42 @@ func (t EventType) String() string {
 	return "unknown"
 }
 
+type EventData struct {
+	ID            object.ID
+	ProjectID     object.ID
+	EnvironmentID object.ID
+}
+
 // Event indicates the event of model change,
 // includes Type and changed IDs.
 type Event struct {
 	Type EventType
-	IDs  []object.ID
+	Data []EventData
+}
+
+func (e Event) IDs() []object.ID {
+	ids := make([]object.ID, len(e.Data))
+	for i := range e.Data {
+		ids[i] = e.Data[i].ID
+	}
+
+	return ids
+}
+
+func (e Event) ProjectIDs() []object.ID {
+	ids := make([]object.ID, len(e.Data))
+	for i := range e.Data {
+		ids[i] = e.Data[i].ProjectID
+	}
+
+	return ids
+}
+
+func (e Event) EnvironmentIDs() []object.ID {
+	ids := make([]object.ID, len(e.Data))
+	for i := range e.Data {
+		ids[i] = e.Data[i].EnvironmentID
+	}
+
+	return ids
 }

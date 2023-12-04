@@ -195,10 +195,12 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 			var items []*model.WorkflowOutput
 
+			ids := dm.IDs()
+
 			switch dm.Type {
 			case modelchange.EventTypeCreate, modelchange.EventTypeUpdate:
 				entities, err := query.Clone().
-					Where(workflow.IDIn(dm.IDs...)).
+					Where(workflow.IDIn(ids...)).
 					Unique(false).
 					WithExecutions(workflowExecutionLatestQuery).
 					All(stream)
@@ -208,10 +210,10 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 				items = model.ExposeWorkflows(entities)
 			case modelchange.EventTypeDelete:
-				items = make([]*model.WorkflowOutput, len(dm.IDs))
-				for i := range dm.IDs {
+				items = make([]*model.WorkflowOutput, len(ids))
+				for i := range ids {
 					items[i] = &model.WorkflowOutput{
-						ID: dm.IDs[i],
+						ID: ids[i],
 					}
 				}
 			}

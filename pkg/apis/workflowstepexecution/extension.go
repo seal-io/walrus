@@ -7,7 +7,6 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model/workflowexecution"
 	"github.com/seal-io/walrus/pkg/dao/model/workflowstepexecution"
-	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
 	pkgworkflow "github.com/seal-io/walrus/pkg/workflow"
@@ -91,6 +90,6 @@ func (h Handler) RouteApprove(req RouteApproveRequest) error {
 
 	return topic.Publish(req.Context, modelchange.WorkflowExecution, modelchange.Event{
 		Type: modelchange.EventTypeUpdate,
-		IDs:  []object.ID{workflowExecution.ID},
+		Data: []modelchange.EventData{{ID: workflowExecution.ID}},
 	})
 }

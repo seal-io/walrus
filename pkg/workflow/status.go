@@ -62,7 +62,7 @@ func ResetWorkflowExecutionStatus(
 
 	return topic.Publish(ctx, modelchange.Workflow, modelchange.Event{
 		Type: modelchange.EventTypeUpdate,
-		IDs:  []object.ID{workflowExecution.WorkflowID},
+		Data: []modelchange.EventData{{ID: workflowExecution.WorkflowID}},
 	})
 }
 
@@ -144,7 +144,7 @@ func (m *StatusSyncer) SyncWorkflowExecutionStatus(ctx context.Context, wf *wfv1
 	// Workflow execution update will trigger workflow topic.
 	return topic.Publish(ctx, modelchange.WorkflowExecution, modelchange.Event{
 		Type: modelchange.EventTypeUpdate,
-		IDs:  []object.ID{we.ID},
+		Data: []modelchange.EventData{{ID: we.ID}},
 	})
 }
 
@@ -227,7 +227,7 @@ func (m *StatusSyncer) SyncStageExecutionStatus(
 	// Stage execution update will trigger workflow execution topic.
 	err = topic.Publish(ctx, modelchange.WorkflowExecution, modelchange.Event{
 		Type: modelchange.EventTypeUpdate,
-		IDs:  []object.ID{wse.WorkflowExecutionID},
+		Data: []modelchange.EventData{{ID: wse.WorkflowExecutionID}},
 	})
 	if err != nil {
 		return err
@@ -236,7 +236,7 @@ func (m *StatusSyncer) SyncStageExecutionStatus(
 	// Stage execution update will trigger workflow topic.
 	return topic.Publish(ctx, modelchange.Workflow, modelchange.Event{
 		Type: modelchange.EventTypeUpdate,
-		IDs:  []object.ID{wse.WorkflowID},
+		Data: []modelchange.EventData{{ID: wse.WorkflowID}},
 	})
 }
 
@@ -348,6 +348,6 @@ func (m *StatusSyncer) SyncStepExecutionStatus(
 	// Step execution update will trigger workflow execution topic.
 	return topic.Publish(ctx, modelchange.WorkflowExecution, modelchange.Event{
 		Type: modelchange.EventTypeUpdate,
-		IDs:  []object.ID{we.ID},
+		Data: []modelchange.EventData{{ID: we.ID}},
 	})
 }

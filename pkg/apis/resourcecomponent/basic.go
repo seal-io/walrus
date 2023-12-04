@@ -70,20 +70,22 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 			var items []*model.ResourceComponentOutput
 
+			ids := dm.IDs()
+
 			switch dm.Type {
 			case modelchange.EventTypeCreate, modelchange.EventTypeUpdate:
 				entities, err := getCollection(
-					stream, h.modelClient, query.Clone().Where(resourcecomponent.IDIn(dm.IDs...)), req.WithoutKeys)
+					stream, h.modelClient, query.Clone().Where(resourcecomponent.IDIn(ids...)), req.WithoutKeys)
 				if err != nil {
 					return nil, 0, err
 				}
 
 				items = model.ExposeResourceComponents(entities)
 			case modelchange.EventTypeDelete:
-				items = make([]*model.ResourceComponentOutput, len(dm.IDs))
-				for i := range dm.IDs {
+				items = make([]*model.ResourceComponentOutput, len(ids))
+				for i := range ids {
 					items[i] = &model.ResourceComponentOutput{
-						ID: dm.IDs[i],
+						ID: ids[i],
 					}
 				}
 			}

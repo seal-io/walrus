@@ -3,8 +3,6 @@ package environment
 import (
 	"net/http"
 
-	"entgo.io/ent/dialect/sql"
-
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/auths/session"
 	envbus "github.com/seal-io/walrus/pkg/bus/environment"
@@ -148,15 +146,8 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 				continue
 			}
 
-			ids := make([]any, len(dm.IDs))
-			for i := range dm.IDs {
-				ids[i] = dm.IDs[i]
-			}
-
 			entities, err := query.Clone().
-				Where(environment.HasResourcesWith(func(selector *sql.Selector) {
-					selector.Where(sql.In(resource.FieldID, ids...))
-				})).
+				Where(environment.IDIn(dm.EnvironmentIDs()...)).
 				// Must append project ID.
 				Select(environment.FieldProjectID).
 				// Must extract connectors.

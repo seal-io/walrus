@@ -137,10 +137,12 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 			var items []*model.ResourceDefinitionOutput
 
+			ids := dm.IDs()
+
 			switch dm.Type {
 			case modelchange.EventTypeCreate, modelchange.EventTypeUpdate:
 				entities, err := query.Clone().
-					Where(resourcedefinition.IDIn(dm.IDs...)).
+					Where(resourcedefinition.IDIn(ids...)).
 					Unique(false).
 					All(stream)
 				if err != nil {
@@ -149,10 +151,10 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 				items = dao.ExposeResourceDefinitions(entities)
 			case modelchange.EventTypeDelete:
-				items = make([]*model.ResourceDefinitionOutput, len(dm.IDs))
-				for i := range dm.IDs {
+				items = make([]*model.ResourceDefinitionOutput, len(ids))
+				for i := range ids {
 					items[i] = &model.ResourceDefinitionOutput{
-						ID: dm.IDs[i],
+						ID: ids[i],
 					}
 				}
 			}

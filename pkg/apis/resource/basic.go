@@ -179,10 +179,12 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 			var items []*model.ResourceOutput
 
+			ids := dm.IDs()
+
 			switch dm.Type {
 			case modelchange.EventTypeCreate, modelchange.EventTypeUpdate:
 				entities, err := query.Clone().
-					Where(resource.IDIn(dm.IDs...)).
+					Where(resource.IDIn(ids...)).
 					// Must append environment ID.
 					Select(resource.FieldEnvironmentID).
 					// Must extract template.
@@ -207,10 +209,10 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 				items = model.ExposeResources(entities)
 			case modelchange.EventTypeDelete:
-				items = make([]*model.ResourceOutput, len(dm.IDs))
-				for i := range dm.IDs {
+				items = make([]*model.ResourceOutput, len(ids))
+				for i := range ids {
 					items[i] = &model.ResourceOutput{
-						ID: dm.IDs[i],
+						ID: ids[i],
 					}
 				}
 			}
