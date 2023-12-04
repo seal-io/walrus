@@ -14,6 +14,7 @@ RUN set -eux; \
       curl axel wget \
       vim \
       gosu \
+     tini \
     ; \
     rm -rf /var/lib/apt/lists/*
 
@@ -184,4 +185,7 @@ VOLUME /var/run/walrus
 COPY /image/ /
 COPY /build/server-${TARGETOS}-${TARGETARCH} /usr/bin/walrus
 ENV _RUNNING_INSIDE_CONTAINER_="true"
+# Use tini to manage zombie processes and signal forwarding
+# https://github.com/krallin/tini
+ENTRYPOINT ["tini", "--"]
 CMD ["walrus", "--log-debug", "--log-verbosity=4"]
