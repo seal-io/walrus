@@ -184,13 +184,17 @@ func manageResources(
 	}
 
 	// Diff by transactional session.
+	replacedRess := make([]*model.ResourceComponent, 0)
+
 	err = modelClient.WithTx(ctx, func(tx *model.Tx) error {
 		// Update resources with new instances.
 		for _, r := range updatedRess {
-			err = dao.ResourceComponentInstancesEdgeSave(ctx, tx, r)
+			rp, err := dao.ResourceComponentInstancesEdgeSaveWithResult(ctx, tx, r)
 			if err != nil {
 				return err
 			}
+
+			replacedRess = append(replacedRess, rp...)
 		}
 
 		// Create new resources.
@@ -226,27 +230,32 @@ func manageResources(
 		return err
 	}
 
-	if len(createRess) == 0 {
+	reconcileRess := createRess
+	reconcileRess = append(reconcileRess, updatedRess...)
+	reconcileRess = append(reconcileRess, replacedRess...)
+
+	if len(reconcileRess) == 0 {
 		return nil
 	}
 
-	createRessIndex := dao.ResourceComponentToMap(createRess)
+	// Update the resource component status.
+	reconcileRessIndex := dao.ResourceComponentToMap(reconcileRess)
 
 	// Group resources by connector ID,
 	// and decorate them with the project/environment/service for latter labeling.
 	connRess := make(map[object.ID][]*model.ResourceComponent)
 
-	for k := range createRessIndex {
-		if createRessIndex[k].Shape != types.ResourceComponentShapeInstance {
+	for k := range reconcileRessIndex {
+		if reconcileRessIndex[k].Shape != types.ResourceComponentShapeInstance {
 			continue
 		}
 
-		createRessIndex[k].Edges.Project = entity.Edges.Project
-		createRessIndex[k].Edges.Environment = entity.Edges.Environment
-		createRessIndex[k].Edges.Resource = entity.Edges.Resource
+		reconcileRessIndex[k].Edges.Project = entity.Edges.Project
+		reconcileRessIndex[k].Edges.Environment = entity.Edges.Environment
+		reconcileRessIndex[k].Edges.Resource = entity.Edges.Resource
 
-		connRess[createRessIndex[k].ConnectorID] = append(connRess[createRessIndex[k].ConnectorID],
-			createRessIndex[k])
+		connRess[reconcileRessIndex[k].ConnectorID] = append(connRess[reconcileRessIndex[k].ConnectorID],
+			reconcileRessIndex[k])
 	}
 
 	gopool.Go(func() {

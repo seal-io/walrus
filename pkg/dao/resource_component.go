@@ -17,8 +17,19 @@ func ResourceComponentInstancesEdgeSave(
 	mc model.ClientSet,
 	entity *model.ResourceComponent,
 ) error {
+	_, err := ResourceComponentInstancesEdgeSaveWithResult(ctx, mc, entity)
+	return err
+}
+
+// ResourceComponentInstancesEdgeSaveWithResult saves the edge instances of model.ResourceComponent entity
+// and return new created components.
+func ResourceComponentInstancesEdgeSaveWithResult(
+	ctx context.Context,
+	mc model.ClientSet,
+	entity *model.ResourceComponent,
+) ([]*model.ResourceComponent, error) {
 	if entity.Edges.Instances == nil {
-		return nil
+		return nil, nil
 	}
 
 	// Delete stale items.
@@ -26,14 +37,14 @@ func ResourceComponentInstancesEdgeSave(
 		Where(resourcecomponent.ClassID(entity.ID)).
 		Exec(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Add new items.
 	newItems := entity.Edges.Instances
 	for i := range newItems {
 		if newItems[i] == nil {
-			return errors.New("invalid input: nil relationship")
+			return nil, errors.New("invalid input: nil relationship")
 		}
 		newItems[i].ClassID = entity.ID
 	}
@@ -42,12 +53,12 @@ func ResourceComponentInstancesEdgeSave(
 		Set(newItems...).
 		Save(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	entity.Edges.Instances = newItems // Feedback.
 
-	return nil
+	return newItems, nil
 }
 
 // ResourceComponentShapeClassQuery wraps the given model.ResourceComponent query
