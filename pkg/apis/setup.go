@@ -34,9 +34,10 @@ import (
 
 type SetupOptions struct {
 	// Configure from launching.
-	EnableAuthn bool
-	ConnQPS     int
-	ConnBurst   int
+	EnableAuthn           bool
+	ConnQPS               int
+	ConnBurst             int
+	WebsocketConnMaxPerIP int
 	// Derived from configuration.
 	K8sConfig    *rest.Config
 	ModelClient  *model.Client
@@ -53,7 +54,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		runtime.IsBidiStreamRequest,
 		// Maximum 10 connection per ip.
 		runtime.PerIP(func() runtime.Handle {
-			return runtime.RequestCounting(10, 5*time.Second)
+			return runtime.RequestCounting(opts.WebsocketConnMaxPerIP, 5*time.Second)
 		}),
 	)
 	i18n := runtime.I18n()
