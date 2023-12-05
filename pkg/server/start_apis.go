@@ -23,11 +23,12 @@ func (r *Server) startApis(ctx context.Context, opts startApisOptions) error {
 
 	serveOpts := apis.ServeOptions{
 		SetupOptions: apis.SetupOptions{
-			EnableAuthn: r.EnableAuthn,
-			ConnQPS:     r.ConnQPS,
-			ConnBurst:   r.ConnBurst,
-			K8sConfig:   opts.K8sConfig,
-			ModelClient: opts.ModelClient,
+			EnableAuthn:           r.EnableAuthn,
+			ConnQPS:               r.ConnQPS,
+			ConnBurst:             r.ConnBurst,
+			WebsocketConnMaxPerIP: r.WebsocketConnMaxPerIP,
+			K8sConfig:             opts.K8sConfig,
+			ModelClient:           opts.ModelClient,
 		},
 		BindAddress:       r.BindAddress,
 		BindWithDualStack: r.BindWithDualStack,

@@ -48,17 +48,18 @@ import (
 type Server struct {
 	Logger clis.Logger
 
-	BindAddress        string
-	BindWithDualStack  bool
-	EnableTls          bool
-	TlsCertFile        string
-	TlsPrivateKeyFile  string
-	TlsCertDir         string
-	TlsAutoCertDomains []string
-	BootstrapPassword  string
-	ConnQPS            int
-	ConnBurst          int
-	GopoolWorkerFactor int
+	BindAddress           string
+	BindWithDualStack     bool
+	EnableTls             bool
+	TlsCertFile           string
+	TlsPrivateKeyFile     string
+	TlsCertDir            string
+	TlsAutoCertDomains    []string
+	BootstrapPassword     string
+	ConnQPS               int
+	ConnBurst             int
+	WebsocketConnMaxPerIP int
+	GopoolWorkerFactor    int
 
 	KubeConfig             string
 	KubeConnTimeout        time.Duration
@@ -93,6 +94,7 @@ func New() *Server {
 		TlsCertDir:             apis.TlsCertDirByK8sSecrets,
 		ConnQPS:                10,
 		ConnBurst:              20,
+		WebsocketConnMaxPerIP:  25,
 		KubeConnTimeout:        5 * time.Minute,
 		KubeConnQPS:            16,
 		KubeConnBurst:          64,
@@ -229,6 +231,12 @@ func (r *Server) Flags(cmd *cli.Command) {
 			Usage:       "The burst(maximum number at the same moment) when dialing the server.",
 			Destination: &r.ConnBurst,
 			Value:       r.ConnBurst,
+		},
+		&cli.IntFlag{
+			Name:        "websocket-conn-max-per-ip",
+			Usage:       "The maximum number of websocket connections per IP.",
+			Destination: &r.WebsocketConnMaxPerIP,
+			Value:       r.WebsocketConnMaxPerIP,
 		},
 		&cli.StringFlag{
 			Name:        "kubeconfig",
