@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -233,26 +234,21 @@ func (h Handler) RouteGetAccessEndpoints(req RouteGetAccessEndpointsRequest) (Ro
 					continue
 				}
 
-				eps, err := h.getAccessEndpoints(stream, req.ID)
-				if err != nil {
-					return nil, err
-				}
-
-				if len(eps) == 0 {
-					continue
-				}
-
 				var resp *runtime.ResponseCollection
 
 				switch dm.Type {
 				case modelchange.EventTypeCreate:
-					// While create new resource revision,
-					// the previous endpoints from outputs and resources need to be deleted.
-					resp = runtime.TypedResponse(modelchange.EventTypeDelete.String(), eps)
+					// While create new resource revision, clean the endpoints.
+					resp = runtime.TypedResponse(modelchange.EventTypeDelete.String(), nil)
 				case modelchange.EventTypeUpdate:
-					// While the resource revision status is succeeded,
+					// While the resource revision status is updated,
 					// the endpoints is updated to the current revision.
-					if status.ResourceRevisionStatusReady.IsTrue(ar) {
+					eps, err := h.getAccessEndpoints(stream, req.ID)
+					if err != nil {
+						return nil, err
+					}
+
+					if len(eps) == 0 {
 						continue
 					}
 
@@ -271,17 +267,24 @@ func (h Handler) RouteGetAccessEndpoints(req RouteGetAccessEndpointsRequest) (Ro
 
 func (h Handler) getAccessEndpoints(ctx context.Context, id object.ID) ([]AccessEndpoint, error) {
 	// Endpoints from output.
-	eps, err := h.getEndpointsFromOutput(ctx, id)
+	oeps, err := h.getEndpointsFromOutput(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(eps) != 0 {
-		return eps, nil
+	// Endpoints from resources.
+	reps, err := h.getEndpointsFromResources(ctx, id)
+	if err != nil {
+		return nil, err
 	}
 
-	// Endpoints from resources.
-	return h.getEndpointsFromResources(ctx, id)
+	eps := oeps
+	eps = append(eps, reps...)
+	sort.SliceStable(eps, func(i, j int) bool {
+		return eps[j].Name < eps[i].Name
+	})
+
+	return eps, nil
 }
 
 func (h Handler) getEndpointsFromOutput(ctx context.Context, id object.ID) ([]AccessEndpoint, error) {
@@ -348,6 +351,19 @@ func (h Handler) getEndpointsFromOutput(ctx context.Context, id object.ID) ([]Ac
 }
 
 func (h Handler) getEndpointsFromResources(ctx context.Context, id object.ID) ([]AccessEndpoint, error) {
+	sr, err := h.getLatestRevision(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if sr == nil {
+		return nil, nil
+	}
+
+	if !status.ResourceRevisionStatusReady.IsTrue(sr) {
+		return nil, nil
+	}
+
 	res, err := h.modelClient.ResourceComponents().Query().
 		Where(
 			resourcecomponent.ResourceID(id),
@@ -457,22 +473,9 @@ func (h Handler) RouteGetOutputs(req RouteGetOutputsRequest) (RouteGetOutputsRes
 }
 
 func (h Handler) getResourceOutputs(ctx context.Context, id object.ID, onlySuccess bool) ([]types.OutputValue, error) {
-	sr, err := h.modelClient.ResourceRevisions().Query().
-		Where(resourcerevision.ResourceID(id)).
-		Select(
-			resourcerevision.FieldOutput,
-			resourcerevision.FieldTemplateName,
-			resourcerevision.FieldTemplateVersion,
-			resourcerevision.FieldAttributes,
-			resourcerevision.FieldStatus,
-		).
-		WithResource(func(sq *model.ResourceQuery) {
-			sq.Select(resource.FieldName)
-		}).
-		Order(model.Desc(resourcerevision.FieldCreateTime)).
-		First(ctx)
-	if err != nil && !model.IsNotFound(err) {
-		return nil, fmt.Errorf("error getting the latest service revision")
+	sr, err := h.getLatestRevision(ctx, id)
+	if err != nil {
+		return nil, err
 	}
 
 	if sr == nil {
@@ -489,6 +492,28 @@ func (h Handler) getResourceOutputs(ctx context.Context, id object.ID, onlySucce
 	}
 
 	return o, nil
+}
+
+func (h Handler) getLatestRevision(ctx context.Context, id object.ID) (*model.ResourceRevision, error) {
+	sr, err := h.modelClient.ResourceRevisions().Query().
+		Where(resourcerevision.ResourceID(id)).
+		Select(
+			resourcerevision.FieldOutput,
+			resourcerevision.FieldTemplateName,
+			resourcerevision.FieldTemplateVersion,
+			resourcerevision.FieldAttributes,
+			resourcerevision.FieldStatus,
+		).
+		WithResource(func(sq *model.ResourceQuery) {
+			sq.Select(resource.FieldName)
+		}).
+		Order(model.Desc(resourcerevision.FieldCreateTime)).
+		First(ctx)
+	if err != nil && !model.IsNotFound(err) {
+		return nil, fmt.Errorf("error getting the latest resource revision")
+	}
+
+	return sr, nil
 }
 
 func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse, error) {

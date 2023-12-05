@@ -93,7 +93,7 @@ func State(
 			Exec(ctx)
 		if err != nil {
 			if model.IsNotFound(err) {
-				// Resource resource has been deleted by other thread processing.
+				// Resource component has been deleted by other thread processing.
 				continue
 			}
 			berr = multierr.Append(berr, err)
