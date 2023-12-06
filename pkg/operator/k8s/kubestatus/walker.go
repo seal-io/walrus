@@ -32,20 +32,20 @@ const (
 //	| ContainersReady  | Unknown                 | ContainersPreparing   | Transitioning         |
 //	| ContainersReady  | False                   | ContainersNotReady    | Error                 |
 //	| ContainersReady  | True                    | ContainersReady       |                       |
-//	| Ready            | Unknown                 | Preparing             | Transitioning         |
-//	| Ready            | False                   | NotReady              | Error                 |
-//	| Ready            | True                    | Ready                 |                       |
 //	| DisruptionTarget | Unknown                 | Evicting              | Transitioning         |
 //	| DisruptionTarget | False                   | Preparing             |                       |
 //	| DisruptionTarget | True                    | Evicted               | Error                 |
+//	| Ready            | Unknown                 | Preparing             | Transitioning         |
+//	| Ready            | False                   | NotReady              | Error                 |
+//	| Ready            | True                    | Ready                 |                       |
 var podStatusPaths = status.NewWalker(
 	[][]core.PodConditionType{
 		{
 			core.PodInitialized,
 			core.PodScheduled,
 			core.ContainersReady,
-			core.PodReady,
 			core.DisruptionTarget,
+			core.PodReady,
 		},
 	},
 	func(d status.Decision[core.PodConditionType]) {
