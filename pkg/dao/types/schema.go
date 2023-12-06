@@ -184,9 +184,19 @@ func (s *TemplateVersionSchema) Validate() error {
 
 	providerExist := len(s.RequiredProviders) != 0
 
-	variablesExist := s.OpenAPISchema.Components != nil && s.OpenAPISchema.Components.Schemas["variables"] != nil
+	var (
+		variablesExist bool
+		outputsExist   bool
+	)
 
-	outputsExist := s.OpenAPISchema.Components != nil && s.OpenAPISchema.Components.Schemas["outputs"] != nil
+	switch {
+	case s.OpenAPISchema == nil || s.OpenAPISchema.Components == nil:
+		variablesExist = false
+		outputsExist = false
+	default:
+		variablesExist = s.OpenAPISchema.Components.Schemas["variables"] != nil
+		outputsExist = s.OpenAPISchema.Components.Schemas["outputs"] != nil
+	}
 
 	if !providerExist && !variablesExist && !outputsExist {
 		return errors.New("invalid schema: at least one of requiredProviders, variables, outputs must be specified")
