@@ -187,7 +187,12 @@ func CloneGitRepo(ctx context.Context, link, dir string, skipTLSVerify bool) (*g
 	getterCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
 
-	options := []getter.ClientOption{getter.WithContext(getterCtx)}
+	options := []getter.ClientOption{
+		getter.WithContext(getterCtx),
+		getter.WithGetters(map[string]getter.Getter{
+			"git": &getter.GitGetter{},
+		}),
+	}
 	if skipTLSVerify {
 		options = append(options, getter.WithInsecure())
 	}
