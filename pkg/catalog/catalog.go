@@ -133,7 +133,7 @@ func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) er
 		wg = gopool.Group()
 	)
 
-	batchSize := 10
+	batchSize := 5
 	for i := 0; i < batchSize; i++ {
 		s := i
 
