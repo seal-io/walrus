@@ -66,7 +66,7 @@ function seal::lint::run() {
 }
 
 function seal::format::goimports::install() {
-  GOBIN="${ROOT_DIR}/.sbin" go install golang.org/x/tools/cmd/goimports@latest
+  GOBIN="${ROOT_DIR}/.sbin" go install github.com/incu6us/goimports-reviser/v3@latest
 }
 
 function seal::format::goimports::validate() {
@@ -79,14 +79,14 @@ function seal::format::goimports::validate() {
   if seal::format::goimports::install; then
     return 0
   fi
-  seal::log::error "no goimports available"
+  seal::log::error "no goimports-reviser available"
   return 1
 }
 
 function seal::format::goimports::bin() {
-  local bin="goimports"
-  if [[ -f "${ROOT_DIR}/.sbin/goimports" ]]; then
-    bin="${ROOT_DIR}/.sbin/goimports"
+  local bin="goimports-reviser"
+  if [[ -f "${ROOT_DIR}/.sbin/goimports-reviser" ]]; then
+    bin="${ROOT_DIR}/.sbin/goimports-reviser"
   fi
   echo -n "${bin}"
 }
@@ -171,11 +171,6 @@ function seal::format::wsl::bin() {
   echo -n "${bin}"
 }
 
-function seal::format::gofmt::bin() {
-  local bin="gofmt"
-  echo -n "${bin}"
-}
-
 function seal::format::run() {
   local path=$1
   shift 1
@@ -189,15 +184,27 @@ function seal::format::run() {
 
   # shellcheck disable=SC2155
   local goimports_opts=(
-    "-w"
-    "-local"
-    "$(head -n 1 "${path}/go.mod" | cut -d " " -f 2 2>&1)"
-    "${path}"
+    "-rm-unused"
+    "-set-alias"
+    "-use-cache"
+    "-imports-order=std,general,company,project,blanked,dotted"
+    "-output=file"
   )
-  seal::log::debug "goimports ${goimports_opts[*]}"
-  $(seal::format::goimports::bin) "${goimports_opts[@]}"
+  set +e
+  if [[ ${#path_ignored[@]} -gt 0 ]]; then
+    seal::log::debug "pushd ${path}; go list -f \"{{.Dir}}\" ./... | grep -v -E \"$(seal::util::join_array "|" "${path_ignored[@]}")\" | xargs goimports-reviser ${goimports_opts[*]}; popd"
+    [[ "${path}" == "${ROOT_DIR}" ]] || pushd "${path}" >/dev/null 2>&1
+    go list -f "{{.Dir}}" ./... | grep -v -E "$(seal::util::join_array "|" "${path_ignored[@]}")" | xargs "$(seal::format::goimports::bin)" "${goimports_opts[@]}"
+    [[ "${path}" == "${ROOT_DIR}" ]] || popd >/dev/null 2>&1
+  else
+    seal::log::debug "pushd ${path}; go list -f \"{{.Dir}}\" ./... | xargs goimports-reviser ${goimports_opts[*]}; popd"
+    [[ "${path}" == "${ROOT_DIR}" ]] || pushd "${path}" >/dev/null 2>&1
+    go list -f "{{.Dir}}" ./... | xargs "$(seal::format::goimports::bin)" "${goimports_opts[@]}"
+    [[ "${path}" == "${ROOT_DIR}" ]] || popd >/dev/null 2>&1
+  fi
+  set -e
 
-    # gofmt interface{} -> any
+  # gofmt interface{} -> any
   local gofmt_opts=(
     "-w"
     "-r"
@@ -206,46 +213,34 @@ function seal::format::run() {
   )
 
   seal::log::debug "gofmt ${gofmt_opts[*]}"
-  $(seal::format::gofmt::bin) "${gofmt_opts[@]}"
-
-  # gofumpt
-  if ! seal::format::gofumpt::validate; then
-    seal::log::fatal "cannot execute gofumpt as client is not found"
-  fi
-
-  local gofumpt_opts=(
-    "-extra"
-    "-l"
-    "-w"
-    "${path}"
-  )
-  seal::log::debug "gofumpt ${gofumpt_opts[*]}"
-  $(seal::format::gofumpt::bin) "${gofumpt_opts[@]}"
+  gofmt "${gofmt_opts[@]}"
 
   # golines
   if ! seal::format::golines::validate; then
     seal::log::fatal "cannot execute golines as client is not found"
   fi
 
+  # gofumpt for golines base-formatter
+  if ! seal::format::gofumpt::validate; then
+    seal::log::fatal "cannot execute gofumpt as client is not found"
+  fi
+
   local golines_opts=(
     "-w"
     "--max-len=120"
     "--no-reformat-tags"
-    "--ignore-generated"
-    "--base-formatter=$(seal::format::gofumpt::bin)"
+    "--ignore-generated" # file start with generated_
+    "--ignored-dirs=.git"
+    "--ignored-dirs=node_modules"
+    "--ignored-dirs=vendor"
   )
-  if [[ ${#path_ignored[@]} -gt 0 ]]; then
-    local _path_ignored=("${path_ignored[*]}")
-    _path_ignored+=(
-      ".git"
-      "node_modules"
-      "vendor"
-    )
-    golines_opts+=(
-      "--ignored-dirs=\"$(seal::util::join_array " " "${_path_ignored[@]}")\""
-    )
-  fi
-  golines_opts+=("${path}")
+  for ig in "${path_ignored[@]}"; do
+    golines_opts+=("--ignored-dirs=${ig}")
+  done
+  golines_opts+=(
+    "--base-formatter=$(seal::format::gofumpt::bin) -extra" # format by gofumpt
+    "${path}"
+  )
   seal::log::debug "golines ${golines_opts[*]}"
   $(seal::format::golines::bin) "${golines_opts[@]}"
 
@@ -262,11 +257,15 @@ function seal::format::run() {
   )
   set +e
   if [[ ${#path_ignored[@]} -gt 0 ]]; then
-    seal::log::debug "go list ${path}/... | grep -v -E $(seal::util::join_array "|" "${path_ignored[@]}") | xargs wsl ${wsl_opts[*]}"
-    go list "${path}"/... | grep -v -E "$(seal::util::join_array "|" "${path_ignored[@]}")" | xargs "$(seal::format::wsl::bin)" "${wsl_opts[@]}" >/dev/null 2>&1
+    seal::log::debug "pushd ${path}; go list ./... | grep -v -E \"$(seal::util::join_array "|" "${path_ignored[@]}")\" | xargs wsl ${wsl_opts[*]}; popd"
+    [[ "${path}" == "${ROOT_DIR}" ]] || pushd "${path}" >/dev/null 2>&1
+    go list ./... | grep -v -E "$(seal::util::join_array "|" "${path_ignored[@]}")" | xargs "$(seal::format::wsl::bin)" "${wsl_opts[@]}" >/dev/null 2>&1
+    [[ "${path}" == "${ROOT_DIR}" ]] || popd >/dev/null 2>&1
   else
-    seal::log::debug "go list ${path}/... | xargs wsl ${wsl_opts[*]}"
-    go list "${path}"/... | xargs "$(seal::format::wsl::bin)" "${wsl_opts[@]}"
+    seal::log::debug "pushd ${path}; go list ./... | xargs wsl ${wsl_opts[*]}; popd"
+    [[ "${path}" == "${ROOT_DIR}" ]] || pushd "${path}" >/dev/null 2>&1
+    go list ./... | xargs "$(seal::format::wsl::bin)" "${wsl_opts[@]}"
+    [[ "${path}" == "${ROOT_DIR}" ]] || popd >/dev/null 2>&1
   fi
   set -e
 }
