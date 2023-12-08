@@ -12,6 +12,7 @@ RUN set -eux; \
       git-lfs git \
       unzip xz-utils \
       curl axel wget \
+      tini \
       vim \
       gosu \
     ; \
@@ -184,4 +185,7 @@ VOLUME /var/run/walrus
 COPY /image/ /
 COPY /build/server-${TARGETOS}-${TARGETARCH} /usr/bin/walrus
 ENV _RUNNING_INSIDE_CONTAINER_="true"
+
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["walrus", "--log-debug", "--log-verbosity=4"]
