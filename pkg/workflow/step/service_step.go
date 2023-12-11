@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"path"
 
 	wfv1 "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -12,8 +11,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
-	"github.com/seal-io/walrus/pkg/dao/model/resource"
-	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/settings"
 	"github.com/seal-io/walrus/pkg/workflow/step/types"
 )
@@ -27,7 +24,7 @@ serverURL="{{workflow.parameters.server}}"
 projectID="{{workflow.parameters.projectID}}"
 environmentID="{{inputs.parameters.environmentID}}"
 token="{{inputs.parameters.token}}"
-jobType="{{inputs.parameters.jobType}}"
+jobType="create"
 resourceName="{{inputs.parameters.resourceName}}"
 commonPath="$serverURL/v1/projects/$projectID/environments/$environmentID"
 
@@ -35,6 +32,13 @@ commonPath="$serverURL/v1/projects/$projectID/environments/$environmentID"
 tlsVerify="-k"
 if [ "{{workflow.parameters.tlsVerify}}" == "true" ]; then
 	tlsVerify=""
+fi
+
+# check resource exist.
+status=$(curl -s -w "%{http_code}" -o /dev/null "$commonPath/resources/$resourceName" -X "GET" -H "Authorization: Bearer $token" $tlsVerify)
+# if status >= 200 and status < 300
+if [ "$status" -ge 200 ] && [ "$status" -lt 300 ]; then
+	jobType="upgrade"
 fi
 
 # If jobType create resource.
@@ -64,7 +68,7 @@ revisionResponse=$(curl -s "$commonPath/resources/$resourceName/revisions?page=1
 revisionID=$(echo $revisionResponse | jq -r '.items[0].id')
 
 # Watch service logs until the service finished.
-curl -o - -s "$commonPath/resources/$resourceName/revisions/$revisionID/log?jobType=$watchType&watch=true" -X GET -H "Authorization: Bearer $token" $tlsVerify --compressed
+curl -o - -s "$commonPath/resources/$resourceName/revisions/$revisionID/log?jobType=apply&watch=true" -X GET -H "Authorization: Bearer $token" $tlsVerify --compressed
 
 # Check revision status. wait until revision status is ready.
 timeout=30
@@ -131,28 +135,6 @@ func (s *ServiceStepManager) GenerateTemplates(
 		return nil, nil, errors.New("service name is not found")
 	}
 
-	// If resource exist in environment, job type is upgrade.
-	// Otherwise, job type is create.
-	svc, err := s.mc.Resources().Query().
-		Select(
-			resource.FieldID,
-			resource.FieldName,
-			resource.FieldEnvironmentID,
-		).
-		Where(
-			resource.EnvironmentID(object.ID(environmentID)),
-			resource.Name(resourceName),
-		).
-		Only(ctx)
-	if err != nil && !model.IsNotFound(err) {
-		return nil, nil, fmt.Errorf("failed to get service: %w", err)
-	}
-
-	jobType := "create"
-	if svc != nil {
-		jobType = "upgrade"
-	}
-
 	// Inject workflow step execution id to request.
 	stepAttrs := stepExecution.Attributes
 	stepAttrs["workflowStepExecutionID"] = stepExecution.ID.String()
@@ -181,10 +163,6 @@ func (s *ServiceStepManager) GenerateTemplates(
 				{
 					Name:  "attributes",
 					Value: wfv1.AnyStringPtr(string(attrs)),
-				},
-				{
-					Name:  "jobType",
-					Value: wfv1.AnyStringPtr(jobType),
 				},
 				{
 					Name: "token",

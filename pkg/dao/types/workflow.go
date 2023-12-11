@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	wfv1 "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/utils/validation"
@@ -55,10 +56,18 @@ func (c *WorkflowVariable) Validate() error {
 type WorkflowVariables []*WorkflowVariable
 
 func (c WorkflowVariables) Validate() error {
+	vs := sets.NewString()
+
 	for i := range c {
 		if err := c[i].Validate(); err != nil {
 			return err
 		}
+
+		if vs.Has(c[i].Name) {
+			return fmt.Errorf("duplicate variable name: %s", c[i].Name)
+		}
+
+		vs.Insert(c[i].Name)
 	}
 
 	return nil
