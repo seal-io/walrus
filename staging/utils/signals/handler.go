@@ -72,7 +72,7 @@ func Handler() context.Context {
 	// Reap child processes.
 	go func() {
 		for range reapChan {
-			const zombieTimeWait = 10 * time.Millisecond
+			const zombieTimeWait = 500 * time.Millisecond
 
 			for {
 				runtime.Gosched()
