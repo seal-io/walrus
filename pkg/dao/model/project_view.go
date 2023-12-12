@@ -15,6 +15,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // ProjectCreateInput holds the creation input of the Project entity,
@@ -293,6 +294,105 @@ func (pdi *ProjectDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 		}
 	}
 
+	return nil
+}
+
+// ProjectPatchInput holds the patch input of the Project entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type ProjectPatchInput struct {
+	ProjectUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *Project `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the Project patched entity,
+// after validating.
+func (ppi *ProjectPatchInput) Model() *Project {
+	if ppi == nil {
+		return nil
+	}
+
+	return ppi.patchedEntity
+}
+
+// Validate checks the ProjectPatchInput entity.
+func (ppi *ProjectPatchInput) Validate() error {
+	if ppi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return ppi.ValidateWith(ppi.inputConfig.Context, ppi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the ProjectPatchInput entity with the given context and client set.
+func (ppi *ProjectPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := ppi.ProjectUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.Projects().Query()
+
+	if ppi.Refer != nil {
+		if ppi.Refer.IsID() {
+			q.Where(
+				project.ID(ppi.Refer.ID()))
+		} else if refers := ppi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				project.Name(refers[0].String()))
+		} else {
+			return errors.New("invalid identify refer of project")
+		}
+	} else if ppi.ID != "" {
+		q.Where(
+			project.ID(ppi.ID))
+	} else if ppi.Name != "" {
+		q.Where(
+			project.Name(ppi.Name))
+	} else {
+		return errors.New("invalid identify of project")
+	}
+
+	ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+
+	q.Select(
+		project.WithoutFields(
+			project.FieldAnnotations,
+			project.FieldCreateTime,
+			project.FieldUpdateTime,
+		)...,
+	)
+
+	var e *Project
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Project)
+		}
+	}
+
+	_p := ppi.ProjectUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _p)
+	if err != nil {
+		return err
+	}
+
+	ppi.patchedEntity = _obj.(*Project)
 	return nil
 }
 

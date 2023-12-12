@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/token"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // TokenCreateInput holds the creation input of the Token entity,
@@ -267,6 +268,95 @@ func (tdi *TokenDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, ca
 		return errors.New("found unrecognized item")
 	}
 
+	return nil
+}
+
+// TokenPatchInput holds the patch input of the Token entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type TokenPatchInput struct {
+	TokenUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *Token `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the Token patched entity,
+// after validating.
+func (tpi *TokenPatchInput) Model() *Token {
+	if tpi == nil {
+		return nil
+	}
+
+	return tpi.patchedEntity
+}
+
+// Validate checks the TokenPatchInput entity.
+func (tpi *TokenPatchInput) Validate() error {
+	if tpi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return tpi.ValidateWith(tpi.inputConfig.Context, tpi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the TokenPatchInput entity with the given context and client set.
+func (tpi *TokenPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := tpi.TokenUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.Tokens().Query()
+
+	if tpi.Refer != nil {
+		if tpi.Refer.IsID() {
+			q.Where(
+				token.ID(tpi.Refer.ID()))
+		} else {
+			return errors.New("invalid identify refer of token")
+		}
+	} else if tpi.ID != "" {
+		q.Where(
+			token.ID(tpi.ID))
+	} else {
+		return errors.New("invalid identify of token")
+	}
+
+	q.Select(
+		token.WithoutFields(
+			token.FieldCreateTime,
+		)...,
+	)
+
+	var e *Token
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Token)
+		}
+	}
+
+	_t := tpi.TokenUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _t)
+	if err != nil {
+		return err
+	}
+
+	tpi.patchedEntity = _obj.(*Token)
 	return nil
 }
 

@@ -15,6 +15,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // ResourceDefinitionCreateInput holds the creation input of the ResourceDefinition entity,
@@ -360,6 +361,104 @@ func (rddi *ResourceDefinitionDeleteInputs) ValidateWith(ctx context.Context, cs
 		}
 	}
 
+	return nil
+}
+
+// ResourceDefinitionPatchInput holds the patch input of the ResourceDefinition entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type ResourceDefinitionPatchInput struct {
+	ResourceDefinitionUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *ResourceDefinition `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the ResourceDefinition patched entity,
+// after validating.
+func (rdpi *ResourceDefinitionPatchInput) Model() *ResourceDefinition {
+	if rdpi == nil {
+		return nil
+	}
+
+	return rdpi.patchedEntity
+}
+
+// Validate checks the ResourceDefinitionPatchInput entity.
+func (rdpi *ResourceDefinitionPatchInput) Validate() error {
+	if rdpi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return rdpi.ValidateWith(rdpi.inputConfig.Context, rdpi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the ResourceDefinitionPatchInput entity with the given context and client set.
+func (rdpi *ResourceDefinitionPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := rdpi.ResourceDefinitionUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.ResourceDefinitions().Query()
+
+	if rdpi.Refer != nil {
+		if rdpi.Refer.IsID() {
+			q.Where(
+				resourcedefinition.ID(rdpi.Refer.ID()))
+		} else if refers := rdpi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				resourcedefinition.Type(refers[0].String()))
+		} else {
+			return errors.New("invalid identify refer of resourcedefinition")
+		}
+	} else if rdpi.ID != "" {
+		q.Where(
+			resourcedefinition.ID(rdpi.ID))
+	} else if rdpi.Type != "" {
+		q.Where(
+			resourcedefinition.Type(rdpi.Type))
+	} else {
+		return errors.New("invalid identify of resourcedefinition")
+	}
+
+	q.Select(
+		resourcedefinition.WithoutFields(
+			resourcedefinition.FieldAnnotations,
+			resourcedefinition.FieldCreateTime,
+			resourcedefinition.FieldUpdateTime,
+			resourcedefinition.FieldSchema,
+		)...,
+	)
+
+	var e *ResourceDefinition
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*ResourceDefinition)
+		}
+	}
+
+	_rd := rdpi.ResourceDefinitionUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _rd)
+	if err != nil {
+		return err
+	}
+
+	rdpi.patchedEntity = _obj.(*ResourceDefinition)
 	return nil
 }
 

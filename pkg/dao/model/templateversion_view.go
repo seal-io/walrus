@@ -16,6 +16,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // TemplateVersionCreateInput holds the creation input of the TemplateVersion entity,
@@ -368,6 +369,124 @@ func (tvdi *TemplateVersionDeleteInputs) ValidateWith(ctx context.Context, cs Cl
 		}
 	}
 
+	return nil
+}
+
+// TemplateVersionPatchInput holds the patch input of the TemplateVersion entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type TemplateVersionPatchInput struct {
+	TemplateVersionUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *TemplateVersion `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the TemplateVersion patched entity,
+// after validating.
+func (tvpi *TemplateVersionPatchInput) Model() *TemplateVersion {
+	if tvpi == nil {
+		return nil
+	}
+
+	return tvpi.patchedEntity
+}
+
+// Validate checks the TemplateVersionPatchInput entity.
+func (tvpi *TemplateVersionPatchInput) Validate() error {
+	if tvpi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return tvpi.ValidateWith(tvpi.inputConfig.Context, tvpi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the TemplateVersionPatchInput entity with the given context and client set.
+func (tvpi *TemplateVersionPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := tvpi.TemplateVersionUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.TemplateVersions().Query()
+
+	// Validate when querying under the Project route.
+	if tvpi.Project != nil {
+		if err := tvpi.Project.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				tvpi.Project = nil
+				q.Where(
+					templateversion.ProjectIDIsNil())
+			}
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				templateversion.ProjectID(tvpi.Project.ID))
+		}
+	} else {
+		q.Where(
+			templateversion.ProjectIDIsNil())
+	}
+
+	if tvpi.Refer != nil {
+		if tvpi.Refer.IsID() {
+			q.Where(
+				templateversion.ID(tvpi.Refer.ID()))
+		} else if refers := tvpi.Refer.Split(2); len(refers) == 2 {
+			q.Where(
+				templateversion.Name(refers[0].String()),
+				templateversion.Version(refers[1].String()))
+		} else {
+			return errors.New("invalid identify refer of templateversion")
+		}
+	} else if tvpi.ID != "" {
+		q.Where(
+			templateversion.ID(tvpi.ID))
+	} else if (tvpi.Name != "") && (tvpi.Version != "") {
+		q.Where(
+			templateversion.Name(tvpi.Name),
+			templateversion.Version(tvpi.Version))
+	} else {
+		return errors.New("invalid identify of templateversion")
+	}
+
+	q.Select(
+		templateversion.WithoutFields(
+			templateversion.FieldCreateTime,
+			templateversion.FieldUpdateTime,
+		)...,
+	)
+
+	var e *TemplateVersion
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*TemplateVersion)
+		}
+	}
+
+	_tv := tvpi.TemplateVersionUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _tv)
+	if err != nil {
+		return err
+	}
+
+	tvpi.patchedEntity = _obj.(*TemplateVersion)
 	return nil
 }
 

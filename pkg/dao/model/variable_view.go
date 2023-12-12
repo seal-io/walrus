@@ -16,6 +16,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // VariableCreateInput holds the creation input of the Variable entity,
@@ -408,6 +409,141 @@ func (vdi *VariableDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet,
 		}
 	}
 
+	return nil
+}
+
+// VariablePatchInput holds the patch input of the Variable entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type VariablePatchInput struct {
+	VariableUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *Variable `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the Variable patched entity,
+// after validating.
+func (vpi *VariablePatchInput) Model() *Variable {
+	if vpi == nil {
+		return nil
+	}
+
+	return vpi.patchedEntity
+}
+
+// Validate checks the VariablePatchInput entity.
+func (vpi *VariablePatchInput) Validate() error {
+	if vpi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return vpi.ValidateWith(vpi.inputConfig.Context, vpi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the VariablePatchInput entity with the given context and client set.
+func (vpi *VariablePatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := vpi.VariableUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.Variables().Query()
+
+	// Validate when querying under the Project route.
+	if vpi.Project != nil {
+		if err := vpi.Project.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				vpi.Project = nil
+				q.Where(
+					variable.ProjectIDIsNil())
+			}
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				variable.ProjectID(vpi.Project.ID))
+		}
+	} else {
+		q.Where(
+			variable.ProjectIDIsNil())
+	}
+
+	// Validate when querying under the Environment route.
+	if vpi.Environment != nil {
+		if err := vpi.Environment.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				vpi.Environment = nil
+				q.Where(
+					variable.EnvironmentIDIsNil())
+			}
+		} else {
+			q.Where(
+				variable.EnvironmentID(vpi.Environment.ID))
+		}
+	} else {
+		q.Where(
+			variable.EnvironmentIDIsNil())
+	}
+
+	if vpi.Refer != nil {
+		if vpi.Refer.IsID() {
+			q.Where(
+				variable.ID(vpi.Refer.ID()))
+		} else if refers := vpi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				variable.Name(refers[0].String()))
+		} else {
+			return errors.New("invalid identify refer of variable")
+		}
+	} else if vpi.ID != "" {
+		q.Where(
+			variable.ID(vpi.ID))
+	} else if vpi.Name != "" {
+		q.Where(
+			variable.Name(vpi.Name))
+	} else {
+		return errors.New("invalid identify of variable")
+	}
+
+	q.Select(
+		variable.WithoutFields(
+			variable.FieldCreateTime,
+			variable.FieldUpdateTime,
+		)...,
+	)
+
+	var e *Variable
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Variable)
+		}
+	}
+
+	_v := vpi.VariableUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _v)
+	if err != nil {
+		return err
+	}
+
+	vpi.patchedEntity = _obj.(*Variable)
 	return nil
 }
 

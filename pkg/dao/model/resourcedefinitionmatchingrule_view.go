@@ -16,6 +16,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // ResourceDefinitionMatchingRuleCreateInput holds the creation input of the ResourceDefinitionMatchingRule entity,
@@ -325,6 +326,102 @@ func (rdmrdi *ResourceDefinitionMatchingRuleDeleteInputs) ValidateWith(ctx conte
 		}
 	}
 
+	return nil
+}
+
+// ResourceDefinitionMatchingRulePatchInput holds the patch input of the ResourceDefinitionMatchingRule entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type ResourceDefinitionMatchingRulePatchInput struct {
+	ResourceDefinitionMatchingRuleUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *ResourceDefinitionMatchingRule `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the ResourceDefinitionMatchingRule patched entity,
+// after validating.
+func (rdmrpi *ResourceDefinitionMatchingRulePatchInput) Model() *ResourceDefinitionMatchingRule {
+	if rdmrpi == nil {
+		return nil
+	}
+
+	return rdmrpi.patchedEntity
+}
+
+// Validate checks the ResourceDefinitionMatchingRulePatchInput entity.
+func (rdmrpi *ResourceDefinitionMatchingRulePatchInput) Validate() error {
+	if rdmrpi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return rdmrpi.ValidateWith(rdmrpi.inputConfig.Context, rdmrpi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the ResourceDefinitionMatchingRulePatchInput entity with the given context and client set.
+func (rdmrpi *ResourceDefinitionMatchingRulePatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := rdmrpi.ResourceDefinitionMatchingRuleUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.ResourceDefinitionMatchingRules().Query()
+
+	if rdmrpi.Refer != nil {
+		if rdmrpi.Refer.IsID() {
+			q.Where(
+				resourcedefinitionmatchingrule.ID(rdmrpi.Refer.ID()))
+		} else if refers := rdmrpi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				resourcedefinitionmatchingrule.Name(refers[0].String()))
+		} else {
+			return errors.New("invalid identify refer of resourcedefinitionmatchingrule")
+		}
+	} else if rdmrpi.ID != "" {
+		q.Where(
+			resourcedefinitionmatchingrule.ID(rdmrpi.ID))
+	} else if rdmrpi.Name != "" {
+		q.Where(
+			resourcedefinitionmatchingrule.Name(rdmrpi.Name))
+	} else {
+		return errors.New("invalid identify of resourcedefinitionmatchingrule")
+	}
+
+	q.Select(
+		resourcedefinitionmatchingrule.WithoutFields(
+			resourcedefinitionmatchingrule.FieldCreateTime,
+			resourcedefinitionmatchingrule.FieldOrder,
+		)...,
+	)
+
+	var e *ResourceDefinitionMatchingRule
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*ResourceDefinitionMatchingRule)
+		}
+	}
+
+	_rdmr := rdmrpi.ResourceDefinitionMatchingRuleUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _rdmr)
+	if err != nil {
+		return err
+	}
+
+	rdmrpi.patchedEntity = _obj.(*ResourceDefinitionMatchingRule)
 	return nil
 }
 

@@ -15,6 +15,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/setting"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // SettingCreateInput holds the creation input of the Setting entity,
@@ -279,6 +280,107 @@ func (sdi *SettingDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 		}
 	}
 
+	return nil
+}
+
+// SettingPatchInput holds the patch input of the Setting entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type SettingPatchInput struct {
+	SettingUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *Setting `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the Setting patched entity,
+// after validating.
+func (spi *SettingPatchInput) Model() *Setting {
+	if spi == nil {
+		return nil
+	}
+
+	return spi.patchedEntity
+}
+
+// Validate checks the SettingPatchInput entity.
+func (spi *SettingPatchInput) Validate() error {
+	if spi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return spi.ValidateWith(spi.inputConfig.Context, spi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the SettingPatchInput entity with the given context and client set.
+func (spi *SettingPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := spi.SettingUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.Settings().Query()
+
+	if spi.Refer != nil {
+		if spi.Refer.IsID() {
+			q.Where(
+				setting.ID(spi.Refer.ID()))
+		} else if refers := spi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				setting.Name(refers[0].String()))
+		} else {
+			return errors.New("invalid identify refer of setting")
+		}
+	} else if spi.ID != "" {
+		q.Where(
+			setting.ID(spi.ID))
+	} else if spi.Name != "" {
+		q.Where(
+			setting.Name(spi.Name))
+	} else {
+		return errors.New("invalid identify of setting")
+	}
+
+	q.Select(
+		setting.WithoutFields(
+			setting.FieldCreateTime,
+			setting.FieldUpdateTime,
+			setting.FieldName,
+			setting.FieldHidden,
+			setting.FieldEditable,
+			setting.FieldSensitive,
+			setting.FieldPrivate,
+		)...,
+	)
+
+	var e *Setting
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Setting)
+		}
+	}
+
+	_s := spi.SettingUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _s)
+	if err != nil {
+		return err
+	}
+
+	spi.patchedEntity = _obj.(*Setting)
 	return nil
 }
 

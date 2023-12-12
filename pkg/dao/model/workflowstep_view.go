@@ -15,6 +15,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // WorkflowStepCreateInput holds the creation input of the WorkflowStep entity,
@@ -394,6 +395,119 @@ func (wsdi *WorkflowStepDeleteInputs) ValidateWith(ctx context.Context, cs Clien
 		return errors.New("found unrecognized item")
 	}
 
+	return nil
+}
+
+// WorkflowStepPatchInput holds the patch input of the WorkflowStep entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type WorkflowStepPatchInput struct {
+	WorkflowStepUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *WorkflowStep `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the WorkflowStep patched entity,
+// after validating.
+func (wspi *WorkflowStepPatchInput) Model() *WorkflowStep {
+	if wspi == nil {
+		return nil
+	}
+
+	return wspi.patchedEntity
+}
+
+// Validate checks the WorkflowStepPatchInput entity.
+func (wspi *WorkflowStepPatchInput) Validate() error {
+	if wspi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return wspi.ValidateWith(wspi.inputConfig.Context, wspi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the WorkflowStepPatchInput entity with the given context and client set.
+func (wspi *WorkflowStepPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := wspi.WorkflowStepUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.WorkflowSteps().Query()
+
+	// Validate when querying under the Project route.
+	if wspi.Project != nil {
+		if err := wspi.Project.ValidateWith(ctx, cs, cache); err != nil {
+			return err
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				workflowstep.ProjectID(wspi.Project.ID))
+		}
+	}
+
+	// Validate when querying under the Stage route.
+	if wspi.Stage != nil {
+		if err := wspi.Stage.ValidateWith(ctx, cs, cache); err != nil {
+			return err
+		} else {
+			q.Where(
+				workflowstep.WorkflowStageID(wspi.Stage.ID))
+		}
+	}
+
+	if wspi.Refer != nil {
+		if wspi.Refer.IsID() {
+			q.Where(
+				workflowstep.ID(wspi.Refer.ID()))
+		} else {
+			return errors.New("invalid identify refer of workflowstep")
+		}
+	} else if wspi.ID != "" {
+		q.Where(
+			workflowstep.ID(wspi.ID))
+	} else {
+		return errors.New("invalid identify of workflowstep")
+	}
+
+	q.Select(
+		workflowstep.WithoutFields(
+			workflowstep.FieldAnnotations,
+			workflowstep.FieldCreateTime,
+			workflowstep.FieldUpdateTime,
+			workflowstep.FieldOrder,
+		)...,
+	)
+
+	var e *WorkflowStep
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*WorkflowStep)
+		}
+	}
+
+	_ws := wspi.WorkflowStepUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _ws)
+	if err != nil {
+		return err
+	}
+
+	wspi.patchedEntity = _obj.(*WorkflowStep)
 	return nil
 }
 

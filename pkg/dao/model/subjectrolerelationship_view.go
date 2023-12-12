@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // SubjectRoleRelationshipCreateInput holds the creation input of the SubjectRoleRelationship entity,
@@ -362,6 +363,115 @@ func (srrdi *SubjectRoleRelationshipDeleteInputs) ValidateWith(ctx context.Conte
 		return errors.New("found unrecognized item")
 	}
 
+	return nil
+}
+
+// SubjectRoleRelationshipPatchInput holds the patch input of the SubjectRoleRelationship entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type SubjectRoleRelationshipPatchInput struct {
+	SubjectRoleRelationshipUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *SubjectRoleRelationship `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the SubjectRoleRelationship patched entity,
+// after validating.
+func (srrpi *SubjectRoleRelationshipPatchInput) Model() *SubjectRoleRelationship {
+	if srrpi == nil {
+		return nil
+	}
+
+	return srrpi.patchedEntity
+}
+
+// Validate checks the SubjectRoleRelationshipPatchInput entity.
+func (srrpi *SubjectRoleRelationshipPatchInput) Validate() error {
+	if srrpi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return srrpi.ValidateWith(srrpi.inputConfig.Context, srrpi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the SubjectRoleRelationshipPatchInput entity with the given context and client set.
+func (srrpi *SubjectRoleRelationshipPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := srrpi.SubjectRoleRelationshipUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.SubjectRoleRelationships().Query()
+
+	// Validate when querying under the Project route.
+	if srrpi.Project != nil {
+		if err := srrpi.Project.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srrpi.Project = nil
+				q.Where(
+					subjectrolerelationship.ProjectIDIsNil())
+			}
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				subjectrolerelationship.ProjectID(srrpi.Project.ID))
+		}
+	} else {
+		q.Where(
+			subjectrolerelationship.ProjectIDIsNil())
+	}
+
+	if srrpi.Refer != nil {
+		if srrpi.Refer.IsID() {
+			q.Where(
+				subjectrolerelationship.ID(srrpi.Refer.ID()))
+		} else {
+			return errors.New("invalid identify refer of subjectrolerelationship")
+		}
+	} else if srrpi.ID != "" {
+		q.Where(
+			subjectrolerelationship.ID(srrpi.ID))
+	} else {
+		return errors.New("invalid identify of subjectrolerelationship")
+	}
+
+	q.Select(
+		subjectrolerelationship.WithoutFields(
+			subjectrolerelationship.FieldCreateTime,
+		)...,
+	)
+
+	var e *SubjectRoleRelationship
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*SubjectRoleRelationship)
+		}
+	}
+
+	_srr := srrpi.SubjectRoleRelationshipUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _srr)
+	if err != nil {
+		return err
+	}
+
+	srrpi.patchedEntity = _obj.(*SubjectRoleRelationship)
 	return nil
 }
 

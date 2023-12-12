@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/subject"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // SubjectCreateInput holds the creation input of the Subject entity,
@@ -369,6 +370,106 @@ func (sdi *SubjectDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 		}
 	}
 
+	return nil
+}
+
+// SubjectPatchInput holds the patch input of the Subject entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type SubjectPatchInput struct {
+	SubjectUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *Subject `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the Subject patched entity,
+// after validating.
+func (spi *SubjectPatchInput) Model() *Subject {
+	if spi == nil {
+		return nil
+	}
+
+	return spi.patchedEntity
+}
+
+// Validate checks the SubjectPatchInput entity.
+func (spi *SubjectPatchInput) Validate() error {
+	if spi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return spi.ValidateWith(spi.inputConfig.Context, spi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the SubjectPatchInput entity with the given context and client set.
+func (spi *SubjectPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := spi.SubjectUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.Subjects().Query()
+
+	if spi.Refer != nil {
+		if spi.Refer.IsID() {
+			q.Where(
+				subject.ID(spi.Refer.ID()))
+		} else if refers := spi.Refer.Split(3); len(refers) == 3 {
+			q.Where(
+				subject.Kind(refers[0].String()),
+				subject.Domain(refers[1].String()),
+				subject.Name(refers[2].String()))
+		} else {
+			return errors.New("invalid identify refer of subject")
+		}
+	} else if spi.ID != "" {
+		q.Where(
+			subject.ID(spi.ID))
+	} else if (spi.Kind != "") && (spi.Domain != "") && (spi.Name != "") {
+		q.Where(
+			subject.Kind(spi.Kind),
+			subject.Domain(spi.Domain),
+			subject.Name(spi.Name))
+	} else {
+		return errors.New("invalid identify of subject")
+	}
+
+	q.Select(
+		subject.WithoutFields(
+			subject.FieldCreateTime,
+			subject.FieldUpdateTime,
+		)...,
+	)
+
+	var e *Subject
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Subject)
+		}
+	}
+
+	_s := spi.SubjectUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _s)
+	if err != nil {
+		return err
+	}
+
+	spi.patchedEntity = _obj.(*Subject)
 	return nil
 }
 

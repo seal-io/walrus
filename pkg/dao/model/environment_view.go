@@ -15,6 +15,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // EnvironmentCreateInput holds the creation input of the Environment entity,
@@ -508,6 +509,114 @@ func (edi *EnvironmentDeleteInputs) ValidateWith(ctx context.Context, cs ClientS
 		}
 	}
 
+	return nil
+}
+
+// EnvironmentPatchInput holds the patch input of the Environment entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type EnvironmentPatchInput struct {
+	EnvironmentUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *Environment `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the Environment patched entity,
+// after validating.
+func (epi *EnvironmentPatchInput) Model() *Environment {
+	if epi == nil {
+		return nil
+	}
+
+	return epi.patchedEntity
+}
+
+// Validate checks the EnvironmentPatchInput entity.
+func (epi *EnvironmentPatchInput) Validate() error {
+	if epi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return epi.ValidateWith(epi.inputConfig.Context, epi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the EnvironmentPatchInput entity with the given context and client set.
+func (epi *EnvironmentPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := epi.EnvironmentUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.Environments().Query()
+
+	// Validate when querying under the Project route.
+	if epi.Project != nil {
+		if err := epi.Project.ValidateWith(ctx, cs, cache); err != nil {
+			return err
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				environment.ProjectID(epi.Project.ID))
+		}
+	}
+
+	if epi.Refer != nil {
+		if epi.Refer.IsID() {
+			q.Where(
+				environment.ID(epi.Refer.ID()))
+		} else if refers := epi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				environment.Name(refers[0].String()))
+		} else {
+			return errors.New("invalid identify refer of environment")
+		}
+	} else if epi.ID != "" {
+		q.Where(
+			environment.ID(epi.ID))
+	} else if epi.Name != "" {
+		q.Where(
+			environment.Name(epi.Name))
+	} else {
+		return errors.New("invalid identify of environment")
+	}
+
+	q.Select(
+		environment.WithoutFields(
+			environment.FieldAnnotations,
+			environment.FieldCreateTime,
+			environment.FieldUpdateTime,
+		)...,
+	)
+
+	var e *Environment
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Environment)
+		}
+	}
+
+	_e := epi.EnvironmentUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _e)
+	if err != nil {
+		return err
+	}
+
+	epi.patchedEntity = _obj.(*Environment)
 	return nil
 }
 
