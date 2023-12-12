@@ -16,6 +16,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // WorkflowCreateInput holds the creation input of the Workflow entity,
@@ -425,6 +426,115 @@ func (wdi *WorkflowDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet,
 		}
 	}
 
+	return nil
+}
+
+// WorkflowPatchInput holds the patch input of the Workflow entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type WorkflowPatchInput struct {
+	WorkflowUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *Workflow `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the Workflow patched entity,
+// after validating.
+func (wpi *WorkflowPatchInput) Model() *Workflow {
+	if wpi == nil {
+		return nil
+	}
+
+	return wpi.patchedEntity
+}
+
+// Validate checks the WorkflowPatchInput entity.
+func (wpi *WorkflowPatchInput) Validate() error {
+	if wpi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return wpi.ValidateWith(wpi.inputConfig.Context, wpi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the WorkflowPatchInput entity with the given context and client set.
+func (wpi *WorkflowPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := wpi.WorkflowUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.Workflows().Query()
+
+	// Validate when querying under the Project route.
+	if wpi.Project != nil {
+		if err := wpi.Project.ValidateWith(ctx, cs, cache); err != nil {
+			return err
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				workflow.ProjectID(wpi.Project.ID))
+		}
+	}
+
+	if wpi.Refer != nil {
+		if wpi.Refer.IsID() {
+			q.Where(
+				workflow.ID(wpi.Refer.ID()))
+		} else if refers := wpi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				workflow.Name(refers[0].String()))
+		} else {
+			return errors.New("invalid identify refer of workflow")
+		}
+	} else if wpi.ID != "" {
+		q.Where(
+			workflow.ID(wpi.ID))
+	} else if wpi.Name != "" {
+		q.Where(
+			workflow.Name(wpi.Name))
+	} else {
+		return errors.New("invalid identify of workflow")
+	}
+
+	q.Select(
+		workflow.WithoutFields(
+			workflow.FieldAnnotations,
+			workflow.FieldCreateTime,
+			workflow.FieldUpdateTime,
+			workflow.FieldVersion,
+		)...,
+	)
+
+	var e *Workflow
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Workflow)
+		}
+	}
+
+	_w := wpi.WorkflowUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _w)
+	if err != nil {
+		return err
+	}
+
+	wpi.patchedEntity = _obj.(*Workflow)
 	return nil
 }
 

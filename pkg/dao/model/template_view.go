@@ -16,6 +16,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // TemplateCreateInput holds the creation input of the Template entity,
@@ -357,6 +358,124 @@ func (tdi *TemplateDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet,
 		}
 	}
 
+	return nil
+}
+
+// TemplatePatchInput holds the patch input of the Template entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type TemplatePatchInput struct {
+	TemplateUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *Template `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the Template patched entity,
+// after validating.
+func (tpi *TemplatePatchInput) Model() *Template {
+	if tpi == nil {
+		return nil
+	}
+
+	return tpi.patchedEntity
+}
+
+// Validate checks the TemplatePatchInput entity.
+func (tpi *TemplatePatchInput) Validate() error {
+	if tpi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return tpi.ValidateWith(tpi.inputConfig.Context, tpi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the TemplatePatchInput entity with the given context and client set.
+func (tpi *TemplatePatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := tpi.TemplateUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.Templates().Query()
+
+	// Validate when querying under the Project route.
+	if tpi.Project != nil {
+		if err := tpi.Project.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				tpi.Project = nil
+				q.Where(
+					template.ProjectIDIsNil())
+			}
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				template.ProjectID(tpi.Project.ID))
+		}
+	} else {
+		q.Where(
+			template.ProjectIDIsNil())
+	}
+
+	if tpi.Refer != nil {
+		if tpi.Refer.IsID() {
+			q.Where(
+				template.ID(tpi.Refer.ID()))
+		} else if refers := tpi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				template.Name(refers[0].String()))
+		} else {
+			return errors.New("invalid identify refer of template")
+		}
+	} else if tpi.ID != "" {
+		q.Where(
+			template.ID(tpi.ID))
+	} else if tpi.Name != "" {
+		q.Where(
+			template.Name(tpi.Name))
+	} else {
+		return errors.New("invalid identify of template")
+	}
+
+	q.Select(
+		template.WithoutFields(
+			template.FieldCreateTime,
+			template.FieldUpdateTime,
+			template.FieldStatus,
+			template.FieldIcon,
+		)...,
+	)
+
+	var e *Template
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Template)
+		}
+	}
+
+	_t := tpi.TemplateUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _t)
+	if err != nil {
+		return err
+	}
+
+	tpi.patchedEntity = _obj.(*Template)
 	return nil
 }
 

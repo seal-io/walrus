@@ -17,6 +17,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // CatalogCreateInput holds the creation input of the Catalog entity,
@@ -364,6 +365,125 @@ func (cdi *CatalogDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 		}
 	}
 
+	return nil
+}
+
+// CatalogPatchInput holds the patch input of the Catalog entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type CatalogPatchInput struct {
+	CatalogUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *Catalog `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the Catalog patched entity,
+// after validating.
+func (cpi *CatalogPatchInput) Model() *Catalog {
+	if cpi == nil {
+		return nil
+	}
+
+	return cpi.patchedEntity
+}
+
+// Validate checks the CatalogPatchInput entity.
+func (cpi *CatalogPatchInput) Validate() error {
+	if cpi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return cpi.ValidateWith(cpi.inputConfig.Context, cpi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the CatalogPatchInput entity with the given context and client set.
+func (cpi *CatalogPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := cpi.CatalogUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.Catalogs().Query()
+
+	// Validate when querying under the Project route.
+	if cpi.Project != nil {
+		if err := cpi.Project.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				cpi.Project = nil
+				q.Where(
+					catalog.ProjectIDIsNil())
+			}
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				catalog.ProjectID(cpi.Project.ID))
+		}
+	} else {
+		q.Where(
+			catalog.ProjectIDIsNil())
+	}
+
+	if cpi.Refer != nil {
+		if cpi.Refer.IsID() {
+			q.Where(
+				catalog.ID(cpi.Refer.ID()))
+		} else if refers := cpi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				catalog.Name(refers[0].String()))
+		} else {
+			return errors.New("invalid identify refer of catalog")
+		}
+	} else if cpi.ID != "" {
+		q.Where(
+			catalog.ID(cpi.ID))
+	} else if cpi.Name != "" {
+		q.Where(
+			catalog.Name(cpi.Name))
+	} else {
+		return errors.New("invalid identify of catalog")
+	}
+
+	q.Select(
+		catalog.WithoutFields(
+			catalog.FieldAnnotations,
+			catalog.FieldCreateTime,
+			catalog.FieldUpdateTime,
+			catalog.FieldStatus,
+			catalog.FieldSync,
+		)...,
+	)
+
+	var e *Catalog
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Catalog)
+		}
+	}
+
+	_c := cpi.CatalogUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _c)
+	if err != nil {
+		return err
+	}
+
+	cpi.patchedEntity = _obj.(*Catalog)
 	return nil
 }
 

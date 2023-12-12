@@ -15,6 +15,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // ResourceComponentCreateInput holds the creation input of the ResourceComponent entity,
@@ -567,6 +568,127 @@ func (rcdi *ResourceComponentDeleteInputs) ValidateWith(ctx context.Context, cs 
 		return errors.New("found unrecognized item")
 	}
 
+	return nil
+}
+
+// ResourceComponentPatchInput holds the patch input of the ResourceComponent entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type ResourceComponentPatchInput struct {
+	ResourceComponentUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *ResourceComponent `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the ResourceComponent patched entity,
+// after validating.
+func (rcpi *ResourceComponentPatchInput) Model() *ResourceComponent {
+	if rcpi == nil {
+		return nil
+	}
+
+	return rcpi.patchedEntity
+}
+
+// Validate checks the ResourceComponentPatchInput entity.
+func (rcpi *ResourceComponentPatchInput) Validate() error {
+	if rcpi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return rcpi.ValidateWith(rcpi.inputConfig.Context, rcpi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the ResourceComponentPatchInput entity with the given context and client set.
+func (rcpi *ResourceComponentPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := rcpi.ResourceComponentUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.ResourceComponents().Query()
+
+	// Validate when querying under the Project route.
+	if rcpi.Project != nil {
+		if err := rcpi.Project.ValidateWith(ctx, cs, cache); err != nil {
+			return err
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				resourcecomponent.ProjectID(rcpi.Project.ID))
+		}
+	}
+
+	// Validate when querying under the Environment route.
+	if rcpi.Environment != nil {
+		if err := rcpi.Environment.ValidateWith(ctx, cs, cache); err != nil {
+			return err
+		} else {
+			q.Where(
+				resourcecomponent.EnvironmentID(rcpi.Environment.ID))
+		}
+	}
+
+	// Validate when querying under the Resource route.
+	if rcpi.Resource != nil {
+		if err := rcpi.Resource.ValidateWith(ctx, cs, cache); err != nil {
+			return err
+		} else {
+			q.Where(
+				resourcecomponent.ResourceID(rcpi.Resource.ID))
+		}
+	}
+
+	if rcpi.Refer != nil {
+		if rcpi.Refer.IsID() {
+			q.Where(
+				resourcecomponent.ID(rcpi.Refer.ID()))
+		} else {
+			return errors.New("invalid identify refer of resourcecomponent")
+		}
+	} else if rcpi.ID != "" {
+		q.Where(
+			resourcecomponent.ID(rcpi.ID))
+	} else {
+		return errors.New("invalid identify of resourcecomponent")
+	}
+
+	q.Select(
+		resourcecomponent.WithoutFields(
+			resourcecomponent.FieldCreateTime,
+			resourcecomponent.FieldUpdateTime,
+		)...,
+	)
+
+	var e *ResourceComponent
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*ResourceComponent)
+		}
+	}
+
+	_rc := rcpi.ResourceComponentUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _rc)
+	if err != nil {
+		return err
+	}
+
+	rcpi.patchedEntity = _obj.(*ResourceComponent)
 	return nil
 }
 

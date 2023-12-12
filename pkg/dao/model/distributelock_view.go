@@ -12,6 +12,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model/distributelock"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // DistributeLockCreateInput holds the creation input of the DistributeLock entity,
@@ -253,6 +254,93 @@ func (dldi *DistributeLockDeleteInputs) ValidateWith(ctx context.Context, cs Cli
 		return errors.New("found unrecognized item")
 	}
 
+	return nil
+}
+
+// DistributeLockPatchInput holds the patch input of the DistributeLock entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type DistributeLockPatchInput struct {
+	DistributeLockUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *DistributeLock `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the DistributeLock patched entity,
+// after validating.
+func (dlpi *DistributeLockPatchInput) Model() *DistributeLock {
+	if dlpi == nil {
+		return nil
+	}
+
+	return dlpi.patchedEntity
+}
+
+// Validate checks the DistributeLockPatchInput entity.
+func (dlpi *DistributeLockPatchInput) Validate() error {
+	if dlpi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return dlpi.ValidateWith(dlpi.inputConfig.Context, dlpi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the DistributeLockPatchInput entity with the given context and client set.
+func (dlpi *DistributeLockPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := dlpi.DistributeLockUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.DistributeLocks().Query()
+
+	if dlpi.Refer != nil {
+		if dlpi.Refer.IsString() {
+			q.Where(
+				distributelock.ID(dlpi.Refer.String()))
+		} else {
+			return errors.New("invalid identify refer of distributelock")
+		}
+	} else if dlpi.ID != "" {
+		q.Where(
+			distributelock.ID(dlpi.ID))
+	} else {
+		return errors.New("invalid identify of distributelock")
+	}
+
+	q.Select(
+		distributelock.WithoutFields()...,
+	)
+
+	var e *DistributeLock
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*DistributeLock)
+		}
+	}
+
+	_dl := dlpi.DistributeLockUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _dl)
+	if err != nil {
+		return err
+	}
+
+	dlpi.patchedEntity = _obj.(*DistributeLock)
 	return nil
 }
 

@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // ConnectorCreateInput holds the creation input of the Connector entity,
@@ -395,6 +396,124 @@ func (cdi *ConnectorDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet
 		}
 	}
 
+	return nil
+}
+
+// ConnectorPatchInput holds the patch input of the Connector entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type ConnectorPatchInput struct {
+	ConnectorUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *Connector `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the Connector patched entity,
+// after validating.
+func (cpi *ConnectorPatchInput) Model() *Connector {
+	if cpi == nil {
+		return nil
+	}
+
+	return cpi.patchedEntity
+}
+
+// Validate checks the ConnectorPatchInput entity.
+func (cpi *ConnectorPatchInput) Validate() error {
+	if cpi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return cpi.ValidateWith(cpi.inputConfig.Context, cpi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the ConnectorPatchInput entity with the given context and client set.
+func (cpi *ConnectorPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := cpi.ConnectorUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.Connectors().Query()
+
+	// Validate when querying under the Project route.
+	if cpi.Project != nil {
+		if err := cpi.Project.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				cpi.Project = nil
+				q.Where(
+					connector.ProjectIDIsNil())
+			}
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				connector.ProjectID(cpi.Project.ID))
+		}
+	} else {
+		q.Where(
+			connector.ProjectIDIsNil())
+	}
+
+	if cpi.Refer != nil {
+		if cpi.Refer.IsID() {
+			q.Where(
+				connector.ID(cpi.Refer.ID()))
+		} else if refers := cpi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				connector.Name(refers[0].String()))
+		} else {
+			return errors.New("invalid identify refer of connector")
+		}
+	} else if cpi.ID != "" {
+		q.Where(
+			connector.ID(cpi.ID))
+	} else if cpi.Name != "" {
+		q.Where(
+			connector.Name(cpi.Name))
+	} else {
+		return errors.New("invalid identify of connector")
+	}
+
+	q.Select(
+		connector.WithoutFields(
+			connector.FieldAnnotations,
+			connector.FieldCreateTime,
+			connector.FieldUpdateTime,
+			connector.FieldStatus,
+		)...,
+	)
+
+	var e *Connector
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Connector)
+		}
+	}
+
+	_c := cpi.ConnectorUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _c)
+	if err != nil {
+		return err
+	}
+
+	cpi.patchedEntity = _obj.(*Connector)
 	return nil
 }
 

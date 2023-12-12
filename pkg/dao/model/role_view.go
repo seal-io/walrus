@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/role"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // RoleCreateInput holds the creation input of the Role entity,
@@ -267,6 +268,98 @@ func (rdi *RoleDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cac
 		return errors.New("found unrecognized item")
 	}
 
+	return nil
+}
+
+// RolePatchInput holds the patch input of the Role entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type RolePatchInput struct {
+	RoleUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *Role `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the Role patched entity,
+// after validating.
+func (rpi *RolePatchInput) Model() *Role {
+	if rpi == nil {
+		return nil
+	}
+
+	return rpi.patchedEntity
+}
+
+// Validate checks the RolePatchInput entity.
+func (rpi *RolePatchInput) Validate() error {
+	if rpi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return rpi.ValidateWith(rpi.inputConfig.Context, rpi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the RolePatchInput entity with the given context and client set.
+func (rpi *RolePatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := rpi.RoleUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.Roles().Query()
+
+	if rpi.Refer != nil {
+		if rpi.Refer.IsString() {
+			q.Where(
+				role.ID(rpi.Refer.String()))
+		} else {
+			return errors.New("invalid identify refer of role")
+		}
+	} else if rpi.ID != "" {
+		q.Where(
+			role.ID(rpi.ID))
+	} else {
+		return errors.New("invalid identify of role")
+	}
+
+	q.Select(
+		role.WithoutFields(
+			role.FieldCreateTime,
+			role.FieldUpdateTime,
+			role.FieldSession,
+			role.FieldBuiltin,
+		)...,
+	)
+
+	var e *Role
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Role)
+		}
+	}
+
+	_r := rpi.RoleUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _r)
+	if err != nil {
+		return err
+	}
+
+	rpi.patchedEntity = _obj.(*Role)
 	return nil
 }
 

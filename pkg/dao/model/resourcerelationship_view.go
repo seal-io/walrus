@@ -13,6 +13,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // ResourceRelationshipCreateInput holds the creation input of the ResourceRelationship entity,
@@ -272,6 +273,97 @@ func (rrdi *ResourceRelationshipDeleteInputs) ValidateWith(ctx context.Context, 
 		return errors.New("found unrecognized item")
 	}
 
+	return nil
+}
+
+// ResourceRelationshipPatchInput holds the patch input of the ResourceRelationship entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type ResourceRelationshipPatchInput struct {
+	ResourceRelationshipUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *ResourceRelationship `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the ResourceRelationship patched entity,
+// after validating.
+func (rrpi *ResourceRelationshipPatchInput) Model() *ResourceRelationship {
+	if rrpi == nil {
+		return nil
+	}
+
+	return rrpi.patchedEntity
+}
+
+// Validate checks the ResourceRelationshipPatchInput entity.
+func (rrpi *ResourceRelationshipPatchInput) Validate() error {
+	if rrpi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return rrpi.ValidateWith(rrpi.inputConfig.Context, rrpi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the ResourceRelationshipPatchInput entity with the given context and client set.
+func (rrpi *ResourceRelationshipPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := rrpi.ResourceRelationshipUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.ResourceRelationships().Query()
+
+	if rrpi.Refer != nil {
+		if rrpi.Refer.IsID() {
+			q.Where(
+				resourcerelationship.ID(rrpi.Refer.ID()))
+		} else {
+			return errors.New("invalid identify refer of resourcerelationship")
+		}
+	} else if rrpi.ID != "" {
+		q.Where(
+			resourcerelationship.ID(rrpi.ID))
+	} else {
+		return errors.New("invalid identify of resourcerelationship")
+	}
+
+	q.Select(
+		resourcerelationship.WithoutFields(
+			resourcerelationship.FieldCreateTime,
+			resourcerelationship.FieldPath,
+			resourcerelationship.FieldType,
+		)...,
+	)
+
+	var e *ResourceRelationship
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*ResourceRelationship)
+		}
+	}
+
+	_rr := rrpi.ResourceRelationshipUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _rr)
+	if err != nil {
+		return err
+	}
+
+	rrpi.patchedEntity = _obj.(*ResourceRelationship)
 	return nil
 }
 
