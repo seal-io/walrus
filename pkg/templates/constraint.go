@@ -125,6 +125,10 @@ func isConstraintSatisfied(schema *types.TemplateVersionSchema) (bool, error) {
 		return true, nil
 	}
 
+	if schema == nil || schema.OpenAPISchema == nil || schema.OpenAPISchema.Info == nil {
+		return false, nil
+	}
+
 	semv, err := semver.NewVersion(strings.TrimPrefix(v, "v"))
 	if err != nil {
 		return false, err
