@@ -52,3 +52,14 @@ func FillLeft(s string, w int) string {
 func FillRight(s string, w int) string {
 	return runewidth.FillRight(s, w)
 }
+
+// HasSuffix returns true when one of the suffixes matched.
+func HasSuffix(s string, suffixes ...string) bool {
+	for _, suffix := range suffixes {
+		if len(s) >= len(suffix) && s[len(s)-len(suffix):] == suffix {
+			return true
+		}
+	}
+
+	return false
+}
