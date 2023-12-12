@@ -49,6 +49,10 @@ func (p Param) OptionName() string {
 
 // Serialize the parameter based on the type/style/explode.
 func (p Param) Serialize(value any) []string {
+	if value == nil {
+		return nil
+	}
+
 	v := reflect.ValueOf(value)
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()

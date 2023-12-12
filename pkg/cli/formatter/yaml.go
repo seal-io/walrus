@@ -1,6 +1,7 @@
 package formatter
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 
@@ -35,6 +36,11 @@ func (f *YamlFormatter) Format(resp *http.Response) ([]byte, error) {
 	b, err := yaml.Marshal(data)
 	if err != nil {
 		return nil, err
+	}
+
+	// Response status is not 200.
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(b))
 	}
 
 	return b, nil

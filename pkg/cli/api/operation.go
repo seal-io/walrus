@@ -36,6 +36,9 @@ type Operation struct {
 	Hidden        bool        `json:"hidden,omitempty"`
 	Deprecated    string      `json:"deprecated,omitempty"`
 	Formats       []string    `json:"formats,omitempty"`
+
+	// CmdIgnore is used to ignore the operation when generating CLI commands.
+	CmdIgnore bool `json:"cmdIgnore,omitempty"`
 }
 
 // Command returns a Cobra command instance for this operation.
@@ -236,7 +239,7 @@ func (o Operation) Request(
 
 	for _, param := range o.HeaderParams {
 		// Ignore flags not passed from the user.
-		if !cmd.Flags().Changed(param.OptionName()) {
+		if cmd != nil && !cmd.Flags().Changed(param.OptionName()) {
 			continue
 		}
 
