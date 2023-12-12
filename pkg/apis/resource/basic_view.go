@@ -22,6 +22,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/deployer/terraform"
+	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	"github.com/seal-io/walrus/pkg/resourcedefinitions"
 	"github.com/seal-io/walrus/pkg/terraform/convertor"
 	"github.com/seal-io/walrus/utils/errorx"
@@ -83,6 +84,125 @@ func (r *DeleteRequest) Validate() error {
 		if err = ValidateRevisionsStatus(r.Context, r.Client, r.ID); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+type PatchRequest struct {
+	model.ResourcePatchInput `path:",inline" json:",inline"`
+
+	Draft bool `json:"draft,default=false"`
+}
+
+func (r *PatchRequest) Validate() error {
+	if err := r.ResourcePatchInput.Validate(); err != nil {
+		return err
+	}
+
+	patched := r.Model()
+
+	entity, err := r.Client.Resources().Query().
+		Where(resource.ID(r.ID)).
+		Select(
+			resource.FieldTemplateID,
+			resource.FieldResourceDefinitionID,
+			resource.FieldStatus,
+		).
+		WithTemplate(func(tvq *model.TemplateVersionQuery) {
+			tvq.Select(
+				templateversion.FieldName,
+				templateversion.FieldUiSchema,
+				templateversion.FieldSchema,
+				templateversion.FieldVersion)
+		}).
+		WithResourceDefinition(func(rdq *model.ResourceDefinitionQuery) {
+			rdq.Select(
+				resourcedefinition.FieldType,
+			)
+		}).
+		Only(r.Context)
+	if err != nil {
+		return fmt.Errorf("failed to get resource: %w", err)
+	}
+
+	if r.Draft && !pkgresource.IsInactive(entity) {
+		return errorx.HttpErrorf(http.StatusBadRequest,
+			"cannot update resource draft in %q status", entity.Status.SummaryStatus)
+	}
+
+	switch {
+	case entity.TemplateID != nil:
+		if patched.TemplateID.String() != entity.TemplateID.String() {
+			return errors.New("invalid template: immutable")
+		}
+
+		// Verify attributes with schema.
+		// TODO(thxCode): migrate schema to ui schema, then reduce if-else.
+		tv := entity.Edges.Template
+		if s := tv.UiSchema; !s.IsEmpty() {
+			err = r.Attributes.ValidateWith(s.VariableSchema())
+			if err != nil {
+				return fmt.Errorf("invalid variables: violate ui schema: %w", err)
+			}
+		} else if s := tv.Schema; !s.IsEmpty() {
+			err = r.Attributes.ValidateWith(s.VariableSchema())
+			if err != nil {
+				return fmt.Errorf("invalid variables: %w", err)
+			}
+		}
+	case entity.ResourceDefinitionID != nil:
+		if patched.ResourceDefinitionID.String() != entity.ResourceDefinitionID.String() {
+			return errors.New("invalid resource definition: immutable")
+		}
+
+		env, err := r.Client.Environments().Query().
+			Where(environment.ID(entity.EnvironmentID)).
+			Select(
+				environment.FieldID,
+				environment.FieldName,
+				environment.FieldLabels,
+			).
+			WithProject(func(pq *model.ProjectQuery) {
+				pq.Select(project.FieldName)
+			}).
+			Only(r.Context)
+		if err != nil {
+			return fmt.Errorf("failed to get environment: %w", err)
+		}
+
+		rule := resourcedefinitions.Match(
+			entity.Edges.ResourceDefinition.Edges.MatchingRules,
+			env.Edges.Project.Name,
+			env.Name,
+			env.Type,
+			env.Labels,
+			patched.Labels,
+		)
+		if rule == nil {
+			return fmt.Errorf(
+				"resource definition %s does not match environment %s",
+				entity.ResourceDefinitionID,
+				env.Name,
+			)
+		}
+	default:
+		return errors.New("template or resource definition is required")
+	}
+
+	// Verify that variables in attributes are valid.
+	if err = validateVariable(
+		r.Context,
+		r.Client,
+		patched.Attributes,
+		patched.Name,
+		patched.ProjectID,
+		patched.EnvironmentID); err != nil {
+		return err
+	}
+
+	if err = ValidateRevisionsStatus(r.Context, r.Client, patched.ID); err != nil {
+		return err
 	}
 
 	return nil

@@ -12,6 +12,13 @@ import (
 )
 
 type (
+	GetRequest struct {
+		model.VariableQueryInput `path:",inline"`
+	}
+	GetResponse = *model.VariableOutput
+)
+
+type (
 	CreateRequest struct {
 		model.VariableCreateInput `path:",inline" json:",inline"`
 	}
@@ -39,6 +46,8 @@ type UpdateRequest = model.VariableUpdateInput
 
 type DeleteRequest = model.VariableDeleteInput
 
+type PatchRequest = model.VariablePatchInput
+
 type (
 	CollectionGetRequest struct {
 		model.VariableQueryInputs `path:",inline" query:",inline"`
@@ -54,6 +63,11 @@ type (
 )
 
 type CollectionDeleteRequest = model.VariableDeleteInputs
+
+type (
+	CollectionCreateRequest  = model.VariableCreateInputs
+	CollectionCreateResponse = []*model.VariableOutput
+)
 
 func exposeVariable(in *model.Variable) *model.VariableOutput {
 	if in.Sensitive {

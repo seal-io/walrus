@@ -95,6 +95,12 @@ func (h Handler) Delete(req DeleteRequest) (err error) {
 		destroyOpts)
 }
 
+func (h Handler) Patch(req PatchRequest) error {
+	entity := req.Model()
+
+	return h.upgrade(req.Context, entity, req.Draft)
+}
+
 func (h Handler) CollectionCreate(req CollectionCreateRequest) (CollectionCreateResponse, error) {
 	entities := req.Model()
 

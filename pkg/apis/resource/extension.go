@@ -34,12 +34,15 @@ import (
 
 func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 	entity := req.Model()
+	return h.upgrade(req.Context, entity, req.Draft)
+}
 
-	if req.Draft {
+func (h Handler) upgrade(ctx context.Context, entity *model.Resource, draft bool) error {
+	if draft {
 		_, err := h.modelClient.Resources().
 			UpdateOne(entity).
 			Set(entity).
-			Save(req.Context)
+			Save(ctx)
 
 		return err
 	}
@@ -48,10 +51,10 @@ func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 	status.ResourceStatusDeployed.Reset(entity, "Upgrading")
 	entity.Status.SetSummary(status.WalkResource(&entity.Status))
 
-	err := h.modelClient.WithTx(req.Context, func(tx *model.Tx) (err error) {
+	err := h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
 		entity, err = tx.Resources().UpdateOne(entity).
 			Set(entity).
-			SaveE(req.Context, dao.ResourceDependenciesEdgeSave)
+			SaveE(ctx, dao.ResourceDependenciesEdgeSave)
 
 		return err
 	})
@@ -59,7 +62,7 @@ func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 		return errorx.Wrap(err, "error updating service")
 	}
 
-	dp, err := h.getDeployer(req.Context)
+	dp, err := h.getDeployer(ctx)
 	if err != nil {
 		return err
 	}
@@ -69,14 +72,14 @@ func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 		Deployer: dp,
 	}
 
-	ready, err := pkgresource.CheckDependencyStatus(req.Context, h.modelClient, entity)
+	ready, err := pkgresource.CheckDependencyStatus(ctx, h.modelClient, entity)
 	if err != nil {
 		return errorx.Wrap(err, "error checking dependency status")
 	}
 
 	if ready {
 		return pkgresource.Apply(
-			req.Context,
+			ctx,
 			h.modelClient,
 			entity,
 			applyOpts)
