@@ -336,6 +336,7 @@ const (
 	resourceRouteNameGet    = "Get"
 	resourceRouteNameUpdate = "Update"
 	resourceRouteNameDelete = "Delete"
+	resourceRouteNamePatch  = "Patch"
 
 	resourceRouteNameCollectionPrefix = "Collection"
 	resourceRouteNameCollectionCreate = resourceRouteNameCollectionPrefix + resourceRouteNameCreate
@@ -436,6 +437,7 @@ func routeHandler(
 		resourceRouteNameGet,
 		resourceRouteNameUpdate,
 		resourceRouteNameDelete,
+		resourceRouteNamePatch,
 		resourceRouteNameCollectionCreate,
 		resourceRouteNameCollectionGet,
 		resourceRouteNameCollectionUpdate,
@@ -487,6 +489,8 @@ func routeHandler(
 					route.Method = http.MethodPut
 				case strings.HasSuffix(route.GoFunc, resourceRouteNameDelete):
 					route.Method = http.MethodDelete
+				case strings.HasSuffix(route.GoFunc, resourceRouteNamePatch):
+					route.Method = http.MethodPatch
 				}
 
 				switch {
@@ -695,6 +699,21 @@ func routeHandler(
 				// For example, the following are valid:
 				// - CollectionDelete(Input) error
 				// - Delete(Input) error.
+			}
+		case http.MethodPatch:
+			switch {
+			default:
+				logger.Warn("invalid patch route func output parameter quantity")
+				continue
+			case route.Custom && goCallerTypeNumOut <= 2:
+				// For example, the following are valid:
+				// - For IResourceHandler, Route<Something>(Input(route:Patch=subpath)) (Output, error)
+				// - For IResourceHandler, Route<Something>(Input(route:Patch=subpath)) error
+				// - <Anything>(Input(route:Patch=path)) (Output, error)
+				// - <Anything>(Input(route:Patch=path)) error.
+			case !route.Custom && goCallerTypeNumOut == 1:
+				// For example, the following are valid:
+				// - Patch(Input) error.
 			}
 		}
 
