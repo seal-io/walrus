@@ -17,6 +17,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // ResourceCreateInput holds the creation input of the Resource entity,
@@ -452,6 +453,125 @@ func (rdi *ResourceDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet,
 		}
 	}
 
+	return nil
+}
+
+// ResourcePatchInput holds the patch input of the Resource entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type ResourcePatchInput struct {
+	ResourceUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *Resource `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the Resource patched entity,
+// after validating.
+func (rpi *ResourcePatchInput) Model() *Resource {
+	if rpi == nil {
+		return nil
+	}
+
+	return rpi.patchedEntity
+}
+
+// Validate checks the ResourcePatchInput entity.
+func (rpi *ResourcePatchInput) Validate() error {
+	if rpi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return rpi.ValidateWith(rpi.inputConfig.Context, rpi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the ResourcePatchInput entity with the given context and client set.
+func (rpi *ResourcePatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := rpi.ResourceUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.Resources().Query()
+
+	// Validate when querying under the Project route.
+	if rpi.Project != nil {
+		if err := rpi.Project.ValidateWith(ctx, cs, cache); err != nil {
+			return err
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				resource.ProjectID(rpi.Project.ID))
+		}
+	}
+
+	// Validate when querying under the Environment route.
+	if rpi.Environment != nil {
+		if err := rpi.Environment.ValidateWith(ctx, cs, cache); err != nil {
+			return err
+		} else {
+			q.Where(
+				resource.EnvironmentID(rpi.Environment.ID))
+		}
+	}
+
+	if rpi.Refer != nil {
+		if rpi.Refer.IsID() {
+			q.Where(
+				resource.ID(rpi.Refer.ID()))
+		} else if refers := rpi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				resource.Name(refers[0].String()))
+		} else {
+			return errors.New("invalid identify refer of resource")
+		}
+	} else if rpi.ID != "" {
+		q.Where(
+			resource.ID(rpi.ID))
+	} else if rpi.Name != "" {
+		q.Where(
+			resource.Name(rpi.Name))
+	} else {
+		return errors.New("invalid identify of resource")
+	}
+
+	q.Select(
+		resource.WithoutFields(
+			resource.FieldAnnotations,
+			resource.FieldCreateTime,
+			resource.FieldUpdateTime,
+			resource.FieldStatus,
+		)...,
+	)
+
+	var e *Resource
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Resource)
+		}
+	}
+
+	_r := rpi.ResourceUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _r)
+	if err != nil {
+		return err
+	}
+
+	rpi.patchedEntity = _obj.(*Resource)
 	return nil
 }
 

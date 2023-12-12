@@ -15,6 +15,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // PerspectiveCreateInput holds the creation input of the Perspective entity,
@@ -315,6 +316,103 @@ func (pdi *PerspectiveDeleteInputs) ValidateWith(ctx context.Context, cs ClientS
 		}
 	}
 
+	return nil
+}
+
+// PerspectivePatchInput holds the patch input of the Perspective entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type PerspectivePatchInput struct {
+	PerspectiveUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *Perspective `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the Perspective patched entity,
+// after validating.
+func (ppi *PerspectivePatchInput) Model() *Perspective {
+	if ppi == nil {
+		return nil
+	}
+
+	return ppi.patchedEntity
+}
+
+// Validate checks the PerspectivePatchInput entity.
+func (ppi *PerspectivePatchInput) Validate() error {
+	if ppi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return ppi.ValidateWith(ppi.inputConfig.Context, ppi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the PerspectivePatchInput entity with the given context and client set.
+func (ppi *PerspectivePatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := ppi.PerspectiveUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.Perspectives().Query()
+
+	if ppi.Refer != nil {
+		if ppi.Refer.IsID() {
+			q.Where(
+				perspective.ID(ppi.Refer.ID()))
+		} else if refers := ppi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				perspective.Name(refers[0].String()))
+		} else {
+			return errors.New("invalid identify refer of perspective")
+		}
+	} else if ppi.ID != "" {
+		q.Where(
+			perspective.ID(ppi.ID))
+	} else if ppi.Name != "" {
+		q.Where(
+			perspective.Name(ppi.Name))
+	} else {
+		return errors.New("invalid identify of perspective")
+	}
+
+	q.Select(
+		perspective.WithoutFields(
+			perspective.FieldAnnotations,
+			perspective.FieldCreateTime,
+			perspective.FieldUpdateTime,
+		)...,
+	)
+
+	var e *Perspective
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*Perspective)
+		}
+	}
+
+	_p := ppi.PerspectiveUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _p)
+	if err != nil {
+		return err
+	}
+
+	ppi.patchedEntity = _obj.(*Perspective)
 	return nil
 }
 

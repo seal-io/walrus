@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/costreport"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // CostReportCreateInput holds the creation input of the CostReport entity,
@@ -417,6 +418,93 @@ func (crdi *CostReportDeleteInputs) ValidateWith(ctx context.Context, cs ClientS
 		return errors.New("found unrecognized item")
 	}
 
+	return nil
+}
+
+// CostReportPatchInput holds the patch input of the CostReport entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type CostReportPatchInput struct {
+	CostReportUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *CostReport `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the CostReport patched entity,
+// after validating.
+func (crpi *CostReportPatchInput) Model() *CostReport {
+	if crpi == nil {
+		return nil
+	}
+
+	return crpi.patchedEntity
+}
+
+// Validate checks the CostReportPatchInput entity.
+func (crpi *CostReportPatchInput) Validate() error {
+	if crpi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return crpi.ValidateWith(crpi.inputConfig.Context, crpi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the CostReportPatchInput entity with the given context and client set.
+func (crpi *CostReportPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := crpi.CostReportUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.CostReports().Query()
+
+	if crpi.Refer != nil {
+		if crpi.Refer.IsNumeric() {
+			q.Where(
+				costreport.ID(crpi.Refer.Int()))
+		} else {
+			return errors.New("invalid identify refer of costreport")
+		}
+	} else if crpi.ID != 0 {
+		q.Where(
+			costreport.ID(crpi.ID))
+	} else {
+		return errors.New("invalid identify of costreport")
+	}
+
+	q.Select(
+		costreport.WithoutFields()...,
+	)
+
+	var e *CostReport
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*CostReport)
+		}
+	}
+
+	_cr := crpi.CostReportUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _cr)
+	if err != nil {
+		return err
+	}
+
+	crpi.patchedEntity = _obj.(*CostReport)
 	return nil
 }
 

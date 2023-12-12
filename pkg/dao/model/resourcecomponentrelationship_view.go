@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponentrelationship"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // ResourceComponentRelationshipCreateInput holds the creation input of the ResourceComponentRelationship entity,
@@ -311,6 +312,101 @@ func (rcrdi *ResourceComponentRelationshipDeleteInputs) ValidateWith(ctx context
 		}
 	}
 
+	return nil
+}
+
+// ResourceComponentRelationshipPatchInput holds the patch input of the ResourceComponentRelationship entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type ResourceComponentRelationshipPatchInput struct {
+	ResourceComponentRelationshipUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *ResourceComponentRelationship `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the ResourceComponentRelationship patched entity,
+// after validating.
+func (rcrpi *ResourceComponentRelationshipPatchInput) Model() *ResourceComponentRelationship {
+	if rcrpi == nil {
+		return nil
+	}
+
+	return rcrpi.patchedEntity
+}
+
+// Validate checks the ResourceComponentRelationshipPatchInput entity.
+func (rcrpi *ResourceComponentRelationshipPatchInput) Validate() error {
+	if rcrpi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return rcrpi.ValidateWith(rcrpi.inputConfig.Context, rcrpi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the ResourceComponentRelationshipPatchInput entity with the given context and client set.
+func (rcrpi *ResourceComponentRelationshipPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := rcrpi.ResourceComponentRelationshipUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.ResourceComponentRelationships().Query()
+
+	if rcrpi.Refer != nil {
+		if rcrpi.Refer.IsID() {
+			q.Where(
+				resourcecomponentrelationship.ID(rcrpi.Refer.ID()))
+		} else if refers := rcrpi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				resourcecomponentrelationship.Type(refers[0].String()))
+		} else {
+			return errors.New("invalid identify refer of resourcecomponentrelationship")
+		}
+	} else if rcrpi.ID != "" {
+		q.Where(
+			resourcecomponentrelationship.ID(rcrpi.ID))
+	} else if rcrpi.Type != "" {
+		q.Where(
+			resourcecomponentrelationship.Type(rcrpi.Type))
+	} else {
+		return errors.New("invalid identify of resourcecomponentrelationship")
+	}
+
+	q.Select(
+		resourcecomponentrelationship.WithoutFields(
+			resourcecomponentrelationship.FieldCreateTime,
+		)...,
+	)
+
+	var e *ResourceComponentRelationship
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*ResourceComponentRelationship)
+		}
+	}
+
+	_rcr := rcrpi.ResourceComponentRelationshipUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _rcr)
+	if err != nil {
+		return err
+	}
+
+	rcrpi.patchedEntity = _obj.(*ResourceComponentRelationship)
 	return nil
 }
 

@@ -16,6 +16,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 // WorkflowStepExecutionCreateInput holds the creation input of the WorkflowStepExecution entity,
@@ -389,6 +390,123 @@ func (wsedi *WorkflowStepExecutionDeleteInputs) ValidateWith(ctx context.Context
 		return errors.New("found unrecognized item")
 	}
 
+	return nil
+}
+
+// WorkflowStepExecutionPatchInput holds the patch input of the WorkflowStepExecution entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type WorkflowStepExecutionPatchInput struct {
+	WorkflowStepExecutionUpdateInput `path:",inline" query:"-" json:",inline"`
+
+	patchedEntity *WorkflowStepExecution `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the WorkflowStepExecution patched entity,
+// after validating.
+func (wsepi *WorkflowStepExecutionPatchInput) Model() *WorkflowStepExecution {
+	if wsepi == nil {
+		return nil
+	}
+
+	return wsepi.patchedEntity
+}
+
+// Validate checks the WorkflowStepExecutionPatchInput entity.
+func (wsepi *WorkflowStepExecutionPatchInput) Validate() error {
+	if wsepi == nil {
+		return errors.New("nil receiver")
+	}
+
+	return wsepi.ValidateWith(wsepi.inputConfig.Context, wsepi.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the WorkflowStepExecutionPatchInput entity with the given context and client set.
+func (wsepi *WorkflowStepExecutionPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+	if cache == nil {
+		cache = map[string]any{}
+	}
+
+	if err := wsepi.WorkflowStepExecutionUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+		return err
+	}
+
+	q := cs.WorkflowStepExecutions().Query()
+
+	// Validate when querying under the Project route.
+	if wsepi.Project != nil {
+		if err := wsepi.Project.ValidateWith(ctx, cs, cache); err != nil {
+			return err
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				workflowstepexecution.ProjectID(wsepi.Project.ID))
+		}
+	}
+
+	// Validate when querying under the StageExecution route.
+	if wsepi.StageExecution != nil {
+		if err := wsepi.StageExecution.ValidateWith(ctx, cs, cache); err != nil {
+			return err
+		} else {
+			q.Where(
+				workflowstepexecution.WorkflowStageExecutionID(wsepi.StageExecution.ID))
+		}
+	}
+
+	if wsepi.Refer != nil {
+		if wsepi.Refer.IsID() {
+			q.Where(
+				workflowstepexecution.ID(wsepi.Refer.ID()))
+		} else {
+			return errors.New("invalid identify refer of workflowstepexecution")
+		}
+	} else if wsepi.ID != "" {
+		q.Where(
+			workflowstepexecution.ID(wsepi.ID))
+	} else {
+		return errors.New("invalid identify of workflowstepexecution")
+	}
+
+	q.Select(
+		workflowstepexecution.WithoutFields(
+			workflowstepexecution.FieldAnnotations,
+			workflowstepexecution.FieldCreateTime,
+			workflowstepexecution.FieldUpdateTime,
+			workflowstepexecution.FieldStatus,
+			workflowstepexecution.FieldTimes,
+			workflowstepexecution.FieldExecuteTime,
+			workflowstepexecution.FieldDuration,
+			workflowstepexecution.FieldOrder,
+		)...,
+	)
+
+	var e *WorkflowStepExecution
+	{
+		// Get cache from previous validation.
+		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+		ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+		if cv, existed := cache[ck]; !existed {
+			var err error
+			e, err = q.Only(ctx)
+			if err != nil {
+				return err
+			}
+
+			// Set cache for other validation.
+			cache[ck] = e
+		} else {
+			e = cv.(*WorkflowStepExecution)
+		}
+	}
+
+	_wse := wsepi.WorkflowStepExecutionUpdateInput.Model()
+
+	_obj, err := json.PatchObject(e, _wse)
+	if err != nil {
+		return err
+	}
+
+	wsepi.patchedEntity = _obj.(*WorkflowStepExecution)
 	return nil
 }
 
