@@ -118,6 +118,7 @@ const (
 	inputTypeQuery  = "Query"
 	inputTypeCreate = "Create"
 	inputTypeUpdate = "Update"
+	inputTypePatch  = "Patch"
 )
 
 type InputRef struct {
@@ -143,6 +144,32 @@ func (r InputRef) FieldsWithoutIndexing() []*gen.Field {
 		}
 
 		fs = append(fs, r.Fields[i])
+	}
+
+	return fs
+}
+
+// FieldsSkipWrite returns the Fields should not create and update from api.
+func (r InputRef) FieldsSkipWrite() []*gen.Field {
+	fs := make([]*gen.Field, 0, len(r.Fields))
+
+	for i := range r.Fields {
+		if r.Fields[i].StorageKey() == "" {
+			continue
+		}
+
+		a, err := annotation.ExtractAnnotation(r.Fields[i].Annotations)
+		if err != nil {
+			continue
+		}
+
+		if a.SkipStoring {
+			continue
+		}
+
+		if a.SkipInput.Create && a.SkipInput.Update {
+			fs = append(fs, r.Fields[i])
+		}
 	}
 
 	return fs
@@ -187,6 +214,8 @@ func getInput(v any, typ string) (r InputRef, err error) {
 				continue
 			case typ == inputTypeUpdate && (e.Immutable && !ea.Input.Update || ea.SkipInput.Update):
 				continue
+			case typ == inputTypePatch:
+				continue
 			default:
 			}
 
@@ -198,6 +227,8 @@ func getInput(v any, typ string) (r InputRef, err error) {
 			case typ == inputTypeCreate && ea.Input.Create:
 				continue
 			case typ == inputTypeUpdate && ea.Input.Update:
+				continue
+			case typ == inputTypePatch:
 				continue
 			}
 
@@ -276,6 +307,8 @@ func getInput(v any, typ string) (r InputRef, err error) {
 			case typ == inputTypeCreate && ea.SkipInput.Create:
 				continue
 			case typ == inputTypeUpdate && (e.Immutable && !ea.Input.Update || ea.SkipInput.Update):
+				continue
+			case typ == inputTypePatch:
 				continue
 			case e.Type.EdgeSchema.To != nil && e.Type.EdgeSchema.To.Through != nil:
 				continue
