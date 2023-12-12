@@ -68,6 +68,8 @@ type (
 		//	 ->    PUT /<plural>/:id
 		//	func Delete(<Input>) error
 		//	 -> DELETE /<plural>/:id
+		//	func Patch(<Input>) error
+		//	 ->  Patch /<plural>/:id
 		//	func CollectionCreate(<Input>) (<Output>, error)
 		//	 ->   POST /<plural>/_/batch
 		//	func CollectionGet(<Input>) (<Output>, (int,) error)

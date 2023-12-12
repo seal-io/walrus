@@ -129,6 +129,8 @@ func getOperationSummaryAndDescription(r *Route) (summary, description string) {
 			sb.WriteString("update ")
 		case http.MethodDelete:
 			sb.WriteString("delete ")
+		case http.MethodPatch:
+			sb.WriteString("patch ")
 		default:
 			sb.WriteString("get ")
 		}

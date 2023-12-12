@@ -14,6 +14,7 @@ var (
 	// CliIgnoreKinds is a list of kinds to ignore when generating CLI commands.
 	cliIgnoreKinds = []string{
 		"Subject",
+		"ProjectSubject",
 		"Token",
 		"SubjectRole",
 		"Dashboard",
@@ -58,11 +59,21 @@ func extendOperationSchema(r *Route, op *openapi3.Operation) {
 	case slices.Contains(cliIgnorePaths, r.Path):
 		op.Extensions[openapi.ExtCliIgnore] = true
 	case r.Collection:
-		if r.Method != http.MethodGet {
-			op.Extensions[openapi.ExtCliIgnore] = true
-		} else {
+		switch {
+		case r.Method == http.MethodGet:
 			op.Extensions[openapi.ExtCliOperationName] = "list"
+		case r.Method == http.MethodPost:
+			op.Extensions[openapi.ExtCliCmdIgnore] = true
+			op.Extensions[openapi.ExtCliOperationName] = "batch-create"
+		case r.Method == http.MethodDelete:
+			op.Extensions[openapi.ExtCliCmdIgnore] = true
+			op.Extensions[openapi.ExtCliOperationName] = "batch-delete"
+		default:
+			op.Extensions[openapi.ExtCliIgnore] = true
 		}
+	case r.GoFunc == resourceRouteNamePatch:
+		op.Extensions[openapi.ExtCliCmdIgnore] = true
+		op.Extensions[openapi.ExtCliOperationName] = strs.Dasherize(r.GoFunc)
 	case slices.Contains(
 		[]string{
 			resourceRouteNameCreate,
