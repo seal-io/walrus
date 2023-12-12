@@ -8,6 +8,7 @@ require (
 	github.com/allegro/bigcache/v3 v3.1.0
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/dustin/go-humanize v1.0.1
+	github.com/evanphx/json-patch v4.12.0+incompatible
 	github.com/go-co-op/gocron v1.29.0
 	github.com/go-logr/logr v1.2.4
 	github.com/go-openapi/inflect v0.19.0
@@ -54,6 +55,7 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.44.0 // indirect
