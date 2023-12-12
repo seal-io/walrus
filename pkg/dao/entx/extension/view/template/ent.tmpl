@@ -1438,7 +1438,224 @@ func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs Clien
 
 {{ end }}
 
+{{- /* PatchInput */}}
+{{ define "input/patch" }}
 
+{{ $input := getInput $ "Patch" }}
+
+{{ $singular := printf "%sPatchInput" $.Name }}
+{{ $receiver := receiver $singular }}
+
+// {{ $singular }} holds the patch input of the {{ $.Name }} entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type {{ $singular }} struct {
+    {{ printf "%sUpdateInput" $.Name }} `path:",inline" query:"-" json:",inline"`
+
+    patchedEntity *{{ $.Name }} `path:"-" query:"-" json:"-"`
+}
+
+// Model returns the {{ $.Name }} patched entity,
+// after validating.
+func ({{ $receiver }} *{{ $singular }}) Model() *{{ $.Name }} {
+    if {{ $receiver }} == nil {
+        return nil
+    }
+
+    return {{ $receiver }}.patchedEntity
+}
+
+// Validate checks the {{ $singular }} entity.
+func ({{ $receiver }} *{{ $singular }}) Validate() error {
+    if {{ $receiver }} == nil {
+        return errors.New("nil receiver")
+    }
+
+    return {{ $receiver }}.ValidateWith({{ $receiver }}.inputConfig.Context, {{ $receiver }}.inputConfig.Client, nil)
+}
+
+// ValidateWith checks the {{ $singular }} entity with the given context and client set.
+func ({{ $receiver }} *{{ $singular }}) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+    if cache == nil {
+        cache = map[string]any{}
+    }
+
+    if err := {{ $receiver }}.{{ printf "%sUpdateInput" $.Name }}.ValidateWith(ctx, cs, cache); err != nil {
+        return err
+    }
+
+    {{ $util := lower $.Name -}}
+
+    q := cs.{{ plural $.Name }}().Query()
+
+    {{ range $e := $input.PrerequisiteEdges }}
+        {{- $en := pascal (singular $e.Name) }}
+        {{- $f := $e.Field }}
+        // Validate when querying under the {{ $en }} route.
+        if {{ $receiver }}.{{ $en }} != nil {
+            {{- $optional := $e.Optional }}
+            {{- if $e.Through }}
+                {{- range $te := $e.Through.Edges }} {{ if eq $e.Type $te.Type }} {{ $optional = $te.Optional }} {{ end }} {{ end }}
+            {{- end }}
+            if err := {{ $receiver }}.{{ $en }}.ValidateWith(ctx, cs, cache); err != nil {
+                {{- if $optional }}
+                    if !IsBlankResourceReferError(err) {
+                        return err
+                    } else {
+                        {{ $receiver }}.{{ $en }} = nil
+                        {{- if $f }}
+                            q.Where(
+                                {{ $util }}.{{ $f.StructField }}IsNil())
+                        {{- else }}
+                            q.Where(
+                                predicate.{{ $.Name }}(sql.FieldIsNull({{ $util }}.{{ $en }}Column)))
+                        {{- end }}
+                    }
+                {{- else }}
+                    return err
+                {{- end }}
+            } else {
+                {{- $ants := extractAnnotation $e }}{{ if $ants.ValidateContextFuncs }}ctx = valueContext(ctx, {{ join $ants.ValidateContextFuncs ", " }}){{ end }}
+                {{- if and $f (not $e.M2M) }}
+                    q.Where(
+                        {{ $util }}.{{ $f.StructField }}({{ $receiver }}.{{ $en }}.ID))
+                {{- else if and (not $f) (not $e.M2M) }}
+                    q.Where(
+                        predicate.{{ $.Name }}(sql.FieldEQ({{ $util }}.{{ $en }}Column, {{ $receiver }}.{{ $en }}.ID)))
+                {{- else }}
+                    q.Where(
+                        {{ $util }}.Has{{ pascal $e.Name }}With({{ if $e.Through }}{{ lower $e.Through.Name }}.{{ $e.Type.Name }}ID{{ else }}{{ lower $e.Owner.Name }}.ID{{ end }}({{ $receiver }}.{{ $en }}.ID)))
+                {{- end }}
+            }
+        {{- if $optional }}
+        } else {
+            {{- if $f }}
+                q.Where(
+                    {{ $util }}.{{ $f.StructField }}IsNil())
+            {{- else }}
+                q.Where(
+                    predicate.{{ $.Name }}(sql.FieldIsNull({{ $util }}.{{ $en }}Column)))
+            {{- end }}
+        {{- end }}
+        }
+    {{ end }}
+
+    if {{ $receiver }}.Refer != nil {
+    {{- if or $.ID.IsInt $.ID.IsInt64 }}
+        if {{ $receiver }}.Refer.IsNumeric() {
+            q.Where(
+                {{ $util }}.ID({{ $receiver }}.Refer.{{ if $.ID.IsInt }}Int(){{ else }}Int64(){{ end }}))
+    {{- else if eq $.ID.Type.Ident "object.ID" }}
+        if {{ $receiver }}.Refer.IsID() {
+            q.Where(
+                {{ $util }}.ID({{ $receiver }}.Refer.ID()))
+    {{- else if $.ID.IsString }}
+        if {{ $receiver }}.Refer.IsString() {
+            q.Where(
+                {{ $util }}.ID({{ $receiver }}.Refer.String()))
+    {{- else }}
+        if {{ $receiver }}.Refer.IsID() {
+            q.Where(
+                {{ $util }}.ID({{ $receiver }}.Refer.ID()))
+    {{- end }}
+        {{- if gt (len $input.IndexFields) 0 }}
+        } else if refers := {{ $receiver }}.Refer.Split({{ len $input.IndexFields }}); len(refers) == {{ len $input.IndexFields }} {
+            q.Where(
+                {{- range $idx, $f := $input.IndexFields }}
+                    {{- $fn := $f.StructField }}
+                    {{ $util }}.{{ $fn }}(refers[{{ $idx }}].
+                    {{- if or $f.IsInt $f.IsInt64 -}}
+                        {{ if $f.IsInt }}Int()),{{ else }} Int64()),{{ end }}
+                    {{- else if $f.IsBool -}}
+                        Bool()),
+                    {{- else if $f.IsBytes -}}
+                        Bytes()),
+                    {{- else -}}
+                        String()),
+                    {{- end }}
+                {{- end -}}
+            )
+        {{- end }}
+        } else {
+            return errors.New("invalid identify refer of {{ lower $.Name }}")
+        }
+    {{- if and $.ID.Type (ge $.ID.Type.Type 9) }}
+    } else if {{ $receiver }}.ID != 0 {
+    {{- else }}
+    } else if {{ $receiver }}.ID != "" {
+    {{- end }}
+        q.Where(
+            {{ $util }}.ID({{ $receiver }}.ID))
+    {{- if gt (len $input.IndexFields) 0 }}
+    } else if
+    {{- $idx := 0 -}}
+    {{- range $idx, $f := $input.IndexFields -}}
+        {{- $fn := $f.StructField -}}
+        {{- if gt $idx 0 -}} && {{- end -}}
+        {{- if $f.NillableValue -}}
+            ({{ $receiver }}.{{ $fn }} != nil)
+        {{- else if and $f.Type (ge $f.Type.Type 9) -}} {{- /* Numeric */}}
+            ({{ $receiver }}.{{ $fn }} != 0)
+        {{- else if or $f.IsString $f.IsEnum -}}
+            ({{ $receiver }}.{{ $fn }} != "")
+        {{- else if and $f.Type $f.Type.RType (ge $f.Type.RType.Kind 21) (le $f.Type.RType.Kind 23) -}} {{- /* Map, Pointer, Slice */}}
+            ({{ $receiver }}.{{ $fn }} != nil)
+        {{- end -}}
+    {{- end -}}
+    {
+        q.Where(
+            {{- range $f := $input.IndexFields -}}
+                {{- $fn := $f.StructField }}
+                {{ $util }}.{{ $fn }}({{ $receiver }}.{{ $fn }}),
+            {{- end -}}
+        )
+    {{- end }}
+    } else {
+        return errors.New("invalid identify of {{ lower $.Name }}")
+    }
+
+    {{ $ants := extractAnnotation $ }}{{ if $ants.ValidateContextFuncs }}ctx = valueContext(ctx, {{ join $ants.ValidateContextFuncs ", " }}){{ end }}
+
+    q.Select(
+        {{ $util }}.WithoutFields(
+        {{- range $f := $input.FieldsSkipWrite }}
+        {{- $fn := $f.StructField }}
+        {{ $util }}.Field{{ $fn }},
+        {{- end }}
+        )...,
+    )
+
+    var e *{{ $.Name }}
+    {
+        // Get cache from previous validation.
+        queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
+        ck := fmt.Sprintf("stmt=%v, args=%v", queryStmt, queryArgs)
+        if cv, existed := cache[ck]; !existed {
+            var err error
+            e, err = q.Only(ctx)
+            if err != nil {
+                return err
+            }
+
+            // Set cache for other validation.
+            cache[ck] = e
+        } else {
+            e = cv.(*{{ $.Name }})
+        }
+    }
+
+    {{ $modelReceiver := printf "_%s" $.Receiver -}}
+
+    {{ $modelReceiver }} := {{ $receiver }}.{{ printf "%sUpdateInput" $.Name }}.Model()
+
+    _obj, err := json.PatchObject(e, {{ $modelReceiver }})
+    if err != nil {
+      return err
+    }
+
+    {{ $receiver }}.patchedEntity = _obj.(*{{ $.Name }})    
+    return nil
+}
+{{ end }}
 
 {{- /* Output */}}
 {{ define "output" }}
