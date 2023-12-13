@@ -263,13 +263,12 @@ func (h Handler) RouteGetResourceDefinitions(
 	var availableRds []*model.ResourceDefinition
 
 	for _, rd := range rds {
-		m := resourcedefinitions.Match(
+		m := resourcedefinitions.MatchEnvironment(
 			rd.Edges.MatchingRules,
 			env.Edges.Project.Name,
 			env.Name,
 			env.Type,
 			env.Labels,
-			nil,
 		)
 		if m != nil {
 			availableRds = append(availableRds, rd)
