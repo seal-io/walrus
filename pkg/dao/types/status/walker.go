@@ -11,7 +11,7 @@ type (
 
 	// Decide returns readable and sensible status by the given condition status and reason,
 	// and moves to next path step if both returning `isError` and `isTransitioning` are false.
-	Decide func(st ConditionStatus, reason string) (display string, isError, isTransitioning bool)
+	Decide func(st ConditionStatus, reason string) *Summary
 )
 
 // NewWalker creates a stacking walker by the given steps group,
@@ -122,7 +122,7 @@ type path[T ~string] struct {
 }
 
 func (f path[T]) Walk(st *Status) *Summary {
-	var s Summary
+	var s *Summary
 
 	// Walk the status if condition list is not empty.
 	if len(st.Conditions) != 0 {
@@ -145,7 +145,7 @@ func (f path[T]) Walk(st *Status) *Summary {
 			c := &st.Conditions[stepsConditionIndex[i]-1]
 
 			// Get summary from display result.
-			s.SummaryStatus, s.Error, s.Transitioning = f.stepsDecide[i](c.Status, c.Reason)
+			s = f.stepsDecide[i](c.Status, c.Reason)
 			s.SummaryStatusMessage = c.Message
 
 			// Quit from the walk if still error or being transitioning.
@@ -156,12 +156,12 @@ func (f path[T]) Walk(st *Status) *Summary {
 	}
 
 	// Default summary if it hasn't been configured.
-	if s.SummaryStatus == "" {
-		s.SummaryStatus, s.Error, s.Transitioning = f.stepsDecide[len(f.steps)-1]("", "")
+	if s == nil || s.SummaryStatus == "" {
+		s = f.stepsDecide[len(f.steps)-1]("", "")
 		s.SummaryStatusMessage = ""
 	}
 
-	return &s
+	return s
 }
 
 // Decision exposes ability to customize how to make a decision on one specified step.
@@ -198,15 +198,21 @@ func getGeneralDecide[T ~string](step T) Decide {
 		displays[0], displays[1], displays[2] = p+r.T, p+r.E, p+r.D
 	}
 
-	return func(st ConditionStatus, _ string) (string, bool, bool) {
+	return func(st ConditionStatus, _ string) *Summary {
 		switch st {
 		case ConditionStatusUnknown:
-			return displays[0], false, true
+			return &Summary{
+				SummaryStatus: displays[0],
+				Transitioning: true,
+			}
 		case ConditionStatusFalse:
-			return displays[1], true, false
+			return &Summary{
+				SummaryStatus: displays[1],
+				Error:         true,
+			}
 		}
 
-		return displays[2], false, false
+		return &Summary{SummaryStatus: displays[2]}
 	}
 }
 

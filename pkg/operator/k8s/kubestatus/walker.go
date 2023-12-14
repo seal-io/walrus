@@ -55,58 +55,91 @@ var podStatusPaths = status.NewWalker(
 		)
 
 		d.Make(core.PodInitialized,
-			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) *status.Summary {
 				switch st {
 				case status.ConditionStatusTrue:
-					return "Initialized", false, false
+					return &status.Summary{SummaryStatus: "Initialized"}
 				case status.ConditionStatusFalse:
 					if reason == reasonContainersNotInitialized {
-						return "Initializing", false, true
+						return &status.Summary{
+							SummaryStatus: "Initializing",
+							Transitioning: true,
+						}
 					}
-					return "InitializeFailed", true, false
+					return &status.Summary{
+						SummaryStatus: "InitializeFailed",
+						Error:         true,
+					}
 				}
-				return "Initializing", false, true
+				return &status.Summary{
+					SummaryStatus: "Initializing",
+					Transitioning: true,
+				}
 			})
 
 		d.Make(core.ContainersReady,
-			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) *status.Summary {
 				switch st {
 				case status.ConditionStatusTrue:
-					return "ContainersReady", false, false
+					return &status.Summary{SummaryStatus: "ContainersReady"}
 				case status.ConditionStatusFalse:
 					if reason == reasonPodCompleted {
 						// Completed job.
-						return "ContainersCompleted", false, false
+						return &status.Summary{
+							SummaryStatus: "ContainersCompleted",
+							Inactive:      true,
+						}
 					}
-					return "ContainersNotReady", true, false
+					return &status.Summary{
+						SummaryStatus: "ContainersNotReady",
+						Error:         true,
+					}
 				}
-				return "ContainersPreparing", false, true
+				return &status.Summary{
+					SummaryStatus: "ContainersPreparing",
+					Transitioning: true,
+				}
 			})
 
 		d.Make(core.PodReady,
-			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) *status.Summary {
 				switch st {
 				case status.ConditionStatusTrue:
-					return "Ready", false, false
+					return &status.Summary{SummaryStatus: "Ready"}
 				case status.ConditionStatusFalse:
 					if reason == reasonPodCompleted {
 						// Completed job.
-						return "Completed", false, false
+						return &status.Summary{
+							SummaryStatus: "Completed",
+							Inactive:      true,
+						}
 					}
-					return "NotReady", true, false
+					return &status.Summary{
+						SummaryStatus: "NotReady",
+						Error:         true,
+					}
 				}
-				return "Preparing", false, true //nolint: goconst
+				return &status.Summary{
+					SummaryStatus: "Preparing",
+					Transitioning: true,
+				}
 			})
 
 		d.Make(core.DisruptionTarget,
-			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) *status.Summary {
 				switch st {
 				case status.ConditionStatusTrue:
-					return "Evicted", true, false
+					return &status.Summary{
+						SummaryStatus: "Evicted",
+						Error:         true,
+					}
 				case status.ConditionStatusFalse:
-					return "Preparing", false, false
+					return &status.Summary{SummaryStatus: "Preparing"}
 				}
-				return "Evicting", false, true
+				return &status.Summary{
+					SummaryStatus: "Evicting",
+					Transitioning: true,
+				}
 			})
 	},
 )
@@ -127,14 +160,20 @@ var replicaSetStatusPaths = status.NewWalker(
 	func(d status.Decision[apps.ReplicaSetConditionType]) {
 		d.Make(
 			apps.ReplicaSetReplicaFailure,
-			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) *status.Summary {
 				switch st {
 				case status.ConditionStatusFalse:
-					return "ReplicaDeployed", false, false
+					return &status.Summary{SummaryStatus: "ReplicaDeployed"}
 				case status.ConditionStatusTrue:
-					return "ReplicaDeployFailed", true, false
+					return &status.Summary{
+						SummaryStatus: "ReplicaDeployFailed",
+						Error:         true,
+					}
 				}
-				return "ReplicaDeploying", false, true
+				return &status.Summary{
+					SummaryStatus: "ReplicaDeploying",
+					Transitioning: true,
+				}
 			},
 		)
 	},
@@ -180,25 +219,38 @@ var deploymentStatusPaths = status.NewWalker(
 	},
 	func(d status.Decision[apps.DeploymentConditionType]) {
 		d.Make(apps.DeploymentProgressing,
-			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) *status.Summary {
 				if st == status.ConditionStatusTrue && reason != "ReplicaSetUpdated" {
-					return "Progressed", false, false
+					return &status.Summary{SummaryStatus: "Progressed"}
 				}
 				if st == status.ConditionStatusUnknown && reason == "DeploymentPaused" {
-					return "Pausing", false, true
+					return &status.Summary{
+						SummaryStatus: "Pausing",
+						Transitioning: true,
+					}
 				}
-				return displayProgressing, st == status.ConditionStatusFalse, st != status.ConditionStatusFalse
+				return &status.Summary{
+					SummaryStatus: displayProgressing,
+					Error:         st == status.ConditionStatusFalse,
+					Transitioning: st != status.ConditionStatusFalse,
+				}
 			})
 
 		d.Make(apps.DeploymentReplicaFailure,
-			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) *status.Summary {
 				switch st {
 				case status.ConditionStatusFalse:
-					return "ReplicaDeployed", false, false
+					return &status.Summary{SummaryStatus: "ReplicaDeployed"}
 				case status.ConditionStatusTrue:
-					return "ReplicaDeployFailed", true, false
+					return &status.Summary{
+						SummaryStatus: "ReplicaDeployFailed",
+						Error:         true,
+					}
 				}
-				return "ReplicaDeploying", false, true
+				return &status.Summary{
+					SummaryStatus: "ReplicaDeploying",
+					Transitioning: true,
+				}
 			})
 	},
 )
@@ -231,40 +283,70 @@ var jobStatusPaths = status.NewWalker(
 	},
 	func(d status.Decision[batch.JobConditionType]) {
 		d.Make(batch.JobSuspended,
-			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) *status.Summary {
 				switch st {
 				case status.ConditionStatusTrue:
-					return "Suspending", false, true
+					return &status.Summary{
+						SummaryStatus: "Suspended",
+						Transitioning: true,
+					}
 				case status.ConditionStatusFalse:
 					if reason != "JobResumed" {
-						return displayProgressing, true, false
+						return &status.Summary{
+							SummaryStatus: displayProgressing,
+							Error:         true,
+						}
 					}
 				}
-				return displayProgressing, false, st == status.ConditionStatusUnknown
+				return &status.Summary{
+					SummaryStatus: displayProgressing,
+					Transitioning: st == status.ConditionStatusUnknown,
+				}
 			})
 
 		d.Make(batch.JobFailureTarget,
-			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) *status.Summary {
 				if st == status.ConditionStatusTrue {
-					return displayFailed, true, false
+					return &status.Summary{
+						SummaryStatus: "Failed",
+						Error:         true,
+					}
 				}
-				return displayProgressing, st == status.ConditionStatusFalse, st == status.ConditionStatusUnknown
+				return &status.Summary{
+					SummaryStatus: displayProgressing,
+					Error:         st == status.ConditionStatusFalse,
+					Transitioning: st == status.ConditionStatusUnknown,
+				}
 			})
 
 		d.Make(batch.JobFailed,
-			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) *status.Summary {
 				if st == status.ConditionStatusTrue {
-					return displayFailed, true, false
+					return &status.Summary{
+						SummaryStatus: displayFailed,
+						Error:         true,
+					}
 				}
-				return displayProgressing, st == status.ConditionStatusFalse, st == status.ConditionStatusUnknown
+				return &status.Summary{
+					SummaryStatus: displayProgressing,
+					Error:         st == status.ConditionStatusFalse,
+					Transitioning: st == status.ConditionStatusUnknown,
+				}
 			})
 
 		d.Make(batch.JobComplete,
-			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) *status.Summary {
 				if st == status.ConditionStatusTrue {
-					return "Completed", false, false
+					return &status.Summary{
+						SummaryStatus: "Completed",
+						Inactive:      true,
+					}
 				}
-				return displayProgressing, st == status.ConditionStatusFalse, st == status.ConditionStatusUnknown
+				return &status.Summary{
+					SummaryStatus: displayProgressing,
+					Error:         st == status.ConditionStatusFalse,
+					Transitioning: st == status.ConditionStatusUnknown,
+				}
 			})
 	},
 )
@@ -293,19 +375,29 @@ var hpaStatusPaths = status.NewWalker(
 	},
 	func(d status.Decision[autoscaling.HorizontalPodAutoscalerConditionType]) {
 		d.Make(autoscaling.ScalingLimited,
-			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) *status.Summary {
 				if st == status.ConditionStatusTrue {
-					return "ScalingLimited", true, false
+					return &status.Summary{
+						SummaryStatus: "ScalingLimited",
+						Error:         true,
+					}
 				}
-				return "Scaling", false, st == status.ConditionStatusUnknown
+				return &status.Summary{
+					SummaryStatus: "Scaling",
+					Transitioning: st == status.ConditionStatusUnknown,
+				}
 			})
 
 		d.Make(autoscaling.AbleToScale,
-			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) *status.Summary {
 				if st == status.ConditionStatusTrue && reason == "SucceededRescale" {
-					return "Scaled", false, false
+					return &status.Summary{SummaryStatus: "Scaled"}
 				}
-				return "Scaling", st == status.ConditionStatusFalse, true
+				return &status.Summary{
+					SummaryStatus: "Scaling",
+					Error:         st == status.ConditionStatusFalse,
+					Transitioning: true,
+				}
 			})
 	},
 )
@@ -333,27 +425,43 @@ var csrStatusPaths = status.NewWalker(
 	},
 	func(d status.Decision[certificates.RequestConditionType]) {
 		d.Make(certificates.CertificateFailed,
-			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) *status.Summary {
 				if st == status.ConditionStatusTrue {
-					return displayFailed, true, false
+					return &status.Summary{
+						SummaryStatus: displayFailed,
+						Error:         true,
+					}
 				}
-				return displaySigning, false, st == status.ConditionStatusUnknown
+				return &status.Summary{
+					SummaryStatus: displaySigning,
+					Transitioning: st == status.ConditionStatusUnknown,
+				}
 			})
 
 		d.Make(certificates.CertificateDenied,
-			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) *status.Summary {
 				if st == status.ConditionStatusTrue {
-					return "Denied", true, false
+					return &status.Summary{
+						SummaryStatus: "Denied",
+						Error:         true,
+					}
 				}
-				return displaySigning, false, st == status.ConditionStatusUnknown
+				return &status.Summary{
+					SummaryStatus: displaySigning,
+					Transitioning: st == status.ConditionStatusUnknown,
+				}
 			})
 
 		d.Make(certificates.CertificateApproved,
-			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) *status.Summary {
 				if st == status.ConditionStatusTrue {
-					return "Approved", false, false
+					return &status.Summary{SummaryStatus: "Approved"}
 				}
-				return displaySigning, st == status.ConditionStatusFalse, st == status.ConditionStatusUnknown
+				return &status.Summary{
+					SummaryStatus: displaySigning,
+					Error:         st == status.ConditionStatusFalse,
+					Transitioning: st == status.ConditionStatusUnknown,
+				}
 			})
 	},
 )
@@ -381,19 +489,31 @@ var networkPolicyStatusPaths = status.NewWalker(
 	},
 	func(d status.Decision[networking.NetworkPolicyConditionType]) {
 		d.Make(networking.NetworkPolicyConditionStatusPartialFailure,
-			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) *status.Summary {
 				if st == status.ConditionStatusTrue {
-					return "PartialFailed", true, false
+					return &status.Summary{
+						SummaryStatus: "PartialFailed",
+						Error:         true,
+					}
 				}
-				return "Accepting", false, st == status.ConditionStatusUnknown
+				return &status.Summary{
+					SummaryStatus: "Accepting",
+					Transitioning: st == status.ConditionStatusUnknown,
+				}
 			})
 
 		d.Make(networking.NetworkPolicyConditionStatusFailure,
-			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) *status.Summary {
 				if st == status.ConditionStatusTrue {
-					return displayFailed, true, false
+					return &status.Summary{
+						SummaryStatus: displayFailed,
+						Error:         true,
+					}
 				}
-				return "Accepting", false, st == status.ConditionStatusUnknown
+				return &status.Summary{
+					SummaryStatus: "Accepting",
+					Transitioning: st == status.ConditionStatusUnknown,
+				}
 			})
 	},
 )
@@ -414,17 +534,23 @@ var pdbStatusPaths = status.NewWalker(
 	},
 	func(d status.Decision[string]) {
 		d.Make(policy.DisruptionAllowedCondition,
-			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) *status.Summary {
 				switch st {
 				case status.ConditionStatusTrue:
-					return "Active", false, false
+					return &status.Summary{SummaryStatus: "Active"}
 				case status.ConditionStatusFalse:
 					if reason == "InsufficientPods" {
-						return "Active", false, false
+						return &status.Summary{SummaryStatus: "Active"}
 					}
-					return "Inactive", true, false
+					return &status.Summary{
+						SummaryStatus: "Inactive",
+						Error:         true,
+					}
 				}
-				return "Preparing", false, true
+				return &status.Summary{
+					SummaryStatus: "Preparing",
+					Transitioning: true,
+				}
 			})
 	},
 )

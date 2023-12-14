@@ -44,14 +44,52 @@ var resourceStatusPaths = NewWalker(
 	},
 	func(d Decision[ConditionType]) {
 		d.Make(ResourceStatusDeleted,
-			func(st ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st ConditionStatus, reason string) *Summary {
 				switch st {
 				case ConditionStatusUnknown:
-					return "Deleting", false, true
+					return &Summary{
+						SummaryStatus: "Deleting",
+						Transitioning: true,
+					}
 				case ConditionStatusFalse:
-					return "DeleteFailed", true, false
+					return &Summary{
+						SummaryStatus: "DeleteFailed",
+						Error:         true,
+					}
 				}
-				return "", false, false
+				return &Summary{}
+			})
+		d.Make(ResourceStatusUnDeployed,
+			func(st ConditionStatus, reason string) *Summary {
+				switch st {
+				case ConditionStatusUnknown:
+					return &Summary{
+						SummaryStatus: "Transitioning",
+						Transitioning: true,
+					}
+				case ConditionStatusFalse:
+					return &Summary{
+						SummaryStatus: "Error",
+						Error:         true,
+					}
+				}
+				return &Summary{SummaryStatus: "Undeployed", Inactive: true}
+			})
+		d.Make(ResourceStatusStopped,
+			func(st ConditionStatus, reason string) *Summary {
+				switch st {
+				case ConditionStatusUnknown:
+					return &Summary{
+						SummaryStatus: "Stopping",
+						Transitioning: true,
+					}
+				case ConditionStatusFalse:
+					return &Summary{
+						SummaryStatus: "StopFailed",
+						Error:         true,
+					}
+				}
+				return &Summary{SummaryStatus: "Stopped", Inactive: true}
 			})
 	},
 )
