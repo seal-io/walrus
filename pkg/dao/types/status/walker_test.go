@@ -50,28 +50,41 @@ func TestWalker_sxs(t *testing.T) {
 		// Arrange the default step decision logic.
 		func(d Decision[ConditionType]) {
 			d.Make(ExampleResourceStatusProgressing,
-				func(st ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+				func(st ConditionStatus, reason string) *Summary {
 					if st == ConditionStatusTrue && reason != "ReplicaSetUpdated" {
-						return "Progressed", false, false
+						return &Summary{SummaryStatus: "Progressed"}
 					}
 
 					if st == ConditionStatusUnknown && reason == "DeploymentPaused" {
-						return "Pausing", false, true
+						return &Summary{
+							SummaryStatus: "Pausing",
+							Transitioning: true,
+						}
 					}
 
-					return "Progressing", st == ConditionStatusFalse, st != ConditionStatusFalse
+					return &Summary{
+						SummaryStatus: "Progressing",
+						Error:         st == ConditionStatusFalse,
+						Transitioning: st != ConditionStatusFalse,
+					}
 				})
 
 			d.Make(ExampleResourceStatusReplicaFailure,
-				func(st ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+				func(st ConditionStatus, reason string) *Summary {
 					switch st {
 					case ConditionStatusFalse:
-						return "ReplicaDeployed", false, false
+						return &Summary{SummaryStatus: "ReplicaDeployed"}
 					case ConditionStatusTrue:
-						return "ReplicaDeployFailed", true, false
+						return &Summary{
+							SummaryStatus: "ReplicaDeployFailed",
+							Error:         true,
+						}
 					}
 
-					return "ReplicaDeploying", false, true
+					return &Summary{
+						SummaryStatus: "ReplicaDeploying",
+						Transitioning: true,
+					}
 				})
 		},
 	)
@@ -148,15 +161,21 @@ func TestWalker_multiple(t *testing.T) {
 		},
 		func(d Decision[ConditionType]) {
 			d.Make(ResourceStatusDeleted,
-				func(st ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+				func(st ConditionStatus, reason string) *Summary {
 					switch st {
 					case ConditionStatusUnknown:
-						return "Deleting", false, true
+						return &Summary{
+							SummaryStatus: "Deleting",
+							Transitioning: true,
+						}
 					case ConditionStatusFalse:
-						return "DeleteFailed", true, false
+						return &Summary{
+							SummaryStatus: "DeleteFailed",
+							Error:         true,
+						}
 					}
 
-					return "Deleted", false, false
+					return &Summary{SummaryStatus: "Deleted"}
 				})
 		},
 	)

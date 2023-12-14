@@ -23,14 +23,20 @@ var resourceRevisionStatusPaths = NewWalker(
 	},
 	func(d Decision[ConditionType]) {
 		d.Make(ResourceRevisionStatusReady,
-			func(st ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
+			func(st ConditionStatus, reason string) *Summary {
 				switch st {
 				case ConditionStatusUnknown:
-					return ResourceRevisionSummaryStatusRunning, false, true
+					return &Summary{
+						SummaryStatus: ResourceRevisionSummaryStatusRunning,
+						Transitioning: true,
+					}
 				case ConditionStatusFalse:
-					return ResourceRevisionSummaryStatusFailed, true, false
+					return &Summary{
+						SummaryStatus: ResourceRevisionSummaryStatusFailed,
+						Error:         true,
+					}
 				}
-				return ResourceRevisionSummaryStatusSucceed, false, false
+				return &Summary{SummaryStatus: ResourceRevisionSummaryStatusSucceed}
 			})
 	},
 )

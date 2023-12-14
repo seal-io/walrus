@@ -98,6 +98,7 @@ type Summary struct {
 	SummaryStatusMessage string `json:"summaryStatusMessage,omitempty"`
 	Error                bool   `json:"error,omitempty"`
 	Transitioning        bool   `json:"transitioning,omitempty"`
+	Inactive             bool   `json:"inactive,omitempty"`
 }
 
 // Count is the count of status.
