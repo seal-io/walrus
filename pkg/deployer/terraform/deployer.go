@@ -62,14 +62,21 @@ const (
 	_variablePrefix = "_walrus_var_"
 
 	// _resourcePrefix the prefix of the service output name.
-	_resourcePrefix = "_walrus_resource_"
+	_resourcePrefix = "_walrus_res_"
 )
 
 var (
 	// _variableReg the regexp to match the variable.
 	_variableReg = regexp.MustCompile(`\${var\.([a-zA-Z0-9_-]+)}`)
 	// _resourceReg the regexp to match the service/resource output.
-	_resourceReg = regexp.MustCompile(`\${(service|resource)\.([^.}]+)\.([^.}]+)}`)
+	_resourceReg = regexp.MustCompile(`\${(svc|res)\.([^.}]+)\.([^.}]+)}`)
+	// _interpolationReg is the regular expression for matching non-reference or non-variable expressions.
+	// Reference: https://developer.hashicorp.com/terraform/language/expressions/strings#escape-sequences-1
+	// To handle escape sequences, ${xxx} is converted to $${xxx}.
+	// If there are more than two consecutive $ symbols, like $${xxx}, they are further converted to $$${xxx}.
+	// During Terraform processing, $${} is ultimately transformed back to ${},
+	// this interpolation is used to ensuring a WYSIWYG user experience.
+	_interpolationReg = regexp.MustCompile(`\$\{((var\.)?([^.}]+)(?:\.([^.}]+))?)[^\}]*\}`)
 )
 
 // Deployer terraform deployer to deploy the resource.
@@ -606,7 +613,7 @@ func (d Deployer) loadConfigsBytes(ctx context.Context, opts createK8sSecretsOpt
 		EnvironmentID:    opts.Context.Environment.ID,
 	}
 	// Parse module attributes.
-	variables, dependencyOutputs, err := ParseModuleAttributes(
+	attrs, variables, dependencyOutputs, err := ParseModuleAttributes(
 		ctx,
 		d.modelClient,
 		moduleConfig.Attributes,
@@ -616,6 +623,8 @@ func (d Deployer) loadConfigsBytes(ctx context.Context, opts createK8sSecretsOpt
 	if err != nil {
 		return nil, err
 	}
+
+	moduleConfig.Attributes = attrs
 
 	// Update output sensitive with variables.
 	wrapVariables, err := updateOutputWithVariables(variables, moduleConfig)

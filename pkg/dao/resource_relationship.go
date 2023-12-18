@@ -21,8 +21,8 @@ import (
 	"github.com/seal-io/walrus/utils/strs"
 )
 
-// Match both ${service.name.attr} and ${resource.name.attr}.
-var serviceRegexp = regexp.MustCompile(`\${(service|resource)\.([^.\s]+)\.[^}]+}`)
+// Match both ${svc.name.attr} and ${res.name.attr}.
+var resourceRegexp = regexp.MustCompile(`\${(svc|res)\.([^.\s]+)\.[^}]+}`)
 
 func resourceRelationshipCreate(ctx context.Context, mc model.ClientSet, input *model.ResourceRelationship) error {
 	err := mc.ResourceRelationships().Create().
@@ -67,7 +67,7 @@ func ResourceRelationshipGetDependencyNames(entity *model.Resource) []string {
 	names := sets.NewString()
 
 	for _, d := range entity.Attributes {
-		matches := serviceRegexp.FindAllSubmatch(d, -1)
+		matches := resourceRegexp.FindAllSubmatch(d, -1)
 		for _, m := range matches {
 			names.Insert(string(m[2]))
 		}

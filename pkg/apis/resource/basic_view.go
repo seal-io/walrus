@@ -397,7 +397,7 @@ func validateVariable(
 		ProjectID:     projectID,
 		EnvironmentID: environmentID,
 	}
-	_, _, err := terraform.ParseModuleAttributes(ctx, mc, attrs, true, opts)
+	_, _, _, err := terraform.ParseModuleAttributes(ctx, mc, attrs, true, opts)
 
 	return err
 }
