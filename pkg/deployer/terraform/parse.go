@@ -1,9 +1,9 @@
 package terraform
 
 import (
+	"bytes"
 	"context"
 	"fmt"
-	"reflect"
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
@@ -19,6 +19,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	"github.com/seal-io/walrus/pkg/terraform/parser"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 type RevisionOpts struct {
@@ -37,19 +38,18 @@ func ParseModuleAttributes(
 	attributes map[string]any,
 	onlyValidated bool,
 	opts RevisionOpts,
-) (variables model.Variables, outputs map[string]parser.OutputState, err error) {
+) (attrs map[string]any, variables model.Variables, outputs map[string]parser.OutputState, err error) {
 	var (
 		templateVariables         []string
 		dependencyResourceOutputs []string
 	)
 
 	replaced := !onlyValidated
-	templateVariables, dependencyResourceOutputs = parseAttributeReplace(
-		attributes,
-		templateVariables,
-		dependencyResourceOutputs,
-		replaced,
-	)
+
+	attrs, templateVariables, dependencyResourceOutputs, err = parseAttributeReplace(attributes, replaced)
+	if err != nil {
+		return
+	}
 
 	// If resource revision has variables that inherit from cloned revision, use them directly.
 	if opts.ResourceRevision != nil && len(opts.ResourceRevision.Variables) > 0 {
@@ -62,31 +62,32 @@ func ParseModuleAttributes(
 	} else {
 		variables, err = getVariables(ctx, mc, templateVariables, opts.ProjectID, opts.EnvironmentID)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 	}
 
 	if !onlyValidated {
 		dependOutputMap := toDependOutputMap(dependencyResourceOutputs)
 
-		outputs, err = getServiceDependencyOutputsByID(
+		outputs, err = getResourceDependencyOutputsByID(
 			ctx,
 			mc,
 			opts.ResourceRevision.ResourceID,
 			dependOutputMap)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 
 		// Check if all dependency resource outputs are found.
 		for outputName := range dependOutputMap {
 			if _, ok := outputs[outputName]; !ok {
-				return nil, nil, fmt.Errorf("resource %s dependency output %s not found", opts.ResourceName, outputName)
+				return nil, nil, nil, fmt.Errorf("resource %s dependency output %s not found",
+					opts.ResourceName, outputName)
 			}
 		}
 	}
 
-	return variables, outputs, nil
+	return attrs, variables, outputs, nil
 }
 
 // toDependOutputMap splits the dependencyResourceOutputs from {service/resource}_{resource_name}_{output_name}
@@ -106,87 +107,76 @@ func toDependOutputMap(dependencyResourceOutputs []string) map[string]string {
 }
 
 // parseAttributeReplace parses attribute variable ${var.name} replaces it with ${var._variablePrefix+name},
-// service reference ${service.name.output} replaces it with ${var._resourcePrefix+name},
-// resource reference ${resource.name.output} replaces it with ${var._resourcePrefix+name}
+// service reference ${svc.name.output} replaces it with ${var._resourcePrefix+name},
+// resource reference ${res.name.output} replaces it with ${var._resourcePrefix+name}
 // and returns variable names and output names.
 // Replaced flag indicates whether to replace the module attribute variable with prefix string.
 func parseAttributeReplace(
 	attributes map[string]any,
-	variableNames []string,
-	resourceOutputs []string,
 	replaced bool,
-) ([]string, []string) {
-	for key, value := range attributes {
-		if value == nil {
-			continue
-		}
+) (map[string]any, []string, []string, error) {
+	bs, err := json.Marshal(attributes)
+	if err != nil {
+		return nil, nil, nil, err
+	}
 
-		switch reflect.TypeOf(value).Kind() {
-		case reflect.Map:
-			if _, ok := value.(map[string]any); !ok {
-				continue
-			}
+	variableMatches := _variableReg.FindAllSubmatch(bs, -1)
+	serviceMatches := _resourceReg.FindAllSubmatch(bs, -1)
 
-			variableNames, resourceOutputs = parseAttributeReplace(
-				value.(map[string]any),
-				variableNames,
-				resourceOutputs,
-				replaced,
-			)
-		case reflect.String:
-			str := value.(string)
-			matches := _variableReg.FindAllStringSubmatch(str, -1)
-			serviceMatches := _resourceReg.FindAllStringSubmatch(str, -1)
+	variableMatched := sets.NewString()
 
-			var matched []string
-
-			for _, match := range matches {
-				if len(match) > 1 {
-					matched = append(matched, match[1])
-				}
-			}
-
-			var serviceMatched []string
-
-			for _, match := range serviceMatches {
-				if len(match) > 3 {
-					// Resource outputs are in the form:
-					// - service_{resource_name}_{output_name} or
-					// - resource_{resource_name}_{output_name}.
-					serviceMatched = append(serviceMatched, match[1]+"_"+match[2]+"_"+match[3])
-				}
-			}
-
-			variableNames = append(variableNames, matched...)
-			variableRepl := "${var." + _variablePrefix + "${1}}"
-			str = _variableReg.ReplaceAllString(str, variableRepl)
-
-			resourceOutputs = append(resourceOutputs, serviceMatched...)
-			resourceRepl := "${var." + _resourcePrefix + "${2}_${3}}"
-
-			if replaced {
-				attributes[key] = _resourceReg.ReplaceAllString(str, resourceRepl)
-			}
-		case reflect.Slice:
-			if _, ok := value.([]any); !ok {
-				continue
-			}
-
-			for _, v := range value.([]any) {
-				if _, ok := v.(map[string]any); !ok {
-					continue
-				}
-				variableNames, resourceOutputs = parseAttributeReplace(
-					v.(map[string]any),
-					variableNames,
-					resourceOutputs,
-					replaced,
-				)
-			}
+	for _, match := range variableMatches {
+		if len(match) > 1 {
+			variableMatched.Insert(string(match[1]))
 		}
 	}
 
-	return variableNames, resourceOutputs
+	serviceMatched := sets.NewString()
+
+	for _, match := range serviceMatches {
+		if len(match) > 1 {
+			// Resource outputs are in the form:
+			// - service_{resource_name}_{output_name} or
+			// - resource_{resource_name}_{output_name}.
+			serviceMatched.Insert(string(match[1]) + "_" + string(match[2]) + "_" + string(match[3]))
+		}
+	}
+
+	variableRepl := "${var." + _variablePrefix + "${1}}"
+	bs = _variableReg.ReplaceAll(bs, []byte(variableRepl))
+
+	resourceRepl := "${var." + _resourcePrefix + "${2}_${3}}"
+	bs = _resourceReg.ReplaceAll(bs, []byte(resourceRepl))
+
+	// Replace interpolation from ${} to $${} to avoid escape sequences.
+	bs = _interpolationReg.ReplaceAllFunc(bs, func(match []byte) []byte {
+		m := _interpolationReg.FindSubmatch(match)
+
+		if len(m) != 5 {
+			return match
+		}
+
+		// If it is variable or resource reference, do not replace.
+		if string(m[2]) == "var." {
+			return match
+		}
+
+		var b bytes.Buffer
+
+		b.WriteString("$")
+		b.Write(match)
+
+		return b.Bytes()
+	})
+
+	if replaced {
+		err = json.Unmarshal(bs, &attributes)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+	}
+
+	return attributes, variableMatched.List(), serviceMatched.List(), nil
 }
 
 func getVariables(
@@ -292,8 +282,8 @@ func getVariables(
 	return variables, nil
 }
 
-// getServiceDependencyOutputsByID gets the dependency outputs of the resource by resource id.
-func getServiceDependencyOutputsByID(
+// getResourceDependencyOutputsByID gets the dependency outputs of the resource by resource id.
+func getResourceDependencyOutputsByID(
 	ctx context.Context,
 	client model.ClientSet,
 	resourceID object.ID,

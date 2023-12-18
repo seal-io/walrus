@@ -52,131 +52,163 @@ func TestToDependOutputMap(t *testing.T) {
 }
 
 func TestParseAttributeReplace(t *testing.T) {
-	type (
-		input = struct {
-			attributes      map[string]any
-			variableNames   []string
-			resourceOutputs []string
-			replaced        bool
-		}
-		output = struct {
-			variableNames []string
-			outputNames   []string
-		}
-	)
-
 	testCases := []struct {
-		name     string
-		input    input
-		expected output
+		name                    string
+		attributes              map[string]any
+		replaced                bool
+		expectedVariableNames   []string
+		expectedResourceOutputs []string
+		expectedAttributes      map[string]any
+		expectedError           bool
 	}{
 		{
 			name: "no reference",
-			input: input{
-				attributes: map[string]any{
-					"foo": "bar",
-				},
-				variableNames:   []string{},
-				resourceOutputs: []string{},
-				replaced:        false,
+			attributes: map[string]any{
+				"foo": "bar",
 			},
-			expected: output{
-				variableNames: []string{},
-				outputNames:   []string{},
+			replaced:                false,
+			expectedVariableNames:   []string{},
+			expectedResourceOutputs: []string{},
+			expectedAttributes: map[string]any{
+				"foo": "bar",
 			},
+			expectedError: false,
 		},
 		{
 			name: "parse var reference",
-			input: input{
-				attributes: map[string]any{
-					"foo": "${var.foo}",
-				},
-				variableNames:   []string{},
-				resourceOutputs: []string{},
-				replaced:        false,
+			attributes: map[string]any{
+				"foo": "${var.foo}",
 			},
-			expected: output{
-				variableNames: []string{
-					"foo",
-				},
-				outputNames: []string{},
+			replaced:                false,
+			expectedVariableNames:   []string{"foo"},
+			expectedResourceOutputs: []string{},
+			expectedAttributes: map[string]any{
+				"foo": "${var.foo}",
 			},
+			expectedError: false,
 		},
 		{
 			name: "parse resource reference",
-			input: input{
-				attributes: map[string]any{
-					"foo": "${resource.foo.bar}",
-				},
-				variableNames:   []string{},
-				resourceOutputs: []string{},
-				replaced:        false,
+			attributes: map[string]any{
+				"foo": "${res.foo.bar}",
 			},
-			expected: output{
-				variableNames: []string{},
-				outputNames: []string{
-					"resource_foo_bar",
-				},
+			replaced:                true,
+			expectedVariableNames:   []string{},
+			expectedResourceOutputs: []string{"res_foo_bar"},
+			expectedAttributes: map[string]any{
+				"foo": "${var._walrus_res_foo_bar}",
 			},
-		},
-		{
-			name: "parse service reference",
-			input: input{
-				attributes: map[string]any{
-					"foo": "${service.foo.bar}",
-				},
-				variableNames:   []string{},
-				resourceOutputs: []string{},
-				replaced:        false,
-			},
-			expected: output{
-				variableNames: []string{},
-				outputNames: []string{
-					"service_foo_bar",
-				},
-			},
+			expectedError: false,
 		},
 		{
 			name: "parse combined",
-			input: input{
-				attributes: map[string]any{
-					"foo": "${var.foo}",
-					"bar": "${service.foo1.bar}-${resource.foo2.bar}",
-				},
-				variableNames:   []string{},
-				resourceOutputs: []string{},
-				replaced:        false,
+			attributes: map[string]any{
+				"foo": "${var.foo}",
+				"bar": "${svc.foo1.bar}-${res.foo2.bar}",
 			},
-			expected: output{
-				variableNames: []string{
+			replaced:                true,
+			expectedVariableNames:   []string{"foo"},
+			expectedResourceOutputs: []string{"res_foo2_bar", "svc_foo1_bar"},
+			expectedAttributes: map[string]any{
+				"foo": "${var._walrus_var_foo}",
+				"bar": "${var._walrus_res_foo1_bar}-${var._walrus_res_foo2_bar}",
+			},
+			expectedError: false,
+		},
+		{
+			name: "parse combined with interpolation",
+			attributes: map[string]any{
+				"foo":    "${var.foo}",
+				"bar":    "${svc.foo1.bar}-${res.foo2.bar}",
+				"baz":    "${var.foo}-${svc.foo1.bar}-${res.foo2.bar}",
+				"qux":    "${MYSQL_DATABASE}",
+				"double": "$${ENV_PORT}",
+			},
+			replaced:                true,
+			expectedVariableNames:   []string{"foo"},
+			expectedResourceOutputs: []string{"res_foo2_bar", "svc_foo1_bar"},
+			expectedAttributes: map[string]any{
+				"foo":    "${var._walrus_var_foo}",
+				"bar":    "${var._walrus_res_foo1_bar}-${var._walrus_res_foo2_bar}",
+				"baz":    "${var._walrus_var_foo}-${var._walrus_res_foo1_bar}-${var._walrus_res_foo2_bar}",
+				"qux":    "$${MYSQL_DATABASE}",
+				"double": "$$${ENV_PORT}", // Terraform will replace $$ with $.
+			},
+			expectedError: false,
+		},
+		{
+			name: "parse array with interpolation",
+			attributes: map[string]any{
+				"foo": []string{
+					"${var.foo}",
+					"${svc.foo1.bar}-${res.foo2.bar}",
+				},
+				"ENV": []string{
+					"${ENV_PORT}",
+					"${ENV_HOST}",
+				},
+			},
+			replaced:                true,
+			expectedVariableNames:   []string{"foo"},
+			expectedResourceOutputs: []string{"res_foo2_bar", "svc_foo1_bar"},
+			expectedAttributes: map[string]any{
+				"foo": []any{
+					"${var._walrus_var_foo}",
+					"${var._walrus_res_foo1_bar}-${var._walrus_res_foo2_bar}",
+				},
+				"ENV": []any{
+					"$${ENV_PORT}",
+					"$${ENV_HOST}",
+				},
+			},
+		},
+		{
+			name: "parse error attribute",
+			attributes: map[string]any{
+				"foo":     "${var.foo}",
+				"invalid": make(chan int),
+				"txt": []any{
 					"foo",
-				},
-				outputNames: []string{
-					"service_foo1_bar",
-					"resource_foo2_bar",
+					map[string]any{
+						"bar": "${var.bar}",
+					},
 				},
 			},
+			replaced:      true,
+			expectedError: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		actualVariableNames, actualOutputNames := parseAttributeReplace(
-			tc.input.attributes,
-			tc.input.variableNames,
-			tc.input.resourceOutputs,
-			tc.input.replaced,
+		attrs, actualVariableNames, actualResourceOutputs, err := parseAttributeReplace(
+			tc.attributes,
+			tc.replaced,
 		)
+
+		if tc.expectedError && err != nil {
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("expected error but got nil in test case: %s", tc.name)
+		}
 
 		assert.Equal(
 			t,
-			tc.expected.variableNames,
+			tc.expectedVariableNames,
 			actualVariableNames,
 			fmt.Sprintf("unexpected result in test case: %s", tc.name),
 		)
 		assert.Equal(
 			t,
-			tc.expected.outputNames,
-			actualOutputNames,
+			tc.expectedResourceOutputs,
+			actualResourceOutputs,
+			fmt.Sprintf("unexpected result in test case: %s", tc.name),
+		)
+		assert.Equal(
+			t,
+			tc.expectedAttributes,
+			attrs,
 			fmt.Sprintf("unexpected result in test case: %s", tc.name),
 		)
 	}

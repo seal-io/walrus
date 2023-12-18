@@ -21,19 +21,19 @@ func TestTopologicalSortResources(t *testing.T) {
 				&model.Resource{
 					Name: "1",
 					Attributes: property.Values{
-						"attr": []byte("${resource.3.attr}"),
+						"attr": []byte("${res.3.attr}"),
 					},
 				},
 				&model.Resource{
 					Name: "2",
 					Attributes: property.Values{
-						"attr": []byte("${resource.1.attr}"),
+						"attr": []byte("${res.1.attr}"),
 					},
 				},
 				&model.Resource{
 					Name: "3",
 					Attributes: property.Values{
-						"attr": []byte("${resource.2.attr}"),
+						"attr": []byte("${res.2.attr}"),
 					},
 				},
 			},
@@ -45,13 +45,13 @@ func TestTopologicalSortResources(t *testing.T) {
 				&model.Resource{
 					Name: "6",
 					Attributes: property.Values{
-						"attr": []byte("${resource.5.attr}"),
+						"attr": []byte("${res.5.attr}"),
 					},
 				},
 				&model.Resource{
 					Name: "5",
 					Attributes: property.Values{
-						"attr": []byte("${resource.4.attr}"),
+						"attr": []byte("${res.4.attr}"),
 					},
 				},
 				&model.Resource{
@@ -66,14 +66,14 @@ func TestTopologicalSortResources(t *testing.T) {
 				&model.Resource{
 					Name: "3",
 					Attributes: property.Values{
-						"attr":  []byte("${resource.2.attr}"),
-						"attr2": []byte("${resource.4.attr}"),
+						"attr":  []byte("${res.2.attr}"),
+						"attr2": []byte("${res.4.attr}"),
 					},
 				},
 				&model.Resource{
 					Name: "2",
 					Attributes: property.Values{
-						"attr": []byte("${resource.1.attr}"),
+						"attr": []byte("${res.1.attr}"),
 					},
 				},
 				&model.Resource{
@@ -82,13 +82,13 @@ func TestTopologicalSortResources(t *testing.T) {
 				&model.Resource{
 					Name: "4",
 					Attributes: property.Values{
-						"attr": []byte("${resource.2.attr}"),
+						"attr": []byte("${res.2.attr}"),
 					},
 				},
 				&model.Resource{
 					Name: "5",
 					Attributes: property.Values{
-						"attr": []byte("${resource.4.attr}"),
+						"attr": []byte("${res.4.attr}"),
 					},
 				},
 				&model.Resource{
@@ -97,29 +97,29 @@ func TestTopologicalSortResources(t *testing.T) {
 				&model.Resource{
 					Name: "7",
 					Attributes: property.Values{
-						"attr": []byte("${resource.6.attr}"),
+						"attr": []byte("${res.6.attr}"),
 					},
 				},
 				&model.Resource{
 					Name: "8",
 					Attributes: property.Values{
-						"attr":  []byte("${resource.6.attr}"),
-						"attr2": []byte("${resource.3.attr}"),
+						"attr":  []byte("${res.6.attr}"),
+						"attr2": []byte("${res.3.attr}"),
 					},
 				},
 				&model.Resource{
 					Name: "9",
 					Attributes: property.Values{
-						"attr":  []byte("${resource.7.attr}"),
-						"attr2": []byte("${resource.8.attr}"),
+						"attr":  []byte("${res.7.attr}"),
+						"attr2": []byte("${res.8.attr}"),
 					},
 				},
 				&model.Resource{
 					Name: "10",
 					Attributes: property.Values{
-						"attr":  []byte("${resource.7.attr}"),
-						"attr2": []byte("${resource.8.attr}"),
-						"attr3": []byte("${resource.9.attr}"),
+						"attr":  []byte("${res.7.attr}"),
+						"attr2": []byte("${res.8.attr}"),
+						"attr3": []byte("${res.9.attr}"),
 					},
 				},
 			},
