@@ -12,6 +12,10 @@ var TokenKinds = []string{
 	TokenKindAPI,
 }
 
+const (
+	WalrusOperationTokenName = "walrus-operation-token"
+)
+
 func IsTokenKind(s string) bool {
 	return slices.Contains(TokenKinds, s)
 }

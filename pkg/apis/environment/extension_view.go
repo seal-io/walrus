@@ -156,3 +156,19 @@ func (r *RouteStartRequest) Validate() error {
 
 	return nil
 }
+
+type RouteApplyRequest struct {
+	_ struct{} `route:"POST=/apply"`
+
+	model.EnvironmentQueryInput `path:",inline"`
+
+	YAML string `json:"yaml"`
+}
+
+func (r *RouteApplyRequest) Validate() error {
+	if err := r.EnvironmentQueryInput.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}

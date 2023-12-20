@@ -3,6 +3,10 @@ package environment
 import (
 	"entgo.io/ent/dialect/sql"
 
+	"github.com/seal-io/walrus/pkg/auths"
+	"github.com/seal-io/walrus/pkg/auths/session"
+	"github.com/seal-io/walrus/pkg/cli/config"
+	"github.com/seal-io/walrus/pkg/cli/manifest"
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
@@ -361,4 +365,64 @@ func (h Handler) RouteStop(req RouteStopRequest) error {
 
 		return nil
 	})
+}
+
+func (h Handler) RouteApply(req RouteApplyRequest) error {
+	sj := session.MustGetSubject(req.Context)
+
+	token, err := auths.GetAccessToken(
+		req.Context, h.modelClient,
+		sj.ID, types.TokenKindAPI, types.WalrusOperationTokenName)
+	if err != nil {
+		if !model.IsNotFound(err) {
+			return errorx.New(err.Error())
+		}
+
+		token, err = auths.CreateAccessToken(req.Context, h.modelClient,
+			sj.ID, types.TokenKindAPI, types.WalrusOperationTokenName, nil)
+		if err != nil {
+			return errorx.New(err.Error())
+		}
+	}
+
+	sc := serverContext(req.Project.Name, req.Name, token.AccessToken)
+
+	loader := manifest.DefaultLoader(sc, true)
+
+	set, err := loader.LoadFromByte([]byte(req.YAML))
+	if err != nil {
+		return errorx.Wrap(err, "failed to load walrus file")
+	}
+
+	operator := manifest.DefaultApplyOperator(sc, false)
+
+	r, err := operator.Operate(set)
+	if err != nil {
+		return errorx.Wrap(err, "failed to apply walrus file")
+	}
+
+	if r.Failed.Len() != 0 {
+		var keys []string
+		for _, v := range r.Failed.All() {
+			keys = append(keys, v.Key())
+		}
+
+		return errorx.Errorf("failed to apply: %v", keys)
+	}
+
+	return nil
+}
+
+func serverContext(project, env, token string) *config.Config {
+	return &config.Config{
+		ServerContext: config.ServerContext{
+			ScopeContext: config.ScopeContext{
+				Project:     project,
+				Environment: env,
+			},
+			Server:   "https://localhost",
+			Insecure: true,
+			Token:    token,
+		},
+	}
 }
