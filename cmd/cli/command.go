@@ -20,7 +20,6 @@ func NewRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     cliName,
 		Short:   "Command line interface for Walrus",
-		Version: cliVersion,
 		Example: configSetupExample,
 		Args:    cobra.MinimumNArgs(1),
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
@@ -50,6 +49,7 @@ func NewRootCmd() *cobra.Command {
 		NewSchemaCmd(),
 		NewApplyCmd(),
 		NewDeleteCmd(),
+		NewVersionCmd(),
 	)
 	cmd.PersistentFlags().AddFlagSet(globalFlags())
 
@@ -86,13 +86,17 @@ func NewDeleteCmd() *cobra.Command {
 	return cmd
 }
 
+// NewVersionCmd return cli version.
+func NewVersionCmd() *cobra.Command {
+	return pkgcmd.NewVersionCmd()
+}
+
 // define global flags.
 func globalFlags() *pflag.FlagSet {
 	gf := &pflag.FlagSet{}
 	gf.StringVarP(&globalConfig.Format, "output", "o", "table", "Output format [table, json, yaml]")
 	gf.BoolVarP(&globalConfig.Debug, "debug", "d", false, "Enable debug log")
 	gf.BoolP("help", "h", false, "Help for this command")
-	gf.BoolP("version", "v", false, "Version for CLI")
 
 	return gf
 }
