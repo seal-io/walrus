@@ -1,11 +1,12 @@
 package environment
 
 import (
+	"fmt"
+
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/walrus/pkg/auths"
 	"github.com/seal-io/walrus/pkg/auths/session"
-	"github.com/seal-io/walrus/pkg/cli/config"
 	"github.com/seal-io/walrus/pkg/cli/manifest"
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -413,16 +414,80 @@ func (h Handler) RouteApply(req RouteApplyRequest) error {
 	return nil
 }
 
-func serverContext(project, env, token string) *config.Config {
-	return &config.Config{
-		ServerContext: config.ServerContext{
-			ScopeContext: config.ScopeContext{
-				Project:     project,
-				Environment: env,
-			},
-			Server:   "https://localhost",
-			Insecure: true,
-			Token:    token,
-		},
+func (h Handler) RouteExport(req RouteExportRequest) error {
+	res, err := h.modelClient.Resources().Query().
+		Where(
+			resource.ProjectID(req.Project.ID),
+			resource.EnvironmentID(req.EnvironmentQueryInput.ID),
+			resource.IDIn(req.IDs...)).
+		Select(
+			resource.FieldName,
+			resource.FieldDescription,
+			resource.FieldLabels,
+			resource.FieldAttributes,
+			resource.FieldType,
+			resource.FieldTemplateID).
+		WithTemplate(func(tvq *model.TemplateVersionQuery) {
+			tvq.Select(
+				templateversion.FieldName,
+				templateversion.FieldVersion)
+		}).
+		All(req.Context)
+	if err != nil {
+		return err
 	}
+
+	resSpec := make([]types.ResourceSpec, len(res))
+	for i := range res {
+		// Resources.
+		resSpec[i] = toResourceSpec(res[i])
+	}
+
+	// Export.
+	wf := &types.WalrusFile{
+		Version:   types.WalrusFileVersion,
+		Resources: resSpec,
+	}
+
+	yml, err := wf.Yaml()
+	if err != nil {
+		return errorx.Wrap(err, "failed to marshal walrus file")
+	}
+
+	name := filename(req, resSpec)
+	req.Context.Writer.WriteHeader(200)
+	req.Context.Writer.Header().Set("Content-Type", "text/yaml")
+	req.Context.Writer.Header().
+		Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, name))
+	_, _ = req.Context.Writer.Write(yml)
+
+	return nil
+}
+
+func filename(req RouteExportRequest, resSpec []types.ResourceSpec) string {
+	name := fmt.Sprintf("%s-%s.yaml", req.Project.Name, req.EnvironmentQueryInput.Name)
+	if len(resSpec) == 1 {
+		name = fmt.Sprintf("%s-%s-%s.yaml", req.Project.Name, req.EnvironmentQueryInput.Name, resSpec[0].Name)
+	}
+
+	return name
+}
+
+func toResourceSpec(res *model.Resource) types.ResourceSpec {
+	spec := types.ResourceSpec{
+		Name:        res.Name,
+		Description: res.Description,
+		Labels:      res.Labels,
+		Attributes:  res.Attributes,
+		Type:        res.Type,
+	}
+
+	if res.Edges.Template != nil {
+		spec.Template = &types.TemplateSpec{
+			Name:    res.Edges.Template.Name,
+			Version: res.Edges.Template.Version,
+		}
+	}
+
+	return spec
 }

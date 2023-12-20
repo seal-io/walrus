@@ -6,6 +6,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/sets"
 
+	"github.com/seal-io/walrus/pkg/cli/config"
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
@@ -171,4 +172,83 @@ func (r *RouteApplyRequest) Validate() error {
 	}
 
 	return nil
+}
+
+func serverContext(project, env, token string) *config.Config {
+	return &config.Config{
+		ServerContext: config.ServerContext{
+			ScopeContext: config.ScopeContext{
+				Project:     project,
+				Environment: env,
+			},
+			Server:   "https://localhost",
+			Insecure: true,
+			Token:    token,
+		},
+	}
+}
+
+type RouteExportRequest struct {
+	_ struct{} `route:"GET=/export"`
+
+	model.EnvironmentQueryInput `path:",inline"`
+
+	Names []string `query:"name,omitempty"`
+
+	IDs []object.ID `query:"id,omitempty"`
+}
+
+func (r *RouteExportRequest) Validate() error {
+	if err := r.EnvironmentQueryInput.Validate(); err != nil {
+		return err
+	}
+
+	if len(r.Names) == 0 && len(r.IDs) == 0 {
+		return fmt.Errorf("resource identidy is empty")
+	}
+
+	// While id existed.
+	switch {
+	case len(r.IDs) > 0:
+		for i := range r.IDs {
+			rq := model.ResourceQueryInput{
+				ID: r.IDs[i],
+				Environment: &model.EnvironmentQueryInput{
+					ID: r.EnvironmentQueryInput.ID,
+				},
+				Project: &model.ProjectQueryInput{
+					ID: r.Project.ID,
+				},
+			}
+
+			if err := rq.ValidateWith(r.Context, r.Client, nil); err != nil {
+				return err
+			}
+		}
+	case len(r.Names) > 0:
+		// While name existed.
+		r.IDs = make([]object.ID, len(r.Names))
+		for i := range r.Names {
+			rq := model.ResourceQueryInput{
+				Name: r.Names[i],
+				Environment: &model.EnvironmentQueryInput{
+					ID: r.EnvironmentQueryInput.ID,
+				},
+				Project: &model.ProjectQueryInput{
+					ID: r.Project.ID,
+				},
+			}
+
+			if err := rq.ValidateWith(r.Context, r.Client, nil); err != nil {
+				return err
+			}
+			r.IDs[i] = rq.ID
+		}
+	}
+
+	return nil
+}
+
+type WalrusFile struct {
+	model.ResourceCreateInput
 }

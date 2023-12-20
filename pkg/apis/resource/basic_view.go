@@ -157,7 +157,7 @@ func (r *PatchRequest) Validate() error {
 		}
 
 		env, err := r.Client.Environments().Query().
-			Where(environment.ID(entity.EnvironmentID)).
+			Where(environment.ID(r.Environment.ID)).
 			Select(
 				environment.FieldID,
 				environment.FieldName,
