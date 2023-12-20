@@ -34,7 +34,10 @@ func (r RequestUnidiStream) Write(p []byte) (n int, err error) {
 
 // SendMsg sends the given data to client.
 func (r RequestUnidiStream) SendMsg(data []byte) error {
+	data = append(data, "\n\n"...)
+
 	_, err := r.Write(data)
+
 	return err
 }
 

@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/seal-io/walrus/pkg/cli/common"
 	"github.com/seal-io/walrus/pkg/cli/config"
 	"github.com/seal-io/walrus/utils/strs"
 )
@@ -27,6 +28,10 @@ func (api *API) GenerateCommand(sc *config.Config, root *cobra.Command) {
 	set := make(map[string]*cobra.Command)
 
 	for _, op := range api.Operations {
+		if op.CmdIgnore {
+			continue
+		}
+
 		// Generate sub command.
 		cmd := op.Command(sc)
 		cmd.Flags().AddFlagSet(root.PersistentFlags())
@@ -44,8 +49,9 @@ func (api *API) GenerateCommand(sc *config.Config, root *cobra.Command) {
 		if !ok {
 			// Generate command set.
 			set[cmdSet] = &cobra.Command{
-				Use:   cmdSet,
-				Short: fmt.Sprintf("Manage %s", strs.Decamelize(op.Group, true)),
+				Use:     cmdSet,
+				GroupID: common.GroupManagement.ID,
+				Short:   fmt.Sprintf("Manage %s", strs.Decamelize(op.Group, true)),
 			}
 
 			// Add command set to root.
@@ -55,4 +61,14 @@ func (api *API) GenerateCommand(sc *config.Config, root *cobra.Command) {
 		// Add sub command to command set.
 		set[cmdSet].AddCommand(cmd)
 	}
+}
+
+func (api *API) GetOperation(group, name string) *Operation {
+	for _, op := range api.Operations {
+		if strings.ToLower(op.Group) == group && op.Name == name {
+			return &op
+		}
+	}
+
+	return nil
 }

@@ -10,18 +10,30 @@ import (
 
 var InjectFields = []string{"project", "environment"}
 
+// Flags for server context.
+const (
+	FlagNameServer   = "server"
+	FlagNameToken    = "token"
+	FlagNameInsecure = "insecure"
+)
+
 // ServerContext contains the server config.
 type ServerContext struct {
+	// Scope context.
+	ScopeContext
+
 	// Server config.
 	Server   string `json:"server" survey:"server"`
 	Token    string `json:"token" survey:"token"`
 	Insecure bool   `json:"insecure" survey:"insecure"`
+}
 
-	// Project name.
-	Project string `json:"project,omitempty" survey:"project"`
+func (c *ServerContext) AddFlags(cmd *cobra.Command) {
+	c.ScopeContext.AddFlags(cmd)
 
-	// Environment name.
-	Environment string `json:"environment,omitempty" survey:"environment"`
+	cmd.Flags().StringVarP(&c.Server, FlagNameServer, "s", "", "Server address, format: scheme://host:port")
+	cmd.Flags().StringVarP(&c.Token, FlagNameToken, "", "", "Auth token to communicate to server")
+	cmd.Flags().BoolVarP(&c.Insecure, FlagNameInsecure, "", false, "Disable SSL verification")
 }
 
 // OpenAPIURL generate OpenAPI url.

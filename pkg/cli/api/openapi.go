@@ -7,12 +7,14 @@ import (
 	"path"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"golang.org/x/exp/slices"
 
 	"github.com/seal-io/walrus/pkg/apis/runtime/openapi"
 	"github.com/seal-io/walrus/pkg/cli/config"
+	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/strs"
 )
 
@@ -21,26 +23,70 @@ const (
 	JsonMediaType = "application/json"
 )
 
-// LoadOpenAPI load OpenAPI schema from response body and generate API.
-func LoadOpenAPI(resp *http.Response) (*API, error) {
-	data, err := io.ReadAll(resp.Body)
-	defer resp.Body.Close()
+var OpenAPI *API
+
+// InitOpenAPI load from cache or remote and setup command.
+func InitOpenAPI(sc *config.Config, skipCache bool) error {
+	start := time.Now()
+	defer func() {
+		log.Debugf("API loading took %s", time.Since(start))
+	}()
+
+	// Load from cache while existed.
+	if !skipCache {
+		log.Debug("Load from cache")
+
+		api := getAPIFromCache()
+		if api != nil {
+			OpenAPI = api
+			return nil
+		}
+	}
+
+	// Load from remote.
+	log.Debug("Load from remote")
+
+	ep, err := sc.OpenAPIURL()
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, ep.String(), nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := sc.DoRequest(req)
+	defer func() { _ = resp.Body.Close() }()
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	t := openapi3.T{}
-
-	err = t.UnmarshalJSON(data)
+	api, err := LoadOpenAPIFromResp(resp)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	if !isSupportOpenAPI(t.OpenAPI) {
-		return nil, fmt.Errorf("unsupported OpenAPI version")
+	OpenAPI = api
+
+	return setAPIToCache(api)
+}
+
+// InitOpenAPIFromSchema load from schema and setup command.
+func InitOpenAPIFromSchema(t openapi3.T) error {
+	api, err := LoadOpenAPIFromSchema(t)
+	if err != nil {
+		return err
 	}
 
+	OpenAPI = api
+
+	return nil
+}
+
+// LoadOpenAPIFromSchema load the OpenAPI from schema.
+func LoadOpenAPIFromSchema(t openapi3.T) (*API, error) {
 	var (
 		api        = &API{}
 		operations []Operation
@@ -78,6 +124,29 @@ func LoadOpenAPI(resp *http.Response) (*API, error) {
 	api.Operations = aggregateOperations(operations)
 
 	return api, nil
+}
+
+// LoadOpenAPIFromResp load OpenAPI schema from response body and generate API.
+func LoadOpenAPIFromResp(resp *http.Response) (*API, error) {
+	data, err := io.ReadAll(resp.Body)
+	defer resp.Body.Close()
+
+	if err != nil {
+		return nil, err
+	}
+
+	t := openapi3.T{}
+
+	err = t.UnmarshalJSON(data)
+	if err != nil {
+		return nil, err
+	}
+
+	if !isSupportOpenAPI(t.OpenAPI) {
+		return nil, fmt.Errorf("unsupported OpenAPI version")
+	}
+
+	return LoadOpenAPIFromSchema(t)
 }
 
 func aggregateOperations(operations []Operation) []Operation {
@@ -174,6 +243,7 @@ func toOperation(
 	var (
 		allParams = make([]*openapi3.Parameter, len(op.Parameters))
 		seen      = make(map[string]struct{})
+		cmdIgnore bool
 	)
 
 	for i, p := range op.Parameters {
@@ -233,6 +303,10 @@ func toOperation(
 		formats = strings.Split(efs, ",")
 	}
 
+	if isCmdIgnore(pathItem.Extensions) || isCmdIgnore(op.Extensions) {
+		cmdIgnore = true
+	}
+
 	return Operation{
 		Name:          name,
 		Group:         tag,
@@ -247,6 +321,7 @@ func toOperation(
 		BodyMediaType: mediaType,
 		Deprecated:    dep,
 		Formats:       formats,
+		CmdIgnore:     cmdIgnore,
 	}
 }
 
@@ -293,6 +368,8 @@ func toParam(p *openapi3.Parameter, uri string) *Param {
 			param.DataFrom = DataFromContextAndArg
 		}
 	}
+
+	param.CmdIgnore = isCmdIgnore(p.Extensions)
 
 	return param
 }
@@ -441,6 +518,11 @@ func isSupportOpenAPI(v string) bool {
 // isIgnore check whether it include ignore extension.
 func isIgnore(ext map[string]any) bool {
 	return getExt(ext, openapi.ExtCliIgnore, false)
+}
+
+// isCmdIgnore check whether it include cmd generate ignore extension.
+func isCmdIgnore(ext map[string]any) bool {
+	return getExt(ext, openapi.ExtCliCmdIgnore, false)
 }
 
 // getExt get extension by key.

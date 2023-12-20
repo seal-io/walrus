@@ -42,7 +42,7 @@ func (f *TableFormatter) Format(resp *http.Response) ([]byte, error) {
 			return nil, fmt.Errorf("unexpected status code %d: %w", resp.StatusCode, err)
 		}
 
-		return []byte(fmt.Sprintf("unexpected status code %d: %s", resp.StatusCode, data.Message)), nil
+		return nil, fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, data.Message)
 	}
 
 	if len(body) == 0 {

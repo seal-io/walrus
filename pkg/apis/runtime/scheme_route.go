@@ -308,7 +308,7 @@ func getOperationParameters(r *Route) (openapi3.Parameters, error) {
 				Schema:   openapi3.NewBoolSchema().NewRef(),
 				Required: false,
 				Extensions: map[string]any{
-					openapi.ExtCliIgnore: true,
+					openapi.ExtCliCmdIgnore: true,
 				},
 			},
 		})
