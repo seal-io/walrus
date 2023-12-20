@@ -213,7 +213,8 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 				items = make([]*model.WorkflowOutput, len(ids))
 				for i := range ids {
 					items[i] = &model.WorkflowOutput{
-						ID: ids[i],
+						ID:   ids[i],
+						Name: dm.Data[i].Name,
 					}
 				}
 			}

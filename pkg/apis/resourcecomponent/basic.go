@@ -85,7 +85,8 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 				items = make([]*model.ResourceComponentOutput, len(ids))
 				for i := range ids {
 					items[i] = &model.ResourceComponentOutput{
-						ID: ids[i],
+						ID:   ids[i],
+						Name: dm.Data[i].Name,
 					}
 				}
 			}
