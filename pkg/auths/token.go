@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/token"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/utils/strs"
@@ -110,6 +111,33 @@ func CreateAccessToken(
 	entity, err := mc.Tokens().Create().
 		Set(entity).
 		Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	at, err := wrapAccessToken(entity.SubjectID, entity.ID, string(entity.Value))
+	if err != nil {
+		return nil, err
+	}
+
+	entity.AccessToken = at
+
+	return entity, nil
+}
+
+// GetAccessToken get token with the given kind, name.
+func GetAccessToken(
+	ctx context.Context,
+	mc model.ClientSet,
+	subjectID object.ID,
+	kind, name string,
+) (*model.Token, error) {
+	entity, err := mc.Tokens().Query().
+		Where(
+			token.Kind(kind),
+			token.SubjectID(subjectID),
+			token.Name(name)).
+		Only(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -37,6 +37,10 @@ var openAPISchemas = &openapi3.T{
 	},
 }
 
+func GetOpenAPISchemas() *openapi3.T {
+	return openAPISchemas
+}
+
 const (
 	parameterInPath   = openapi3.ParameterInPath
 	parameterInHeader = openapi3.ParameterInHeader
