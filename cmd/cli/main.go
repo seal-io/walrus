@@ -7,13 +7,9 @@ import (
 
 	"github.com/seal-io/walrus/pkg/cli/cmd"
 	"github.com/seal-io/walrus/utils/log"
-	"github.com/seal-io/walrus/utils/version"
 )
 
-var (
-	cliVersion = version.Get()
-	cliName    = "walrus"
-)
+var cliName = "walrus"
 
 func main() {
 	if err := Init(); err != nil {
