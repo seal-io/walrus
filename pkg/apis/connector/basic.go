@@ -189,7 +189,8 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 				items = make([]*model.ConnectorOutput, len(ids))
 				for i := range ids {
 					items[i] = &model.ConnectorOutput{
-						ID: ids[i],
+						ID:   ids[i],
+						Name: dm.Data[i].Name,
 					}
 				}
 			}

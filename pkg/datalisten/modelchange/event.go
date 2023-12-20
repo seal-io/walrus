@@ -75,6 +75,7 @@ func (t EventType) String() string {
 
 type EventData struct {
 	ID            object.ID
+	Name          string
 	ProjectID     object.ID
 	EnvironmentID object.ID
 }

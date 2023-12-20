@@ -181,7 +181,8 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 				items = make([]*model.TemplateOutput, len(ids))
 				for i := range ids {
 					items[i] = &model.TemplateOutput{
-						ID: ids[i],
+						ID:   ids[i],
+						Name: dm.Data[i].Name,
 					}
 				}
 			}

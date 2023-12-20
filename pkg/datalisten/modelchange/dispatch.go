@@ -81,6 +81,7 @@ func (h handler) Handle(ctx context.Context, _, payload string) {
 		TableName   string    `json:"tb_n"`
 		Rows        []struct {
 			ID            object.ID `json:"id"`
+			Name          string    `json:"name"`
 			ProjectID     object.ID `json:"project_id"`
 			EnvironmentID object.ID `json:"environment_id"`
 		} `json:"ids"`
@@ -102,6 +103,7 @@ func (h handler) Handle(ctx context.Context, _, payload string) {
 
 	for i := range le.Rows {
 		data[i].ID = le.Rows[i].ID
+		data[i].Name = le.Rows[i].Name
 		data[i].ProjectID = le.Rows[i].ProjectID
 		data[i].EnvironmentID = le.Rows[i].EnvironmentID
 	}

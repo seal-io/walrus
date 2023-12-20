@@ -39,16 +39,22 @@ $$
 DECLARE
     ids                 jsonb;
     ids_length          int;
-    column_count        int;
+    column_sum        int;
     payload             text;
 BEGIN
 
     -- Check if the table has project_id and environment_id columns. 
     -- For entity tables, project_id is always present when environment_id is present.
-    SELECT count(1) FROM information_schema.columns 
-    WHERE table_name = TG_TABLE_NAME 
-        AND column_name IN ('project_id', 'environment_id') 
-    INTO column_count;
+    SELECT SUM(
+      CASE
+        WHEN column_name = 'name' then 100
+        WHEN column_name = 'project_id' then 10
+        WHEN column_name = 'environment_id' then 1
+        ELSE 0
+      END)
+    FROM information_schema.columns
+    WHERE table_name = TG_TABLE_NAME
+    INTO column_sum;
 
     -- Build the ID list.
     ids := '[]'::jsonb;
@@ -56,13 +62,15 @@ BEGIN
     CASE TG_OP
     WHEN 'INSERT', 'UPDATE' THEN
         EXECUTE 'SELECT jsonb_agg(jsonb_build_object(''id'', id::text' ||
-            CASE WHEN column_count >= 1 THEN ', ''project_id'', project_id::text' ELSE '' END ||
-            CASE WHEN column_count = 2 THEN ', ''environment_id'', environment_id::text' ELSE '' END ||
+            CASE WHEN column_sum >= 100 THEN ', ''name'', name::text' ELSE '' END ||
+            CASE WHEN column_sum % 100 >= 10 THEN ', ''project_id'', project_id::text' ELSE '' END ||
+            CASE WHEN column_sum % 10 >= 1 THEN ', ''environment_id'', environment_id::text' ELSE '' END ||
             ')) FROM new_table' INTO ids;
     WHEN 'DELETE' THEN
         EXECUTE 'SELECT jsonb_agg(jsonb_build_object(''id'', id::text' ||
-            CASE WHEN column_count >= 1 THEN ', ''project_id'', project_id::text' ELSE '' END ||
-            CASE WHEN column_count = 2 THEN ', ''environment_id'', environment_id::text' ELSE '' END ||
+            CASE WHEN column_sum >= 100 THEN ', ''name'', name::text' ELSE '' END ||
+            CASE WHEN column_sum % 100 >= 10 THEN ', ''project_id'', project_id::text' ELSE '' END ||
+            CASE WHEN column_sum % 10 >= 1 THEN ', ''environment_id'', environment_id::text' ELSE '' END ||
             ')) FROM old_table' INTO ids;
     ELSE
         RAISE EXCEPTION 'Unknown Operation';
