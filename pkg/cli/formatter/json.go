@@ -2,6 +2,7 @@ package formatter
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -39,6 +40,11 @@ func (f *JsonFormatter) Format(resp *http.Response) ([]byte, error) {
 	err = enc.Encode(data)
 	if err != nil {
 		return nil, err
+	}
+
+	// Response status is not 200.
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, b.String())
 	}
 
 	return b.Bytes(), nil

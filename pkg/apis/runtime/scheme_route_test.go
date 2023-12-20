@@ -263,7 +263,7 @@ func Test_getOperationParameters(t *testing.T) {
 			expected: func() (refs openapi3.Parameters) {
 				pv := openapi3.NewQueryParameter("watch").
 					WithSchema(openapi3.NewBoolSchema())
-				pv.Extensions = map[string]any{openapi.ExtCliIgnore: true}
+				pv.Extensions = map[string]any{openapi.ExtCliCmdIgnore: true}
 
 				refs = append(refs,
 					&openapi3.ParameterRef{

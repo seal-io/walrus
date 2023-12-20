@@ -45,9 +45,9 @@ func (c *Config) DoRequest(req *http.Request) (*http.Response, error) {
 		req.URL = resolved
 	}
 
-	c.setHeaders(req)
+	c.SetHeaders(req)
 
-	resp, err := c.httpClient().Do(req)
+	resp, err := c.HttpClient().Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -78,8 +78,8 @@ func (c *Config) ValidateAndSetup() error {
 	return nil
 }
 
-// httpClient generate http client base on context config.
-func (c *Config) httpClient() *http.Client {
+// HttpClient generate http client base on context config.
+func (c *Config) HttpClient() *http.Client {
 	tlsConfig := &tls.Config{
 		MinVersion: tls.VersionTLS12,
 	}
@@ -116,12 +116,28 @@ func (c *Config) logger() *httpretty.Logger {
 	}
 }
 
-// setHeaders set default headers.
-func (c *Config) setHeaders(req *http.Request) {
+// SetHeaders set default headers.
+func (c *Config) SetHeaders(req *http.Request) {
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.Token))
 	req.Header.Set("User-Agent", version.GetUserAgentWith("walrus-cli"))
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	req.Header.Set("Accept", "application/json")
+}
+
+func (c *Config) SetHost(req *http.Request) error {
+	if req.URL.Host != "" {
+		return nil
+	}
+
+	ep, err := url.Parse(c.Server)
+	if err != nil {
+		return err
+	}
+
+	resolved := ep.ResolveReference(req.URL)
+	req.URL = resolved
+
+	return nil
 }
 
 const (

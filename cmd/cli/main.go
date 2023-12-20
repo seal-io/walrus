@@ -5,6 +5,7 @@ import (
 	"os"
 	"runtime/debug"
 
+	"github.com/seal-io/walrus/pkg/cli/cmd"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/version"
 )
@@ -45,7 +46,7 @@ func Run() (returnErr error) {
 
 		err := serverConfig.ValidateAndSetup()
 		if err == nil {
-			err = load(serverConfig, root, false)
+			err = cmd.Load(serverConfig, root, false)
 			if err != nil {
 				return err
 			}

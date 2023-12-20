@@ -27,10 +27,17 @@ type Param struct {
 	Explode     bool     `json:"explode,omitempty"`
 	Default     any      `json:"default,omitempty"`
 	DataFrom    DataFrom `json:"dataFrom,omitempty"`
+
+	// CmdIgnore is used to ignore the operation when generating CLI commands.
+	CmdIgnore bool `json:"cmdIgnore,omitempty"`
 }
 
 // AddFlag adds a new option flag to a command's flag set for this parameter.
 func (p Param) AddFlag(flags *pflag.FlagSet) any {
+	if p.CmdIgnore {
+		return nil
+	}
+
 	name := p.OptionName()
 
 	existed := flags.Lookup(name)
@@ -49,6 +56,10 @@ func (p Param) OptionName() string {
 
 // Serialize the parameter based on the type/style/explode.
 func (p Param) Serialize(value any) []string {
+	if value == nil {
+		return nil
+	}
+
 	v := reflect.ValueOf(value)
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
