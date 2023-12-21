@@ -10,6 +10,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/entx"
 	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/schema/mixin"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 )
@@ -63,6 +64,9 @@ func (Resource) Fields() []ent.Field {
 			),
 		property.ValuesField("attributes").
 			Comment("Attributes to configure the template.").
+			Optional(),
+		field.JSON("drift_detection", &types.ResourceDriftDetection{}).
+			Comment("Drift detection of resource.").
 			Optional(),
 	}
 }

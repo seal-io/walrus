@@ -85,6 +85,9 @@ func (ResourceComponent) Fields() []ent.Field {
 			Annotations(
 				entx.SkipInput(),
 				entx.SkipStoringField()),
+		field.JSON("drift_detection", &types.ResourceComponentDriftDetection{}).
+			Comment("Drift detection of resource components").
+			Optional(),
 	}
 }
 

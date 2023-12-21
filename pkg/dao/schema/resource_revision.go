@@ -32,6 +32,8 @@ func (ResourceRevision) Mixin() []ent.Mixin {
 
 func (ResourceRevision) Fields() []ent.Field {
 	return []ent.Field{
+		field.String("type").
+			Comment("Type of the revision."),
 		object.IDField("project_id").
 			Comment("ID of the project to belong.").
 			NotEmpty().
@@ -78,6 +80,9 @@ func (ResourceRevision) Fields() []ent.Field {
 			Default([]types.ProviderRequirement{}),
 		field.Text("record").
 			Comment("Record of the revision.").
+			Optional(),
+		field.String("drift").
+			Comment("Drift of the revision.").
 			Optional(),
 	}
 }
