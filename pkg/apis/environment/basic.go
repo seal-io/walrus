@@ -1,6 +1,7 @@
 package environment
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
@@ -14,13 +15,21 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
+	"github.com/seal-io/walrus/pkg/deployer"
+	deployertf "github.com/seal-io/walrus/pkg/deployer/terraform"
+	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
 	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/topic"
 )
 
 func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
-	return createEnvironment(req.Context, h.modelClient, req.Model(), false)
+	dp, err := h.getDeployer(req.Context)
+	if err != nil {
+		return nil, err
+	}
+
+	return createEnvironment(req.Context, h.modelClient, dp, req.Model(), false)
 }
 
 func (h Handler) Get(req GetRequest) (GetResponse, error) {
@@ -278,4 +287,16 @@ func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 
 		return nil
 	})
+}
+
+func (h Handler) getDeployer(ctx context.Context) (deptypes.Deployer, error) {
+	dep, err := deployer.Get(ctx, deptypes.CreateOptions{
+		Type:       deployertf.DeployerType,
+		KubeConfig: h.kubeConfig,
+	})
+	if err != nil {
+		return nil, errorx.Wrap(err, "failed to get deployer")
+	}
+
+	return dep, nil
 }

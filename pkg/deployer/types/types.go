@@ -17,10 +17,10 @@ type Deployer interface {
 
 	// Apply creates/updates the resources of the given service,
 	// also cleans stale resources.
-	Apply(context.Context, *model.Resource, ApplyOptions) error
+	Apply(context.Context, model.ClientSet, *model.Resource, ApplyOptions) error
 
 	// Destroy cleans all resources of the given resource.
-	Destroy(context.Context, *model.Resource, DestroyOptions) error
+	Destroy(context.Context, model.ClientSet, *model.Resource, DestroyOptions) error
 }
 
 // ApplyOptions holds the options of Deployer's Apply action.
@@ -28,3 +28,7 @@ type ApplyOptions struct{}
 
 // DestroyOptions holds the options of Deployer's Destroy action.
 type DestroyOptions struct{}
+
+type ModelClientReceiver interface {
+	SetModelClient(model.ClientSet)
+}

@@ -44,9 +44,8 @@ func NewResourceRelationshipCheckTask(
 ) (in *RelationshipCheckTask, err error) {
 	// Create deployer.
 	opts := deptypes.CreateOptions{
-		Type:        deployertf.DeployerType,
-		ModelClient: mc,
-		KubeConfig:  kc,
+		Type:       deployertf.DeployerType,
+		KubeConfig: kc,
 	}
 
 	dp, err := deployer.Get(context.Background(), opts)

@@ -50,7 +50,7 @@ func Create(
 		return nil, err
 	}
 
-	ready, err := CheckDependencyStatus(ctx, mc, entity)
+	ready, err := CheckDependencyStatus(ctx, mc, opts.Deployer, entity)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func Apply(
 		return errorx.Errorf("resource status is not deploying, resource: %s", entity.ID)
 	}
 
-	err = opts.Deployer.Apply(ctx, entity, deptypes.ApplyOptions{})
+	err = opts.Deployer.Apply(ctx, mc, entity, deptypes.ApplyOptions{})
 	if err != nil {
 		err = fmt.Errorf("failed to apply resource: %w", err)
 		logger.Error(err)
@@ -173,7 +173,7 @@ func Destroy(
 		}
 	}
 
-	err = opts.Deployer.Destroy(ctx, entity, deptypes.DestroyOptions{})
+	err = opts.Deployer.Destroy(ctx, mc, entity, deptypes.DestroyOptions{})
 	if err != nil {
 		log.Errorf("fail to destroy resource: %w", err)
 
@@ -232,7 +232,7 @@ func Stop(
 		}
 	}
 
-	err = opts.Deployer.Destroy(ctx, entity, deptypes.DestroyOptions{})
+	err = opts.Deployer.Destroy(ctx, mc, entity, deptypes.DestroyOptions{})
 	if err != nil {
 		log.Errorf("fail to destroy resource: %w", err)
 
@@ -269,7 +269,12 @@ func SetSubjectID(ctx context.Context, resources ...*model.Resource) error {
 }
 
 // SetResourceStatusScheduled sets the status of the resources to scheduled.
-func SetResourceStatusScheduled(ctx context.Context, mc model.ClientSet, entities ...*model.Resource) error {
+func SetResourceStatusScheduled(
+	ctx context.Context,
+	mc model.ClientSet,
+	dp deptypes.Deployer,
+	entities ...*model.Resource,
+) error {
 	for i := range entities {
 		if entities[i] == nil {
 			return fmt.Errorf("resource is nil")
@@ -279,14 +284,28 @@ func SetResourceStatusScheduled(ctx context.Context, mc model.ClientSet, entitie
 		msg := ""
 		if len(dependencyNames) > 0 {
 			msg = fmt.Sprintf("Waiting for dependent resources to be ready: %s", strs.Join(", ", dependencyNames...))
+			status.ResourceStatusProgressing.Reset(entities[i], msg)
+		} else {
+			status.ResourceStatusDeployed.Reset(entities[i], "")
 		}
 
-		status.ResourceStatusProgressing.Reset(entities[i], msg)
 		entities[i].Status.SetSummary(status.WalkResource(&entities[i].Status))
 
-		if err := mc.Resources().UpdateOne(entities[i]).
+		entity, err := mc.Resources().UpdateOne(entities[i]).
 			SetStatus(entities[i].Status).
-			Exec(ctx); err != nil {
+			Save(ctx)
+		if err != nil {
+			return err
+		}
+
+		if len(dependencyNames) > 0 {
+			continue
+		}
+
+		err = Apply(ctx, mc, entity, Options{
+			Deployer: dp,
+		})
+		if err != nil {
 			return err
 		}
 	}
@@ -294,7 +313,7 @@ func SetResourceStatusScheduled(ctx context.Context, mc model.ClientSet, entitie
 	return nil
 }
 
-// CreateDraftResources creates undeployed resources but do no deployment.
+// CreateDraftResources creates un-deployed resources but do no deployment.
 // TODO refactor and coordinate with CreateScheduledResources.
 func CreateDraftResources(
 	ctx context.Context,
@@ -338,6 +357,7 @@ func CreateDraftResources(
 func CreateScheduledResources(
 	ctx context.Context,
 	mc model.ClientSet,
+	dp deptypes.Deployer,
 	entities model.Resources,
 ) (model.Resources, error) {
 	results := make(model.Resources, 0, len(entities))
@@ -362,7 +382,7 @@ func CreateScheduledResources(
 				return err
 			}
 
-			return SetResourceStatusScheduled(ctx, tx, entity)
+			return SetResourceStatusScheduled(ctx, tx, dp, entity)
 		})
 		if err != nil {
 			return nil, err
@@ -412,7 +432,12 @@ const (
 )
 
 // CheckDependencyStatus check resource dependencies status is ready to apply.
-func CheckDependencyStatus(ctx context.Context, mc model.ClientSet, entity *model.Resource) (bool, error) {
+func CheckDependencyStatus(
+	ctx context.Context,
+	mc model.ClientSet,
+	dp deptypes.Deployer,
+	entity *model.Resource,
+) (bool, error) {
 	// Check dependants.
 	dependencies, err := mc.ResourceRelationships().Query().
 		Where(
@@ -455,7 +480,7 @@ func CheckDependencyStatus(ctx context.Context, mc model.ClientSet, entity *mode
 
 	if len(dependencies) > 0 {
 		// If dependency resources is in deploying status.
-		err = SetResourceStatusScheduled(ctx, mc, entity)
+		err = SetResourceStatusScheduled(ctx, mc, dp, entity)
 		if err != nil {
 			return false, err
 		}
