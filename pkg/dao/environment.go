@@ -159,3 +159,32 @@ func GetEnvironmentsByIDs(ctx context.Context, mc model.ClientSet, ids ...object
 		}).
 		All(ctx)
 }
+
+func GetEnvironmentConnectors(
+	ctx context.Context,
+	mc model.ClientSet,
+	environmentID object.ID,
+) (model.Connectors, error) {
+	rs, err := mc.EnvironmentConnectorRelationships().Query().
+		Where(environmentconnectorrelationship.EnvironmentID(environmentID)).
+		WithConnector(func(cq *model.ConnectorQuery) {
+			cq.Select(
+				connector.FieldID,
+				connector.FieldName,
+				connector.FieldType,
+				connector.FieldCategory,
+				connector.FieldConfigVersion,
+				connector.FieldConfigData)
+		}).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var cs model.Connectors
+	for i := range rs {
+		cs = append(cs, rs[i].Edges.Connector)
+	}
+
+	return cs, nil
+}

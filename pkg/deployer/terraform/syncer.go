@@ -6,6 +6,7 @@ import (
 	revisionbus "github.com/seal-io/walrus/pkg/bus/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
+	pkgresource "github.com/seal-io/walrus/pkg/resource"
 )
 
 // SyncResourceRevisionStatus updates the status of the service according to its recent finished service revision.
@@ -18,9 +19,6 @@ func SyncResourceRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) 
 	// Report to resource.
 	entity, err := mc.Resources().Query().
 		Where(resource.ID(revision.ResourceID)).
-		Select(
-			resource.FieldID,
-			resource.FieldStatus).
 		Only(ctx)
 	if err != nil {
 		return err
@@ -35,6 +33,20 @@ func SyncResourceRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) 
 			// Stopping -> Stopped.
 			status.ResourceStatusStopped.True(entity, "")
 		default:
+			switch {
+			case status.ResourceStatusDetected.IsUnknown(entity):
+				// Detecting -> Detected.
+				status.ResourceStatusDetected.True(entity, "")
+
+				err = pkgresource.UpdateServiceDriftResult(ctx, mc, entity, revision)
+				if err != nil {
+					return err
+				}
+			case status.ResourceStatusSynced.IsUnknown(entity):
+				// Syncing -> Synced.
+				status.ResourceStatusSynced.True(entity, "")
+			}
+
 			// Deployed.
 			status.ResourceStatusDeployed.True(entity, "")
 			status.ResourceStatusReady.Unknown(entity, "")
@@ -43,6 +55,10 @@ func SyncResourceRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) 
 		switch {
 		case status.ResourceStatusDeleted.IsUnknown(entity):
 			status.ResourceStatusDeleted.False(entity, "")
+		case status.ResourceStatusSynced.IsUnknown(entity):
+			status.ResourceStatusSynced.False(entity, "")
+		case status.ResourceStatusDetected.IsUnknown(entity):
+			status.ResourceStatusDetected.False(entity, "")
 		default:
 			status.ResourceStatusDeployed.False(entity, "")
 		}

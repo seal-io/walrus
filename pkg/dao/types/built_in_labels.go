@@ -25,4 +25,7 @@ const (
 
 	// LabelResourceStoppable indicates if the resource is stoppable.
 	LabelResourceStoppable string = "walrus.seal.io/stoppable"
+
+	// LabelWalrusDetection indicates whether the resource is used for drift detection.
+	LabelWalrusDriftDetection string = "walrus.seal.io/drift-detection"
 )

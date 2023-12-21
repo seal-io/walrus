@@ -15,30 +15,25 @@ import (
 	"k8s.io/client-go/kubernetes"
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	revisionbus "github.com/seal-io/walrus/pkg/bus/resourcerevision"
+	apiconfig "github.com/seal-io/walrus/pkg/apis/config"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
-	"github.com/seal-io/walrus/pkg/dao/types/status"
 	opk8s "github.com/seal-io/walrus/pkg/operator/k8s"
 	"github.com/seal-io/walrus/pkg/operator/k8s/kube"
 	"github.com/seal-io/walrus/utils/log"
 )
 
-const (
-	JobTypeApply   = "apply"
-	JobTypeDestroy = "destroy"
-)
-
 type JobCreateOptions struct {
 	// Type is the deployment type of job, apply or destroy or other.
-	Type               string
-	ResourceRevisionID string
-	Image              string
-	Env                []corev1.EnvVar
+	Type  string
+	Image string
+	Env   []corev1.EnvVar
+
+	Token     string
+	ServerURL string
 }
 
 type StreamJobLogsOptions struct {
@@ -55,163 +50,40 @@ type JobReconciler struct {
 	ModelClient *model.Client
 }
 
-const (
-	// _podName the name of the pod.
-	_podName = "deployer"
-
-	// _applicationRevisionIDLabel pod template label key for application revision id.
-	_applicationRevisionIDLabel = "walrus.seal.io/application-revision-id"
-	// _jobNameFormat the format of job name.
-	_jobNameFormat = "tf-job-%s-%s"
-	// _jobSecretPrefix the prefix of secret name.
-	_jobSecretPrefix = "tf-secret-"
-	// _secretMountPath the path to mount the secret.
-	_secretMountPath = "/var/terraform/secrets"
-	// _workdir the working directory of the job.
-	_workdir = "/var/terraform/workspace"
-)
-
-const (
-	// _applyCommands the commands to apply deployment of the application.
-	_applyCommands = "terraform init -no-color && terraform apply -auto-approve -no-color"
-	// _destroyCommands the commands to destroy deployment of the application.
-	_destroyCommands = "terraform init -no-color && terraform destroy -auto-approve -no-color"
-)
-
-func (r JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	job := &batchv1.Job{}
-
-	err := r.KubeClient.Get(ctx, req.NamespacedName, job)
-	if err != nil {
-		if kerrors.IsNotFound(err) {
-			return ctrl.Result{}, nil
-		}
-
-		return ctrl.Result{}, err
-	}
-
-	err = r.syncApplicationRevisionStatus(ctx, job)
-	if err != nil && !model.IsNotFound(err) {
-		return ctrl.Result{}, err
-	}
-
-	return ctrl.Result{}, nil
-}
-
-func (r JobReconciler) Setup(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&batchv1.Job{}).
-		Complete(r)
-}
-
-// syncApplicationRevisionStatus sync the application revision status.
-func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *batchv1.Job) (err error) {
-	appRevisionID, ok := job.Labels[_applicationRevisionIDLabel]
-	if !ok {
-		// Not a deployer job.
-		return nil
-	}
-
-	appRevision, err := r.ModelClient.ResourceRevisions().Get(ctx, object.ID(appRevisionID))
-	if err != nil {
-		return err
-	}
-
-	// If the application revision status is not running, then skip it.
-	if !status.ResourceRevisionStatusReady.IsUnknown(appRevision) {
-		return nil
-	}
-
-	if job.Status.Succeeded == 0 && job.Status.Failed == 0 {
-		return nil
-	}
-
-	status.ResourceRevisionStatusReady.True(appRevision, "")
-
-	// Get job pods logs.
-	record, err := r.getJobPodsLogs(ctx, job.Name)
-	if err != nil {
-		r.Logger.Error(err, "failed to get job pod logs", "application-revision", appRevisionID)
-		record = err.Error()
-	}
-
-	if job.Status.Succeeded > 0 {
-		r.Logger.Info("succeed", "application-revision", appRevisionID)
-	}
-
-	if job.Status.Failed > 0 {
-		r.Logger.Info("failed", "application-revision", appRevisionID)
-		status.ResourceRevisionStatusReady.False(appRevision, "")
-	}
-
-	// Report to application revision.
-	appRevision.Record = record
-	appRevision.Status.SetSummary(status.WalkResourceRevision(&appRevision.Status))
-	appRevision.Duration = int(time.Since(*appRevision.CreateTime).Seconds())
-
-	appRevision, err = r.ModelClient.ResourceRevisions().UpdateOne(appRevision).
-		SetStatus(appRevision.Status).
-		SetRecord(appRevision.Record).
-		SetDuration(appRevision.Duration).
-		Save(ctx)
-	if err != nil {
-		return err
-	}
-
-	return revisionbus.Notify(ctx, r.ModelClient, appRevision)
-}
-
-// getJobPodsLogs returns the logs of all pods of a job.
-func (r JobReconciler) getJobPodsLogs(ctx context.Context, jobName string) (string, error) {
-	clientSet, err := kubernetes.NewForConfig(r.Kubeconfig)
-	if err != nil {
-		return "", err
-	}
-	ls := "job-name=" + jobName
-
-	pods, err := clientSet.CoreV1().Pods(types.WalrusSystemNamespace).
-		List(ctx, metav1.ListOptions{LabelSelector: ls})
-	if err != nil {
-		return "", err
-	}
-
-	var logs string
-
-	for _, pod := range pods.Items {
-		var podLogs []byte
-
-		podLogs, err = clientSet.CoreV1().Pods(types.WalrusSystemNamespace).
-			GetLogs(pod.Name, &corev1.PodLogOptions{}).
-			DoRaw(ctx)
-		if err != nil {
-			return "", err
-		}
-		logs += string(podLogs)
-	}
-
-	return logs, nil
-}
-
-// CreateJob create a job to run terraform deployment.
-func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCreateOptions) error {
+// createJob create a job to run terraform deployment.
+func createJob(
+	ctx context.Context,
+	clientSet *kubernetes.Clientset,
+	revision *model.ResourceRevision,
+	opts JobCreateOptions,
+) error {
 	var (
 		logger = log.WithName("deployer").WithName("tf")
 
 		backoffLimit            int32 = 0
-		ttlSecondsAfterFinished int32 = 3600
-		name                          = getK8sJobName(_jobNameFormat, opts.Type, opts.ResourceRevisionID)
-		configName                    = _jobSecretPrefix + opts.ResourceRevisionID
+		ttlSecondsAfterFinished int32 = 900
+		revisionID                    = revision.ID.String()
+		name                          = getK8sJobName(_jobNameFormat, opts.Type, revisionID)
+		configName                    = _jobSecretPrefix + revisionID
+		labels                        = map[string]string{
+			_resourceRevisionIDLabel: revisionID,
+		}
 	)
+
+	if revision.Type == types.ResourceRevisionTypeDetect {
+		labels[types.LabelWalrusDriftDetection] = "true"
+	}
 
 	secret, err := clientSet.CoreV1().Secrets(types.WalrusSystemNamespace).Get(ctx, configName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
 
-	podTemplate := getPodTemplate(opts.ResourceRevisionID, configName, opts)
+	podTemplate := getPodTemplate(revision, configName, opts)
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
+			Name:   name,
+			Labels: labels,
 		},
 		Spec: batchv1.JobSpec{
 			Template:                podTemplate,
@@ -268,7 +140,7 @@ func CreateSecret(ctx context.Context, clientSet *kubernetes.Clientset, name str
 }
 
 // getPodTemplate returns a pod template for deployment.
-func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOptions) corev1.PodTemplateSpec {
+func getPodTemplate(revision *model.ResourceRevision, configName string, opts JobCreateOptions) corev1.PodTemplateSpec {
 	var (
 		command       = []string{"/bin/sh", "-c"}
 		deployCommand = fmt.Sprintf("cp %s/main.tf main.tf && ", _secretMountPath)
@@ -280,6 +152,28 @@ func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOpti
 		deployCommand += _applyCommands + varfile
 	case JobTypeDestroy:
 		deployCommand += _destroyCommands + varfile
+	case JobTypeSync:
+		deployCommand += _syncCommands + varfile
+	case JobTypeDetect:
+		deployCommand += fmt.Sprintf(_detectCommands, varfile)
+
+		driftAPI := fmt.Sprintf("%s%s", opts.ServerURL,
+			fmt.Sprintf(_driftAPI,
+				revision.ProjectID,
+				revision.EnvironmentID,
+				revision.ResourceID,
+				revision.ID))
+
+		deployCommand += fmt.Sprintf(
+			" && curl -s -f -X PUT -H \"Content-Type: application/json\" -H \"Authorization: Bearer %s\" %s -d @%s",
+			opts.Token,
+			driftAPI,
+			_driftFile,
+		)
+
+		if !apiconfig.TlsCertified.Get() {
+			deployCommand += " -k"
+		}
 	}
 
 	command = append(command, deployCommand)
@@ -288,7 +182,7 @@ func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOpti
 		ObjectMeta: metav1.ObjectMeta{
 			Name: _podName,
 			Labels: map[string]string{
-				_applicationRevisionIDLabel: applicationRevisionID,
+				_resourceRevisionIDLabel: revision.ID.String(),
 			},
 		},
 		Spec: corev1.PodSpec{

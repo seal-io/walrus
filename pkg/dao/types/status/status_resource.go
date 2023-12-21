@@ -7,6 +7,8 @@ const (
 	ResourceStatusDeleted     ConditionType = "Deleted"
 	ResourceStatusReady       ConditionType = "Ready"
 	ResourceStatusProgressing ConditionType = "Progressing"
+	ResourceStatusDetected    ConditionType = "Detected"
+	ResourceStatusSynced      ConditionType = "Synced"
 )
 
 // resourceStatusPaths makes the following decision.
@@ -28,6 +30,12 @@ const (
 //	| Ready            | Unknown                 | Preparing             | Transitioning         |
 //	| Ready            | False                   | NotReady              | Error                 |
 //	| Ready            | True                    | Ready                 |                       |
+//	| Detected         | Unknown                 | Detecting             | Transitioning         |
+//	| Detected         | False                   | DetectFailed          | Error                 |
+//	| Detected         | True                    | Detected              |                       |
+//	| Synced           | Unknown                 | Syncing               | Transitioning         |
+//	| Synced           | False                   | SyncFailed            | Error                 |
+//	| Synced           | True                    | Synced                |                       |
 //	| Deleted          | Unknown                 | Deleting              | Transitioning         |
 //	| Deleted          | False                   | DeleteFailed          | Error                 |
 //	| Deleted          | True                    | Deleted               |                       |
@@ -39,6 +47,8 @@ var resourceStatusPaths = NewWalker(
 			ResourceStatusDeployed,
 			ResourceStatusUnDeployed,
 			ResourceStatusStopped,
+			ResourceStatusDetected,
+			ResourceStatusSynced,
 			ResourceStatusReady,
 		},
 	},
