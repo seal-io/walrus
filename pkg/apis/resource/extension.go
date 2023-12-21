@@ -69,7 +69,7 @@ func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 		Deployer: dp,
 	}
 
-	ready, err := pkgresource.CheckDependencyStatus(req.Context, h.modelClient, entity)
+	ready, err := pkgresource.CheckDependencyStatus(req.Context, h.modelClient, dp, entity)
 	if err != nil {
 		return errorx.Wrap(err, "error checking dependency status")
 	}
@@ -167,7 +167,7 @@ func (h Handler) RouteStart(req RouteStartRequest) error {
 		Deployer: dp,
 	}
 
-	ready, err := pkgresource.CheckDependencyStatus(req.Context, h.modelClient, entity)
+	ready, err := pkgresource.CheckDependencyStatus(req.Context, h.modelClient, dp, entity)
 	if err != nil {
 		return errorx.Wrap(err, "error checking dependency status")
 	}

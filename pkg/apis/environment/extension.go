@@ -198,6 +198,11 @@ func (h Handler) RouteCloneEnvironment(req RouteCloneEnvironmentRequest) (*Route
 		}
 	}
 
+	dp, err := h.getDeployer(req.Context)
+	if err != nil {
+		return nil, err
+	}
+
 	// Fetch and fill the value with sensitive variables from the cloned environment.
 	if len(variableNames) > 0 {
 		vs, err := h.modelClient.Variables().Query().
@@ -222,7 +227,7 @@ func (h Handler) RouteCloneEnvironment(req RouteCloneEnvironmentRequest) (*Route
 		}
 	}
 
-	return createEnvironment(req.Context, h.modelClient, entity, req.Draft)
+	return createEnvironment(req.Context, h.modelClient, dp, entity, req.Draft)
 }
 
 func (h Handler) RouteGetResourceDefinitions(
@@ -279,6 +284,11 @@ func (h Handler) RouteGetResourceDefinitions(
 }
 
 func (h Handler) RouteStart(req RouteStartRequest) error {
+	dp, err := h.getDeployer(req.Context)
+	if err != nil {
+		return err
+	}
+
 	resources, err := req.Client.Resources().Query().
 		Where(resource.EnvironmentID(req.ID)).
 		WithTemplate(func(tvq *model.TemplateVersionQuery) {
@@ -313,7 +323,7 @@ func (h Handler) RouteStart(req RouteStartRequest) error {
 			return err
 		}
 
-		return pkgresource.SetResourceStatusScheduled(req.Context, tx, toStartResources...)
+		return pkgresource.SetResourceStatusScheduled(req.Context, tx, dp, toStartResources...)
 	})
 	if err != nil {
 		return errorx.Wrap(err, "failed to start environment")
@@ -325,9 +335,8 @@ func (h Handler) RouteStart(req RouteStartRequest) error {
 func (h Handler) RouteStop(req RouteStopRequest) error {
 	return h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
 		deployerOpts := deptypes.CreateOptions{
-			Type:        deployertf.DeployerType,
-			ModelClient: tx,
-			KubeConfig:  h.kubeConfig,
+			Type:       deployertf.DeployerType,
+			KubeConfig: h.kubeConfig,
 		}
 
 		dp, err := deployer.Get(req.Context, deployerOpts)

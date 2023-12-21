@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
 	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	"github.com/seal-io/walrus/pkg/resourcedefinitions"
 	"github.com/seal-io/walrus/utils/errorx"
@@ -27,6 +28,7 @@ import (
 func createEnvironment(
 	ctx *gin.Context,
 	mc model.ClientSet,
+	dp deptypes.Deployer,
 	entity *model.Environment,
 	draft bool,
 ) (*model.EnvironmentOutput, error) {
@@ -68,7 +70,7 @@ func createEnvironment(
 				return err
 			}
 		} else {
-			resources, err = pkgresource.CreateScheduledResources(ctx, tx, resourceInputs)
+			resources, err = pkgresource.CreateScheduledResources(ctx, tx, dp, resourceInputs)
 			if err != nil {
 				return err
 			}

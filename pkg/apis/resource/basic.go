@@ -98,7 +98,12 @@ func (h Handler) Delete(req DeleteRequest) (err error) {
 func (h Handler) CollectionCreate(req CollectionCreateRequest) (CollectionCreateResponse, error) {
 	entities := req.Model()
 
-	err := h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
+	dp, err := h.getDeployer(req.Context)
+	if err != nil {
+		return nil, err
+	}
+
+	err = h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
 		if err := pkgresource.SetSubjectID(req.Context, entities...); err != nil {
 			return err
 		}
@@ -108,7 +113,7 @@ func (h Handler) CollectionCreate(req CollectionCreateRequest) (CollectionCreate
 			return err
 		}
 
-		_, err := pkgresource.CreateScheduledResources(req.Context, tx, entities)
+		_, err := pkgresource.CreateScheduledResources(req.Context, tx, dp, entities)
 
 		return err
 	})
@@ -303,9 +308,8 @@ func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 		}
 
 		deployerOpts := deptypes.CreateOptions{
-			Type:        deployertf.DeployerType,
-			ModelClient: tx,
-			KubeConfig:  h.kubeConfig,
+			Type:       deployertf.DeployerType,
+			KubeConfig: h.kubeConfig,
 		}
 
 		dp, err := deployer.Get(req.Context, deployerOpts)
@@ -330,9 +334,8 @@ func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 
 func (h Handler) getDeployer(ctx context.Context) (deptypes.Deployer, error) {
 	dep, err := deployer.Get(ctx, deptypes.CreateOptions{
-		Type:        deployertf.DeployerType,
-		ModelClient: h.modelClient,
-		KubeConfig:  h.kubeConfig,
+		Type:       deployertf.DeployerType,
+		KubeConfig: h.kubeConfig,
 	})
 	if err != nil {
 		return nil, errorx.Wrap(err, "failed to get deployer")

@@ -81,9 +81,8 @@ var (
 
 // Deployer terraform deployer to deploy the resource.
 type Deployer struct {
-	logger      log.Logger
-	modelClient model.ClientSet
-	clientSet   *kubernetes.Clientset
+	logger    log.Logger
+	clientSet *kubernetes.Clientset
 }
 
 func NewDeployer(_ context.Context, opts deptypes.CreateOptions) (deptypes.Deployer, error) {
@@ -93,9 +92,8 @@ func NewDeployer(_ context.Context, opts deptypes.CreateOptions) (deptypes.Deplo
 	}
 
 	return &Deployer{
-		modelClient: opts.ModelClient,
-		clientSet:   clientSet,
-		logger:      log.WithName("deployer").WithName("tf"),
+		clientSet: clientSet,
+		logger:    log.WithName("deployer").WithName("tf"),
 	}, nil
 }
 
@@ -105,8 +103,13 @@ func (d Deployer) Type() deptypes.Type {
 
 // Apply creates a new resource revision by the given resource,
 // and drives the Kubernetes Job to create components of the resource.
-func (d Deployer) Apply(ctx context.Context, resource *model.Resource, opts deptypes.ApplyOptions) (err error) {
-	revision, err := d.createRevision(ctx, createRevisionOptions{
+func (d Deployer) Apply(
+	ctx context.Context,
+	mc model.ClientSet,
+	resource *model.Resource,
+	opts deptypes.ApplyOptions,
+) (err error) {
+	revision, err := d.createRevision(ctx, mc, createRevisionOptions{
 		ResourceID: resource.ID,
 		JobType:    JobTypeApply,
 	})
@@ -123,10 +126,10 @@ func (d Deployer) Apply(ctx context.Context, resource *model.Resource, opts dept
 		status.ResourceRevisionStatusReady.False(revision, err.Error())
 
 		// Report to resource revision.
-		_ = d.updateRevisionStatus(ctx, revision)
+		_ = d.updateRevisionStatus(ctx, mc, revision)
 	}()
 
-	return d.createK8sJob(ctx, createK8sJobOptions{
+	return d.createK8sJob(ctx, mc, createK8sJobOptions{
 		Type:             JobTypeApply,
 		ResourceRevision: revision,
 	})
@@ -134,8 +137,13 @@ func (d Deployer) Apply(ctx context.Context, resource *model.Resource, opts dept
 
 // Destroy creates a new resource revision by the given resource,
 // and drives the Kubernetes Job to clean the components of the resource.
-func (d Deployer) Destroy(ctx context.Context, resource *model.Resource, opts deptypes.DestroyOptions) (err error) {
-	revision, err := d.createRevision(ctx, createRevisionOptions{
+func (d Deployer) Destroy(
+	ctx context.Context,
+	mc model.ClientSet,
+	resource *model.Resource,
+	opts deptypes.DestroyOptions,
+) (err error) {
+	revision, err := d.createRevision(ctx, mc, createRevisionOptions{
 		ResourceID: resource.ID,
 		JobType:    JobTypeDestroy,
 	})
@@ -152,10 +160,10 @@ func (d Deployer) Destroy(ctx context.Context, resource *model.Resource, opts de
 		status.ResourceRevisionStatusReady.False(revision, err.Error())
 
 		// Report to resource revision.
-		_ = d.updateRevisionStatus(ctx, revision)
+		_ = d.updateRevisionStatus(ctx, mc, revision)
 	}()
 
-	return d.createK8sJob(ctx, createK8sJobOptions{
+	return d.createK8sJob(ctx, mc, createK8sJobOptions{
 		Type:             JobTypeDestroy,
 		ResourceRevision: revision,
 	})
@@ -169,25 +177,25 @@ type createK8sJobOptions struct {
 }
 
 // createK8sJob creates a k8s job to deploy, destroy or rollback the resource.
-func (d Deployer) createK8sJob(ctx context.Context, opts createK8sJobOptions) error {
+func (d Deployer) createK8sJob(ctx context.Context, mc model.ClientSet, opts createK8sJobOptions) error {
 	revision := opts.ResourceRevision
 
-	connectors, err := d.getConnectors(ctx, revision.EnvironmentID)
+	connectors, err := d.getConnectors(ctx, mc, revision.EnvironmentID)
 	if err != nil {
 		return err
 	}
 
-	proj, err := d.modelClient.Projects().Get(ctx, revision.ProjectID)
+	proj, err := mc.Projects().Get(ctx, revision.ProjectID)
 	if err != nil {
 		return err
 	}
 
-	env, err := dao.GetEnvironmentByID(ctx, d.modelClient, revision.EnvironmentID)
+	env, err := dao.GetEnvironmentByID(ctx, mc, revision.EnvironmentID)
 	if err != nil {
 		return err
 	}
 
-	res, err := d.modelClient.Resources().Get(ctx, revision.ResourceID)
+	res, err := mc.Resources().Get(ctx, revision.ResourceID)
 	if err != nil {
 		return err
 	}
@@ -219,16 +227,16 @@ func (d Deployer) createK8sJob(ctx context.Context, opts createK8sJobOptions) er
 			SetEnvironment(env.ID, env.Name, pkgenv.GetManagedNamespaceName(env)).
 			SetResource(res.ID, res.Name),
 	}
-	if err = d.createK8sSecrets(ctx, secretOpts); err != nil {
+	if err = d.createK8sSecrets(ctx, mc, secretOpts); err != nil {
 		return err
 	}
 
-	jobImage, err := settings.DeployerImage.Value(ctx, d.modelClient)
+	jobImage, err := settings.DeployerImage.Value(ctx, mc)
 	if err != nil {
 		return err
 	}
 
-	jobEnv, err := d.getEnv(ctx)
+	jobEnv, err := d.getEnv(ctx, mc)
 	if err != nil {
 		return err
 	}
@@ -244,10 +252,10 @@ func (d Deployer) createK8sJob(ctx context.Context, opts createK8sJobOptions) er
 	return CreateJob(ctx, d.clientSet, jobOpts)
 }
 
-func (d Deployer) getEnv(ctx context.Context) ([]corev1.EnvVar, error) {
+func (d Deployer) getEnv(ctx context.Context, mc model.ClientSet) ([]corev1.EnvVar, error) {
 	var env []corev1.EnvVar
 
-	allProxy, err := settings.DeployerAllProxy.Value(ctx, d.modelClient)
+	allProxy, err := settings.DeployerAllProxy.Value(ctx, mc)
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +267,7 @@ func (d Deployer) getEnv(ctx context.Context) ([]corev1.EnvVar, error) {
 		})
 	}
 
-	httpProxy, err := settings.DeployerHttpProxy.Value(ctx, d.modelClient)
+	httpProxy, err := settings.DeployerHttpProxy.Value(ctx, mc)
 	if err != nil {
 		return nil, err
 	}
@@ -271,7 +279,7 @@ func (d Deployer) getEnv(ctx context.Context) ([]corev1.EnvVar, error) {
 		})
 	}
 
-	httpsProxy, err := settings.DeployerHttpsProxy.Value(ctx, d.modelClient)
+	httpsProxy, err := settings.DeployerHttpsProxy.Value(ctx, mc)
 	if err != nil {
 		return nil, err
 	}
@@ -283,7 +291,7 @@ func (d Deployer) getEnv(ctx context.Context) ([]corev1.EnvVar, error) {
 		})
 	}
 
-	noProxy, err := settings.DeployerNoProxy.Value(ctx, d.modelClient)
+	noProxy, err := settings.DeployerNoProxy.Value(ctx, mc)
 	if err != nil {
 		return nil, err
 	}
@@ -295,7 +303,7 @@ func (d Deployer) getEnv(ctx context.Context) ([]corev1.EnvVar, error) {
 		})
 	}
 
-	if settings.SkipRemoteTLSVerify.ShouldValueBool(ctx, d.modelClient) {
+	if settings.SkipRemoteTLSVerify.ShouldValueBool(ctx, mc) {
 		env = append(env, corev1.EnvVar{
 			Name:  "GIT_SSL_NO_VERIFY",
 			Value: "true",
@@ -305,18 +313,18 @@ func (d Deployer) getEnv(ctx context.Context) ([]corev1.EnvVar, error) {
 	return env, nil
 }
 
-func (d Deployer) updateRevisionStatus(ctx context.Context, ar *model.ResourceRevision) error {
+func (d Deployer) updateRevisionStatus(ctx context.Context, mc model.ClientSet, ar *model.ResourceRevision) error {
 	// Report to resource revision.
 	ar.Status.SetSummary(status.WalkResourceRevision(&ar.Status))
 
-	ar, err := d.modelClient.ResourceRevisions().UpdateOne(ar).
+	ar, err := mc.ResourceRevisions().UpdateOne(ar).
 		SetStatus(ar.Status).
 		Save(ctx)
 	if err != nil {
 		return err
 	}
 
-	if err = revisionbus.Notify(ctx, d.modelClient, ar); err != nil {
+	if err = revisionbus.Notify(ctx, mc, ar); err != nil {
 		d.logger.Error(err)
 		return err
 	}
@@ -333,13 +341,13 @@ type createK8sSecretsOptions struct {
 }
 
 // createK8sSecrets creates the k8s secrets for deployment.
-func (d Deployer) createK8sSecrets(ctx context.Context, opts createK8sSecretsOptions) error {
+func (d Deployer) createK8sSecrets(ctx context.Context, mc model.ClientSet, opts createK8sSecretsOptions) error {
 	secretData := make(map[string][]byte)
 	// SecretName terraform tfConfig name.
 	secretName := _jobSecretPrefix + string(opts.ResourceRevision.ID)
 
 	// Prepare terraform config files bytes for deployment.
-	terraformData, err := d.loadConfigsBytes(ctx, opts)
+	terraformData, err := d.loadConfigsBytes(ctx, mc, opts)
 	if err != nil {
 		return err
 	}
@@ -379,10 +387,11 @@ type createRevisionOptions struct {
 // If running, then wait for the latest revision to be applied.
 func (d Deployer) createRevision(
 	ctx context.Context,
+	mc model.ClientSet,
 	opts createRevisionOptions,
 ) (*model.ResourceRevision, error) {
 	// Validate if there is a running revision.
-	prevEntity, err := d.modelClient.ResourceRevisions().Query().
+	prevEntity, err := mc.ResourceRevisions().Query().
 		Where(resourcerevision.And(
 			resourcerevision.ResourceID(opts.ResourceID),
 			resourcerevision.DeployerType(DeployerType))).
@@ -397,7 +406,7 @@ func (d Deployer) createRevision(
 	}
 
 	// Get the corresponding resource and template version.
-	res, err := d.modelClient.Resources().Query().
+	res, err := mc.Resources().Query().
 		Where(resource.ID(opts.ResourceID)).
 		WithTemplate(func(tvq *model.TemplateVersionQuery) {
 			tvq.Select(
@@ -472,7 +481,7 @@ func (d Deployer) createRevision(
 		templateName = matchRule.Edges.Template.Name
 		templateVersion = matchRule.Edges.Template.Version
 
-		templateID, err = d.modelClient.Templates().Query().
+		templateID, err = mc.Templates().Query().
 			Where(
 				template.Name(templateName),
 				// Now we only support resource definition globally.
@@ -518,7 +527,7 @@ func (d Deployer) createRevision(
 	switch {
 	case opts.JobType == JobTypeApply && entity.Output != "":
 		// Get required providers from the previous output after first deployment.
-		requiredProviders, err := d.getRequiredProviders(ctx, opts.ResourceID, entity.Output)
+		requiredProviders, err := d.getRequiredProviders(ctx, mc, opts.ResourceID, entity.Output)
 		if err != nil {
 			return nil, err
 		}
@@ -526,7 +535,7 @@ func (d Deployer) createRevision(
 	case opts.JobType == JobTypeDestroy && entity.Output != "":
 		if status.ResourceRevisionStatusReady.IsFalse(prevEntity) {
 			// Get required providers from the previous output after first deployment.
-			requiredProviders, err := d.getRequiredProviders(ctx, opts.ResourceID, entity.Output)
+			requiredProviders, err := d.getRequiredProviders(ctx, mc, opts.ResourceID, entity.Output)
 			if err != nil {
 				return nil, err
 			}
@@ -544,7 +553,7 @@ func (d Deployer) createRevision(
 	}
 
 	// Create revision.
-	entity, err = d.modelClient.ResourceRevisions().Create().
+	entity, err = mc.ResourceRevisions().Create().
 		Set(entity).
 		Save(ctx)
 	if err != nil {
@@ -556,12 +565,13 @@ func (d Deployer) createRevision(
 
 func (d Deployer) getRequiredProviders(
 	ctx context.Context,
+	mc model.ClientSet,
 	instanceID object.ID,
 	previousOutput string,
 ) ([]types.ProviderRequirement, error) {
 	stateRequiredProviderSet := sets.NewString()
 
-	previousRequiredProviders, err := d.getPreviousRequiredProviders(ctx, instanceID)
+	previousRequiredProviders, err := d.getPreviousRequiredProviders(ctx, mc, instanceID)
 	if err != nil {
 		return nil, err
 	}
@@ -585,11 +595,15 @@ func (d Deployer) getRequiredProviders(
 }
 
 // loadConfigsBytes returns terraform main.tf and terraform.tfvars for deployment.
-func (d Deployer) loadConfigsBytes(ctx context.Context, opts createK8sSecretsOptions) (map[string][]byte, error) {
+func (d Deployer) loadConfigsBytes(
+	ctx context.Context,
+	mc model.ClientSet,
+	opts createK8sSecretsOptions,
+) (map[string][]byte, error) {
 	logger := log.WithName("deployer").WithName("tf")
 	// Prepare terraform tfConfig.
 	//  get module configs from resource revision.
-	moduleConfig, providerRequirements, err := d.getModuleConfig(ctx, opts)
+	moduleConfig, providerRequirements, err := d.getModuleConfig(ctx, mc, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -615,7 +629,7 @@ func (d Deployer) loadConfigsBytes(ctx context.Context, opts createK8sSecretsOpt
 	// Parse module attributes.
 	attrs, variables, dependencyOutputs, err := ParseModuleAttributes(
 		ctx,
-		d.modelClient,
+		mc,
 		moduleConfig.Attributes,
 		false,
 		revisionOpts,
@@ -633,7 +647,7 @@ func (d Deployer) loadConfigsBytes(ctx context.Context, opts createK8sSecretsOpt
 	}
 
 	// Prepare address for terraform backend.
-	serverAddress, err := settings.ServeUrl.Value(ctx, d.modelClient)
+	serverAddress, err := settings.ServeUrl.Value(ctx, mc)
 	if err != nil {
 		return nil, err
 	}
@@ -652,7 +666,7 @@ func (d Deployer) loadConfigsBytes(ctx context.Context, opts createK8sSecretsOpt
 	const _1Day = 60 * 60 * 24
 
 	at, err := auths.CreateAccessToken(ctx,
-		d.modelClient, opts.SubjectID, types.TokenKindDeployment, string(opts.ResourceRevision.ID), pointer.Int(_1Day))
+		mc, opts.SubjectID, types.TokenKindDeployment, string(opts.ResourceRevision.ID), pointer.Int(_1Day))
 	if err != nil {
 		return nil, err
 	}
@@ -711,14 +725,14 @@ func (d Deployer) loadConfigsBytes(ctx context.Context, opts createK8sSecretsOpt
 		opts.ResourceRevision.Variables = variableMap
 	}
 
-	revision, err := d.modelClient.ResourceRevisions().UpdateOne(opts.ResourceRevision).
+	revision, err := mc.ResourceRevisions().UpdateOne(opts.ResourceRevision).
 		Set(opts.ResourceRevision).
 		Save(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = revisionbus.Notify(ctx, d.modelClient, revision); err != nil {
+	if err = revisionbus.Notify(ctx, mc, revision); err != nil {
 		return nil, err
 	}
 
@@ -752,6 +766,7 @@ func (d Deployer) getProviderSecretData(connectors model.Connectors) (map[string
 // get terraform module config block from resource revision.
 func (d Deployer) getModuleConfig(
 	ctx context.Context,
+	mc model.ClientSet,
 	opts createK8sSecretsOptions,
 ) (*config.ModuleConfig, []types.ProviderRequirement, error) {
 	var (
@@ -764,7 +779,7 @@ func (d Deployer) getModuleConfig(
 		templateversion.TemplateID(opts.ResourceRevision.TemplateID),
 	))
 
-	templateVersion, err := d.modelClient.TemplateVersions().
+	templateVersion, err := mc.TemplateVersions().
 		Query().
 		Select(
 			templateversion.FieldID,
@@ -785,16 +800,20 @@ func (d Deployer) getModuleConfig(
 		requiredProviders = append(requiredProviders, templateVersion.Schema.RequiredProviders...)
 	}
 
-	mc, err := getModuleConfig(opts.ResourceRevision, templateVersion, opts)
+	moduleConfig, err := getModuleConfig(opts.ResourceRevision, templateVersion, opts)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return mc, requiredProviders, err
+	return moduleConfig, requiredProviders, err
 }
 
-func (d Deployer) getConnectors(ctx context.Context, environmentID object.ID) (model.Connectors, error) {
-	rs, err := d.modelClient.EnvironmentConnectorRelationships().Query().
+func (d Deployer) getConnectors(
+	ctx context.Context,
+	mc model.ClientSet,
+	environmentID object.ID,
+) (model.Connectors, error) {
+	rs, err := mc.EnvironmentConnectorRelationships().Query().
 		Where(environmentconnectorrelationship.EnvironmentID(environmentID)).
 		WithConnector(func(cq *model.ConnectorQuery) {
 			cq.Select(
@@ -822,11 +841,12 @@ func (d Deployer) getConnectors(ctx context.Context, environmentID object.ID) (m
 // NB(alex): the previous revision may be failed, the failed revision may not contain required providers of states.
 func (d Deployer) getPreviousRequiredProviders(
 	ctx context.Context,
+	mc model.ClientSet,
 	resourceID object.ID,
 ) ([]types.ProviderRequirement, error) {
 	prevRequiredProviders := make([]types.ProviderRequirement, 0)
 
-	entity, err := d.modelClient.ResourceRevisions().Query().
+	entity, err := mc.ResourceRevisions().Query().
 		Where(resourcerevision.ResourceID(resourceID)).
 		Order(model.Desc(resourcerevision.FieldCreateTime)).
 		First(ctx)
@@ -838,7 +858,7 @@ func (d Deployer) getPreviousRequiredProviders(
 		return prevRequiredProviders, nil
 	}
 
-	templateVersion, err := d.modelClient.TemplateVersions().Query().
+	templateVersion, err := mc.TemplateVersions().Query().
 		Where(
 			templateversion.TemplateID(entity.TemplateID),
 			templateversion.Version(entity.TemplateVersion),
