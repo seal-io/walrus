@@ -47,6 +47,8 @@ const (
 	FieldShape = "shape"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldDriftDetection holds the string denoting the drift_detection field in the database.
+	FieldDriftDetection = "drift_detection"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
@@ -137,6 +139,7 @@ var Columns = []string{
 	FieldDeployerType,
 	FieldShape,
 	FieldStatus,
+	FieldDriftDetection,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

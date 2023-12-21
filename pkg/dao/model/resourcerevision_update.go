@@ -62,6 +62,12 @@ func (rru *ResourceRevisionUpdate) ClearStatus() *ResourceRevisionUpdate {
 	return rru
 }
 
+// SetType sets the "type" field.
+func (rru *ResourceRevisionUpdate) SetType(s string) *ResourceRevisionUpdate {
+	rru.mutation.SetType(s)
+	return rru
+}
+
 // SetTemplateVersion sets the "template_version" field.
 func (rru *ResourceRevisionUpdate) SetTemplateVersion(s string) *ResourceRevisionUpdate {
 	rru.mutation.SetTemplateVersion(s)
@@ -165,6 +171,26 @@ func (rru *ResourceRevisionUpdate) ClearRecord() *ResourceRevisionUpdate {
 	return rru
 }
 
+// SetDrift sets the "drift" field.
+func (rru *ResourceRevisionUpdate) SetDrift(s string) *ResourceRevisionUpdate {
+	rru.mutation.SetDrift(s)
+	return rru
+}
+
+// SetNillableDrift sets the "drift" field if the given value is not nil.
+func (rru *ResourceRevisionUpdate) SetNillableDrift(s *string) *ResourceRevisionUpdate {
+	if s != nil {
+		rru.SetDrift(*s)
+	}
+	return rru
+}
+
+// ClearDrift clears the value of the "drift" field.
+func (rru *ResourceRevisionUpdate) ClearDrift() *ResourceRevisionUpdate {
+	rru.mutation.ClearDrift()
+	return rru
+}
+
 // Mutation returns the ResourceRevisionMutation object of the builder.
 func (rru *ResourceRevisionUpdate) Mutation() *ResourceRevisionMutation {
 	return rru.mutation
@@ -252,6 +278,7 @@ func (rru *ResourceRevisionUpdate) Set(obj *ResourceRevision) *ResourceRevisionU
 	if !reflect.ValueOf(obj.Status).IsZero() {
 		rru.SetStatus(obj.Status)
 	}
+	rru.SetType(obj.Type)
 	rru.SetTemplateVersion(obj.TemplateVersion)
 	if !reflect.ValueOf(obj.Attributes).IsZero() {
 		rru.SetAttributes(obj.Attributes)
@@ -268,6 +295,11 @@ func (rru *ResourceRevisionUpdate) Set(obj *ResourceRevision) *ResourceRevisionU
 		rru.SetRecord(obj.Record)
 	} else {
 		rru.ClearRecord()
+	}
+	if obj.Drift != "" {
+		rru.SetDrift(obj.Drift)
+	} else {
+		rru.ClearDrift()
 	}
 
 	// With Default.
@@ -301,6 +333,9 @@ func (rru *ResourceRevisionUpdate) sqlSave(ctx context.Context) (n int, err erro
 	}
 	if rru.mutation.StatusCleared() {
 		_spec.ClearField(resourcerevision.FieldStatus, field.TypeJSON)
+	}
+	if value, ok := rru.mutation.GetType(); ok {
+		_spec.SetField(resourcerevision.FieldType, field.TypeString, value)
 	}
 	if value, ok := rru.mutation.TemplateVersion(); ok {
 		_spec.SetField(resourcerevision.FieldTemplateVersion, field.TypeString, value)
@@ -342,6 +377,12 @@ func (rru *ResourceRevisionUpdate) sqlSave(ctx context.Context) (n int, err erro
 	}
 	if rru.mutation.RecordCleared() {
 		_spec.ClearField(resourcerevision.FieldRecord, field.TypeString)
+	}
+	if value, ok := rru.mutation.Drift(); ok {
+		_spec.SetField(resourcerevision.FieldDrift, field.TypeString, value)
+	}
+	if rru.mutation.DriftCleared() {
+		_spec.ClearField(resourcerevision.FieldDrift, field.TypeString)
 	}
 	_spec.Node.Schema = rru.schemaConfig.ResourceRevision
 	ctx = internal.NewSchemaConfigContext(ctx, rru.schemaConfig)
@@ -385,6 +426,12 @@ func (rruo *ResourceRevisionUpdateOne) SetNillableStatus(s *status.Status) *Reso
 // ClearStatus clears the value of the "status" field.
 func (rruo *ResourceRevisionUpdateOne) ClearStatus() *ResourceRevisionUpdateOne {
 	rruo.mutation.ClearStatus()
+	return rruo
+}
+
+// SetType sets the "type" field.
+func (rruo *ResourceRevisionUpdateOne) SetType(s string) *ResourceRevisionUpdateOne {
+	rruo.mutation.SetType(s)
 	return rruo
 }
 
@@ -488,6 +535,26 @@ func (rruo *ResourceRevisionUpdateOne) SetNillableRecord(s *string) *ResourceRev
 // ClearRecord clears the value of the "record" field.
 func (rruo *ResourceRevisionUpdateOne) ClearRecord() *ResourceRevisionUpdateOne {
 	rruo.mutation.ClearRecord()
+	return rruo
+}
+
+// SetDrift sets the "drift" field.
+func (rruo *ResourceRevisionUpdateOne) SetDrift(s string) *ResourceRevisionUpdateOne {
+	rruo.mutation.SetDrift(s)
+	return rruo
+}
+
+// SetNillableDrift sets the "drift" field if the given value is not nil.
+func (rruo *ResourceRevisionUpdateOne) SetNillableDrift(s *string) *ResourceRevisionUpdateOne {
+	if s != nil {
+		rruo.SetDrift(*s)
+	}
+	return rruo
+}
+
+// ClearDrift clears the value of the "drift" field.
+func (rruo *ResourceRevisionUpdateOne) ClearDrift() *ResourceRevisionUpdateOne {
+	rruo.mutation.ClearDrift()
 	return rruo
 }
 
@@ -603,6 +670,9 @@ func (rruo *ResourceRevisionUpdateOne) Set(obj *ResourceRevision) *ResourceRevis
 					rruo.SetStatus(obj.Status)
 				}
 			}
+			if db.Type != obj.Type {
+				rruo.SetType(obj.Type)
+			}
 			if db.TemplateVersion != obj.TemplateVersion {
 				rruo.SetTemplateVersion(obj.TemplateVersion)
 			}
@@ -637,6 +707,13 @@ func (rruo *ResourceRevisionUpdateOne) Set(obj *ResourceRevision) *ResourceRevis
 				}
 			} else {
 				rruo.ClearRecord()
+			}
+			if obj.Drift != "" {
+				if db.Drift != obj.Drift {
+					rruo.SetDrift(obj.Drift)
+				}
+			} else {
+				rruo.ClearDrift()
 			}
 
 			// With Default.
@@ -688,6 +765,9 @@ func (rruo *ResourceRevisionUpdateOne) SaveE(ctx context.Context, cbs ...func(ct
 		if _, set := rruo.mutation.Field(resourcerevision.FieldStatus); set {
 			obj.Status = x.Status
 		}
+		if _, set := rruo.mutation.Field(resourcerevision.FieldType); set {
+			obj.Type = x.Type
+		}
 		if _, set := rruo.mutation.Field(resourcerevision.FieldTemplateVersion); set {
 			obj.TemplateVersion = x.TemplateVersion
 		}
@@ -714,6 +794,9 @@ func (rruo *ResourceRevisionUpdateOne) SaveE(ctx context.Context, cbs ...func(ct
 		}
 		if _, set := rruo.mutation.Field(resourcerevision.FieldRecord); set {
 			obj.Record = x.Record
+		}
+		if _, set := rruo.mutation.Field(resourcerevision.FieldDrift); set {
+			obj.Drift = x.Drift
 		}
 		obj.Edges = x.Edges
 	}
@@ -791,6 +874,9 @@ func (rruo *ResourceRevisionUpdateOne) sqlSave(ctx context.Context) (_node *Reso
 	if rruo.mutation.StatusCleared() {
 		_spec.ClearField(resourcerevision.FieldStatus, field.TypeJSON)
 	}
+	if value, ok := rruo.mutation.GetType(); ok {
+		_spec.SetField(resourcerevision.FieldType, field.TypeString, value)
+	}
 	if value, ok := rruo.mutation.TemplateVersion(); ok {
 		_spec.SetField(resourcerevision.FieldTemplateVersion, field.TypeString, value)
 	}
@@ -831,6 +917,12 @@ func (rruo *ResourceRevisionUpdateOne) sqlSave(ctx context.Context) (_node *Reso
 	}
 	if rruo.mutation.RecordCleared() {
 		_spec.ClearField(resourcerevision.FieldRecord, field.TypeString)
+	}
+	if value, ok := rruo.mutation.Drift(); ok {
+		_spec.SetField(resourcerevision.FieldDrift, field.TypeString, value)
+	}
+	if rruo.mutation.DriftCleared() {
+		_spec.ClearField(resourcerevision.FieldDrift, field.TypeString)
 	}
 	_spec.Node.Schema = rruo.schemaConfig.ResourceRevision
 	ctx = internal.NewSchemaConfigContext(ctx, rruo.schemaConfig)

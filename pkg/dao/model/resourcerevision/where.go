@@ -68,6 +68,11 @@ func CreateTime(v time.Time) predicate.ResourceRevision {
 	return predicate.ResourceRevision(sql.FieldEQ(FieldCreateTime, v))
 }
 
+// Type applies equality check predicate on the "type" field. It's identical to TypeEQ.
+func Type(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldEQ(FieldType, v))
+}
+
 // ProjectID applies equality check predicate on the "project_id" field. It's identical to ProjectIDEQ.
 func ProjectID(v object.ID) predicate.ResourceRevision {
 	return predicate.ResourceRevision(sql.FieldEQ(FieldProjectID, v))
@@ -133,6 +138,11 @@ func Record(v string) predicate.ResourceRevision {
 	return predicate.ResourceRevision(sql.FieldEQ(FieldRecord, v))
 }
 
+// Drift applies equality check predicate on the "drift" field. It's identical to DriftEQ.
+func Drift(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldEQ(FieldDrift, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.ResourceRevision {
 	return predicate.ResourceRevision(sql.FieldEQ(FieldCreateTime, v))
@@ -181,6 +191,71 @@ func StatusIsNil() predicate.ResourceRevision {
 // StatusNotNil applies the NotNil predicate on the "status" field.
 func StatusNotNil() predicate.ResourceRevision {
 	return predicate.ResourceRevision(sql.FieldNotNull(FieldStatus))
+}
+
+// TypeEQ applies the EQ predicate on the "type" field.
+func TypeEQ(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldEQ(FieldType, v))
+}
+
+// TypeNEQ applies the NEQ predicate on the "type" field.
+func TypeNEQ(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldNEQ(FieldType, v))
+}
+
+// TypeIn applies the In predicate on the "type" field.
+func TypeIn(vs ...string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldIn(FieldType, vs...))
+}
+
+// TypeNotIn applies the NotIn predicate on the "type" field.
+func TypeNotIn(vs ...string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldNotIn(FieldType, vs...))
+}
+
+// TypeGT applies the GT predicate on the "type" field.
+func TypeGT(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldGT(FieldType, v))
+}
+
+// TypeGTE applies the GTE predicate on the "type" field.
+func TypeGTE(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldGTE(FieldType, v))
+}
+
+// TypeLT applies the LT predicate on the "type" field.
+func TypeLT(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldLT(FieldType, v))
+}
+
+// TypeLTE applies the LTE predicate on the "type" field.
+func TypeLTE(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldLTE(FieldType, v))
+}
+
+// TypeContains applies the Contains predicate on the "type" field.
+func TypeContains(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldContains(FieldType, v))
+}
+
+// TypeHasPrefix applies the HasPrefix predicate on the "type" field.
+func TypeHasPrefix(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldHasPrefix(FieldType, v))
+}
+
+// TypeHasSuffix applies the HasSuffix predicate on the "type" field.
+func TypeHasSuffix(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldHasSuffix(FieldType, v))
+}
+
+// TypeEqualFold applies the EqualFold predicate on the "type" field.
+func TypeEqualFold(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldEqualFold(FieldType, v))
+}
+
+// TypeContainsFold applies the ContainsFold predicate on the "type" field.
+func TypeContainsFold(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldContainsFold(FieldType, v))
 }
 
 // ProjectIDEQ applies the EQ predicate on the "project_id" field.
@@ -991,6 +1066,81 @@ func RecordEqualFold(v string) predicate.ResourceRevision {
 // RecordContainsFold applies the ContainsFold predicate on the "record" field.
 func RecordContainsFold(v string) predicate.ResourceRevision {
 	return predicate.ResourceRevision(sql.FieldContainsFold(FieldRecord, v))
+}
+
+// DriftEQ applies the EQ predicate on the "drift" field.
+func DriftEQ(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldEQ(FieldDrift, v))
+}
+
+// DriftNEQ applies the NEQ predicate on the "drift" field.
+func DriftNEQ(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldNEQ(FieldDrift, v))
+}
+
+// DriftIn applies the In predicate on the "drift" field.
+func DriftIn(vs ...string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldIn(FieldDrift, vs...))
+}
+
+// DriftNotIn applies the NotIn predicate on the "drift" field.
+func DriftNotIn(vs ...string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldNotIn(FieldDrift, vs...))
+}
+
+// DriftGT applies the GT predicate on the "drift" field.
+func DriftGT(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldGT(FieldDrift, v))
+}
+
+// DriftGTE applies the GTE predicate on the "drift" field.
+func DriftGTE(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldGTE(FieldDrift, v))
+}
+
+// DriftLT applies the LT predicate on the "drift" field.
+func DriftLT(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldLT(FieldDrift, v))
+}
+
+// DriftLTE applies the LTE predicate on the "drift" field.
+func DriftLTE(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldLTE(FieldDrift, v))
+}
+
+// DriftContains applies the Contains predicate on the "drift" field.
+func DriftContains(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldContains(FieldDrift, v))
+}
+
+// DriftHasPrefix applies the HasPrefix predicate on the "drift" field.
+func DriftHasPrefix(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldHasPrefix(FieldDrift, v))
+}
+
+// DriftHasSuffix applies the HasSuffix predicate on the "drift" field.
+func DriftHasSuffix(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldHasSuffix(FieldDrift, v))
+}
+
+// DriftIsNil applies the IsNil predicate on the "drift" field.
+func DriftIsNil() predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldIsNull(FieldDrift))
+}
+
+// DriftNotNil applies the NotNil predicate on the "drift" field.
+func DriftNotNil() predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldNotNull(FieldDrift))
+}
+
+// DriftEqualFold applies the EqualFold predicate on the "drift" field.
+func DriftEqualFold(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldEqualFold(FieldDrift, v))
+}
+
+// DriftContainsFold applies the ContainsFold predicate on the "drift" field.
+func DriftContainsFold(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldContainsFold(FieldDrift, v))
 }
 
 // HasProject applies the HasEdge predicate on the "project" edge.

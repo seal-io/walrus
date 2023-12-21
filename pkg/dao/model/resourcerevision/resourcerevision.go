@@ -26,6 +26,8 @@ const (
 	FieldCreateTime = "create_time"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldType holds the string denoting the type field in the database.
+	FieldType = "type"
 	// FieldProjectID holds the string denoting the project_id field in the database.
 	FieldProjectID = "project_id"
 	// FieldEnvironmentID holds the string denoting the environment_id field in the database.
@@ -54,6 +56,8 @@ const (
 	FieldPreviousRequiredProviders = "previous_required_providers"
 	// FieldRecord holds the string denoting the record field in the database.
 	FieldRecord = "record"
+	// FieldDrift holds the string denoting the drift field in the database.
+	FieldDrift = "drift"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
@@ -90,6 +94,7 @@ var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldStatus,
+	FieldType,
 	FieldProjectID,
 	FieldEnvironmentID,
 	FieldResourceID,
@@ -104,6 +109,7 @@ var Columns = []string{
 	FieldDuration,
 	FieldPreviousRequiredProviders,
 	FieldRecord,
+	FieldDrift,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -159,6 +165,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByCreateTime orders the results by the create_time field.
 func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
+}
+
+// ByType orders the results by the type field.
+func ByType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldType, opts...).ToFunc()
 }
 
 // ByProjectID orders the results by the project_id field.
@@ -224,6 +235,11 @@ func ByDuration(opts ...sql.OrderTermOption) OrderOption {
 // ByRecord orders the results by the record field.
 func ByRecord(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRecord, opts...).ToFunc()
+}
+
+// ByDrift orders the results by the drift field.
+func ByDrift(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDrift, opts...).ToFunc()
 }
 
 // ByProjectField orders the results by project field.

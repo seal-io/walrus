@@ -56,6 +56,8 @@ type ResourceComponent struct {
 	Shape string `json:"shape,omitempty"`
 	// Status of the component.
 	Status types.ResourceComponentStatus `json:"status,omitempty"`
+	// Drift detection of resource components
+	DriftDetection *types.ResourceComponentDriftDetection `json:"drift_detection,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ResourceComponentQuery when eager-loading is set.
 	Edges        ResourceComponentEdges `json:"edges,omitempty"`
@@ -201,7 +203,7 @@ func (*ResourceComponent) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case resourcecomponent.FieldStatus:
+		case resourcecomponent.FieldStatus, resourcecomponent.FieldDriftDetection:
 			values[i] = new([]byte)
 		case resourcecomponent.FieldID, resourcecomponent.FieldProjectID, resourcecomponent.FieldEnvironmentID, resourcecomponent.FieldResourceID, resourcecomponent.FieldConnectorID, resourcecomponent.FieldCompositionID, resourcecomponent.FieldClassID:
 			values[i] = new(object.ID)
@@ -316,6 +318,14 @@ func (rc *ResourceComponent) assignValues(columns []string, values []any) error 
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &rc.Status); err != nil {
 					return fmt.Errorf("unmarshal field status: %w", err)
+				}
+			}
+		case resourcecomponent.FieldDriftDetection:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field drift_detection", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &rc.DriftDetection); err != nil {
+					return fmt.Errorf("unmarshal field drift_detection: %w", err)
 				}
 			}
 		default:
@@ -444,6 +454,9 @@ func (rc *ResourceComponent) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", rc.Status))
+	builder.WriteString(", ")
+	builder.WriteString("drift_detection=")
+	builder.WriteString(fmt.Sprintf("%v", rc.DriftDetection))
 	builder.WriteByte(')')
 	return builder.String()
 }

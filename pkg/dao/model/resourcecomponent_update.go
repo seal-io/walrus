@@ -67,6 +67,18 @@ func (rcu *ResourceComponentUpdate) ClearStatus() *ResourceComponentUpdate {
 	return rcu
 }
 
+// SetDriftDetection sets the "drift_detection" field.
+func (rcu *ResourceComponentUpdate) SetDriftDetection(tcdd *types.ResourceComponentDriftDetection) *ResourceComponentUpdate {
+	rcu.mutation.SetDriftDetection(tcdd)
+	return rcu
+}
+
+// ClearDriftDetection clears the value of the "drift_detection" field.
+func (rcu *ResourceComponentUpdate) ClearDriftDetection() *ResourceComponentUpdate {
+	rcu.mutation.ClearDriftDetection()
+	return rcu
+}
+
 // AddComponentIDs adds the "components" edge to the ResourceComponent entity by IDs.
 func (rcu *ResourceComponentUpdate) AddComponentIDs(ids ...object.ID) *ResourceComponentUpdate {
 	rcu.mutation.AddComponentIDs(ids...)
@@ -277,6 +289,11 @@ func (rcu *ResourceComponentUpdate) Set(obj *ResourceComponent) *ResourceCompone
 	} else {
 		rcu.ClearStatus()
 	}
+	if !reflect.ValueOf(obj.DriftDetection).IsZero() {
+		rcu.SetDriftDetection(obj.DriftDetection)
+	} else {
+		rcu.ClearDriftDetection()
+	}
 
 	// With Default.
 	if obj.UpdateTime != nil {
@@ -315,6 +332,12 @@ func (rcu *ResourceComponentUpdate) sqlSave(ctx context.Context) (n int, err err
 	}
 	if rcu.mutation.StatusCleared() {
 		_spec.ClearField(resourcecomponent.FieldStatus, field.TypeJSON)
+	}
+	if value, ok := rcu.mutation.DriftDetection(); ok {
+		_spec.SetField(resourcecomponent.FieldDriftDetection, field.TypeJSON, value)
+	}
+	if rcu.mutation.DriftDetectionCleared() {
+		_spec.ClearField(resourcecomponent.FieldDriftDetection, field.TypeJSON)
 	}
 	if rcu.mutation.ComponentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -508,6 +531,18 @@ func (rcuo *ResourceComponentUpdateOne) SetNillableStatus(tcs *types.ResourceCom
 // ClearStatus clears the value of the "status" field.
 func (rcuo *ResourceComponentUpdateOne) ClearStatus() *ResourceComponentUpdateOne {
 	rcuo.mutation.ClearStatus()
+	return rcuo
+}
+
+// SetDriftDetection sets the "drift_detection" field.
+func (rcuo *ResourceComponentUpdateOne) SetDriftDetection(tcdd *types.ResourceComponentDriftDetection) *ResourceComponentUpdateOne {
+	rcuo.mutation.SetDriftDetection(tcdd)
+	return rcuo
+}
+
+// ClearDriftDetection clears the value of the "drift_detection" field.
+func (rcuo *ResourceComponentUpdateOne) ClearDriftDetection() *ResourceComponentUpdateOne {
+	rcuo.mutation.ClearDriftDetection()
 	return rcuo
 }
 
@@ -746,6 +781,13 @@ func (rcuo *ResourceComponentUpdateOne) Set(obj *ResourceComponent) *ResourceCom
 			} else {
 				rcuo.ClearStatus()
 			}
+			if !reflect.ValueOf(obj.DriftDetection).IsZero() {
+				if !reflect.DeepEqual(db.DriftDetection, obj.DriftDetection) {
+					rcuo.SetDriftDetection(obj.DriftDetection)
+				}
+			} else {
+				rcuo.ClearDriftDetection()
+			}
 
 			// With Default.
 			if (obj.UpdateTime != nil) && (!reflect.DeepEqual(db.UpdateTime, obj.UpdateTime)) {
@@ -798,6 +840,9 @@ func (rcuo *ResourceComponentUpdateOne) SaveE(ctx context.Context, cbs ...func(c
 	} else if x := rcuo.object; x != nil {
 		if _, set := rcuo.mutation.Field(resourcecomponent.FieldStatus); set {
 			obj.Status = x.Status
+		}
+		if _, set := rcuo.mutation.Field(resourcecomponent.FieldDriftDetection); set {
+			obj.DriftDetection = x.DriftDetection
 		}
 		obj.Edges = x.Edges
 	}
@@ -877,6 +922,12 @@ func (rcuo *ResourceComponentUpdateOne) sqlSave(ctx context.Context) (_node *Res
 	}
 	if rcuo.mutation.StatusCleared() {
 		_spec.ClearField(resourcecomponent.FieldStatus, field.TypeJSON)
+	}
+	if value, ok := rcuo.mutation.DriftDetection(); ok {
+		_spec.SetField(resourcecomponent.FieldDriftDetection, field.TypeJSON, value)
+	}
+	if rcuo.mutation.DriftDetectionCleared() {
+		_spec.ClearField(resourcecomponent.FieldDriftDetection, field.TypeJSON)
 	}
 	if rcuo.mutation.ComponentsCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -41,6 +41,8 @@ type ResourceComponentCreateInput struct {
 	Mode string `path:"-" query:"-" json:"mode"`
 	// Status of the component.
 	Status types.ResourceComponentStatus `path:"-" query:"-" json:"status,omitempty"`
+	// Drift detection of resource components
+	DriftDetection *types.ResourceComponentDriftDetection `path:"-" query:"-" json:"driftDetection,omitempty"`
 
 	// Components specifies full inserting the new ResourceComponent entities of the ResourceComponent entity.
 	Components []*ResourceComponentCreateInput `uri:"-" query:"-" json:"components,omitempty"`
@@ -58,12 +60,13 @@ func (rcci *ResourceComponentCreateInput) Model() *ResourceComponent {
 	}
 
 	_rc := &ResourceComponent{
-		Shape:        rcci.Shape,
-		DeployerType: rcci.DeployerType,
-		Name:         rcci.Name,
-		Type:         rcci.Type,
-		Mode:         rcci.Mode,
-		Status:       rcci.Status,
+		Shape:          rcci.Shape,
+		DeployerType:   rcci.DeployerType,
+		Name:           rcci.Name,
+		Type:           rcci.Type,
+		Mode:           rcci.Mode,
+		Status:         rcci.Status,
+		DriftDetection: rcci.DriftDetection,
 	}
 
 	if rcci.Project != nil {
@@ -209,6 +212,8 @@ type ResourceComponentCreateInputsItem struct {
 	Mode string `path:"-" query:"-" json:"mode"`
 	// Status of the component.
 	Status types.ResourceComponentStatus `path:"-" query:"-" json:"status,omitempty"`
+	// Drift detection of resource components
+	DriftDetection *types.ResourceComponentDriftDetection `path:"-" query:"-" json:"driftDetection,omitempty"`
 
 	// Components specifies full inserting the new ResourceComponent entities.
 	Components []*ResourceComponentCreateInput `uri:"-" query:"-" json:"components,omitempty"`
@@ -300,12 +305,13 @@ func (rcci *ResourceComponentCreateInputs) Model() []*ResourceComponent {
 
 	for i := range rcci.Items {
 		_rc := &ResourceComponent{
-			Shape:        rcci.Items[i].Shape,
-			DeployerType: rcci.Items[i].DeployerType,
-			Name:         rcci.Items[i].Name,
-			Type:         rcci.Items[i].Type,
-			Mode:         rcci.Items[i].Mode,
-			Status:       rcci.Items[i].Status,
+			Shape:          rcci.Items[i].Shape,
+			DeployerType:   rcci.Items[i].DeployerType,
+			Name:           rcci.Items[i].Name,
+			Type:           rcci.Items[i].Type,
+			Mode:           rcci.Items[i].Mode,
+			Status:         rcci.Items[i].Status,
+			DriftDetection: rcci.Items[i].DriftDetection,
 		}
 
 		if rcci.Project != nil {
@@ -760,6 +766,8 @@ type ResourceComponentUpdateInput struct {
 
 	// Status of the component.
 	Status types.ResourceComponentStatus `path:"-" query:"-" json:"status,omitempty"`
+	// Drift detection of resource components
+	DriftDetection *types.ResourceComponentDriftDetection `path:"-" query:"-" json:"driftDetection,omitempty"`
 
 	// Components indicates replacing the stale ResourceComponent entities.
 	Components []*ResourceComponentCreateInput `uri:"-" query:"-" json:"components,omitempty"`
@@ -777,8 +785,9 @@ func (rcui *ResourceComponentUpdateInput) Model() *ResourceComponent {
 	}
 
 	_rc := &ResourceComponent{
-		ID:     rcui.ID,
-		Status: rcui.Status,
+		ID:             rcui.ID,
+		Status:         rcui.Status,
+		DriftDetection: rcui.DriftDetection,
 	}
 
 	if rcui.Components != nil {
@@ -888,6 +897,8 @@ type ResourceComponentUpdateInputsItem struct {
 
 	// Status of the component.
 	Status types.ResourceComponentStatus `path:"-" query:"-" json:"status,omitempty"`
+	// Drift detection of resource components
+	DriftDetection *types.ResourceComponentDriftDetection `path:"-" query:"-" json:"driftDetection,omitempty"`
 
 	// Components indicates replacing the stale ResourceComponent entities.
 	Components []*ResourceComponentCreateInput `uri:"-" query:"-" json:"components,omitempty"`
@@ -979,8 +990,9 @@ func (rcui *ResourceComponentUpdateInputs) Model() []*ResourceComponent {
 
 	for i := range rcui.Items {
 		_rc := &ResourceComponent{
-			ID:     rcui.Items[i].ID,
-			Status: rcui.Items[i].Status,
+			ID:             rcui.Items[i].ID,
+			Status:         rcui.Items[i].Status,
+			DriftDetection: rcui.Items[i].DriftDetection,
 		}
 
 		if rcui.Items[i].Components != nil {
@@ -1132,16 +1144,17 @@ func (rcui *ResourceComponentUpdateInputs) ValidateWith(ctx context.Context, cs 
 
 // ResourceComponentOutput holds the output of the ResourceComponent entity.
 type ResourceComponentOutput struct {
-	ID           object.ID                             `json:"id,omitempty"`
-	CreateTime   *time.Time                            `json:"createTime,omitempty"`
-	UpdateTime   *time.Time                            `json:"updateTime,omitempty"`
-	Mode         string                                `json:"mode,omitempty"`
-	Type         string                                `json:"type,omitempty"`
-	Name         string                                `json:"name,omitempty"`
-	DeployerType string                                `json:"deployerType,omitempty"`
-	Shape        string                                `json:"shape,omitempty"`
-	Status       types.ResourceComponentStatus         `json:"status,omitempty"`
-	Keys         *types.ResourceComponentOperationKeys `json:"keys,omitempty"`
+	ID             object.ID                              `json:"id,omitempty"`
+	CreateTime     *time.Time                             `json:"createTime,omitempty"`
+	UpdateTime     *time.Time                             `json:"updateTime,omitempty"`
+	Mode           string                                 `json:"mode,omitempty"`
+	Type           string                                 `json:"type,omitempty"`
+	Name           string                                 `json:"name,omitempty"`
+	DeployerType   string                                 `json:"deployerType,omitempty"`
+	Shape          string                                 `json:"shape,omitempty"`
+	Status         types.ResourceComponentStatus          `json:"status,omitempty"`
+	Keys           *types.ResourceComponentOperationKeys  `json:"keys,omitempty"`
+	DriftDetection *types.ResourceComponentDriftDetection `json:"driftDetection,omitempty"`
 
 	Project      *ProjectOutput                         `json:"project,omitempty"`
 	Environment  *EnvironmentOutput                     `json:"environment,omitempty"`
@@ -1171,16 +1184,17 @@ func ExposeResourceComponent(_rc *ResourceComponent) *ResourceComponentOutput {
 	}
 
 	rco := &ResourceComponentOutput{
-		ID:           _rc.ID,
-		CreateTime:   _rc.CreateTime,
-		UpdateTime:   _rc.UpdateTime,
-		Mode:         _rc.Mode,
-		Type:         _rc.Type,
-		Name:         _rc.Name,
-		DeployerType: _rc.DeployerType,
-		Shape:        _rc.Shape,
-		Status:       _rc.Status,
-		Keys:         _rc.Keys,
+		ID:             _rc.ID,
+		CreateTime:     _rc.CreateTime,
+		UpdateTime:     _rc.UpdateTime,
+		Mode:           _rc.Mode,
+		Type:           _rc.Type,
+		Name:           _rc.Name,
+		DeployerType:   _rc.DeployerType,
+		Shape:          _rc.Shape,
+		Status:         _rc.Status,
+		Keys:           _rc.Keys,
+		DriftDetection: _rc.DriftDetection,
 	}
 
 	if _rc.Edges.Project != nil {

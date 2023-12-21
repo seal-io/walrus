@@ -161,6 +161,12 @@ func (rcc *ResourceComponentCreate) SetNillableStatus(tcs *types.ResourceCompone
 	return rcc
 }
 
+// SetDriftDetection sets the "drift_detection" field.
+func (rcc *ResourceComponentCreate) SetDriftDetection(tcdd *types.ResourceComponentDriftDetection) *ResourceComponentCreate {
+	rcc.mutation.SetDriftDetection(tcdd)
+	return rcc
+}
+
 // SetID sets the "id" field.
 func (rcc *ResourceComponentCreate) SetID(o object.ID) *ResourceComponentCreate {
 	rcc.mutation.SetID(o)
@@ -457,6 +463,10 @@ func (rcc *ResourceComponentCreate) createSpec() (*ResourceComponent, *sqlgraph.
 		_spec.SetField(resourcecomponent.FieldStatus, field.TypeJSON, value)
 		_node.Status = value
 	}
+	if value, ok := rcc.mutation.DriftDetection(); ok {
+		_spec.SetField(resourcecomponent.FieldDriftDetection, field.TypeJSON, value)
+		_node.DriftDetection = value
+	}
 	if nodes := rcc.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -665,6 +675,9 @@ func (rcc *ResourceComponentCreate) Set(obj *ResourceComponent) *ResourceCompone
 	if !reflect.ValueOf(obj.Status).IsZero() {
 		rcc.SetStatus(obj.Status)
 	}
+	if !reflect.ValueOf(obj.DriftDetection).IsZero() {
+		rcc.SetDriftDetection(obj.DriftDetection)
+	}
 
 	// Record the given object.
 	rcc.object = obj
@@ -736,6 +749,9 @@ func (rcc *ResourceComponentCreate) SaveE(ctx context.Context, cbs ...func(ctx c
 		}
 		if _, set := rcc.mutation.Field(resourcecomponent.FieldStatus); set {
 			obj.Status = x.Status
+		}
+		if _, set := rcc.mutation.Field(resourcecomponent.FieldDriftDetection); set {
+			obj.DriftDetection = x.DriftDetection
 		}
 		obj.Edges = x.Edges
 	}
@@ -871,6 +887,9 @@ func (rccb *ResourceComponentCreateBulk) SaveE(ctx context.Context, cbs ...func(
 			}
 			if _, set := rccb.builders[i].mutation.Field(resourcecomponent.FieldStatus); set {
 				objs[i].Status = x[i].Status
+			}
+			if _, set := rccb.builders[i].mutation.Field(resourcecomponent.FieldDriftDetection); set {
+				objs[i].DriftDetection = x[i].DriftDetection
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -1028,6 +1047,24 @@ func (u *ResourceComponentUpsert) ClearStatus() *ResourceComponentUpsert {
 	return u
 }
 
+// SetDriftDetection sets the "drift_detection" field.
+func (u *ResourceComponentUpsert) SetDriftDetection(v *types.ResourceComponentDriftDetection) *ResourceComponentUpsert {
+	u.Set(resourcecomponent.FieldDriftDetection, v)
+	return u
+}
+
+// UpdateDriftDetection sets the "drift_detection" field to the value that was provided on create.
+func (u *ResourceComponentUpsert) UpdateDriftDetection() *ResourceComponentUpsert {
+	u.SetExcluded(resourcecomponent.FieldDriftDetection)
+	return u
+}
+
+// ClearDriftDetection clears the value of the "drift_detection" field.
+func (u *ResourceComponentUpsert) ClearDriftDetection() *ResourceComponentUpsert {
+	u.SetNull(resourcecomponent.FieldDriftDetection)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -1144,6 +1181,27 @@ func (u *ResourceComponentUpsertOne) UpdateStatus() *ResourceComponentUpsertOne 
 func (u *ResourceComponentUpsertOne) ClearStatus() *ResourceComponentUpsertOne {
 	return u.Update(func(s *ResourceComponentUpsert) {
 		s.ClearStatus()
+	})
+}
+
+// SetDriftDetection sets the "drift_detection" field.
+func (u *ResourceComponentUpsertOne) SetDriftDetection(v *types.ResourceComponentDriftDetection) *ResourceComponentUpsertOne {
+	return u.Update(func(s *ResourceComponentUpsert) {
+		s.SetDriftDetection(v)
+	})
+}
+
+// UpdateDriftDetection sets the "drift_detection" field to the value that was provided on create.
+func (u *ResourceComponentUpsertOne) UpdateDriftDetection() *ResourceComponentUpsertOne {
+	return u.Update(func(s *ResourceComponentUpsert) {
+		s.UpdateDriftDetection()
+	})
+}
+
+// ClearDriftDetection clears the value of the "drift_detection" field.
+func (u *ResourceComponentUpsertOne) ClearDriftDetection() *ResourceComponentUpsertOne {
+	return u.Update(func(s *ResourceComponentUpsert) {
+		s.ClearDriftDetection()
 	})
 }
 
@@ -1428,6 +1486,27 @@ func (u *ResourceComponentUpsertBulk) UpdateStatus() *ResourceComponentUpsertBul
 func (u *ResourceComponentUpsertBulk) ClearStatus() *ResourceComponentUpsertBulk {
 	return u.Update(func(s *ResourceComponentUpsert) {
 		s.ClearStatus()
+	})
+}
+
+// SetDriftDetection sets the "drift_detection" field.
+func (u *ResourceComponentUpsertBulk) SetDriftDetection(v *types.ResourceComponentDriftDetection) *ResourceComponentUpsertBulk {
+	return u.Update(func(s *ResourceComponentUpsert) {
+		s.SetDriftDetection(v)
+	})
+}
+
+// UpdateDriftDetection sets the "drift_detection" field to the value that was provided on create.
+func (u *ResourceComponentUpsertBulk) UpdateDriftDetection() *ResourceComponentUpsertBulk {
+	return u.Update(func(s *ResourceComponentUpsert) {
+		s.UpdateDriftDetection()
+	})
+}
+
+// ClearDriftDetection clears the value of the "drift_detection" field.
+func (u *ResourceComponentUpsertBulk) ClearDriftDetection() *ResourceComponentUpsertBulk {
+	return u.Update(func(s *ResourceComponentUpsert) {
+		s.ClearDriftDetection()
 	})
 }
 

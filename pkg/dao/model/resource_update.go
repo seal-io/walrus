@@ -25,6 +25,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
@@ -144,6 +145,18 @@ func (ru *ResourceUpdate) SetAttributes(pr property.Values) *ResourceUpdate {
 // ClearAttributes clears the value of the "attributes" field.
 func (ru *ResourceUpdate) ClearAttributes() *ResourceUpdate {
 	ru.mutation.ClearAttributes()
+	return ru
+}
+
+// SetDriftDetection sets the "drift_detection" field.
+func (ru *ResourceUpdate) SetDriftDetection(tdd *types.ResourceDriftDetection) *ResourceUpdate {
+	ru.mutation.SetDriftDetection(tdd)
+	return ru
+}
+
+// ClearDriftDetection clears the value of the "drift_detection" field.
+func (ru *ResourceUpdate) ClearDriftDetection() *ResourceUpdate {
+	ru.mutation.ClearDriftDetection()
 	return ru
 }
 
@@ -383,6 +396,11 @@ func (ru *ResourceUpdate) Set(obj *Resource) *ResourceUpdate {
 	} else {
 		ru.ClearAttributes()
 	}
+	if !reflect.ValueOf(obj.DriftDetection).IsZero() {
+		ru.SetDriftDetection(obj.DriftDetection)
+	} else {
+		ru.ClearDriftDetection()
+	}
 
 	// With Default.
 	if obj.UpdateTime != nil {
@@ -448,6 +466,12 @@ func (ru *ResourceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if ru.mutation.AttributesCleared() {
 		_spec.ClearField(resource.FieldAttributes, field.TypeOther)
+	}
+	if value, ok := ru.mutation.DriftDetection(); ok {
+		_spec.SetField(resource.FieldDriftDetection, field.TypeJSON, value)
+	}
+	if ru.mutation.DriftDetectionCleared() {
+		_spec.ClearField(resource.FieldDriftDetection, field.TypeJSON)
 	}
 	if ru.mutation.TemplateCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -751,6 +775,18 @@ func (ruo *ResourceUpdateOne) ClearAttributes() *ResourceUpdateOne {
 	return ruo
 }
 
+// SetDriftDetection sets the "drift_detection" field.
+func (ruo *ResourceUpdateOne) SetDriftDetection(tdd *types.ResourceDriftDetection) *ResourceUpdateOne {
+	ruo.mutation.SetDriftDetection(tdd)
+	return ruo
+}
+
+// ClearDriftDetection clears the value of the "drift_detection" field.
+func (ruo *ResourceUpdateOne) ClearDriftDetection() *ResourceUpdateOne {
+	ruo.mutation.ClearDriftDetection()
+	return ruo
+}
+
 // SetTemplate sets the "template" edge to the TemplateVersion entity.
 func (ruo *ResourceUpdateOne) SetTemplate(t *TemplateVersion) *ResourceUpdateOne {
 	return ruo.SetTemplateID(t.ID)
@@ -1022,6 +1058,13 @@ func (ruo *ResourceUpdateOne) Set(obj *Resource) *ResourceUpdateOne {
 			} else {
 				ruo.ClearAttributes()
 			}
+			if !reflect.ValueOf(obj.DriftDetection).IsZero() {
+				if !reflect.DeepEqual(db.DriftDetection, obj.DriftDetection) {
+					ruo.SetDriftDetection(obj.DriftDetection)
+				}
+			} else {
+				ruo.ClearDriftDetection()
+			}
 
 			// With Default.
 			if (obj.UpdateTime != nil) && (!reflect.DeepEqual(db.UpdateTime, obj.UpdateTime)) {
@@ -1089,6 +1132,9 @@ func (ruo *ResourceUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context
 		}
 		if _, set := ruo.mutation.Field(resource.FieldAttributes); set {
 			obj.Attributes = x.Attributes
+		}
+		if _, set := ruo.mutation.Field(resource.FieldDriftDetection); set {
+			obj.DriftDetection = x.DriftDetection
 		}
 		obj.Edges = x.Edges
 	}
@@ -1195,6 +1241,12 @@ func (ruo *ResourceUpdateOne) sqlSave(ctx context.Context) (_node *Resource, err
 	}
 	if ruo.mutation.AttributesCleared() {
 		_spec.ClearField(resource.FieldAttributes, field.TypeOther)
+	}
+	if value, ok := ruo.mutation.DriftDetection(); ok {
+		_spec.SetField(resource.FieldDriftDetection, field.TypeJSON, value)
+	}
+	if ruo.mutation.DriftDetectionCleared() {
+		_spec.ClearField(resource.FieldDriftDetection, field.TypeJSON)
 	}
 	if ruo.mutation.TemplateCleared() {
 		edge := &sqlgraph.EdgeSpec{

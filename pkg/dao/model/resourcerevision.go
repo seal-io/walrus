@@ -34,6 +34,8 @@ type ResourceRevision struct {
 	CreateTime *time.Time `json:"create_time,omitempty"`
 	// Status holds the value of the "status" field.
 	Status status.Status `json:"status,omitempty"`
+	// Type of the revision.
+	Type string `json:"type,omitempty"`
 	// ID of the project to belong.
 	ProjectID object.ID `json:"project_id,omitempty"`
 	// ID of the environment to which the revision belongs.
@@ -62,6 +64,8 @@ type ResourceRevision struct {
 	PreviousRequiredProviders []types.ProviderRequirement `json:"previous_required_providers,omitempty"`
 	// Record of the revision.
 	Record string `json:"record,omitempty"`
+	// Drift of the revision.
+	Drift string `json:"drift,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ResourceRevisionQuery when eager-loading is set.
 	Edges        ResourceRevisionEdges `json:"edges,omitempty"`
@@ -135,7 +139,7 @@ func (*ResourceRevision) scanValues(columns []string) ([]any, error) {
 			values[i] = new(property.Values)
 		case resourcerevision.FieldDuration:
 			values[i] = new(sql.NullInt64)
-		case resourcerevision.FieldTemplateName, resourcerevision.FieldTemplateVersion, resourcerevision.FieldInputPlan, resourcerevision.FieldOutput, resourcerevision.FieldDeployerType, resourcerevision.FieldRecord:
+		case resourcerevision.FieldType, resourcerevision.FieldTemplateName, resourcerevision.FieldTemplateVersion, resourcerevision.FieldInputPlan, resourcerevision.FieldOutput, resourcerevision.FieldDeployerType, resourcerevision.FieldRecord, resourcerevision.FieldDrift:
 			values[i] = new(sql.NullString)
 		case resourcerevision.FieldCreateTime:
 			values[i] = new(sql.NullTime)
@@ -174,6 +178,12 @@ func (rr *ResourceRevision) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &rr.Status); err != nil {
 					return fmt.Errorf("unmarshal field status: %w", err)
 				}
+			}
+		case resourcerevision.FieldType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field type", values[i])
+			} else if value.Valid {
+				rr.Type = value.String
 			}
 		case resourcerevision.FieldProjectID:
 			if value, ok := values[i].(*object.ID); !ok {
@@ -261,6 +271,12 @@ func (rr *ResourceRevision) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				rr.Record = value.String
 			}
+		case resourcerevision.FieldDrift:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field drift", values[i])
+			} else if value.Valid {
+				rr.Drift = value.String
+			}
 		default:
 			rr.selectValues.Set(columns[i], values[i])
 		}
@@ -320,6 +336,9 @@ func (rr *ResourceRevision) String() string {
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", rr.Status))
 	builder.WriteString(", ")
+	builder.WriteString("type=")
+	builder.WriteString(rr.Type)
+	builder.WriteString(", ")
 	builder.WriteString("project_id=")
 	builder.WriteString(fmt.Sprintf("%v", rr.ProjectID))
 	builder.WriteString(", ")
@@ -359,6 +378,9 @@ func (rr *ResourceRevision) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("record=")
 	builder.WriteString(rr.Record)
+	builder.WriteString(", ")
+	builder.WriteString("drift=")
+	builder.WriteString(rr.Drift)
 	builder.WriteByte(')')
 	return builder.String()
 }

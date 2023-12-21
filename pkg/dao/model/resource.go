@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
@@ -55,6 +56,8 @@ type Resource struct {
 	ResourceDefinitionID *object.ID `json:"resource_definition_id,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
+	// Drift detection of resource.
+	DriftDetection *types.ResourceDriftDetection `json:"drift_detection,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ResourceQuery when eager-loading is set.
 	Edges        ResourceEdges `json:"edges,omitempty"`
@@ -168,7 +171,7 @@ func (*Resource) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case resource.FieldTemplateID, resource.FieldResourceDefinitionID:
 			values[i] = &sql.NullScanner{S: new(object.ID)}
-		case resource.FieldLabels, resource.FieldAnnotations, resource.FieldStatus:
+		case resource.FieldLabels, resource.FieldAnnotations, resource.FieldStatus, resource.FieldDriftDetection:
 			values[i] = new([]byte)
 		case resource.FieldID, resource.FieldProjectID, resource.FieldEnvironmentID:
 			values[i] = new(object.ID)
@@ -287,6 +290,14 @@ func (r *Resource) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				r.Attributes = *value
 			}
+		case resource.FieldDriftDetection:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field drift_detection", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &r.DriftDetection); err != nil {
+					return fmt.Errorf("unmarshal field drift_detection: %w", err)
+				}
+			}
 		default:
 			r.selectValues.Set(columns[i], values[i])
 		}
@@ -404,6 +415,9 @@ func (r *Resource) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("attributes=")
 	builder.WriteString(fmt.Sprintf("%v", r.Attributes))
+	builder.WriteString(", ")
+	builder.WriteString("drift_detection=")
+	builder.WriteString(fmt.Sprintf("%v", r.DriftDetection))
 	builder.WriteByte(')')
 	return builder.String()
 }

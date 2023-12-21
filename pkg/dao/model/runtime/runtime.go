@@ -575,43 +575,43 @@ func init() {
 	// resourcerevision.DefaultCreateTime holds the default value on creation for the create_time field.
 	resourcerevision.DefaultCreateTime = resourcerevisionDescCreateTime.Default.(func() time.Time)
 	// resourcerevisionDescProjectID is the schema descriptor for project_id field.
-	resourcerevisionDescProjectID := resourcerevisionFields[0].Descriptor()
+	resourcerevisionDescProjectID := resourcerevisionFields[1].Descriptor()
 	// resourcerevision.ProjectIDValidator is a validator for the "project_id" field. It is called by the builders before save.
 	resourcerevision.ProjectIDValidator = resourcerevisionDescProjectID.Validators[0].(func(string) error)
 	// resourcerevisionDescEnvironmentID is the schema descriptor for environment_id field.
-	resourcerevisionDescEnvironmentID := resourcerevisionFields[1].Descriptor()
+	resourcerevisionDescEnvironmentID := resourcerevisionFields[2].Descriptor()
 	// resourcerevision.EnvironmentIDValidator is a validator for the "environment_id" field. It is called by the builders before save.
 	resourcerevision.EnvironmentIDValidator = resourcerevisionDescEnvironmentID.Validators[0].(func(string) error)
 	// resourcerevisionDescResourceID is the schema descriptor for resource_id field.
-	resourcerevisionDescResourceID := resourcerevisionFields[2].Descriptor()
+	resourcerevisionDescResourceID := resourcerevisionFields[3].Descriptor()
 	// resourcerevision.ResourceIDValidator is a validator for the "resource_id" field. It is called by the builders before save.
 	resourcerevision.ResourceIDValidator = resourcerevisionDescResourceID.Validators[0].(func(string) error)
 	// resourcerevisionDescTemplateName is the schema descriptor for template_name field.
-	resourcerevisionDescTemplateName := resourcerevisionFields[3].Descriptor()
+	resourcerevisionDescTemplateName := resourcerevisionFields[4].Descriptor()
 	// resourcerevision.TemplateNameValidator is a validator for the "template_name" field. It is called by the builders before save.
 	resourcerevision.TemplateNameValidator = resourcerevisionDescTemplateName.Validators[0].(func(string) error)
 	// resourcerevisionDescTemplateVersion is the schema descriptor for template_version field.
-	resourcerevisionDescTemplateVersion := resourcerevisionFields[4].Descriptor()
+	resourcerevisionDescTemplateVersion := resourcerevisionFields[5].Descriptor()
 	// resourcerevision.TemplateVersionValidator is a validator for the "template_version" field. It is called by the builders before save.
 	resourcerevision.TemplateVersionValidator = resourcerevisionDescTemplateVersion.Validators[0].(func(string) error)
 	// resourcerevisionDescTemplateID is the schema descriptor for template_id field.
-	resourcerevisionDescTemplateID := resourcerevisionFields[5].Descriptor()
+	resourcerevisionDescTemplateID := resourcerevisionFields[6].Descriptor()
 	// resourcerevision.TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
 	resourcerevision.TemplateIDValidator = resourcerevisionDescTemplateID.Validators[0].(func(string) error)
 	// resourcerevisionDescVariables is the schema descriptor for variables field.
-	resourcerevisionDescVariables := resourcerevisionFields[7].Descriptor()
+	resourcerevisionDescVariables := resourcerevisionFields[8].Descriptor()
 	// resourcerevision.DefaultVariables holds the default value on creation for the variables field.
 	resourcerevision.DefaultVariables = resourcerevisionDescVariables.Default.(crypto.Map[string, string])
 	// resourcerevisionDescDeployerType is the schema descriptor for deployer_type field.
-	resourcerevisionDescDeployerType := resourcerevisionFields[10].Descriptor()
+	resourcerevisionDescDeployerType := resourcerevisionFields[11].Descriptor()
 	// resourcerevision.DefaultDeployerType holds the default value on creation for the deployer_type field.
 	resourcerevision.DefaultDeployerType = resourcerevisionDescDeployerType.Default.(string)
 	// resourcerevisionDescDuration is the schema descriptor for duration field.
-	resourcerevisionDescDuration := resourcerevisionFields[11].Descriptor()
+	resourcerevisionDescDuration := resourcerevisionFields[12].Descriptor()
 	// resourcerevision.DefaultDuration holds the default value on creation for the duration field.
 	resourcerevision.DefaultDuration = resourcerevisionDescDuration.Default.(int)
 	// resourcerevisionDescPreviousRequiredProviders is the schema descriptor for previous_required_providers field.
-	resourcerevisionDescPreviousRequiredProviders := resourcerevisionFields[12].Descriptor()
+	resourcerevisionDescPreviousRequiredProviders := resourcerevisionFields[13].Descriptor()
 	// resourcerevision.DefaultPreviousRequiredProviders holds the default value on creation for the previous_required_providers field.
 	resourcerevision.DefaultPreviousRequiredProviders = resourcerevisionDescPreviousRequiredProviders.Default.([]types.ProviderRequirement)
 	roleMixin := schema.Role{}.Mixin()

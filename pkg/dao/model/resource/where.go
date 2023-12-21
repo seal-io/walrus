@@ -787,6 +787,16 @@ func AttributesNotNil() predicate.Resource {
 	return predicate.Resource(sql.FieldNotNull(FieldAttributes))
 }
 
+// DriftDetectionIsNil applies the IsNil predicate on the "drift_detection" field.
+func DriftDetectionIsNil() predicate.Resource {
+	return predicate.Resource(sql.FieldIsNull(FieldDriftDetection))
+}
+
+// DriftDetectionNotNil applies the NotNil predicate on the "drift_detection" field.
+func DriftDetectionNotNil() predicate.Resource {
+	return predicate.Resource(sql.FieldNotNull(FieldDriftDetection))
+}
+
 // HasProject applies the HasEdge predicate on the "project" edge.
 func HasProject() predicate.Resource {
 	return predicate.Resource(func(s *sql.Selector) {

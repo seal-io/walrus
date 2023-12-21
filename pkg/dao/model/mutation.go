@@ -10488,6 +10488,7 @@ type ResourceMutation struct {
 	status                     *status.Status
 	_type                      *string
 	attributes                 *property.Values
+	drift_detection            **types.ResourceDriftDetection
 	clearedFields              map[string]struct{}
 	project                    *object.ID
 	clearedproject             bool
@@ -11187,6 +11188,55 @@ func (m *ResourceMutation) ResetAttributes() {
 	delete(m.clearedFields, resource.FieldAttributes)
 }
 
+// SetDriftDetection sets the "drift_detection" field.
+func (m *ResourceMutation) SetDriftDetection(tdd *types.ResourceDriftDetection) {
+	m.drift_detection = &tdd
+}
+
+// DriftDetection returns the value of the "drift_detection" field in the mutation.
+func (m *ResourceMutation) DriftDetection() (r *types.ResourceDriftDetection, exists bool) {
+	v := m.drift_detection
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDriftDetection returns the old "drift_detection" field's value of the Resource entity.
+// If the Resource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceMutation) OldDriftDetection(ctx context.Context) (v *types.ResourceDriftDetection, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDriftDetection is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDriftDetection requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDriftDetection: %w", err)
+	}
+	return oldValue.DriftDetection, nil
+}
+
+// ClearDriftDetection clears the value of the "drift_detection" field.
+func (m *ResourceMutation) ClearDriftDetection() {
+	m.drift_detection = nil
+	m.clearedFields[resource.FieldDriftDetection] = struct{}{}
+}
+
+// DriftDetectionCleared returns if the "drift_detection" field was cleared in this mutation.
+func (m *ResourceMutation) DriftDetectionCleared() bool {
+	_, ok := m.clearedFields[resource.FieldDriftDetection]
+	return ok
+}
+
+// ResetDriftDetection resets all changes to the "drift_detection" field.
+func (m *ResourceMutation) ResetDriftDetection() {
+	m.drift_detection = nil
+	delete(m.clearedFields, resource.FieldDriftDetection)
+}
+
 // ClearProject clears the "project" edge to the Project entity.
 func (m *ResourceMutation) ClearProject() {
 	m.clearedproject = true
@@ -11487,7 +11537,7 @@ func (m *ResourceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ResourceMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.name != nil {
 		fields = append(fields, resource.FieldName)
 	}
@@ -11527,6 +11577,9 @@ func (m *ResourceMutation) Fields() []string {
 	if m.attributes != nil {
 		fields = append(fields, resource.FieldAttributes)
 	}
+	if m.drift_detection != nil {
+		fields = append(fields, resource.FieldDriftDetection)
+	}
 	return fields
 }
 
@@ -11561,6 +11614,8 @@ func (m *ResourceMutation) Field(name string) (ent.Value, bool) {
 		return m.ResourceDefinitionID()
 	case resource.FieldAttributes:
 		return m.Attributes()
+	case resource.FieldDriftDetection:
+		return m.DriftDetection()
 	}
 	return nil, false
 }
@@ -11596,6 +11651,8 @@ func (m *ResourceMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldResourceDefinitionID(ctx)
 	case resource.FieldAttributes:
 		return m.OldAttributes(ctx)
+	case resource.FieldDriftDetection:
+		return m.OldDriftDetection(ctx)
 	}
 	return nil, fmt.Errorf("unknown Resource field %s", name)
 }
@@ -11696,6 +11753,13 @@ func (m *ResourceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetAttributes(v)
 		return nil
+	case resource.FieldDriftDetection:
+		v, ok := value.(*types.ResourceDriftDetection)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDriftDetection(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Resource field %s", name)
 }
@@ -11750,6 +11814,9 @@ func (m *ResourceMutation) ClearedFields() []string {
 	if m.FieldCleared(resource.FieldAttributes) {
 		fields = append(fields, resource.FieldAttributes)
 	}
+	if m.FieldCleared(resource.FieldDriftDetection) {
+		fields = append(fields, resource.FieldDriftDetection)
+	}
 	return fields
 }
 
@@ -11787,6 +11854,9 @@ func (m *ResourceMutation) ClearField(name string) error {
 		return nil
 	case resource.FieldAttributes:
 		m.ClearAttributes()
+		return nil
+	case resource.FieldDriftDetection:
+		m.ClearDriftDetection()
 		return nil
 	}
 	return fmt.Errorf("unknown Resource nullable field %s", name)
@@ -11834,6 +11904,9 @@ func (m *ResourceMutation) ResetField(name string) error {
 		return nil
 	case resource.FieldAttributes:
 		m.ResetAttributes()
+		return nil
+	case resource.FieldDriftDetection:
+		m.ResetDriftDetection()
 		return nil
 	}
 	return fmt.Errorf("unknown Resource field %s", name)
@@ -12061,6 +12134,7 @@ type ResourceComponentMutation struct {
 	deployer_type       *string
 	shape               *string
 	status              *types.ResourceComponentStatus
+	drift_detection     **types.ResourceComponentDriftDetection
 	clearedFields       map[string]struct{}
 	project             *object.ID
 	clearedproject      bool
@@ -12735,6 +12809,55 @@ func (m *ResourceComponentMutation) ResetStatus() {
 	delete(m.clearedFields, resourcecomponent.FieldStatus)
 }
 
+// SetDriftDetection sets the "drift_detection" field.
+func (m *ResourceComponentMutation) SetDriftDetection(tcdd *types.ResourceComponentDriftDetection) {
+	m.drift_detection = &tcdd
+}
+
+// DriftDetection returns the value of the "drift_detection" field in the mutation.
+func (m *ResourceComponentMutation) DriftDetection() (r *types.ResourceComponentDriftDetection, exists bool) {
+	v := m.drift_detection
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDriftDetection returns the old "drift_detection" field's value of the ResourceComponent entity.
+// If the ResourceComponent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceComponentMutation) OldDriftDetection(ctx context.Context) (v *types.ResourceComponentDriftDetection, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDriftDetection is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDriftDetection requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDriftDetection: %w", err)
+	}
+	return oldValue.DriftDetection, nil
+}
+
+// ClearDriftDetection clears the value of the "drift_detection" field.
+func (m *ResourceComponentMutation) ClearDriftDetection() {
+	m.drift_detection = nil
+	m.clearedFields[resourcecomponent.FieldDriftDetection] = struct{}{}
+}
+
+// DriftDetectionCleared returns if the "drift_detection" field was cleared in this mutation.
+func (m *ResourceComponentMutation) DriftDetectionCleared() bool {
+	_, ok := m.clearedFields[resourcecomponent.FieldDriftDetection]
+	return ok
+}
+
+// ResetDriftDetection resets all changes to the "drift_detection" field.
+func (m *ResourceComponentMutation) ResetDriftDetection() {
+	m.drift_detection = nil
+	delete(m.clearedFields, resourcecomponent.FieldDriftDetection)
+}
+
 // ClearProject clears the "project" edge to the Project entity.
 func (m *ResourceComponentMutation) ClearProject() {
 	m.clearedproject = true
@@ -13087,7 +13210,7 @@ func (m *ResourceComponentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ResourceComponentMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 15)
 	if m.create_time != nil {
 		fields = append(fields, resourcecomponent.FieldCreateTime)
 	}
@@ -13130,6 +13253,9 @@ func (m *ResourceComponentMutation) Fields() []string {
 	if m.status != nil {
 		fields = append(fields, resourcecomponent.FieldStatus)
 	}
+	if m.drift_detection != nil {
+		fields = append(fields, resourcecomponent.FieldDriftDetection)
+	}
 	return fields
 }
 
@@ -13166,6 +13292,8 @@ func (m *ResourceComponentMutation) Field(name string) (ent.Value, bool) {
 		return m.Shape()
 	case resourcecomponent.FieldStatus:
 		return m.Status()
+	case resourcecomponent.FieldDriftDetection:
+		return m.DriftDetection()
 	}
 	return nil, false
 }
@@ -13203,6 +13331,8 @@ func (m *ResourceComponentMutation) OldField(ctx context.Context, name string) (
 		return m.OldShape(ctx)
 	case resourcecomponent.FieldStatus:
 		return m.OldStatus(ctx)
+	case resourcecomponent.FieldDriftDetection:
+		return m.OldDriftDetection(ctx)
 	}
 	return nil, fmt.Errorf("unknown ResourceComponent field %s", name)
 }
@@ -13310,6 +13440,13 @@ func (m *ResourceComponentMutation) SetField(name string, value ent.Value) error
 		}
 		m.SetStatus(v)
 		return nil
+	case resourcecomponent.FieldDriftDetection:
+		v, ok := value.(*types.ResourceComponentDriftDetection)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDriftDetection(v)
+		return nil
 	}
 	return fmt.Errorf("unknown ResourceComponent field %s", name)
 }
@@ -13349,6 +13486,9 @@ func (m *ResourceComponentMutation) ClearedFields() []string {
 	if m.FieldCleared(resourcecomponent.FieldStatus) {
 		fields = append(fields, resourcecomponent.FieldStatus)
 	}
+	if m.FieldCleared(resourcecomponent.FieldDriftDetection) {
+		fields = append(fields, resourcecomponent.FieldDriftDetection)
+	}
 	return fields
 }
 
@@ -13371,6 +13511,9 @@ func (m *ResourceComponentMutation) ClearField(name string) error {
 		return nil
 	case resourcecomponent.FieldStatus:
 		m.ClearStatus()
+		return nil
+	case resourcecomponent.FieldDriftDetection:
+		m.ClearDriftDetection()
 		return nil
 	}
 	return fmt.Errorf("unknown ResourceComponent nullable field %s", name)
@@ -13421,6 +13564,9 @@ func (m *ResourceComponentMutation) ResetField(name string) error {
 		return nil
 	case resourcecomponent.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case resourcecomponent.FieldDriftDetection:
+		m.ResetDriftDetection()
 		return nil
 	}
 	return fmt.Errorf("unknown ResourceComponent field %s", name)
@@ -16763,6 +16909,7 @@ type ResourceRevisionMutation struct {
 	id                                *object.ID
 	create_time                       *time.Time
 	status                            *status.Status
+	_type                             *string
 	template_name                     *string
 	template_version                  *string
 	template_id                       *object.ID
@@ -16776,6 +16923,7 @@ type ResourceRevisionMutation struct {
 	previous_required_providers       *[]types.ProviderRequirement
 	appendprevious_required_providers []types.ProviderRequirement
 	record                            *string
+	drift                             *string
 	clearedFields                     map[string]struct{}
 	project                           *object.ID
 	clearedproject                    bool
@@ -16975,6 +17123,42 @@ func (m *ResourceRevisionMutation) StatusCleared() bool {
 func (m *ResourceRevisionMutation) ResetStatus() {
 	m.status = nil
 	delete(m.clearedFields, resourcerevision.FieldStatus)
+}
+
+// SetType sets the "type" field.
+func (m *ResourceRevisionMutation) SetType(s string) {
+	m._type = &s
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *ResourceRevisionMutation) GetType() (r string, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the ResourceRevision entity.
+// If the ResourceRevision object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceRevisionMutation) OldType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *ResourceRevisionMutation) ResetType() {
+	m._type = nil
 }
 
 // SetProjectID sets the "project_id" field.
@@ -17542,6 +17726,55 @@ func (m *ResourceRevisionMutation) ResetRecord() {
 	delete(m.clearedFields, resourcerevision.FieldRecord)
 }
 
+// SetDrift sets the "drift" field.
+func (m *ResourceRevisionMutation) SetDrift(s string) {
+	m.drift = &s
+}
+
+// Drift returns the value of the "drift" field in the mutation.
+func (m *ResourceRevisionMutation) Drift() (r string, exists bool) {
+	v := m.drift
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDrift returns the old "drift" field's value of the ResourceRevision entity.
+// If the ResourceRevision object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceRevisionMutation) OldDrift(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDrift is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDrift requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDrift: %w", err)
+	}
+	return oldValue.Drift, nil
+}
+
+// ClearDrift clears the value of the "drift" field.
+func (m *ResourceRevisionMutation) ClearDrift() {
+	m.drift = nil
+	m.clearedFields[resourcerevision.FieldDrift] = struct{}{}
+}
+
+// DriftCleared returns if the "drift" field was cleared in this mutation.
+func (m *ResourceRevisionMutation) DriftCleared() bool {
+	_, ok := m.clearedFields[resourcerevision.FieldDrift]
+	return ok
+}
+
+// ResetDrift resets all changes to the "drift" field.
+func (m *ResourceRevisionMutation) ResetDrift() {
+	m.drift = nil
+	delete(m.clearedFields, resourcerevision.FieldDrift)
+}
+
 // ClearProject clears the "project" edge to the Project entity.
 func (m *ResourceRevisionMutation) ClearProject() {
 	m.clearedproject = true
@@ -17654,12 +17887,15 @@ func (m *ResourceRevisionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ResourceRevisionMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 18)
 	if m.create_time != nil {
 		fields = append(fields, resourcerevision.FieldCreateTime)
 	}
 	if m.status != nil {
 		fields = append(fields, resourcerevision.FieldStatus)
+	}
+	if m._type != nil {
+		fields = append(fields, resourcerevision.FieldType)
 	}
 	if m.project != nil {
 		fields = append(fields, resourcerevision.FieldProjectID)
@@ -17703,6 +17939,9 @@ func (m *ResourceRevisionMutation) Fields() []string {
 	if m.record != nil {
 		fields = append(fields, resourcerevision.FieldRecord)
 	}
+	if m.drift != nil {
+		fields = append(fields, resourcerevision.FieldDrift)
+	}
 	return fields
 }
 
@@ -17715,6 +17954,8 @@ func (m *ResourceRevisionMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case resourcerevision.FieldStatus:
 		return m.Status()
+	case resourcerevision.FieldType:
+		return m.GetType()
 	case resourcerevision.FieldProjectID:
 		return m.ProjectID()
 	case resourcerevision.FieldEnvironmentID:
@@ -17743,6 +17984,8 @@ func (m *ResourceRevisionMutation) Field(name string) (ent.Value, bool) {
 		return m.PreviousRequiredProviders()
 	case resourcerevision.FieldRecord:
 		return m.Record()
+	case resourcerevision.FieldDrift:
+		return m.Drift()
 	}
 	return nil, false
 }
@@ -17756,6 +17999,8 @@ func (m *ResourceRevisionMutation) OldField(ctx context.Context, name string) (e
 		return m.OldCreateTime(ctx)
 	case resourcerevision.FieldStatus:
 		return m.OldStatus(ctx)
+	case resourcerevision.FieldType:
+		return m.OldType(ctx)
 	case resourcerevision.FieldProjectID:
 		return m.OldProjectID(ctx)
 	case resourcerevision.FieldEnvironmentID:
@@ -17784,6 +18029,8 @@ func (m *ResourceRevisionMutation) OldField(ctx context.Context, name string) (e
 		return m.OldPreviousRequiredProviders(ctx)
 	case resourcerevision.FieldRecord:
 		return m.OldRecord(ctx)
+	case resourcerevision.FieldDrift:
+		return m.OldDrift(ctx)
 	}
 	return nil, fmt.Errorf("unknown ResourceRevision field %s", name)
 }
@@ -17806,6 +18053,13 @@ func (m *ResourceRevisionMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStatus(v)
+		return nil
+	case resourcerevision.FieldType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
 		return nil
 	case resourcerevision.FieldProjectID:
 		v, ok := value.(object.ID)
@@ -17905,6 +18159,13 @@ func (m *ResourceRevisionMutation) SetField(name string, value ent.Value) error 
 		}
 		m.SetRecord(v)
 		return nil
+	case resourcerevision.FieldDrift:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDrift(v)
+		return nil
 	}
 	return fmt.Errorf("unknown ResourceRevision field %s", name)
 }
@@ -17959,6 +18220,9 @@ func (m *ResourceRevisionMutation) ClearedFields() []string {
 	if m.FieldCleared(resourcerevision.FieldRecord) {
 		fields = append(fields, resourcerevision.FieldRecord)
 	}
+	if m.FieldCleared(resourcerevision.FieldDrift) {
+		fields = append(fields, resourcerevision.FieldDrift)
+	}
 	return fields
 }
 
@@ -17982,6 +18246,9 @@ func (m *ResourceRevisionMutation) ClearField(name string) error {
 	case resourcerevision.FieldRecord:
 		m.ClearRecord()
 		return nil
+	case resourcerevision.FieldDrift:
+		m.ClearDrift()
+		return nil
 	}
 	return fmt.Errorf("unknown ResourceRevision nullable field %s", name)
 }
@@ -17995,6 +18262,9 @@ func (m *ResourceRevisionMutation) ResetField(name string) error {
 		return nil
 	case resourcerevision.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case resourcerevision.FieldType:
+		m.ResetType()
 		return nil
 	case resourcerevision.FieldProjectID:
 		m.ResetProjectID()
@@ -18037,6 +18307,9 @@ func (m *ResourceRevisionMutation) ResetField(name string) error {
 		return nil
 	case resourcerevision.FieldRecord:
 		m.ResetRecord()
+		return nil
+	case resourcerevision.FieldDrift:
+		m.ResetDrift()
 		return nil
 	}
 	return fmt.Errorf("unknown ResourceRevision field %s", name)

@@ -45,6 +45,8 @@ const (
 	FieldResourceDefinitionID = "resource_definition_id"
 	// FieldAttributes holds the string denoting the attributes field in the database.
 	FieldAttributes = "attributes"
+	// FieldDriftDetection holds the string denoting the drift_detection field in the database.
+	FieldDriftDetection = "drift_detection"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
@@ -128,6 +130,7 @@ var Columns = []string{
 	FieldType,
 	FieldResourceDefinitionID,
 	FieldAttributes,
+	FieldDriftDetection,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

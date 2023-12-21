@@ -66,6 +66,12 @@ func (rrc *ResourceRevisionCreate) SetNillableStatus(s *status.Status) *Resource
 	return rrc
 }
 
+// SetType sets the "type" field.
+func (rrc *ResourceRevisionCreate) SetType(s string) *ResourceRevisionCreate {
+	rrc.mutation.SetType(s)
+	return rrc
+}
+
 // SetProjectID sets the "project_id" field.
 func (rrc *ResourceRevisionCreate) SetProjectID(o object.ID) *ResourceRevisionCreate {
 	rrc.mutation.SetProjectID(o)
@@ -174,6 +180,20 @@ func (rrc *ResourceRevisionCreate) SetNillableRecord(s *string) *ResourceRevisio
 	return rrc
 }
 
+// SetDrift sets the "drift" field.
+func (rrc *ResourceRevisionCreate) SetDrift(s string) *ResourceRevisionCreate {
+	rrc.mutation.SetDrift(s)
+	return rrc
+}
+
+// SetNillableDrift sets the "drift" field if the given value is not nil.
+func (rrc *ResourceRevisionCreate) SetNillableDrift(s *string) *ResourceRevisionCreate {
+	if s != nil {
+		rrc.SetDrift(*s)
+	}
+	return rrc
+}
+
 // SetID sets the "id" field.
 func (rrc *ResourceRevisionCreate) SetID(o object.ID) *ResourceRevisionCreate {
 	rrc.mutation.SetID(o)
@@ -262,6 +282,9 @@ func (rrc *ResourceRevisionCreate) defaults() error {
 func (rrc *ResourceRevisionCreate) check() error {
 	if _, ok := rrc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "create_time", err: errors.New(`model: missing required field "ResourceRevision.create_time"`)}
+	}
+	if _, ok := rrc.mutation.GetType(); !ok {
+		return &ValidationError{Name: "type", err: errors.New(`model: missing required field "ResourceRevision.type"`)}
 	}
 	if _, ok := rrc.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "project_id", err: errors.New(`model: missing required field "ResourceRevision.project_id"`)}
@@ -383,6 +406,10 @@ func (rrc *ResourceRevisionCreate) createSpec() (*ResourceRevision, *sqlgraph.Cr
 		_spec.SetField(resourcerevision.FieldStatus, field.TypeJSON, value)
 		_node.Status = value
 	}
+	if value, ok := rrc.mutation.GetType(); ok {
+		_spec.SetField(resourcerevision.FieldType, field.TypeString, value)
+		_node.Type = value
+	}
 	if value, ok := rrc.mutation.TemplateName(); ok {
 		_spec.SetField(resourcerevision.FieldTemplateName, field.TypeString, value)
 		_node.TemplateName = value
@@ -426,6 +453,10 @@ func (rrc *ResourceRevisionCreate) createSpec() (*ResourceRevision, *sqlgraph.Cr
 	if value, ok := rrc.mutation.Record(); ok {
 		_spec.SetField(resourcerevision.FieldRecord, field.TypeString, value)
 		_node.Record = value
+	}
+	if value, ok := rrc.mutation.Drift(); ok {
+		_spec.SetField(resourcerevision.FieldDrift, field.TypeString, value)
+		_node.Drift = value
 	}
 	if nodes := rrc.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -504,6 +535,7 @@ func (rrc *ResourceRevisionCreate) createSpec() (*ResourceRevision, *sqlgraph.Cr
 //	}
 func (rrc *ResourceRevisionCreate) Set(obj *ResourceRevision) *ResourceRevisionCreate {
 	// Required.
+	rrc.SetType(obj.Type)
 	rrc.SetProjectID(obj.ProjectID)
 	rrc.SetEnvironmentID(obj.EnvironmentID)
 	rrc.SetResourceID(obj.ResourceID)
@@ -529,6 +561,9 @@ func (rrc *ResourceRevisionCreate) Set(obj *ResourceRevision) *ResourceRevisionC
 	}
 	if obj.Record != "" {
 		rrc.SetRecord(obj.Record)
+	}
+	if obj.Drift != "" {
+		rrc.SetDrift(obj.Drift)
 	}
 
 	// Record the given object.
@@ -569,6 +604,9 @@ func (rrc *ResourceRevisionCreate) SaveE(ctx context.Context, cbs ...func(ctx co
 		if _, set := rrc.mutation.Field(resourcerevision.FieldStatus); set {
 			obj.Status = x.Status
 		}
+		if _, set := rrc.mutation.Field(resourcerevision.FieldType); set {
+			obj.Type = x.Type
+		}
 		if _, set := rrc.mutation.Field(resourcerevision.FieldProjectID); set {
 			obj.ProjectID = x.ProjectID
 		}
@@ -598,6 +636,9 @@ func (rrc *ResourceRevisionCreate) SaveE(ctx context.Context, cbs ...func(ctx co
 		}
 		if _, set := rrc.mutation.Field(resourcerevision.FieldRecord); set {
 			obj.Record = x.Record
+		}
+		if _, set := rrc.mutation.Field(resourcerevision.FieldDrift); set {
+			obj.Drift = x.Drift
 		}
 		obj.Edges = x.Edges
 	}
@@ -701,6 +742,9 @@ func (rrcb *ResourceRevisionCreateBulk) SaveE(ctx context.Context, cbs ...func(c
 			if _, set := rrcb.builders[i].mutation.Field(resourcerevision.FieldStatus); set {
 				objs[i].Status = x[i].Status
 			}
+			if _, set := rrcb.builders[i].mutation.Field(resourcerevision.FieldType); set {
+				objs[i].Type = x[i].Type
+			}
 			if _, set := rrcb.builders[i].mutation.Field(resourcerevision.FieldProjectID); set {
 				objs[i].ProjectID = x[i].ProjectID
 			}
@@ -730,6 +774,9 @@ func (rrcb *ResourceRevisionCreateBulk) SaveE(ctx context.Context, cbs ...func(c
 			}
 			if _, set := rrcb.builders[i].mutation.Field(resourcerevision.FieldRecord); set {
 				objs[i].Record = x[i].Record
+			}
+			if _, set := rrcb.builders[i].mutation.Field(resourcerevision.FieldDrift); set {
+				objs[i].Drift = x[i].Drift
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -875,6 +922,18 @@ func (u *ResourceRevisionUpsert) ClearStatus() *ResourceRevisionUpsert {
 	return u
 }
 
+// SetType sets the "type" field.
+func (u *ResourceRevisionUpsert) SetType(v string) *ResourceRevisionUpsert {
+	u.Set(resourcerevision.FieldType, v)
+	return u
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *ResourceRevisionUpsert) UpdateType() *ResourceRevisionUpsert {
+	u.SetExcluded(resourcerevision.FieldType)
+	return u
+}
+
 // SetTemplateVersion sets the "template_version" field.
 func (u *ResourceRevisionUpsert) SetTemplateVersion(v string) *ResourceRevisionUpsert {
 	u.Set(resourcerevision.FieldTemplateVersion, v)
@@ -1001,6 +1060,24 @@ func (u *ResourceRevisionUpsert) ClearRecord() *ResourceRevisionUpsert {
 	return u
 }
 
+// SetDrift sets the "drift" field.
+func (u *ResourceRevisionUpsert) SetDrift(v string) *ResourceRevisionUpsert {
+	u.Set(resourcerevision.FieldDrift, v)
+	return u
+}
+
+// UpdateDrift sets the "drift" field to the value that was provided on create.
+func (u *ResourceRevisionUpsert) UpdateDrift() *ResourceRevisionUpsert {
+	u.SetExcluded(resourcerevision.FieldDrift)
+	return u
+}
+
+// ClearDrift clears the value of the "drift" field.
+func (u *ResourceRevisionUpsert) ClearDrift() *ResourceRevisionUpsert {
+	u.SetNull(resourcerevision.FieldDrift)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -1085,6 +1162,20 @@ func (u *ResourceRevisionUpsertOne) UpdateStatus() *ResourceRevisionUpsertOne {
 func (u *ResourceRevisionUpsertOne) ClearStatus() *ResourceRevisionUpsertOne {
 	return u.Update(func(s *ResourceRevisionUpsert) {
 		s.ClearStatus()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *ResourceRevisionUpsertOne) SetType(v string) *ResourceRevisionUpsertOne {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *ResourceRevisionUpsertOne) UpdateType() *ResourceRevisionUpsertOne {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.UpdateType()
 	})
 }
 
@@ -1232,6 +1323,27 @@ func (u *ResourceRevisionUpsertOne) UpdateRecord() *ResourceRevisionUpsertOne {
 func (u *ResourceRevisionUpsertOne) ClearRecord() *ResourceRevisionUpsertOne {
 	return u.Update(func(s *ResourceRevisionUpsert) {
 		s.ClearRecord()
+	})
+}
+
+// SetDrift sets the "drift" field.
+func (u *ResourceRevisionUpsertOne) SetDrift(v string) *ResourceRevisionUpsertOne {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.SetDrift(v)
+	})
+}
+
+// UpdateDrift sets the "drift" field to the value that was provided on create.
+func (u *ResourceRevisionUpsertOne) UpdateDrift() *ResourceRevisionUpsertOne {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.UpdateDrift()
+	})
+}
+
+// ClearDrift clears the value of the "drift" field.
+func (u *ResourceRevisionUpsertOne) ClearDrift() *ResourceRevisionUpsertOne {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.ClearDrift()
 	})
 }
 
@@ -1487,6 +1599,20 @@ func (u *ResourceRevisionUpsertBulk) ClearStatus() *ResourceRevisionUpsertBulk {
 	})
 }
 
+// SetType sets the "type" field.
+func (u *ResourceRevisionUpsertBulk) SetType(v string) *ResourceRevisionUpsertBulk {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *ResourceRevisionUpsertBulk) UpdateType() *ResourceRevisionUpsertBulk {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.UpdateType()
+	})
+}
+
 // SetTemplateVersion sets the "template_version" field.
 func (u *ResourceRevisionUpsertBulk) SetTemplateVersion(v string) *ResourceRevisionUpsertBulk {
 	return u.Update(func(s *ResourceRevisionUpsert) {
@@ -1631,6 +1757,27 @@ func (u *ResourceRevisionUpsertBulk) UpdateRecord() *ResourceRevisionUpsertBulk 
 func (u *ResourceRevisionUpsertBulk) ClearRecord() *ResourceRevisionUpsertBulk {
 	return u.Update(func(s *ResourceRevisionUpsert) {
 		s.ClearRecord()
+	})
+}
+
+// SetDrift sets the "drift" field.
+func (u *ResourceRevisionUpsertBulk) SetDrift(v string) *ResourceRevisionUpsertBulk {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.SetDrift(v)
+	})
+}
+
+// UpdateDrift sets the "drift" field to the value that was provided on create.
+func (u *ResourceRevisionUpsertBulk) UpdateDrift() *ResourceRevisionUpsertBulk {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.UpdateDrift()
+	})
+}
+
+// ClearDrift clears the value of the "drift" field.
+func (u *ResourceRevisionUpsertBulk) ClearDrift() *ResourceRevisionUpsertBulk {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.ClearDrift()
 	})
 }
 

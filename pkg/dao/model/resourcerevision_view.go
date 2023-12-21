@@ -42,6 +42,8 @@ type ResourceRevisionCreateInput struct {
 	TemplateVersion string `path:"-" query:"-" json:"templateVersion"`
 	// Name of the template.
 	TemplateName string `path:"-" query:"-" json:"templateName"`
+	// Type of the revision.
+	Type string `path:"-" query:"-" json:"type"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
 	// Variables of the revision.
@@ -54,6 +56,8 @@ type ResourceRevisionCreateInput struct {
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
 	// Record of the revision.
 	Record string `path:"-" query:"-" json:"record,omitempty"`
+	// Drift of the revision.
+	Drift string `path:"-" query:"-" json:"drift,omitempty"`
 }
 
 // Model returns the ResourceRevision entity for creating,
@@ -69,12 +73,14 @@ func (rrci *ResourceRevisionCreateInput) Model() *ResourceRevision {
 		TemplateID:                rrci.TemplateID,
 		TemplateVersion:           rrci.TemplateVersion,
 		TemplateName:              rrci.TemplateName,
+		Type:                      rrci.Type,
 		Attributes:                rrci.Attributes,
 		Variables:                 rrci.Variables,
 		DeployerType:              rrci.DeployerType,
 		Duration:                  rrci.Duration,
 		PreviousRequiredProviders: rrci.PreviousRequiredProviders,
 		Record:                    rrci.Record,
+		Drift:                     rrci.Drift,
 	}
 
 	if rrci.Project != nil {
@@ -143,6 +149,8 @@ type ResourceRevisionCreateInputsItem struct {
 	TemplateVersion string `path:"-" query:"-" json:"templateVersion"`
 	// Name of the template.
 	TemplateName string `path:"-" query:"-" json:"templateName"`
+	// Type of the revision.
+	Type string `path:"-" query:"-" json:"type"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
 	// Variables of the revision.
@@ -155,6 +163,8 @@ type ResourceRevisionCreateInputsItem struct {
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
 	// Record of the revision.
 	Record string `path:"-" query:"-" json:"record,omitempty"`
+	// Drift of the revision.
+	Drift string `path:"-" query:"-" json:"drift,omitempty"`
 }
 
 // ValidateWith checks the ResourceRevisionCreateInputsItem entity with the given context and client set.
@@ -202,12 +212,14 @@ func (rrci *ResourceRevisionCreateInputs) Model() []*ResourceRevision {
 			TemplateID:                rrci.Items[i].TemplateID,
 			TemplateVersion:           rrci.Items[i].TemplateVersion,
 			TemplateName:              rrci.Items[i].TemplateName,
+			Type:                      rrci.Items[i].Type,
 			Attributes:                rrci.Items[i].Attributes,
 			Variables:                 rrci.Items[i].Variables,
 			DeployerType:              rrci.Items[i].DeployerType,
 			Duration:                  rrci.Items[i].Duration,
 			PreviousRequiredProviders: rrci.Items[i].PreviousRequiredProviders,
 			Record:                    rrci.Items[i].Record,
+			Drift:                     rrci.Items[i].Drift,
 		}
 
 		if rrci.Project != nil {
@@ -626,6 +638,8 @@ func (rrqi *ResourceRevisionQueryInputs) ValidateWith(ctx context.Context, cs Cl
 type ResourceRevisionUpdateInput struct {
 	ResourceRevisionQueryInput `path:",inline" query:"-" json:"-"`
 
+	// Type of the revision.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
 	// Version of the template.
 	TemplateVersion string `path:"-" query:"-" json:"templateVersion,omitempty"`
 	// Attributes to configure the template.
@@ -644,6 +658,8 @@ type ResourceRevisionUpdateInput struct {
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
 	// Record of the revision.
 	Record string `path:"-" query:"-" json:"record,omitempty"`
+	// Drift of the revision.
+	Drift string `path:"-" query:"-" json:"drift,omitempty"`
 }
 
 // Model returns the ResourceRevision entity for modifying,
@@ -655,6 +671,7 @@ func (rrui *ResourceRevisionUpdateInput) Model() *ResourceRevision {
 
 	_rr := &ResourceRevision{
 		ID:                        rrui.ID,
+		Type:                      rrui.Type,
 		TemplateVersion:           rrui.TemplateVersion,
 		Attributes:                rrui.Attributes,
 		Variables:                 rrui.Variables,
@@ -664,6 +681,7 @@ func (rrui *ResourceRevisionUpdateInput) Model() *ResourceRevision {
 		Duration:                  rrui.Duration,
 		PreviousRequiredProviders: rrui.PreviousRequiredProviders,
 		Record:                    rrui.Record,
+		Drift:                     rrui.Drift,
 	}
 
 	return _rr
@@ -696,6 +714,8 @@ type ResourceRevisionUpdateInputsItem struct {
 	// ID of the ResourceRevision entity.
 	ID object.ID `path:"-" query:"-" json:"id"`
 
+	// Type of the revision.
+	Type string `path:"-" query:"-" json:"type"`
 	// Version of the template.
 	TemplateVersion string `path:"-" query:"-" json:"templateVersion"`
 	// Attributes to configure the template.
@@ -714,6 +734,8 @@ type ResourceRevisionUpdateInputsItem struct {
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders"`
 	// Record of the revision.
 	Record string `path:"-" query:"-" json:"record,omitempty"`
+	// Drift of the revision.
+	Drift string `path:"-" query:"-" json:"drift,omitempty"`
 }
 
 // ValidateWith checks the ResourceRevisionUpdateInputsItem entity with the given context and client set.
@@ -757,6 +779,7 @@ func (rrui *ResourceRevisionUpdateInputs) Model() []*ResourceRevision {
 	for i := range rrui.Items {
 		_rr := &ResourceRevision{
 			ID:                        rrui.Items[i].ID,
+			Type:                      rrui.Items[i].Type,
 			TemplateVersion:           rrui.Items[i].TemplateVersion,
 			Attributes:                rrui.Items[i].Attributes,
 			Variables:                 rrui.Items[i].Variables,
@@ -766,6 +789,7 @@ func (rrui *ResourceRevisionUpdateInputs) Model() []*ResourceRevision {
 			Duration:                  rrui.Items[i].Duration,
 			PreviousRequiredProviders: rrui.Items[i].PreviousRequiredProviders,
 			Record:                    rrui.Items[i].Record,
+			Drift:                     rrui.Items[i].Drift,
 		}
 
 		_rrs[i] = _rr
@@ -886,6 +910,7 @@ type ResourceRevisionOutput struct {
 	ID                        object.ID                   `json:"id,omitempty"`
 	CreateTime                *time.Time                  `json:"createTime,omitempty"`
 	Status                    status.Status               `json:"status,omitempty"`
+	Type                      string                      `json:"type,omitempty"`
 	TemplateName              string                      `json:"templateName,omitempty"`
 	TemplateVersion           string                      `json:"templateVersion,omitempty"`
 	TemplateID                object.ID                   `json:"templateID,omitempty"`
@@ -895,6 +920,7 @@ type ResourceRevisionOutput struct {
 	Duration                  int                         `json:"duration,omitempty"`
 	PreviousRequiredProviders []types.ProviderRequirement `json:"previousRequiredProviders,omitempty"`
 	Record                    string                      `json:"record,omitempty"`
+	Drift                     string                      `json:"drift,omitempty"`
 
 	Project     *ProjectOutput     `json:"project,omitempty"`
 	Environment *EnvironmentOutput `json:"environment,omitempty"`
@@ -921,6 +947,7 @@ func ExposeResourceRevision(_rr *ResourceRevision) *ResourceRevisionOutput {
 		ID:                        _rr.ID,
 		CreateTime:                _rr.CreateTime,
 		Status:                    _rr.Status,
+		Type:                      _rr.Type,
 		TemplateName:              _rr.TemplateName,
 		TemplateVersion:           _rr.TemplateVersion,
 		TemplateID:                _rr.TemplateID,
@@ -930,6 +957,7 @@ func ExposeResourceRevision(_rr *ResourceRevision) *ResourceRevisionOutput {
 		Duration:                  _rr.Duration,
 		PreviousRequiredProviders: _rr.PreviousRequiredProviders,
 		Record:                    _rr.Record,
+		Drift:                     _rr.Drift,
 	}
 
 	if _rr.Edges.Project != nil {

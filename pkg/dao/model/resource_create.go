@@ -25,6 +25,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
@@ -171,6 +172,12 @@ func (rc *ResourceCreate) SetNillableResourceDefinitionID(o *object.ID) *Resourc
 // SetAttributes sets the "attributes" field.
 func (rc *ResourceCreate) SetAttributes(pr property.Values) *ResourceCreate {
 	rc.mutation.SetAttributes(pr)
+	return rc
+}
+
+// SetDriftDetection sets the "drift_detection" field.
+func (rc *ResourceCreate) SetDriftDetection(tdd *types.ResourceDriftDetection) *ResourceCreate {
+	rc.mutation.SetDriftDetection(tdd)
 	return rc
 }
 
@@ -418,6 +425,10 @@ func (rc *ResourceCreate) createSpec() (*Resource, *sqlgraph.CreateSpec) {
 		_spec.SetField(resource.FieldAttributes, field.TypeOther, value)
 		_node.Attributes = value
 	}
+	if value, ok := rc.mutation.DriftDetection(); ok {
+		_spec.SetField(resource.FieldDriftDetection, field.TypeJSON, value)
+		_node.DriftDetection = value
+	}
 	if nodes := rc.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -599,6 +610,9 @@ func (rc *ResourceCreate) Set(obj *Resource) *ResourceCreate {
 	if !reflect.ValueOf(obj.Attributes).IsZero() {
 		rc.SetAttributes(obj.Attributes)
 	}
+	if !reflect.ValueOf(obj.DriftDetection).IsZero() {
+		rc.SetDriftDetection(obj.DriftDetection)
+	}
 
 	// Record the given object.
 	rc.object = obj
@@ -673,6 +687,9 @@ func (rc *ResourceCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Con
 		}
 		if _, set := rc.mutation.Field(resource.FieldAttributes); set {
 			obj.Attributes = x.Attributes
+		}
+		if _, set := rc.mutation.Field(resource.FieldDriftDetection); set {
+			obj.DriftDetection = x.DriftDetection
 		}
 		obj.Edges = x.Edges
 	}
@@ -814,6 +831,9 @@ func (rcb *ResourceCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx contex
 			}
 			if _, set := rcb.builders[i].mutation.Field(resource.FieldAttributes); set {
 				objs[i].Attributes = x[i].Attributes
+			}
+			if _, set := rcb.builders[i].mutation.Field(resource.FieldDriftDetection); set {
+				objs[i].DriftDetection = x[i].DriftDetection
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -1061,6 +1081,24 @@ func (u *ResourceUpsert) ClearAttributes() *ResourceUpsert {
 	return u
 }
 
+// SetDriftDetection sets the "drift_detection" field.
+func (u *ResourceUpsert) SetDriftDetection(v *types.ResourceDriftDetection) *ResourceUpsert {
+	u.Set(resource.FieldDriftDetection, v)
+	return u
+}
+
+// UpdateDriftDetection sets the "drift_detection" field to the value that was provided on create.
+func (u *ResourceUpsert) UpdateDriftDetection() *ResourceUpsert {
+	u.SetExcluded(resource.FieldDriftDetection)
+	return u
+}
+
+// ClearDriftDetection clears the value of the "drift_detection" field.
+func (u *ResourceUpsert) ClearDriftDetection() *ResourceUpsert {
+	u.SetNull(resource.FieldDriftDetection)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -1264,6 +1302,27 @@ func (u *ResourceUpsertOne) UpdateAttributes() *ResourceUpsertOne {
 func (u *ResourceUpsertOne) ClearAttributes() *ResourceUpsertOne {
 	return u.Update(func(s *ResourceUpsert) {
 		s.ClearAttributes()
+	})
+}
+
+// SetDriftDetection sets the "drift_detection" field.
+func (u *ResourceUpsertOne) SetDriftDetection(v *types.ResourceDriftDetection) *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.SetDriftDetection(v)
+	})
+}
+
+// UpdateDriftDetection sets the "drift_detection" field to the value that was provided on create.
+func (u *ResourceUpsertOne) UpdateDriftDetection() *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.UpdateDriftDetection()
+	})
+}
+
+// ClearDriftDetection clears the value of the "drift_detection" field.
+func (u *ResourceUpsertOne) ClearDriftDetection() *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.ClearDriftDetection()
 	})
 }
 
@@ -1635,6 +1694,27 @@ func (u *ResourceUpsertBulk) UpdateAttributes() *ResourceUpsertBulk {
 func (u *ResourceUpsertBulk) ClearAttributes() *ResourceUpsertBulk {
 	return u.Update(func(s *ResourceUpsert) {
 		s.ClearAttributes()
+	})
+}
+
+// SetDriftDetection sets the "drift_detection" field.
+func (u *ResourceUpsertBulk) SetDriftDetection(v *types.ResourceDriftDetection) *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.SetDriftDetection(v)
+	})
+}
+
+// UpdateDriftDetection sets the "drift_detection" field to the value that was provided on create.
+func (u *ResourceUpsertBulk) UpdateDriftDetection() *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.UpdateDriftDetection()
+	})
+}
+
+// ClearDriftDetection clears the value of the "drift_detection" field.
+func (u *ResourceUpsertBulk) ClearDriftDetection() *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.ClearDriftDetection()
 	})
 }
 
