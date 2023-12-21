@@ -149,6 +149,12 @@ var (
 		editable,
 		initializeFromEnv("false"),
 		modifyWith(notBlank))
+	// EnableDriftDetection keeps the user config for enable service drift detection or not.
+	EnableDriftDetection = newValue(
+		"EnableDriftDetection",
+		editable,
+		initializeFromEnv("true"),
+		modifyWith(notBlank))
 )
 
 // the built-in settings for server cron jobs.
@@ -225,6 +231,14 @@ var (
 		private,
 		initializeFrom("0 0 1 * * *"),
 		modifyWith(notBlank, cronExpression, cronAtLeast(30*time.Minute)),
+	)
+	// ResourceDriftDetectCronExpr indicates the cron expression of detect resource drift,
+	// default cron expression means syncing every 1 hour.
+	ResourceDriftDetectCronExpr = newValue(
+		"ResourceDriftDetectCronExpr",
+		editable,
+		initializeFrom("0 0 * * * ?"),
+		modifyWith(notBlank, cronExpression),
 	)
 )
 

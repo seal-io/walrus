@@ -27,6 +27,7 @@ func (r *Server) startBackgroundJobs(ctx context.Context, opts initOptions) erro
 		buildResourceRelationshipCheckJobCreator,
 		buildTelemetryPeriodicReportJobCreator,
 		buildTokenDeploymentExpireCleanJobCreator,
+		buildResourceDriftDetectJobCreator,
 	}
 
 	js := cron.JobCreators{}
@@ -160,6 +161,20 @@ func buildTokenDeploymentExpireCleanJobCreator(opts initOptions) (es settings.Va
 	es = settings.TokenDeploymentExpiredCleanCronExpr
 	jc = func(logger log.Logger, expr string) (cron.Expr, cron.Task, error) {
 		task, err := tokenskd.NewDeploymentExpiredCleanTask(logger, opts.ModelClient)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return cron.ImmediateExpr(expr), task, nil
+	}
+
+	return
+}
+
+func buildResourceDriftDetectJobCreator(opts initOptions) (es settings.Value, jc cron.JobCreator) {
+	es = settings.ResourceDriftDetectCronExpr
+	jc = func(logger log.Logger, expr string) (cron.Expr, cron.Task, error) {
+		task, err := svcskd.NewResourceDriftDetectTask(logger, opts.ModelClient, opts.K8sConfig)
 		if err != nil {
 			return nil, nil, err
 		}
