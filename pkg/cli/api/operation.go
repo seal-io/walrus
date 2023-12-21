@@ -79,11 +79,6 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 		Hidden:     o.Hidden,
 		Deprecated: o.Deprecated,
 		PreRun: func(cmd *cobra.Command, args []string) {
-			format := cmd.Flags().Lookup("output")
-			if format != nil {
-				sc.Format = format.Value.String()
-			}
-
 			err := sc.Inject(cmd)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
@@ -103,7 +98,13 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 				os.Exit(1)
 			}
 
-			b, err := formatter.Format(o.format(sc), resp)
+			format, ok := flags["output"].(*string)
+			if !ok {
+				fmt.Fprintln(os.Stderr, fmt.Errorf("invalid output format"))
+				os.Exit(1)
+			}
+
+			b, err := formatter.Format(o.format(*format), resp)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
@@ -145,6 +146,8 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 			body = bps
 		}
 	}
+
+	flags["output"] = sub.Flags().StringP("output", "o", "table", "Output format [table, json, yaml]")
 
 	return sub
 }
@@ -269,14 +272,14 @@ func (o Operation) Request(
 	return req, nil
 }
 
-func (o Operation) format(sc *config.Config) string {
+func (o Operation) format(flagFormat string) string {
 	if len(o.Formats) != 0 {
-		if slices.Contains(o.Formats, sc.Format) {
-			return sc.Format
+		if slices.Contains(o.Formats, flagFormat) {
+			return flagFormat
 		}
 
 		return o.Formats[0]
 	}
 
-	return sc.Format
+	return flagFormat
 }

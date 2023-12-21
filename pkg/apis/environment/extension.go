@@ -186,7 +186,7 @@ func getCaps(entities model.Resources) (int, int) {
 	return verticesCap, edgesCap
 }
 
-func (h Handler) RouteCloneEnvironment(req RouteCloneEnvironmentRequest) (*RouteCloneEnvironmentResponse, error) {
+func (h Handler) RouteClone(req RouteCloneEnvironmentRequest) (*RouteCloneEnvironmentResponse, error) {
 	entity := req.Model()
 
 	var variableNames []string

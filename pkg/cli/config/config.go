@@ -23,8 +23,7 @@ const (
 
 // CommonConfig indicate the common CLI command config.
 type CommonConfig struct {
-	Debug  bool   `json:"debug,omitempty" yaml:"debug,omitempty"`
-	Format string `json:"format,omitempty" yaml:"format,omitempty"`
+	Debug bool `json:"debug,omitempty" yaml:"debug,omitempty"`
 }
 
 // Config include the common config and server context config.

@@ -29,15 +29,7 @@ func NewRootCmd() *cobra.Command {
 
 			serverConfig.CommonConfig = *globalConfig
 		},
-		CompletionOptions: cobra.CompletionOptions{
-			DisableDefaultCmd: true,
-		},
 	}
-
-	cmd.SetHelpTemplate(helpTemplate)
-	cmd.SetHelpCommand(&cobra.Command{
-		Hidden: true,
-	})
 
 	cmd.AddGroup(
 		common.GroupManagement,
@@ -51,7 +43,14 @@ func NewRootCmd() *cobra.Command {
 		NewDeleteCmd(),
 		NewVersionCmd(),
 	)
+
+	cmd.SetHelpTemplate(helpTemplate)
+	cmd.SetHelpCommand(&cobra.Command{
+		Hidden: true,
+	})
 	cmd.PersistentFlags().AddFlagSet(globalFlags())
+	cmd.SetCompletionCommandGroupID(common.GroupOther.ID)
+	cmd.SetHelpCommandGroupID(common.GroupOther.ID)
 
 	return cmd
 }
@@ -94,7 +93,6 @@ func NewVersionCmd() *cobra.Command {
 // define global flags.
 func globalFlags() *pflag.FlagSet {
 	gf := &pflag.FlagSet{}
-	gf.StringVarP(&globalConfig.Format, "output", "o", "table", "Output format [table, json, yaml]")
 	gf.BoolVarP(&globalConfig.Debug, "debug", "d", false, "Enable debug log")
 	gf.BoolP("help", "h", false, "Help for this command")
 
