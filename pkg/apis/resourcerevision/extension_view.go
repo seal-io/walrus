@@ -5,6 +5,8 @@ import (
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/deployer/terraform"
 	"github.com/seal-io/walrus/utils/json"
@@ -89,3 +91,33 @@ type (
 		New RevisionDiff `json:"new"`
 	}
 )
+
+type RouteUpdateDriftRequest struct {
+	_ struct{} `route:"PUT=/drift"`
+
+	model.ResourceRevisionQueryInput `path:",inline"`
+
+	json.RawMessage `path:"-" json:",inline"`
+}
+
+func (r *RouteUpdateDriftRequest) Validate() error {
+	if err := r.ResourceRevisionQueryInput.Validate(); err != nil {
+		return err
+	}
+
+	revision, err := r.Client.ResourceRevisions().Query().
+		Select(resourcerevision.FieldID, resourcerevision.FieldType).
+		Where(resourcerevision.ID(r.ID)).
+		Only(r.Context)
+	if err != nil {
+		return err
+	}
+
+	switch revision.Type {
+	case types.ResourceRevisionTypeDetect, types.ResourceRevisionTypeSync:
+	default:
+		return errors.New("invalid revision type")
+	}
+
+	return nil
+}

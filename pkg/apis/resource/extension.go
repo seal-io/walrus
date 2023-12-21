@@ -561,3 +561,67 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 		Edges:    edges,
 	}, nil
 }
+
+func (h Handler) RouteSync(req RouteSyncRequest) error {
+	entity, err := h.modelClient.Resources().Get(req.Context, req.ID)
+	if err != nil {
+		return err
+	}
+
+	status.ResourceStatusSynced.Reset(entity, "Sync resource status from remote system")
+
+	err = h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
+		entity, err = tx.Resources().UpdateOne(entity).
+			Set(entity).
+			Save(req.Context)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	dp, err := h.getDeployer(req.Context)
+	if err != nil {
+		return err
+	}
+
+	return pkgresource.Sync(req.Context, h.modelClient, entity, pkgresource.Options{
+		Deployer: dp,
+	})
+}
+
+func (h Handler) RouteDetect(req RouteDetectRequest) error {
+	entity, err := h.modelClient.Resources().Get(req.Context, req.ID)
+	if err != nil {
+		return err
+	}
+
+	status.ResourceStatusDetected.Reset(entity, "Detect resource status from remote system")
+
+	err = h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
+		entity, err = tx.Resources().UpdateOne(entity).
+			Set(entity).
+			Save(req.Context)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	dp, err := h.getDeployer(req.Context)
+	if err != nil {
+		return err
+	}
+
+	return pkgresource.Detect(req.Context, h.modelClient, entity, pkgresource.Options{
+		Deployer: dp,
+	})
+}

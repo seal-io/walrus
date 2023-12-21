@@ -85,10 +85,11 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 			UpdateTime:  entity.UpdateTime,
 			Status:      entity.Status.Summary,
 			Extensions: map[string]any{
-				"projectID":     entity.ProjectID,
-				"environmentID": entity.EnvironmentID,
-				"labels":        entity.Labels,
-				"isService":     pkgresource.IsService(entity),
+				"projectID":      entity.ProjectID,
+				"environmentID":  entity.EnvironmentID,
+				"labels":         entity.Labels,
+				"isService":      pkgresource.IsService(entity),
+				"driftDetection": entity.DriftDetection,
 			},
 		}
 

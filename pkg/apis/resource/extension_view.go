@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -185,20 +186,7 @@ func (r *RouteRollbackRequest) Validate() error {
 		return err
 	}
 
-	latestRevision, err := r.Client.ResourceRevisions().Query().
-		Where(resourcerevision.ResourceID(r.ID)).
-		Order(model.Desc(resourcerevision.FieldCreateTime)).
-		Select(resourcerevision.FieldStatus).
-		First(r.Context)
-	if err != nil && !model.IsNotFound(err) {
-		return fmt.Errorf("failed to get the latest revision: %w", err)
-	}
-
-	if status.ResourceRevisionStatusReady.IsUnknown(latestRevision) {
-		return errors.New("latest revision is running")
-	}
-
-	return nil
+	return validateRevisionStatus(r.Context, r.Client, r.ID)
 }
 
 type RouteStopRequest struct {
@@ -355,3 +343,48 @@ type (
 		Edges    []GraphEdge   `json:"edges"`
 	}
 )
+
+type RouteSyncRequest struct {
+	_ struct{} `route:"POST=/refresh"`
+
+	model.ResourceQueryInput `path:",inline"`
+}
+
+func (r *RouteSyncRequest) Validate() error {
+	if err := r.ResourceQueryInput.Validate(); err != nil {
+		return err
+	}
+
+	return validateRevisionStatus(r.Context, r.Client, r.ID)
+}
+
+type RouteDetectRequest struct {
+	_ struct{} `route:"POST=/detect"`
+
+	model.ResourceQueryInput `path:",inline"`
+}
+
+func (r *RouteDetectRequest) Validate() error {
+	if err := r.ResourceQueryInput.Validate(); err != nil {
+		return err
+	}
+
+	return validateRevisionStatus(r.Context, r.Client, r.ID)
+}
+
+func validateRevisionStatus(ctx context.Context, mc model.ClientSet, resourceID object.ID) error {
+	latestRevision, err := mc.ResourceRevisions().Query().
+		Where(resourcerevision.ResourceID(resourceID)).
+		Order(model.Desc(resourcerevision.FieldCreateTime)).
+		Select(resourcerevision.FieldStatus).
+		First(ctx)
+	if err != nil && !model.IsNotFound(err) {
+		return fmt.Errorf("failed to get the latest revision: %w", err)
+	}
+
+	if status.ResourceRevisionStatusReady.IsUnknown(latestRevision) {
+		return errors.New("latest revision is running")
+	}
+
+	return nil
+}

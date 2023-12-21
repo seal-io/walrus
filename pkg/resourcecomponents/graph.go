@@ -39,12 +39,13 @@ func GetVerticesAndEdges(
 			UpdateTime: entity.UpdateTime,
 			Status:     entity.Status.Summary,
 			Extensions: map[string]any{
-				"type":          entity.Type,
-				"keys":          entity.Keys,
-				"projectID":     entity.ProjectID,
-				"environmentID": entity.EnvironmentID,
-				"resourceID":    entity.ResourceID,
-				"connectorID":   entity.ConnectorID,
+				"type":           entity.Type,
+				"keys":           entity.Keys,
+				"projectID":      entity.ProjectID,
+				"environmentID":  entity.EnvironmentID,
+				"resourceID":     entity.ResourceID,
+				"connectorID":    entity.ConnectorID,
+				"driftDetection": entity.DriftDetection,
 			},
 		})
 

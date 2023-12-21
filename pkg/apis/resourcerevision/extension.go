@@ -518,3 +518,18 @@ func (h Handler) RouteGetDiffPrevious(req RouteGetDiffPreviousRequest) (*RouteGe
 		},
 	}, nil
 }
+
+func (h Handler) RouteUpdateDriftRequest(req RouteUpdateDriftRequest) error {
+	entity, err := h.modelClient.ResourceRevisions().Query().
+		Where(resourcerevision.ID(req.ID)).
+		Only(req.Context)
+	if err != nil {
+		return err
+	}
+
+	entity.Drift = string(req.RawMessage)
+
+	return h.modelClient.ResourceRevisions().UpdateOne(entity).
+		SetDrift(entity.Drift).
+		Exec(req.Context)
+}
