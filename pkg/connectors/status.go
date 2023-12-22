@@ -171,7 +171,8 @@ func (in *StatusSyncer) checkReachable(ctx context.Context, conn model.Connector
 	}
 
 	op, err := operator.Get(ctx, optypes.CreateOptions{
-		Connector: conn,
+		Connector:   conn,
+		ModelClient: in.client,
 	})
 	if err != nil {
 		return true, fmt.Errorf("invalid connector config: %w", err)

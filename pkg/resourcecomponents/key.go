@@ -108,7 +108,8 @@ func SetKeys(
 			var op optypes.Operator
 
 			op, err = operator.Get(ctx, optypes.CreateOptions{
-				Connector: *cs[i],
+				Connector:   *cs[i],
+				ModelClient: modelClient,
 			})
 			if err != nil {
 				// Warn out without breaking the whole fetching.

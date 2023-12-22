@@ -51,6 +51,7 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		r.createBuiltinCatalogs,
 		r.createBuiltinPerspectives,
 		r.createBuiltinProjects,
+		r.createLocalEnvironment,
 	)
 
 	for i := range inits {

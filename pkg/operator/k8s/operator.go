@@ -18,7 +18,9 @@ import (
 	networkingclient "k8s.io/client-go/kubernetes/typed/networking/v1"
 	"k8s.io/client-go/rest"
 
+	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/operator/k8s/polymorphic"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
 	"github.com/seal-io/walrus/utils/hash"
@@ -66,11 +68,15 @@ func New(ctx context.Context, opts optypes.CreateOptions) (optypes.Operator, err
 	op := Operator{
 		Logger:        log.WithName("operator").WithName("k8s"),
 		Identifier:    hash.SumStrings("k8s:", restConfig.Host, restConfig.APIPath),
+		ModelClient:   opts.ModelClient,
 		RestConfig:    restConfig,
 		CoreCli:       coreCli,
 		BatchCli:      batchCli,
 		NetworkingCli: networkingCli,
 		DynamicCli:    dynamicCli,
+
+		ConnectorID:             opts.Connector.ID,
+		ProxyKubernetesServices: opts.Connector.Labels[types.LabelProxyKubernetesServices] == "true",
 	}
 
 	return op, nil
@@ -78,12 +84,16 @@ func New(ctx context.Context, opts optypes.CreateOptions) (optypes.Operator, err
 
 type Operator struct {
 	Logger        log.Logger
-	RestConfig    *rest.Config
 	Identifier    string
+	ModelClient   model.ClientSet
+	RestConfig    *rest.Config
 	CoreCli       *coreclient.CoreV1Client
 	BatchCli      *batchclient.BatchV1Client
 	NetworkingCli *networkingclient.NetworkingV1Client
 	DynamicCli    *dynamicclient.DynamicClient
+
+	ConnectorID             object.ID
+	ProxyKubernetesServices bool
 }
 
 // Type implements operator.Operator.

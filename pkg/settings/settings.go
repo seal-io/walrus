@@ -149,6 +149,12 @@ var (
 		editable,
 		initializeFromEnv("false"),
 		modifyWith(notBlank))
+	// LocalEnvironmentMode indicates mode for setting up a local environment in the default project.
+	LocalEnvironmentMode = newValue(
+		"LocalEnvironmentMode",
+		private,
+		initializeFromEnv("kubernetes"),
+		modifyWith(never))
 )
 
 // the built-in settings for server cron jobs.

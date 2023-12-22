@@ -3,6 +3,7 @@ package kubeendpoint
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/url"
 	"strconv"
@@ -15,19 +16,14 @@ import (
 	networkingclient "k8s.io/client-go/kubernetes/typed/networking/v1"
 
 	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
 func GetServiceEndpoints(
 	ctx context.Context,
 	coreCli *coreclient.CoreV1Client,
-	ns, n string,
+	svc *core.Service,
 ) ([]types.ResourceComponentEndpoint, error) {
-	svc, err := coreCli.Services(ns).
-		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"})
-	if err != nil {
-		return nil, err
-	}
-
 	var (
 		resourceSubKind = string(svc.Spec.Type)
 		endpoints       []string
@@ -64,6 +60,40 @@ func GetServiceEndpoints(
 			Endpoints:    endpoints,
 		},
 	}, nil
+}
+
+func GetProxyServiceEndpoints(
+	svc *core.Service,
+	serveURL string,
+	connectorID object.ID,
+) []types.ResourceComponentEndpoint {
+	endpoints := make([]string, 0, len(svc.Spec.Ports))
+
+	for _, p := range svc.Spec.Ports {
+		if p.Protocol != core.ProtocolTCP {
+			continue
+		}
+		ep := fmt.Sprintf(
+			"%s/proxy/api/v1/namespaces/%s/services/%s:%d/proxy?connectorID=%s",
+			serveURL,
+			svc.Namespace,
+			svc.Name,
+			p.Port,
+			connectorID.String(),
+		)
+		endpoints = append(endpoints, ep)
+	}
+
+	if len(endpoints) == 0 {
+		return nil
+	}
+
+	return []types.ResourceComponentEndpoint{
+		{
+			EndpointType: "Proxy",
+			Endpoints:    endpoints,
+		},
+	}
 }
 
 func nodeIP(ctx context.Context, coreCli *coreclient.CoreV1Client, svc *core.Service) (string, error) {

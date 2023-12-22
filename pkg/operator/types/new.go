@@ -10,6 +10,8 @@ import (
 type CreateOptions struct {
 	// Connector indicates the model.Connector for creating.
 	Connector model.Connector
+
+	ModelClient model.ClientSet
 }
 
 // Creator is a factory func to create Operator.

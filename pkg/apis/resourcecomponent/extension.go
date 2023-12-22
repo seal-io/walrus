@@ -20,7 +20,8 @@ func (h Handler) RouteGetKeys(req RouteGetKeysRequest) (RouteGetKeysResponse, er
 	res := req.Entity
 
 	op, err := operator.Get(req.Context, optypes.CreateOptions{
-		Connector: *res.Edges.Connector,
+		Connector:   *res.Edges.Connector,
+		ModelClient: h.modelClient,
 	})
 	if err != nil {
 		return nil, err
@@ -51,7 +52,8 @@ func (h Handler) RouteLog(req RouteLogRequest) error {
 	res := req.Entity
 
 	op, err := operator.Get(ctx, optypes.CreateOptions{
-		Connector: *res.Edges.Connector,
+		Connector:   *res.Edges.Connector,
+		ModelClient: h.modelClient,
 	})
 	if err != nil {
 		return err
@@ -80,7 +82,8 @@ func (h Handler) RouteExec(req RouteExecRequest) error {
 	}
 
 	op, err := operator.Get(req.Stream, optypes.CreateOptions{
-		Connector: *req.Entity.Edges.Connector,
+		Connector:   *req.Entity.Edges.Connector,
+		ModelClient: h.modelClient,
 	})
 	if err != nil {
 		return err
