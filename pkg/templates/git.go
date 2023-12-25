@@ -31,7 +31,7 @@ func CreateTemplateVersionsFromRepo(
 	mc model.ClientSet,
 	entity *model.Template,
 	versions []*version.Version,
-	versionSchema map[*version.Version]types.TemplateVersionSchema,
+	versionSchema map[*version.Version]*schemaGroup,
 ) error {
 	logger := log.WithName("template")
 
@@ -105,18 +105,10 @@ func syncTemplateFromRef(
 	}
 
 	// Load schema.
-	schema, err := loader.LoadSchemaPreferFile(rootDir, entity.Name)
+	originSchema, fileSchema, err := getSchemas(rootDir, entity.Name)
 	if err != nil {
+		logger.Errorf("%s:%s get schemas failed", entity.Name, repo.Reference)
 		return err
-	}
-
-	satisfy, err := isConstraintSatisfied(schema)
-	if err != nil {
-		return err
-	}
-
-	if !satisfy {
-		return fmt.Errorf("%s:%s does not satisfy server version constraint", entity.Name, repo.Reference)
 	}
 
 	// Create template.
@@ -158,7 +150,8 @@ func syncTemplateFromRef(
 			Name:       entity.Name,
 			Version:    ref,
 			Source:     source + "?ref=" + repo.Reference,
-			Schema:     *schema,
+			Schema:     *originSchema,
+			UiSchema:   fileSchema.Expose(),
 			ProjectID:  entity.ProjectID,
 		}).
 		OnConflict(conflictOptions...).
@@ -309,7 +302,7 @@ func SyncTemplateFromGitRepo(
 func GetTemplateVersions(
 	entity *model.Template,
 	newVersions []*version.Version,
-	versionSchema map[*version.Version]types.TemplateVersionSchema,
+	versionSchema map[*version.Version]*schemaGroup,
 ) (model.TemplateVersions, error) {
 	var (
 		logger = log.WithName("catalog")
@@ -345,7 +338,8 @@ func GetTemplateVersions(
 			Name:       entity.Name,
 			Version:    tag,
 			Source:     source + "?ref=" + tag,
-			Schema:     schema,
+			Schema:     *schema.Schema,
+			UiSchema:   schema.UISchema.Expose(),
 			ProjectID:  entity.ProjectID,
 		})
 	}
@@ -418,4 +412,69 @@ func GetRepoFileRaw(repo *vcs.Repository, file string) (string, error) {
 	}
 
 	return "", nil
+}
+
+// syncTemplateVersion syncs template version schema and ui schema from remote.
+func syncTemplateVersion(ctx context.Context, mc model.ClientSet, tv *model.TemplateVersion) error {
+	repo, err := vcs.ParseURLToRepo(tv.Source)
+	if err != nil {
+		return err
+	}
+
+	tempDir := filepath.Join(os.TempDir(), "seal-template-version-"+strs.String(10))
+	defer os.RemoveAll(tempDir)
+
+	// Clone git repository.
+	r, err := vcs.CloneGitRepo(ctx, repo.Link, tempDir, settings.SkipRemoteTLSVerify.ShouldValueBool(ctx, mc))
+	if err != nil {
+		return err
+	}
+
+	w, err := r.Worktree()
+	if err != nil {
+		return err
+	}
+
+	rootDir := w.Filesystem.Root()
+
+	if repo.SubPath != "" {
+		rootDir = filepath.Join(rootDir, repo.SubPath)
+	}
+
+	// Load schema.
+	originSchema, fileSchema, err := getSchemas(rootDir, tv.Name)
+	if err != nil {
+		return err
+	}
+
+	// Update template version.
+	return mc.TemplateVersions().UpdateOne(tv).
+		SetSchema(*originSchema).
+		SetUiSchema(fileSchema.Expose()).
+		Exec(ctx)
+}
+
+// getSchemas returns template version schema and ui schema from a git repository.
+func getSchemas(rootDir, templateName string) (*types.TemplateVersionSchema, *types.TemplateVersionSchema, error) {
+	// Load schema.
+	originSchema, err := loader.LoadOriginalSchema(rootDir, templateName)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	fileSchema, err := loader.LoadAndMergeSchema(rootDir, templateName)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	satisfy, err := isConstraintSatisfied(fileSchema)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if !satisfy {
+		return nil, nil, fmt.Errorf("%s does not satisfy server version constraint", templateName)
+	}
+
+	return originSchema, fileSchema, nil
 }

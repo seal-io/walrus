@@ -52,6 +52,8 @@ const (
 	*/
 )
 
+const WalrusContextVariableName = "context"
+
 // ExtUI is a struct wrap the UI extension.
 type ExtUI struct {
 	// Group is a string, for grouping the properties.
@@ -367,4 +369,19 @@ func RemoveExtOriginal(s *openapi3.Schema) *openapi3.Schema {
 
 func RemoveExtUI(s *openapi3.Schema) *openapi3.Schema {
 	return RemoveExt(ExtUIKey, s)
+}
+
+func RemoveVariableContext(s *openapi3.Schema) *openapi3.Schema {
+	if s == nil || s.Properties == nil {
+		return s
+	}
+
+	for n := range s.Properties {
+		if n == WalrusContextVariableName {
+			delete(s.Properties, n)
+			continue
+		}
+	}
+
+	return s
 }
