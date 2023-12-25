@@ -295,6 +295,11 @@ func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 			return err
 		}
 
+		resources, err = pkgresource.ReverseTopologicalSortResources(resources)
+		if err != nil {
+			return err
+		}
+
 		deployerOpts := deptypes.CreateOptions{
 			Type:        deployertf.DeployerType,
 			ModelClient: tx,
