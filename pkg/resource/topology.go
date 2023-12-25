@@ -238,3 +238,19 @@ func TopologicalSortResources(resources model.Resources) (model.Resources, error
 
 	return sortedResources, nil
 }
+
+// ReverseTopologicalSortResources sorts the resource by dependencies in reverse order.
+func ReverseTopologicalSortResources(resources model.Resources) (model.Resources, error) {
+	var sortedResources model.Resources
+
+	sortResources, err := TopologicalSortResources(resources)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := len(sortResources) - 1; i >= 0; i-- {
+		sortedResources = append(sortedResources, sortResources[i])
+	}
+
+	return sortedResources, nil
+}
