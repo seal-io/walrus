@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/seal-io/walrus/pkg/bus/template"
+	"github.com/seal-io/walrus/pkg/bus/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/vcs"
@@ -75,4 +76,32 @@ func syncSchema(ctx context.Context, mc model.ClientSet, t *model.Template) erro
 	}
 
 	return SyncTemplateFromGitRepo(ctx, mc, t, repo)
+}
+
+func VersionSchemaSync(mc model.ClientSet) versionSchemaSyncer {
+	return versionSchemaSyncer{mc: mc}
+}
+
+type versionSchemaSyncer struct {
+	mc model.ClientSet
+}
+
+func (s versionSchemaSyncer) Do(_ context.Context, message templateversion.BusMessage) error {
+	logger := log.WithName("template-version")
+
+	gopool.Go(func() {
+		ctx := context.Background()
+
+		m := message.Refer
+		logger.Debugf("syncing schema for template version %s", m.ID)
+
+		// Sync schema.
+		err := syncTemplateVersion(ctx, s.mc, m)
+		if err != nil {
+			logger.Warnf("syncing template version %s schema failed: %v", m.ID, err)
+			return
+		}
+	})
+
+	return nil
 }

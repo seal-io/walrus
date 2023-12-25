@@ -17,13 +17,18 @@ import (
 	utilversion "github.com/seal-io/walrus/utils/version"
 )
 
+type schemaGroup struct {
+	Schema   *types.TemplateVersionSchema
+	UISchema *types.TemplateVersionSchema
+}
+
 // getValidVersions get valid terraform module versions.
 func getValidVersions(
 	entity *model.Template,
 	r *git.Repository,
 	versions []*version.Version,
 	subPath string,
-) ([]*version.Version, map[*version.Version]types.TemplateVersionSchema, error) {
+) ([]*version.Version, map[*version.Version]*schemaGroup, error) {
 	logger := log.WithName("template")
 
 	w, err := r.Worktree()
@@ -32,7 +37,7 @@ func getValidVersions(
 	}
 
 	validVersions := make([]*version.Version, 0, len(versions))
-	versionSchema := make(map[*version.Version]types.TemplateVersionSchema)
+	versionSchema := make(map[*version.Version]*schemaGroup)
 
 	for i := range versions {
 		v := versions[i]
@@ -75,6 +80,12 @@ func getValidVersions(
 			continue
 		}
 
+		fileSchema, err := loader.LoadAndMergeSchema(dir, entity.Name)
+		if err != nil {
+			logger.Warnf("failed to load \"%s:%s\" of catalog %q schema: %v", entity.Name, tag, entity.CatalogID, err)
+			continue
+		}
+
 		if err = schema.Validate(); err != nil {
 			logger.Warnf(
 				"failed to validate \"%s:%s\" of catalog %q schema: %v",
@@ -87,7 +98,7 @@ func getValidVersions(
 			continue
 		}
 
-		satisfy, err := isConstraintSatisfied(schema)
+		satisfy, err := isConstraintSatisfied(fileSchema)
 		if err != nil {
 			logger.Warnf(
 				"failed to check constraint satisfy \"%s:%s\" of catalog %q: %v",
@@ -112,7 +123,10 @@ func getValidVersions(
 		}
 
 		validVersions = append(validVersions, v)
-		versionSchema[v] = *schema
+		versionSchema[v] = &schemaGroup{
+			Schema:   schema,
+			UISchema: fileSchema,
+		}
 	}
 
 	return validVersions, versionSchema, nil

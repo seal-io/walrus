@@ -55,7 +55,7 @@ func (s *Schema) Expose() UISchema {
 		return UISchema{}
 	}
 
-	// In order to prevent the remove ext affact the original schema, serialize and deserialize to copy the schema.
+	// In order to prevent the remove ext affect the original schema, serialize and deserialize to copy the schema.
 	b, err := json.Marshal(vs)
 	if err != nil {
 		log.Warnf("error marshal variable schema while expost: %v", err)
@@ -101,6 +101,15 @@ func (s *Schema) VariableSchema() *openapi3.Schema {
 func (s *Schema) SetVariableSchema(v *openapi3.Schema) {
 	s.ensureInit()
 	s.OpenAPISchema.Components.Schemas[VariableSchemaKey].Value = v
+}
+
+func (s *Schema) RemoveVariableContext() {
+	if s.IsEmpty() {
+		return
+	}
+
+	variableSchema := openapi.RemoveVariableContext(s.VariableSchema())
+	s.SetVariableSchema(variableSchema)
 }
 
 func (s *Schema) SetOutputSchema(v *openapi3.Schema) {
@@ -166,6 +175,21 @@ func (s *UISchema) VariableSchema() *openapi3.Schema {
 	}
 
 	return s.OpenAPISchema.Components.Schemas[VariableSchemaKey].Value
+}
+
+// SetVariableSchema sets the variables' schema.
+func (s *UISchema) SetVariableSchema(v *openapi3.Schema) {
+	if s.OpenAPISchema == nil {
+		return
+	}
+
+	s.OpenAPISchema.Components.Schemas[VariableSchemaKey].Value = v
+}
+
+func (s *UISchema) RemoveVariableContext() {
+	variableSchema := openapi.RemoveVariableContext(s.VariableSchema())
+
+	s.SetVariableSchema(variableSchema)
 }
 
 // TemplateVersionSchema include the internal template variables schema and template data.

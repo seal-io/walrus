@@ -2,9 +2,10 @@ package terraform
 
 import (
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/templates/openapi"
 )
 
-const WalrusContextVariableName = "context"
+const WalrusContextVariableName = openapi.WalrusContextVariableName
 
 // Context indicate the walrus related metadata, will set to attribute context while user module include this attribute.
 type Context struct {
