@@ -96,17 +96,29 @@ func (op Operator) IsConnected(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	return wait.PollUntilContextCancel(ctx, time.Second, true,
+	var lastErr error
+
+	err := wait.PollUntilContextCancel(ctx, time.Second, true,
 		func(ctx context.Context) (bool, error) {
-			_, err := op.CoreCli.RESTClient().
+			_, lastErr = op.CoreCli.RESTClient().
 				Get().
 				AbsPath("/version").
 				Do(ctx).
 				Raw()
 
-			return err == nil, ctx.Err()
+			return lastErr == nil, ctx.Err()
 		},
 	)
+
+	if err == nil {
+		return nil
+	}
+
+	if lastErr != nil {
+		return lastErr
+	}
+
+	return err
 }
 
 // Burst implements operator.Operator.
