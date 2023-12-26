@@ -48,7 +48,7 @@ var (
 		"DeployerImage",
 		editable,
 		// When the image is updated, sync the one in server Dockerfile.
-		initializeFromEnv("sealio/terraform-deployer:v0.1.4"),
+		initializeFromEnv("sealio/terraform-deployer:v1.5.7-seal.1"),
 		modifyWith(notBlank, containerImageReference),
 	)
 	// WorkflowStepServiceImage indicates the image used by workflow step service.
