@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/seal-io/walrus/pkg/vcs/driver/gitee"
+
 	"github.com/drone/go-scm/scm"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -26,6 +28,11 @@ func NewClient(conn *model.Connector, opts ...options.ClientOption) (*scm.Client
 		}
 	case gitlab.Driver:
 		client, err = gitlab.NewClient(conn, opts...)
+		if err != nil {
+			return nil, err
+		}
+	case gitee.Driver:
+		client, err = gitee.NewClient(conn, opts...)
 		if err != nil {
 			return nil, err
 		}
@@ -53,6 +60,8 @@ func NewClientFromURL(driver, rawURL string, opts ...options.ClientOption) (*scm
 		return github.NewClientFromURL(server, opts...)
 	case gitlab.Driver:
 		return gitlab.NewClientFromURL(server, opts...)
+	case gitee.Driver:
+		return gitee.NewClientFromURL(server, opts...)
 	}
 
 	if err != nil {

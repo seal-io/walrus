@@ -40,7 +40,7 @@ func getRepos(ctx context.Context, c *model.Catalog, ua string, skipTLSVerify bo
 	}
 
 	switch c.Type {
-	case types.GitDriverGithub, types.GitDriverGitlab:
+	case types.GitDriverGithub, types.GitDriverGitlab, types.GitDriverGitee:
 		ops := []options.ClientOption{options.WithUserAgent(ua)}
 
 		if skipTLSVerify {
