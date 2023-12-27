@@ -64,6 +64,12 @@ func (Resource) Fields() []ent.Field {
 		property.ValuesField("attributes").
 			Comment("Attributes to configure the template.").
 			Optional(),
+		field.String("change_comment").
+			Comment("Change comment of the resource.").
+			Optional().
+			Annotations(
+				entx.Input(entx.WithCreate(), entx.WithUpdate()),
+				entx.SkipOutput()),
 	}
 }
 
