@@ -121,6 +121,7 @@ func (Embedded) Run(ctx context.Context) error {
 		"--write-kubeconfig=" + embeddedKubeConfigPath,
 		"--kubelet-arg=system-reserved=cpu=300m,memory=256Mi",
 		"--kubelet-arg=kube-reserved=cpu=200m,memory=256Mi",
+		"--kube-apiserver-arg=service-node-port-range=30000-30100",
 	}
 
 	return runK3sWith(ctx, cmdArgs)
