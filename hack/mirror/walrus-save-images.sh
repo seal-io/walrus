@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 list="walrus-images.txt"
 images="walrus-images.tar.gz"
 source_registry=""
@@ -11,7 +12,6 @@ usage () {
     echo "  [-h|--help] Usage message"
 }
 
-POSITIONAL=()
 while [[ $# -gt 0 ]]; do
     key="$1"
     case $key in
@@ -67,5 +67,5 @@ while IFS= read -r i; do
     fi
 done < "${list}"
 
-echo "Creating ${images} with $(echo ${pulled} | wc -w | tr -d '[:space:]') images"
-docker save $(echo ${pulled}) | gzip --stdout > ${images}
+echo "Creating ${images} with $(echo "${pulled}" | wc -w | tr -d '[:space:]') images"
+docker save "${pulled}" | gzip --stdout > "${images}"

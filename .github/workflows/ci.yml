@@ -46,7 +46,7 @@ jobs:
         with:
           github_token: "${{ github.token }}"
           paths_ignore: '["**.md", "**.mdx", "**.png", "**.jpg"]'
-          do_not_skip: '["workflow_dispatch", "push"]'
+          do_not_skip: '["workflow_dispatch", "release"]'
         continue-on-error: true
 
   build:
