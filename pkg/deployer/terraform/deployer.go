@@ -236,10 +236,7 @@ func (d Deployer) createK8sJob(ctx context.Context, mc model.ClientSet, opts cre
 		return err
 	}
 
-	jobEnv, err := d.getEnv(ctx, mc)
-	if err != nil {
-		return err
-	}
+	jobEnv := d.getEnv(ctx, mc)
 
 	// Create deployment job.
 	jobOpts := JobCreateOptions{
@@ -252,54 +249,32 @@ func (d Deployer) createK8sJob(ctx context.Context, mc model.ClientSet, opts cre
 	return CreateJob(ctx, d.clientSet, jobOpts)
 }
 
-func (d Deployer) getEnv(ctx context.Context, mc model.ClientSet) ([]corev1.EnvVar, error) {
-	var env []corev1.EnvVar
-
-	allProxy, err := settings.DeployerAllProxy.Value(ctx, mc)
-	if err != nil {
-		return nil, err
-	}
-
-	if allProxy != "" {
+func (d Deployer) getEnv(ctx context.Context, mc model.ClientSet) (env []corev1.EnvVar) {
+	if v := settings.DeployerAllProxy.ShouldValue(ctx, mc); v != "" {
 		env = append(env, corev1.EnvVar{
 			Name:  "ALL_PROXY",
-			Value: allProxy,
+			Value: v,
 		})
 	}
 
-	httpProxy, err := settings.DeployerHttpProxy.Value(ctx, mc)
-	if err != nil {
-		return nil, err
-	}
-
-	if httpProxy != "" {
+	if v := settings.DeployerHttpProxy.ShouldValue(ctx, mc); v != "" {
 		env = append(env, corev1.EnvVar{
 			Name:  "HTTP_PROXY",
-			Value: httpProxy,
+			Value: v,
 		})
 	}
 
-	httpsProxy, err := settings.DeployerHttpsProxy.Value(ctx, mc)
-	if err != nil {
-		return nil, err
-	}
-
-	if httpsProxy != "" {
+	if v := settings.DeployerHttpsProxy.ShouldValue(ctx, mc); v != "" {
 		env = append(env, corev1.EnvVar{
 			Name:  "HTTPS_PROXY",
-			Value: httpsProxy,
+			Value: v,
 		})
 	}
 
-	noProxy, err := settings.DeployerNoProxy.Value(ctx, mc)
-	if err != nil {
-		return nil, err
-	}
-
-	if noProxy != "" {
+	if v := settings.DeployerNoProxy.ShouldValue(ctx, mc); v != "" {
 		env = append(env, corev1.EnvVar{
 			Name:  "NO_PROXY",
-			Value: noProxy,
+			Value: v,
 		})
 	}
 
@@ -310,7 +285,19 @@ func (d Deployer) getEnv(ctx context.Context, mc model.ClientSet) ([]corev1.EnvV
 		})
 	}
 
-	return env, nil
+	if v := settings.DeployerNetworkMirrorUrl.ShouldValue(ctx, mc); v != "" {
+		env = append(env,
+			corev1.EnvVar{
+				Name:  "TF_CLI_NETWORK_MIRROR_URL",
+				Value: v,
+			},
+			corev1.EnvVar{
+				Name:  "TF_CLI_NETWORK_MIRROR_INSECURE_SKIP_VERIFY",
+				Value: "true",
+			})
+	}
+
+	return env
 }
 
 func (d Deployer) updateRevisionStatus(ctx context.Context, mc model.ClientSet, ar *model.ResourceRevision) error {

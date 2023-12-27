@@ -293,6 +293,7 @@ func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOpti
 		},
 		Spec: corev1.PodSpec{
 			HostNetwork:        true,
+			DNSPolicy:          corev1.DNSClusterFirstWithHostNet,
 			ServiceAccountName: types.DeployerServiceAccountName,
 			RestartPolicy:      corev1.RestartPolicyNever,
 			Containers: []corev1.Container{

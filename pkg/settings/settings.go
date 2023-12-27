@@ -51,6 +51,13 @@ var (
 		initializeFromEnv("sealio/terraform-deployer:v1.5.7-seal.1"),
 		modifyWith(notBlank, containerImageReference),
 	)
+	// DeployerNetworkMirrorUrl indicates the URL to configure the network mirror for deployer.
+	DeployerNetworkMirrorUrl = newValue(
+		"DeployerNetworkMirrorUrl",
+		editable,
+		initializeFromEnv(""),
+		modifyWith(httpUrl),
+	)
 	// WorkflowStepServiceImage indicates the image used by workflow step service.
 	WorkflowStepServiceImage = newValue(
 		"WorkflowStepServiceImage",

@@ -13,6 +13,7 @@ require (
 	entgo.io/ent v0.12.3
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/Masterminds/semver/v3 v3.2.0
+	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/alexeyco/simpletable v1.0.0
 	github.com/aliyun/alibaba-cloud-sdk-go v1.62.3
 	github.com/aliyun/aliyun_assist_client v0.0.0-20230515114040-d2b430f3fa8a
@@ -109,7 +110,6 @@ require (
 	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/MakeNowJust/heredoc v1.0.0 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
-	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
 	github.com/Masterminds/squirrel v1.5.3 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/Microsoft/hcsshim v0.11.4 // indirect
