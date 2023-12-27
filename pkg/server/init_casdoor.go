@@ -113,6 +113,11 @@ func (r *Server) configureCasdoor(ctx context.Context, opts initOptions) error {
 		}
 
 		log.Infof("!!! Bootstrap Admin Password: %s !!!", adminPassword)
+	} else {
+		err = settings.BootPwdGainSource.Set(ctx, opts.ModelClient, "Specified")
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

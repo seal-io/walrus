@@ -67,7 +67,7 @@ var (
 	BootPwdGainSource = newValue(
 		"BootPwdGainSource",
 		hidden,
-		initializeFrom("Specified"),
+		initializeFrom("Invalid"),
 		nil)
 	// CasdoorCred keeps the AK/SK for accessing Casdoor server.
 	CasdoorCred = newValue(
