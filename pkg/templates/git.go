@@ -393,6 +393,7 @@ func GetRepoFileRaw(repo *vcs.Repository, file string) (string, error) {
 	var (
 		githubRawHost = "raw.githubusercontent.com"
 		gitlabRawHost = "gitlab.com"
+		giteeRawHost  = "gitee.com"
 		ref           = "HEAD"
 	)
 
@@ -405,6 +406,8 @@ func GetRepoFileRaw(repo *vcs.Repository, file string) (string, error) {
 		return fmt.Sprintf("https://%s/%s/%s/%s/%s", githubRawHost, repo.Namespace, repo.Name, ref, file), nil
 	case "gitlab.com":
 		return fmt.Sprintf("https://%s/%s/%s/-/raw/%s/%s", gitlabRawHost, repo.Namespace, repo.Name, ref, file), nil
+	case "gitee.com":
+		return fmt.Sprintf("https://%s/%s/%s/raw/%s/%s", giteeRawHost, repo.Namespace, repo.Name, ref, file), nil
 	}
 
 	if repo.Driver == gitlab.Driver {
