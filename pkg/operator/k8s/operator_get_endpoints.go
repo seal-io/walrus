@@ -10,7 +10,6 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/operator/k8s/intercept"
 	"github.com/seal-io/walrus/pkg/operator/k8s/kubeendpoint"
-	"github.com/seal-io/walrus/pkg/settings"
 )
 
 // GetEndpoints implements operator.Operator.
@@ -45,25 +44,18 @@ func (op Operator) GetEndpoints(
 					r.Namespace, r.Name, err)
 			}
 
-			var endpoints []types.ResourceComponentEndpoint
-
-			if op.ProxyKubernetesServices {
-				serveURL, err := settings.ServeUrl.Value(ctx, op.ModelClient)
+			accessHostname := op.ServeHostname
+			if !op.IsEmbedded {
+				accessHostname, err = kubeendpoint.GetNodeIP(ctx, op.CoreCli, svc)
 				if err != nil {
 					return nil, err
 				}
-				endpoints = kubeendpoint.GetProxyServiceEndpoints(svc, serveURL, op.ConnectorID)
-			} else {
-				endpoints, err = kubeendpoint.GetServiceEndpoints(
-					ctx,
-					op.CoreCli,
-					svc,
-				)
-				if err != nil {
-					return nil, fmt.Errorf("error getting kubernetes service endpoints %s/%s: %w",
-						r.Namespace, r.Name, err)
-				}
 			}
+
+			endpoints := kubeendpoint.GetServiceEndpoints(
+				accessHostname,
+				svc,
+			)
 
 			eps = append(eps, endpoints...)
 		case "ingresses":

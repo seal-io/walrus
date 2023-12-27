@@ -20,10 +20,9 @@ import (
 )
 
 func GetServiceEndpoints(
-	ctx context.Context,
-	coreCli *coreclient.CoreV1Client,
+	accessHostname string,
 	svc *core.Service,
-) ([]types.ResourceComponentEndpoint, error) {
+) []types.ResourceComponentEndpoint {
 	var (
 		resourceSubKind = string(svc.Spec.Type)
 		endpoints       []string
@@ -31,14 +30,9 @@ func GetServiceEndpoints(
 
 	switch svc.Spec.Type {
 	case core.ServiceTypeNodePort:
-		accessIP, err := nodeIP(ctx, coreCli, svc)
-		if err != nil {
-			return nil, err
-		}
-
 		for _, port := range svc.Spec.Ports {
 			nodePort := strconv.FormatInt(int64(port.NodePort), 10)
-			endpoints = append(endpoints, net.JoinHostPort(accessIP, nodePort))
+			endpoints = append(endpoints, net.JoinHostPort(accessHostname, nodePort))
 		}
 	case core.ServiceTypeLoadBalancer:
 		accessIP := serviceLoadBalancerIP(*svc)
@@ -51,7 +45,7 @@ func GetServiceEndpoints(
 	}
 
 	if len(endpoints) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	return []types.ResourceComponentEndpoint{
@@ -59,7 +53,7 @@ func GetServiceEndpoints(
 			EndpointType: resourceSubKind,
 			Endpoints:    endpoints,
 		},
-	}, nil
+	}
 }
 
 func GetProxyServiceEndpoints(
@@ -96,7 +90,7 @@ func GetProxyServiceEndpoints(
 	}
 }
 
-func nodeIP(ctx context.Context, coreCli *coreclient.CoreV1Client, svc *core.Service) (string, error) {
+func GetNodeIP(ctx context.Context, coreCli *coreclient.CoreV1Client, svc *core.Service) (string, error) {
 	list, err := coreCli.Nodes().
 		List(ctx, meta.ListOptions{ResourceVersion: "0"})
 	if err != nil {

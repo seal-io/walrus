@@ -68,9 +68,9 @@ func (r *Server) createLocalEnvironment(ctx context.Context, opts initOptions) e
 			}
 
 			if os.Getenv("KUBERNETES_SERVICE_HOST") == "" && os.Getenv("_RUNNING_INSIDE_CONTAINER_") != "" {
-				// Set proxy endpoint label for embedded k3s.
+				// Set label for embedded k3s.
 				conn.Labels = map[string]string{
-					types.LabelProxyKubernetesServices: "true",
+					types.LabelEmbeddedKubernetes: "true",
 				}
 			}
 

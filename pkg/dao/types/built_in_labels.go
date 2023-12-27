@@ -26,6 +26,6 @@ const (
 	// LabelResourceStoppable indicates if the resource is stoppable.
 	LabelResourceStoppable string = "walrus.seal.io/stoppable"
 
-	// LabelProxyKubernetesServices indicates whether to generate proxy endpoints for kubernetes services.
-	LabelProxyKubernetesServices = "walrus.seal.io/proxy-kubernetes-services"
+	// LabelEmbeddedKubernetes indicates whether a connector is the embedded kubernetes.
+	LabelEmbeddedKubernetes = "walrus.seal.io/embedded-kubernetes"
 )
