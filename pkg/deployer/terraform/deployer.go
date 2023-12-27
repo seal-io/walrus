@@ -27,6 +27,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/subject"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
@@ -110,8 +111,9 @@ func (d Deployer) Apply(
 	opts deptypes.ApplyOptions,
 ) (err error) {
 	revision, err := d.createRevision(ctx, mc, createRevisionOptions{
-		ResourceID: resource.ID,
-		JobType:    JobTypeApply,
+		ResourceID:    resource.ID,
+		ChangeComment: resource.ChangeComment,
+		JobType:       JobTypeApply,
 	})
 	if err != nil {
 		return err
@@ -377,6 +379,8 @@ func (d Deployer) createK8sSecrets(ctx context.Context, mc model.ClientSet, opts
 type createRevisionOptions struct {
 	// ResourceID indicates the ID of resource which is for create the revision.
 	ResourceID object.ID
+	// ChangeComment indicates the optional message of the revision.
+	ChangeComment string
 	// JobType indicates the type of the job.
 	JobType string
 }
@@ -505,6 +509,15 @@ func (d Deployer) createRevision(
 		return nil, errors.New("service has no template or resource definition")
 	}
 
+	s := session.MustGetSubject(ctx)
+
+	userSubject, err := mc.Subjects().Query().
+		Where(subject.ID(s.ID)).
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	entity := &model.ResourceRevision{
 		ProjectID:       res.ProjectID,
 		EnvironmentID:   res.EnvironmentID,
@@ -514,6 +527,8 @@ func (d Deployer) createRevision(
 		TemplateVersion: templateVersion,
 		Attributes:      attributes,
 		DeployerType:    DeployerType,
+		CreatedBy:       userSubject.Name,
+		ChangeComment:   opts.ChangeComment,
 	}
 
 	status.ResourceRevisionStatusReady.Unknown(entity, "")

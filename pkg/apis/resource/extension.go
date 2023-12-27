@@ -119,6 +119,7 @@ func (h Handler) RouteRollback(req RouteRollbackRequest) error {
 
 	entity := rev.Edges.Resource
 	entity.Attributes = rev.Attributes
+	entity.ChangeComment = req.ChangeComment
 
 	if entity.TemplateID != nil {
 		// Find previous template version when the resource is using template not definition.
@@ -161,7 +162,10 @@ func (h Handler) RouteRollback(req RouteRollbackRequest) error {
 }
 
 func (h Handler) RouteStart(req RouteStartRequest) error {
-	return h.start(req.Context, req.resource)
+	entity := req.resource
+	entity.ChangeComment = req.ChangeComment
+
+	return h.start(req.Context, entity)
 }
 
 func (h Handler) start(ctx context.Context, entity *model.Resource) error {
@@ -216,7 +220,10 @@ func (h Handler) RouteStop(req RouteStopRequest) error {
 		Deployer: dp,
 	}
 
-	return pkgresource.Stop(req.Context, req.Client, req.Model(), opts)
+	entity := req.Model()
+	entity.ChangeComment = req.ChangeComment
+
+	return pkgresource.Stop(req.Context, req.Client, entity, opts)
 }
 
 func (h Handler) RouteGetAccessEndpoints(req RouteGetAccessEndpointsRequest) (RouteGetAccessEndpointsResponse, error) {
@@ -587,7 +594,10 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 
 func (h Handler) CollectionRouteStart(req CollectionRouteStartRequest) error {
 	for i := range req.Resources {
-		if err := h.start(req.Context, req.Resources[i]); err != nil {
+		entity := req.Resources[i]
+		entity.ChangeComment = req.ChangeComment
+
+		if err := h.start(req.Context, entity); err != nil {
 			return err
 		}
 	}
@@ -607,6 +617,7 @@ func (h Handler) CollectionRouteStop(req CollectionRouteStopRequest) error {
 
 	for i := range req.Resources {
 		res := req.Resources[i]
+		res.ChangeComment = req.ChangeComment
 
 		if err := pkgresource.Stop(req.Context, req.Client, res, opts); err != nil {
 			return err
@@ -633,8 +644,10 @@ func (h Handler) CollectionRouteUpgrade(req CollectionRouteUpgradeRequest) error
 		entities = req.Model()
 	}
 
-	for i := range entities {
-		if err := h.upgrade(req.Context, entities[i], req.Draft); err != nil {
+	for _, entity := range entities {
+		entity.ChangeComment = req.ChangeComment
+
+		if err := h.upgrade(req.Context, entity, req.Draft); err != nil {
 			return err
 		}
 	}

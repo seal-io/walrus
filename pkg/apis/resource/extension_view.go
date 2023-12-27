@@ -179,7 +179,8 @@ type RouteRollbackRequest struct {
 
 	model.ResourceQueryInput `path:",inline"`
 
-	RevisionID object.ID `query:"revisionID"`
+	RevisionID    object.ID `query:"revisionID"`
+	ChangeComment string    `query:"changeComment"`
 }
 
 func (r *RouteRollbackRequest) Validate() error {
@@ -207,6 +208,8 @@ type RouteStopRequest struct {
 	_ struct{} `route:"POST=/stop"`
 
 	model.ResourceDeleteInput `path:",inline"`
+
+	ChangeComment string `json:"changeComment"`
 }
 
 func (r *RouteStopRequest) Validate() error {
@@ -267,6 +270,8 @@ type RouteStartRequest struct {
 	_ struct{} `route:"POST=/start"`
 
 	model.ResourceQueryInput `path:",inline"`
+
+	ChangeComment string `json:"changeComment"`
 
 	resource *model.Resource `json:"-"`
 }
@@ -372,6 +377,8 @@ type CollectionRouteStartRequest struct {
 
 	StartInputs `path:",inline" json:",inline"`
 
+	ChangeComment string `json:"changeComment"`
+
 	Resources []*model.Resource `json:"-"`
 }
 
@@ -423,6 +430,8 @@ type CollectionRouteStopRequest struct {
 
 	model.ResourceDeleteInputs `path:",inline" json:",inline"`
 
+	ChangeComment string `json:"changeComment"`
+
 	Resources []*model.Resource `json:"-"`
 }
 
@@ -448,8 +457,9 @@ type CollectionRouteUpgradeRequest struct {
 
 	model.ResourceUpdateInputs `path:",inline" json:",inline"`
 
-	Draft           bool `json:"draft,default=false"`
-	ReuseAttributes bool `json:"reuseAttributes,default=false"`
+	ChangeComment   string `json:"changeComment"`
+	Draft           bool   `json:"draft,default=false"`
+	ReuseAttributes bool   `json:"reuseAttributes,default=false"`
 }
 
 func (r *CollectionRouteUpgradeRequest) Validate() error {
