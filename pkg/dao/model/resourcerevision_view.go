@@ -55,6 +55,8 @@ type ResourceRevisionCreateInput struct {
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
 	// Record of the revision.
 	Record string `path:"-" query:"-" json:"record,omitempty"`
+	// Change comment of the revision.
+	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 }
 
 // Model returns the ResourceRevision entity for creating,
@@ -76,6 +78,7 @@ func (rrci *ResourceRevisionCreateInput) Model() *ResourceRevision {
 		Duration:                  rrci.Duration,
 		PreviousRequiredProviders: rrci.PreviousRequiredProviders,
 		Record:                    rrci.Record,
+		ChangeComment:             rrci.ChangeComment,
 	}
 
 	if rrci.Project != nil {
@@ -156,6 +159,8 @@ type ResourceRevisionCreateInputsItem struct {
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
 	// Record of the revision.
 	Record string `path:"-" query:"-" json:"record,omitempty"`
+	// Change comment of the revision.
+	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 }
 
 // ValidateWith checks the ResourceRevisionCreateInputsItem entity with the given context and client set.
@@ -209,6 +214,7 @@ func (rrci *ResourceRevisionCreateInputs) Model() []*ResourceRevision {
 			Duration:                  rrci.Items[i].Duration,
 			PreviousRequiredProviders: rrci.Items[i].PreviousRequiredProviders,
 			Record:                    rrci.Items[i].Record,
+			ChangeComment:             rrci.Items[i].ChangeComment,
 		}
 
 		if rrci.Project != nil {
@@ -527,6 +533,7 @@ func (rrpi *ResourceRevisionPatchInput) ValidateWith(ctx context.Context, cs Cli
 		resourcerevision.WithoutFields(
 			resourcerevision.FieldCreateTime,
 			resourcerevision.FieldStatus,
+			resourcerevision.FieldCreatedBy,
 		)...,
 	)
 
@@ -766,6 +773,8 @@ type ResourceRevisionUpdateInput struct {
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
 	// Record of the revision.
 	Record string `path:"-" query:"-" json:"record,omitempty"`
+	// Change comment of the revision.
+	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 }
 
 // Model returns the ResourceRevision entity for modifying,
@@ -786,6 +795,7 @@ func (rrui *ResourceRevisionUpdateInput) Model() *ResourceRevision {
 		Duration:                  rrui.Duration,
 		PreviousRequiredProviders: rrui.PreviousRequiredProviders,
 		Record:                    rrui.Record,
+		ChangeComment:             rrui.ChangeComment,
 	}
 
 	return _rr
@@ -836,6 +846,8 @@ type ResourceRevisionUpdateInputsItem struct {
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders"`
 	// Record of the revision.
 	Record string `path:"-" query:"-" json:"record,omitempty"`
+	// Change comment of the revision.
+	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 }
 
 // ValidateWith checks the ResourceRevisionUpdateInputsItem entity with the given context and client set.
@@ -888,6 +900,7 @@ func (rrui *ResourceRevisionUpdateInputs) Model() []*ResourceRevision {
 			Duration:                  rrui.Items[i].Duration,
 			PreviousRequiredProviders: rrui.Items[i].PreviousRequiredProviders,
 			Record:                    rrui.Items[i].Record,
+			ChangeComment:             rrui.Items[i].ChangeComment,
 		}
 
 		_rrs[i] = _rr
@@ -1017,6 +1030,8 @@ type ResourceRevisionOutput struct {
 	Duration                  int                         `json:"duration,omitempty"`
 	PreviousRequiredProviders []types.ProviderRequirement `json:"previousRequiredProviders,omitempty"`
 	Record                    string                      `json:"record,omitempty"`
+	ChangeComment             string                      `json:"changeComment,omitempty"`
+	CreatedBy                 string                      `json:"createdBy,omitempty"`
 
 	Project     *ProjectOutput     `json:"project,omitempty"`
 	Environment *EnvironmentOutput `json:"environment,omitempty"`
@@ -1052,6 +1067,8 @@ func ExposeResourceRevision(_rr *ResourceRevision) *ResourceRevisionOutput {
 		Duration:                  _rr.Duration,
 		PreviousRequiredProviders: _rr.PreviousRequiredProviders,
 		Record:                    _rr.Record,
+		ChangeComment:             _rr.ChangeComment,
+		CreatedBy:                 _rr.CreatedBy,
 	}
 
 	if _rr.Edges.Project != nil {

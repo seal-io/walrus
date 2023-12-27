@@ -10488,6 +10488,7 @@ type ResourceMutation struct {
 	status                     *status.Status
 	_type                      *string
 	attributes                 *property.Values
+	change_comment             *string
 	clearedFields              map[string]struct{}
 	project                    *object.ID
 	clearedproject             bool
@@ -11187,6 +11188,55 @@ func (m *ResourceMutation) ResetAttributes() {
 	delete(m.clearedFields, resource.FieldAttributes)
 }
 
+// SetChangeComment sets the "change_comment" field.
+func (m *ResourceMutation) SetChangeComment(s string) {
+	m.change_comment = &s
+}
+
+// ChangeComment returns the value of the "change_comment" field in the mutation.
+func (m *ResourceMutation) ChangeComment() (r string, exists bool) {
+	v := m.change_comment
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChangeComment returns the old "change_comment" field's value of the Resource entity.
+// If the Resource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceMutation) OldChangeComment(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChangeComment is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChangeComment requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChangeComment: %w", err)
+	}
+	return oldValue.ChangeComment, nil
+}
+
+// ClearChangeComment clears the value of the "change_comment" field.
+func (m *ResourceMutation) ClearChangeComment() {
+	m.change_comment = nil
+	m.clearedFields[resource.FieldChangeComment] = struct{}{}
+}
+
+// ChangeCommentCleared returns if the "change_comment" field was cleared in this mutation.
+func (m *ResourceMutation) ChangeCommentCleared() bool {
+	_, ok := m.clearedFields[resource.FieldChangeComment]
+	return ok
+}
+
+// ResetChangeComment resets all changes to the "change_comment" field.
+func (m *ResourceMutation) ResetChangeComment() {
+	m.change_comment = nil
+	delete(m.clearedFields, resource.FieldChangeComment)
+}
+
 // ClearProject clears the "project" edge to the Project entity.
 func (m *ResourceMutation) ClearProject() {
 	m.clearedproject = true
@@ -11487,7 +11537,7 @@ func (m *ResourceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ResourceMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.name != nil {
 		fields = append(fields, resource.FieldName)
 	}
@@ -11527,6 +11577,9 @@ func (m *ResourceMutation) Fields() []string {
 	if m.attributes != nil {
 		fields = append(fields, resource.FieldAttributes)
 	}
+	if m.change_comment != nil {
+		fields = append(fields, resource.FieldChangeComment)
+	}
 	return fields
 }
 
@@ -11561,6 +11614,8 @@ func (m *ResourceMutation) Field(name string) (ent.Value, bool) {
 		return m.ResourceDefinitionID()
 	case resource.FieldAttributes:
 		return m.Attributes()
+	case resource.FieldChangeComment:
+		return m.ChangeComment()
 	}
 	return nil, false
 }
@@ -11596,6 +11651,8 @@ func (m *ResourceMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldResourceDefinitionID(ctx)
 	case resource.FieldAttributes:
 		return m.OldAttributes(ctx)
+	case resource.FieldChangeComment:
+		return m.OldChangeComment(ctx)
 	}
 	return nil, fmt.Errorf("unknown Resource field %s", name)
 }
@@ -11696,6 +11753,13 @@ func (m *ResourceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetAttributes(v)
 		return nil
+	case resource.FieldChangeComment:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChangeComment(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Resource field %s", name)
 }
@@ -11750,6 +11814,9 @@ func (m *ResourceMutation) ClearedFields() []string {
 	if m.FieldCleared(resource.FieldAttributes) {
 		fields = append(fields, resource.FieldAttributes)
 	}
+	if m.FieldCleared(resource.FieldChangeComment) {
+		fields = append(fields, resource.FieldChangeComment)
+	}
 	return fields
 }
 
@@ -11787,6 +11854,9 @@ func (m *ResourceMutation) ClearField(name string) error {
 		return nil
 	case resource.FieldAttributes:
 		m.ClearAttributes()
+		return nil
+	case resource.FieldChangeComment:
+		m.ClearChangeComment()
 		return nil
 	}
 	return fmt.Errorf("unknown Resource nullable field %s", name)
@@ -11834,6 +11904,9 @@ func (m *ResourceMutation) ResetField(name string) error {
 		return nil
 	case resource.FieldAttributes:
 		m.ResetAttributes()
+		return nil
+	case resource.FieldChangeComment:
+		m.ResetChangeComment()
 		return nil
 	}
 	return fmt.Errorf("unknown Resource field %s", name)
@@ -16776,6 +16849,8 @@ type ResourceRevisionMutation struct {
 	previous_required_providers       *[]types.ProviderRequirement
 	appendprevious_required_providers []types.ProviderRequirement
 	record                            *string
+	change_comment                    *string
+	created_by                        *string
 	clearedFields                     map[string]struct{}
 	project                           *object.ID
 	clearedproject                    bool
@@ -17542,6 +17617,91 @@ func (m *ResourceRevisionMutation) ResetRecord() {
 	delete(m.clearedFields, resourcerevision.FieldRecord)
 }
 
+// SetChangeComment sets the "change_comment" field.
+func (m *ResourceRevisionMutation) SetChangeComment(s string) {
+	m.change_comment = &s
+}
+
+// ChangeComment returns the value of the "change_comment" field in the mutation.
+func (m *ResourceRevisionMutation) ChangeComment() (r string, exists bool) {
+	v := m.change_comment
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChangeComment returns the old "change_comment" field's value of the ResourceRevision entity.
+// If the ResourceRevision object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceRevisionMutation) OldChangeComment(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChangeComment is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChangeComment requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChangeComment: %w", err)
+	}
+	return oldValue.ChangeComment, nil
+}
+
+// ClearChangeComment clears the value of the "change_comment" field.
+func (m *ResourceRevisionMutation) ClearChangeComment() {
+	m.change_comment = nil
+	m.clearedFields[resourcerevision.FieldChangeComment] = struct{}{}
+}
+
+// ChangeCommentCleared returns if the "change_comment" field was cleared in this mutation.
+func (m *ResourceRevisionMutation) ChangeCommentCleared() bool {
+	_, ok := m.clearedFields[resourcerevision.FieldChangeComment]
+	return ok
+}
+
+// ResetChangeComment resets all changes to the "change_comment" field.
+func (m *ResourceRevisionMutation) ResetChangeComment() {
+	m.change_comment = nil
+	delete(m.clearedFields, resourcerevision.FieldChangeComment)
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *ResourceRevisionMutation) SetCreatedBy(s string) {
+	m.created_by = &s
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *ResourceRevisionMutation) CreatedBy() (r string, exists bool) {
+	v := m.created_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the ResourceRevision entity.
+// If the ResourceRevision object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceRevisionMutation) OldCreatedBy(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *ResourceRevisionMutation) ResetCreatedBy() {
+	m.created_by = nil
+}
+
 // ClearProject clears the "project" edge to the Project entity.
 func (m *ResourceRevisionMutation) ClearProject() {
 	m.clearedproject = true
@@ -17654,7 +17814,7 @@ func (m *ResourceRevisionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ResourceRevisionMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 18)
 	if m.create_time != nil {
 		fields = append(fields, resourcerevision.FieldCreateTime)
 	}
@@ -17703,6 +17863,12 @@ func (m *ResourceRevisionMutation) Fields() []string {
 	if m.record != nil {
 		fields = append(fields, resourcerevision.FieldRecord)
 	}
+	if m.change_comment != nil {
+		fields = append(fields, resourcerevision.FieldChangeComment)
+	}
+	if m.created_by != nil {
+		fields = append(fields, resourcerevision.FieldCreatedBy)
+	}
 	return fields
 }
 
@@ -17743,6 +17909,10 @@ func (m *ResourceRevisionMutation) Field(name string) (ent.Value, bool) {
 		return m.PreviousRequiredProviders()
 	case resourcerevision.FieldRecord:
 		return m.Record()
+	case resourcerevision.FieldChangeComment:
+		return m.ChangeComment()
+	case resourcerevision.FieldCreatedBy:
+		return m.CreatedBy()
 	}
 	return nil, false
 }
@@ -17784,6 +17954,10 @@ func (m *ResourceRevisionMutation) OldField(ctx context.Context, name string) (e
 		return m.OldPreviousRequiredProviders(ctx)
 	case resourcerevision.FieldRecord:
 		return m.OldRecord(ctx)
+	case resourcerevision.FieldChangeComment:
+		return m.OldChangeComment(ctx)
+	case resourcerevision.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
 	}
 	return nil, fmt.Errorf("unknown ResourceRevision field %s", name)
 }
@@ -17905,6 +18079,20 @@ func (m *ResourceRevisionMutation) SetField(name string, value ent.Value) error 
 		}
 		m.SetRecord(v)
 		return nil
+	case resourcerevision.FieldChangeComment:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChangeComment(v)
+		return nil
+	case resourcerevision.FieldCreatedBy:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
 	}
 	return fmt.Errorf("unknown ResourceRevision field %s", name)
 }
@@ -17959,6 +18147,9 @@ func (m *ResourceRevisionMutation) ClearedFields() []string {
 	if m.FieldCleared(resourcerevision.FieldRecord) {
 		fields = append(fields, resourcerevision.FieldRecord)
 	}
+	if m.FieldCleared(resourcerevision.FieldChangeComment) {
+		fields = append(fields, resourcerevision.FieldChangeComment)
+	}
 	return fields
 }
 
@@ -17981,6 +18172,9 @@ func (m *ResourceRevisionMutation) ClearField(name string) error {
 		return nil
 	case resourcerevision.FieldRecord:
 		m.ClearRecord()
+		return nil
+	case resourcerevision.FieldChangeComment:
+		m.ClearChangeComment()
 		return nil
 	}
 	return fmt.Errorf("unknown ResourceRevision nullable field %s", name)
@@ -18037,6 +18231,12 @@ func (m *ResourceRevisionMutation) ResetField(name string) error {
 		return nil
 	case resourcerevision.FieldRecord:
 		m.ResetRecord()
+		return nil
+	case resourcerevision.FieldChangeComment:
+		m.ResetChangeComment()
+		return nil
+	case resourcerevision.FieldCreatedBy:
+		m.ResetCreatedBy()
 		return nil
 	}
 	return fmt.Errorf("unknown ResourceRevision field %s", name)

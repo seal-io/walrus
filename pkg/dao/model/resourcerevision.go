@@ -62,6 +62,10 @@ type ResourceRevision struct {
 	PreviousRequiredProviders []types.ProviderRequirement `json:"previous_required_providers,omitempty"`
 	// Record of the revision.
 	Record string `json:"record,omitempty"`
+	// Change comment of the revision.
+	ChangeComment string `json:"change_comment,omitempty"`
+	// User who created the revision.
+	CreatedBy string `json:"created_by,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ResourceRevisionQuery when eager-loading is set.
 	Edges        ResourceRevisionEdges `json:"edges,omitempty"`
@@ -135,7 +139,7 @@ func (*ResourceRevision) scanValues(columns []string) ([]any, error) {
 			values[i] = new(property.Values)
 		case resourcerevision.FieldDuration:
 			values[i] = new(sql.NullInt64)
-		case resourcerevision.FieldTemplateName, resourcerevision.FieldTemplateVersion, resourcerevision.FieldInputPlan, resourcerevision.FieldOutput, resourcerevision.FieldDeployerType, resourcerevision.FieldRecord:
+		case resourcerevision.FieldTemplateName, resourcerevision.FieldTemplateVersion, resourcerevision.FieldInputPlan, resourcerevision.FieldOutput, resourcerevision.FieldDeployerType, resourcerevision.FieldRecord, resourcerevision.FieldChangeComment, resourcerevision.FieldCreatedBy:
 			values[i] = new(sql.NullString)
 		case resourcerevision.FieldCreateTime:
 			values[i] = new(sql.NullTime)
@@ -261,6 +265,18 @@ func (rr *ResourceRevision) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				rr.Record = value.String
 			}
+		case resourcerevision.FieldChangeComment:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field change_comment", values[i])
+			} else if value.Valid {
+				rr.ChangeComment = value.String
+			}
+		case resourcerevision.FieldCreatedBy:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field created_by", values[i])
+			} else if value.Valid {
+				rr.CreatedBy = value.String
+			}
 		default:
 			rr.selectValues.Set(columns[i], values[i])
 		}
@@ -359,6 +375,12 @@ func (rr *ResourceRevision) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("record=")
 	builder.WriteString(rr.Record)
+	builder.WriteString(", ")
+	builder.WriteString("change_comment=")
+	builder.WriteString(rr.ChangeComment)
+	builder.WriteString(", ")
+	builder.WriteString("created_by=")
+	builder.WriteString(rr.CreatedBy)
 	builder.WriteByte(')')
 	return builder.String()
 }
