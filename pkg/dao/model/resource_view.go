@@ -40,6 +40,8 @@ type ResourceCreateInput struct {
 	Type string `path:"-" query:"-" json:"type,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Change comment of the resource.
+	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 
 	// Template specifies full inserting the new TemplateVersion entity of the Resource entity.
 	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template,omitempty"`
@@ -55,11 +57,12 @@ func (rci *ResourceCreateInput) Model() *Resource {
 	}
 
 	_r := &Resource{
-		Name:        rci.Name,
-		Description: rci.Description,
-		Labels:      rci.Labels,
-		Type:        rci.Type,
-		Attributes:  rci.Attributes,
+		Name:          rci.Name,
+		Description:   rci.Description,
+		Labels:        rci.Labels,
+		Type:          rci.Type,
+		Attributes:    rci.Attributes,
+		ChangeComment: rci.ChangeComment,
 	}
 
 	if rci.Project != nil {
@@ -145,6 +148,8 @@ type ResourceCreateInputsItem struct {
 	Type string `path:"-" query:"-" json:"type,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Change comment of the resource.
+	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 
 	// Template specifies full inserting the new TemplateVersion entity.
 	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template,omitempty"`
@@ -210,11 +215,12 @@ func (rci *ResourceCreateInputs) Model() []*Resource {
 
 	for i := range rci.Items {
 		_r := &Resource{
-			Name:        rci.Items[i].Name,
-			Description: rci.Items[i].Description,
-			Labels:      rci.Items[i].Labels,
-			Type:        rci.Items[i].Type,
-			Attributes:  rci.Items[i].Attributes,
+			Name:          rci.Items[i].Name,
+			Description:   rci.Items[i].Description,
+			Labels:        rci.Items[i].Labels,
+			Type:          rci.Items[i].Type,
+			Attributes:    rci.Items[i].Attributes,
+			ChangeComment: rci.Items[i].ChangeComment,
 		}
 
 		if rci.Project != nil {
@@ -762,6 +768,8 @@ type ResourceUpdateInput struct {
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Change comment of the resource.
+	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 
 	// Template indicates replacing the stale TemplateVersion entity.
 	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template,omitempty"`
@@ -777,11 +785,12 @@ func (rui *ResourceUpdateInput) Model() *Resource {
 	}
 
 	_r := &Resource{
-		ID:          rui.ID,
-		Name:        rui.Name,
-		Description: rui.Description,
-		Labels:      rui.Labels,
-		Attributes:  rui.Attributes,
+		ID:            rui.ID,
+		Name:          rui.Name,
+		Description:   rui.Description,
+		Labels:        rui.Labels,
+		Attributes:    rui.Attributes,
+		ChangeComment: rui.ChangeComment,
 	}
 
 	if rui.Template != nil {
@@ -848,6 +857,8 @@ type ResourceUpdateInputsItem struct {
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Change comment of the resource.
+	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 
 	// Template indicates replacing the stale TemplateVersion entity.
 	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template,omitempty"`
@@ -913,11 +924,12 @@ func (rui *ResourceUpdateInputs) Model() []*Resource {
 
 	for i := range rui.Items {
 		_r := &Resource{
-			ID:          rui.Items[i].ID,
-			Name:        rui.Items[i].Name,
-			Description: rui.Items[i].Description,
-			Labels:      rui.Items[i].Labels,
-			Attributes:  rui.Items[i].Attributes,
+			ID:            rui.Items[i].ID,
+			Name:          rui.Items[i].Name,
+			Description:   rui.Items[i].Description,
+			Labels:        rui.Items[i].Labels,
+			Attributes:    rui.Items[i].Attributes,
+			ChangeComment: rui.Items[i].ChangeComment,
 		}
 
 		if rui.Items[i].Template != nil {

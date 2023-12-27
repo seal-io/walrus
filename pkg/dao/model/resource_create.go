@@ -174,6 +174,20 @@ func (rc *ResourceCreate) SetAttributes(pr property.Values) *ResourceCreate {
 	return rc
 }
 
+// SetChangeComment sets the "change_comment" field.
+func (rc *ResourceCreate) SetChangeComment(s string) *ResourceCreate {
+	rc.mutation.SetChangeComment(s)
+	return rc
+}
+
+// SetNillableChangeComment sets the "change_comment" field if the given value is not nil.
+func (rc *ResourceCreate) SetNillableChangeComment(s *string) *ResourceCreate {
+	if s != nil {
+		rc.SetChangeComment(*s)
+	}
+	return rc
+}
+
 // SetID sets the "id" field.
 func (rc *ResourceCreate) SetID(o object.ID) *ResourceCreate {
 	rc.mutation.SetID(o)
@@ -418,6 +432,10 @@ func (rc *ResourceCreate) createSpec() (*Resource, *sqlgraph.CreateSpec) {
 		_spec.SetField(resource.FieldAttributes, field.TypeOther, value)
 		_node.Attributes = value
 	}
+	if value, ok := rc.mutation.ChangeComment(); ok {
+		_spec.SetField(resource.FieldChangeComment, field.TypeString, value)
+		_node.ChangeComment = value
+	}
 	if nodes := rc.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -599,6 +617,9 @@ func (rc *ResourceCreate) Set(obj *Resource) *ResourceCreate {
 	if !reflect.ValueOf(obj.Attributes).IsZero() {
 		rc.SetAttributes(obj.Attributes)
 	}
+	if obj.ChangeComment != "" {
+		rc.SetChangeComment(obj.ChangeComment)
+	}
 
 	// Record the given object.
 	rc.object = obj
@@ -673,6 +694,9 @@ func (rc *ResourceCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Con
 		}
 		if _, set := rc.mutation.Field(resource.FieldAttributes); set {
 			obj.Attributes = x.Attributes
+		}
+		if _, set := rc.mutation.Field(resource.FieldChangeComment); set {
+			obj.ChangeComment = x.ChangeComment
 		}
 		obj.Edges = x.Edges
 	}
@@ -814,6 +838,9 @@ func (rcb *ResourceCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx contex
 			}
 			if _, set := rcb.builders[i].mutation.Field(resource.FieldAttributes); set {
 				objs[i].Attributes = x[i].Attributes
+			}
+			if _, set := rcb.builders[i].mutation.Field(resource.FieldChangeComment); set {
+				objs[i].ChangeComment = x[i].ChangeComment
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -1061,6 +1088,24 @@ func (u *ResourceUpsert) ClearAttributes() *ResourceUpsert {
 	return u
 }
 
+// SetChangeComment sets the "change_comment" field.
+func (u *ResourceUpsert) SetChangeComment(v string) *ResourceUpsert {
+	u.Set(resource.FieldChangeComment, v)
+	return u
+}
+
+// UpdateChangeComment sets the "change_comment" field to the value that was provided on create.
+func (u *ResourceUpsert) UpdateChangeComment() *ResourceUpsert {
+	u.SetExcluded(resource.FieldChangeComment)
+	return u
+}
+
+// ClearChangeComment clears the value of the "change_comment" field.
+func (u *ResourceUpsert) ClearChangeComment() *ResourceUpsert {
+	u.SetNull(resource.FieldChangeComment)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -1264,6 +1309,27 @@ func (u *ResourceUpsertOne) UpdateAttributes() *ResourceUpsertOne {
 func (u *ResourceUpsertOne) ClearAttributes() *ResourceUpsertOne {
 	return u.Update(func(s *ResourceUpsert) {
 		s.ClearAttributes()
+	})
+}
+
+// SetChangeComment sets the "change_comment" field.
+func (u *ResourceUpsertOne) SetChangeComment(v string) *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.SetChangeComment(v)
+	})
+}
+
+// UpdateChangeComment sets the "change_comment" field to the value that was provided on create.
+func (u *ResourceUpsertOne) UpdateChangeComment() *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.UpdateChangeComment()
+	})
+}
+
+// ClearChangeComment clears the value of the "change_comment" field.
+func (u *ResourceUpsertOne) ClearChangeComment() *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.ClearChangeComment()
 	})
 }
 
@@ -1635,6 +1701,27 @@ func (u *ResourceUpsertBulk) UpdateAttributes() *ResourceUpsertBulk {
 func (u *ResourceUpsertBulk) ClearAttributes() *ResourceUpsertBulk {
 	return u.Update(func(s *ResourceUpsert) {
 		s.ClearAttributes()
+	})
+}
+
+// SetChangeComment sets the "change_comment" field.
+func (u *ResourceUpsertBulk) SetChangeComment(v string) *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.SetChangeComment(v)
+	})
+}
+
+// UpdateChangeComment sets the "change_comment" field to the value that was provided on create.
+func (u *ResourceUpsertBulk) UpdateChangeComment() *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.UpdateChangeComment()
+	})
+}
+
+// ClearChangeComment clears the value of the "change_comment" field.
+func (u *ResourceUpsertBulk) ClearChangeComment() *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.ClearChangeComment()
 	})
 }
 

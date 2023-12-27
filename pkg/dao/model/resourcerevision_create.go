@@ -174,6 +174,26 @@ func (rrc *ResourceRevisionCreate) SetNillableRecord(s *string) *ResourceRevisio
 	return rrc
 }
 
+// SetChangeComment sets the "change_comment" field.
+func (rrc *ResourceRevisionCreate) SetChangeComment(s string) *ResourceRevisionCreate {
+	rrc.mutation.SetChangeComment(s)
+	return rrc
+}
+
+// SetNillableChangeComment sets the "change_comment" field if the given value is not nil.
+func (rrc *ResourceRevisionCreate) SetNillableChangeComment(s *string) *ResourceRevisionCreate {
+	if s != nil {
+		rrc.SetChangeComment(*s)
+	}
+	return rrc
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (rrc *ResourceRevisionCreate) SetCreatedBy(s string) *ResourceRevisionCreate {
+	rrc.mutation.SetCreatedBy(s)
+	return rrc
+}
+
 // SetID sets the "id" field.
 func (rrc *ResourceRevisionCreate) SetID(o object.ID) *ResourceRevisionCreate {
 	rrc.mutation.SetID(o)
@@ -329,6 +349,9 @@ func (rrc *ResourceRevisionCreate) check() error {
 	if _, ok := rrc.mutation.PreviousRequiredProviders(); !ok {
 		return &ValidationError{Name: "previous_required_providers", err: errors.New(`model: missing required field "ResourceRevision.previous_required_providers"`)}
 	}
+	if _, ok := rrc.mutation.CreatedBy(); !ok {
+		return &ValidationError{Name: "created_by", err: errors.New(`model: missing required field "ResourceRevision.created_by"`)}
+	}
 	if _, ok := rrc.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "ResourceRevision.project"`)}
 	}
@@ -427,6 +450,14 @@ func (rrc *ResourceRevisionCreate) createSpec() (*ResourceRevision, *sqlgraph.Cr
 		_spec.SetField(resourcerevision.FieldRecord, field.TypeString, value)
 		_node.Record = value
 	}
+	if value, ok := rrc.mutation.ChangeComment(); ok {
+		_spec.SetField(resourcerevision.FieldChangeComment, field.TypeString, value)
+		_node.ChangeComment = value
+	}
+	if value, ok := rrc.mutation.CreatedBy(); ok {
+		_spec.SetField(resourcerevision.FieldCreatedBy, field.TypeString, value)
+		_node.CreatedBy = value
+	}
 	if nodes := rrc.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -516,6 +547,7 @@ func (rrc *ResourceRevisionCreate) Set(obj *ResourceRevision) *ResourceRevisionC
 	rrc.SetDeployerType(obj.DeployerType)
 	rrc.SetDuration(obj.Duration)
 	rrc.SetPreviousRequiredProviders(obj.PreviousRequiredProviders)
+	rrc.SetCreatedBy(obj.CreatedBy)
 
 	// Optional.
 	if obj.CreateTime != nil {
@@ -529,6 +561,9 @@ func (rrc *ResourceRevisionCreate) Set(obj *ResourceRevision) *ResourceRevisionC
 	}
 	if obj.Record != "" {
 		rrc.SetRecord(obj.Record)
+	}
+	if obj.ChangeComment != "" {
+		rrc.SetChangeComment(obj.ChangeComment)
 	}
 
 	// Record the given object.
@@ -598,6 +633,12 @@ func (rrc *ResourceRevisionCreate) SaveE(ctx context.Context, cbs ...func(ctx co
 		}
 		if _, set := rrc.mutation.Field(resourcerevision.FieldRecord); set {
 			obj.Record = x.Record
+		}
+		if _, set := rrc.mutation.Field(resourcerevision.FieldChangeComment); set {
+			obj.ChangeComment = x.ChangeComment
+		}
+		if _, set := rrc.mutation.Field(resourcerevision.FieldCreatedBy); set {
+			obj.CreatedBy = x.CreatedBy
 		}
 		obj.Edges = x.Edges
 	}
@@ -730,6 +771,12 @@ func (rrcb *ResourceRevisionCreateBulk) SaveE(ctx context.Context, cbs ...func(c
 			}
 			if _, set := rrcb.builders[i].mutation.Field(resourcerevision.FieldRecord); set {
 				objs[i].Record = x[i].Record
+			}
+			if _, set := rrcb.builders[i].mutation.Field(resourcerevision.FieldChangeComment); set {
+				objs[i].ChangeComment = x[i].ChangeComment
+			}
+			if _, set := rrcb.builders[i].mutation.Field(resourcerevision.FieldCreatedBy); set {
+				objs[i].CreatedBy = x[i].CreatedBy
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -1001,6 +1048,36 @@ func (u *ResourceRevisionUpsert) ClearRecord() *ResourceRevisionUpsert {
 	return u
 }
 
+// SetChangeComment sets the "change_comment" field.
+func (u *ResourceRevisionUpsert) SetChangeComment(v string) *ResourceRevisionUpsert {
+	u.Set(resourcerevision.FieldChangeComment, v)
+	return u
+}
+
+// UpdateChangeComment sets the "change_comment" field to the value that was provided on create.
+func (u *ResourceRevisionUpsert) UpdateChangeComment() *ResourceRevisionUpsert {
+	u.SetExcluded(resourcerevision.FieldChangeComment)
+	return u
+}
+
+// ClearChangeComment clears the value of the "change_comment" field.
+func (u *ResourceRevisionUpsert) ClearChangeComment() *ResourceRevisionUpsert {
+	u.SetNull(resourcerevision.FieldChangeComment)
+	return u
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (u *ResourceRevisionUpsert) SetCreatedBy(v string) *ResourceRevisionUpsert {
+	u.Set(resourcerevision.FieldCreatedBy, v)
+	return u
+}
+
+// UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
+func (u *ResourceRevisionUpsert) UpdateCreatedBy() *ResourceRevisionUpsert {
+	u.SetExcluded(resourcerevision.FieldCreatedBy)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -1232,6 +1309,41 @@ func (u *ResourceRevisionUpsertOne) UpdateRecord() *ResourceRevisionUpsertOne {
 func (u *ResourceRevisionUpsertOne) ClearRecord() *ResourceRevisionUpsertOne {
 	return u.Update(func(s *ResourceRevisionUpsert) {
 		s.ClearRecord()
+	})
+}
+
+// SetChangeComment sets the "change_comment" field.
+func (u *ResourceRevisionUpsertOne) SetChangeComment(v string) *ResourceRevisionUpsertOne {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.SetChangeComment(v)
+	})
+}
+
+// UpdateChangeComment sets the "change_comment" field to the value that was provided on create.
+func (u *ResourceRevisionUpsertOne) UpdateChangeComment() *ResourceRevisionUpsertOne {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.UpdateChangeComment()
+	})
+}
+
+// ClearChangeComment clears the value of the "change_comment" field.
+func (u *ResourceRevisionUpsertOne) ClearChangeComment() *ResourceRevisionUpsertOne {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.ClearChangeComment()
+	})
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (u *ResourceRevisionUpsertOne) SetCreatedBy(v string) *ResourceRevisionUpsertOne {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.SetCreatedBy(v)
+	})
+}
+
+// UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
+func (u *ResourceRevisionUpsertOne) UpdateCreatedBy() *ResourceRevisionUpsertOne {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.UpdateCreatedBy()
 	})
 }
 
@@ -1631,6 +1743,41 @@ func (u *ResourceRevisionUpsertBulk) UpdateRecord() *ResourceRevisionUpsertBulk 
 func (u *ResourceRevisionUpsertBulk) ClearRecord() *ResourceRevisionUpsertBulk {
 	return u.Update(func(s *ResourceRevisionUpsert) {
 		s.ClearRecord()
+	})
+}
+
+// SetChangeComment sets the "change_comment" field.
+func (u *ResourceRevisionUpsertBulk) SetChangeComment(v string) *ResourceRevisionUpsertBulk {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.SetChangeComment(v)
+	})
+}
+
+// UpdateChangeComment sets the "change_comment" field to the value that was provided on create.
+func (u *ResourceRevisionUpsertBulk) UpdateChangeComment() *ResourceRevisionUpsertBulk {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.UpdateChangeComment()
+	})
+}
+
+// ClearChangeComment clears the value of the "change_comment" field.
+func (u *ResourceRevisionUpsertBulk) ClearChangeComment() *ResourceRevisionUpsertBulk {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.ClearChangeComment()
+	})
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (u *ResourceRevisionUpsertBulk) SetCreatedBy(v string) *ResourceRevisionUpsertBulk {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.SetCreatedBy(v)
+	})
+}
+
+// UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
+func (u *ResourceRevisionUpsertBulk) UpdateCreatedBy() *ResourceRevisionUpsertBulk {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.UpdateCreatedBy()
 	})
 }
 

@@ -54,6 +54,10 @@ const (
 	FieldPreviousRequiredProviders = "previous_required_providers"
 	// FieldRecord holds the string denoting the record field in the database.
 	FieldRecord = "record"
+	// FieldChangeComment holds the string denoting the change_comment field in the database.
+	FieldChangeComment = "change_comment"
+	// FieldCreatedBy holds the string denoting the created_by field in the database.
+	FieldCreatedBy = "created_by"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
@@ -104,6 +108,8 @@ var Columns = []string{
 	FieldDuration,
 	FieldPreviousRequiredProviders,
 	FieldRecord,
+	FieldChangeComment,
+	FieldCreatedBy,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -224,6 +230,16 @@ func ByDuration(opts ...sql.OrderTermOption) OrderOption {
 // ByRecord orders the results by the record field.
 func ByRecord(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRecord, opts...).ToFunc()
+}
+
+// ByChangeComment orders the results by the change_comment field.
+func ByChangeComment(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldChangeComment, opts...).ToFunc()
+}
+
+// ByCreatedBy orders the results by the created_by field.
+func ByCreatedBy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedBy, opts...).ToFunc()
 }
 
 // ByProjectField orders the results by project field.

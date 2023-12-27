@@ -165,6 +165,32 @@ func (rru *ResourceRevisionUpdate) ClearRecord() *ResourceRevisionUpdate {
 	return rru
 }
 
+// SetChangeComment sets the "change_comment" field.
+func (rru *ResourceRevisionUpdate) SetChangeComment(s string) *ResourceRevisionUpdate {
+	rru.mutation.SetChangeComment(s)
+	return rru
+}
+
+// SetNillableChangeComment sets the "change_comment" field if the given value is not nil.
+func (rru *ResourceRevisionUpdate) SetNillableChangeComment(s *string) *ResourceRevisionUpdate {
+	if s != nil {
+		rru.SetChangeComment(*s)
+	}
+	return rru
+}
+
+// ClearChangeComment clears the value of the "change_comment" field.
+func (rru *ResourceRevisionUpdate) ClearChangeComment() *ResourceRevisionUpdate {
+	rru.mutation.ClearChangeComment()
+	return rru
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (rru *ResourceRevisionUpdate) SetCreatedBy(s string) *ResourceRevisionUpdate {
+	rru.mutation.SetCreatedBy(s)
+	return rru
+}
+
 // Mutation returns the ResourceRevisionMutation object of the builder.
 func (rru *ResourceRevisionUpdate) Mutation() *ResourceRevisionMutation {
 	return rru.mutation
@@ -269,6 +295,12 @@ func (rru *ResourceRevisionUpdate) Set(obj *ResourceRevision) *ResourceRevisionU
 	} else {
 		rru.ClearRecord()
 	}
+	if obj.ChangeComment != "" {
+		rru.SetChangeComment(obj.ChangeComment)
+	} else {
+		rru.ClearChangeComment()
+	}
+	rru.SetCreatedBy(obj.CreatedBy)
 
 	// With Default.
 
@@ -342,6 +374,15 @@ func (rru *ResourceRevisionUpdate) sqlSave(ctx context.Context) (n int, err erro
 	}
 	if rru.mutation.RecordCleared() {
 		_spec.ClearField(resourcerevision.FieldRecord, field.TypeString)
+	}
+	if value, ok := rru.mutation.ChangeComment(); ok {
+		_spec.SetField(resourcerevision.FieldChangeComment, field.TypeString, value)
+	}
+	if rru.mutation.ChangeCommentCleared() {
+		_spec.ClearField(resourcerevision.FieldChangeComment, field.TypeString)
+	}
+	if value, ok := rru.mutation.CreatedBy(); ok {
+		_spec.SetField(resourcerevision.FieldCreatedBy, field.TypeString, value)
 	}
 	_spec.Node.Schema = rru.schemaConfig.ResourceRevision
 	ctx = internal.NewSchemaConfigContext(ctx, rru.schemaConfig)
@@ -488,6 +529,32 @@ func (rruo *ResourceRevisionUpdateOne) SetNillableRecord(s *string) *ResourceRev
 // ClearRecord clears the value of the "record" field.
 func (rruo *ResourceRevisionUpdateOne) ClearRecord() *ResourceRevisionUpdateOne {
 	rruo.mutation.ClearRecord()
+	return rruo
+}
+
+// SetChangeComment sets the "change_comment" field.
+func (rruo *ResourceRevisionUpdateOne) SetChangeComment(s string) *ResourceRevisionUpdateOne {
+	rruo.mutation.SetChangeComment(s)
+	return rruo
+}
+
+// SetNillableChangeComment sets the "change_comment" field if the given value is not nil.
+func (rruo *ResourceRevisionUpdateOne) SetNillableChangeComment(s *string) *ResourceRevisionUpdateOne {
+	if s != nil {
+		rruo.SetChangeComment(*s)
+	}
+	return rruo
+}
+
+// ClearChangeComment clears the value of the "change_comment" field.
+func (rruo *ResourceRevisionUpdateOne) ClearChangeComment() *ResourceRevisionUpdateOne {
+	rruo.mutation.ClearChangeComment()
+	return rruo
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (rruo *ResourceRevisionUpdateOne) SetCreatedBy(s string) *ResourceRevisionUpdateOne {
+	rruo.mutation.SetCreatedBy(s)
 	return rruo
 }
 
@@ -638,6 +705,16 @@ func (rruo *ResourceRevisionUpdateOne) Set(obj *ResourceRevision) *ResourceRevis
 			} else {
 				rruo.ClearRecord()
 			}
+			if obj.ChangeComment != "" {
+				if db.ChangeComment != obj.ChangeComment {
+					rruo.SetChangeComment(obj.ChangeComment)
+				}
+			} else {
+				rruo.ClearChangeComment()
+			}
+			if db.CreatedBy != obj.CreatedBy {
+				rruo.SetCreatedBy(obj.CreatedBy)
+			}
 
 			// With Default.
 
@@ -714,6 +791,12 @@ func (rruo *ResourceRevisionUpdateOne) SaveE(ctx context.Context, cbs ...func(ct
 		}
 		if _, set := rruo.mutation.Field(resourcerevision.FieldRecord); set {
 			obj.Record = x.Record
+		}
+		if _, set := rruo.mutation.Field(resourcerevision.FieldChangeComment); set {
+			obj.ChangeComment = x.ChangeComment
+		}
+		if _, set := rruo.mutation.Field(resourcerevision.FieldCreatedBy); set {
+			obj.CreatedBy = x.CreatedBy
 		}
 		obj.Edges = x.Edges
 	}
@@ -831,6 +914,15 @@ func (rruo *ResourceRevisionUpdateOne) sqlSave(ctx context.Context) (_node *Reso
 	}
 	if rruo.mutation.RecordCleared() {
 		_spec.ClearField(resourcerevision.FieldRecord, field.TypeString)
+	}
+	if value, ok := rruo.mutation.ChangeComment(); ok {
+		_spec.SetField(resourcerevision.FieldChangeComment, field.TypeString, value)
+	}
+	if rruo.mutation.ChangeCommentCleared() {
+		_spec.ClearField(resourcerevision.FieldChangeComment, field.TypeString)
+	}
+	if value, ok := rruo.mutation.CreatedBy(); ok {
+		_spec.SetField(resourcerevision.FieldCreatedBy, field.TypeString, value)
 	}
 	_spec.Node.Schema = rruo.schemaConfig.ResourceRevision
 	ctx = internal.NewSchemaConfigContext(ctx, rruo.schemaConfig)

@@ -147,6 +147,26 @@ func (ru *ResourceUpdate) ClearAttributes() *ResourceUpdate {
 	return ru
 }
 
+// SetChangeComment sets the "change_comment" field.
+func (ru *ResourceUpdate) SetChangeComment(s string) *ResourceUpdate {
+	ru.mutation.SetChangeComment(s)
+	return ru
+}
+
+// SetNillableChangeComment sets the "change_comment" field if the given value is not nil.
+func (ru *ResourceUpdate) SetNillableChangeComment(s *string) *ResourceUpdate {
+	if s != nil {
+		ru.SetChangeComment(*s)
+	}
+	return ru
+}
+
+// ClearChangeComment clears the value of the "change_comment" field.
+func (ru *ResourceUpdate) ClearChangeComment() *ResourceUpdate {
+	ru.mutation.ClearChangeComment()
+	return ru
+}
+
 // SetTemplate sets the "template" edge to the TemplateVersion entity.
 func (ru *ResourceUpdate) SetTemplate(t *TemplateVersion) *ResourceUpdate {
 	return ru.SetTemplateID(t.ID)
@@ -383,6 +403,11 @@ func (ru *ResourceUpdate) Set(obj *Resource) *ResourceUpdate {
 	} else {
 		ru.ClearAttributes()
 	}
+	if obj.ChangeComment != "" {
+		ru.SetChangeComment(obj.ChangeComment)
+	} else {
+		ru.ClearChangeComment()
+	}
 
 	// With Default.
 	if obj.UpdateTime != nil {
@@ -448,6 +473,12 @@ func (ru *ResourceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if ru.mutation.AttributesCleared() {
 		_spec.ClearField(resource.FieldAttributes, field.TypeOther)
+	}
+	if value, ok := ru.mutation.ChangeComment(); ok {
+		_spec.SetField(resource.FieldChangeComment, field.TypeString, value)
+	}
+	if ru.mutation.ChangeCommentCleared() {
+		_spec.ClearField(resource.FieldChangeComment, field.TypeString)
 	}
 	if ru.mutation.TemplateCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -751,6 +782,26 @@ func (ruo *ResourceUpdateOne) ClearAttributes() *ResourceUpdateOne {
 	return ruo
 }
 
+// SetChangeComment sets the "change_comment" field.
+func (ruo *ResourceUpdateOne) SetChangeComment(s string) *ResourceUpdateOne {
+	ruo.mutation.SetChangeComment(s)
+	return ruo
+}
+
+// SetNillableChangeComment sets the "change_comment" field if the given value is not nil.
+func (ruo *ResourceUpdateOne) SetNillableChangeComment(s *string) *ResourceUpdateOne {
+	if s != nil {
+		ruo.SetChangeComment(*s)
+	}
+	return ruo
+}
+
+// ClearChangeComment clears the value of the "change_comment" field.
+func (ruo *ResourceUpdateOne) ClearChangeComment() *ResourceUpdateOne {
+	ruo.mutation.ClearChangeComment()
+	return ruo
+}
+
 // SetTemplate sets the "template" edge to the TemplateVersion entity.
 func (ruo *ResourceUpdateOne) SetTemplate(t *TemplateVersion) *ResourceUpdateOne {
 	return ruo.SetTemplateID(t.ID)
@@ -1022,6 +1073,13 @@ func (ruo *ResourceUpdateOne) Set(obj *Resource) *ResourceUpdateOne {
 			} else {
 				ruo.ClearAttributes()
 			}
+			if obj.ChangeComment != "" {
+				if db.ChangeComment != obj.ChangeComment {
+					ruo.SetChangeComment(obj.ChangeComment)
+				}
+			} else {
+				ruo.ClearChangeComment()
+			}
 
 			// With Default.
 			if (obj.UpdateTime != nil) && (!reflect.DeepEqual(db.UpdateTime, obj.UpdateTime)) {
@@ -1089,6 +1147,9 @@ func (ruo *ResourceUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context
 		}
 		if _, set := ruo.mutation.Field(resource.FieldAttributes); set {
 			obj.Attributes = x.Attributes
+		}
+		if _, set := ruo.mutation.Field(resource.FieldChangeComment); set {
+			obj.ChangeComment = x.ChangeComment
 		}
 		obj.Edges = x.Edges
 	}
@@ -1195,6 +1256,12 @@ func (ruo *ResourceUpdateOne) sqlSave(ctx context.Context) (_node *Resource, err
 	}
 	if ruo.mutation.AttributesCleared() {
 		_spec.ClearField(resource.FieldAttributes, field.TypeOther)
+	}
+	if value, ok := ruo.mutation.ChangeComment(); ok {
+		_spec.SetField(resource.FieldChangeComment, field.TypeString, value)
+	}
+	if ruo.mutation.ChangeCommentCleared() {
+		_spec.ClearField(resource.FieldChangeComment, field.TypeString)
 	}
 	if ruo.mutation.TemplateCleared() {
 		edge := &sqlgraph.EdgeSpec{
