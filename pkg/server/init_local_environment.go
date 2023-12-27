@@ -2,9 +2,12 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 
+	dtypes "github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 	"k8s.io/client-go/tools/clientcmd"
 
 	envbus "github.com/seal-io/walrus/pkg/bus/environment"
@@ -15,10 +18,15 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/settings"
 )
 
 const (
+	// LocalEnvironmentKubernetes indicates creating local environment with management kubernetes.
+	localEnvironmentModeKubernetes = "kubernetes"
+	// LocalEnvironmentDocker indicates creating local environment with docker.
+	localEnvironmentModeDocker = "docker"
 	// LocalEnvironmentModeDisabled disables local environment creation.
 	localEnvironmentModeDisabled = "disabled"
 )
@@ -34,11 +42,6 @@ func (r *Server) createLocalEnvironment(ctx context.Context, opts initOptions) e
 	}
 
 	return opts.ModelClient.WithTx(ctx, func(tx *model.Tx) error {
-		kubeConfig, err := r.readKubeConfig()
-		if err != nil {
-			return err
-		}
-
 		defaultProject, err := tx.Projects().Query().
 			Where(project.Name("default")).
 			Only(ctx)
@@ -46,54 +49,25 @@ func (r *Server) createLocalEnvironment(ctx context.Context, opts initOptions) e
 			return err
 		}
 
-		conn, err := tx.Connectors().Query().
-			Where(
-				connector.Name("local"),
-				connector.ProjectID(defaultProject.ID),
-			).
-			Only(ctx)
+		var conn *model.Connector
 
-		switch {
-		case model.IsNotFound(err):
-			conn = &model.Connector{
-				Name:                      "local",
-				Type:                      types.ConnectorTypeKubernetes,
-				ProjectID:                 defaultProject.ID,
-				ApplicableEnvironmentType: types.EnvironmentDevelopment,
-				Category:                  types.ConnectorCategoryKubernetes,
-				ConfigVersion:             "v1",
-				ConfigData: crypto.Properties{
-					"kubeconfig": crypto.StringProperty(kubeConfig),
-				},
-			}
-
-			if os.Getenv("KUBERNETES_SERVICE_HOST") == "" && os.Getenv("_RUNNING_INSIDE_CONTAINER_") != "" {
-				// Set label for embedded k3s.
-				conn.Labels = map[string]string{
-					types.LabelEmbeddedKubernetes: "true",
-				}
-			}
-
-			conn, err = tx.Connectors().Create().
-				Set(conn).
-				Save(ctx)
+		switch localEnvironmentMode {
+		case localEnvironmentModeDocker:
+			conn, err = r.applyDockerConnector(ctx, tx, defaultProject.ID)
 			if err != nil {
 				return err
 			}
-		case err != nil:
-			return err
+
+			if err = applyLocalDockerNetwork(ctx); err != nil {
+				return err
+			}
+		case localEnvironmentModeKubernetes:
+			conn, err = r.applyKubernetesConnector(ctx, tx, defaultProject.ID)
+			if err != nil {
+				return err
+			}
 		default:
-			// Update config data of existing local kubernetes connector as it may change on restart.
-			conn.ConfigData = crypto.Properties{
-				"kubeconfig": crypto.StringProperty(kubeConfig),
-			}
-
-			conn, err = tx.Connectors().UpdateOne(conn).
-				Set(conn).
-				Save(ctx)
-			if err != nil {
-				return err
-			}
+			return fmt.Errorf("invalid local environment mode %q", localEnvironmentMode)
 		}
 
 		_, err = tx.Environments().Query().
@@ -131,6 +105,69 @@ func (r *Server) createLocalEnvironment(ctx context.Context, opts initOptions) e
 	})
 }
 
+func (r *Server) applyKubernetesConnector(
+	ctx context.Context,
+	mc model.ClientSet,
+	projectID object.ID,
+) (*model.Connector, error) {
+	kubeConfig, err := r.readKubeConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	conn, err := mc.Connectors().Query().
+		Where(
+			connector.Name("local"),
+			connector.ProjectID(projectID),
+		).
+		Only(ctx)
+
+	switch {
+	case model.IsNotFound(err):
+		conn = &model.Connector{
+			Name:                      "local",
+			Type:                      types.ConnectorTypeKubernetes,
+			ProjectID:                 projectID,
+			ApplicableEnvironmentType: types.EnvironmentDevelopment,
+			Category:                  types.ConnectorCategoryKubernetes,
+			ConfigVersion:             "v1",
+			ConfigData: crypto.Properties{
+				"kubeconfig": crypto.StringProperty(kubeConfig),
+			},
+		}
+
+		if os.Getenv("KUBERNETES_SERVICE_HOST") == "" && os.Getenv("_RUNNING_INSIDE_CONTAINER_") != "" {
+			// Set label for embedded k3s.
+			conn.Labels = map[string]string{
+				types.LabelEmbeddedKubernetes: "true",
+			}
+		}
+
+		conn, err = mc.Connectors().Create().
+			Set(conn).
+			Save(ctx)
+		if err != nil {
+			return nil, err
+		}
+	case err != nil:
+		return nil, err
+	default:
+		// Update config data of existing local kubernetes connector as it may change on restart.
+		conn.ConfigData = crypto.Properties{
+			"kubeconfig": crypto.StringProperty(kubeConfig),
+		}
+
+		conn, err = mc.Connectors().UpdateOne(conn).
+			Set(conn).
+			Save(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return conn, nil
+}
+
 func (r *Server) readKubeConfig() (string, error) {
 	kubeConfig := r.KubeConfig
 	if kubeConfig == "" {
@@ -147,4 +184,74 @@ func (r *Server) readKubeConfig() (string, error) {
 	}
 
 	return string(kubeConfigData), nil
+}
+
+func (r *Server) applyDockerConnector(
+	ctx context.Context,
+	mc model.ClientSet,
+	projectID object.ID,
+) (*model.Connector, error) {
+	conn, err := mc.Connectors().Query().
+		Where(
+			connector.Name("local"),
+			connector.ProjectID(projectID),
+		).
+		Only(ctx)
+
+	if model.IsNotFound(err) {
+		conn = &model.Connector{
+			Name:                      "local",
+			Type:                      types.ConnectorTypeDocker,
+			ProjectID:                 projectID,
+			ApplicableEnvironmentType: types.EnvironmentDevelopment,
+			Category:                  types.ConnectorCategoryDocker,
+			ConfigVersion:             "v1",
+			ConfigData:                crypto.Properties{},
+		}
+
+		conn, err = mc.Connectors().Create().
+			Set(conn).
+			Save(ctx)
+		if err != nil {
+			return nil, err
+		}
+	} else if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
+}
+
+func applyLocalDockerNetwork(ctx context.Context) error {
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return err
+	}
+
+	networkName := "local-walrus"
+
+	networks, err := cli.NetworkList(ctx, dtypes.NetworkListOptions{})
+	if err != nil {
+		return err
+	}
+
+	exists := false
+
+	for _, n := range networks {
+		if n.Name == networkName {
+			exists = true
+			break
+		}
+	}
+
+	if !exists {
+		_, err = cli.NetworkCreate(ctx, networkName, dtypes.NetworkCreate{
+			Driver: "bridge",
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
