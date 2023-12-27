@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 list="walrus-images.txt"
 images="walrus-images.tar.gz"
 repository_type="harbor"
@@ -172,7 +173,7 @@ for i in "${linux_images[@]}"; do
     fi
 done
 
-if [[ "${#linux_err_images[@]}" > 0 ]]; then
+if [[ "${#linux_err_images[@]}" -gt 0 ]]; then
     echo "Some images failed to upload. Generate failed-upload-images.txt to log the failed images"
     if [ -f "./failed-upload-images.txt" ]; then
         rm -rf ./failed-upload-images.txt

@@ -16,7 +16,6 @@ import (
 const NameWorkflow = "walrus-workflow"
 
 const (
-	imageServer     = "sealio/mirrored-argocli"
 	imageController = "sealio/mirrored-workflow-controller"
 	imageExecutor   = "sealio/mirrored-argoexec"
 	tag             = "v3.5.0"
@@ -67,7 +66,6 @@ func workflow(imageRegistry string) *deploy.ChartApp {
 			"pullPolicy": "IfNotPresent",
 		},
 		"server": map[string]any{
-			"image":   imageConfig(imageServer),
 			"enabled": false,
 		},
 		"controller": map[string]any{

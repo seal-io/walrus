@@ -15,7 +15,7 @@ const (
 	imageRepositoryReload       = "sealio/mirrored-prometheus-config-reloader"
 )
 
-var imageOpencost = osx.Getenv("IMAGE_OPENCOST", "sealio/mirrored-kubecost-cost-model:v1.105.2")
+var imageOpencost = osx.Getenv("FINOPS_KUBECOST_COST_MODEL_IMAGE", "sealio/mirrored-kubecost-cost-model:v1.105.2")
 
 // prometheus chart.
 const (
