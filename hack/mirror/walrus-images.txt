@@ -9,4 +9,5 @@ docker.io/sealio/curl-jq:v0.0.1
 docker.io/postgres:14.8
 docker.io/sealio/casdoor:v1.344.0-seal.1
 docker.io/sealio/terraform-deployer:v1.5.7-seal.1
+docker.io/sealio/hermitcrab:v0.1.1
 docker.io/sealio/walrus:v0.4.0

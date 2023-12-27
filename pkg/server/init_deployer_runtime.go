@@ -12,8 +12,13 @@ import (
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 
+	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/deployer/installer/hermitcrab"
+	"github.com/seal-io/walrus/utils/gopool"
+	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/pointer"
 )
 
@@ -26,8 +31,8 @@ func (r *Server) setupDeployerRuntime(ctx context.Context, opts initOptions) err
 	}
 
 	cs := []func(context.Context, *kubernetes.Clientset) error{
-		applyDeployWorkspace,
-		applyDeployPermission,
+		applyDeployerWorkspace,
+		applyDeployerPermission,
 	}
 
 	for i := range cs {
@@ -37,11 +42,13 @@ func (r *Server) setupDeployerRuntime(ctx context.Context, opts initOptions) err
 		}
 	}
 
+	applyDeployerNetworkMirror(opts.ModelClient, opts.K8sConfig)
+
 	return nil
 }
 
-// applyDeployWorkspace applies the Kubernetes Namespace to run deployer at next.
-func applyDeployWorkspace(ctx context.Context, cli *kubernetes.Clientset) error {
+// applyDeployerWorkspace applies the Kubernetes Namespace to run deployer at next.
+func applyDeployerWorkspace(ctx context.Context, cli *kubernetes.Clientset) error {
 	if !isCreationAllowed(ctx, cli, "namespaces") {
 		return nil
 	}
@@ -62,8 +69,8 @@ func applyDeployWorkspace(ctx context.Context, cli *kubernetes.Clientset) error 
 	return nil
 }
 
-// applyDeployPermission applies the Kubernetes RBAC resources for deployer running.
-func applyDeployPermission(ctx context.Context, cli *kubernetes.Clientset) error {
+// applyDeployerPermission applies the Kubernetes RBAC resources for deployer running.
+func applyDeployerPermission(ctx context.Context, cli *kubernetes.Clientset) error {
 	if !isCreationAllowed(ctx, cli, "serviceaccounts", "roles", "rolebindings") {
 		return nil
 	}
@@ -203,6 +210,15 @@ func applyDeployPermission(ctx context.Context, cli *kubernetes.Clientset) error
 	}
 
 	return nil
+}
+
+func applyDeployerNetworkMirror(mc model.ClientSet, config *rest.Config) {
+	gopool.Go(func() {
+		err := hermitcrab.Install(context.Background(), mc, config)
+		if err != nil {
+			log.WithName("deployer").Errorf("failed to install hermitcrab: %v", err)
+		}
+	})
 }
 
 // isCreationAllowed checks if the creation of the specified resource is allowed.

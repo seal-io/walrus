@@ -5,7 +5,9 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"text/template"
 
+	"github.com/Masterminds/sprig/v3"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,7 +16,9 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/yaml"
 
+	"github.com/seal-io/walrus/utils/bytespool"
 	"github.com/seal-io/walrus/utils/files"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/version"
@@ -32,6 +36,9 @@ type ChartApp struct {
 	ChartPath string
 	ChartURL  string
 	Values    map[string]any
+	// The following fields used for generate Values.
+	ValuesContext  map[string]any
+	ValuesTemplate string
 }
 
 func New(restCfg *rest.Config) (*Deployer, error) {
@@ -179,9 +186,51 @@ func (d *Deployer) EnsureChart(app *ChartApp, createNamespace, replace bool) err
 		}
 	}
 
+	// Render values if needed.
+	if app.ValuesContext != nil && app.ValuesTemplate != "" {
+		tmpl, err := template.New(app.Name + "-values").
+			Funcs(funcMap()).
+			Parse(app.ValuesTemplate)
+		if err != nil {
+			return err
+		}
+
+		buf := bytespool.GetBuffer()
+		defer bytespool.Put(buf)
+
+		if err = tmpl.Execute(buf, app.ValuesContext); err != nil {
+			return err
+		}
+
+		values := map[string]any{}
+		if err = yaml.Unmarshal(buf.Bytes(), &values); err != nil {
+			return err
+		}
+
+		app.Values = values
+	}
+
 	if err = helm.Install(app.Name, app.ChartPath, app.Values); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func funcMap() template.FuncMap {
+	fm := sprig.HermeticTxtFuncMap()
+	fm["toYaml"] = toYAML
+
+	return fm
+}
+
+// toYAML borrows from helm.sh/helm/pkg/engine/engine.go.
+func toYAML(v any) string {
+	data, err := yaml.Marshal(v)
+	if err != nil {
+		// Swallow errors inside of a template.
+		return ""
+	}
+
+	return strings.TrimSuffix(string(data), "\n")
 }
