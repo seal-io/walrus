@@ -241,12 +241,18 @@ func (d Deployer) createK8sJob(ctx context.Context, mc model.ClientSet, opts cre
 		return err
 	}
 
+	localEnvironmentMode, err := settings.LocalEnvironmentMode.Value(ctx, mc)
+	if err != nil {
+		return err
+	}
+
 	// Create deployment job.
 	jobOpts := JobCreateOptions{
 		Type:               opts.Type,
 		ResourceRevisionID: opts.ResourceRevision.ID.String(),
 		Image:              jobImage,
 		Env:                jobEnv,
+		DockerMode:         localEnvironmentMode == "docker",
 	}
 
 	return CreateJob(ctx, d.clientSet, jobOpts)

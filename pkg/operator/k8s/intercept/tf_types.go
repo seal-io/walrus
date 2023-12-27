@@ -105,4 +105,7 @@ var TFEndpointsTypes = []string{
 
 	// Helm resources.
 	"helm_release",
+
+	// Docker containers.
+	"docker_container",
 }

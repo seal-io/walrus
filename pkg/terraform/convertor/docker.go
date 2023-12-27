@@ -10,13 +10,13 @@ import (
 	"github.com/seal-io/walrus/utils/log"
 )
 
-type AlibabaConvertor string
+type DockerConvertor string
 
-func (m AlibabaConvertor) IsSupported(connector *model.Connector) bool {
-	return connector.Type == types.ConnectorTypeAlibaba
+func (m DockerConvertor) IsSupported(connector *model.Connector) bool {
+	return connector.Type == types.ConnectorTypeDocker
 }
 
-func (m AlibabaConvertor) ToBlocks(connectors model.Connectors, opts Options) (block.Blocks, error) {
+func (m DockerConvertor) ToBlocks(connectors model.Connectors, opts Options) (block.Blocks, error) {
 	var blocks block.Blocks
 
 	for _, c := range connectors {
@@ -24,7 +24,7 @@ func (m AlibabaConvertor) ToBlocks(connectors model.Connectors, opts Options) (b
 			continue
 		}
 
-		b, err := toCloudProviderBlock(string(m), c, opts)
+		b, err := toProviderBlock(string(m), c, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -35,7 +35,7 @@ func (m AlibabaConvertor) ToBlocks(connectors model.Connectors, opts Options) (b
 	return blocks, nil
 }
 
-func toCloudProviderBlock(label string, conn *model.Connector, opts any) (*block.Block, error) {
+func toProviderBlock(label string, conn *model.Connector, opts any) (*block.Block, error) {
 	convertOpts, ok := opts.(ConvertOptions)
 	if !ok {
 		return nil, errors.New("invalid options type")
@@ -52,7 +52,7 @@ func toCloudProviderBlock(label string, conn *model.Connector, opts any) (*block
 	for k, v := range conn.ConfigData {
 		attributes[k], _, err = property.GetString(v.Value)
 		if err != nil {
-			log.Warn("error get config data in connector %s:%s, %w", conn.ID, k, err)
+			log.Warnf("error get config data in connector %s:%s, %w", conn.ID, k, err)
 		}
 	}
 

@@ -16,6 +16,7 @@ const (
 	TypeKubectl    = "kubectl"
 	TypeAliCloud   = "alicloud"
 	TypeAWS        = "aws"
+	TypeDocker     = "docker"
 	// Add more convertor type.
 )
 
@@ -49,6 +50,8 @@ func LoadConvertor(provider string) Convertor {
 		return AlibabaConvertor(provider)
 	case TypeAWS:
 		return AWSConvertor(provider)
+	case TypeDocker:
+		return DockerConvertor(provider)
 	default:
 		return DefaultConvertor(provider)
 	}
@@ -105,10 +108,6 @@ func ToProviderBlocks(provider string, connectors model.Connectors, opts Convert
 	case TypeKubernetes, TypeHelm, TypeKubectl:
 		toBlockOpts = K8sConvertorOptions{
 			ConfigPath:    opts.SecretMountPath,
-			ConnSeparator: opts.ConnSeparator,
-		}
-	case TypeAliCloud, TypeAWS:
-		toBlockOpts = CloudProviderConvertorOptions{
 			ConnSeparator: opts.ConnSeparator,
 		}
 	default:

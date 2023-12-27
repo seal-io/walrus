@@ -26,6 +26,7 @@ import (
 	opk8s "github.com/seal-io/walrus/pkg/operator/k8s"
 	"github.com/seal-io/walrus/pkg/operator/k8s/kube"
 	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/pointer"
 )
 
 const (
@@ -39,6 +40,7 @@ type JobCreateOptions struct {
 	ResourceRevisionID string
 	Image              string
 	Env                []corev1.EnvVar
+	DockerMode         bool
 }
 
 type StreamJobLogsOptions struct {
@@ -284,6 +286,44 @@ func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOpti
 
 	command = append(command, deployCommand)
 
+	volumeMounts := []corev1.VolumeMount{
+		{
+			Name:      configName,
+			MountPath: _secretMountPath,
+			ReadOnly:  false,
+		},
+	}
+
+	volumes := []corev1.Volume{
+		{
+			Name: configName,
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: configName,
+				},
+			},
+		},
+	}
+
+	securityContext := &corev1.PodSecurityContext{}
+
+	if opts.DockerMode {
+		volumeMounts = append(volumeMounts, corev1.VolumeMount{
+			Name:      "docker-sock",
+			MountPath: "/var/run/docker.sock",
+		})
+
+		volumes = append(volumes, corev1.Volume{
+			Name: "docker-sock",
+			VolumeSource: corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Path: "/var/run/docker.sock",
+				},
+			},
+		})
+		securityContext.RunAsUser = pointer.Int64(0)
+	}
+
 	return corev1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: _podName,
@@ -302,26 +342,12 @@ func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOpti
 					WorkingDir:      _workdir,
 					Command:         command,
 					ImagePullPolicy: corev1.PullIfNotPresent,
-					VolumeMounts: []corev1.VolumeMount{
-						{
-							Name:      configName,
-							MountPath: _secretMountPath,
-							ReadOnly:  false,
-						},
-					},
-					Env: opts.Env,
+					VolumeMounts:    volumeMounts,
+					Env:             opts.Env,
 				},
 			},
-			Volumes: []corev1.Volume{
-				{
-					Name: configName,
-					VolumeSource: corev1.VolumeSource{
-						Secret: &corev1.SecretVolumeSource{
-							SecretName: configName,
-						},
-					},
-				},
-			},
+			Volumes:         volumes,
+			SecurityContext: securityContext,
 		},
 	}
 }
