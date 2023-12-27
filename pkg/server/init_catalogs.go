@@ -2,11 +2,13 @@ package server
 
 import (
 	"context"
+	"fmt"
 
 	buscatalog "github.com/seal-io/walrus/pkg/bus/catalog"
 	pkgcatalog "github.com/seal-io/walrus/pkg/catalog"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/catalog"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/settings"
 )
@@ -19,6 +21,13 @@ func (r *Server) createBuiltinCatalogs(ctx context.Context, opts initOptions) er
 	}
 
 	builtin := pkgcatalog.BuiltinCatalog()
+
+	switch opts.BuiltinCatalogProvider {
+	case types.GitDriverGitee, types.GitDriverGithub:
+		builtin.Type = opts.BuiltinCatalogProvider
+	default:
+		return fmt.Errorf("invalid builtin catalog provider: %s", opts.BuiltinCatalogProvider)
+	}
 
 	c, err := opts.ModelClient.Catalogs().Query().
 		Where(catalog.Name(builtin.Name)).

@@ -31,6 +31,7 @@ import (
 	"github.com/seal-io/walrus/pkg/cron"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	_ "github.com/seal-io/walrus/pkg/dao/model/runtime" // Default = ent.
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/database"
 	"github.com/seal-io/walrus/pkg/datalisten"
@@ -81,9 +82,10 @@ type Server struct {
 	CacheSourceConnMaxIdle int
 	CacheSourceMaxLife     time.Duration
 
-	EnableAuthn         bool
-	AuthnSessionMaxIdle time.Duration
-	CasdoorServer       string
+	EnableAuthn            bool
+	AuthnSessionMaxIdle    time.Duration
+	CasdoorServer          string
+	BuiltinCatalogProvider string
 }
 
 func New() *Server {
@@ -107,6 +109,7 @@ func New() *Server {
 		EnableAuthn:            true,
 		AuthnSessionMaxIdle:    30 * time.Minute,
 		GopoolWorkerFactor:     100,
+		BuiltinCatalogProvider: types.GitDriverGithub,
 	}
 }
 
@@ -135,6 +138,23 @@ func (r *Server) Flags(cmd *cli.Command) {
 			Usage:       "Enable HTTPs.",
 			Destination: &r.EnableTls,
 			Value:       r.EnableTls,
+		},
+		&cli.StringFlag{
+			Name: "builtin-catalog-provider",
+			Usage: "Specify the provider type for creating builtin catalogs: 'github' or 'gitee'. " +
+				"This parameter is case-insensitive.",
+			Destination: &r.BuiltinCatalogProvider,
+			Value:       r.BuiltinCatalogProvider,
+			Action: func(c *cli.Context, s string) error {
+				s = strs.Title(strings.ToLower(s))
+				switch s {
+				case types.GitDriverGithub, types.GitDriverGitee:
+					r.BuiltinCatalogProvider = s
+				default:
+					return errors.New("--builtin-catalog-provider: only support github or gitee")
+				}
+				return nil
+			},
 		},
 		&cli.StringFlag{
 			Name: "tls-cert-file",
@@ -597,12 +617,13 @@ func (r *Server) Run(c context.Context) error {
 	modelClient := getModelClient(databaseDrvDialect, databaseDrv)
 
 	initOpts := initOptions{
-		K8sConfig:         k8sCfg,
-		K8sCtrlMgrIsReady: &atomic.Bool{},
-		ModelClient:       modelClient,
-		SkipTLSVerify:     len(r.TlsAutoCertDomains) != 0,
-		DatabaseDriver:    databaseDrv,
-		CacheDriver:       cacheDrv,
+		K8sConfig:              k8sCfg,
+		K8sCtrlMgrIsReady:      &atomic.Bool{},
+		ModelClient:            modelClient,
+		SkipTLSVerify:          len(r.TlsAutoCertDomains) != 0,
+		DatabaseDriver:         databaseDrv,
+		CacheDriver:            cacheDrv,
+		BuiltinCatalogProvider: r.BuiltinCatalogProvider,
 	}
 	if err = r.init(ctx, initOpts); err != nil {
 		log.Errorf("error initializing: %v", err)
