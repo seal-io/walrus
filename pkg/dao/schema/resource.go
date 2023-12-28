@@ -52,10 +52,10 @@ func (Resource) Fields() []ent.Field {
 			Immutable().
 			Optional().
 			Annotations(
-				entx.Input(entx.WithCreate(), entx.WithQuery())),
+				entx.Input(entx.WithCreate(), entx.WithQuery()),
+			),
 		object.IDField("resource_definition_id").
 			Comment("ID of the resource definition to which the resource use.").
-			Immutable().
 			Optional().
 			Nillable().
 			Annotations(
@@ -120,7 +120,6 @@ func (Resource) Edges() []ent.Edge {
 			Field("resource_definition_id").
 			Comment("Definition of the resource.").
 			Unique().
-			Immutable().
 			Annotations(
 				entx.SkipInput(entx.WithQuery()),
 				entx.Input(entx.WithCreate(), entx.WithUpdate()),
