@@ -271,6 +271,11 @@ func (rdc *ResourceDefinitionCreate) check() error {
 			return &ValidationError{Name: "schema", err: fmt.Errorf(`model: validator failed for field "ResourceDefinition.schema": %w`, err)}
 		}
 	}
+	if v, ok := rdc.mutation.UiSchema(); ok {
+		if err := v.Validate(); err != nil {
+			return &ValidationError{Name: "uiSchema", err: fmt.Errorf(`model: validator failed for field "ResourceDefinition.uiSchema": %w`, err)}
+		}
+	}
 	if _, ok := rdc.mutation.Builtin(); !ok {
 		return &ValidationError{Name: "builtin", err: errors.New(`model: missing required field "ResourceDefinition.builtin"`)}
 	}
@@ -469,7 +474,7 @@ func (rdc *ResourceDefinitionCreate) SaveE(ctx context.Context, cbs ...func(ctx 
 	if rdc.fromUpsert {
 		q := mc.ResourceDefinitions().Query().
 			Where(
-				resourcedefinition.Type(obj.Type),
+				resourcedefinition.Name(obj.Name),
 			)
 		obj.ID, err = q.OnlyID(ctx)
 		if err != nil {
@@ -588,7 +593,7 @@ func (rdcb *ResourceDefinitionCreateBulk) SaveE(ctx context.Context, cbs ...func
 			obj := objs[i]
 			q := mc.ResourceDefinitions().Query().
 				Where(
-					resourcedefinition.Type(obj.Type),
+					resourcedefinition.Name(obj.Name),
 				)
 			objs[i].ID, err = q.OnlyID(ctx)
 			if err != nil {

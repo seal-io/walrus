@@ -238,8 +238,8 @@ type ResourceDefinitionDeleteInput struct {
 type ResourceDefinitionDeleteInputsItem struct {
 	// ID of the ResourceDefinition entity, tries to retrieve the entity with the following unique index parts if no ID provided.
 	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
-	// Type of the ResourceDefinition entity, a part of the unique index.
-	Type string `path:"-" query:"-" json:"type,omitempty"`
+	// Name of the ResourceDefinition entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
 // ResourceDefinitionDeleteInputs holds the deletion input of the ResourceDefinition entities,
@@ -319,10 +319,10 @@ func (rddi *ResourceDefinitionDeleteInputs) ValidateWith(ctx context.Context, cs
 			ids = append(ids, rddi.Items[i].ID)
 			ors = append(ors, resourcedefinition.ID(rddi.Items[i].ID))
 			indexers[rddi.Items[i].ID] = append(indexers[rddi.Items[i].ID], i)
-		} else if rddi.Items[i].Type != "" {
+		} else if rddi.Items[i].Name != "" {
 			ors = append(ors, resourcedefinition.And(
-				resourcedefinition.Type(rddi.Items[i].Type)))
-			indexerKey := fmt.Sprint("/", rddi.Items[i].Type)
+				resourcedefinition.Name(rddi.Items[i].Name)))
+			indexerKey := fmt.Sprint("/", rddi.Items[i].Name)
 			indexers[indexerKey] = append(indexers[indexerKey], i)
 		} else {
 			return errors.New("found item hasn't identify")
@@ -338,7 +338,7 @@ func (rddi *ResourceDefinitionDeleteInputs) ValidateWith(ctx context.Context, cs
 		Where(p).
 		Select(
 			resourcedefinition.FieldID,
-			resourcedefinition.FieldType,
+			resourcedefinition.FieldName,
 		).
 		All(ctx)
 	if err != nil {
@@ -352,12 +352,12 @@ func (rddi *ResourceDefinitionDeleteInputs) ValidateWith(ctx context.Context, cs
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", es[i].Type)
+			indexerKey := fmt.Sprint("/", es[i].Name)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {
 			rddi.Items[j].ID = es[i].ID
-			rddi.Items[j].Type = es[i].Type
+			rddi.Items[j].Name = es[i].Name
 		}
 	}
 
@@ -409,16 +409,16 @@ func (rdpi *ResourceDefinitionPatchInput) ValidateWith(ctx context.Context, cs C
 				resourcedefinition.ID(rdpi.Refer.ID()))
 		} else if refers := rdpi.Refer.Split(1); len(refers) == 1 {
 			q.Where(
-				resourcedefinition.Type(refers[0].String()))
+				resourcedefinition.Name(refers[0].String()))
 		} else {
 			return errors.New("invalid identify refer of resourcedefinition")
 		}
 	} else if rdpi.ID != "" {
 		q.Where(
 			resourcedefinition.ID(rdpi.ID))
-	} else if rdpi.Type != "" {
+	} else if rdpi.Name != "" {
 		q.Where(
-			resourcedefinition.Type(rdpi.Type))
+			resourcedefinition.Name(rdpi.Name))
 	} else {
 		return errors.New("invalid identify of resourcedefinition")
 	}
@@ -472,8 +472,8 @@ type ResourceDefinitionQueryInput struct {
 	Refer *object.Refer `path:"resourcedefinition,default=" query:"-" json:"-"`
 	// ID of the ResourceDefinition entity, tries to retrieve the entity with the following unique index parts if no ID provided.
 	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
-	// Type of the ResourceDefinition entity, a part of the unique index.
-	Type string `path:"-" query:"-" json:"type,omitempty"`
+	// Name of the ResourceDefinition entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
 // Model returns the ResourceDefinition entity for querying,
@@ -485,7 +485,7 @@ func (rdqi *ResourceDefinitionQueryInput) Model() *ResourceDefinition {
 
 	return &ResourceDefinition{
 		ID:   rdqi.ID,
-		Type: rdqi.Type,
+		Name: rdqi.Name,
 	}
 }
 
@@ -520,23 +520,23 @@ func (rdqi *ResourceDefinitionQueryInput) ValidateWith(ctx context.Context, cs C
 				resourcedefinition.ID(rdqi.Refer.ID()))
 		} else if refers := rdqi.Refer.Split(1); len(refers) == 1 {
 			q.Where(
-				resourcedefinition.Type(refers[0].String()))
+				resourcedefinition.Name(refers[0].String()))
 		} else {
 			return errors.New("invalid identify refer of resourcedefinition")
 		}
 	} else if rdqi.ID != "" {
 		q.Where(
 			resourcedefinition.ID(rdqi.ID))
-	} else if rdqi.Type != "" {
+	} else if rdqi.Name != "" {
 		q.Where(
-			resourcedefinition.Type(rdqi.Type))
+			resourcedefinition.Name(rdqi.Name))
 	} else {
 		return errors.New("invalid identify of resourcedefinition")
 	}
 
 	q.Select(
 		resourcedefinition.FieldID,
-		resourcedefinition.FieldType,
+		resourcedefinition.FieldName,
 	)
 
 	var e *ResourceDefinition
@@ -559,7 +559,7 @@ func (rdqi *ResourceDefinitionQueryInput) ValidateWith(ctx context.Context, cs C
 	}
 
 	rdqi.ID = e.ID
-	rdqi.Type = e.Type
+	rdqi.Name = e.Name
 	return nil
 }
 
@@ -616,7 +616,7 @@ func (rdui *ResourceDefinitionUpdateInput) Model() *ResourceDefinition {
 
 	_rd := &ResourceDefinition{
 		ID:          rdui.ID,
-		Type:        rdui.Type,
+		Name:        rdui.Name,
 		Description: rdui.Description,
 		Labels:      rdui.Labels,
 		UiSchema:    rdui.UiSchema,
@@ -676,8 +676,8 @@ func (rdui *ResourceDefinitionUpdateInput) ValidateWith(ctx context.Context, cs 
 type ResourceDefinitionUpdateInputsItem struct {
 	// ID of the ResourceDefinition entity, tries to retrieve the entity with the following unique index parts if no ID provided.
 	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
-	// Type of the ResourceDefinition entity, a part of the unique index.
-	Type string `path:"-" query:"-" json:"type,omitempty"`
+	// Name of the ResourceDefinition entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 
 	// Description holds the value of the "description" field.
 	Description string `path:"-" query:"-" json:"description,omitempty"`
@@ -738,7 +738,7 @@ func (rdui *ResourceDefinitionUpdateInputs) Model() []*ResourceDefinition {
 	for i := range rdui.Items {
 		_rd := &ResourceDefinition{
 			ID:          rdui.Items[i].ID,
-			Type:        rdui.Items[i].Type,
+			Name:        rdui.Items[i].Name,
 			Description: rdui.Items[i].Description,
 			Labels:      rdui.Items[i].Labels,
 			UiSchema:    rdui.Items[i].UiSchema,
@@ -814,10 +814,10 @@ func (rdui *ResourceDefinitionUpdateInputs) ValidateWith(ctx context.Context, cs
 			ids = append(ids, rdui.Items[i].ID)
 			ors = append(ors, resourcedefinition.ID(rdui.Items[i].ID))
 			indexers[rdui.Items[i].ID] = append(indexers[rdui.Items[i].ID], i)
-		} else if rdui.Items[i].Type != "" {
+		} else if rdui.Items[i].Name != "" {
 			ors = append(ors, resourcedefinition.And(
-				resourcedefinition.Type(rdui.Items[i].Type)))
-			indexerKey := fmt.Sprint("/", rdui.Items[i].Type)
+				resourcedefinition.Name(rdui.Items[i].Name)))
+			indexerKey := fmt.Sprint("/", rdui.Items[i].Name)
 			indexers[indexerKey] = append(indexers[indexerKey], i)
 		} else {
 			return errors.New("found item hasn't identify")
@@ -833,7 +833,7 @@ func (rdui *ResourceDefinitionUpdateInputs) ValidateWith(ctx context.Context, cs
 		Where(p).
 		Select(
 			resourcedefinition.FieldID,
-			resourcedefinition.FieldType,
+			resourcedefinition.FieldName,
 		).
 		All(ctx)
 	if err != nil {
@@ -847,12 +847,12 @@ func (rdui *ResourceDefinitionUpdateInputs) ValidateWith(ctx context.Context, cs
 	for i := range es {
 		indexer := indexers[es[i].ID]
 		if indexer == nil {
-			indexerKey := fmt.Sprint("/", es[i].Type)
+			indexerKey := fmt.Sprint("/", es[i].Name)
 			indexer = indexers[indexerKey]
 		}
 		for _, j := range indexer {
 			rdui.Items[j].ID = es[i].ID
-			rdui.Items[j].Type = es[i].Type
+			rdui.Items[j].Name = es[i].Name
 		}
 	}
 

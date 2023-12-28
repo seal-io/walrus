@@ -1156,6 +1156,24 @@ func (u *ResourceUpsert) ClearTemplateID() *ResourceUpsert {
 	return u
 }
 
+// SetResourceDefinitionID sets the "resource_definition_id" field.
+func (u *ResourceUpsert) SetResourceDefinitionID(v object.ID) *ResourceUpsert {
+	u.Set(resource.FieldResourceDefinitionID, v)
+	return u
+}
+
+// UpdateResourceDefinitionID sets the "resource_definition_id" field to the value that was provided on create.
+func (u *ResourceUpsert) UpdateResourceDefinitionID() *ResourceUpsert {
+	u.SetExcluded(resource.FieldResourceDefinitionID)
+	return u
+}
+
+// ClearResourceDefinitionID clears the value of the "resource_definition_id" field.
+func (u *ResourceUpsert) ClearResourceDefinitionID() *ResourceUpsert {
+	u.SetNull(resource.FieldResourceDefinitionID)
+	return u
+}
+
 // SetResourceDefinitionMatchingRuleID sets the "resource_definition_matching_rule_id" field.
 func (u *ResourceUpsert) SetResourceDefinitionMatchingRuleID(v object.ID) *ResourceUpsert {
 	u.Set(resource.FieldResourceDefinitionMatchingRuleID, v)
@@ -1277,9 +1295,6 @@ func (u *ResourceUpsertOne) UpdateNewValues() *ResourceUpsertOne {
 		}
 		if _, exists := u.create.mutation.GetType(); exists {
 			s.SetIgnore(resource.FieldType)
-		}
-		if _, exists := u.create.mutation.ResourceDefinitionID(); exists {
-			s.SetIgnore(resource.FieldResourceDefinitionID)
 		}
 	}))
 	return u
@@ -1428,6 +1443,27 @@ func (u *ResourceUpsertOne) UpdateTemplateID() *ResourceUpsertOne {
 func (u *ResourceUpsertOne) ClearTemplateID() *ResourceUpsertOne {
 	return u.Update(func(s *ResourceUpsert) {
 		s.ClearTemplateID()
+	})
+}
+
+// SetResourceDefinitionID sets the "resource_definition_id" field.
+func (u *ResourceUpsertOne) SetResourceDefinitionID(v object.ID) *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.SetResourceDefinitionID(v)
+	})
+}
+
+// UpdateResourceDefinitionID sets the "resource_definition_id" field to the value that was provided on create.
+func (u *ResourceUpsertOne) UpdateResourceDefinitionID() *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.UpdateResourceDefinitionID()
+	})
+}
+
+// ClearResourceDefinitionID clears the value of the "resource_definition_id" field.
+func (u *ResourceUpsertOne) ClearResourceDefinitionID() *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.ClearResourceDefinitionID()
 	})
 }
 
@@ -1732,9 +1768,6 @@ func (u *ResourceUpsertBulk) UpdateNewValues() *ResourceUpsertBulk {
 			if _, exists := b.mutation.GetType(); exists {
 				s.SetIgnore(resource.FieldType)
 			}
-			if _, exists := b.mutation.ResourceDefinitionID(); exists {
-				s.SetIgnore(resource.FieldResourceDefinitionID)
-			}
 		}
 	}))
 	return u
@@ -1883,6 +1916,27 @@ func (u *ResourceUpsertBulk) UpdateTemplateID() *ResourceUpsertBulk {
 func (u *ResourceUpsertBulk) ClearTemplateID() *ResourceUpsertBulk {
 	return u.Update(func(s *ResourceUpsert) {
 		s.ClearTemplateID()
+	})
+}
+
+// SetResourceDefinitionID sets the "resource_definition_id" field.
+func (u *ResourceUpsertBulk) SetResourceDefinitionID(v object.ID) *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.SetResourceDefinitionID(v)
+	})
+}
+
+// UpdateResourceDefinitionID sets the "resource_definition_id" field to the value that was provided on create.
+func (u *ResourceUpsertBulk) UpdateResourceDefinitionID() *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.UpdateResourceDefinitionID()
+	})
+}
+
+// ClearResourceDefinitionID clears the value of the "resource_definition_id" field.
+func (u *ResourceUpsertBulk) ClearResourceDefinitionID() *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.ClearResourceDefinitionID()
 	})
 }
 

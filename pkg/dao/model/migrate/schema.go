@@ -496,7 +496,7 @@ var (
 		Indexes: []*schema.Index{
 			{
 				Name:    "resourcedefinition_type",
-				Unique:  true,
+				Unique:  false,
 				Columns: []*schema.Column{ResourceDefinitionsColumns[7]},
 			},
 			{
