@@ -24,8 +24,7 @@ func (ResourceDefinition) Mixin() []ent.Mixin {
 
 func (ResourceDefinition) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("type").
-			Unique(),
+		index.Fields("type"),
 		index.Fields("name").
 			Unique(),
 	}
