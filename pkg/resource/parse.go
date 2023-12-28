@@ -1,9 +1,10 @@
-package terraform
+package resource
 
 import (
 	"bytes"
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
@@ -17,16 +18,38 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
-	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	"github.com/seal-io/walrus/pkg/terraform/parser"
 	"github.com/seal-io/walrus/utils/json"
 )
 
-type RevisionOpts struct {
+const (
+	// VariablePrefix the prefix of the variable name.
+	VariablePrefix = "_walrus_var_"
+
+	// ResourcePrefix the prefix of the service output name.
+	ResourcePrefix = "_walrus_res_"
+)
+
+var (
+	// _variableReg the regexp to match the variable.
+	_variableReg = regexp.MustCompile(`\${var\.([a-zA-Z0-9_-]+)}`)
+	// _resourceReg the regexp to match the service/resource output.
+	_resourceReg = regexp.MustCompile(`\${(svc|res)\.([^.}]+)\.([^.}]+)}`)
+	// _interpolationReg is the regular expression for matching non-reference or non-variable expressions.
+	// Reference: https://developer.hashicorp.com/terraform/language/expressions/strings#escape-sequences-1
+	// To handle escape sequences, ${xxx} is converted to $${xxx}.
+	// If there are more than two consecutive $ symbols, like $${xxx}, they are further converted to $$${xxx}.
+	// During Terraform processing, $${} is ultimately transformed back to ${},
+	// this interpolation is used to ensuring a WYSIWYG user experience.
+	_interpolationReg = regexp.MustCompile(`\$\{((var\.)?([^.}]+)(?:\.([^.}]+))?)[^\}]*\}`)
+)
+
+type ParseAttributesOptions struct {
 	ResourceRevision *model.ResourceRevision
 
-	ResourceName string
-
+	// OnlyValidated only validate the attributes.
+	OnlyValidated bool
+	ResourceName  string
 	ProjectID     object.ID
 	EnvironmentID object.ID
 }
@@ -36,15 +59,14 @@ func ParseModuleAttributes(
 	ctx context.Context,
 	mc model.ClientSet,
 	attributes map[string]any,
-	onlyValidated bool,
-	opts RevisionOpts,
+	opts ParseAttributesOptions,
 ) (attrs map[string]any, variables model.Variables, outputs map[string]parser.OutputState, err error) {
 	var (
 		templateVariables         []string
 		dependencyResourceOutputs []string
 	)
 
-	replaced := !onlyValidated
+	replaced := !opts.OnlyValidated
 
 	attrs, templateVariables, dependencyResourceOutputs, err = parseAttributeReplace(attributes, replaced)
 	if err != nil {
@@ -66,7 +88,7 @@ func ParseModuleAttributes(
 		}
 	}
 
-	if !onlyValidated {
+	if !opts.OnlyValidated {
 		dependOutputMap := toDependOutputMap(dependencyResourceOutputs)
 
 		outputs, err = getResourceDependencyOutputsByID(
@@ -88,22 +110,6 @@ func ParseModuleAttributes(
 	}
 
 	return attrs, variables, outputs, nil
-}
-
-// toDependOutputMap splits the dependencyResourceOutputs from {service/resource}_{resource_name}_{output_name}
-// to a map of {resource_name}_{output_name}:{service/resource}.
-func toDependOutputMap(dependencyResourceOutputs []string) map[string]string {
-	dependOutputMap := make(map[string]string, 0)
-
-	for _, dependOutput := range dependencyResourceOutputs {
-		ss := strings.SplitN(dependOutput, "_", 2)
-		if len(ss) != 2 {
-			continue
-		}
-		dependOutputMap[ss[1]] = ss[0]
-	}
-
-	return dependOutputMap
 }
 
 // parseAttributeReplace parses attribute variable ${var.name} replaces it with ${var._variablePrefix+name},
@@ -142,10 +148,10 @@ func parseAttributeReplace(
 		}
 	}
 
-	variableRepl := "${var." + _variablePrefix + "${1}}"
+	variableRepl := "${var." + VariablePrefix + "${1}}"
 	bs = _variableReg.ReplaceAll(bs, []byte(variableRepl))
 
-	resourceRepl := "${var." + _resourcePrefix + "${2}_${3}}"
+	resourceRepl := "${var." + ResourcePrefix + "${2}_${3}}"
 	bs = _resourceReg.ReplaceAll(bs, []byte(resourceRepl))
 
 	// Replace interpolation from ${} to $${} to avoid escape sequences.
@@ -282,6 +288,22 @@ func getVariables(
 	return variables, nil
 }
 
+// toDependOutputMap splits the dependencyResourceOutputs from {service/resource}_{resource_name}_{output_name}
+// to a map of {resource_name}_{output_name}:{service/resource}.
+func toDependOutputMap(dependencyResourceOutputs []string) map[string]string {
+	dependOutputMap := make(map[string]string, 0)
+
+	for _, dependOutput := range dependencyResourceOutputs {
+		ss := strings.SplitN(dependOutput, "_", 2)
+		if len(ss) != 2 {
+			continue
+		}
+		dependOutputMap[ss[1]] = ss[0]
+	}
+
+	return dependOutputMap
+}
+
 // getResourceDependencyOutputsByID gets the dependency outputs of the resource by resource id.
 func getResourceDependencyOutputsByID(
 	ctx context.Context,
@@ -371,7 +393,7 @@ func getServiceDependencyOutputs(
 				continue
 			}
 
-			if outputRefKind == "service" && !pkgresource.IsService(r.Edges.Resource) {
+			if outputRefKind == "service" && !IsService(r.Edges.Resource) {
 				// An output reference in format ${service.name.output_name} only applies to resource of service type.
 				continue
 			}

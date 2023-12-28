@@ -287,6 +287,10 @@ func loadTerraformBlock(opts *TerraformOptions) *block.Block {
 
 // loadProviderBlocks returns config providers to get terraform provider config block.
 func loadProviderBlocks(opts *ProviderOptions) (block.Blocks, error) {
+	if opts.SecretMonthPath == "" {
+		opts.SecretMonthPath = "./"
+	}
+
 	return convertor.ToProvidersBlocks(opts.RequiredProviderNames, opts.Connectors, convertor.ConvertOptions{
 		SecretMountPath: opts.SecretMonthPath,
 		ConnSeparator:   opts.ConnectorSeparator,

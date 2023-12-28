@@ -21,7 +21,6 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
-	"github.com/seal-io/walrus/pkg/deployer/terraform"
 	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	"github.com/seal-io/walrus/pkg/resourcedefinitions"
 	"github.com/seal-io/walrus/pkg/terraform/convertor"
@@ -512,12 +511,13 @@ func validateVariable(
 		attrs[k] = string(json.ShouldMarshal(v))
 	}
 
-	opts := terraform.RevisionOpts{
-		ResourceName:  resourceName,
+	opts := pkgresource.ParseAttributesOptions{
+		OnlyValidated: true,
 		ProjectID:     projectID,
 		EnvironmentID: environmentID,
+		ResourceName:  resourceName,
 	}
-	_, _, _, err := terraform.ParseModuleAttributes(ctx, mc, attrs, true, opts)
+	_, _, _, err := pkgresource.ParseModuleAttributes(ctx, mc, attrs, opts)
 
 	return err
 }

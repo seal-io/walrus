@@ -1,4 +1,4 @@
-package terraform
+package resource
 
 import (
 	"fmt"

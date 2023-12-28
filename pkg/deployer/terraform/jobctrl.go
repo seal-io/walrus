@@ -31,6 +31,8 @@ import (
 const (
 	JobTypeApply   = "apply"
 	JobTypeDestroy = "destroy"
+
+	SecretMountPath = "/var/terraform/secrets"
 )
 
 type JobCreateOptions struct {
