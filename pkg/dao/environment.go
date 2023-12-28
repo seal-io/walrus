@@ -4,6 +4,7 @@ import (
 	"context"
 	stdsql "database/sql"
 	"errors"
+	"strings"
 
 	"entgo.io/ent/dialect/sql"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -103,7 +104,49 @@ func EnvironmentConnectorsEdgeSave(ctx context.Context, mc model.ClientSet, enti
 		}
 	}
 
+	err = updateProviderLabels(ctx, mc, entity, newItemIDs)
+	if err != nil {
+		return err
+	}
+
 	return nil
+}
+
+// updateProviderLabels updates the labels of model.Environment entity by connector types.
+func updateProviderLabels(
+	ctx context.Context,
+	mc model.ClientSet,
+	entity *model.Environment,
+	newItemIDs []object.ID,
+) error {
+	const (
+		providerLabelPrefix = "walrus.seal.io/provider-"
+		labelValueTrue      = "true"
+	)
+
+	for k := range entity.Labels {
+		if strings.HasPrefix(k, providerLabelPrefix) {
+			delete(entity.Labels, k)
+		}
+	}
+
+	if len(newItemIDs) != 0 {
+		conns, err := mc.Connectors().Query().
+			Where(connector.IDIn(newItemIDs...)).
+			Select(connector.FieldType).
+			All(ctx)
+		if err != nil {
+			return err
+		}
+
+		for _, conn := range conns {
+			entity.Labels[providerLabelPrefix+strings.ToLower(conn.Type)] = labelValueTrue
+		}
+	}
+
+	return mc.Environments().UpdateOne(entity).
+		SetLabels(entity.Labels).
+		Exec(ctx)
 }
 
 // EnvironmentVariablesEdgeSave saves the edge variables of model.Environment entity.
