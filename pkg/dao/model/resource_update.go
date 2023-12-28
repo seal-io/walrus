@@ -23,6 +23,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
@@ -138,6 +139,26 @@ func (ru *ResourceUpdate) ClearTemplateID() *ResourceUpdate {
 	return ru
 }
 
+// SetResourceDefinitionID sets the "resource_definition_id" field.
+func (ru *ResourceUpdate) SetResourceDefinitionID(o object.ID) *ResourceUpdate {
+	ru.mutation.SetResourceDefinitionID(o)
+	return ru
+}
+
+// SetNillableResourceDefinitionID sets the "resource_definition_id" field if the given value is not nil.
+func (ru *ResourceUpdate) SetNillableResourceDefinitionID(o *object.ID) *ResourceUpdate {
+	if o != nil {
+		ru.SetResourceDefinitionID(*o)
+	}
+	return ru
+}
+
+// ClearResourceDefinitionID clears the value of the "resource_definition_id" field.
+func (ru *ResourceUpdate) ClearResourceDefinitionID() *ResourceUpdate {
+	ru.mutation.ClearResourceDefinitionID()
+	return ru
+}
+
 // SetResourceDefinitionMatchingRuleID sets the "resource_definition_matching_rule_id" field.
 func (ru *ResourceUpdate) SetResourceDefinitionMatchingRuleID(o object.ID) *ResourceUpdate {
 	ru.mutation.SetResourceDefinitionMatchingRuleID(o)
@@ -225,6 +246,11 @@ func (ru *ResourceUpdate) SetTemplate(t *TemplateVersion) *ResourceUpdate {
 	return ru.SetTemplateID(t.ID)
 }
 
+// SetResourceDefinition sets the "resource_definition" edge to the ResourceDefinition entity.
+func (ru *ResourceUpdate) SetResourceDefinition(r *ResourceDefinition) *ResourceUpdate {
+	return ru.SetResourceDefinitionID(r.ID)
+}
+
 // SetResourceDefinitionMatchingRule sets the "resource_definition_matching_rule" edge to the ResourceDefinitionMatchingRule entity.
 func (ru *ResourceUpdate) SetResourceDefinitionMatchingRule(r *ResourceDefinitionMatchingRule) *ResourceUpdate {
 	return ru.SetResourceDefinitionMatchingRuleID(r.ID)
@@ -283,6 +309,12 @@ func (ru *ResourceUpdate) Mutation() *ResourceMutation {
 // ClearTemplate clears the "template" edge to the TemplateVersion entity.
 func (ru *ResourceUpdate) ClearTemplate() *ResourceUpdate {
 	ru.mutation.ClearTemplate()
+	return ru
+}
+
+// ClearResourceDefinition clears the "resource_definition" edge to the ResourceDefinition entity.
+func (ru *ResourceUpdate) ClearResourceDefinition() *ResourceUpdate {
+	ru.mutation.ClearResourceDefinition()
 	return ru
 }
 
@@ -462,6 +494,9 @@ func (ru *ResourceUpdate) Set(obj *Resource) *ResourceUpdate {
 	} else {
 		ru.ClearTemplateID()
 	}
+	if obj.ResourceDefinitionID != nil {
+		ru.SetResourceDefinitionID(*obj.ResourceDefinitionID)
+	}
 	if obj.ResourceDefinitionMatchingRuleID != nil {
 		ru.SetResourceDefinitionMatchingRuleID(*obj.ResourceDefinitionMatchingRuleID)
 	}
@@ -597,6 +632,37 @@ func (ru *ResourceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(templateversion.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = ru.schemaConfig.Resource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ru.mutation.ResourceDefinitionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   resource.ResourceDefinitionTable,
+			Columns: []string{resource.ResourceDefinitionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcedefinition.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = ru.schemaConfig.Resource
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.ResourceDefinitionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   resource.ResourceDefinitionTable,
+			Columns: []string{resource.ResourceDefinitionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcedefinition.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = ru.schemaConfig.Resource
@@ -895,6 +961,26 @@ func (ruo *ResourceUpdateOne) ClearTemplateID() *ResourceUpdateOne {
 	return ruo
 }
 
+// SetResourceDefinitionID sets the "resource_definition_id" field.
+func (ruo *ResourceUpdateOne) SetResourceDefinitionID(o object.ID) *ResourceUpdateOne {
+	ruo.mutation.SetResourceDefinitionID(o)
+	return ruo
+}
+
+// SetNillableResourceDefinitionID sets the "resource_definition_id" field if the given value is not nil.
+func (ruo *ResourceUpdateOne) SetNillableResourceDefinitionID(o *object.ID) *ResourceUpdateOne {
+	if o != nil {
+		ruo.SetResourceDefinitionID(*o)
+	}
+	return ruo
+}
+
+// ClearResourceDefinitionID clears the value of the "resource_definition_id" field.
+func (ruo *ResourceUpdateOne) ClearResourceDefinitionID() *ResourceUpdateOne {
+	ruo.mutation.ClearResourceDefinitionID()
+	return ruo
+}
+
 // SetResourceDefinitionMatchingRuleID sets the "resource_definition_matching_rule_id" field.
 func (ruo *ResourceUpdateOne) SetResourceDefinitionMatchingRuleID(o object.ID) *ResourceUpdateOne {
 	ruo.mutation.SetResourceDefinitionMatchingRuleID(o)
@@ -982,6 +1068,11 @@ func (ruo *ResourceUpdateOne) SetTemplate(t *TemplateVersion) *ResourceUpdateOne
 	return ruo.SetTemplateID(t.ID)
 }
 
+// SetResourceDefinition sets the "resource_definition" edge to the ResourceDefinition entity.
+func (ruo *ResourceUpdateOne) SetResourceDefinition(r *ResourceDefinition) *ResourceUpdateOne {
+	return ruo.SetResourceDefinitionID(r.ID)
+}
+
 // SetResourceDefinitionMatchingRule sets the "resource_definition_matching_rule" edge to the ResourceDefinitionMatchingRule entity.
 func (ruo *ResourceUpdateOne) SetResourceDefinitionMatchingRule(r *ResourceDefinitionMatchingRule) *ResourceUpdateOne {
 	return ruo.SetResourceDefinitionMatchingRuleID(r.ID)
@@ -1040,6 +1131,12 @@ func (ruo *ResourceUpdateOne) Mutation() *ResourceMutation {
 // ClearTemplate clears the "template" edge to the TemplateVersion entity.
 func (ruo *ResourceUpdateOne) ClearTemplate() *ResourceUpdateOne {
 	ruo.mutation.ClearTemplate()
+	return ruo
+}
+
+// ClearResourceDefinition clears the "resource_definition" edge to the ResourceDefinition entity.
+func (ruo *ResourceUpdateOne) ClearResourceDefinition() *ResourceUpdateOne {
+	ruo.mutation.ClearResourceDefinition()
 	return ruo
 }
 
@@ -1252,6 +1349,11 @@ func (ruo *ResourceUpdateOne) Set(obj *Resource) *ResourceUpdateOne {
 			} else {
 				ruo.ClearTemplateID()
 			}
+			if obj.ResourceDefinitionID != nil {
+				if !reflect.DeepEqual(db.ResourceDefinitionID, obj.ResourceDefinitionID) {
+					ruo.SetResourceDefinitionID(*obj.ResourceDefinitionID)
+				}
+			}
 			if obj.ResourceDefinitionMatchingRuleID != nil {
 				if !reflect.DeepEqual(db.ResourceDefinitionMatchingRuleID, obj.ResourceDefinitionMatchingRuleID) {
 					ruo.SetResourceDefinitionMatchingRuleID(*obj.ResourceDefinitionMatchingRuleID)
@@ -1349,6 +1451,9 @@ func (ruo *ResourceUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context
 		}
 		if _, set := ruo.mutation.Field(resource.FieldTemplateID); set {
 			obj.TemplateID = x.TemplateID
+		}
+		if _, set := ruo.mutation.Field(resource.FieldResourceDefinitionID); set {
+			obj.ResourceDefinitionID = x.ResourceDefinitionID
 		}
 		if _, set := ruo.mutation.Field(resource.FieldResourceDefinitionMatchingRuleID); set {
 			obj.ResourceDefinitionMatchingRuleID = x.ResourceDefinitionMatchingRuleID
@@ -1517,6 +1622,37 @@ func (ruo *ResourceUpdateOne) sqlSave(ctx context.Context) (_node *Resource, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(templateversion.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = ruo.schemaConfig.Resource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ruo.mutation.ResourceDefinitionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   resource.ResourceDefinitionTable,
+			Columns: []string{resource.ResourceDefinitionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcedefinition.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = ruo.schemaConfig.Resource
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.ResourceDefinitionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   resource.ResourceDefinitionTable,
+			Columns: []string{resource.ResourceDefinitionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcedefinition.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = ruo.schemaConfig.Resource

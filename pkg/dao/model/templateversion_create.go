@@ -295,6 +295,11 @@ func (tvc *TemplateVersionCreate) check() error {
 	if _, ok := tvc.mutation.UiSchema(); !ok {
 		return &ValidationError{Name: "uiSchema", err: errors.New(`model: missing required field "TemplateVersion.uiSchema"`)}
 	}
+	if v, ok := tvc.mutation.UiSchema(); ok {
+		if err := v.Validate(); err != nil {
+			return &ValidationError{Name: "uiSchema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.uiSchema": %w`, err)}
+		}
+	}
 	if _, ok := tvc.mutation.TemplateID(); !ok {
 		return &ValidationError{Name: "template", err: errors.New(`model: missing required edge "TemplateVersion.template"`)}
 	}

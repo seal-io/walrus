@@ -215,6 +215,11 @@ func (tvu *TemplateVersionUpdate) check() error {
 			return &ValidationError{Name: "schema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.schema": %w`, err)}
 		}
 	}
+	if v, ok := tvu.mutation.UiSchema(); ok {
+		if err := v.Validate(); err != nil {
+			return &ValidationError{Name: "uiSchema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.uiSchema": %w`, err)}
+		}
+	}
 	if _, ok := tvu.mutation.TemplateID(); tvu.mutation.TemplateCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "TemplateVersion.template"`)
 	}
@@ -608,6 +613,11 @@ func (tvuo *TemplateVersionUpdateOne) check() error {
 	if v, ok := tvuo.mutation.Schema(); ok {
 		if err := v.Validate(); err != nil {
 			return &ValidationError{Name: "schema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.schema": %w`, err)}
+		}
+	}
+	if v, ok := tvuo.mutation.UiSchema(); ok {
+		if err := v.Validate(); err != nil {
+			return &ValidationError{Name: "uiSchema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.uiSchema": %w`, err)}
 		}
 	}
 	if _, ok := tvuo.mutation.TemplateID(); tvuo.mutation.TemplateCleared() && !ok {
