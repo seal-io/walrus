@@ -42,6 +42,7 @@ func NewRootCmd() *cobra.Command {
 		NewApplyCmd(),
 		NewDeleteCmd(),
 		NewVersionCmd(),
+		NewLocalCmd(),
 	)
 
 	cmd.SetHelpTemplate(helpTemplate)
@@ -58,6 +59,10 @@ func NewRootCmd() *cobra.Command {
 // NewConfigCmd generate config command.
 func NewConfigCmd(root *cobra.Command) *cobra.Command {
 	return pkgcmd.NewConfigCmd(serverConfig, root)
+}
+
+func NewLocalCmd() *cobra.Command {
+	return pkgcmd.NewLocalCmd()
 }
 
 // NewSchemaCmd generate ui schema command.

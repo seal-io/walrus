@@ -60,10 +60,6 @@ func (c *Config) ValidateAndSetup() error {
 		return errors.New("endpoint is required")
 	}
 
-	if c.Token == "" {
-		return errors.New("token is required")
-	}
-
 	err := c.validateProject()
 	if err != nil {
 		return err
