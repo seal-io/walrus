@@ -7,14 +7,12 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/deployer/terraform"
 	pkgenv "github.com/seal-io/walrus/pkg/environment"
-	"github.com/seal-io/walrus/pkg/resourcedefinitions"
 	"github.com/seal-io/walrus/utils/json"
 )
 
@@ -63,42 +61,24 @@ func genComputedAttributes(
 			return nil, err
 		}
 
-	case entity.ResourceDefinitionID != nil:
-		rd, err := modelClient.ResourceDefinitions().Query().
-			Where(resourcedefinition.ID(*entity.ResourceDefinitionID)).
-			WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
-				rq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
-					Select(
-						resourcedefinitionmatchingrule.FieldTemplateID,
-						resourcedefinitionmatchingrule.FieldResourceDefinitionID,
-						resourcedefinitionmatchingrule.FieldAttributes,
-						resourcedefinitionmatchingrule.FieldSchemaDefaultValue).
-					Unique(false).
-					WithTemplate(func(tq *model.TemplateVersionQuery) {
-						tq.Select(
-							templateversion.FieldID,
-							templateversion.FieldSchemaDefaultValue,
-						)
-					})
-			}).
+	case entity.ResourceDefinitionMatchingRuleID != nil:
+		rule, err := modelClient.ResourceDefinitionMatchingRules().Query().
+			Where(resourcedefinitionmatchingrule.ID(*entity.ResourceDefinitionMatchingRuleID)).
 			Select(
-				resourcedefinition.FieldID,
-				resourcedefinition.FieldName).
+				resourcedefinitionmatchingrule.FieldTemplateID,
+				resourcedefinitionmatchingrule.FieldResourceDefinitionID,
+				resourcedefinitionmatchingrule.FieldAttributes,
+				resourcedefinitionmatchingrule.FieldSchemaDefaultValue,
+			).
+			WithTemplate(func(tq *model.TemplateVersionQuery) {
+				tq.Select(
+					templateversion.FieldID,
+					templateversion.FieldSchemaDefaultValue,
+				)
+			}).
 			Only(ctx)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get resource definition: %w", err)
-		}
-
-		rule := resourcedefinitions.Match(
-			rd.Edges.MatchingRules,
-			env.Edges.Project.Name,
-			env.Name,
-			env.Type,
-			env.Labels,
-			entity.Labels,
-		)
-		if rule == nil {
-			return nil, fmt.Errorf("resource definition %s does not match environment %s", rd.Name, env.Name)
+			return nil, fmt.Errorf("failed to get resource definition matching rule: %w", err)
 		}
 
 		computedAttrs, err = computedAttributeWithResourceDefinition(wctx, entity.Attributes, rule)

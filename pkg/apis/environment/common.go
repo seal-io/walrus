@@ -93,25 +93,16 @@ func createEnvironment(
 }
 
 func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
-	for _, res := range r.Resources {
-		if res == nil {
-			return errors.New("empty resource")
-		}
-
-		if err := validation.IsDNSLabel(res.Name); err != nil {
-			return fmt.Errorf("invalid resource name: %w", err)
-		}
-
-		if res.Type != "" {
-			// Resource type maps to type in definition edge.
-			res.ResourceDefinition = &model.ResourceDefinitionQueryInput{
-				Type: res.Type,
-			}
-		}
+	var err error
+	if err = r.Validate(); err != nil {
+		return err
 	}
 
-	if err := r.Validate(); err != nil {
-		return err
+	cache := make(map[string][]*model.ResourceDefinition)
+
+	project, err := r.Client.Projects().Get(r.Context, r.Project.ID)
+	if err != nil {
+		return fmt.Errorf("failed to get project: %w", err)
 	}
 
 	if err := validation.IsDNSLabel(r.Name); err != nil {
@@ -134,13 +125,10 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 
 	// Collects template version and resource definition info.
 	tvIDs := make([]object.ID, 0, len(r.Resources))
-	resourceTypes := make([]string, 0, len(r.Resources))
 
 	for _, res := range r.Resources {
 		if res.Template != nil {
 			tvIDs = append(tvIDs, res.Template.ID)
-		} else if res.Type != "" {
-			resourceTypes = append(resourceTypes, res.Type)
 		}
 	}
 
@@ -164,38 +152,15 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 		tvm[tvs[i].ID] = tvs[i]
 	}
 
-	// Get resource definitions.
-	rds, err := r.Client.ResourceDefinitions().Query().
-		Where(resourcedefinition.TypeIn(resourceTypes...)).
-		Select(
-			resourcedefinition.FieldID,
-			resourcedefinition.FieldName,
-			resourcedefinition.FieldType,
-		).
-		WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
-			rq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
-				Select(resourcedefinitionmatchingrule.FieldResourceDefinitionID).
-				Unique(false).
-				Select(resourcedefinitionmatchingrule.FieldTemplateID).
-				WithTemplate(func(tq *model.TemplateVersionQuery) {
-					tq.Select(
-						templateversion.FieldID,
-						templateversion.FieldVersion,
-						templateversion.FieldName,
-					)
-				})
-		}).
-		All(r.Context)
-	if err != nil {
-		return fmt.Errorf("failed to get resource definition: %w", err)
-	}
-
-	rdm := make(map[string]*model.ResourceDefinition, len(rds))
-	for _, rd := range rds {
-		rdm[rd.Type] = rd
-	}
-
 	for _, res := range r.Resources {
+		if res == nil {
+			return errors.New("empty resource")
+		}
+
+		if err := validation.IsDNSLabel(res.Name); err != nil {
+			return fmt.Errorf("invalid resource name: %w", err)
+		}
+
 		switch {
 		case res.Template != nil:
 			// Verify attributes with schema.
@@ -212,17 +177,52 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 				}
 			}
 		case res.Type != "":
-			rule := resourcedefinitions.Match(
-				rdm[res.Type].Edges.MatchingRules,
-				r.Project.Name,
-				r.Name,
-				r.Type,
-				r.Labels,
-				res.Labels,
-			)
-			if rule == nil {
-				return fmt.Errorf("no matching resource definition for %q", res.Name)
+			definitions, ok := cache[res.Type]
+			if !ok {
+				definitions, err = r.Client.ResourceDefinitions().Query().
+					Where(resourcedefinition.Type(res.Type)).
+					Select(
+						resourcedefinition.FieldID,
+						resourcedefinition.FieldName,
+						resourcedefinition.FieldType,
+					).
+					WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
+						rq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
+							Select(
+								resourcedefinitionmatchingrule.FieldName,
+								resourcedefinitionmatchingrule.FieldSelector,
+							)
+					}).
+					All(r.Context)
+				if err != nil {
+					return fmt.Errorf("failed to get resource definitions: %w", err)
+				}
+				cache[res.Type] = definitions
 			}
+
+			def, rule := resourcedefinitions.MatchResourceDefinition(definitions, types.MatchResourceMetadata{
+				ProjectName:       project.Name,
+				EnvironmentName:   r.Name,
+				EnvironmentType:   r.Type,
+				ProjectLabels:     project.Labels,
+				EnvironmentLabels: r.Labels,
+				ResourceLabels:    res.Labels,
+			})
+
+			if def == nil {
+				return fmt.Errorf("find no mathcing resource definition for resource %s", res.Name)
+			}
+
+			// Mutate definition edge according to matching resource definition.
+			res.ResourceDefinition = &model.ResourceDefinitionQueryInput{
+				ID: def.ID,
+			}
+
+			res.ResourceDefinitionMatchingRule = &model.ResourceDefinitionMatchingRuleQueryInput{
+				ID: rule.ID,
+			}
+		default:
+			return fmt.Errorf("invalid resource: missing type or template")
 		}
 	}
 

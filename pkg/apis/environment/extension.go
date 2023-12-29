@@ -237,7 +237,17 @@ func (h Handler) RouteClone(req RouteCloneEnvironmentRequest) (*RouteCloneEnviro
 func (h Handler) RouteGetResourceDefinitions(
 	req RouteGetResourceDefinitionsRequest,
 ) (RouteGetResourceDefinitionsResponse, error) {
-	rds, err := h.modelClient.ResourceDefinitions().Query().
+	env, err := h.modelClient.Environments().Query().
+		Where(environment.ID(req.ID)).
+		WithProject(func(pq *model.ProjectQuery) {
+			pq.Select(project.FieldName, project.FieldLabels)
+		}).
+		Only(req.Context)
+	if err != nil {
+		return nil, err
+	}
+
+	definitions, err := h.modelClient.ResourceDefinitions().Query().
 		WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
 			rq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
 				Unique(false).
@@ -259,32 +269,29 @@ func (h Handler) RouteGetResourceDefinitions(
 		return nil, err
 	}
 
-	env, err := h.modelClient.Environments().Query().
-		Where(environment.ID(req.ID)).
-		WithProject(func(pq *model.ProjectQuery) {
-			pq.Select(project.FieldName)
-		}).
-		Only(req.Context)
-	if err != nil {
-		return nil, err
+	definitionsByType := make(map[string][]*model.ResourceDefinition)
+
+	for _, rd := range definitions {
+		definitionsByType[rd.Type] = append(definitionsByType[rd.Type], rd)
 	}
 
-	var availableRds []*model.ResourceDefinition
+	availableDefinitions := make([]*model.ResourceDefinition, 0, len(definitionsByType))
 
-	for _, rd := range rds {
-		m := resourcedefinitions.MatchEnvironment(
-			rd.Edges.MatchingRules,
-			env.Edges.Project.Name,
-			env.Name,
-			env.Type,
-			env.Labels,
-		)
-		if m != nil {
-			availableRds = append(availableRds, rd)
+	for _, rds := range definitionsByType {
+		rd, _ := resourcedefinitions.MatchResourceDefinition(rds, types.MatchResourceMetadata{
+			ProjectName:       env.Edges.Project.Name,
+			EnvironmentName:   env.Name,
+			EnvironmentType:   env.Type,
+			ProjectLabels:     env.Edges.Project.Labels,
+			EnvironmentLabels: env.Labels,
+		})
+
+		if rd != nil {
+			availableDefinitions = append(availableDefinitions, rd)
 		}
 	}
 
-	return dao.ExposeResourceDefinitions(availableRds), nil
+	return dao.ExposeResourceDefinitions(availableDefinitions), nil
 }
 
 func (h Handler) RouteStart(req RouteStartRequest) error {
