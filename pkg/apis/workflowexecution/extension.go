@@ -9,6 +9,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/workflowstepexecution"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	pkgworkflow "github.com/seal-io/walrus/pkg/workflow"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 func (h Handler) RouteRerunRequest(req RouteRerunRequest) error {
@@ -39,6 +40,8 @@ func (h Handler) RouteRerunRequest(req RouteRerunRequest) error {
 
 // RouteStopRequest terminates the workflow execution.
 func (h Handler) RouteStopRequest(req RouteStopRequest) error {
+	logger := log.WithName("api").WithName("workflow")
+
 	entity, err := h.modelClient.WorkflowExecutions().Query().
 		Where(workflowexecution.ID(req.ID)).
 		Only(req.Context)
@@ -46,7 +49,34 @@ func (h Handler) RouteStopRequest(req RouteStopRequest) error {
 		return err
 	}
 
-	return h.workflowClient.Terminate(req.Context, pkgworkflow.TerminateOptions{
+	status.WorkflowExecutionStatusCanceled.Reset(entity, "")
+	entity.Status.SetSummary(status.WalkWorkflowExecution(&entity.Status))
+
+	entity, err = h.modelClient.WorkflowExecutions().UpdateOne(entity).
+		SetStatus(entity.Status).
+		Where(workflowexecution.ID(entity.ID)).
+		Save(req.Context)
+	if err != nil {
+		return err
+	}
+
+	err = h.workflowClient.Terminate(req.Context, pkgworkflow.TerminateOptions{
 		WorkflowExecution: entity,
 	})
+	if err != nil {
+		status.WorkflowExecutionStatusCanceled.False(entity, err.Error())
+		entity.Status.SetSummary(status.WalkWorkflowExecution(&entity.Status))
+
+		updateErr := h.modelClient.WorkflowExecutions().UpdateOne(entity).
+			SetStatus(entity.Status).
+			Where(workflowexecution.ID(req.ID)).
+			Exec(req.Context)
+		if updateErr != nil {
+			logger.Errorf("failed to update workflow execution status: %v", updateErr)
+		}
+
+		return err
+	}
+
+	return nil
 }

@@ -123,8 +123,14 @@ func (m *StatusSyncer) SyncWorkflowExecutionStatus(ctx context.Context, wf *wfv1
 		m.Logger.Debugf("workflow %s is succeeded", we.ID.String())
 
 	case wfv1.WorkflowFailed, wfv1.WorkflowError:
-		status.WorkflowExecutionStatusPending.True(we, "")
-		status.WorkflowExecutionStatusRunning.False(we, wf.Status.Message)
+		switch {
+		case status.WorkflowExecutionStatusCanceled.IsUnknown(we):
+			status.WorkflowExecutionStatusCanceled.True(we, wf.Status.Message)
+		default:
+			status.WorkflowExecutionStatusPending.True(we, "")
+			status.WorkflowExecutionStatusRunning.False(we, wf.Status.Message)
+		}
+
 		update.SetDuration(int(time.Since(we.ExecuteTime).Seconds()))
 
 		m.Logger.Debugf("workflow %s is failed", we.ID.String())
@@ -153,6 +159,7 @@ func (m *StatusSyncer) SyncStageExecutionStatus(
 	ctx context.Context,
 	node wfv1.NodeStatus,
 	stageExecutionID object.ID,
+	canceled bool,
 ) error {
 	wse, err := m.ModelClient.WorkflowStageExecutions().Get(ctx, stageExecutionID)
 	if err != nil {
@@ -186,9 +193,15 @@ func (m *StatusSyncer) SyncStageExecutionStatus(
 		m.Logger.Debugf("stage %s is skipped or omitted", wse.ID.String(), "message", node.Message)
 		return nil
 	case wfv1.NodeFailed, wfv1.NodeError:
-		status.WorkflowStageExecutionStatusPending.True(wse, "")
-		status.WorkflowStageExecutionStatusRunning.False(wse, node.Message)
-		m.Logger.Debugf("stage %s is failed", wse.ID.String())
+		if canceled {
+			status.WorkflowStageExecutionStatusCanceled.Reset(wse, "")
+			status.WorkflowStageExecutionStatusCanceled.True(wse, "")
+		} else {
+			status.WorkflowStageExecutionStatusPending.True(wse, "")
+			status.WorkflowStageExecutionStatusRunning.False(wse, node.Message)
+			m.Logger.Debugf("stage %s is failed", wse.ID.String())
+		}
+
 	default:
 		m.Logger.Debugf("stage %s phase is %s, skip it.", wse.ID, node.Phase)
 		return nil
@@ -245,6 +258,7 @@ func (m *StatusSyncer) SyncStepExecutionStatus(
 	ctx context.Context,
 	node wfv1.NodeStatus,
 	stepExecutionID object.ID,
+	canceled bool,
 ) error {
 	wse, err := m.ModelClient.WorkflowStepExecutions().Get(ctx, stepExecutionID)
 	if err != nil {
@@ -285,18 +299,24 @@ func (m *StatusSyncer) SyncStepExecutionStatus(
 
 		return nil
 	case wfv1.NodeFailed, wfv1.NodeError:
-		message := node.Message
+		if canceled {
+			status.WorkflowStepExecutionStatusCanceled.Reset(wse, "")
+			status.WorkflowStepExecutionStatusCanceled.True(wse, "")
+		} else {
+			message := node.Message
 
-		if wse.Type == types.WorkflowStepTypeApproval {
-			message, err = dao.GetRejectMessage(ctx, m.ModelClient, wse)
-			if err != nil {
-				return err
+			if wse.Type == types.WorkflowStepTypeApproval {
+				message, err = dao.GetRejectMessage(ctx, m.ModelClient, wse)
+				if err != nil {
+					return err
+				}
 			}
+
+			status.WorkflowStepExecutionStatusPending.True(wse, "")
+			status.WorkflowStepExecutionStatusRunning.False(wse, message)
+			m.Logger.Debugf("step %s is failed", wse.ID.String())
 		}
 
-		status.WorkflowStepExecutionStatusPending.True(wse, "")
-		status.WorkflowStepExecutionStatusRunning.False(wse, message)
-		m.Logger.Debugf("step %s is failed", wse.ID.String())
 	default:
 		m.Logger.Debugf("step  %s phase is %s, status not will not change.", wse.ID, node.Phase)
 		return nil
@@ -350,4 +370,22 @@ func (m *StatusSyncer) SyncStepExecutionStatus(
 		Type: modelchange.EventTypeUpdate,
 		Data: []modelchange.EventData{{ID: we.ID}},
 	})
+}
+
+func (m *StatusSyncer) IsCanceled(ctx context.Context, wf *wfv1.Workflow) (bool, error) {
+	workflowExecutionID, ok := wf.Labels[workflowExecutionIDLabel]
+	if !ok {
+		return false, nil
+	}
+
+	we, err := m.ModelClient.WorkflowExecutions().Get(ctx, object.ID(workflowExecutionID))
+	if err != nil && !model.IsNotFound(err) {
+		return false, err
+	}
+
+	if we == nil {
+		return false, nil
+	}
+
+	return status.WorkflowExecutionStatusCanceled.IsTrue(we), nil
 }
