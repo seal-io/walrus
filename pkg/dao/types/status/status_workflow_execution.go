@@ -1,8 +1,9 @@
 package status
 
 const (
-	WorkflowExecutionStatusPending ConditionType = "Pending"
-	WorkflowExecutionStatusRunning ConditionType = "Running"
+	WorkflowExecutionStatusPending  ConditionType = "Pending"
+	WorkflowExecutionStatusRunning  ConditionType = "Running"
+	WorkflowExecutionStatusCanceled ConditionType = "Canceled"
 )
 
 // workflowExecutionStatusPaths makes the following decision.
@@ -14,11 +15,15 @@ const (
 //	| Running          | Unknown                 | Running               | Transitioning         |
 //	| Running          | False                   | Failed                | Error                 |
 //	| Running          | True                    | Completed             | Completed             |
+//	| Canceled         | Unknown                 | Canceling             | Transitioning         |
+//	| Canceled         | False                   | CancelFailed          | Error                 |
+//	| Canceled         | True                    | Canceled              | Canceled              |
 var workflowExecutionStatusPaths = NewWalker(
 	[][]ConditionType{
 		{
 			WorkflowExecutionStatusPending,
 			WorkflowExecutionStatusRunning,
+			WorkflowExecutionStatusCanceled,
 		},
 	},
 )
@@ -28,8 +33,9 @@ func WalkWorkflowExecution(st *Status) *Summary {
 }
 
 const (
-	WorkflowStageExecutionStatusPending ConditionType = "Pending"
-	WorkflowStageExecutionStatusRunning ConditionType = "Running"
+	WorkflowStageExecutionStatusPending  ConditionType = "Pending"
+	WorkflowStageExecutionStatusRunning  ConditionType = "Running"
+	WorkflowStageExecutionStatusCanceled ConditionType = "Canceled"
 )
 
 // workflowStageExecutionStatusPaths makes the following decision.
@@ -41,11 +47,15 @@ const (
 //	| Running          | Unknown                 | Running               | Transitioning         |
 //	| Running          | False                   | Failed                / Error                 |
 //	| Running          | True                    | Running               | Completed             |
+//	| Canceled         | Unknown                 | Canceling             | Transitioning         |
+//	| Canceled         | False                   | CancelFailed          | Error                 |
+//	| Canceled         | True                    | Canceled              | Canceled              |
 var workflowStageExecutionStatusPaths = NewWalker(
 	[][]ConditionType{
 		{
 			WorkflowStageExecutionStatusPending,
 			WorkflowStageExecutionStatusRunning,
+			WorkflowStageExecutionStatusCanceled,
 		},
 	},
 )
@@ -55,8 +65,9 @@ func WalkWorkflowStageExecution(st *Status) *Summary {
 }
 
 const (
-	WorkflowStepExecutionStatusPending ConditionType = "Pending"
-	WorkflowStepExecutionStatusRunning ConditionType = "Running"
+	WorkflowStepExecutionStatusPending  ConditionType = "Pending"
+	WorkflowStepExecutionStatusRunning  ConditionType = "Running"
+	WorkflowStepExecutionStatusCanceled ConditionType = "Canceled"
 )
 
 // workflowStepExecutionStatusPaths makes the following decision.
@@ -68,11 +79,15 @@ const (
 //	| Running          | Unknown                 | Running               | Transitioning         |
 //	| Running          | False                   | Failed                | Error                 |
 //	| Running          | True                    | Running               | Completed             |
+//	| Canceled         | Unknown                 | Canceling             | Transitioning         |
+//	| Canceled         | False                   | CancelFailed          | Error                 |
+//	| Canceled         | True                    | Canceled              | Canceled              |
 var workflowStepExecutionStatusPaths = NewWalker(
 	[][]ConditionType{
 		{
 			WorkflowStepExecutionStatusPending,
 			WorkflowStepExecutionStatusRunning,
+			WorkflowStepExecutionStatusCanceled,
 		},
 	},
 )

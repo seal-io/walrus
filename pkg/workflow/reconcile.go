@@ -49,6 +49,11 @@ func (r WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, err
 	}
 
+	workflowExecutionCanceled, err := r.StatusSyncer.IsCanceled(ctx, wf)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
 	for i := range wf.Status.Nodes {
 		node := wf.Status.Nodes[i]
 
@@ -61,10 +66,10 @@ func (r WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 		switch {
 		case templateType == templateTypeStage && stage == templateStageEnter:
-			err = r.StatusSyncer.SyncStageExecutionStatus(ctx, node, id)
+			err = r.StatusSyncer.SyncStageExecutionStatus(ctx, node, id, workflowExecutionCanceled)
 
 		case templateType == templateTypeStep && stage == templateStageMain:
-			err = r.StatusSyncer.SyncStepExecutionStatus(ctx, node, id)
+			err = r.StatusSyncer.SyncStepExecutionStatus(ctx, node, id, workflowExecutionCanceled)
 		}
 
 		if err != nil {

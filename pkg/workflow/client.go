@@ -300,7 +300,7 @@ func (s *ArgoWorkflowClient) Terminate(ctx context.Context, opts TerminateOption
 			Name:      getWorkflowName(opts.WorkflowExecution),
 			Namespace: types.WalrusSystemNamespace,
 		})
-	if err != nil && !isNotFoundErr(err) {
+	if err != nil {
 		return err
 	}
 
@@ -386,7 +386,7 @@ func (s *ArgoWorkflowClient) setK8sSecret(
 	case "update":
 		secret, err = clientSet.CoreV1().Secrets(types.WalrusSystemNamespace).
 			Update(ctx, opts.Secret, metav1.UpdateOptions{})
-		if err != nil {
+		if err != nil && !kerrors.IsNotFound(err) {
 			return
 		}
 	case "delete":
