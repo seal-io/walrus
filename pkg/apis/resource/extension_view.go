@@ -52,6 +52,7 @@ func (r *RouteUpgradeRequest) Validate() error {
 			resource.FieldTemplateID,
 			resource.FieldResourceDefinitionID,
 			resource.FieldStatus,
+			resource.FieldAttributes,
 		).
 		WithTemplate(func(tvq *model.TemplateVersionQuery) {
 			tvq.Select(
@@ -73,10 +74,21 @@ func (r *RouteUpgradeRequest) Validate() error {
 			"cannot update resource draft in %q status", entity.Status.SummaryStatus)
 	}
 
+	if r.ReuseAttributes {
+		r.Attributes = entity.Attributes
+	}
+
 	if entity.ResourceDefinitionID != nil {
 		r.ResourceDefinition = &model.ResourceDefinitionQueryInput{
 			Type: entity.Edges.ResourceDefinition.Type,
 			ID:   *entity.ResourceDefinitionID,
+		}
+	}
+
+	if entity.TemplateID != nil && r.ReuseAttributes {
+		r.Template = &model.TemplateVersionQueryInput{
+			ID:   *entity.TemplateID,
+			Name: entity.Edges.Template.Name,
 		}
 	}
 
@@ -396,7 +408,6 @@ func (r *CollectionRouteStartRequest) Validate() error {
 		WithEnvironment(func(eq *model.EnvironmentQuery) {
 			eq.Select(environment.FieldName)
 		}).
-		Select(resource.FieldID, resource.FieldStatus).
 		All(r.Context)
 	if err != nil {
 		return err
@@ -463,6 +474,7 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 			resource.FieldTemplateID,
 			resource.FieldResourceDefinitionID,
 			resource.FieldStatus,
+			resource.FieldAttributes,
 		).
 		WithTemplate(func(tvq *model.TemplateVersionQuery) {
 			tvq.Select(
@@ -497,10 +509,21 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 
 		input := r.Items[i]
 
+		if r.ReuseAttributes {
+			input.Attributes = entity.Attributes
+		}
+
 		if entity.ResourceDefinitionID != nil {
 			input.ResourceDefinition = &model.ResourceDefinitionQueryInput{
 				Type: entity.Edges.ResourceDefinition.Type,
 				ID:   *entity.ResourceDefinitionID,
+			}
+		}
+
+		if r.ReuseAttributes && entity.TemplateID != nil {
+			input.Template = &model.TemplateVersionQueryInput{
+				ID:   *entity.TemplateID,
+				Name: entity.Edges.Template.Name,
 			}
 		}
 
