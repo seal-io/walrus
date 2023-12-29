@@ -21,6 +21,18 @@ import (
 func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 	entity := req.Model()
 
+	env, err := h.modelClient.Environments().Query().
+		Where(environment.ID(entity.EnvironmentID)).
+		Only(req.Context)
+	if err != nil {
+		return nil, err
+	}
+
+	err = pkgresource.SetDefaultLabels(entity, env)
+	if err != nil {
+		return nil, err
+	}
+
 	if req.Draft {
 		_, err := pkgresource.CreateDraftResources(req.Context, req.Client, entity)
 		return model.ExposeResource(entity), err

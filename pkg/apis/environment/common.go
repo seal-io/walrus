@@ -57,6 +57,11 @@ func createEnvironment(
 			}
 			svc.ProjectID = entity.ProjectID
 			svc.EnvironmentID = entity.ID
+
+			err = pkgresource.SetDefaultLabels(svc, entity)
+			if err != nil {
+				return err
+			}
 		}
 
 		if err = pkgresource.SetSubjectID(ctx, resourceInputs...); err != nil {
