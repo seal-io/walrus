@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -36,7 +37,8 @@ type RouteUpgradeRequest struct {
 
 	model.ResourceUpdateInput `path:",inline" json:",inline"`
 
-	Draft bool `json:"draft,default=false"`
+	Draft           bool `json:"draft,default=false"`
+	ReuseAttributes bool `json:"reuseAttributes,default=false"`
 }
 
 func (r *RouteUpgradeRequest) Validate() error {
@@ -217,38 +219,45 @@ func (r *RouteStopRequest) Validate() error {
 		return err
 	}
 
-	if !pkgresource.IsStoppable(res) {
-		return errorx.HttpErrorf(
-			http.StatusBadRequest,
-			"resource %s is non-stoppable",
-			res.Name,
-		)
-	}
+	return validateStop(r.Context, r.Client, res)
+}
 
-	if !pkgresource.CanBeStopped(res) {
-		return errorx.HttpErrorf(
-			http.StatusBadRequest,
-			"cannot stop resource %q: in %q status",
-			res.Name, res.Status.SummaryStatus,
-		)
-	}
-
-	ids, err := dao.GetNonStoppedResourceDependantIDs(r.Context, r.Client, r.ID)
-	if err != nil {
-		return fmt.Errorf("failed to get resource relationships: %w", err)
-	}
-
-	if len(ids) > 0 {
-		names, err := dao.GetResourceNamesByIDs(r.Context, r.Client, ids...)
-		if err != nil {
-			return fmt.Errorf("failed to get resources: %w", err)
+func validateStop(ctx context.Context, mc model.ClientSet, resources ...*model.Resource) error {
+	for i := range resources {
+		res := resources[i]
+		if !pkgresource.IsStoppable(res) {
+			return errorx.HttpErrorf(
+				http.StatusBadRequest,
+				"resource %s is non-stoppable",
+				res.Name,
+			)
 		}
 
-		return errorx.HttpErrorf(
-			http.StatusConflict,
-			"resource about to be stopped is the dependency of: %v",
-			strs.Join(", ", names...),
-		)
+		if !pkgresource.CanBeStopped(res) {
+			return errorx.HttpErrorf(
+				http.StatusBadRequest,
+				"cannot stop resource %q: in %q status",
+				res.Name, res.Status.SummaryStatus,
+			)
+		}
+
+		ids, err := dao.GetNonStoppedResourceDependantIDs(ctx, mc, res.ID)
+		if err != nil {
+			return fmt.Errorf("failed to get resource relationships: %w", err)
+		}
+
+		if len(ids) > 0 {
+			names, err := dao.GetResourceNamesByIDs(ctx, mc, ids...)
+			if err != nil {
+				return fmt.Errorf("failed to get resources: %w", err)
+			}
+
+			return errorx.HttpErrorf(
+				http.StatusConflict,
+				"resource about to be stopped is the dependency of: %v",
+				strs.Join(", ", names...),
+			)
+		}
 	}
 
 	return nil
@@ -355,3 +364,238 @@ type (
 		Edges    []GraphEdge   `json:"edges"`
 	}
 )
+
+type StartInputs = model.ResourceDeleteInputs
+
+type CollectionRouteStartRequest struct {
+	_ struct{} `route:"POST=/start"`
+
+	StartInputs `path:",inline" json:",inline"`
+
+	Resources []*model.Resource `json:"-"`
+}
+
+func (r *CollectionRouteStartRequest) Validate() error {
+	if err := r.StartInputs.Validate(); err != nil {
+		return err
+	}
+
+	entities, err := r.Client.Resources().Query().
+		Where(resource.IDIn(r.IDs()...)).
+		WithTemplate(func(tvq *model.TemplateVersionQuery) {
+			tvq.Select(
+				templateversion.FieldID,
+				templateversion.FieldTemplateID,
+				templateversion.FieldName,
+				templateversion.FieldVersion,
+				templateversion.FieldProjectID)
+		}).
+		WithProject(func(pq *model.ProjectQuery) {
+			pq.Select(project.FieldName)
+		}).
+		WithEnvironment(func(eq *model.EnvironmentQuery) {
+			eq.Select(environment.FieldName)
+		}).
+		Select(resource.FieldID, resource.FieldStatus).
+		All(r.Context)
+	if err != nil {
+		return err
+	}
+
+	for i := range entities {
+		entity := entities[i]
+		if !pkgresource.IsInactive(entity) {
+			return errorx.HttpErrorf(
+				http.StatusBadRequest,
+				"cannot start resource %q: in %q status",
+				entity.Name, entity.Status.SummaryStatus,
+			)
+		}
+	}
+
+	r.Resources = entities
+
+	return nil
+}
+
+type CollectionRouteStopRequest struct {
+	_ struct{} `route:"POST=/stop"`
+
+	model.ResourceDeleteInputs `path:",inline" json:",inline"`
+
+	Resources []*model.Resource `json:"-"`
+}
+
+func (r *CollectionRouteStopRequest) Validate() error {
+	if err := r.ResourceDeleteInputs.Validate(); err != nil {
+		return err
+	}
+
+	entities, err := r.Client.Resources().Query().
+		Where(resource.IDIn(r.IDs()...)).
+		All(r.Context)
+	if err != nil {
+		return err
+	}
+
+	r.Resources = entities
+
+	return validateStop(r.Context, r.Client, entities...)
+}
+
+type CollectionRouteUpgradeRequest struct {
+	_ struct{} `route:"POST=/upgrade"`
+
+	model.ResourceUpdateInputs `path:",inline" json:",inline"`
+
+	Draft           bool `json:"draft,default=false"`
+	ReuseAttributes bool `json:"reuseAttributes,default=false"`
+}
+
+func (r *CollectionRouteUpgradeRequest) Validate() error {
+	if err := r.ResourceUpdateInputs.Validate(); err != nil {
+		return err
+	}
+
+	entities, err := r.Client.Resources().Query().
+		Where(resource.IDIn(r.IDs()...)).
+		Select(
+			resource.FieldTemplateID,
+			resource.FieldResourceDefinitionID,
+			resource.FieldStatus,
+		).
+		WithTemplate(func(tvq *model.TemplateVersionQuery) {
+			tvq.Select(
+				templateversion.FieldName,
+				templateversion.FieldVersion)
+		}).
+		WithResourceDefinition(func(rdq *model.ResourceDefinitionQuery) {
+			rdq.Select(
+				resourcedefinition.FieldType,
+			)
+		}).
+		All(r.Context)
+	if err != nil {
+		return fmt.Errorf("failed to get resources: %w", err)
+	}
+
+	entityMap := make(map[object.ID]*model.Resource)
+	for i := range entities {
+		entityMap[entities[i].ID] = entities[i]
+
+		if r.Draft && !pkgresource.IsInactive(entities[i]) {
+			return errorx.HttpErrorf(http.StatusBadRequest,
+				"cannot update resource draft in %q status", entities[i].Status.SummaryStatus)
+		}
+	}
+
+	for i := range r.Items {
+		entity, ok := entityMap[r.Items[i].ID]
+		if !ok {
+			return fmt.Errorf("resource %s not found", r.Items[i].Name)
+		}
+
+		input := r.Items[i]
+
+		if entity.ResourceDefinitionID != nil {
+			input.ResourceDefinition = &model.ResourceDefinitionQueryInput{
+				Type: entity.Edges.ResourceDefinition.Type,
+				ID:   *entity.ResourceDefinitionID,
+			}
+		}
+
+		switch {
+		case input.Template != nil:
+			if input.Template.Name != entity.Edges.Template.Name {
+				return errors.New("invalid template name: immutable")
+			}
+
+			tv, err := r.Client.TemplateVersions().Query().
+				Where(templateversion.ID(input.Template.ID)).
+				Select(
+					templateversion.FieldSchema,
+					templateversion.FieldUiSchema,
+				).
+				Only(r.Context)
+			if err != nil {
+				return fmt.Errorf("failed to get template version: %w", err)
+			}
+
+			// Verify attributes with schema.
+			// TODO(thxCode): migrate schema to ui schema, then reduce if-else.
+			if s := tv.UiSchema; !s.IsEmpty() {
+				err = input.Attributes.ValidateWith(s.VariableSchema())
+				if err != nil {
+					return fmt.Errorf("invalid variables: violate ui schema: %w", err)
+				}
+			} else if s := tv.Schema; !s.IsEmpty() {
+				err = input.Attributes.ValidateWith(s.VariableSchema())
+				if err != nil {
+					return fmt.Errorf("invalid variables: %w", err)
+				}
+			}
+		case input.ResourceDefinition != nil:
+			rd, err := r.Client.ResourceDefinitions().Query().
+				Where(resourcedefinition.Type(input.ResourceDefinition.Type)).
+				WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
+					rq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
+						Select(resourcedefinitionmatchingrule.FieldResourceDefinitionID).
+						Unique(false).
+						Select(resourcedefinitionmatchingrule.FieldTemplateID).
+						WithTemplate(func(tq *model.TemplateVersionQuery) {
+							tq.Select(
+								templateversion.FieldID,
+								templateversion.FieldVersion,
+								templateversion.FieldName,
+							)
+						})
+				}).
+				Select(resourcedefinition.FieldID, resourcedefinition.FieldName).
+				Only(r.Context)
+			if err != nil {
+				return fmt.Errorf("failed to get resource definition: %w", err)
+			}
+
+			env, err := r.Client.Environments().Query().
+				Where(environment.ID(r.Environment.ID)).
+				Select(
+					environment.FieldID,
+					environment.FieldName,
+					environment.FieldLabels,
+				).
+				WithProject(func(pq *model.ProjectQuery) {
+					pq.Select(project.FieldName)
+				}).
+				Only(r.Context)
+			if err != nil {
+				return fmt.Errorf("failed to get environment: %w", err)
+			}
+
+			rule := resourcedefinitions.Match(
+				rd.Edges.MatchingRules,
+				env.Edges.Project.Name,
+				env.Name,
+				env.Type,
+				env.Labels,
+				input.Labels,
+			)
+			if rule == nil {
+				return fmt.Errorf("resource definition %s does not match environment %s", rd.Name, env.Name)
+			}
+		default:
+			return errors.New("template or resource definition is required")
+		}
+
+		// Verify that variables in attributes are valid.
+		if err := validateVariable(r.Context, r.Client,
+			input.Attributes, input.Name, r.Project.ID, r.Environment.ID); err != nil {
+			return err
+		}
+
+		if err := ValidateRevisionsStatus(r.Context, r.Client, input.ID); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
