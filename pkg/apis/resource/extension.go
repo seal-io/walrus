@@ -33,7 +33,22 @@ import (
 )
 
 func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
-	entity := req.Model()
+	var (
+		entity *model.Resource
+		err    error
+	)
+
+	if req.ReuseAttributes {
+		entity, err = h.modelClient.Resources().Query().
+			Where(resource.ID(req.ID)).
+			Only(req.Context)
+		if err != nil {
+			return err
+		}
+	} else {
+		entity = req.Model()
+	}
+
 	return h.upgrade(req.Context, entity, req.Draft)
 }
 
@@ -62,11 +77,14 @@ func (h Handler) upgrade(ctx context.Context, entity *model.Resource, draft bool
 		return errorx.Wrap(err, "error updating service")
 	}
 
+	return h.apply(ctx, entity)
+}
+
+func (h Handler) apply(ctx context.Context, entity *model.Resource) error {
 	dp, err := h.getDeployer(ctx)
 	if err != nil {
 		return err
 	}
-
 	// Apply resource.
 	applyOpts := pkgresource.Options{
 		Deployer: dp,
@@ -143,17 +161,19 @@ func (h Handler) RouteRollback(req RouteRollbackRequest) error {
 }
 
 func (h Handler) RouteStart(req RouteStartRequest) error {
-	entity := req.resource
+	return h.start(req.Context, req.resource)
+}
 
+func (h Handler) start(ctx context.Context, entity *model.Resource) error {
 	status.ResourceStatusUnDeployed.Remove(entity)
 	status.ResourceStatusStopped.Remove(entity)
 	status.ResourceStatusDeployed.Reset(entity, "Deploying")
 	entity.Status.SetSummary(status.WalkResource(&entity.Status))
 
-	err := h.modelClient.WithTx(req.Context, func(tx *model.Tx) (err error) {
+	err := h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
 		entity, err = tx.Resources().UpdateOne(entity).
 			Set(entity).
-			SaveE(req.Context, dao.ResourceDependenciesEdgeSave)
+			SaveE(ctx, dao.ResourceDependenciesEdgeSave)
 
 		return err
 	})
@@ -161,7 +181,7 @@ func (h Handler) RouteStart(req RouteStartRequest) error {
 		return errorx.Wrap(err, "error updating resource")
 	}
 
-	dp, err := h.getDeployer(req.Context)
+	dp, err := h.getDeployer(ctx)
 	if err != nil {
 		return err
 	}
@@ -170,14 +190,14 @@ func (h Handler) RouteStart(req RouteStartRequest) error {
 		Deployer: dp,
 	}
 
-	ready, err := pkgresource.CheckDependencyStatus(req.Context, h.modelClient, dp, entity)
+	ready, err := pkgresource.CheckDependencyStatus(ctx, h.modelClient, dp, entity)
 	if err != nil {
 		return errorx.Wrap(err, "error checking dependency status")
 	}
 
 	if ready {
 		return pkgresource.Apply(
-			req.Context,
+			ctx,
 			h.modelClient,
 			entity,
 			applyOpts)
@@ -563,4 +583,61 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 		Vertices: vertices,
 		Edges:    edges,
 	}, nil
+}
+
+func (h Handler) CollectionRouteStart(req CollectionRouteStartRequest) error {
+	for i := range req.Resources {
+		if err := h.start(req.Context, req.Resources[i]); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (h Handler) CollectionRouteStop(req CollectionRouteStopRequest) error {
+	dp, err := h.getDeployer(req.Context)
+	if err != nil {
+		return err
+	}
+
+	opts := pkgresource.Options{
+		Deployer: dp,
+	}
+
+	for i := range req.Resources {
+		res := req.Resources[i]
+
+		if err := pkgresource.Stop(req.Context, req.Client, res, opts); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (h Handler) CollectionRouteUpgrade(req CollectionRouteUpgradeRequest) error {
+	var (
+		entities []*model.Resource
+		err      error
+	)
+
+	if req.ReuseAttributes {
+		entities, err = h.modelClient.Resources().Query().
+			Where(resource.IDIn(req.IDs()...)).
+			All(req.Context)
+		if err != nil {
+			return err
+		}
+	} else {
+		entities = req.Model()
+	}
+
+	for i := range entities {
+		if err := h.upgrade(req.Context, entities[i], req.Draft); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
