@@ -24,7 +24,6 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/subject"
@@ -38,7 +37,6 @@ import (
 	pkgenv "github.com/seal-io/walrus/pkg/environment"
 	opk8s "github.com/seal-io/walrus/pkg/operator/k8s"
 	pkgresource "github.com/seal-io/walrus/pkg/resource"
-	"github.com/seal-io/walrus/pkg/resourcedefinitions"
 	"github.com/seal-io/walrus/pkg/settings"
 	"github.com/seal-io/walrus/pkg/templates/openapi"
 	"github.com/seal-io/walrus/pkg/templates/translator"
@@ -411,30 +409,25 @@ func (d Deployer) createRevision(
 				templateversion.FieldTemplateID)
 		}).
 		WithProject(func(pq *model.ProjectQuery) {
-			pq.Select(project.FieldName)
+			pq.Select(project.FieldName, project.FieldLabels)
 		}).
 		WithEnvironment(func(env *model.EnvironmentQuery) {
 			env.Select(environment.FieldLabels)
 			env.Select(environment.FieldName)
 			env.Select(environment.FieldType)
 		}).
-		WithResourceDefinition(func(rd *model.ResourceDefinitionQuery) {
-			rd.Select(resourcedefinition.FieldType)
-			rd.WithMatchingRules(func(mrq *model.ResourceDefinitionMatchingRuleQuery) {
-				mrq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
-					Select(
-						resourcedefinitionmatchingrule.FieldName,
-						resourcedefinitionmatchingrule.FieldSelector,
-						resourcedefinitionmatchingrule.FieldAttributes,
-					).
-					WithTemplate(func(tvq *model.TemplateVersionQuery) {
-						tvq.Select(
-							templateversion.FieldID,
-							templateversion.FieldVersion,
-							templateversion.FieldName,
-						)
-					})
-			})
+		WithResourceDefinitionMatchingRule(func(mrq *model.ResourceDefinitionMatchingRuleQuery) {
+			mrq.Select(
+				resourcedefinitionmatchingrule.FieldName,
+				resourcedefinitionmatchingrule.FieldAttributes,
+			).
+				WithTemplate(func(tvq *model.TemplateVersionQuery) {
+					tvq.Select(
+						templateversion.FieldID,
+						templateversion.FieldVersion,
+						templateversion.FieldName,
+					)
+				})
 		}).
 		Select(
 			resource.FieldID,
@@ -462,30 +455,11 @@ func (d Deployer) createRevision(
 		templateID = res.Edges.Template.TemplateID
 		templateName = res.Edges.Template.Name
 		templateVersion = res.Edges.Template.Version
-	case res.ResourceDefinitionID != nil:
-		rd := res.Edges.ResourceDefinition
-		matchRule := resourcedefinitions.Match(
-			rd.Edges.MatchingRules,
-			res.Edges.Project.Name,
-			res.Edges.Environment.Name,
-			res.Edges.Environment.Type,
-			res.Edges.Environment.Labels,
-			res.Labels,
-		)
+	case res.ResourceDefinitionMatchingRuleID != nil:
+		rule := res.Edges.ResourceDefinitionMatchingRule
 
-		if matchRule == nil {
-			return nil, fmt.Errorf("resource definition %s does not match resource %s", rd.Name, res.Name)
-		}
-
-		_, err = mc.Resources().UpdateOne(res).
-			SetResourceDefinitionMatchingRuleID(matchRule.ID).
-			Save(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		templateName = matchRule.Edges.Template.Name
-		templateVersion = matchRule.Edges.Template.Version
+		templateName = rule.Edges.Template.Name
+		templateVersion = rule.Edges.Template.Version
 
 		templateID, err = mc.Templates().Query().
 			Where(

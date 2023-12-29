@@ -8,3 +8,12 @@ type Selector struct {
 	EnvironmentLabels map[string]string `json:"environmentLabels,omitempty"`
 	ResourceLabels    map[string]string `json:"resourceLabels,omitempty"`
 }
+
+type MatchResourceMetadata struct {
+	ProjectName       string
+	EnvironmentName   string
+	EnvironmentType   string
+	ProjectLabels     map[string]string
+	EnvironmentLabels map[string]string
+	ResourceLabels    map[string]string
+}
