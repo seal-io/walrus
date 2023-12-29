@@ -528,3 +528,27 @@ func IsInactive(r *model.Resource) bool {
 	return r.Status.SummaryStatus == status.ResourceStatusUnDeployed.String() ||
 		r.Status.SummaryStatus == status.ResourceStatusStopped.String()
 }
+
+func SetDefaultLabels(r *model.Resource, env *model.Environment) error {
+	if r == nil || env == nil {
+		return errorx.Errorf("resource or environment is nil")
+	}
+
+	if r.Labels != nil {
+		r.Labels = make(map[string]string)
+	}
+
+	// Only set default labels if labels stoppable are not set.
+	if _, ok := r.Labels[types.LabelResourceStoppable]; ok {
+		return nil
+	}
+
+	switch env.Type {
+	// Dev and staging environments resources are stoppable by default.
+	case types.EnvironmentDevelopment, types.EnvironmentStaging:
+		r.Labels[types.LabelResourceStoppable] = "true"
+	default:
+	}
+
+	return nil
+}
