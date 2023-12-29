@@ -14,7 +14,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
-	"github.com/seal-io/walrus/pkg/workflow/deployer"
+	"github.com/seal-io/walrus/pkg/workflow/installer/argoworkflows"
 	"github.com/seal-io/walrus/utils/gopool"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/pointer"
@@ -249,9 +249,9 @@ func applyWorkflowPermission(ctx context.Context, cli *kubernetes.Clientset) err
 
 func applyWorkflowDeployment(mc model.ClientSet, config *rest.Config) {
 	gopool.Go(func() {
-		err := deployer.DeployArgoWorkflow(context.Background(), mc, config)
+		err := argoworkflows.Install(context.Background(), mc, config)
 		if err != nil {
-			log.WithName("workflow").Errorf("failed to deploy argo workflow: %v", err)
+			log.WithName("workflow").Errorf("failed to install argo workflows: %v", err)
 		}
 	})
 }
