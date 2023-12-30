@@ -20,6 +20,7 @@ func Delete(sc *config.Config) (*cobra.Command, error) {
 		GroupID: common.GroupAdvanced.ID,
 		Example: manifestExample("delete"),
 		Short:   "Delete resource using the provided file path or folder.",
+		PreRun:  mergeServerContext(sc, flags),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Load from files.
 			loader := manifest.DefaultLoader(sc, flags.ValidateParametersSet)
