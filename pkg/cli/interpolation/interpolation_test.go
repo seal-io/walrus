@@ -35,6 +35,7 @@ func TestInterpolation(t *testing.T) {
 		{test: "${file(testdata/env)}", expected: "foo"},
 		{test: `${file("testdata/env")}`, expected: "foo"},
 		{test: "${file('testdata/env')}", expected: "foo"},
+		{test: "${file('testdata/.env')}", expected: "foo"},
 	}
 
 	for _, tc := range testcases {

@@ -20,8 +20,7 @@ var (
 	substitutionVariable = "{var\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?}"
 	substitutionResource = "{res\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?\\.[_a-z][_a-z0-9]*}"
 	substitutionService  = "{svc\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?\\.[_a-z][_a-z0-9]*}"
-
-	substitutionFile = `{file\(["']?([a-zA-Z]:)?(/|\\)?([A-Za-z0-9]+(/|\\))*[A-Za-z0-9]+(\.[a-zA-Z]{1,5}){0,1}["']?\)}`
+	substitutionFile     = `{file\(["']?([a-zA-Z]:)?(\.)?(/|\\)?([\w-\.]+(/|\\))*[\w-\.]+(\.[a-zA-Z]{1,5}){0,1}["']?\)}`
 )
 
 var (
