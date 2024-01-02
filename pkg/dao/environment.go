@@ -124,6 +124,10 @@ func updateProviderLabels(
 		labelValueTrue      = "true"
 	)
 
+	if entity.Labels == nil {
+		entity.Labels = make(map[string]string)
+	}
+
 	for k := range entity.Labels {
 		if strings.HasPrefix(k, providerLabelPrefix) {
 			delete(entity.Labels, k)
