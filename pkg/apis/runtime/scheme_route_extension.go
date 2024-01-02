@@ -67,10 +67,10 @@ func extendOperationSchema(r *Route, op *openapi3.Operation) {
 			op.Extensions[openapi.ExtCliOperationName] = "list"
 		case r.Method == http.MethodPost:
 			op.Extensions[openapi.ExtCliCmdIgnore] = true
-			op.Extensions[openapi.ExtCliOperationName] = "batch-create"
+			op.Extensions[openapi.ExtCliOperationName] = strs.Dasherize(r.GoFunc)
 		case r.Method == http.MethodDelete:
 			op.Extensions[openapi.ExtCliCmdIgnore] = true
-			op.Extensions[openapi.ExtCliOperationName] = "batch-delete"
+			op.Extensions[openapi.ExtCliOperationName] = strs.Dasherize(r.GoFunc)
 		default:
 			op.Extensions[openapi.ExtCliIgnore] = true
 		}

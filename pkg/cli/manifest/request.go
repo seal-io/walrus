@@ -25,8 +25,8 @@ import (
 
 const (
 	operationWatch       = "list"
-	operationBatchCreate = "batch-create"
-	operationBatchDelete = "batch-delete"
+	operationBatchCreate = "collection-create"
+	operationBatchDelete = "collection-delete"
 	operationGet         = "get"
 	operationPatch       = "patch"
 )
