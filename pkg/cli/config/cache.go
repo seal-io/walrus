@@ -34,7 +34,7 @@ func InitConfig() (*ServerContext, error) {
 	_, err = os.Stat(filename)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, os.WriteFile(filename, []byte("{}"), 0o600)
+			return &ServerContext{}, os.WriteFile(filename, []byte("{}"), 0o600)
 		}
 
 		return nil, fmt.Errorf("error stat config file %s: %w", filename, err)
