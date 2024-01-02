@@ -83,7 +83,20 @@ func FormattedOpenAPI(s types.Schema) ([]byte, error) {
 
 	// Get variables sequence.
 	vs := s.VariableSchema()
-	seq := openapi.GetExtOriginal(vs.Extensions).VariablesSequence
+	oseq := openapi.GetExtOriginal(vs.Extensions).VariablesSequence
+
+	// Remove context.
+	es.RemoveVariableContext()
+
+	seq := make([]string, 0)
+
+	for _, v := range oseq {
+		if v == openapi.WalrusContextVariableName {
+			continue
+		}
+
+		seq = append(seq, v)
+	}
 
 	// Sorted Variables to the same sequence original defined, since the properties is a map,
 	// so need to generate sorted map.

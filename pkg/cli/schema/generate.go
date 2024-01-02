@@ -33,8 +33,6 @@ func Generate(opts GenerateOption) error {
 		return fmt.Errorf("no supported schema found for template %s", tmplName)
 	}
 
-	s.RemoveVariableContext()
-
 	b, err := FormattedOpenAPI(s.Schema)
 	if err != nil {
 		return err
