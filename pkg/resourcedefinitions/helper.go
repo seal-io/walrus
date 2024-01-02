@@ -1,4 +1,4 @@
-package resourcedefinition
+package resourcedefinitions
 
 import (
 	"context"
@@ -28,8 +28,8 @@ const (
 	originalExtensionKey = openapi.ExtOriginalKey
 )
 
-// generateSchema generates definition schema with inputs/outputs intersection of matching template versions.
-func generateSchema(ctx context.Context, mc model.ClientSet, df *model.ResourceDefinition) error {
+// GenerateSchema generates definition schema with inputs/outputs intersection of matching template versions.
+func GenerateSchema(ctx context.Context, mc model.ClientSet, df *model.ResourceDefinition) error {
 	// Prepare the match rule schemas.
 	var scss []openapi3.Schemas
 	{

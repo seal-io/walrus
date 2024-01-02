@@ -150,6 +150,11 @@ var (
 		editable,
 		initializeFromEnv("true"),
 		modifyWith(notBlank))
+	EnableBuiltinResourceDefinition = newValue(
+		"EnableBuiltinResourceDefinition",
+		editable,
+		initializeFromEnv("true"),
+		modifyWith(notBlank))
 	// SkipRemoteTLSVerify indicates whether skip SSL verification when accessing remote server.
 	SkipRemoteTLSVerify = newValue(
 		"SkipRemoteTLSVerify",

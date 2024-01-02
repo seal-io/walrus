@@ -23,6 +23,15 @@ const (
 	// LabelWalrusCategory indicates the category of the resource.
 	LabelWalrusCategory string = "walrus.seal.io/category"
 
+	// LabelWalrusConnectorType indicates the connector type of the resource.
+	LabelWalrusConnectorType string = "walrus.seal.io/connector-type"
+
+	// LabelWalrusResourceType indicates the type of the resource.
+	LabelWalrusResourceType string = "walrus.seal.io/resource-type"
+
+	// LabelWalrusResourceDefinition indicates if the template is for resource definition.
+	LabelWalrusResourceDefinition string = "walrus.seal.io/resource-definition"
+
 	// LabelResourceStoppable indicates if the resource is stoppable.
 	LabelResourceStoppable string = "walrus.seal.io/stoppable"
 
