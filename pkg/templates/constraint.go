@@ -74,7 +74,7 @@ func getValidVersions(
 			dir = filepath.Join(dir, subPath)
 		}
 
-		schema, err := loader.LoadSchemaPreferFile(dir, entity.Name)
+		schema, err := loader.LoadOriginalSchema(dir, entity.Name)
 		if err != nil {
 			logger.Warnf("failed to load \"%s:%s\" of catalog %q schema: %v", entity.Name, tag, entity.CatalogID, err)
 			continue
