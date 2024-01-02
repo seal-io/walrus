@@ -112,6 +112,11 @@ func EnvironmentConnectorsEdgeSave(ctx context.Context, mc model.ClientSet, enti
 	return nil
 }
 
+const (
+	ProviderLabelPrefix = "walrus.seal.io/provider-"
+	LabelValueTrue      = "true"
+)
+
 // updateProviderLabels updates the labels of model.Environment entity by connector types.
 func updateProviderLabels(
 	ctx context.Context,
@@ -119,17 +124,12 @@ func updateProviderLabels(
 	entity *model.Environment,
 	newItemIDs []object.ID,
 ) error {
-	const (
-		providerLabelPrefix = "walrus.seal.io/provider-"
-		labelValueTrue      = "true"
-	)
-
 	if entity.Labels == nil {
 		entity.Labels = make(map[string]string)
 	}
 
 	for k := range entity.Labels {
-		if strings.HasPrefix(k, providerLabelPrefix) {
+		if strings.HasPrefix(k, ProviderLabelPrefix) {
 			delete(entity.Labels, k)
 		}
 	}
@@ -144,7 +144,7 @@ func updateProviderLabels(
 		}
 
 		for _, conn := range conns {
-			entity.Labels[providerLabelPrefix+strings.ToLower(conn.Type)] = labelValueTrue
+			entity.Labels[ProviderLabelPrefix+strings.ToLower(conn.Type)] = LabelValueTrue
 		}
 	}
 

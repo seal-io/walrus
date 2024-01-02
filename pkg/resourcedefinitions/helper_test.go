@@ -1,4 +1,4 @@
-package resourcedefinition
+package resourcedefinitions
 
 import (
 	"os"
