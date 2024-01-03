@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"k8s.io/apimachinery/pkg/util/sets"
+
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -238,6 +240,11 @@ func (r *RouteStopRequest) Validate() error {
 }
 
 func validateStop(ctx context.Context, mc model.ClientSet, resources ...*model.Resource) error {
+	resourceNames := sets.NewString()
+	for i := range resources {
+		resourceNames.Insert(resources[i].Name)
+	}
+
 	for i := range resources {
 		res := resources[i]
 		if !pkgresource.IsStoppable(res) {
@@ -267,11 +274,15 @@ func validateStop(ctx context.Context, mc model.ClientSet, resources ...*model.R
 				return fmt.Errorf("failed to get resources: %w", err)
 			}
 
-			return errorx.HttpErrorf(
-				http.StatusConflict,
-				"resource about to be stopped is the dependency of: %v",
-				strs.Join(", ", names...),
-			)
+			// If the resource is the dependency of other non-stopped resources
+			// and not exist in the input, then return error.
+			if !resourceNames.HasAll(names...) {
+				return errorx.HttpErrorf(
+					http.StatusConflict,
+					"resource about to be stopped is the dependency of: %v",
+					strs.Join(", ", names...),
+				)
+			}
 		}
 	}
 

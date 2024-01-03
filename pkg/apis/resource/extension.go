@@ -593,8 +593,14 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 }
 
 func (h Handler) CollectionRouteStart(req CollectionRouteStartRequest) error {
-	for i := range req.Resources {
-		entity := req.Resources[i]
+	// Start resources in topological order.
+	resources, err := pkgresource.TopologicalSortResources(req.Resources)
+	if err != nil {
+		return err
+	}
+
+	for i := range resources {
+		entity := resources[i]
 		entity.ChangeComment = req.ChangeComment
 
 		if err := h.start(req.Context, entity); err != nil {
@@ -615,8 +621,13 @@ func (h Handler) CollectionRouteStop(req CollectionRouteStopRequest) error {
 		Deployer: dp,
 	}
 
-	for i := range req.Resources {
-		res := req.Resources[i]
+	resources, err := pkgresource.ReverseTopologicalSortResources(req.Resources)
+	if err != nil {
+		return err
+	}
+
+	for i := range resources {
+		res := resources[i]
 		res.ChangeComment = req.ChangeComment
 
 		if err := pkgresource.Stop(req.Context, req.Client, res, opts); err != nil {
@@ -629,22 +640,28 @@ func (h Handler) CollectionRouteStop(req CollectionRouteStopRequest) error {
 
 func (h Handler) CollectionRouteUpgrade(req CollectionRouteUpgradeRequest) error {
 	var (
-		entities []*model.Resource
-		err      error
+		resources []*model.Resource
+		err       error
 	)
 
 	if req.ReuseAttributes {
-		entities, err = h.modelClient.Resources().Query().
+		resources, err = h.modelClient.Resources().Query().
 			Where(resource.IDIn(req.IDs()...)).
 			All(req.Context)
 		if err != nil {
 			return err
 		}
 	} else {
-		entities = req.Model()
+		resources = req.Model()
 	}
 
-	for _, entity := range entities {
+	// Make sure the resources are upgraded in topological order.
+	resources, err = pkgresource.TopologicalSortResources(resources)
+	if err != nil {
+		return err
+	}
+
+	for _, entity := range resources {
 		entity.ChangeComment = req.ChangeComment
 
 		if err := h.upgrade(req.Context, entity, req.Draft); err != nil {
