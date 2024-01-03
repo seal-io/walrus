@@ -93,12 +93,11 @@ func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse
 				"projectID":     entity.ProjectID,
 				"environmentID": entity.EnvironmentID,
 				"labels":        entity.Labels,
-				"isService":     pkgresource.IsService(entity),
 			},
 		}
 
 		// TODO resource definition icon.
-		if pkgresource.IsService(entity) {
+		if entity.TemplateID != nil {
 			vertex.Icon = entity.Edges.Template.Edges.Template.Icon
 		}
 

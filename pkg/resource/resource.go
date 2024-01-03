@@ -491,15 +491,6 @@ func CheckDependencyStatus(
 	return true, nil
 }
 
-// IsService tells if the given resource is of service type.
-func IsService(r *model.Resource) bool {
-	if r == nil {
-		return false
-	}
-
-	return r.TemplateID != nil
-}
-
 // IsStoppable tells whether the given resource is stoppable.
 func IsStoppable(r *model.Resource) bool {
 	if r == nil {

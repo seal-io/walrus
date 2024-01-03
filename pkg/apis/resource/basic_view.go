@@ -385,8 +385,6 @@ type (
 			predicate.Resource, resource.OrderOption,
 		] `query:",inline"`
 
-		IsService *bool `query:"isService,omitempty"`
-
 		WithSchema bool `query:"withSchema,omitempty"`
 
 		Stream *runtime.RequestUnidiStream

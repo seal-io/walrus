@@ -51,14 +51,14 @@ func createEnvironment(
 
 		resourceInputs := entity.Edges.Resources
 
-		for _, svc := range resourceInputs {
-			if svc == nil {
+		for _, res := range resourceInputs {
+			if res == nil {
 				return errors.New("invalid input: nil resource")
 			}
-			svc.ProjectID = entity.ProjectID
-			svc.EnvironmentID = entity.ID
+			res.ProjectID = entity.ProjectID
+			res.EnvironmentID = entity.ID
 
-			err = pkgresource.SetDefaultLabels(svc, entity)
+			err = pkgresource.SetDefaultLabels(res, entity)
 			if err != nil {
 				return err
 			}

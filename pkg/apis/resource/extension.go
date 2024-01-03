@@ -62,7 +62,7 @@ func (h Handler) upgrade(ctx context.Context, entity *model.Resource, draft bool
 		return err
 	}
 
-	// Update service, mark status from deploying.
+	// Update resource, mark status from deploying.
 	status.ResourceStatusDeployed.Reset(entity, "Upgrading")
 	entity.Status.SetSummary(status.WalkResource(&entity.Status))
 
@@ -74,7 +74,7 @@ func (h Handler) upgrade(ctx context.Context, entity *model.Resource, draft bool
 		return err
 	})
 	if err != nil {
-		return errorx.Wrap(err, "error updating service")
+		return errorx.Wrap(err, "error updating resource")
 	}
 
 	return h.apply(ctx, entity)
@@ -142,7 +142,7 @@ func (h Handler) RouteRollback(req RouteRollbackRequest) error {
 		Set(entity).
 		SaveE(req.Context, dao.ResourceDependenciesEdgeSave)
 	if err != nil {
-		return errorx.Wrap(err, "error updating service")
+		return errorx.Wrap(err, "error updating resource")
 	}
 
 	dp, err := h.getDeployer(req.Context)

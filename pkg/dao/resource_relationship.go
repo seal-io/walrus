@@ -21,8 +21,8 @@ import (
 	"github.com/seal-io/walrus/utils/strs"
 )
 
-// Match both ${svc.name.attr} and ${res.name.attr}.
-var resourceRegexp = regexp.MustCompile(`\${(svc|res)\.([^.\s]+)\.[^}]+}`)
+// Match ${res.name.attr}.
+var resourceRegexp = regexp.MustCompile(`\${res\.([^.\s]+)\.[^}]+}`)
 
 func resourceRelationshipCreate(ctx context.Context, mc model.ClientSet, input *model.ResourceRelationship) error {
 	err := mc.ResourceRelationships().Create().
@@ -69,7 +69,7 @@ func ResourceRelationshipGetDependencyNames(entity *model.Resource) []string {
 	for _, d := range entity.Attributes {
 		matches := resourceRegexp.FindAllSubmatch(d, -1)
 		for _, m := range matches {
-			names.Insert(string(m[2]))
+			names.Insert(string(m[1]))
 		}
 	}
 
@@ -166,14 +166,14 @@ func resourceRelationshipGetDependencies(
 	mc model.ClientSet,
 	entity *model.Resource,
 ) ([]*model.ResourceRelationship, error) {
-	preServiceNames := ResourceRelationshipGetDependencyNames(entity)
+	preResourceNames := ResourceRelationshipGetDependencyNames(entity)
 
 	// Get the resource IDs of the resource names in same project and environment.
 	dependencyResources, err := mc.Resources().Query().
 		Where(
 			resource.ProjectID(entity.ProjectID),
 			resource.EnvironmentID(entity.EnvironmentID),
-			resource.NameIn(preServiceNames...),
+			resource.NameIn(preResourceNames...),
 		).
 		WithDependencies().
 		All(ctx)
@@ -182,8 +182,8 @@ func resourceRelationshipGetDependencies(
 	}
 
 	var dependencyResourceRelationships []*model.ResourceRelationship
-	for _, preSvc := range dependencyResources {
-		dependencyResourceRelationships = append(dependencyResourceRelationships, preSvc.Edges.Dependencies...)
+	for _, preRes := range dependencyResources {
+		dependencyResourceRelationships = append(dependencyResourceRelationships, preRes.Edges.Dependencies...)
 	}
 
 	dependencies := make(

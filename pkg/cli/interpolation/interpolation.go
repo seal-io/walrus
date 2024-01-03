@@ -19,7 +19,6 @@ var (
 	substitutionBraced   = "[_a-z][_a-z0-9]*(?::?[-+?](.*))?"
 	substitutionVariable = "{var\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?}"
 	substitutionResource = "{res\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?\\.[_a-z][_a-z0-9]*}"
-	substitutionService  = "{svc\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?\\.[_a-z][_a-z0-9]*}"
 	substitutionFile     = `{file\(["']?([a-zA-Z]:)?(\.)?(/|\\)?([\w-\.]+(/|\\))*[\w-\.]+(\.[a-zA-Z]{1,5}){0,1}["']?\)}`
 )
 
@@ -29,7 +28,6 @@ var (
 	groupBraced   = "braced"
 	groupVariable = "variable"
 	groupResource = "resource"
-	groupService  = "service"
 	groupFile     = "file"
 	groupInvalid  = "invalid"
 )
@@ -37,14 +35,13 @@ var (
 // patternString is adapted from:
 // https://github.com/compose-spec/compose-go/blob/81e1e9036e66e9afcdbecffea6470ff7edcffef8/template/template.go#L38
 var patternString = fmt.Sprintf(
-	"%s(?i:(?P<%s>%s)|(?P<%s>%s)|(?P<%s>%s)|(?P<%s>%s)|(?P<%s>%s)|(?P<%s>%s)|{(?:(?P<%s>%s)}|(?P<%s>)))",
+	"%s(?i:(?P<%s>%s)|(?P<%s>%s)|(?P<%s>%s)|(?P<%s>%s)|(?P<%s>%s)|{(?:(?P<%s>%s)}|(?P<%s>)))",
 
 	delimiter,
 	groupEscaped, delimiter,
 	groupNamed, substitutionNamed,
 	groupVariable, substitutionVariable,
 	groupResource, substitutionResource,
-	groupService, substitutionService,
 	groupFile, substitutionFile,
 	groupBraced, substitutionBraced,
 	groupInvalid,
@@ -98,7 +95,6 @@ func ContextAndEnvironmentVariableInterpolator() Interpolator {
 			template.WithReplacementFunction(func(s string, m template.Mapping, c *template.Config) (string, error) {
 				switch {
 				case strings.HasPrefix(s, "${var.") ||
-					strings.HasPrefix(s, "${svc.") ||
 					strings.HasPrefix(s, "${res."):
 					return s, nil
 				case strings.HasPrefix(s, "${file("):
