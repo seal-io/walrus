@@ -443,6 +443,7 @@ func (d Deployer) createRevision(
 			resource.FieldEnvironmentID,
 			resource.FieldType,
 			resource.FieldLabels,
+			resource.FieldAnnotations,
 			resource.FieldAttributes).
 		Only(ctx)
 	if err != nil {
@@ -502,10 +503,20 @@ func (d Deployer) createRevision(
 		return nil, errors.New("service has no template or resource definition")
 	}
 
-	s := session.MustGetSubject(ctx)
+	var subjectID object.ID
+
+	s, _ := session.GetSubject(ctx)
+	if s.ID != "" {
+		subjectID = s.ID
+	} else {
+		subjectID, err = pkgresource.GetSubjectID(res)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	userSubject, err := mc.Subjects().Query().
-		Where(subject.ID(s.ID)).
+		Where(subject.ID(subjectID)).
 		Only(ctx)
 	if err != nil {
 		return nil, err
