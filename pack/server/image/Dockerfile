@@ -176,12 +176,12 @@ ADD https://github.com/argoproj/argo-helm/releases/download/argo-workflows-0.36.
 
 # get deployer tools
 ENV DEPLOYER_TERRAFORM_IMAGE="sealio/terraform-deployer:v1.5.7-seal.1" \
-    DEPLOYER_TERRAFORM_NETWORK_MIRROR_IMAGE="sealio/hermitcrab:v0.1.1"
+    DEPLOYER_TERRAFORM_NETWORK_MIRROR_IMAGE="sealio/hermitcrab:v0.1.3"
 RUN set -exo pipefail; \
     crane pull --platform=${TARGETPLATFORM} ${DEPLOYER_TERRAFORM_IMAGE} ${K3S_DATA_DIR}/agent/images/deployer-terraform.tar; \
     crane pull --platform=${TARGETPLATFORM} ${DEPLOYER_TERRAFORM_NETWORK_MIRROR_IMAGE} ${K3S_DATA_DIR}/agent/images/deployer-terraform-network-mirror.tar
 ENV DEPLOYER_TERRAFORM_HERMITCRAB_CHART_PATH="${CHARTS_DIR}/hermitcrab.tgz"
-ADD https://github.com/seal-io/helm-charts/releases/download/hermitcrab-0.1.1/hermitcrab-0.1.1.tgz ${DEPLOYER_TERRAFORM_HERMITCRAB_CHART_PATH}
+ADD https://github.com/seal-io/helm-charts/releases/download/hermitcrab-0.1.3/hermitcrab-0.1.3.tgz ${DEPLOYER_TERRAFORM_HERMITCRAB_CHART_PATH}
 
 # get cli
 COPY /build/cli* ${CLI_DIR}/
