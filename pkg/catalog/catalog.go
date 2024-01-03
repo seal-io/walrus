@@ -26,8 +26,6 @@ import (
 )
 
 const (
-	// WalrusServiceRepositoryTopic indicates the repository stores a service template.
-	WalrusServiceRepositoryTopic = "walrus-service"
 	// WalrusResourceDefinitionRepositoryTopic indicates the repository stores a resource definition template.
 	WalrusResourceDefinitionRepositoryTopic = "walrus-resource-definition"
 )
@@ -195,8 +193,6 @@ func createWalrusBuiltinLabels(topics []string) map[string]string {
 
 	for _, topic := range topics {
 		switch {
-		case topic == WalrusServiceRepositoryTopic:
-			labels[types.LabelWalrusCategory] = "service"
 		case topic == WalrusResourceDefinitionRepositoryTopic:
 			labels[types.LabelWalrusResourceDefinition] = "true"
 		case strings.HasPrefix(topic, "c-"):

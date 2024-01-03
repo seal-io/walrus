@@ -38,8 +38,8 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...any) error {
 		return err
 	}
 
-	// Count the total size of the services,
-	// skip if no services or error raising.
+	// Count the total size of the resources,
+	// skip if no resources or error raising.
 	total, err := in.modelClient.Resources().Query().
 		Count(ctx)
 	if err != nil || total == 0 {
@@ -48,7 +48,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...any) error {
 
 	wg := gopool.Group()
 
-	// Divide the services in multiple batches according to the gopool burst size.
+	// Divide the resources in multiple batches according to the gopool burst size.
 	bs, bc := getBatches(total, gopool.Burst(), 10)
 	// Process the resources in batches concurrently.
 	for b := 0; b < bc; b++ {
@@ -67,7 +67,7 @@ func (in *StatusSyncTask) buildProcess(
 	limit int,
 ) func() error {
 	return func() error {
-		svcs, err := in.modelClient.Resources().Query().
+		ress, err := in.modelClient.Resources().Query().
 			Order(model.Desc(resource.FieldCreateTime)).
 			Offset(offset).
 			Limit(limit).
@@ -77,7 +77,7 @@ func (in *StatusSyncTask) buildProcess(
 				resource.FieldStatus).
 			All(ctx)
 		if err != nil {
-			return fmt.Errorf("error listing services with offset %d, limit %d: %w",
+			return fmt.Errorf("error listing resources with offset %d, limit %d: %w",
 				offset, limit, err)
 		}
 
@@ -85,8 +85,8 @@ func (in *StatusSyncTask) buildProcess(
 		// instead of returning the first error.
 		var berr error
 
-		for i := range svcs {
-			berr = multierr.Append(berr, in.process(ctx, svcs[i], opIndexer, opLimiter))
+		for i := range ress {
+			berr = multierr.Append(berr, in.process(ctx, ress[i], opIndexer, opLimiter))
 		}
 
 		return berr
@@ -95,11 +95,11 @@ func (in *StatusSyncTask) buildProcess(
 
 func (in *StatusSyncTask) process(
 	ctx context.Context,
-	svc *model.Resource,
+	res *model.Resource,
 	opIndexer operatorIndexer,
 	opLimiter operatorLimiter,
 ) error {
-	rs, err := svc.QueryComponents().
+	rs, err := res.QueryComponents().
 		Where(
 			resourcecomponent.Shape(types.ResourceComponentShapeInstance),
 			resourcecomponent.ModeNEQ(types.ResourceComponentModeData)).
@@ -117,7 +117,7 @@ func (in *StatusSyncTask) process(
 			resourcecomponent.FieldName).
 		All(ctx)
 	if err != nil {
-		return fmt.Errorf("error listing service resources: %w", err)
+		return fmt.Errorf("error listing resource components: %w", err)
 	}
 
 	// Group resources by connector ID.
@@ -156,26 +156,26 @@ func (in *StatusSyncTask) process(
 	}
 
 	// State resource.
-	if status.ResourceStatusUnDeployed.IsTrue(svc) ||
-		status.ResourceStatusDeleted.Exist(svc) ||
-		status.ResourceStatusStopped.Exist(svc) {
-		// Skip if the service is undeployed, on deleting or stopping.
+	if status.ResourceStatusUnDeployed.IsTrue(res) ||
+		status.ResourceStatusDeleted.Exist(res) ||
+		status.ResourceStatusStopped.Exist(res) {
+		// Skip if the resource is undeployed, on deleting or stopping.
 		return berr
 	}
 
 	switch {
 	case sr.Error:
-		status.ResourceStatusReady.False(svc, "")
+		status.ResourceStatusReady.False(res, "")
 	case sr.Transitioning:
-		status.ResourceStatusReady.Unknown(svc, "")
+		status.ResourceStatusReady.Unknown(res, "")
 	default:
-		status.ResourceStatusReady.True(svc, "")
+		status.ResourceStatusReady.True(res, "")
 	}
 
-	svc.Status.SetSummary(status.WalkResource(&svc.Status))
+	res.Status.SetSummary(status.WalkResource(&res.Status))
 
-	err = in.modelClient.Resources().UpdateOne(svc).
-		SetStatus(svc.Status).
+	err = in.modelClient.Resources().UpdateOne(res).
+		SetStatus(res.Status).
 		Exec(ctx)
 	if err != nil {
 		berr = multierr.Append(berr, err)

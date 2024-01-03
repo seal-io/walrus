@@ -28,8 +28,6 @@ type (
 	CollectionRouteGetLatestResourceRevisionsRequest struct {
 		_ struct{} `route:"GET=/latest-resource-revisions"`
 
-		IsService *bool `query:"isService,omitempty"`
-
 		Context *gin.Context
 	}
 
