@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	chartURL = "https://github.com/seal-io/helm-charts/releases/download/hermitcrab-0.1.1/" +
-		"hermitcrab-0.1.1.tgz"
+	chartURL = "https://github.com/seal-io/helm-charts/releases/download/hermitcrab-0.1.3/" +
+		"hermitcrab-0.1.3.tgz"
 	chartPathEnv = "DEPLOYER_TERRAFORM_HERMITCRAB_CHART_PATH"
 
 	chartValuesTmplText = `
