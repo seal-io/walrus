@@ -70,6 +70,9 @@ func (Resource) Fields() []ent.Field {
 			Annotations(
 				entx.Input(entx.WithCreate(), entx.WithUpdate()),
 				entx.SkipOutput()),
+		field.String("action_type").
+			Comment("Action type of the resource's latest revision.").
+			Annotations(entx.SkipInput()),
 	}
 }
 

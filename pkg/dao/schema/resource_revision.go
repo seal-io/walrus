@@ -85,6 +85,9 @@ func (ResourceRevision) Fields() []ent.Field {
 		field.String("created_by").
 			Comment("User who created the revision.").
 			Annotations(entx.SkipInput()),
+		field.String("action_type").
+			Comment("Action type of the revision.").
+			Annotations(entx.SkipInput()),
 	}
 }
 
