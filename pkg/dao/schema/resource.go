@@ -51,16 +51,14 @@ func (Resource) Fields() []ent.Field {
 			Immutable().
 			Optional().
 			Annotations(
-				entx.Input(entx.WithCreate(), entx.WithQuery()),
-			),
+				entx.Input(entx.WithCreate(), entx.WithQuery())),
 		object.IDField("resource_definition_id").
 			Comment("ID of the resource definition to which the resource use.").
 			Immutable().
 			Optional().
 			Nillable().
 			Annotations(
-				entx.SkipIO(),
-			),
+				entx.SkipIO()),
 		property.ValuesField("attributes").
 			Comment("Attributes to configure the template.").
 			Optional(),
@@ -84,6 +82,7 @@ func (Resource) Edges() []ent.Edge {
 			Required().
 			Immutable().
 			Annotations(
+				entx.SkipValidateIfNotPresent(),
 				entx.ValidateContext(intercept.WithProjectInterceptor)),
 		// Environment 1-* Resources.
 		edge.From("environment", Environment.Type).
@@ -92,7 +91,9 @@ func (Resource) Edges() []ent.Edge {
 			Comment("Environment to which the resource belongs.").
 			Unique().
 			Required().
-			Immutable(),
+			Immutable().
+			Annotations(
+				entx.SkipValidateIfNotPresent()),
 		// TemplateVersion 1-* Resources.
 		edge.From("template", TemplateVersion.Type).
 			Ref("resources").
@@ -112,8 +113,7 @@ func (Resource) Edges() []ent.Edge {
 			Annotations(
 				entx.SkipInput(entx.WithQuery()),
 				entx.Input(entx.WithCreate(), entx.WithUpdate()),
-				entx.SkipOutput(),
-			).
+				entx.SkipOutput()).
 			// Hide the edge from the API, but generate the input for validation and edge resolution.
 			// Mapping from type to definition_edge.type is done in the API layer.
 			StructTag(`json:"-"`),
