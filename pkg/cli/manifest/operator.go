@@ -7,6 +7,7 @@ import (
 
 	utilwait "k8s.io/apimachinery/pkg/util/wait"
 
+	"github.com/seal-io/walrus/pkg/cli/common"
 	"github.com/seal-io/walrus/pkg/cli/config"
 	"github.com/seal-io/walrus/utils/strs"
 )
@@ -72,7 +73,7 @@ func (o *ApplyOperator) Operate(set ObjectSet) (OperateResult, error) {
 
 	var (
 		err         error
-		retryErr    *RetryableError
+		retryErr    *common.RetryableError
 		finalResult = OperateResult{
 			Success:   ObjectSet{},
 			UnChanged: ObjectSet{},
@@ -206,7 +207,7 @@ func (o *DeleteOperator) Operate(set ObjectSet) (OperateResult, error) {
 	}
 
 	var (
-		retryErr *RetryableError
+		retryErr *common.RetryableError
 		result   = OperateResult{
 			Success:  ObjectSet{},
 			Failed:   ObjectSet{},

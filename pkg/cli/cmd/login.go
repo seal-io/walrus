@@ -18,15 +18,16 @@ import (
 	"github.com/seal-io/walrus/utils/strs"
 )
 
-// NewConfigCmd generate config command.
-func NewConfigCmd(serverConfig *config.Config, root *cobra.Command) *cobra.Command {
+// Login generate login command.
+func Login(serverConfig *config.Config, root *cobra.Command) *cobra.Command {
 	// Command config setup.
 	cfg := config.ServerContext{}
 
-	// Command config setup.
-	setupCmd := &cobra.Command{
-		Use:   "setup",
-		Short: "Connect Walrus server and setup cli",
+	// Command login.
+	loginCmd := &cobra.Command{
+		Use:     "login",
+		GroupID: common.GroupOther.ID,
+		Short:   "Login Walrus server and setup cli",
 		PreRun: func(cmd *cobra.Command, args []string) {
 			// Configuration value from environment variables.
 			viper.SetEnvPrefix("WALRUS")
@@ -55,60 +56,17 @@ func NewConfigCmd(serverConfig *config.Config, root *cobra.Command) *cobra.Comma
 			if err != nil {
 				panic(err)
 			}
-		},
-	}
 
-	cfg.AddFlags(setupCmd)
-
-	// Command config sync.
-	syncCmd := &cobra.Command{
-		Use:   "sync",
-		Short: "Sync cli action to the latest",
-		Run: func(cmd *cobra.Command, args []string) {
-			err := sync(serverConfig, root)
+			err = sync(serverConfig, root)
 			if err != nil {
 				panic(err)
 			}
 		},
 	}
 
-	// Command config current context.
-	currentContextCmd := &cobra.Command{
-		Use:   "current-context",
-		Short: "Get current context",
-		Run: func(cmd *cobra.Command, args []string) {
-			currentContext(serverConfig)
-		},
-	}
+	cfg.AddFlags(loginCmd)
 
-	// Command config.
-	configCmd := &cobra.Command{
-		Use:     "config",
-		Short:   "Manage CLI configuration",
-		GroupID: common.GroupOther.ID,
-	}
-	configCmd.AddCommand(
-		setupCmd,
-		syncCmd,
-		currentContextCmd,
-	)
-
-	return configCmd
-}
-
-// currentContext define the function for config current-context command.
-func currentContext(serverConfig *config.Config) {
-	if serverConfig.Project != "" {
-		name := serverConfig.Project
-		if name != "" {
-			fmt.Println("Current Project: " + name)
-		}
-
-		env := serverConfig.Environment
-		if env != "" {
-			fmt.Println("Current Environment: " + env)
-		}
-	}
+	return loginCmd
 }
 
 // setup define the function for config setup command.

@@ -82,7 +82,11 @@ func IsValid() bool {
 }
 
 func IsDevVersion() bool {
-	return Version == "" ||
-		Version == "dev" ||
-		Version == "main"
+	return IsDevVersionWith(Version)
+}
+
+func IsDevVersionWith(v string) bool {
+	return v == "" ||
+		v == "dev" ||
+		v == "main"
 }

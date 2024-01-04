@@ -1,4 +1,4 @@
-package manifest
+package common
 
 func NewRetryableError(msg string) *RetryableError {
 	return &RetryableError{

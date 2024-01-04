@@ -2,8 +2,8 @@ package config
 
 import (
 	"crypto/tls"
-	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -11,6 +11,8 @@ import (
 
 	"github.com/henvic/httpretty"
 
+	"github.com/seal-io/walrus/pkg/cli/common"
+	"github.com/seal-io/walrus/utils/json"
 	"github.com/seal-io/walrus/utils/strs"
 	"github.com/seal-io/walrus/utils/version"
 )
@@ -19,6 +21,7 @@ const (
 	timeout     = 15 * time.Second
 	openAPIPath = "/openapi"
 	apiVersion  = "v1"
+	versionPath = "/debug/version"
 )
 
 // CommonConfig indicate the common CLI command config.
@@ -30,6 +33,12 @@ type CommonConfig struct {
 type Config struct {
 	CommonConfig  `json:",inline" yaml:",inline" mapstructure:",squash"`
 	ServerContext `json:",inline" yaml:",inline" mapstructure:",squash"`
+}
+
+// Version include the version and commit.
+type Version struct {
+	Version string `json:"version" yaml:"version"`
+	Commit  string `json:"commit" yaml:"commit"`
 }
 
 // DoRequest send request to server.
@@ -56,18 +65,20 @@ func (c *Config) DoRequest(req *http.Request) (*http.Response, error) {
 
 // ValidateAndSetup validate and setup the context.
 func (c *Config) ValidateAndSetup() error {
+	msg := `cli configuration is invalid: %s. You can configure cli by running "walrus login"`
+
 	if c.Server == "" {
-		return errors.New("endpoint is required")
+		return fmt.Errorf(msg, "server address is empty")
 	}
 
 	err := c.validateProject()
 	if err != nil {
-		return err
+		return fmt.Errorf(msg, err.Error())
 	}
 
 	err = c.validateEnvironment()
 	if err != nil {
-		return err
+		return fmt.Errorf(msg, err.Error())
 	}
 
 	return nil
@@ -176,15 +187,33 @@ func (c *Config) validateResourceItem(resource, name, address string) error {
 		return err
 	}
 
-	switch {
-	default:
-	case resp.StatusCode == http.StatusUnauthorized:
-		return fmt.Errorf("unauthorized, please check the validity of the token")
-	case resp.StatusCode == http.StatusNotFound:
-		return fmt.Errorf("%s %s not found", strs.Singularize(resource), name)
-	case resp.StatusCode < 200 || resp.StatusCode >= 300:
-		return fmt.Errorf("unexpected status code %d", resp.StatusCode)
+	return common.CheckResponseStatus(resp, fmt.Sprintf("%s %s", strs.Singularize(resource), name))
+}
+
+func (c *Config) ServerVersion() (*Version, error) {
+	req, err := http.NewRequest(http.MethodGet, versionPath, nil)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := c.DoRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	err = common.CheckResponseStatus(resp, "")
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var v Version
+	err = json.Unmarshal(b, &v)
+
+	return &v, err
 }

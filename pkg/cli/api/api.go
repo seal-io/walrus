@@ -13,7 +13,7 @@ import (
 
 // API represents an abstracted API description, include details used to build CLI commands.
 type API struct {
-	Version    string      `json:"version"`
+	Version    `json:",inline"`
 	Short      string      `json:"short"`
 	Long       string      `json:"long,omitempty"`
 	Operations []Operation `json:"operations,omitempty"`

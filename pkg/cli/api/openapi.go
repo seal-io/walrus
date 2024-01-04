@@ -118,10 +118,17 @@ func LoadOpenAPIFromSchema(t openapi3.T) (*API, error) {
 		}
 	}
 
-	api.Version = t.Info.Version
+	api.Version = Version{
+		Version:      t.Info.Version,
+		IsDevVersion: versionutil.IsDevVersionWith(t.Info.Version),
+	}
 	api.Short = t.Info.Title
 	api.Long = t.Info.Description
 	api.Operations = aggregateOperations(operations)
+
+	if t.Info.Extensions != nil {
+		api.Version.GitCommit = t.Info.Extensions[openapi.ExtVersionGitCommit].(string)
+	}
 
 	return api, nil
 }
