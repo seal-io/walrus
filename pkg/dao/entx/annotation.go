@@ -249,6 +249,15 @@ func ValidateContext(fns ...func(context.Context) context.Context) (a Annotation
 	return
 }
 
+// SkipValidateIfNotPresent skips validating the field if it is not present,
+// only works on the prerequisite condition,
+// by default, the prerequisite condition must be verified.
+func SkipValidateIfNotPresent() (a Annotation) {
+	return Annotation{
+		SkipValidateIfNotPresent: true,
+	}
+}
+
 // SkipOutput skips generating the field or edge into *Output struct.
 func SkipOutput() (a Annotation) {
 	return Annotation{

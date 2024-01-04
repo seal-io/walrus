@@ -137,7 +137,8 @@ func ({{ $receiver }} *{{ $singular }}) ValidateWith(ctx context.Context, cs Cli
                 {{- range $te := $e.Through.Edges }} {{ if eq $e.Type $te.Type }} {{ $optional = $te.Optional }} {{ end }} {{ end }}
             {{- end }}
             if err := {{ $receiver }}.{{ $en }}.ValidateWith(ctx, cs, cache); err != nil {
-                {{- if $optional }}
+                {{- $ants := extractAnnotation $e }}{{ if $ants.SkipValidateIfNotPresent }}{{ end }}
+                {{- if or $optional $ants.SkipValidateIfNotPresent }}
                     if !IsBlankResourceReferError(err) {
                         return err
                     } else {
@@ -482,25 +483,29 @@ func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs Clien
             {{- if $e.Through }}
                 {{- range $te := $e.Through.Edges }} {{ if eq $e.Type $te.Type }} {{ $optional = $te.Optional }} {{ end }} {{ end }}
             {{- end }}
+            {{- $ants := extractAnnotation $e }}
             if err := {{ $receiver }}.{{ $en }}.ValidateWith(ctx, cs, cache); err != nil {
-                {{- if $optional }}
+                {{- if $ants.SkipValidateIfNotPresent }}{{ end }}
+                {{- if or $optional $ants.SkipValidateIfNotPresent }}
                     if !IsBlankResourceReferError(err) {
                         return err
                     } else {
                         {{ $receiver }}.{{ $en }} = nil
-                        {{- if $f }}
-                            q.Where(
-                                {{ $util }}.{{ $f.StructField }}IsNil())
-                        {{- else }}
-                            q.Where(
-                                predicate.{{ $.Name }}(sql.FieldIsNull({{ $util }}.{{ $en }}Column)))
-                        {{- end }}
+						{{- if not $ants.SkipValidateIfNotPresent }}
+                            {{- if $f }}
+                                q.Where(
+                                    {{ $util }}.{{ $f.StructField }}IsNil())
+                            {{- else }}
+                                q.Where(
+                                    predicate.{{ $.Name }}(sql.FieldIsNull({{ $util }}.{{ $en }}Column)))
+                            {{- end }}
+						{{- end }}
                     }
                 {{- else }}
                     return err
                 {{- end }}
             } else {
-                {{- $ants := extractAnnotation $e }}{{ if $ants.ValidateContextFuncs }}ctx = valueContext(ctx, {{ join $ants.ValidateContextFuncs ", " }}){{ end }}
+                {{- if $ants.ValidateContextFuncs }}ctx = valueContext(ctx, {{ join $ants.ValidateContextFuncs ", " }}){{ end }}
                 {{- if and $f (not $e.M2M) }}
                     q.Where(
                         {{ $util }}.{{ $f.StructField }}({{ $receiver }}.{{ $en }}.ID))
@@ -721,25 +726,29 @@ func ({{ $receiver }} *{{ $singular }}) ValidateWith(ctx context.Context, cs Cli
             {{- if $e.Through }}
                 {{- range $te := $e.Through.Edges }} {{ if eq $e.Type $te.Type }} {{ $optional = $te.Optional }} {{ end }} {{ end }}
             {{- end }}
+            {{- $ants := extractAnnotation $e }}
             if err := {{ $receiver }}.{{ $en }}.ValidateWith(ctx, cs, cache); err != nil {
-                {{- if $optional }}
+                {{- if $ants.SkipValidateIfNotPresent }}{{ end }}
+                {{- if or $optional $ants.SkipValidateIfNotPresent }}
                     if !IsBlankResourceReferError(err) {
                         return err
                     } else {
                         {{ $receiver }}.{{ $en }} = nil
-                        {{- if $f }}
-                            q.Where(
-                                {{ $util }}.{{ $f.StructField }}IsNil())
-                        {{- else }}
-                            q.Where(
-                                predicate.{{ $.Name }}(sql.FieldIsNull({{ $util }}.{{ $en }}Column)))
-                        {{- end }}
+                        {{- if not $ants.SkipValidateIfNotPresent }}
+                            {{- if $f }}
+                                q.Where(
+                                    {{ $util }}.{{ $f.StructField }}IsNil())
+                            {{- else }}
+                                q.Where(
+                                    predicate.{{ $.Name }}(sql.FieldIsNull({{ $util }}.{{ $en }}Column)))
+                            {{- end }}
+						{{- end }}
                     }
                 {{- else }}
                     return err
                 {{- end }}
             } else {
-                {{- $ants := extractAnnotation $e }}{{ if $ants.ValidateContextFuncs }}ctx = valueContext(ctx, {{ join $ants.ValidateContextFuncs ", " }}){{ end }}
+                {{- if $ants.ValidateContextFuncs }}ctx = valueContext(ctx, {{ join $ants.ValidateContextFuncs ", " }}){{ end }}
                 {{- if and $f (not $e.M2M) }}
                     q.Where(
                         {{ $util }}.{{ $f.StructField }}({{ $receiver }}.{{ $en }}.ID))
@@ -924,7 +933,8 @@ func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs Clien
                 {{- range $te := $e.Through.Edges }} {{ if eq $e.Type $te.Type }} {{ $optional = $te.Optional }} {{ end }} {{ end }}
             {{- end }}
             if err := {{ $receiver }}.{{ $en }}.ValidateWith(ctx, cs, cache); err != nil {
-                {{- if $optional }}
+                {{- $ants := extractAnnotation $e }}{{ if $ants.SkipValidateIfNotPresent }}{{ end }}
+                {{- if or $optional $ants.SkipValidateIfNotPresent }}
                     if !IsBlankResourceReferError(err) {
                         return err
                     } else {
@@ -1277,25 +1287,29 @@ func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs Clien
             {{- if $e.Through }}
                 {{- range $te := $e.Through.Edges }} {{ if eq $e.Type $te.Type }} {{ $optional = $te.Optional }} {{ end }} {{ end }}
             {{- end }}
+            {{- $ants := extractAnnotation $e }}
             if err := {{ $receiver }}.{{ $en }}.ValidateWith(ctx, cs, cache); err != nil {
-                {{- if $optional }}
+                 {{- if $ants.SkipValidateIfNotPresent }}{{ end }}
+                 {{- if or $optional $ants.SkipValidateIfNotPresent }}
                     if !IsBlankResourceReferError(err) {
                         return err
                     } else {
                         {{ $receiver }}.{{ $en }} = nil
-                        {{- if $f }}
-                            q.Where(
-                                {{ $util }}.{{ $f.StructField }}IsNil())
-                        {{- else }}
-                            q.Where(
-                                predicate.{{ $.Name }}(sql.FieldIsNull({{ $util }}.{{ $en }}Column)))
-                        {{- end }}
+                        {{- if not $ants.SkipValidateIfNotPresent }}
+                            {{- if $f }}
+                                q.Where(
+                                    {{ $util }}.{{ $f.StructField }}IsNil())
+                            {{- else }}
+                                q.Where(
+                                    predicate.{{ $.Name }}(sql.FieldIsNull({{ $util }}.{{ $en }}Column)))
+                            {{- end }}
+						{{- end }}
                     }
-                {{- else }}
+                 {{- else }}
                     return err
-                {{- end }}
+                 {{- end }}
             } else {
-                {{- $ants := extractAnnotation $e }}{{ if $ants.ValidateContextFuncs }}ctx = valueContext(ctx, {{ join $ants.ValidateContextFuncs ", " }}){{ end }}
+                {{- if $ants.ValidateContextFuncs }}ctx = valueContext(ctx, {{ join $ants.ValidateContextFuncs ", " }}){{ end }}
                 {{- if and $f (not $e.M2M) }}
                     q.Where(
                         {{ $util }}.{{ $f.StructField }}({{ $receiver }}.{{ $en }}.ID))
@@ -1496,25 +1510,29 @@ func ({{ $receiver }} *{{ $singular }}) ValidateWith(ctx context.Context, cs Cli
             {{- if $e.Through }}
                 {{- range $te := $e.Through.Edges }} {{ if eq $e.Type $te.Type }} {{ $optional = $te.Optional }} {{ end }} {{ end }}
             {{- end }}
+            {{- $ants := extractAnnotation $e }}
             if err := {{ $receiver }}.{{ $en }}.ValidateWith(ctx, cs, cache); err != nil {
-                {{- if $optional }}
+                {{- if $ants.SkipValidateIfNotPresent }}{{ end }}
+                {{- if or $optional $ants.SkipValidateIfNotPresent }}
                     if !IsBlankResourceReferError(err) {
                         return err
                     } else {
                         {{ $receiver }}.{{ $en }} = nil
-                        {{- if $f }}
-                            q.Where(
-                                {{ $util }}.{{ $f.StructField }}IsNil())
-                        {{- else }}
-                            q.Where(
-                                predicate.{{ $.Name }}(sql.FieldIsNull({{ $util }}.{{ $en }}Column)))
-                        {{- end }}
+                        {{- if not $ants.SkipValidateIfNotPresent }}
+                            {{- if $f }}
+                                q.Where(
+                                    {{ $util }}.{{ $f.StructField }}IsNil())
+                            {{- else }}
+                                q.Where(
+                                    predicate.{{ $.Name }}(sql.FieldIsNull({{ $util }}.{{ $en }}Column)))
+                            {{- end }}
+						{{- end }}
                     }
                 {{- else }}
                     return err
                 {{- end }}
             } else {
-                {{- $ants := extractAnnotation $e }}{{ if $ants.ValidateContextFuncs }}ctx = valueContext(ctx, {{ join $ants.ValidateContextFuncs ", " }}){{ end }}
+                {{- if $ants.ValidateContextFuncs }}ctx = valueContext(ctx, {{ join $ants.ValidateContextFuncs ", " }}){{ end }}
                 {{- if and $f (not $e.M2M) }}
                     q.Where(
                         {{ $util }}.{{ $f.StructField }}({{ $receiver }}.{{ $en }}.ID))

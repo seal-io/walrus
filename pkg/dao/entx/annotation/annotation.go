@@ -39,6 +39,9 @@ type (
 		// ValidateContextFuncs indicates funcs to call before validating *Input struct.
 		ValidateContextFuncs []string `json:"ValidateContextFuncs,omitempty"`
 
+		// SkipValidateIfNotPresent skips validating the field if it is not present.
+		SkipValidateIfNotPresent bool `json:"SkipValidateIfNotPresent,omitempty"`
+
 		// SkipOutput skips generating the field or edge into *Output struct.
 		SkipOutput bool `json:"SkipOutput,omitempty"`
 
@@ -103,6 +106,10 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 
 	if o.ValidateContextFuncs != nil {
 		a.ValidateContextFuncs = append(a.ValidateContextFuncs, o.ValidateContextFuncs...)
+	}
+
+	if o.SkipValidateIfNotPresent {
+		a.SkipValidateIfNotPresent = true
 	}
 
 	if o.SkipOutput {
