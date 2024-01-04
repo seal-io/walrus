@@ -16,6 +16,7 @@ import (
 	"github.com/seal-io/walrus/pkg/cli/config"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/strs"
+	versionutil "github.com/seal-io/walrus/utils/version"
 )
 
 const (
@@ -270,12 +271,17 @@ func toOperation(
 		headerParams []*Param
 	)
 
+	tag := ""
+	if len(op.Tags) > 0 {
+		tag = op.Tags[0]
+	}
+
 	for i, p := range allParams {
 		if p != nil && isIgnore(p.Extensions) {
 			continue
 		}
 
-		param := toParam(allParams[i], basePath)
+		param := toParam(allParams[i], tag)
 
 		switch p.In {
 		case "path":
@@ -289,11 +295,6 @@ func toOperation(
 
 	md := strings.ToUpper(method)
 	mediaType, bodyParams := toBodyParams(op.RequestBody, comps)
-
-	tag := ""
-	if len(op.Tags) > 0 {
-		tag = op.Tags[0]
-	}
 
 	dep := ""
 	if op.Deprecated {
@@ -333,7 +334,7 @@ func toOperation(
 }
 
 // toParam generate param from OpenAPI parameter.
-func toParam(p *openapi3.Parameter, uri string) *Param {
+func toParam(p *openapi3.Parameter, group string) *Param {
 	var (
 		typ = "string"
 		des string
@@ -371,7 +372,7 @@ func toParam(p *openapi3.Parameter, uri string) *Param {
 
 	for _, ijf := range config.InjectFields {
 		// Set context param if it's in inject fields and not the id in the uri.
-		if ijf == p.Name && !strings.HasSuffix(uri, fmt.Sprintf("{%s}", ijf)) {
+		if ijf == p.Name && strings.ToLower(strs.Singularize(group)) != p.Name {
 			param.DataFrom = DataFromContextAndArg
 		}
 	}
