@@ -94,17 +94,8 @@ func (h Handler) CollectionRouteGetBasicInformation(
 		return nil, err
 	}
 
-	// Count services below owned projects.
-	serviceNum, err := h.modelClient.Resources().Query().
-		Where(resource.TemplateIDNotNil()).
-		Count(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// Count non-service resources below owned projects.
+	// Count resources below owned projects.
 	resourceNum, err := h.modelClient.Resources().Query().
-		Where(resource.TemplateIDIsNil()).
 		Count(ctx)
 	if err != nil {
 		return nil, err
@@ -135,7 +126,6 @@ func (h Handler) CollectionRouteGetBasicInformation(
 		Project:           projectNum,
 		Environment:       environmentNum,
 		Connector:         connectorNum,
-		Service:           serviceNum,
 		Resource:          resourceNum,
 		ResourceComponent: resourceComponentNum,
 		ResourceRevision:  resourceRevisionNum,
