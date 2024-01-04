@@ -14,6 +14,7 @@ import (
 	"github.com/r3labs/sse"
 
 	"github.com/seal-io/walrus/pkg/cli/api"
+	"github.com/seal-io/walrus/pkg/cli/common"
 	"github.com/seal-io/walrus/pkg/cli/config"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/utils/gopool"
@@ -90,7 +91,7 @@ func PatchObjects(sc *config.Config, group string, objs ObjectByScope) (success,
 			}
 
 			results <- result{
-				err: checkResponseStatus(resp),
+				err: common.CheckResponseStatus(resp, ""),
 				obj: o,
 			}
 		})
@@ -188,7 +189,7 @@ func batchCreateObjects(sc *config.Config, createOpt *api.Operation, scope Objec
 		return err
 	}
 
-	return checkResponseStatus(resp)
+	return common.CheckResponseStatus(resp, "")
 }
 
 // GetObjects send get objects request.
@@ -236,7 +237,7 @@ func GetObjects(sc *config.Config, group string, objs ObjectByScope, detectChang
 			switch resp.StatusCode {
 			case http.StatusTooManyRequests:
 				results <- result{
-					err: NewRetryableError("too many request"),
+					err: common.NewRetryableError("too many request"),
 					obj: o,
 				}
 			case http.StatusNotFound:
@@ -387,7 +388,7 @@ func DeleteObjects(sc *config.Config, group string, objs ObjectByScope) (*Object
 			}
 
 			results <- result{
-				err:  checkResponseStatus(resp),
+				err:  common.CheckResponseStatus(resp, ""),
 				objs: o,
 			}
 		})
@@ -582,22 +583,4 @@ type EventItem struct {
 	ID     string        `json:"id"`
 	Name   string        `json:"name"`
 	Status status.Status `json:"status"`
-}
-
-func checkResponseStatus(resp *http.Response) error {
-	switch {
-	case resp.StatusCode == http.StatusConflict:
-		return NewRetryableError("conflict")
-	case resp.StatusCode == http.StatusTooManyRequests:
-		return NewRetryableError("too many request")
-	case resp.StatusCode < 200 || resp.StatusCode >= 300:
-		msg, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("unexpected status code %d, failed to read response body: %w", resp.StatusCode, err)
-		}
-
-		return fmt.Errorf("unexpected status code %d, %s", resp.StatusCode, string(msg))
-	}
-
-	return nil
 }

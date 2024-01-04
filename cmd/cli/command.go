@@ -37,7 +37,8 @@ func NewRootCmd() *cobra.Command {
 		common.GroupOther)
 
 	cmd.AddCommand(
-		NewConfigCmd(cmd),
+		NewLoginCmd(cmd),
+		NewContextCmd(),
 		NewSchemaCmd(),
 		NewApplyCmd(),
 		NewDeleteCmd(),
@@ -56,11 +57,17 @@ func NewRootCmd() *cobra.Command {
 	return cmd
 }
 
-// NewConfigCmd generate config command.
-func NewConfigCmd(root *cobra.Command) *cobra.Command {
-	return pkgcmd.NewConfigCmd(serverConfig, root)
+// NewLoginCmd generate login command.
+func NewLoginCmd(root *cobra.Command) *cobra.Command {
+	return pkgcmd.Login(serverConfig, root)
 }
 
+// NewContextCmd generate context command.
+func NewContextCmd() *cobra.Command {
+	return pkgcmd.Context(serverConfig)
+}
+
+// NewLocalCmd generate local command.
 func NewLocalCmd() *cobra.Command {
 	return pkgcmd.NewLocalCmd()
 }
@@ -105,8 +112,8 @@ func globalFlags() *pflag.FlagSet {
 }
 
 var configSetupExample = `
-  # Setup Walrus CLI configuration
-  $ walrus config setup
+  # Login to configure the Walrus CLI settings.
+  $ walrus login
 `
 
 var helpTemplate = `{{if or .Runnable .HasSubCommands}}{{.UsageString}}{{end}}`

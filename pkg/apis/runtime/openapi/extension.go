@@ -16,4 +16,7 @@ const (
 
 	// ExtCliOutputFormat define the output format set the CLI operation command.
 	ExtCliOutputFormat = "x-cli-output-format"
+
+	// ExtVersionGitCommit define the git commit hash version for openapi.
+	ExtVersionGitCommit = "x-version-git-commit"
 )

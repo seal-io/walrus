@@ -79,7 +79,21 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 		Hidden:     o.Hidden,
 		Deprecated: o.Deprecated,
 		PreRun: func(cmd *cobra.Command, args []string) {
-			err := sc.Inject(cmd)
+			shouldUpdate, err := CompareVersion(sc)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+
+			if shouldUpdate {
+				err = InitOpenAPI(sc, true)
+				if err != nil {
+					fmt.Fprintln(os.Stderr, err)
+					os.Exit(1)
+				}
+			}
+
+			err = sc.Inject(cmd)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)

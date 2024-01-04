@@ -28,6 +28,9 @@ var openAPISchemas = &openapi3.T{
 		Title:       "Restful APIs",
 		Description: "Restful APIs to access Walrus.",
 		Version:     version.Version,
+		Extensions: map[string]any{
+			openapi.ExtVersionGitCommit: version.GitCommit,
+		},
 	},
 	Security: getSecurityRequirements(),
 	Components: &openapi3.Components{
