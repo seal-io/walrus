@@ -21,6 +21,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/k8s"
 	"github.com/seal-io/walrus/pkg/operator/k8s/polymorphic"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
 	"github.com/seal-io/walrus/pkg/settings"
@@ -120,23 +121,16 @@ func (op Operator) IsConnected(ctx context.Context) error {
 	var lastErr error
 
 	err := wait.PollUntilContextCancel(ctx, time.Second, true,
-		func(ctx context.Context) (bool, error) {
-			_, lastErr = op.CoreCli.RESTClient().
-				Get().
-				AbsPath("/version").
-				Do(ctx).
-				Raw()
+		func(_ context.Context) (bool, error) {
+			// NB(shanewxy): Keep the real error from request.
+			lastErr = k8s.IsConnected(context.TODO(), op.CoreCli.RESTClient())
 
 			return lastErr == nil, ctx.Err()
 		},
 	)
 
-	if err == nil {
-		return nil
-	}
-
 	if lastErr != nil {
-		return lastErr
+		err = lastErr // Use last error to overwrite context error while existed.
 	}
 
 	return err

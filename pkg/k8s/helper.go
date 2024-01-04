@@ -65,7 +65,8 @@ func Wait(ctx context.Context, cfg *rest.Config) error {
 
 	err = wait.PollUntilContextCancel(ctx, 1*time.Second, true,
 		func(ctx context.Context) (bool, error) {
-			lastErr = IsConnected(ctx, cli.RESTClient())
+			// NB(shanewxy): Keep the real error from request.
+			lastErr = IsConnected(context.TODO(), cli.RESTClient())
 			if lastErr != nil {
 				log.Warnf("waiting for apiserver to be ready: %v", lastErr)
 			}
@@ -73,15 +74,12 @@ func Wait(ctx context.Context, cfg *rest.Config) error {
 			return lastErr == nil, ctx.Err()
 		},
 	)
-	if err != nil {
-		if lastErr != nil {
-			err = lastErr // Use last error to overwrite context error while existed.
-		}
 
-		return err
+	if lastErr != nil {
+		err = lastErr // Use last error to overwrite context error while existed.
 	}
 
-	return nil
+	return err
 }
 
 func IsConnected(ctx context.Context, r rest.Interface) error {
