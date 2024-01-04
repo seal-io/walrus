@@ -30,7 +30,7 @@ func (r *CreateRequest) Validate() error {
 	}
 
 	switch r.Type {
-	case types.GitDriverGithub, types.GitDriverGitlab:
+	case types.GitDriverGithub, types.GitDriverGitlab, types.GitDriverGitee:
 	default:
 		return fmt.Errorf("unsupported catalog type %q", r.Type)
 	}
