@@ -103,13 +103,21 @@ func (rci *ResourceCreateInput) ValidateWith(ctx context.Context, cs ClientSet, 
 	// Validate when creating under the Project route.
 	if rci.Project != nil {
 		if err := rci.Project.ValidateWith(ctx, cs, cache); err != nil {
-			return err
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rci.Project = nil
+			}
 		}
 	}
 	// Validate when creating under the Environment route.
 	if rci.Environment != nil {
 		if err := rci.Environment.ValidateWith(ctx, cs, cache); err != nil {
-			return err
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rci.Environment = nil
+			}
 		}
 	}
 
@@ -386,7 +394,11 @@ func (rdi *ResourceDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet,
 	// Validate when deleting under the Project route.
 	if rdi.Project != nil {
 		if err := rdi.Project.ValidateWith(ctx, cs, cache); err != nil {
-			return err
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rdi.Project = nil
+			}
 		} else {
 			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
 			q.Where(
@@ -397,7 +409,11 @@ func (rdi *ResourceDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet,
 	// Validate when deleting under the Environment route.
 	if rdi.Environment != nil {
 		if err := rdi.Environment.ValidateWith(ctx, cs, cache); err != nil {
-			return err
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rdi.Environment = nil
+			}
 		} else {
 			q.Where(
 				resource.EnvironmentID(rdi.Environment.ID))
@@ -504,7 +520,11 @@ func (rpi *ResourcePatchInput) ValidateWith(ctx context.Context, cs ClientSet, c
 	// Validate when querying under the Project route.
 	if rpi.Project != nil {
 		if err := rpi.Project.ValidateWith(ctx, cs, cache); err != nil {
-			return err
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rpi.Project = nil
+			}
 		} else {
 			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
 			q.Where(
@@ -515,7 +535,11 @@ func (rpi *ResourcePatchInput) ValidateWith(ctx context.Context, cs ClientSet, c
 	// Validate when querying under the Environment route.
 	if rpi.Environment != nil {
 		if err := rpi.Environment.ValidateWith(ctx, cs, cache); err != nil {
-			return err
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rpi.Environment = nil
+			}
 		} else {
 			q.Where(
 				resource.EnvironmentID(rpi.Environment.ID))
@@ -640,7 +664,11 @@ func (rqi *ResourceQueryInput) ValidateWith(ctx context.Context, cs ClientSet, c
 	// Validate when querying under the Project route.
 	if rqi.Project != nil {
 		if err := rqi.Project.ValidateWith(ctx, cs, cache); err != nil {
-			return err
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rqi.Project = nil
+			}
 		} else {
 			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
 			q.Where(
@@ -651,7 +679,11 @@ func (rqi *ResourceQueryInput) ValidateWith(ctx context.Context, cs ClientSet, c
 	// Validate when querying under the Environment route.
 	if rqi.Environment != nil {
 		if err := rqi.Environment.ValidateWith(ctx, cs, cache); err != nil {
-			return err
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rqi.Environment = nil
+			}
 		} else {
 			q.Where(
 				resource.EnvironmentID(rqi.Environment.ID))
@@ -743,14 +775,22 @@ func (rqi *ResourceQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 	// Validate when querying under the Project route.
 	if rqi.Project != nil {
 		if err := rqi.Project.ValidateWith(ctx, cs, cache); err != nil {
-			return err
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rqi.Project = nil
+			}
 		}
 	}
 
 	// Validate when querying under the Environment route.
 	if rqi.Environment != nil {
 		if err := rqi.Environment.ValidateWith(ctx, cs, cache); err != nil {
-			return err
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rqi.Environment = nil
+			}
 		}
 	}
 
@@ -987,7 +1027,11 @@ func (rui *ResourceUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet,
 	// Validate when updating under the Project route.
 	if rui.Project != nil {
 		if err := rui.Project.ValidateWith(ctx, cs, cache); err != nil {
-			return err
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rui.Project = nil
+			}
 		} else {
 			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
 			q.Where(
@@ -998,7 +1042,11 @@ func (rui *ResourceUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet,
 	// Validate when updating under the Environment route.
 	if rui.Environment != nil {
 		if err := rui.Environment.ValidateWith(ctx, cs, cache); err != nil {
-			return err
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rui.Environment = nil
+			}
 		} else {
 			q.Where(
 				resource.EnvironmentID(rui.Environment.ID))
