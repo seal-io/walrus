@@ -27,6 +27,7 @@ import (
 	"github.com/seal-io/walrus/pkg/apis/templateversion"
 	"github.com/seal-io/walrus/pkg/apis/ui"
 	"github.com/seal-io/walrus/pkg/apis/variable"
+	"github.com/seal-io/walrus/pkg/apis/walrusfilehub"
 	"github.com/seal-io/walrus/pkg/auths"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	pkgworkflow "github.com/seal-io/walrus/pkg/workflow"
@@ -71,6 +72,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		runtime.SkipLoggingPaths(
 			"/",
 			"/cli",
+			"/walrus-file-hub",
 			"/assets/*filepath",
 			"/readyz",
 			"/livez",
@@ -115,6 +117,12 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 	{
 		r := cliApis
 		r.Get("/cli", cli.Index())
+	}
+
+	walrusFileHubApis := apis.Group("")
+	{
+		r := walrusFileHubApis
+		r.Get("/walrus-file-hub/*filepath", walrusfilehub.Index(ctx, opts.ModelClient))
 	}
 
 	measureApis := apis.Group("").

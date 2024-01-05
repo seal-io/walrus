@@ -167,6 +167,13 @@ var (
 		private,
 		initializeFromEnv("kubernetes"),
 		modifyWith(never))
+	// WalrusFileHubURL keeps the address for Walrus file hub.
+	WalrusFileHubURL = newValue(
+		"WalrusFileHubURL",
+		private,
+		initializeFromEnv("https://github.com/seal-io/walrus-file-hub"),
+		modifyWith(notBlank, anyUrl),
+	)
 )
 
 // the built-in settings for server cron jobs.

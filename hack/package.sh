@@ -38,6 +38,15 @@ function download_ui() {
   rm -rf "${PACKAGE_TMP_DIR}/ui"
 }
 
+function download_walrus_file_hub() {
+    local path="${1}"
+
+    mkdir -p "${path}"
+    if ! git clone --depth 1 https://github.com/seal-io/walrus-file-hub "${path}"; then
+      seal::log::fatal "failed to download walrus-file-hub"
+    fi
+}
+
 function setup_image_package() {
   if [[ "${PACKAGE_PUSH:-false}" == "true" ]]; then
     seal::image::login
@@ -65,6 +74,7 @@ function setup_image_package_context() {
     case "${task}" in
     server)
       download_ui "${context}/image/var/lib/walrus/ui" "${tag}"
+      download_walrus_file_hub "${context}/image/var/lib/walrus/walrus-file-hub"
       ;;
     esac
     ;;
