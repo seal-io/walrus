@@ -187,9 +187,11 @@ ADD https://github.com/seal-io/helm-charts/releases/download/hermitcrab-0.1.3/he
 COPY /build/cli* ${CLI_DIR}/
 
 ARG SERVE_UI_INDEX="file:///var/lib/walrus/ui"
+ARG WALRUS_FILE_HUB_URL="file:///var/lib/walrus/walrus-file-hub"
 ENV SERVER_SETTING_SERVE_URL="" \
     SERVER_SETTING_SERVE_UI_INDEX="${SERVE_UI_INDEX}" \
-    SERVER_SETTING_DEPLOYER_IMAGE="${DEPLOYER_TERRAFORM_IMAGE}"
+    SERVER_SETTING_DEPLOYER_IMAGE="${DEPLOYER_TERRAFORM_IMAGE}" \
+    SERVER_SETTING_WALRUS_FILE_HUB_URL="${WALRUS_FILE_HUB_URL}"
 EXPOSE 80 443
 VOLUME /var/run/walrus
 COPY /image/ /
