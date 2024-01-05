@@ -1,0 +1,560 @@
+openAPISchema:
+  components:
+    schemas:
+      variables:
+        properties:
+          list_object_with_default_and_nest_object:
+            default:
+            - age: 23
+              email:
+                address: bob
+                domain: example.com
+              name: Bob
+            items:
+              properties:
+                age:
+                  title: Age
+                  type: number
+                  x-walrus-original:
+                    type: number
+                  x-walrus-ui:
+                    order: 2
+                email:
+                  default:
+                    address: bob_nest
+                    domain: nest.com
+                  properties:
+                    address:
+                      title: Address
+                      type: string
+                      x-walrus-original:
+                        type: string
+                      x-walrus-ui:
+                        order: 1
+                    domain:
+                      default: attr.com
+                      title: Domain
+                      type: string
+                      x-walrus-original:
+                        type: string
+                      x-walrus-ui:
+                        order: 2
+                  required:
+                  - address
+                  title: Email
+                  type: object
+                  x-walrus-original:
+                    type:
+                    - object
+                    - address: string
+                      domain: string
+                    - - domain
+                  x-walrus-ui:
+                    colSpan: 12
+                    order: 3
+                name:
+                  title: Name
+                  type: string
+                  x-walrus-original:
+                    type: string
+                  x-walrus-ui:
+                    order: 1
+              required:
+              - age
+              - name
+              type: object
+              x-walrus-original:
+                type:
+                - object
+                - age: number
+                  email:
+                  - object
+                  - address: string
+                    domain: string
+                  - - domain
+                  name: string
+                - - email
+              x-walrus-ui:
+                colSpan: 12
+            title: List Object With Default And Nest Object
+            type: array
+            x-walrus-original:
+              type:
+              - list
+              - - object
+                - age: number
+                  email:
+                  - object
+                  - address: string
+                    domain: string
+                  - - domain
+                  name: string
+                - - email
+            x-walrus-ui:
+              colSpan: 12
+              group: Basic
+              order: 7
+          map_object_with_default_and_nest_object:
+            additionalProperties:
+              properties:
+                age:
+                  title: Age
+                  type: number
+                  x-walrus-original:
+                    type: number
+                  x-walrus-ui:
+                    order: 2
+                email:
+                  default:
+                    address: bob_nest
+                    domain: nest.com
+                  properties:
+                    address:
+                      title: Address
+                      type: string
+                      x-walrus-original:
+                        type: string
+                      x-walrus-ui:
+                        order: 1
+                    domain:
+                      default: attr.com
+                      title: Domain
+                      type: string
+                      x-walrus-original:
+                        type: string
+                      x-walrus-ui:
+                        order: 2
+                  required:
+                  - address
+                  title: Email
+                  type: object
+                  x-walrus-original:
+                    type:
+                    - object
+                    - address: string
+                      domain: string
+                    - - domain
+                  x-walrus-ui:
+                    colSpan: 12
+                    order: 3
+                name:
+                  title: Name
+                  type: string
+                  x-walrus-original:
+                    type: string
+                  x-walrus-ui:
+                    order: 1
+              required:
+              - age
+              - name
+              type: object
+              x-walrus-original:
+                type:
+                - object
+                - age: number
+                  email:
+                  - object
+                  - address: string
+                    domain: string
+                  - - domain
+                  name: string
+                - - email
+              x-walrus-ui:
+                colSpan: 12
+            default:
+              ab:
+                age: 23
+                email:
+                  address: bob
+                  domain: example.com
+                name: Bob
+            title: Map Object With Default And Nest Object
+            type: object
+            x-walrus-original:
+              type:
+              - map
+              - - object
+                - age: number
+                  email:
+                  - object
+                  - address: string
+                    domain: string
+                  - - domain
+                  name: string
+                - - email
+            x-walrus-ui:
+              colSpan: 12
+              group: Basic
+              order: 8
+          object_with_attr_default:
+            properties:
+              age:
+                default: 23
+                title: Age
+                type: number
+                x-walrus-original:
+                  type: number
+                x-walrus-ui:
+                  order: 2
+              name:
+                default: Bob
+                title: Name
+                type: string
+                x-walrus-original:
+                  type: string
+                x-walrus-ui:
+                  order: 1
+            title: Object With Attr Default
+            type: object
+            x-walrus-original:
+              type:
+              - object
+              - age: number
+                name: string
+              - - age
+                - name
+            x-walrus-ui:
+              colSpan: 12
+              group: Basic
+              order: 2
+          object_with_default:
+            default:
+              age: 23
+              name: Bob
+            properties:
+              age:
+                title: Age
+                type: number
+                x-walrus-original:
+                  type: number
+                x-walrus-ui:
+                  order: 2
+              name:
+                title: Name
+                type: string
+                x-walrus-original:
+                  type: string
+                x-walrus-ui:
+                  order: 1
+            required:
+            - age
+            - name
+            title: Object With Default
+            type: object
+            x-walrus-original:
+              type:
+              - object
+              - age: number
+                name: string
+            x-walrus-ui:
+              colSpan: 12
+              group: Basic
+              order: 1
+          object_with_default_and_nest_object:
+            default:
+              age: 23
+              email:
+                address: bob
+                domain: example.com
+              name: Bob
+            properties:
+              age:
+                title: Age
+                type: number
+                x-walrus-original:
+                  type: number
+                x-walrus-ui:
+                  order: 2
+              email:
+                properties:
+                  address:
+                    title: Address
+                    type: string
+                    x-walrus-original:
+                      type: string
+                    x-walrus-ui:
+                      order: 1
+                  domain:
+                    default: attr.com
+                    title: Domain
+                    type: string
+                    x-walrus-original:
+                      type: string
+                    x-walrus-ui:
+                      order: 2
+                required:
+                - address
+                title: Email
+                type: object
+                x-walrus-original:
+                  type:
+                  - object
+                  - address: string
+                    domain: string
+                  - - domain
+                x-walrus-ui:
+                  colSpan: 12
+                  order: 3
+              name:
+                title: Name
+                type: string
+                x-walrus-original:
+                  type: string
+                x-walrus-ui:
+                  order: 1
+            required:
+            - age
+            - name
+            title: Object With Default And Nest Object
+            type: object
+            x-walrus-original:
+              type:
+              - object
+              - age: number
+                email:
+                - object
+                - address: string
+                  domain: string
+                - - domain
+                name: string
+              - - email
+            x-walrus-ui:
+              colSpan: 12
+              group: Basic
+              order: 4
+          object_with_default_and_nest_object2:
+            default:
+              age: 23
+              email:
+                address: bob
+              name: Bob
+            properties:
+              age:
+                title: Age
+                type: number
+                x-walrus-original:
+                  type: number
+                x-walrus-ui:
+                  order: 2
+              email:
+                properties:
+                  address:
+                    title: Address
+                    type: string
+                    x-walrus-original:
+                      type: string
+                    x-walrus-ui:
+                      order: 1
+                  domain:
+                    default: attr.com
+                    title: Domain
+                    type: string
+                    x-walrus-original:
+                      type: string
+                    x-walrus-ui:
+                      order: 2
+                required:
+                - address
+                title: Email
+                type: object
+                x-walrus-original:
+                  type:
+                  - object
+                  - address: string
+                    domain: string
+                  - - domain
+                x-walrus-ui:
+                  colSpan: 12
+                  order: 3
+              name:
+                title: Name
+                type: string
+                x-walrus-original:
+                  type: string
+                x-walrus-ui:
+                  order: 1
+            required:
+            - age
+            - name
+            title: Object With Default And Nest Object2
+            type: object
+            x-walrus-original:
+              type:
+              - object
+              - age: number
+                email:
+                - object
+                - address: string
+                  domain: string
+                - - domain
+                name: string
+              - - email
+            x-walrus-ui:
+              colSpan: 12
+              group: Basic
+              order: 5
+          object_with_default_and_nest_object3:
+            default:
+              age: 23
+              email:
+                address: bob
+                domain: example.com
+              name: Bob
+            properties:
+              age:
+                title: Age
+                type: number
+                x-walrus-original:
+                  type: number
+                x-walrus-ui:
+                  order: 2
+              email:
+                default:
+                  address: bob_nest
+                  domain: nest.com
+                properties:
+                  address:
+                    title: Address
+                    type: string
+                    x-walrus-original:
+                      type: string
+                    x-walrus-ui:
+                      order: 1
+                  domain:
+                    default: attr.com
+                    title: Domain
+                    type: string
+                    x-walrus-original:
+                      type: string
+                    x-walrus-ui:
+                      order: 2
+                required:
+                - address
+                title: Email
+                type: object
+                x-walrus-original:
+                  type:
+                  - object
+                  - address: string
+                    domain: string
+                  - - domain
+                x-walrus-ui:
+                  colSpan: 12
+                  order: 3
+              name:
+                title: Name
+                type: string
+                x-walrus-original:
+                  type: string
+                x-walrus-ui:
+                  order: 1
+            required:
+            - age
+            - name
+            title: Object With Default And Nest Object3
+            type: object
+            x-walrus-original:
+              type:
+              - object
+              - age: number
+                email:
+                - object
+                - address: string
+                  domain: string
+                - - domain
+                name: string
+              - - email
+            x-walrus-ui:
+              colSpan: 12
+              group: Basic
+              order: 6
+          object_with_nest_object:
+            properties:
+              age:
+                title: Age
+                type: number
+                x-walrus-original:
+                  type: number
+                x-walrus-ui:
+                  order: 2
+              email:
+                properties:
+                  address:
+                    title: Address
+                    type: string
+                    x-walrus-original:
+                      type: string
+                    x-walrus-ui:
+                      order: 1
+                  domain:
+                    default: attr.com
+                    title: Domain
+                    type: string
+                    x-walrus-original:
+                      type: string
+                    x-walrus-ui:
+                      order: 2
+                required:
+                - address
+                title: Email
+                type: object
+                x-walrus-original:
+                  type:
+                  - object
+                  - address: string
+                    domain: string
+                  - - domain
+                x-walrus-ui:
+                  colSpan: 12
+                  order: 3
+              name:
+                title: Name
+                type: string
+                x-walrus-original:
+                  type: string
+                x-walrus-ui:
+                  order: 1
+            required:
+            - age
+            - name
+            title: Object With Nest Object
+            type: object
+            x-walrus-original:
+              type:
+              - object
+              - age: number
+                email:
+                - object
+                - address: string
+                  domain: string
+                - - domain
+                name: string
+              - - email
+            x-walrus-ui:
+              colSpan: 12
+              group: Basic
+              order: 3
+        required:
+        - object_with_attr_default
+        - object_with_nest_object
+        type: object
+        x-walrus-original:
+          sequence:
+          - object_with_default
+          - object_with_attr_default
+          - object_with_nest_object
+          - object_with_default_and_nest_object
+          - object_with_default_and_nest_object2
+          - object_with_default_and_nest_object3
+          - list_object_with_default_and_nest_object
+          - map_object_with_default_and_nest_object
+        x-walrus-ui:
+          groupOrder:
+          - Basic
+  info:
+    title: OpenAPI schema for template dev-template
+    version: ""
+  openapi: 3.0.3
+  paths: null
+readme: ""
+requiredProviders: null
