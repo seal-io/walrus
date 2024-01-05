@@ -194,6 +194,12 @@ func (rrc *ResourceRevisionCreate) SetCreatedBy(s string) *ResourceRevisionCreat
 	return rrc
 }
 
+// SetActionType sets the "action_type" field.
+func (rrc *ResourceRevisionCreate) SetActionType(s string) *ResourceRevisionCreate {
+	rrc.mutation.SetActionType(s)
+	return rrc
+}
+
 // SetID sets the "id" field.
 func (rrc *ResourceRevisionCreate) SetID(o object.ID) *ResourceRevisionCreate {
 	rrc.mutation.SetID(o)
@@ -352,6 +358,9 @@ func (rrc *ResourceRevisionCreate) check() error {
 	if _, ok := rrc.mutation.CreatedBy(); !ok {
 		return &ValidationError{Name: "created_by", err: errors.New(`model: missing required field "ResourceRevision.created_by"`)}
 	}
+	if _, ok := rrc.mutation.ActionType(); !ok {
+		return &ValidationError{Name: "action_type", err: errors.New(`model: missing required field "ResourceRevision.action_type"`)}
+	}
 	if _, ok := rrc.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "ResourceRevision.project"`)}
 	}
@@ -458,6 +467,10 @@ func (rrc *ResourceRevisionCreate) createSpec() (*ResourceRevision, *sqlgraph.Cr
 		_spec.SetField(resourcerevision.FieldCreatedBy, field.TypeString, value)
 		_node.CreatedBy = value
 	}
+	if value, ok := rrc.mutation.ActionType(); ok {
+		_spec.SetField(resourcerevision.FieldActionType, field.TypeString, value)
+		_node.ActionType = value
+	}
 	if nodes := rrc.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -548,6 +561,7 @@ func (rrc *ResourceRevisionCreate) Set(obj *ResourceRevision) *ResourceRevisionC
 	rrc.SetDuration(obj.Duration)
 	rrc.SetPreviousRequiredProviders(obj.PreviousRequiredProviders)
 	rrc.SetCreatedBy(obj.CreatedBy)
+	rrc.SetActionType(obj.ActionType)
 
 	// Optional.
 	if obj.CreateTime != nil {
@@ -639,6 +653,9 @@ func (rrc *ResourceRevisionCreate) SaveE(ctx context.Context, cbs ...func(ctx co
 		}
 		if _, set := rrc.mutation.Field(resourcerevision.FieldCreatedBy); set {
 			obj.CreatedBy = x.CreatedBy
+		}
+		if _, set := rrc.mutation.Field(resourcerevision.FieldActionType); set {
+			obj.ActionType = x.ActionType
 		}
 		obj.Edges = x.Edges
 	}
@@ -777,6 +794,9 @@ func (rrcb *ResourceRevisionCreateBulk) SaveE(ctx context.Context, cbs ...func(c
 			}
 			if _, set := rrcb.builders[i].mutation.Field(resourcerevision.FieldCreatedBy); set {
 				objs[i].CreatedBy = x[i].CreatedBy
+			}
+			if _, set := rrcb.builders[i].mutation.Field(resourcerevision.FieldActionType); set {
+				objs[i].ActionType = x[i].ActionType
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -1078,6 +1098,18 @@ func (u *ResourceRevisionUpsert) UpdateCreatedBy() *ResourceRevisionUpsert {
 	return u
 }
 
+// SetActionType sets the "action_type" field.
+func (u *ResourceRevisionUpsert) SetActionType(v string) *ResourceRevisionUpsert {
+	u.Set(resourcerevision.FieldActionType, v)
+	return u
+}
+
+// UpdateActionType sets the "action_type" field to the value that was provided on create.
+func (u *ResourceRevisionUpsert) UpdateActionType() *ResourceRevisionUpsert {
+	u.SetExcluded(resourcerevision.FieldActionType)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -1344,6 +1376,20 @@ func (u *ResourceRevisionUpsertOne) SetCreatedBy(v string) *ResourceRevisionUpse
 func (u *ResourceRevisionUpsertOne) UpdateCreatedBy() *ResourceRevisionUpsertOne {
 	return u.Update(func(s *ResourceRevisionUpsert) {
 		s.UpdateCreatedBy()
+	})
+}
+
+// SetActionType sets the "action_type" field.
+func (u *ResourceRevisionUpsertOne) SetActionType(v string) *ResourceRevisionUpsertOne {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.SetActionType(v)
+	})
+}
+
+// UpdateActionType sets the "action_type" field to the value that was provided on create.
+func (u *ResourceRevisionUpsertOne) UpdateActionType() *ResourceRevisionUpsertOne {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.UpdateActionType()
 	})
 }
 
@@ -1778,6 +1824,20 @@ func (u *ResourceRevisionUpsertBulk) SetCreatedBy(v string) *ResourceRevisionUps
 func (u *ResourceRevisionUpsertBulk) UpdateCreatedBy() *ResourceRevisionUpsertBulk {
 	return u.Update(func(s *ResourceRevisionUpsert) {
 		s.UpdateCreatedBy()
+	})
+}
+
+// SetActionType sets the "action_type" field.
+func (u *ResourceRevisionUpsertBulk) SetActionType(v string) *ResourceRevisionUpsertBulk {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.SetActionType(v)
+	})
+}
+
+// UpdateActionType sets the "action_type" field to the value that was provided on create.
+func (u *ResourceRevisionUpsertBulk) UpdateActionType() *ResourceRevisionUpsertBulk {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.UpdateActionType()
 	})
 }
 

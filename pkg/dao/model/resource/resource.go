@@ -47,6 +47,8 @@ const (
 	FieldAttributes = "attributes"
 	// FieldChangeComment holds the string denoting the change_comment field in the database.
 	FieldChangeComment = "change_comment"
+	// FieldActionType holds the string denoting the action_type field in the database.
+	FieldActionType = "action_type"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
@@ -131,6 +133,7 @@ var Columns = []string{
 	FieldResourceDefinitionID,
 	FieldAttributes,
 	FieldChangeComment,
+	FieldActionType,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -230,6 +233,11 @@ func ByAttributes(opts ...sql.OrderTermOption) OrderOption {
 // ByChangeComment orders the results by the change_comment field.
 func ByChangeComment(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldChangeComment, opts...).ToFunc()
+}
+
+// ByActionType orders the results by the action_type field.
+func ByActionType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldActionType, opts...).ToFunc()
 }
 
 // ByProjectField orders the results by project field.

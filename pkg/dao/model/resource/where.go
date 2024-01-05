@@ -117,6 +117,11 @@ func ChangeComment(v string) predicate.Resource {
 	return predicate.Resource(sql.FieldEQ(FieldChangeComment, v))
 }
 
+// ActionType applies equality check predicate on the "action_type" field. It's identical to ActionTypeEQ.
+func ActionType(v string) predicate.Resource {
+	return predicate.Resource(sql.FieldEQ(FieldActionType, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Resource {
 	return predicate.Resource(sql.FieldEQ(FieldName, v))
@@ -865,6 +870,71 @@ func ChangeCommentEqualFold(v string) predicate.Resource {
 // ChangeCommentContainsFold applies the ContainsFold predicate on the "change_comment" field.
 func ChangeCommentContainsFold(v string) predicate.Resource {
 	return predicate.Resource(sql.FieldContainsFold(FieldChangeComment, v))
+}
+
+// ActionTypeEQ applies the EQ predicate on the "action_type" field.
+func ActionTypeEQ(v string) predicate.Resource {
+	return predicate.Resource(sql.FieldEQ(FieldActionType, v))
+}
+
+// ActionTypeNEQ applies the NEQ predicate on the "action_type" field.
+func ActionTypeNEQ(v string) predicate.Resource {
+	return predicate.Resource(sql.FieldNEQ(FieldActionType, v))
+}
+
+// ActionTypeIn applies the In predicate on the "action_type" field.
+func ActionTypeIn(vs ...string) predicate.Resource {
+	return predicate.Resource(sql.FieldIn(FieldActionType, vs...))
+}
+
+// ActionTypeNotIn applies the NotIn predicate on the "action_type" field.
+func ActionTypeNotIn(vs ...string) predicate.Resource {
+	return predicate.Resource(sql.FieldNotIn(FieldActionType, vs...))
+}
+
+// ActionTypeGT applies the GT predicate on the "action_type" field.
+func ActionTypeGT(v string) predicate.Resource {
+	return predicate.Resource(sql.FieldGT(FieldActionType, v))
+}
+
+// ActionTypeGTE applies the GTE predicate on the "action_type" field.
+func ActionTypeGTE(v string) predicate.Resource {
+	return predicate.Resource(sql.FieldGTE(FieldActionType, v))
+}
+
+// ActionTypeLT applies the LT predicate on the "action_type" field.
+func ActionTypeLT(v string) predicate.Resource {
+	return predicate.Resource(sql.FieldLT(FieldActionType, v))
+}
+
+// ActionTypeLTE applies the LTE predicate on the "action_type" field.
+func ActionTypeLTE(v string) predicate.Resource {
+	return predicate.Resource(sql.FieldLTE(FieldActionType, v))
+}
+
+// ActionTypeContains applies the Contains predicate on the "action_type" field.
+func ActionTypeContains(v string) predicate.Resource {
+	return predicate.Resource(sql.FieldContains(FieldActionType, v))
+}
+
+// ActionTypeHasPrefix applies the HasPrefix predicate on the "action_type" field.
+func ActionTypeHasPrefix(v string) predicate.Resource {
+	return predicate.Resource(sql.FieldHasPrefix(FieldActionType, v))
+}
+
+// ActionTypeHasSuffix applies the HasSuffix predicate on the "action_type" field.
+func ActionTypeHasSuffix(v string) predicate.Resource {
+	return predicate.Resource(sql.FieldHasSuffix(FieldActionType, v))
+}
+
+// ActionTypeEqualFold applies the EqualFold predicate on the "action_type" field.
+func ActionTypeEqualFold(v string) predicate.Resource {
+	return predicate.Resource(sql.FieldEqualFold(FieldActionType, v))
+}
+
+// ActionTypeContainsFold applies the ContainsFold predicate on the "action_type" field.
+func ActionTypeContainsFold(v string) predicate.Resource {
+	return predicate.Resource(sql.FieldContainsFold(FieldActionType, v))
 }
 
 // HasProject applies the HasEdge predicate on the "project" edge.

@@ -57,6 +57,8 @@ type Resource struct {
 	Attributes property.Values `json:"attributes,omitempty"`
 	// Change comment of the resource.
 	ChangeComment string `json:"change_comment,omitempty"`
+	// Action type of the resource's latest revision.
+	ActionType string `json:"action_type,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ResourceQuery when eager-loading is set.
 	Edges        ResourceEdges `json:"edges,omitempty"`
@@ -176,7 +178,7 @@ func (*Resource) scanValues(columns []string) ([]any, error) {
 			values[i] = new(object.ID)
 		case resource.FieldAttributes:
 			values[i] = new(property.Values)
-		case resource.FieldName, resource.FieldDescription, resource.FieldType, resource.FieldChangeComment:
+		case resource.FieldName, resource.FieldDescription, resource.FieldType, resource.FieldChangeComment, resource.FieldActionType:
 			values[i] = new(sql.NullString)
 		case resource.FieldCreateTime, resource.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -294,6 +296,12 @@ func (r *Resource) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field change_comment", values[i])
 			} else if value.Valid {
 				r.ChangeComment = value.String
+			}
+		case resource.FieldActionType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field action_type", values[i])
+			} else if value.Valid {
+				r.ActionType = value.String
 			}
 		default:
 			r.selectValues.Set(columns[i], values[i])
@@ -415,6 +423,9 @@ func (r *Resource) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("change_comment=")
 	builder.WriteString(r.ChangeComment)
+	builder.WriteString(", ")
+	builder.WriteString("action_type=")
+	builder.WriteString(r.ActionType)
 	builder.WriteByte(')')
 	return builder.String()
 }

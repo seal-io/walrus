@@ -143,6 +143,11 @@ func CreatedBy(v string) predicate.ResourceRevision {
 	return predicate.ResourceRevision(sql.FieldEQ(FieldCreatedBy, v))
 }
 
+// ActionType applies equality check predicate on the "action_type" field. It's identical to ActionTypeEQ.
+func ActionType(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldEQ(FieldActionType, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.ResourceRevision {
 	return predicate.ResourceRevision(sql.FieldEQ(FieldCreateTime, v))
@@ -1141,6 +1146,71 @@ func CreatedByEqualFold(v string) predicate.ResourceRevision {
 // CreatedByContainsFold applies the ContainsFold predicate on the "created_by" field.
 func CreatedByContainsFold(v string) predicate.ResourceRevision {
 	return predicate.ResourceRevision(sql.FieldContainsFold(FieldCreatedBy, v))
+}
+
+// ActionTypeEQ applies the EQ predicate on the "action_type" field.
+func ActionTypeEQ(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldEQ(FieldActionType, v))
+}
+
+// ActionTypeNEQ applies the NEQ predicate on the "action_type" field.
+func ActionTypeNEQ(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldNEQ(FieldActionType, v))
+}
+
+// ActionTypeIn applies the In predicate on the "action_type" field.
+func ActionTypeIn(vs ...string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldIn(FieldActionType, vs...))
+}
+
+// ActionTypeNotIn applies the NotIn predicate on the "action_type" field.
+func ActionTypeNotIn(vs ...string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldNotIn(FieldActionType, vs...))
+}
+
+// ActionTypeGT applies the GT predicate on the "action_type" field.
+func ActionTypeGT(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldGT(FieldActionType, v))
+}
+
+// ActionTypeGTE applies the GTE predicate on the "action_type" field.
+func ActionTypeGTE(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldGTE(FieldActionType, v))
+}
+
+// ActionTypeLT applies the LT predicate on the "action_type" field.
+func ActionTypeLT(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldLT(FieldActionType, v))
+}
+
+// ActionTypeLTE applies the LTE predicate on the "action_type" field.
+func ActionTypeLTE(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldLTE(FieldActionType, v))
+}
+
+// ActionTypeContains applies the Contains predicate on the "action_type" field.
+func ActionTypeContains(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldContains(FieldActionType, v))
+}
+
+// ActionTypeHasPrefix applies the HasPrefix predicate on the "action_type" field.
+func ActionTypeHasPrefix(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldHasPrefix(FieldActionType, v))
+}
+
+// ActionTypeHasSuffix applies the HasSuffix predicate on the "action_type" field.
+func ActionTypeHasSuffix(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldHasSuffix(FieldActionType, v))
+}
+
+// ActionTypeEqualFold applies the EqualFold predicate on the "action_type" field.
+func ActionTypeEqualFold(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldEqualFold(FieldActionType, v))
+}
+
+// ActionTypeContainsFold applies the ContainsFold predicate on the "action_type" field.
+func ActionTypeContainsFold(v string) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldContainsFold(FieldActionType, v))
 }
 
 // HasProject applies the HasEdge predicate on the "project" edge.

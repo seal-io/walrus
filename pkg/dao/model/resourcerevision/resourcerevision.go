@@ -58,6 +58,8 @@ const (
 	FieldChangeComment = "change_comment"
 	// FieldCreatedBy holds the string denoting the created_by field in the database.
 	FieldCreatedBy = "created_by"
+	// FieldActionType holds the string denoting the action_type field in the database.
+	FieldActionType = "action_type"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
@@ -110,6 +112,7 @@ var Columns = []string{
 	FieldRecord,
 	FieldChangeComment,
 	FieldCreatedBy,
+	FieldActionType,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -240,6 +243,11 @@ func ByChangeComment(opts ...sql.OrderTermOption) OrderOption {
 // ByCreatedBy orders the results by the created_by field.
 func ByCreatedBy(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedBy, opts...).ToFunc()
+}
+
+// ByActionType orders the results by the action_type field.
+func ByActionType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldActionType, opts...).ToFunc()
 }
 
 // ByProjectField orders the results by project field.

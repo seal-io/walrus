@@ -548,6 +548,7 @@ func (rpi *ResourcePatchInput) ValidateWith(ctx context.Context, cs ClientSet, c
 			resource.FieldCreateTime,
 			resource.FieldUpdateTime,
 			resource.FieldStatus,
+			resource.FieldActionType,
 		)...,
 	)
 
@@ -1080,6 +1081,7 @@ type ResourceOutput struct {
 	Status      status.Status     `json:"status,omitempty"`
 	Type        string            `json:"type,omitempty"`
 	Attributes  property.Values   `json:"attributes,omitempty"`
+	ActionType  string            `json:"actionType,omitempty"`
 
 	Project     *ProjectOutput         `json:"project,omitempty"`
 	Environment *EnvironmentOutput     `json:"environment,omitempty"`
@@ -1112,6 +1114,7 @@ func ExposeResource(_r *Resource) *ResourceOutput {
 		Status:      _r.Status,
 		Type:        _r.Type,
 		Attributes:  _r.Attributes,
+		ActionType:  _r.ActionType,
 	}
 
 	if _r.Edges.Project != nil {

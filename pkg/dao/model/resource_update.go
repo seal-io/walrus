@@ -167,6 +167,12 @@ func (ru *ResourceUpdate) ClearChangeComment() *ResourceUpdate {
 	return ru
 }
 
+// SetActionType sets the "action_type" field.
+func (ru *ResourceUpdate) SetActionType(s string) *ResourceUpdate {
+	ru.mutation.SetActionType(s)
+	return ru
+}
+
 // SetTemplate sets the "template" edge to the TemplateVersion entity.
 func (ru *ResourceUpdate) SetTemplate(t *TemplateVersion) *ResourceUpdate {
 	return ru.SetTemplateID(t.ID)
@@ -408,6 +414,7 @@ func (ru *ResourceUpdate) Set(obj *Resource) *ResourceUpdate {
 	} else {
 		ru.ClearChangeComment()
 	}
+	ru.SetActionType(obj.ActionType)
 
 	// With Default.
 	if obj.UpdateTime != nil {
@@ -479,6 +486,9 @@ func (ru *ResourceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if ru.mutation.ChangeCommentCleared() {
 		_spec.ClearField(resource.FieldChangeComment, field.TypeString)
+	}
+	if value, ok := ru.mutation.ActionType(); ok {
+		_spec.SetField(resource.FieldActionType, field.TypeString, value)
 	}
 	if ru.mutation.TemplateCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -802,6 +812,12 @@ func (ruo *ResourceUpdateOne) ClearChangeComment() *ResourceUpdateOne {
 	return ruo
 }
 
+// SetActionType sets the "action_type" field.
+func (ruo *ResourceUpdateOne) SetActionType(s string) *ResourceUpdateOne {
+	ruo.mutation.SetActionType(s)
+	return ruo
+}
+
 // SetTemplate sets the "template" edge to the TemplateVersion entity.
 func (ruo *ResourceUpdateOne) SetTemplate(t *TemplateVersion) *ResourceUpdateOne {
 	return ruo.SetTemplateID(t.ID)
@@ -1080,6 +1096,9 @@ func (ruo *ResourceUpdateOne) Set(obj *Resource) *ResourceUpdateOne {
 			} else {
 				ruo.ClearChangeComment()
 			}
+			if db.ActionType != obj.ActionType {
+				ruo.SetActionType(obj.ActionType)
+			}
 
 			// With Default.
 			if (obj.UpdateTime != nil) && (!reflect.DeepEqual(db.UpdateTime, obj.UpdateTime)) {
@@ -1150,6 +1169,9 @@ func (ruo *ResourceUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context
 		}
 		if _, set := ruo.mutation.Field(resource.FieldChangeComment); set {
 			obj.ChangeComment = x.ChangeComment
+		}
+		if _, set := ruo.mutation.Field(resource.FieldActionType); set {
+			obj.ActionType = x.ActionType
 		}
 		obj.Edges = x.Edges
 	}
@@ -1262,6 +1284,9 @@ func (ruo *ResourceUpdateOne) sqlSave(ctx context.Context) (_node *Resource, err
 	}
 	if ruo.mutation.ChangeCommentCleared() {
 		_spec.ClearField(resource.FieldChangeComment, field.TypeString)
+	}
+	if value, ok := ruo.mutation.ActionType(); ok {
+		_spec.SetField(resource.FieldActionType, field.TypeString, value)
 	}
 	if ruo.mutation.TemplateCleared() {
 		edge := &sqlgraph.EdgeSpec{

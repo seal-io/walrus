@@ -10489,6 +10489,7 @@ type ResourceMutation struct {
 	_type                      *string
 	attributes                 *property.Values
 	change_comment             *string
+	action_type                *string
 	clearedFields              map[string]struct{}
 	project                    *object.ID
 	clearedproject             bool
@@ -11237,6 +11238,42 @@ func (m *ResourceMutation) ResetChangeComment() {
 	delete(m.clearedFields, resource.FieldChangeComment)
 }
 
+// SetActionType sets the "action_type" field.
+func (m *ResourceMutation) SetActionType(s string) {
+	m.action_type = &s
+}
+
+// ActionType returns the value of the "action_type" field in the mutation.
+func (m *ResourceMutation) ActionType() (r string, exists bool) {
+	v := m.action_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActionType returns the old "action_type" field's value of the Resource entity.
+// If the Resource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceMutation) OldActionType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActionType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActionType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActionType: %w", err)
+	}
+	return oldValue.ActionType, nil
+}
+
+// ResetActionType resets all changes to the "action_type" field.
+func (m *ResourceMutation) ResetActionType() {
+	m.action_type = nil
+}
+
 // ClearProject clears the "project" edge to the Project entity.
 func (m *ResourceMutation) ClearProject() {
 	m.clearedproject = true
@@ -11537,7 +11574,7 @@ func (m *ResourceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ResourceMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 15)
 	if m.name != nil {
 		fields = append(fields, resource.FieldName)
 	}
@@ -11580,6 +11617,9 @@ func (m *ResourceMutation) Fields() []string {
 	if m.change_comment != nil {
 		fields = append(fields, resource.FieldChangeComment)
 	}
+	if m.action_type != nil {
+		fields = append(fields, resource.FieldActionType)
+	}
 	return fields
 }
 
@@ -11616,6 +11656,8 @@ func (m *ResourceMutation) Field(name string) (ent.Value, bool) {
 		return m.Attributes()
 	case resource.FieldChangeComment:
 		return m.ChangeComment()
+	case resource.FieldActionType:
+		return m.ActionType()
 	}
 	return nil, false
 }
@@ -11653,6 +11695,8 @@ func (m *ResourceMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldAttributes(ctx)
 	case resource.FieldChangeComment:
 		return m.OldChangeComment(ctx)
+	case resource.FieldActionType:
+		return m.OldActionType(ctx)
 	}
 	return nil, fmt.Errorf("unknown Resource field %s", name)
 }
@@ -11759,6 +11803,13 @@ func (m *ResourceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetChangeComment(v)
+		return nil
+	case resource.FieldActionType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActionType(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Resource field %s", name)
@@ -11907,6 +11958,9 @@ func (m *ResourceMutation) ResetField(name string) error {
 		return nil
 	case resource.FieldChangeComment:
 		m.ResetChangeComment()
+		return nil
+	case resource.FieldActionType:
+		m.ResetActionType()
 		return nil
 	}
 	return fmt.Errorf("unknown Resource field %s", name)
@@ -16851,6 +16905,7 @@ type ResourceRevisionMutation struct {
 	record                            *string
 	change_comment                    *string
 	created_by                        *string
+	action_type                       *string
 	clearedFields                     map[string]struct{}
 	project                           *object.ID
 	clearedproject                    bool
@@ -17702,6 +17757,42 @@ func (m *ResourceRevisionMutation) ResetCreatedBy() {
 	m.created_by = nil
 }
 
+// SetActionType sets the "action_type" field.
+func (m *ResourceRevisionMutation) SetActionType(s string) {
+	m.action_type = &s
+}
+
+// ActionType returns the value of the "action_type" field in the mutation.
+func (m *ResourceRevisionMutation) ActionType() (r string, exists bool) {
+	v := m.action_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActionType returns the old "action_type" field's value of the ResourceRevision entity.
+// If the ResourceRevision object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceRevisionMutation) OldActionType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActionType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActionType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActionType: %w", err)
+	}
+	return oldValue.ActionType, nil
+}
+
+// ResetActionType resets all changes to the "action_type" field.
+func (m *ResourceRevisionMutation) ResetActionType() {
+	m.action_type = nil
+}
+
 // ClearProject clears the "project" edge to the Project entity.
 func (m *ResourceRevisionMutation) ClearProject() {
 	m.clearedproject = true
@@ -17814,7 +17905,7 @@ func (m *ResourceRevisionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ResourceRevisionMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 19)
 	if m.create_time != nil {
 		fields = append(fields, resourcerevision.FieldCreateTime)
 	}
@@ -17869,6 +17960,9 @@ func (m *ResourceRevisionMutation) Fields() []string {
 	if m.created_by != nil {
 		fields = append(fields, resourcerevision.FieldCreatedBy)
 	}
+	if m.action_type != nil {
+		fields = append(fields, resourcerevision.FieldActionType)
+	}
 	return fields
 }
 
@@ -17913,6 +18007,8 @@ func (m *ResourceRevisionMutation) Field(name string) (ent.Value, bool) {
 		return m.ChangeComment()
 	case resourcerevision.FieldCreatedBy:
 		return m.CreatedBy()
+	case resourcerevision.FieldActionType:
+		return m.ActionType()
 	}
 	return nil, false
 }
@@ -17958,6 +18054,8 @@ func (m *ResourceRevisionMutation) OldField(ctx context.Context, name string) (e
 		return m.OldChangeComment(ctx)
 	case resourcerevision.FieldCreatedBy:
 		return m.OldCreatedBy(ctx)
+	case resourcerevision.FieldActionType:
+		return m.OldActionType(ctx)
 	}
 	return nil, fmt.Errorf("unknown ResourceRevision field %s", name)
 }
@@ -18092,6 +18190,13 @@ func (m *ResourceRevisionMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedBy(v)
+		return nil
+	case resourcerevision.FieldActionType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActionType(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ResourceRevision field %s", name)
@@ -18237,6 +18342,9 @@ func (m *ResourceRevisionMutation) ResetField(name string) error {
 		return nil
 	case resourcerevision.FieldCreatedBy:
 		m.ResetCreatedBy()
+		return nil
+	case resourcerevision.FieldActionType:
+		m.ResetActionType()
 		return nil
 	}
 	return fmt.Errorf("unknown ResourceRevision field %s", name)

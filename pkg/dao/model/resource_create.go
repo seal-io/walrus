@@ -188,6 +188,12 @@ func (rc *ResourceCreate) SetNillableChangeComment(s *string) *ResourceCreate {
 	return rc
 }
 
+// SetActionType sets the "action_type" field.
+func (rc *ResourceCreate) SetActionType(s string) *ResourceCreate {
+	rc.mutation.SetActionType(s)
+	return rc
+}
+
 // SetID sets the "id" field.
 func (rc *ResourceCreate) SetID(o object.ID) *ResourceCreate {
 	rc.mutation.SetID(o)
@@ -353,6 +359,9 @@ func (rc *ResourceCreate) check() error {
 			return &ValidationError{Name: "environment_id", err: fmt.Errorf(`model: validator failed for field "Resource.environment_id": %w`, err)}
 		}
 	}
+	if _, ok := rc.mutation.ActionType(); !ok {
+		return &ValidationError{Name: "action_type", err: errors.New(`model: missing required field "Resource.action_type"`)}
+	}
 	if _, ok := rc.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "Resource.project"`)}
 	}
@@ -435,6 +444,10 @@ func (rc *ResourceCreate) createSpec() (*Resource, *sqlgraph.CreateSpec) {
 	if value, ok := rc.mutation.ChangeComment(); ok {
 		_spec.SetField(resource.FieldChangeComment, field.TypeString, value)
 		_node.ChangeComment = value
+	}
+	if value, ok := rc.mutation.ActionType(); ok {
+		_spec.SetField(resource.FieldActionType, field.TypeString, value)
+		_node.ActionType = value
 	}
 	if nodes := rc.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -585,6 +598,7 @@ func (rc *ResourceCreate) Set(obj *Resource) *ResourceCreate {
 	rc.SetName(obj.Name)
 	rc.SetProjectID(obj.ProjectID)
 	rc.SetEnvironmentID(obj.EnvironmentID)
+	rc.SetActionType(obj.ActionType)
 
 	// Optional.
 	if obj.Description != "" {
@@ -697,6 +711,9 @@ func (rc *ResourceCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Con
 		}
 		if _, set := rc.mutation.Field(resource.FieldChangeComment); set {
 			obj.ChangeComment = x.ChangeComment
+		}
+		if _, set := rc.mutation.Field(resource.FieldActionType); set {
+			obj.ActionType = x.ActionType
 		}
 		obj.Edges = x.Edges
 	}
@@ -841,6 +858,9 @@ func (rcb *ResourceCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx contex
 			}
 			if _, set := rcb.builders[i].mutation.Field(resource.FieldChangeComment); set {
 				objs[i].ChangeComment = x[i].ChangeComment
+			}
+			if _, set := rcb.builders[i].mutation.Field(resource.FieldActionType); set {
+				objs[i].ActionType = x[i].ActionType
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -1106,6 +1126,18 @@ func (u *ResourceUpsert) ClearChangeComment() *ResourceUpsert {
 	return u
 }
 
+// SetActionType sets the "action_type" field.
+func (u *ResourceUpsert) SetActionType(v string) *ResourceUpsert {
+	u.Set(resource.FieldActionType, v)
+	return u
+}
+
+// UpdateActionType sets the "action_type" field to the value that was provided on create.
+func (u *ResourceUpsert) UpdateActionType() *ResourceUpsert {
+	u.SetExcluded(resource.FieldActionType)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -1330,6 +1362,20 @@ func (u *ResourceUpsertOne) UpdateChangeComment() *ResourceUpsertOne {
 func (u *ResourceUpsertOne) ClearChangeComment() *ResourceUpsertOne {
 	return u.Update(func(s *ResourceUpsert) {
 		s.ClearChangeComment()
+	})
+}
+
+// SetActionType sets the "action_type" field.
+func (u *ResourceUpsertOne) SetActionType(v string) *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.SetActionType(v)
+	})
+}
+
+// UpdateActionType sets the "action_type" field to the value that was provided on create.
+func (u *ResourceUpsertOne) UpdateActionType() *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.UpdateActionType()
 	})
 }
 
@@ -1722,6 +1768,20 @@ func (u *ResourceUpsertBulk) UpdateChangeComment() *ResourceUpsertBulk {
 func (u *ResourceUpsertBulk) ClearChangeComment() *ResourceUpsertBulk {
 	return u.Update(func(s *ResourceUpsert) {
 		s.ClearChangeComment()
+	})
+}
+
+// SetActionType sets the "action_type" field.
+func (u *ResourceUpsertBulk) SetActionType(v string) *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.SetActionType(v)
+	})
+}
+
+// UpdateActionType sets the "action_type" field to the value that was provided on create.
+func (u *ResourceUpsertBulk) UpdateActionType() *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.UpdateActionType()
 	})
 }
 

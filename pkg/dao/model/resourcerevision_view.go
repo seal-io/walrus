@@ -534,6 +534,7 @@ func (rrpi *ResourceRevisionPatchInput) ValidateWith(ctx context.Context, cs Cli
 			resourcerevision.FieldCreateTime,
 			resourcerevision.FieldStatus,
 			resourcerevision.FieldCreatedBy,
+			resourcerevision.FieldActionType,
 		)...,
 	)
 
@@ -1032,6 +1033,7 @@ type ResourceRevisionOutput struct {
 	Record                    string                      `json:"record,omitempty"`
 	ChangeComment             string                      `json:"changeComment,omitempty"`
 	CreatedBy                 string                      `json:"createdBy,omitempty"`
+	ActionType                string                      `json:"actionType,omitempty"`
 
 	Project     *ProjectOutput     `json:"project,omitempty"`
 	Environment *EnvironmentOutput `json:"environment,omitempty"`
@@ -1069,6 +1071,7 @@ func ExposeResourceRevision(_rr *ResourceRevision) *ResourceRevisionOutput {
 		Record:                    _rr.Record,
 		ChangeComment:             _rr.ChangeComment,
 		CreatedBy:                 _rr.CreatedBy,
+		ActionType:                _rr.ActionType,
 	}
 
 	if _rr.Edges.Project != nil {

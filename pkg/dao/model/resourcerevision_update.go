@@ -191,6 +191,12 @@ func (rru *ResourceRevisionUpdate) SetCreatedBy(s string) *ResourceRevisionUpdat
 	return rru
 }
 
+// SetActionType sets the "action_type" field.
+func (rru *ResourceRevisionUpdate) SetActionType(s string) *ResourceRevisionUpdate {
+	rru.mutation.SetActionType(s)
+	return rru
+}
+
 // Mutation returns the ResourceRevisionMutation object of the builder.
 func (rru *ResourceRevisionUpdate) Mutation() *ResourceRevisionMutation {
 	return rru.mutation
@@ -301,6 +307,7 @@ func (rru *ResourceRevisionUpdate) Set(obj *ResourceRevision) *ResourceRevisionU
 		rru.ClearChangeComment()
 	}
 	rru.SetCreatedBy(obj.CreatedBy)
+	rru.SetActionType(obj.ActionType)
 
 	// With Default.
 
@@ -383,6 +390,9 @@ func (rru *ResourceRevisionUpdate) sqlSave(ctx context.Context) (n int, err erro
 	}
 	if value, ok := rru.mutation.CreatedBy(); ok {
 		_spec.SetField(resourcerevision.FieldCreatedBy, field.TypeString, value)
+	}
+	if value, ok := rru.mutation.ActionType(); ok {
+		_spec.SetField(resourcerevision.FieldActionType, field.TypeString, value)
 	}
 	_spec.Node.Schema = rru.schemaConfig.ResourceRevision
 	ctx = internal.NewSchemaConfigContext(ctx, rru.schemaConfig)
@@ -558,6 +568,12 @@ func (rruo *ResourceRevisionUpdateOne) SetCreatedBy(s string) *ResourceRevisionU
 	return rruo
 }
 
+// SetActionType sets the "action_type" field.
+func (rruo *ResourceRevisionUpdateOne) SetActionType(s string) *ResourceRevisionUpdateOne {
+	rruo.mutation.SetActionType(s)
+	return rruo
+}
+
 // Mutation returns the ResourceRevisionMutation object of the builder.
 func (rruo *ResourceRevisionUpdateOne) Mutation() *ResourceRevisionMutation {
 	return rruo.mutation
@@ -715,6 +731,9 @@ func (rruo *ResourceRevisionUpdateOne) Set(obj *ResourceRevision) *ResourceRevis
 			if db.CreatedBy != obj.CreatedBy {
 				rruo.SetCreatedBy(obj.CreatedBy)
 			}
+			if db.ActionType != obj.ActionType {
+				rruo.SetActionType(obj.ActionType)
+			}
 
 			// With Default.
 
@@ -797,6 +816,9 @@ func (rruo *ResourceRevisionUpdateOne) SaveE(ctx context.Context, cbs ...func(ct
 		}
 		if _, set := rruo.mutation.Field(resourcerevision.FieldCreatedBy); set {
 			obj.CreatedBy = x.CreatedBy
+		}
+		if _, set := rruo.mutation.Field(resourcerevision.FieldActionType); set {
+			obj.ActionType = x.ActionType
 		}
 		obj.Edges = x.Edges
 	}
@@ -923,6 +945,9 @@ func (rruo *ResourceRevisionUpdateOne) sqlSave(ctx context.Context) (_node *Reso
 	}
 	if value, ok := rruo.mutation.CreatedBy(); ok {
 		_spec.SetField(resourcerevision.FieldCreatedBy, field.TypeString, value)
+	}
+	if value, ok := rruo.mutation.ActionType(); ok {
+		_spec.SetField(resourcerevision.FieldActionType, field.TypeString, value)
 	}
 	_spec.Node.Schema = rruo.schemaConfig.ResourceRevision
 	ctx = internal.NewSchemaConfigContext(ctx, rruo.schemaConfig)
