@@ -534,7 +534,7 @@ func SetDefaultLabels(r *model.Resource, env *model.Environment) error {
 		return errorx.Errorf("resource or environment is nil")
 	}
 
-	if r.Labels != nil {
+	if r.Labels == nil {
 		r.Labels = make(map[string]string)
 	}
 
