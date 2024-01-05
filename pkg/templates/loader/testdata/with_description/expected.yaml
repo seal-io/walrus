@@ -6,7 +6,6 @@ openAPISchema:
           foo:
             default: bar
             description: description of foo.
-            nullable: true
             title: Foo
             type: string
             x-walrus-original:

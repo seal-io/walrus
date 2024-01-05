@@ -13,13 +13,6 @@ openAPISchema:
               group: Basic
               order: 1
           any_map:
-            additionalProperties:
-              type: object
-              x-walrus-original:
-                type: dynamic
-              x-walrus-ui:
-                colSpan: 12
-            nullable: true
             title: Any Map
             type: object
             x-walrus-original:
@@ -85,7 +78,6 @@ openAPISchema:
               a: a
               b: 1
               c: true
-            nullable: true
             properties:
               a:
                 title: A
@@ -129,7 +121,6 @@ openAPISchema:
               a: a
               b:
               - c: true
-            nullable: true
             properties:
               a:
                 title: A
@@ -192,7 +183,6 @@ openAPISchema:
                 - true
                 items:
                   type: object
-                nullable: true
                 title: Data
                 type: array
                 x-walrus-original:
@@ -226,7 +216,6 @@ openAPISchema:
               a: a
               b: "1"
               c: "true"
-            nullable: true
             title: String Map
             type: object
             x-walrus-original:
@@ -246,7 +235,6 @@ openAPISchema:
               type: string
               x-walrus-original:
                 type: string
-            nullable: true
             title: String Slice
             type: array
             x-walrus-original:

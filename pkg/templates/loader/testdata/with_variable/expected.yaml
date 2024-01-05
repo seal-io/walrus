@@ -5,7 +5,6 @@ openAPISchema:
         properties:
           foo:
             default: bar
-            nullable: true
             title: Foo
             type: string
             x-walrus-original:

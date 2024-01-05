@@ -45,7 +45,6 @@ openAPISchema:
                   name: string
               x-walrus-ui:
                 colSpan: 12
-            nullable: true
             title: Def List Object
             type: array
             x-walrus-original:
@@ -68,7 +67,6 @@ openAPISchema:
               type: string
               x-walrus-original:
                 type: string
-            nullable: true
             title: Def List String
             type: array
             x-walrus-original:
@@ -86,7 +84,6 @@ openAPISchema:
             - true
             items:
               type: object
-            nullable: true
             title: Def List Tuple
             type: array
             x-walrus-original:

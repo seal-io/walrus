@@ -58,6 +58,11 @@ func TestLoadTerraformSchema(t *testing.T) {
 			expectedError: false,
 		},
 		{
+			name:          "Complex default",
+			input:         "testdata/complex_default",
+			expectedError: false,
+		},
+		{
 			name:          "With any variable",
 			input:         "testdata/any_variable",
 			expectedError: false,
@@ -88,7 +93,10 @@ func TestLoadTerraformSchema(t *testing.T) {
 			expected, err := os.ReadFile(filepath.Join(tc.input, "expected.yaml"))
 			assert.NoError(t, err)
 
-			assert.Equal(t, expected, actual)
+			equal := assert.Equal(t, expected, actual)
+			if !equal {
+				_ = os.WriteFile(filepath.Join(tc.input, "actual.yaml"), actual, 0o644)
+			}
 		})
 	}
 }
