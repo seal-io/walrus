@@ -4,6 +4,7 @@ import (
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	"github.com/seal-io/walrus/utils/topic"
 )
@@ -37,6 +38,14 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 	if req.Resource != nil && req.Resource.ID != "" {
 		query.Where(resourcerevision.ResourceID(req.Resource.ID))
+	}
+
+	if req.Rollbackable {
+		query.Where(resourcerevision.ActionTypeNotIn(
+			types.ResourceActionTypeStart,
+			types.ResourceActionTypeStop,
+			types.ResourceActionTypeDelete,
+		))
 	}
 
 	if stream := req.Stream; stream != nil {

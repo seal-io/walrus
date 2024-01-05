@@ -192,7 +192,7 @@ type RouteRollbackRequest struct {
 	model.ResourceQueryInput `path:",inline"`
 
 	RevisionID    object.ID `query:"revisionID"`
-	ChangeComment string    `query:"changeComment"`
+	ChangeComment string    `json:"changeComment"`
 }
 
 func (r *RouteRollbackRequest) Validate() error {

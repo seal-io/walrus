@@ -24,6 +24,8 @@ type (
 			predicate.ResourceRevision, resourcerevision.OrderOption,
 		] `query:",inline"`
 
+		Rollbackable bool `query:"rollbackable"`
+
 		Stream *runtime.RequestUnidiStream
 	}
 

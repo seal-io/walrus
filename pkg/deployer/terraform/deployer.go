@@ -113,6 +113,7 @@ func (d Deployer) Apply(
 	revision, err := d.createRevision(ctx, mc, createRevisionOptions{
 		ResourceID:    resource.ID,
 		ChangeComment: resource.ChangeComment,
+		ActionType:    resource.ActionType,
 		JobType:       JobTypeApply,
 	})
 	if err != nil {
@@ -148,6 +149,7 @@ func (d Deployer) Destroy(
 	revision, err := d.createRevision(ctx, mc, createRevisionOptions{
 		ResourceID: resource.ID,
 		JobType:    JobTypeDestroy,
+		ActionType: resource.ActionType,
 	})
 	if err != nil {
 		return err
@@ -374,6 +376,8 @@ type createRevisionOptions struct {
 	ResourceID object.ID
 	// ChangeComment indicates the optional message of the revision.
 	ChangeComment string
+	// ActionType indicates whether the revision is able to rollback.
+	ActionType string
 	// JobType indicates the type of the job.
 	JobType string
 }
@@ -522,6 +526,7 @@ func (d Deployer) createRevision(
 		DeployerType:    DeployerType,
 		CreatedBy:       userSubject.Name,
 		ChangeComment:   opts.ChangeComment,
+		ActionType:      opts.ActionType,
 	}
 
 	status.ResourceRevisionStatusReady.Unknown(entity, "")

@@ -319,6 +319,7 @@ func (h Handler) RouteStart(req RouteStartRequest) error {
 
 	for _, r := range resources {
 		if pkgresource.IsInactive(r) {
+			r.ActionType = types.ResourceActionTypeStart
 			toStartResources = append(toStartResources, r)
 		}
 	}

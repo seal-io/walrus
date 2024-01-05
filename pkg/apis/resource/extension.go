@@ -53,6 +53,8 @@ func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 }
 
 func (h Handler) upgrade(ctx context.Context, entity *model.Resource, draft bool) error {
+	entity.ActionType = types.ResourceActionTypeUpgrade
+
 	if draft {
 		_, err := h.modelClient.Resources().
 			UpdateOne(entity).
@@ -120,6 +122,7 @@ func (h Handler) RouteRollback(req RouteRollbackRequest) error {
 	entity := rev.Edges.Resource
 	entity.Attributes = rev.Attributes
 	entity.ChangeComment = req.ChangeComment
+	entity.ActionType = types.ResourceActionTypeRollback
 
 	if entity.TemplateID != nil {
 		// Find previous template version when the resource is using template not definition.
@@ -169,6 +172,8 @@ func (h Handler) RouteStart(req RouteStartRequest) error {
 }
 
 func (h Handler) start(ctx context.Context, entity *model.Resource) error {
+	entity.ActionType = types.ResourceActionTypeStart
+
 	status.ResourceStatusUnDeployed.Remove(entity)
 	status.ResourceStatusStopped.Remove(entity)
 	status.ResourceStatusDeployed.Reset(entity, "Deploying")

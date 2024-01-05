@@ -11,3 +11,12 @@ type OutputValue struct {
 	Value  property.Value  `json:"value,omitempty"`
 	Schema openapi3.Schema `json:"schema,omitempty"`
 }
+
+const (
+	ResourceActionTypeCreate   string = "create"
+	ResourceActionTypeDelete   string = "delete"
+	ResourceActionTypeUpgrade  string = "upgrade"
+	ResourceActionTypeRollback string = "rollback"
+	ResourceActionTypeStop     string = "stop"
+	ResourceActionTypeStart    string = "start"
+)
