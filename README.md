@@ -16,15 +16,20 @@
 Walrus is an open-source application management platform that simplifies application deployment and management on any infrastructure. 
 It helps platform engineers build golden paths for developers and empowers developers with self-service capabilities.
 
+# Why Walrus
+### Ops Team
 
-# Key Features
+### Prdocut Team
+
+
+### Key Features
 
 - Unified Orchestration ：Cloud-Native applications are more than Kubernetes. Walrus orchestrates the entire application system, encompassing both application services and resource dependencies (such as databases, middleware, load balancers, and networks).
 - Seperation of Concerns : By leveraging [resource definitions](https://seal-io.github.io/docs/operation/resource-definition) provided by ops team, dev team can define resource type requirements and acheive self-service.
 - Polymorphic Resource Management : A single resource type can be translated into polymorphic resources that operate in various modes and environments, from development to production. 
 - Single Pane of Glass : Walrus provides a unified view of your entire application system in a [dependency graph](https://seal-io.github.io/docs/application/graph), including all application services, resources, and their sub-components.
 - Dynamic Environment Management : Walrus allows you to start or stop application resources or environments as needed, enhancing hardware resource utilization and cost-effectiveness.
-- UI Schema : Define how end users interact with and utilize the resources through the [UI schema](you can manage applications and troubleshoot issues through natural language interaction.), without the need for code modification.
+- UI Schema : Define how end users interact with and utilize the resources through the [UI schema](https://seal-io.github.io/docs/operation/template#customizing-template-ui-styles), without the need for code modification.
 - Workflow Engine : Walrus includes a built-in workflow engine with extensible step templates, catering to diverse requirements for complex orchestration and deployment. 
 - AI Assistance : With [Appilot](https://github.com/seal-io/appilot) integration, you can manage applications and troubleshoot issues through natural language interaction.
 
