@@ -20,7 +20,7 @@ It helps platform engineers build golden paths for developers and empowers devel
 
 - An enterprise level XaC (Everything as Code) Platform that enables DevOps collaboration and self-service.
 - Leverage existing tools including Terraform and OpenTofu, with a more powerful and flexible orchestration and abstraction. 
-- Without the need to be experts in Kubernetes or infastructure, Developers can deploy and management their entire application system on any infrastructure. 
+- Without the need to be experts in Kubernetes or infastructure, Developers can deploy and manage the entire application system on any infrastructure. 
 
 
 # Key Features
