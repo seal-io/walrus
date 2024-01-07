@@ -1,3 +1,9 @@
+[![Documentation](https://img.shields.io/github/actions/workflow/status/seal-io/docs/pages%2Fpages-build-deployment?label=Documentation)](https://seal-io.github.io/docs/quickstart)
+[![Releases](https://img.shields.io/github/v/release/seal-io/walrus)](https://github.com/seal-io/walrus/releases/latest)
+[![LICENSE](https://img.shields.io/github/license/seal-io/walrus)](/LICENSE)
+[![Go Report Card](https://goreportcard.com/badge/github.com/seal-io/walrus)](https://goreportcard.com/report/github.com/seal-io/walrus)
+[![Docker Pulls](https://img.shields.io/docker/pulls/sealio/walrus)](https://hub.docker.com/r/sealio/walrus)
+
 <br>
 
 <h1 align="center">Walrus</h1>
@@ -9,6 +15,18 @@
 
 Walrus is an open-source application management platform that simplifies application deployment and management on any infrastructure. 
 It helps platform engineers build golden paths for developers and empowers developers with self-service capabilities.
+
+
+# Key Features
+
+- <b>Unified Orchestration</b> ：Cloud-Native applications are more than Kubernetes. Walrus orchestrates the entire application system, encompassing both application services and resource dependencies (such as databases, middleware, load balancers, and networks).
+- <b>Seperation of Concerns</b> : By leveraging [resource definitions](https://seal-io.github.io/docs/operation/resource-definition) provided by ops team, dev team can define resource type requirements and acheive self-service.
+- <b>Polymorphic Resource Management</b> : A single resource type can be translated into polymorphic resources that operate in various modes and environments, from development to production. 
+- <b>Single Pane of Glass</b> : Walrus provides a unified view of your entire application system in a [dependency graph](https://seal-io.github.io/docs/application/graph), including all application services, resources, and their sub-components.
+- <b>Dynamic Environment Management</b> : Walrus allows you to start or stop application resources or environments as needed, enhancing hardware resource utilization and cost-effectiveness.
+- <b>UI Schema</b> : Define how end users interact with and utilize the resources through the [UI schema](you can manage applications and troubleshoot issues through natural language interaction.), without the need for code modification.
+- <b>Workflow Engine</b> : Walrus includes a built-in workflow engine with extensible step templates, catering to diverse requirements for complex orchestration and deployment. 
+- <b>AI Assistance</b> : With [Appilot](https://github.com/seal-io/appilot) integration, you can manage applications and troubleshoot issues through natural language interaction.
 
 # Quick Start
 
