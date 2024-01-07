@@ -17,12 +17,14 @@ Walrus is an open-source application management platform that simplifies applica
 It helps platform engineers build golden paths for developers and empowers developers with self-service capabilities.
 
 # Why Walrus
-### Ops Team
 
-### Prdocut Team
+For Platform&Ops Team
+- 
 
+For Prdocut Team
+- 
 
-### Key Features
+# Key Features
 
 - Unified Orchestration ：Cloud-Native applications are more than Kubernetes. Walrus orchestrates the entire application system, encompassing both application services and resource dependencies (such as databases, middleware, load balancers, and networks).
 - Seperation of Concerns : By leveraging [resource definitions](https://seal-io.github.io/docs/operation/resource-definition) provided by ops team, dev team can define resource type requirements and acheive self-service.
