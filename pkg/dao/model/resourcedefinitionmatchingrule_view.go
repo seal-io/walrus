@@ -392,6 +392,7 @@ func (rdmrpi *ResourceDefinitionMatchingRulePatchInput) ValidateWith(ctx context
 		resourcedefinitionmatchingrule.WithoutFields(
 			resourcedefinitionmatchingrule.FieldCreateTime,
 			resourcedefinitionmatchingrule.FieldOrder,
+			resourcedefinitionmatchingrule.FieldSchemaDefaultValue,
 		)...,
 	)
 

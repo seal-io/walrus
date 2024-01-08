@@ -42,6 +42,8 @@ type TemplateVersion struct {
 	Schema types.TemplateVersionSchema `json:"schema,omitempty"`
 	// ui schema of the template.
 	UiSchema types.UISchema `json:"uiSchema,omitempty"`
+	// Default value generated from schema and ui schema
+	SchemaDefaultValue []byte `json:"schema_default_value,omitempty"`
 	// ID of the project to belong, empty means for all projects.
 	ProjectID object.ID `json:"project_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -114,7 +116,7 @@ func (*TemplateVersion) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case templateversion.FieldSchema, templateversion.FieldUiSchema:
+		case templateversion.FieldSchema, templateversion.FieldUiSchema, templateversion.FieldSchemaDefaultValue:
 			values[i] = new([]byte)
 		case templateversion.FieldID, templateversion.FieldTemplateID, templateversion.FieldProjectID:
 			values[i] = new(object.ID)
@@ -196,6 +198,12 @@ func (tv *TemplateVersion) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &tv.UiSchema); err != nil {
 					return fmt.Errorf("unmarshal field uiSchema: %w", err)
 				}
+			}
+		case templateversion.FieldSchemaDefaultValue:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field schema_default_value", values[i])
+			} else if value != nil {
+				tv.SchemaDefaultValue = *value
 			}
 		case templateversion.FieldProjectID:
 			if value, ok := values[i].(*object.ID); !ok {
@@ -286,6 +294,9 @@ func (tv *TemplateVersion) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("uiSchema=")
 	builder.WriteString(fmt.Sprintf("%v", tv.UiSchema))
+	builder.WriteString(", ")
+	builder.WriteString("schema_default_value=")
+	builder.WriteString(fmt.Sprintf("%v", tv.SchemaDefaultValue))
 	builder.WriteString(", ")
 	builder.WriteString("project_id=")
 	builder.WriteString(fmt.Sprintf("%v", tv.ProjectID))

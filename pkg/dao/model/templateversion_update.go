@@ -6,6 +6,7 @@
 package model
 
 import (
+	"bytes"
 	"context"
 	stdsql "database/sql"
 	"errors"
@@ -73,6 +74,18 @@ func (tvu *TemplateVersionUpdate) SetNillableUiSchema(ts *types.UISchema) *Templ
 	if ts != nil {
 		tvu.SetUiSchema(*ts)
 	}
+	return tvu
+}
+
+// SetSchemaDefaultValue sets the "schema_default_value" field.
+func (tvu *TemplateVersionUpdate) SetSchemaDefaultValue(b []byte) *TemplateVersionUpdate {
+	tvu.mutation.SetSchemaDefaultValue(b)
+	return tvu
+}
+
+// ClearSchemaDefaultValue clears the value of the "schema_default_value" field.
+func (tvu *TemplateVersionUpdate) ClearSchemaDefaultValue() *TemplateVersionUpdate {
+	tvu.mutation.ClearSchemaDefaultValue()
 	return tvu
 }
 
@@ -243,6 +256,9 @@ func (tvu *TemplateVersionUpdate) Set(obj *TemplateVersion) *TemplateVersionUpda
 	// Without Default.
 	tvu.SetSchema(obj.Schema)
 	tvu.SetUiSchema(obj.UiSchema)
+	if !reflect.ValueOf(obj.SchemaDefaultValue).IsZero() {
+		tvu.SetSchemaDefaultValue(obj.SchemaDefaultValue)
+	}
 
 	// With Default.
 	if obj.UpdateTime != nil {
@@ -281,6 +297,12 @@ func (tvu *TemplateVersionUpdate) sqlSave(ctx context.Context) (n int, err error
 	}
 	if value, ok := tvu.mutation.UiSchema(); ok {
 		_spec.SetField(templateversion.FieldUiSchema, field.TypeJSON, value)
+	}
+	if value, ok := tvu.mutation.SchemaDefaultValue(); ok {
+		_spec.SetField(templateversion.FieldSchemaDefaultValue, field.TypeBytes, value)
+	}
+	if tvu.mutation.SchemaDefaultValueCleared() {
+		_spec.ClearField(templateversion.FieldSchemaDefaultValue, field.TypeBytes)
 	}
 	if tvu.mutation.ResourcesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -434,6 +456,18 @@ func (tvuo *TemplateVersionUpdateOne) SetNillableUiSchema(ts *types.UISchema) *T
 	if ts != nil {
 		tvuo.SetUiSchema(*ts)
 	}
+	return tvuo
+}
+
+// SetSchemaDefaultValue sets the "schema_default_value" field.
+func (tvuo *TemplateVersionUpdateOne) SetSchemaDefaultValue(b []byte) *TemplateVersionUpdateOne {
+	tvuo.mutation.SetSchemaDefaultValue(b)
+	return tvuo
+}
+
+// ClearSchemaDefaultValue clears the value of the "schema_default_value" field.
+func (tvuo *TemplateVersionUpdateOne) ClearSchemaDefaultValue() *TemplateVersionUpdateOne {
+	tvuo.mutation.ClearSchemaDefaultValue()
 	return tvuo
 }
 
@@ -631,6 +665,11 @@ func (tvuo *TemplateVersionUpdateOne) Set(obj *TemplateVersion) *TemplateVersion
 			if !reflect.DeepEqual(db.UiSchema, obj.UiSchema) {
 				tvuo.SetUiSchema(obj.UiSchema)
 			}
+			if !reflect.ValueOf(obj.SchemaDefaultValue).IsZero() {
+				if !bytes.Equal(db.SchemaDefaultValue, obj.SchemaDefaultValue) {
+					tvuo.SetSchemaDefaultValue(obj.SchemaDefaultValue)
+				}
+			}
 
 			// With Default.
 			if (obj.UpdateTime != nil) && (!reflect.DeepEqual(db.UpdateTime, obj.UpdateTime)) {
@@ -686,6 +725,9 @@ func (tvuo *TemplateVersionUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx
 		}
 		if _, set := tvuo.mutation.Field(templateversion.FieldUiSchema); set {
 			obj.UiSchema = x.UiSchema
+		}
+		if _, set := tvuo.mutation.Field(templateversion.FieldSchemaDefaultValue); set {
+			obj.SchemaDefaultValue = x.SchemaDefaultValue
 		}
 		obj.Edges = x.Edges
 	}
@@ -765,6 +807,12 @@ func (tvuo *TemplateVersionUpdateOne) sqlSave(ctx context.Context) (_node *Templ
 	}
 	if value, ok := tvuo.mutation.UiSchema(); ok {
 		_spec.SetField(templateversion.FieldUiSchema, field.TypeJSON, value)
+	}
+	if value, ok := tvuo.mutation.SchemaDefaultValue(); ok {
+		_spec.SetField(templateversion.FieldSchemaDefaultValue, field.TypeBytes, value)
+	}
+	if tvuo.mutation.SchemaDefaultValueCleared() {
+		_spec.ClearField(templateversion.FieldSchemaDefaultValue, field.TypeBytes)
 	}
 	if tvuo.mutation.ResourcesCleared() {
 		edge := &sqlgraph.EdgeSpec{

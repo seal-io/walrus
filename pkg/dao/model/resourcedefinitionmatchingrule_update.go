@@ -6,6 +6,7 @@
 package model
 
 import (
+	"bytes"
 	"context"
 	stdsql "database/sql"
 	"errors"
@@ -76,6 +77,18 @@ func (rdmru *ResourceDefinitionMatchingRuleUpdate) SetOrder(i int) *ResourceDefi
 // AddOrder adds i to the "order" field.
 func (rdmru *ResourceDefinitionMatchingRuleUpdate) AddOrder(i int) *ResourceDefinitionMatchingRuleUpdate {
 	rdmru.mutation.AddOrder(i)
+	return rdmru
+}
+
+// SetSchemaDefaultValue sets the "schema_default_value" field.
+func (rdmru *ResourceDefinitionMatchingRuleUpdate) SetSchemaDefaultValue(b []byte) *ResourceDefinitionMatchingRuleUpdate {
+	rdmru.mutation.SetSchemaDefaultValue(b)
+	return rdmru
+}
+
+// ClearSchemaDefaultValue clears the value of the "schema_default_value" field.
+func (rdmru *ResourceDefinitionMatchingRuleUpdate) ClearSchemaDefaultValue() *ResourceDefinitionMatchingRuleUpdate {
+	rdmru.mutation.ClearSchemaDefaultValue()
 	return rdmru
 }
 
@@ -213,6 +226,9 @@ func (rdmru *ResourceDefinitionMatchingRuleUpdate) Set(obj *ResourceDefinitionMa
 		rdmru.SetAttributes(obj.Attributes)
 	}
 	rdmru.SetOrder(obj.Order)
+	if !reflect.ValueOf(obj.SchemaDefaultValue).IsZero() {
+		rdmru.SetSchemaDefaultValue(obj.SchemaDefaultValue)
+	}
 
 	// With Default.
 
@@ -254,6 +270,12 @@ func (rdmru *ResourceDefinitionMatchingRuleUpdate) sqlSave(ctx context.Context) 
 	}
 	if value, ok := rdmru.mutation.AddedOrder(); ok {
 		_spec.AddField(resourcedefinitionmatchingrule.FieldOrder, field.TypeInt, value)
+	}
+	if value, ok := rdmru.mutation.SchemaDefaultValue(); ok {
+		_spec.SetField(resourcedefinitionmatchingrule.FieldSchemaDefaultValue, field.TypeBytes, value)
+	}
+	if rdmru.mutation.SchemaDefaultValueCleared() {
+		_spec.ClearField(resourcedefinitionmatchingrule.FieldSchemaDefaultValue, field.TypeBytes)
 	}
 	if rdmru.mutation.TemplateCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -393,6 +415,18 @@ func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) SetOrder(i int) *Resource
 // AddOrder adds i to the "order" field.
 func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) AddOrder(i int) *ResourceDefinitionMatchingRuleUpdateOne {
 	rdmruo.mutation.AddOrder(i)
+	return rdmruo
+}
+
+// SetSchemaDefaultValue sets the "schema_default_value" field.
+func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) SetSchemaDefaultValue(b []byte) *ResourceDefinitionMatchingRuleUpdateOne {
+	rdmruo.mutation.SetSchemaDefaultValue(b)
+	return rdmruo
+}
+
+// ClearSchemaDefaultValue clears the value of the "schema_default_value" field.
+func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) ClearSchemaDefaultValue() *ResourceDefinitionMatchingRuleUpdateOne {
+	rdmruo.mutation.ClearSchemaDefaultValue()
 	return rdmruo
 }
 
@@ -561,6 +595,11 @@ func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) Set(obj *ResourceDefiniti
 			if db.Order != obj.Order {
 				rdmruo.SetOrder(obj.Order)
 			}
+			if !reflect.ValueOf(obj.SchemaDefaultValue).IsZero() {
+				if !bytes.Equal(db.SchemaDefaultValue, obj.SchemaDefaultValue) {
+					rdmruo.SetSchemaDefaultValue(obj.SchemaDefaultValue)
+				}
+			}
 
 			// With Default.
 
@@ -619,6 +658,9 @@ func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) SaveE(ctx context.Context
 		}
 		if _, set := rdmruo.mutation.Field(resourcedefinitionmatchingrule.FieldOrder); set {
 			obj.Order = x.Order
+		}
+		if _, set := rdmruo.mutation.Field(resourcedefinitionmatchingrule.FieldSchemaDefaultValue); set {
+			obj.SchemaDefaultValue = x.SchemaDefaultValue
 		}
 		obj.Edges = x.Edges
 	}
@@ -704,6 +746,12 @@ func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) sqlSave(ctx context.Conte
 	}
 	if value, ok := rdmruo.mutation.AddedOrder(); ok {
 		_spec.AddField(resourcedefinitionmatchingrule.FieldOrder, field.TypeInt, value)
+	}
+	if value, ok := rdmruo.mutation.SchemaDefaultValue(); ok {
+		_spec.SetField(resourcedefinitionmatchingrule.FieldSchemaDefaultValue, field.TypeBytes, value)
+	}
+	if rdmruo.mutation.SchemaDefaultValueCleared() {
+		_spec.ClearField(resourcedefinitionmatchingrule.FieldSchemaDefaultValue, field.TypeBytes)
 	}
 	if rdmruo.mutation.TemplateCleared() {
 		edge := &sqlgraph.EdgeSpec{

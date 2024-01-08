@@ -41,6 +41,8 @@ type ResourceDefinitionMatchingRule struct {
 	Attributes property.Values `json:"attributes,omitempty"`
 	// Order of the matching rule.
 	Order int `json:"order,omitempty"`
+	// Default value generated from resource definition's schema, ui schema and attributes
+	SchemaDefaultValue []byte `json:"schema_default_value,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ResourceDefinitionMatchingRuleQuery when eager-loading is set.
 	Edges        ResourceDefinitionMatchingRuleEdges `json:"edges,omitempty"`
@@ -100,7 +102,7 @@ func (*ResourceDefinitionMatchingRule) scanValues(columns []string) ([]any, erro
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case resourcedefinitionmatchingrule.FieldSelector:
+		case resourcedefinitionmatchingrule.FieldSelector, resourcedefinitionmatchingrule.FieldSchemaDefaultValue:
 			values[i] = new([]byte)
 		case resourcedefinitionmatchingrule.FieldID, resourcedefinitionmatchingrule.FieldResourceDefinitionID, resourcedefinitionmatchingrule.FieldTemplateID:
 			values[i] = new(object.ID)
@@ -178,6 +180,12 @@ func (rdmr *ResourceDefinitionMatchingRule) assignValues(columns []string, value
 			} else if value.Valid {
 				rdmr.Order = int(value.Int64)
 			}
+		case resourcedefinitionmatchingrule.FieldSchemaDefaultValue:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field schema_default_value", values[i])
+			} else if value != nil {
+				rdmr.SchemaDefaultValue = *value
+			}
 		default:
 			rdmr.selectValues.Set(columns[i], values[i])
 		}
@@ -251,6 +259,9 @@ func (rdmr *ResourceDefinitionMatchingRule) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("order=")
 	builder.WriteString(fmt.Sprintf("%v", rdmr.Order))
+	builder.WriteString(", ")
+	builder.WriteString("schema_default_value=")
+	builder.WriteString(fmt.Sprintf("%v", rdmr.SchemaDefaultValue))
 	builder.WriteByte(')')
 	return builder.String()
 }

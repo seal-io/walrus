@@ -91,6 +91,11 @@ func Source(v string) predicate.TemplateVersion {
 	return predicate.TemplateVersion(sql.FieldEQ(FieldSource, v))
 }
 
+// SchemaDefaultValue applies equality check predicate on the "schema_default_value" field. It's identical to SchemaDefaultValueEQ.
+func SchemaDefaultValue(v []byte) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldEQ(FieldSchemaDefaultValue, v))
+}
+
 // ProjectID applies equality check predicate on the "project_id" field. It's identical to ProjectIDEQ.
 func ProjectID(v object.ID) predicate.TemplateVersion {
 	return predicate.TemplateVersion(sql.FieldEQ(FieldProjectID, v))
@@ -439,6 +444,56 @@ func SourceEqualFold(v string) predicate.TemplateVersion {
 // SourceContainsFold applies the ContainsFold predicate on the "source" field.
 func SourceContainsFold(v string) predicate.TemplateVersion {
 	return predicate.TemplateVersion(sql.FieldContainsFold(FieldSource, v))
+}
+
+// SchemaDefaultValueEQ applies the EQ predicate on the "schema_default_value" field.
+func SchemaDefaultValueEQ(v []byte) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldEQ(FieldSchemaDefaultValue, v))
+}
+
+// SchemaDefaultValueNEQ applies the NEQ predicate on the "schema_default_value" field.
+func SchemaDefaultValueNEQ(v []byte) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldNEQ(FieldSchemaDefaultValue, v))
+}
+
+// SchemaDefaultValueIn applies the In predicate on the "schema_default_value" field.
+func SchemaDefaultValueIn(vs ...[]byte) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldIn(FieldSchemaDefaultValue, vs...))
+}
+
+// SchemaDefaultValueNotIn applies the NotIn predicate on the "schema_default_value" field.
+func SchemaDefaultValueNotIn(vs ...[]byte) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldNotIn(FieldSchemaDefaultValue, vs...))
+}
+
+// SchemaDefaultValueGT applies the GT predicate on the "schema_default_value" field.
+func SchemaDefaultValueGT(v []byte) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldGT(FieldSchemaDefaultValue, v))
+}
+
+// SchemaDefaultValueGTE applies the GTE predicate on the "schema_default_value" field.
+func SchemaDefaultValueGTE(v []byte) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldGTE(FieldSchemaDefaultValue, v))
+}
+
+// SchemaDefaultValueLT applies the LT predicate on the "schema_default_value" field.
+func SchemaDefaultValueLT(v []byte) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldLT(FieldSchemaDefaultValue, v))
+}
+
+// SchemaDefaultValueLTE applies the LTE predicate on the "schema_default_value" field.
+func SchemaDefaultValueLTE(v []byte) predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldLTE(FieldSchemaDefaultValue, v))
+}
+
+// SchemaDefaultValueIsNil applies the IsNil predicate on the "schema_default_value" field.
+func SchemaDefaultValueIsNil() predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldIsNull(FieldSchemaDefaultValue))
+}
+
+// SchemaDefaultValueNotNil applies the NotNil predicate on the "schema_default_value" field.
+func SchemaDefaultValueNotNil() predicate.TemplateVersion {
+	return predicate.TemplateVersion(sql.FieldNotNull(FieldSchemaDefaultValue))
 }
 
 // ProjectIDEQ applies the EQ predicate on the "project_id" field.

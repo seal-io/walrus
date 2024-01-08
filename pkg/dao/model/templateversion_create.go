@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"entgo.io/ent/dialect"
@@ -112,6 +113,12 @@ func (tvc *TemplateVersionCreate) SetNillableUiSchema(ts *types.UISchema) *Templ
 	if ts != nil {
 		tvc.SetUiSchema(*ts)
 	}
+	return tvc
+}
+
+// SetSchemaDefaultValue sets the "schema_default_value" field.
+func (tvc *TemplateVersionCreate) SetSchemaDefaultValue(b []byte) *TemplateVersionCreate {
+	tvc.mutation.SetSchemaDefaultValue(b)
 	return tvc
 }
 
@@ -356,6 +363,10 @@ func (tvc *TemplateVersionCreate) createSpec() (*TemplateVersion, *sqlgraph.Crea
 		_spec.SetField(templateversion.FieldUiSchema, field.TypeJSON, value)
 		_node.UiSchema = value
 	}
+	if value, ok := tvc.mutation.SchemaDefaultValue(); ok {
+		_spec.SetField(templateversion.FieldSchemaDefaultValue, field.TypeBytes, value)
+		_node.SchemaDefaultValue = value
+	}
 	if nodes := tvc.mutation.TemplateIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -463,6 +474,9 @@ func (tvc *TemplateVersionCreate) Set(obj *TemplateVersion) *TemplateVersionCrea
 	if obj.UpdateTime != nil {
 		tvc.SetUpdateTime(*obj.UpdateTime)
 	}
+	if !reflect.ValueOf(obj.SchemaDefaultValue).IsZero() {
+		tvc.SetSchemaDefaultValue(obj.SchemaDefaultValue)
+	}
 	if obj.ProjectID != "" {
 		tvc.SetProjectID(obj.ProjectID)
 	}
@@ -529,6 +543,9 @@ func (tvc *TemplateVersionCreate) SaveE(ctx context.Context, cbs ...func(ctx con
 		}
 		if _, set := tvc.mutation.Field(templateversion.FieldSource); set {
 			obj.Source = x.Source
+		}
+		if _, set := tvc.mutation.Field(templateversion.FieldSchemaDefaultValue); set {
+			obj.SchemaDefaultValue = x.SchemaDefaultValue
 		}
 		if _, set := tvc.mutation.Field(templateversion.FieldProjectID); set {
 			obj.ProjectID = x.ProjectID
@@ -662,6 +679,9 @@ func (tvcb *TemplateVersionCreateBulk) SaveE(ctx context.Context, cbs ...func(ct
 			}
 			if _, set := tvcb.builders[i].mutation.Field(templateversion.FieldSource); set {
 				objs[i].Source = x[i].Source
+			}
+			if _, set := tvcb.builders[i].mutation.Field(templateversion.FieldSchemaDefaultValue); set {
+				objs[i].SchemaDefaultValue = x[i].SchemaDefaultValue
 			}
 			if _, set := tvcb.builders[i].mutation.Field(templateversion.FieldProjectID); set {
 				objs[i].ProjectID = x[i].ProjectID
@@ -828,6 +848,24 @@ func (u *TemplateVersionUpsert) UpdateUiSchema() *TemplateVersionUpsert {
 	return u
 }
 
+// SetSchemaDefaultValue sets the "schema_default_value" field.
+func (u *TemplateVersionUpsert) SetSchemaDefaultValue(v []byte) *TemplateVersionUpsert {
+	u.Set(templateversion.FieldSchemaDefaultValue, v)
+	return u
+}
+
+// UpdateSchemaDefaultValue sets the "schema_default_value" field to the value that was provided on create.
+func (u *TemplateVersionUpsert) UpdateSchemaDefaultValue() *TemplateVersionUpsert {
+	u.SetExcluded(templateversion.FieldSchemaDefaultValue)
+	return u
+}
+
+// ClearSchemaDefaultValue clears the value of the "schema_default_value" field.
+func (u *TemplateVersionUpsert) ClearSchemaDefaultValue() *TemplateVersionUpsert {
+	u.SetNull(templateversion.FieldSchemaDefaultValue)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -933,6 +971,27 @@ func (u *TemplateVersionUpsertOne) SetUiSchema(v types.UISchema) *TemplateVersio
 func (u *TemplateVersionUpsertOne) UpdateUiSchema() *TemplateVersionUpsertOne {
 	return u.Update(func(s *TemplateVersionUpsert) {
 		s.UpdateUiSchema()
+	})
+}
+
+// SetSchemaDefaultValue sets the "schema_default_value" field.
+func (u *TemplateVersionUpsertOne) SetSchemaDefaultValue(v []byte) *TemplateVersionUpsertOne {
+	return u.Update(func(s *TemplateVersionUpsert) {
+		s.SetSchemaDefaultValue(v)
+	})
+}
+
+// UpdateSchemaDefaultValue sets the "schema_default_value" field to the value that was provided on create.
+func (u *TemplateVersionUpsertOne) UpdateSchemaDefaultValue() *TemplateVersionUpsertOne {
+	return u.Update(func(s *TemplateVersionUpsert) {
+		s.UpdateSchemaDefaultValue()
+	})
+}
+
+// ClearSchemaDefaultValue clears the value of the "schema_default_value" field.
+func (u *TemplateVersionUpsertOne) ClearSchemaDefaultValue() *TemplateVersionUpsertOne {
+	return u.Update(func(s *TemplateVersionUpsert) {
+		s.ClearSchemaDefaultValue()
 	})
 }
 
@@ -1206,6 +1265,27 @@ func (u *TemplateVersionUpsertBulk) SetUiSchema(v types.UISchema) *TemplateVersi
 func (u *TemplateVersionUpsertBulk) UpdateUiSchema() *TemplateVersionUpsertBulk {
 	return u.Update(func(s *TemplateVersionUpsert) {
 		s.UpdateUiSchema()
+	})
+}
+
+// SetSchemaDefaultValue sets the "schema_default_value" field.
+func (u *TemplateVersionUpsertBulk) SetSchemaDefaultValue(v []byte) *TemplateVersionUpsertBulk {
+	return u.Update(func(s *TemplateVersionUpsert) {
+		s.SetSchemaDefaultValue(v)
+	})
+}
+
+// UpdateSchemaDefaultValue sets the "schema_default_value" field to the value that was provided on create.
+func (u *TemplateVersionUpsertBulk) UpdateSchemaDefaultValue() *TemplateVersionUpsertBulk {
+	return u.Update(func(s *TemplateVersionUpsert) {
+		s.UpdateSchemaDefaultValue()
+	})
+}
+
+// ClearSchemaDefaultValue clears the value of the "schema_default_value" field.
+func (u *TemplateVersionUpsertBulk) ClearSchemaDefaultValue() *TemplateVersionUpsertBulk {
+	return u.Update(func(s *TemplateVersionUpsert) {
+		s.ClearSchemaDefaultValue()
 	})
 }
 

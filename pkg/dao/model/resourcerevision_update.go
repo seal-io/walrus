@@ -80,6 +80,18 @@ func (rru *ResourceRevisionUpdate) ClearAttributes() *ResourceRevisionUpdate {
 	return rru
 }
 
+// SetComputedAttributes sets the "computed_attributes" field.
+func (rru *ResourceRevisionUpdate) SetComputedAttributes(pr property.Values) *ResourceRevisionUpdate {
+	rru.mutation.SetComputedAttributes(pr)
+	return rru
+}
+
+// ClearComputedAttributes clears the value of the "computed_attributes" field.
+func (rru *ResourceRevisionUpdate) ClearComputedAttributes() *ResourceRevisionUpdate {
+	rru.mutation.ClearComputedAttributes()
+	return rru
+}
+
 // SetVariables sets the "variables" field.
 func (rru *ResourceRevisionUpdate) SetVariables(c crypto.Map[string, string]) *ResourceRevisionUpdate {
 	rru.mutation.SetVariables(c)
@@ -284,6 +296,11 @@ func (rru *ResourceRevisionUpdate) Set(obj *ResourceRevision) *ResourceRevisionU
 	} else {
 		rru.ClearAttributes()
 	}
+	if !reflect.ValueOf(obj.ComputedAttributes).IsZero() {
+		rru.SetComputedAttributes(obj.ComputedAttributes)
+	} else {
+		rru.ClearComputedAttributes()
+	}
 	rru.SetVariables(obj.Variables)
 	rru.SetInputPlan(obj.InputPlan)
 	rru.SetOutput(obj.Output)
@@ -342,6 +359,12 @@ func (rru *ResourceRevisionUpdate) sqlSave(ctx context.Context) (n int, err erro
 	}
 	if rru.mutation.AttributesCleared() {
 		_spec.ClearField(resourcerevision.FieldAttributes, field.TypeOther)
+	}
+	if value, ok := rru.mutation.ComputedAttributes(); ok {
+		_spec.SetField(resourcerevision.FieldComputedAttributes, field.TypeOther, value)
+	}
+	if rru.mutation.ComputedAttributesCleared() {
+		_spec.ClearField(resourcerevision.FieldComputedAttributes, field.TypeOther)
 	}
 	if value, ok := rru.mutation.Variables(); ok {
 		_spec.SetField(resourcerevision.FieldVariables, field.TypeOther, value)
@@ -444,6 +467,18 @@ func (rruo *ResourceRevisionUpdateOne) SetAttributes(pr property.Values) *Resour
 // ClearAttributes clears the value of the "attributes" field.
 func (rruo *ResourceRevisionUpdateOne) ClearAttributes() *ResourceRevisionUpdateOne {
 	rruo.mutation.ClearAttributes()
+	return rruo
+}
+
+// SetComputedAttributes sets the "computed_attributes" field.
+func (rruo *ResourceRevisionUpdateOne) SetComputedAttributes(pr property.Values) *ResourceRevisionUpdateOne {
+	rruo.mutation.SetComputedAttributes(pr)
+	return rruo
+}
+
+// ClearComputedAttributes clears the value of the "computed_attributes" field.
+func (rruo *ResourceRevisionUpdateOne) ClearComputedAttributes() *ResourceRevisionUpdateOne {
+	rruo.mutation.ClearComputedAttributes()
 	return rruo
 }
 
@@ -680,6 +715,13 @@ func (rruo *ResourceRevisionUpdateOne) Set(obj *ResourceRevision) *ResourceRevis
 			} else {
 				rruo.ClearAttributes()
 			}
+			if !reflect.ValueOf(obj.ComputedAttributes).IsZero() {
+				if !reflect.DeepEqual(db.ComputedAttributes, obj.ComputedAttributes) {
+					rruo.SetComputedAttributes(obj.ComputedAttributes)
+				}
+			} else {
+				rruo.ClearComputedAttributes()
+			}
 			if !reflect.DeepEqual(db.Variables, obj.Variables) {
 				rruo.SetVariables(obj.Variables)
 			}
@@ -770,6 +812,9 @@ func (rruo *ResourceRevisionUpdateOne) SaveE(ctx context.Context, cbs ...func(ct
 		}
 		if _, set := rruo.mutation.Field(resourcerevision.FieldAttributes); set {
 			obj.Attributes = x.Attributes
+		}
+		if _, set := rruo.mutation.Field(resourcerevision.FieldComputedAttributes); set {
+			obj.ComputedAttributes = x.ComputedAttributes
 		}
 		if _, set := rruo.mutation.Field(resourcerevision.FieldVariables); set {
 			obj.Variables = x.Variables
@@ -882,6 +927,12 @@ func (rruo *ResourceRevisionUpdateOne) sqlSave(ctx context.Context) (_node *Reso
 	}
 	if rruo.mutation.AttributesCleared() {
 		_spec.ClearField(resourcerevision.FieldAttributes, field.TypeOther)
+	}
+	if value, ok := rruo.mutation.ComputedAttributes(); ok {
+		_spec.SetField(resourcerevision.FieldComputedAttributes, field.TypeOther, value)
+	}
+	if rruo.mutation.ComputedAttributesCleared() {
+		_spec.ClearField(resourcerevision.FieldComputedAttributes, field.TypeOther)
 	}
 	if value, ok := rruo.mutation.Variables(); ok {
 		_spec.SetField(resourcerevision.FieldVariables, field.TypeOther, value)

@@ -41,6 +41,8 @@ type ResourceCreateInput struct {
 	Type string `path:"-" query:"-" json:"type,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Computed attributes generated from attributes and schemas.
+	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
 	// Endpoints of the resource.
 	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,omitempty"`
 	// Change comment of the resource.
@@ -62,13 +64,14 @@ func (rci *ResourceCreateInput) Model() *Resource {
 	}
 
 	_r := &Resource{
-		Name:          rci.Name,
-		Description:   rci.Description,
-		Labels:        rci.Labels,
-		Type:          rci.Type,
-		Attributes:    rci.Attributes,
-		Endpoints:     rci.Endpoints,
-		ChangeComment: rci.ChangeComment,
+		Name:               rci.Name,
+		Description:        rci.Description,
+		Labels:             rci.Labels,
+		Type:               rci.Type,
+		Attributes:         rci.Attributes,
+		ComputedAttributes: rci.ComputedAttributes,
+		Endpoints:          rci.Endpoints,
+		ChangeComment:      rci.ChangeComment,
 	}
 
 	if rci.Project != nil {
@@ -167,6 +170,8 @@ type ResourceCreateInputsItem struct {
 	Type string `path:"-" query:"-" json:"type,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Computed attributes generated from attributes and schemas.
+	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
 	// Endpoints of the resource.
 	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,omitempty"`
 	// Change comment of the resource.
@@ -248,13 +253,14 @@ func (rci *ResourceCreateInputs) Model() []*Resource {
 
 	for i := range rci.Items {
 		_r := &Resource{
-			Name:          rci.Items[i].Name,
-			Description:   rci.Items[i].Description,
-			Labels:        rci.Items[i].Labels,
-			Type:          rci.Items[i].Type,
-			Attributes:    rci.Items[i].Attributes,
-			Endpoints:     rci.Items[i].Endpoints,
-			ChangeComment: rci.Items[i].ChangeComment,
+			Name:               rci.Items[i].Name,
+			Description:        rci.Items[i].Description,
+			Labels:             rci.Items[i].Labels,
+			Type:               rci.Items[i].Type,
+			Attributes:         rci.Items[i].Attributes,
+			ComputedAttributes: rci.Items[i].ComputedAttributes,
+			Endpoints:          rci.Items[i].Endpoints,
+			ChangeComment:      rci.Items[i].ChangeComment,
 		}
 
 		if rci.Project != nil {
@@ -805,6 +811,8 @@ type ResourceUpdateInput struct {
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Computed attributes generated from attributes and schemas.
+	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
 	// Endpoints of the resource.
 	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,omitempty"`
 	// Change comment of the resource.
@@ -826,13 +834,14 @@ func (rui *ResourceUpdateInput) Model() *Resource {
 	}
 
 	_r := &Resource{
-		ID:            rui.ID,
-		Name:          rui.Name,
-		Description:   rui.Description,
-		Labels:        rui.Labels,
-		Attributes:    rui.Attributes,
-		Endpoints:     rui.Endpoints,
-		ChangeComment: rui.ChangeComment,
+		ID:                 rui.ID,
+		Name:               rui.Name,
+		Description:        rui.Description,
+		Labels:             rui.Labels,
+		Attributes:         rui.Attributes,
+		ComputedAttributes: rui.ComputedAttributes,
+		Endpoints:          rui.Endpoints,
+		ChangeComment:      rui.ChangeComment,
 	}
 
 	if rui.Template != nil {
@@ -912,6 +921,8 @@ type ResourceUpdateInputsItem struct {
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Computed attributes generated from attributes and schemas.
+	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
 	// Endpoints of the resource.
 	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,omitempty"`
 	// Change comment of the resource.
@@ -993,13 +1004,14 @@ func (rui *ResourceUpdateInputs) Model() []*Resource {
 
 	for i := range rui.Items {
 		_r := &Resource{
-			ID:            rui.Items[i].ID,
-			Name:          rui.Items[i].Name,
-			Description:   rui.Items[i].Description,
-			Labels:        rui.Items[i].Labels,
-			Attributes:    rui.Items[i].Attributes,
-			Endpoints:     rui.Items[i].Endpoints,
-			ChangeComment: rui.Items[i].ChangeComment,
+			ID:                 rui.Items[i].ID,
+			Name:               rui.Items[i].Name,
+			Description:        rui.Items[i].Description,
+			Labels:             rui.Items[i].Labels,
+			Attributes:         rui.Items[i].Attributes,
+			ComputedAttributes: rui.Items[i].ComputedAttributes,
+			Endpoints:          rui.Items[i].Endpoints,
+			ChangeComment:      rui.Items[i].ChangeComment,
 		}
 
 		if rui.Items[i].Template != nil {
@@ -1144,16 +1156,17 @@ func (rui *ResourceUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet,
 
 // ResourceOutput holds the output of the Resource entity.
 type ResourceOutput struct {
-	ID          object.ID               `json:"id,omitempty"`
-	Name        string                  `json:"name,omitempty"`
-	Description string                  `json:"description,omitempty"`
-	Labels      map[string]string       `json:"labels,omitempty"`
-	CreateTime  *time.Time              `json:"createTime,omitempty"`
-	UpdateTime  *time.Time              `json:"updateTime,omitempty"`
-	Status      status.Status           `json:"status,omitempty"`
-	Type        string                  `json:"type,omitempty"`
-	Attributes  property.Values         `json:"attributes,omitempty"`
-	Endpoints   types.ResourceEndpoints `json:"endpoints,omitempty"`
+	ID                 object.ID               `json:"id,omitempty"`
+	Name               string                  `json:"name,omitempty"`
+	Description        string                  `json:"description,omitempty"`
+	Labels             map[string]string       `json:"labels,omitempty"`
+	CreateTime         *time.Time              `json:"createTime,omitempty"`
+	UpdateTime         *time.Time              `json:"updateTime,omitempty"`
+	Status             status.Status           `json:"status,omitempty"`
+	Type               string                  `json:"type,omitempty"`
+	Attributes         property.Values         `json:"attributes,omitempty"`
+	ComputedAttributes property.Values         `json:"computedAttributes,omitempty"`
+	Endpoints          types.ResourceEndpoints `json:"endpoints,omitempty"`
 
 	Project                        *ProjectOutput                        `json:"project,omitempty"`
 	Environment                    *EnvironmentOutput                    `json:"environment,omitempty"`
@@ -1178,16 +1191,17 @@ func ExposeResource(_r *Resource) *ResourceOutput {
 	}
 
 	ro := &ResourceOutput{
-		ID:          _r.ID,
-		Name:        _r.Name,
-		Description: _r.Description,
-		Labels:      _r.Labels,
-		CreateTime:  _r.CreateTime,
-		UpdateTime:  _r.UpdateTime,
-		Status:      _r.Status,
-		Type:        _r.Type,
-		Attributes:  _r.Attributes,
-		Endpoints:   _r.Endpoints,
+		ID:                 _r.ID,
+		Name:               _r.Name,
+		Description:        _r.Description,
+		Labels:             _r.Labels,
+		CreateTime:         _r.CreateTime,
+		UpdateTime:         _r.UpdateTime,
+		Status:             _r.Status,
+		Type:               _r.Type,
+		Attributes:         _r.Attributes,
+		ComputedAttributes: _r.ComputedAttributes,
+		Endpoints:          _r.Endpoints,
 	}
 
 	if _r.Edges.Project != nil {

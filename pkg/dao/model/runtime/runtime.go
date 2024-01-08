@@ -603,19 +603,19 @@ func init() {
 	// resourcerevision.TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
 	resourcerevision.TemplateIDValidator = resourcerevisionDescTemplateID.Validators[0].(func(string) error)
 	// resourcerevisionDescVariables is the schema descriptor for variables field.
-	resourcerevisionDescVariables := resourcerevisionFields[7].Descriptor()
+	resourcerevisionDescVariables := resourcerevisionFields[8].Descriptor()
 	// resourcerevision.DefaultVariables holds the default value on creation for the variables field.
 	resourcerevision.DefaultVariables = resourcerevisionDescVariables.Default.(crypto.Map[string, string])
 	// resourcerevisionDescDeployerType is the schema descriptor for deployer_type field.
-	resourcerevisionDescDeployerType := resourcerevisionFields[10].Descriptor()
+	resourcerevisionDescDeployerType := resourcerevisionFields[11].Descriptor()
 	// resourcerevision.DefaultDeployerType holds the default value on creation for the deployer_type field.
 	resourcerevision.DefaultDeployerType = resourcerevisionDescDeployerType.Default.(string)
 	// resourcerevisionDescDuration is the schema descriptor for duration field.
-	resourcerevisionDescDuration := resourcerevisionFields[11].Descriptor()
+	resourcerevisionDescDuration := resourcerevisionFields[12].Descriptor()
 	// resourcerevision.DefaultDuration holds the default value on creation for the duration field.
 	resourcerevision.DefaultDuration = resourcerevisionDescDuration.Default.(int)
 	// resourcerevisionDescPreviousRequiredProviders is the schema descriptor for previous_required_providers field.
-	resourcerevisionDescPreviousRequiredProviders := resourcerevisionFields[12].Descriptor()
+	resourcerevisionDescPreviousRequiredProviders := resourcerevisionFields[13].Descriptor()
 	// resourcerevision.DefaultPreviousRequiredProviders holds the default value on creation for the previous_required_providers field.
 	resourcerevision.DefaultPreviousRequiredProviders = resourcerevisionDescPreviousRequiredProviders.Default.([]types.ProviderRequirement)
 	roleMixin := schema.Role{}.Mixin()

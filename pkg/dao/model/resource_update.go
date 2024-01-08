@@ -170,6 +170,18 @@ func (ru *ResourceUpdate) ClearAttributes() *ResourceUpdate {
 	return ru
 }
 
+// SetComputedAttributes sets the "computed_attributes" field.
+func (ru *ResourceUpdate) SetComputedAttributes(pr property.Values) *ResourceUpdate {
+	ru.mutation.SetComputedAttributes(pr)
+	return ru
+}
+
+// ClearComputedAttributes clears the value of the "computed_attributes" field.
+func (ru *ResourceUpdate) ClearComputedAttributes() *ResourceUpdate {
+	ru.mutation.ClearComputedAttributes()
+	return ru
+}
+
 // SetEndpoints sets the "endpoints" field.
 func (ru *ResourceUpdate) SetEndpoints(te types.ResourceEndpoints) *ResourceUpdate {
 	ru.mutation.SetEndpoints(te)
@@ -458,6 +470,11 @@ func (ru *ResourceUpdate) Set(obj *Resource) *ResourceUpdate {
 	} else {
 		ru.ClearAttributes()
 	}
+	if !reflect.ValueOf(obj.ComputedAttributes).IsZero() {
+		ru.SetComputedAttributes(obj.ComputedAttributes)
+	} else {
+		ru.ClearComputedAttributes()
+	}
 	if !reflect.ValueOf(obj.Endpoints).IsZero() {
 		ru.SetEndpoints(obj.Endpoints)
 	} else {
@@ -533,6 +550,12 @@ func (ru *ResourceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if ru.mutation.AttributesCleared() {
 		_spec.ClearField(resource.FieldAttributes, field.TypeOther)
+	}
+	if value, ok := ru.mutation.ComputedAttributes(); ok {
+		_spec.SetField(resource.FieldComputedAttributes, field.TypeOther, value)
+	}
+	if ru.mutation.ComputedAttributesCleared() {
+		_spec.ClearField(resource.FieldComputedAttributes, field.TypeOther)
 	}
 	if value, ok := ru.mutation.Endpoints(); ok {
 		_spec.SetField(resource.FieldEndpoints, field.TypeJSON, value)
@@ -904,6 +927,18 @@ func (ruo *ResourceUpdateOne) ClearAttributes() *ResourceUpdateOne {
 	return ruo
 }
 
+// SetComputedAttributes sets the "computed_attributes" field.
+func (ruo *ResourceUpdateOne) SetComputedAttributes(pr property.Values) *ResourceUpdateOne {
+	ruo.mutation.SetComputedAttributes(pr)
+	return ruo
+}
+
+// ClearComputedAttributes clears the value of the "computed_attributes" field.
+func (ruo *ResourceUpdateOne) ClearComputedAttributes() *ResourceUpdateOne {
+	ruo.mutation.ClearComputedAttributes()
+	return ruo
+}
+
 // SetEndpoints sets the "endpoints" field.
 func (ruo *ResourceUpdateOne) SetEndpoints(te types.ResourceEndpoints) *ResourceUpdateOne {
 	ruo.mutation.SetEndpoints(te)
@@ -1229,6 +1264,13 @@ func (ruo *ResourceUpdateOne) Set(obj *Resource) *ResourceUpdateOne {
 			} else {
 				ruo.ClearAttributes()
 			}
+			if !reflect.ValueOf(obj.ComputedAttributes).IsZero() {
+				if !reflect.DeepEqual(db.ComputedAttributes, obj.ComputedAttributes) {
+					ruo.SetComputedAttributes(obj.ComputedAttributes)
+				}
+			} else {
+				ruo.ClearComputedAttributes()
+			}
 			if !reflect.ValueOf(obj.Endpoints).IsZero() {
 				if !reflect.DeepEqual(db.Endpoints, obj.Endpoints) {
 					ruo.SetEndpoints(obj.Endpoints)
@@ -1313,6 +1355,9 @@ func (ruo *ResourceUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context
 		}
 		if _, set := ruo.mutation.Field(resource.FieldAttributes); set {
 			obj.Attributes = x.Attributes
+		}
+		if _, set := ruo.mutation.Field(resource.FieldComputedAttributes); set {
+			obj.ComputedAttributes = x.ComputedAttributes
 		}
 		if _, set := ruo.mutation.Field(resource.FieldEndpoints); set {
 			obj.Endpoints = x.Endpoints
@@ -1425,6 +1470,12 @@ func (ruo *ResourceUpdateOne) sqlSave(ctx context.Context) (_node *Resource, err
 	}
 	if ruo.mutation.AttributesCleared() {
 		_spec.ClearField(resource.FieldAttributes, field.TypeOther)
+	}
+	if value, ok := ruo.mutation.ComputedAttributes(); ok {
+		_spec.SetField(resource.FieldComputedAttributes, field.TypeOther, value)
+	}
+	if ruo.mutation.ComputedAttributesCleared() {
+		_spec.ClearField(resource.FieldComputedAttributes, field.TypeOther)
 	}
 	if value, ok := ruo.mutation.Endpoints(); ok {
 		_spec.SetField(resource.FieldEndpoints, field.TypeJSON, value)

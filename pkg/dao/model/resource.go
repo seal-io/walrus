@@ -59,6 +59,8 @@ type Resource struct {
 	ResourceDefinitionMatchingRuleID *object.ID `json:"resource_definition_matching_rule_id,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
+	// Computed attributes generated from attributes and schemas.
+	ComputedAttributes property.Values `json:"computed_attributes,omitempty"`
 	// Endpoints of the resource.
 	Endpoints types.ResourceEndpoints `json:"endpoints,omitempty"`
 	// Change comment of the resource.
@@ -195,7 +197,7 @@ func (*Resource) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case resource.FieldID, resource.FieldProjectID, resource.FieldEnvironmentID:
 			values[i] = new(object.ID)
-		case resource.FieldAttributes:
+		case resource.FieldAttributes, resource.FieldComputedAttributes:
 			values[i] = new(property.Values)
 		case resource.FieldName, resource.FieldDescription, resource.FieldType, resource.FieldChangeComment:
 			values[i] = new(sql.NullString)
@@ -316,6 +318,12 @@ func (r *Resource) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field attributes", values[i])
 			} else if value != nil {
 				r.Attributes = *value
+			}
+		case resource.FieldComputedAttributes:
+			if value, ok := values[i].(*property.Values); !ok {
+				return fmt.Errorf("unexpected type %T for field computed_attributes", values[i])
+			} else if value != nil {
+				r.ComputedAttributes = *value
 			}
 		case resource.FieldEndpoints:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -458,6 +466,9 @@ func (r *Resource) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("attributes=")
 	builder.WriteString(fmt.Sprintf("%v", r.Attributes))
+	builder.WriteString(", ")
+	builder.WriteString("computed_attributes=")
+	builder.WriteString(fmt.Sprintf("%v", r.ComputedAttributes))
 	builder.WriteString(", ")
 	builder.WriteString("endpoints=")
 	builder.WriteString(fmt.Sprintf("%v", r.Endpoints))

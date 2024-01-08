@@ -117,6 +117,11 @@ func Attributes(v property.Values) predicate.Resource {
 	return predicate.Resource(sql.FieldEQ(FieldAttributes, v))
 }
 
+// ComputedAttributes applies equality check predicate on the "computed_attributes" field. It's identical to ComputedAttributesEQ.
+func ComputedAttributes(v property.Values) predicate.Resource {
+	return predicate.Resource(sql.FieldEQ(FieldComputedAttributes, v))
+}
+
 // ChangeComment applies equality check predicate on the "change_comment" field. It's identical to ChangeCommentEQ.
 func ChangeComment(v string) predicate.Resource {
 	return predicate.Resource(sql.FieldEQ(FieldChangeComment, v))
@@ -875,6 +880,56 @@ func AttributesIsNil() predicate.Resource {
 // AttributesNotNil applies the NotNil predicate on the "attributes" field.
 func AttributesNotNil() predicate.Resource {
 	return predicate.Resource(sql.FieldNotNull(FieldAttributes))
+}
+
+// ComputedAttributesEQ applies the EQ predicate on the "computed_attributes" field.
+func ComputedAttributesEQ(v property.Values) predicate.Resource {
+	return predicate.Resource(sql.FieldEQ(FieldComputedAttributes, v))
+}
+
+// ComputedAttributesNEQ applies the NEQ predicate on the "computed_attributes" field.
+func ComputedAttributesNEQ(v property.Values) predicate.Resource {
+	return predicate.Resource(sql.FieldNEQ(FieldComputedAttributes, v))
+}
+
+// ComputedAttributesIn applies the In predicate on the "computed_attributes" field.
+func ComputedAttributesIn(vs ...property.Values) predicate.Resource {
+	return predicate.Resource(sql.FieldIn(FieldComputedAttributes, vs...))
+}
+
+// ComputedAttributesNotIn applies the NotIn predicate on the "computed_attributes" field.
+func ComputedAttributesNotIn(vs ...property.Values) predicate.Resource {
+	return predicate.Resource(sql.FieldNotIn(FieldComputedAttributes, vs...))
+}
+
+// ComputedAttributesGT applies the GT predicate on the "computed_attributes" field.
+func ComputedAttributesGT(v property.Values) predicate.Resource {
+	return predicate.Resource(sql.FieldGT(FieldComputedAttributes, v))
+}
+
+// ComputedAttributesGTE applies the GTE predicate on the "computed_attributes" field.
+func ComputedAttributesGTE(v property.Values) predicate.Resource {
+	return predicate.Resource(sql.FieldGTE(FieldComputedAttributes, v))
+}
+
+// ComputedAttributesLT applies the LT predicate on the "computed_attributes" field.
+func ComputedAttributesLT(v property.Values) predicate.Resource {
+	return predicate.Resource(sql.FieldLT(FieldComputedAttributes, v))
+}
+
+// ComputedAttributesLTE applies the LTE predicate on the "computed_attributes" field.
+func ComputedAttributesLTE(v property.Values) predicate.Resource {
+	return predicate.Resource(sql.FieldLTE(FieldComputedAttributes, v))
+}
+
+// ComputedAttributesIsNil applies the IsNil predicate on the "computed_attributes" field.
+func ComputedAttributesIsNil() predicate.Resource {
+	return predicate.Resource(sql.FieldIsNull(FieldComputedAttributes))
+}
+
+// ComputedAttributesNotNil applies the NotNil predicate on the "computed_attributes" field.
+func ComputedAttributesNotNil() predicate.Resource {
+	return predicate.Resource(sql.FieldNotNull(FieldComputedAttributes))
 }
 
 // EndpointsIsNil applies the IsNil predicate on the "endpoints" field.

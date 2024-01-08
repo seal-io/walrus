@@ -457,6 +457,7 @@ func (tvpi *TemplateVersionPatchInput) ValidateWith(ctx context.Context, cs Clie
 		templateversion.WithoutFields(
 			templateversion.FieldCreateTime,
 			templateversion.FieldUpdateTime,
+			templateversion.FieldSchemaDefaultValue,
 		)...,
 	)
 
