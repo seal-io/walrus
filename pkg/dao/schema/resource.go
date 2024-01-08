@@ -70,6 +70,9 @@ func (Resource) Fields() []ent.Field {
 		property.ValuesField("attributes").
 			Comment("Attributes to configure the template.").
 			Optional(),
+		property.ValuesField("computed_attributes").
+			Comment("Computed attributes generated from attributes and schemas.").
+			Optional(),
 		field.JSON("endpoints", types.ResourceEndpoints{}).
 			Comment("Endpoints of the resource.").
 			Optional(),

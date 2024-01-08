@@ -69,6 +69,11 @@ func (TemplateVersion) Fields() []ent.Field {
 			Default(types.UISchema{}).
 			Annotations(
 				entx.Input(entx.WithUpdate())),
+		field.Bytes("schema_default_value").
+			Comment("Default value generated from schema and ui schema").
+			Optional().
+			Annotations(
+				entx.SkipIO()),
 		object.IDField("project_id").
 			Comment("ID of the project to belong, empty means for all projects.").
 			Immutable().
