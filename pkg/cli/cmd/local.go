@@ -14,8 +14,8 @@ import (
 	"github.com/seal-io/walrus/pkg/cli/local"
 )
 
-// NewLocalCmd generate local command.
-func NewLocalCmd() *cobra.Command {
+// Local generate local command.
+func Local() *cobra.Command {
 	// Command install.
 	installCmd := &cobra.Command{
 		Use:   "install",

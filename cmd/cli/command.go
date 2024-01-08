@@ -69,12 +69,12 @@ func NewContextCmd() *cobra.Command {
 
 // NewLocalCmd generate local command.
 func NewLocalCmd() *cobra.Command {
-	return pkgcmd.NewLocalCmd()
+	return pkgcmd.Local()
 }
 
 // NewSchemaCmd generate ui schema command.
 func NewSchemaCmd() *cobra.Command {
-	return pkgcmd.NewSchemaCmd()
+	return pkgcmd.Schema()
 }
 
 // NewApplyCmd apply manifest.
@@ -99,7 +99,7 @@ func NewDeleteCmd() *cobra.Command {
 
 // NewVersionCmd return cli version.
 func NewVersionCmd() *cobra.Command {
-	return pkgcmd.NewVersionCmd()
+	return pkgcmd.Version(serverConfig)
 }
 
 // define global flags.

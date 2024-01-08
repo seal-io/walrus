@@ -10,8 +10,8 @@ import (
 	"github.com/seal-io/walrus/pkg/cli/schema"
 )
 
-// NewSchemaCmd generate ui schema command.
-func NewSchemaCmd() *cobra.Command {
+// Schema generate ui schema command.
+func Schema() *cobra.Command {
 	cfg := schema.GenerateOption{}
 
 	// Command ui schema generate.

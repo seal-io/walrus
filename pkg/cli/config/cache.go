@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"runtime"
 
 	"github.com/seal-io/walrus/utils/json"
 	"github.com/seal-io/walrus/utils/log"
@@ -45,20 +44,12 @@ func InitConfig() (*ServerContext, error) {
 
 // GetConfigDir get config dir.
 func GetConfigDir() string {
-	userHomeDir := func() string {
-		if runtime.GOOS == "windows" {
-			home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
-			if home == "" {
-				home = os.Getenv("USERPROFILE")
-			}
-
-			return home
-		}
-
-		return os.Getenv("HOME")
+	home, err := os.UserHomeDir()
+	if err != nil {
+		panic(fmt.Errorf("failed to get home dir: %w", err))
 	}
 
-	return path.Join(userHomeDir(), "."+cliName)
+	return path.Join(home, "."+cliName)
 }
 
 // GetServerContextFromCache load context from cache.
