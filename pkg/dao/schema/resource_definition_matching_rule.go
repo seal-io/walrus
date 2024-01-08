@@ -59,6 +59,11 @@ func (ResourceDefinitionMatchingRule) Fields() []ent.Field {
 			Comment("Order of the matching rule.").
 			Annotations(
 				entx.SkipIO()),
+		field.Bytes("schema_default_value").
+			Comment("Default value generated from resource definition's schema, ui schema and attributes").
+			Optional().
+			Annotations(
+				entx.SkipIO()),
 	}
 }
 

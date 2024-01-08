@@ -58,6 +58,9 @@ func (ResourceRevision) Fields() []ent.Field {
 		property.ValuesField("attributes").
 			Comment("Attributes to configure the template.").
 			Optional(),
+		property.ValuesField("computed_attributes").
+			Comment("Computed attributes generated from attributes and schemas.").
+			Optional(),
 		crypto.MapField[string, string]("variables").
 			Comment("Variables of the revision.").
 			Default(crypto.Map[string, string]{}),
