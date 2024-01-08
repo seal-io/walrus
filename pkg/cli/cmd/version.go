@@ -4,19 +4,31 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 
+	"github.com/seal-io/walrus/pkg/cli/api"
 	"github.com/seal-io/walrus/pkg/cli/common"
-	"github.com/seal-io/walrus/utils/version"
+	"github.com/seal-io/walrus/pkg/cli/config"
 )
 
-// NewVersionCmd return version command.
-func NewVersionCmd() *cobra.Command {
+// Version return version command.
+func Version(sc *config.Config) *cobra.Command {
 	return &cobra.Command{
 		Use:     "version",
 		Short:   "Print the CLI version",
 		GroupID: common.GroupOther.ID,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("walrus CLI", version.Get())
+			info, err := api.GetVersion(sc)
+			if err != nil {
+				panic(err)
+			}
+
+			b, err := yaml.Marshal(info)
+			if err != nil {
+				panic(err)
+			}
+
+			fmt.Print(string(b))
 		},
 	}
 }
