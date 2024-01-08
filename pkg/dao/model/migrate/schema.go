@@ -311,6 +311,7 @@ var (
 		{Name: "status", Type: field.TypeJSON, Nullable: true},
 		{Name: "type", Type: field.TypeString, Nullable: true},
 		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
+		{Name: "computed_attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
 		{Name: "endpoints", Type: field.TypeJSON, Nullable: true},
 		{Name: "change_comment", Type: field.TypeString, Nullable: true},
 		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
@@ -327,31 +328,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "resources_environments_resources",
-				Columns:    []*schema.Column{ResourcesColumns[12]},
+				Columns:    []*schema.Column{ResourcesColumns[13]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
 			{
 				Symbol:     "resources_projects_resources",
-				Columns:    []*schema.Column{ResourcesColumns[13]},
+				Columns:    []*schema.Column{ResourcesColumns[14]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "resources_resource_definitions_resources",
-				Columns:    []*schema.Column{ResourcesColumns[14]},
+				Columns:    []*schema.Column{ResourcesColumns[15]},
 				RefColumns: []*schema.Column{ResourceDefinitionsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
 			{
 				Symbol:     "resources_resource_definition_matching_rules_resources",
-				Columns:    []*schema.Column{ResourcesColumns[15]},
+				Columns:    []*schema.Column{ResourcesColumns[16]},
 				RefColumns: []*schema.Column{ResourceDefinitionMatchingRulesColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
 			{
 				Symbol:     "resources_template_versions_resources",
-				Columns:    []*schema.Column{ResourcesColumns[16]},
+				Columns:    []*schema.Column{ResourcesColumns[17]},
 				RefColumns: []*schema.Column{TemplateVersionsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
@@ -360,7 +361,7 @@ var (
 			{
 				Name:    "resource_project_id_environment_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{ResourcesColumns[13], ResourcesColumns[12], ResourcesColumns[1]},
+				Columns: []*schema.Column{ResourcesColumns[14], ResourcesColumns[13], ResourcesColumns[1]},
 			},
 		},
 	}
@@ -513,6 +514,7 @@ var (
 		{Name: "selector", Type: field.TypeJSON},
 		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
 		{Name: "order", Type: field.TypeInt},
+		{Name: "schema_default_value", Type: field.TypeBytes, Nullable: true},
 		{Name: "resource_definition_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "template_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
@@ -524,13 +526,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "resource_definition_matching_rules_resource_definitions_resource_definition",
-				Columns:    []*schema.Column{ResourceDefinitionMatchingRulesColumns[6]},
+				Columns:    []*schema.Column{ResourceDefinitionMatchingRulesColumns[7]},
 				RefColumns: []*schema.Column{ResourceDefinitionsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "resource_definition_matching_rules_template_versions_template",
-				Columns:    []*schema.Column{ResourceDefinitionMatchingRulesColumns[7]},
+				Columns:    []*schema.Column{ResourceDefinitionMatchingRulesColumns[8]},
 				RefColumns: []*schema.Column{TemplateVersionsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
@@ -544,12 +546,12 @@ var (
 			{
 				Name:    "resourcedefinitionmatchingrule_resource_definition_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{ResourceDefinitionMatchingRulesColumns[6], ResourceDefinitionMatchingRulesColumns[2]},
+				Columns: []*schema.Column{ResourceDefinitionMatchingRulesColumns[7], ResourceDefinitionMatchingRulesColumns[2]},
 			},
 			{
 				Name:    "resourcedefinitionmatchingrule_resource_definition_id_template_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{ResourceDefinitionMatchingRulesColumns[6], ResourceDefinitionMatchingRulesColumns[7], ResourceDefinitionMatchingRulesColumns[2]},
+				Columns: []*schema.Column{ResourceDefinitionMatchingRulesColumns[7], ResourceDefinitionMatchingRulesColumns[8], ResourceDefinitionMatchingRulesColumns[2]},
 			},
 		},
 	}
@@ -603,6 +605,7 @@ var (
 		{Name: "template_version", Type: field.TypeString},
 		{Name: "template_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
+		{Name: "computed_attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
 		{Name: "variables", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
 		{Name: "input_plan", Type: field.TypeString},
 		{Name: "output", Type: field.TypeString},
@@ -624,19 +627,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "resource_revisions_environments_resource_revisions",
-				Columns:    []*schema.Column{ResourceRevisionsColumns[16]},
+				Columns:    []*schema.Column{ResourceRevisionsColumns[17]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "resource_revisions_projects_resource_revisions",
-				Columns:    []*schema.Column{ResourceRevisionsColumns[17]},
+				Columns:    []*schema.Column{ResourceRevisionsColumns[18]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "resource_revisions_resources_revisions",
-				Columns:    []*schema.Column{ResourceRevisionsColumns[18]},
+				Columns:    []*schema.Column{ResourceRevisionsColumns[19]},
 				RefColumns: []*schema.Column{ResourcesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -852,6 +855,7 @@ var (
 		{Name: "source", Type: field.TypeString},
 		{Name: "schema", Type: field.TypeJSON},
 		{Name: "ui_schema", Type: field.TypeJSON},
+		{Name: "schema_default_value", Type: field.TypeBytes, Nullable: true},
 		{Name: "project_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "template_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
@@ -863,13 +867,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "template_versions_projects_template_versions",
-				Columns:    []*schema.Column{TemplateVersionsColumns[8]},
+				Columns:    []*schema.Column{TemplateVersionsColumns[9]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "template_versions_templates_versions",
-				Columns:    []*schema.Column{TemplateVersionsColumns[9]},
+				Columns:    []*schema.Column{TemplateVersionsColumns[10]},
 				RefColumns: []*schema.Column{TemplatesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -883,7 +887,7 @@ var (
 			{
 				Name:    "templateversion_name_version_project_id",
 				Unique:  true,
-				Columns: []*schema.Column{TemplateVersionsColumns[3], TemplateVersionsColumns[4], TemplateVersionsColumns[8]},
+				Columns: []*schema.Column{TemplateVersionsColumns[3], TemplateVersionsColumns[4], TemplateVersionsColumns[9]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "project_id IS NOT NULL",
 				},

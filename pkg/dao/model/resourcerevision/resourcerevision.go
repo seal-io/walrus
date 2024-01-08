@@ -40,6 +40,8 @@ const (
 	FieldTemplateID = "template_id"
 	// FieldAttributes holds the string denoting the attributes field in the database.
 	FieldAttributes = "attributes"
+	// FieldComputedAttributes holds the string denoting the computed_attributes field in the database.
+	FieldComputedAttributes = "computed_attributes"
 	// FieldVariables holds the string denoting the variables field in the database.
 	FieldVariables = "variables"
 	// FieldInputPlan holds the string denoting the input_plan field in the database.
@@ -101,6 +103,7 @@ var Columns = []string{
 	FieldTemplateVersion,
 	FieldTemplateID,
 	FieldAttributes,
+	FieldComputedAttributes,
 	FieldVariables,
 	FieldInputPlan,
 	FieldOutput,
@@ -200,6 +203,11 @@ func ByTemplateID(opts ...sql.OrderTermOption) OrderOption {
 // ByAttributes orders the results by the attributes field.
 func ByAttributes(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAttributes, opts...).ToFunc()
+}
+
+// ByComputedAttributes orders the results by the computed_attributes field.
+func ByComputedAttributes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldComputedAttributes, opts...).ToFunc()
 }
 
 // ByVariables orders the results by the variables field.

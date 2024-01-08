@@ -10488,6 +10488,7 @@ type ResourceMutation struct {
 	status                                   *status.Status
 	_type                                    *string
 	attributes                               *property.Values
+	computed_attributes                      *property.Values
 	endpoints                                *types.ResourceEndpoints
 	appendendpoints                          types.ResourceEndpoints
 	change_comment                           *string
@@ -11241,6 +11242,55 @@ func (m *ResourceMutation) ResetAttributes() {
 	delete(m.clearedFields, resource.FieldAttributes)
 }
 
+// SetComputedAttributes sets the "computed_attributes" field.
+func (m *ResourceMutation) SetComputedAttributes(pr property.Values) {
+	m.computed_attributes = &pr
+}
+
+// ComputedAttributes returns the value of the "computed_attributes" field in the mutation.
+func (m *ResourceMutation) ComputedAttributes() (r property.Values, exists bool) {
+	v := m.computed_attributes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldComputedAttributes returns the old "computed_attributes" field's value of the Resource entity.
+// If the Resource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceMutation) OldComputedAttributes(ctx context.Context) (v property.Values, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldComputedAttributes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldComputedAttributes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldComputedAttributes: %w", err)
+	}
+	return oldValue.ComputedAttributes, nil
+}
+
+// ClearComputedAttributes clears the value of the "computed_attributes" field.
+func (m *ResourceMutation) ClearComputedAttributes() {
+	m.computed_attributes = nil
+	m.clearedFields[resource.FieldComputedAttributes] = struct{}{}
+}
+
+// ComputedAttributesCleared returns if the "computed_attributes" field was cleared in this mutation.
+func (m *ResourceMutation) ComputedAttributesCleared() bool {
+	_, ok := m.clearedFields[resource.FieldComputedAttributes]
+	return ok
+}
+
+// ResetComputedAttributes resets all changes to the "computed_attributes" field.
+func (m *ResourceMutation) ResetComputedAttributes() {
+	m.computed_attributes = nil
+	delete(m.clearedFields, resource.FieldComputedAttributes)
+}
+
 // SetEndpoints sets the "endpoints" field.
 func (m *ResourceMutation) SetEndpoints(te types.ResourceEndpoints) {
 	m.endpoints = &te
@@ -11681,7 +11731,7 @@ func (m *ResourceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ResourceMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 17)
 	if m.name != nil {
 		fields = append(fields, resource.FieldName)
 	}
@@ -11723,6 +11773,9 @@ func (m *ResourceMutation) Fields() []string {
 	}
 	if m.attributes != nil {
 		fields = append(fields, resource.FieldAttributes)
+	}
+	if m.computed_attributes != nil {
+		fields = append(fields, resource.FieldComputedAttributes)
 	}
 	if m.endpoints != nil {
 		fields = append(fields, resource.FieldEndpoints)
@@ -11766,6 +11819,8 @@ func (m *ResourceMutation) Field(name string) (ent.Value, bool) {
 		return m.ResourceDefinitionMatchingRuleID()
 	case resource.FieldAttributes:
 		return m.Attributes()
+	case resource.FieldComputedAttributes:
+		return m.ComputedAttributes()
 	case resource.FieldEndpoints:
 		return m.Endpoints()
 	case resource.FieldChangeComment:
@@ -11807,6 +11862,8 @@ func (m *ResourceMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldResourceDefinitionMatchingRuleID(ctx)
 	case resource.FieldAttributes:
 		return m.OldAttributes(ctx)
+	case resource.FieldComputedAttributes:
+		return m.OldComputedAttributes(ctx)
 	case resource.FieldEndpoints:
 		return m.OldEndpoints(ctx)
 	case resource.FieldChangeComment:
@@ -11918,6 +11975,13 @@ func (m *ResourceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetAttributes(v)
 		return nil
+	case resource.FieldComputedAttributes:
+		v, ok := value.(property.Values)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetComputedAttributes(v)
+		return nil
 	case resource.FieldEndpoints:
 		v, ok := value.(types.ResourceEndpoints)
 		if !ok {
@@ -11989,6 +12053,9 @@ func (m *ResourceMutation) ClearedFields() []string {
 	if m.FieldCleared(resource.FieldAttributes) {
 		fields = append(fields, resource.FieldAttributes)
 	}
+	if m.FieldCleared(resource.FieldComputedAttributes) {
+		fields = append(fields, resource.FieldComputedAttributes)
+	}
 	if m.FieldCleared(resource.FieldEndpoints) {
 		fields = append(fields, resource.FieldEndpoints)
 	}
@@ -12035,6 +12102,9 @@ func (m *ResourceMutation) ClearField(name string) error {
 		return nil
 	case resource.FieldAttributes:
 		m.ClearAttributes()
+		return nil
+	case resource.FieldComputedAttributes:
+		m.ClearComputedAttributes()
 		return nil
 	case resource.FieldEndpoints:
 		m.ClearEndpoints()
@@ -12091,6 +12161,9 @@ func (m *ResourceMutation) ResetField(name string) error {
 		return nil
 	case resource.FieldAttributes:
 		m.ResetAttributes()
+		return nil
+	case resource.FieldComputedAttributes:
+		m.ResetComputedAttributes()
 		return nil
 	case resource.FieldEndpoints:
 		m.ResetEndpoints()
@@ -15628,6 +15701,7 @@ type ResourceDefinitionMatchingRuleMutation struct {
 	attributes                 *property.Values
 	_order                     *int
 	add_order                  *int
+	schema_default_value       *[]byte
 	clearedFields              map[string]struct{}
 	resource_definition        *object.ID
 	clearedresource_definition bool
@@ -16030,6 +16104,55 @@ func (m *ResourceDefinitionMatchingRuleMutation) ResetOrder() {
 	m.add_order = nil
 }
 
+// SetSchemaDefaultValue sets the "schema_default_value" field.
+func (m *ResourceDefinitionMatchingRuleMutation) SetSchemaDefaultValue(b []byte) {
+	m.schema_default_value = &b
+}
+
+// SchemaDefaultValue returns the value of the "schema_default_value" field in the mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) SchemaDefaultValue() (r []byte, exists bool) {
+	v := m.schema_default_value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSchemaDefaultValue returns the old "schema_default_value" field's value of the ResourceDefinitionMatchingRule entity.
+// If the ResourceDefinitionMatchingRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceDefinitionMatchingRuleMutation) OldSchemaDefaultValue(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSchemaDefaultValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSchemaDefaultValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSchemaDefaultValue: %w", err)
+	}
+	return oldValue.SchemaDefaultValue, nil
+}
+
+// ClearSchemaDefaultValue clears the value of the "schema_default_value" field.
+func (m *ResourceDefinitionMatchingRuleMutation) ClearSchemaDefaultValue() {
+	m.schema_default_value = nil
+	m.clearedFields[resourcedefinitionmatchingrule.FieldSchemaDefaultValue] = struct{}{}
+}
+
+// SchemaDefaultValueCleared returns if the "schema_default_value" field was cleared in this mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) SchemaDefaultValueCleared() bool {
+	_, ok := m.clearedFields[resourcedefinitionmatchingrule.FieldSchemaDefaultValue]
+	return ok
+}
+
+// ResetSchemaDefaultValue resets all changes to the "schema_default_value" field.
+func (m *ResourceDefinitionMatchingRuleMutation) ResetSchemaDefaultValue() {
+	m.schema_default_value = nil
+	delete(m.clearedFields, resourcedefinitionmatchingrule.FieldSchemaDefaultValue)
+}
+
 // ClearResourceDefinition clears the "resource_definition" edge to the ResourceDefinition entity.
 func (m *ResourceDefinitionMatchingRuleMutation) ClearResourceDefinition() {
 	m.clearedresource_definition = true
@@ -16170,7 +16293,7 @@ func (m *ResourceDefinitionMatchingRuleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ResourceDefinitionMatchingRuleMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.create_time != nil {
 		fields = append(fields, resourcedefinitionmatchingrule.FieldCreateTime)
 	}
@@ -16191,6 +16314,9 @@ func (m *ResourceDefinitionMatchingRuleMutation) Fields() []string {
 	}
 	if m._order != nil {
 		fields = append(fields, resourcedefinitionmatchingrule.FieldOrder)
+	}
+	if m.schema_default_value != nil {
+		fields = append(fields, resourcedefinitionmatchingrule.FieldSchemaDefaultValue)
 	}
 	return fields
 }
@@ -16214,6 +16340,8 @@ func (m *ResourceDefinitionMatchingRuleMutation) Field(name string) (ent.Value, 
 		return m.Attributes()
 	case resourcedefinitionmatchingrule.FieldOrder:
 		return m.Order()
+	case resourcedefinitionmatchingrule.FieldSchemaDefaultValue:
+		return m.SchemaDefaultValue()
 	}
 	return nil, false
 }
@@ -16237,6 +16365,8 @@ func (m *ResourceDefinitionMatchingRuleMutation) OldField(ctx context.Context, n
 		return m.OldAttributes(ctx)
 	case resourcedefinitionmatchingrule.FieldOrder:
 		return m.OldOrder(ctx)
+	case resourcedefinitionmatchingrule.FieldSchemaDefaultValue:
+		return m.OldSchemaDefaultValue(ctx)
 	}
 	return nil, fmt.Errorf("unknown ResourceDefinitionMatchingRule field %s", name)
 }
@@ -16295,6 +16425,13 @@ func (m *ResourceDefinitionMatchingRuleMutation) SetField(name string, value ent
 		}
 		m.SetOrder(v)
 		return nil
+	case resourcedefinitionmatchingrule.FieldSchemaDefaultValue:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSchemaDefaultValue(v)
+		return nil
 	}
 	return fmt.Errorf("unknown ResourceDefinitionMatchingRule field %s", name)
 }
@@ -16343,6 +16480,9 @@ func (m *ResourceDefinitionMatchingRuleMutation) ClearedFields() []string {
 	if m.FieldCleared(resourcedefinitionmatchingrule.FieldAttributes) {
 		fields = append(fields, resourcedefinitionmatchingrule.FieldAttributes)
 	}
+	if m.FieldCleared(resourcedefinitionmatchingrule.FieldSchemaDefaultValue) {
+		fields = append(fields, resourcedefinitionmatchingrule.FieldSchemaDefaultValue)
+	}
 	return fields
 }
 
@@ -16359,6 +16499,9 @@ func (m *ResourceDefinitionMatchingRuleMutation) ClearField(name string) error {
 	switch name {
 	case resourcedefinitionmatchingrule.FieldAttributes:
 		m.ClearAttributes()
+		return nil
+	case resourcedefinitionmatchingrule.FieldSchemaDefaultValue:
+		m.ClearSchemaDefaultValue()
 		return nil
 	}
 	return fmt.Errorf("unknown ResourceDefinitionMatchingRule nullable field %s", name)
@@ -16388,6 +16531,9 @@ func (m *ResourceDefinitionMatchingRuleMutation) ResetField(name string) error {
 		return nil
 	case resourcedefinitionmatchingrule.FieldOrder:
 		m.ResetOrder()
+		return nil
+	case resourcedefinitionmatchingrule.FieldSchemaDefaultValue:
+		m.ResetSchemaDefaultValue()
 		return nil
 	}
 	return fmt.Errorf("unknown ResourceDefinitionMatchingRule field %s", name)
@@ -17187,6 +17333,7 @@ type ResourceRevisionMutation struct {
 	template_version                  *string
 	template_id                       *object.ID
 	attributes                        *property.Values
+	computed_attributes               *property.Values
 	variables                         *crypto.Map[string, string]
 	input_plan                        *string
 	output                            *string
@@ -17662,6 +17809,55 @@ func (m *ResourceRevisionMutation) AttributesCleared() bool {
 func (m *ResourceRevisionMutation) ResetAttributes() {
 	m.attributes = nil
 	delete(m.clearedFields, resourcerevision.FieldAttributes)
+}
+
+// SetComputedAttributes sets the "computed_attributes" field.
+func (m *ResourceRevisionMutation) SetComputedAttributes(pr property.Values) {
+	m.computed_attributes = &pr
+}
+
+// ComputedAttributes returns the value of the "computed_attributes" field in the mutation.
+func (m *ResourceRevisionMutation) ComputedAttributes() (r property.Values, exists bool) {
+	v := m.computed_attributes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldComputedAttributes returns the old "computed_attributes" field's value of the ResourceRevision entity.
+// If the ResourceRevision object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceRevisionMutation) OldComputedAttributes(ctx context.Context) (v property.Values, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldComputedAttributes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldComputedAttributes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldComputedAttributes: %w", err)
+	}
+	return oldValue.ComputedAttributes, nil
+}
+
+// ClearComputedAttributes clears the value of the "computed_attributes" field.
+func (m *ResourceRevisionMutation) ClearComputedAttributes() {
+	m.computed_attributes = nil
+	m.clearedFields[resourcerevision.FieldComputedAttributes] = struct{}{}
+}
+
+// ComputedAttributesCleared returns if the "computed_attributes" field was cleared in this mutation.
+func (m *ResourceRevisionMutation) ComputedAttributesCleared() bool {
+	_, ok := m.clearedFields[resourcerevision.FieldComputedAttributes]
+	return ok
+}
+
+// ResetComputedAttributes resets all changes to the "computed_attributes" field.
+func (m *ResourceRevisionMutation) ResetComputedAttributes() {
+	m.computed_attributes = nil
+	delete(m.clearedFields, resourcerevision.FieldComputedAttributes)
 }
 
 // SetVariables sets the "variables" field.
@@ -18161,7 +18357,7 @@ func (m *ResourceRevisionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ResourceRevisionMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 19)
 	if m.create_time != nil {
 		fields = append(fields, resourcerevision.FieldCreateTime)
 	}
@@ -18188,6 +18384,9 @@ func (m *ResourceRevisionMutation) Fields() []string {
 	}
 	if m.attributes != nil {
 		fields = append(fields, resourcerevision.FieldAttributes)
+	}
+	if m.computed_attributes != nil {
+		fields = append(fields, resourcerevision.FieldComputedAttributes)
 	}
 	if m.variables != nil {
 		fields = append(fields, resourcerevision.FieldVariables)
@@ -18242,6 +18441,8 @@ func (m *ResourceRevisionMutation) Field(name string) (ent.Value, bool) {
 		return m.TemplateID()
 	case resourcerevision.FieldAttributes:
 		return m.Attributes()
+	case resourcerevision.FieldComputedAttributes:
+		return m.ComputedAttributes()
 	case resourcerevision.FieldVariables:
 		return m.Variables()
 	case resourcerevision.FieldInputPlan:
@@ -18287,6 +18488,8 @@ func (m *ResourceRevisionMutation) OldField(ctx context.Context, name string) (e
 		return m.OldTemplateID(ctx)
 	case resourcerevision.FieldAttributes:
 		return m.OldAttributes(ctx)
+	case resourcerevision.FieldComputedAttributes:
+		return m.OldComputedAttributes(ctx)
 	case resourcerevision.FieldVariables:
 		return m.OldVariables(ctx)
 	case resourcerevision.FieldInputPlan:
@@ -18376,6 +18579,13 @@ func (m *ResourceRevisionMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAttributes(v)
+		return nil
+	case resourcerevision.FieldComputedAttributes:
+		v, ok := value.(property.Values)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetComputedAttributes(v)
 		return nil
 	case resourcerevision.FieldVariables:
 		v, ok := value.(crypto.Map[string, string])
@@ -18491,6 +18701,9 @@ func (m *ResourceRevisionMutation) ClearedFields() []string {
 	if m.FieldCleared(resourcerevision.FieldAttributes) {
 		fields = append(fields, resourcerevision.FieldAttributes)
 	}
+	if m.FieldCleared(resourcerevision.FieldComputedAttributes) {
+		fields = append(fields, resourcerevision.FieldComputedAttributes)
+	}
 	if m.FieldCleared(resourcerevision.FieldRecord) {
 		fields = append(fields, resourcerevision.FieldRecord)
 	}
@@ -18516,6 +18729,9 @@ func (m *ResourceRevisionMutation) ClearField(name string) error {
 		return nil
 	case resourcerevision.FieldAttributes:
 		m.ClearAttributes()
+		return nil
+	case resourcerevision.FieldComputedAttributes:
+		m.ClearComputedAttributes()
 		return nil
 	case resourcerevision.FieldRecord:
 		m.ClearRecord()
@@ -18557,6 +18773,9 @@ func (m *ResourceRevisionMutation) ResetField(name string) error {
 		return nil
 	case resourcerevision.FieldAttributes:
 		m.ResetAttributes()
+		return nil
+	case resourcerevision.FieldComputedAttributes:
+		m.ResetComputedAttributes()
 		return nil
 	case resourcerevision.FieldVariables:
 		m.ResetVariables()
@@ -23009,6 +23228,7 @@ type TemplateVersionMutation struct {
 	source                      *string
 	schema                      *types.TemplateVersionSchema
 	uiSchema                    *types.UISchema
+	schema_default_value        *[]byte
 	clearedFields               map[string]struct{}
 	template                    *object.ID
 	clearedtemplate             bool
@@ -23417,6 +23637,55 @@ func (m *TemplateVersionMutation) ResetUiSchema() {
 	m.uiSchema = nil
 }
 
+// SetSchemaDefaultValue sets the "schema_default_value" field.
+func (m *TemplateVersionMutation) SetSchemaDefaultValue(b []byte) {
+	m.schema_default_value = &b
+}
+
+// SchemaDefaultValue returns the value of the "schema_default_value" field in the mutation.
+func (m *TemplateVersionMutation) SchemaDefaultValue() (r []byte, exists bool) {
+	v := m.schema_default_value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSchemaDefaultValue returns the old "schema_default_value" field's value of the TemplateVersion entity.
+// If the TemplateVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TemplateVersionMutation) OldSchemaDefaultValue(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSchemaDefaultValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSchemaDefaultValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSchemaDefaultValue: %w", err)
+	}
+	return oldValue.SchemaDefaultValue, nil
+}
+
+// ClearSchemaDefaultValue clears the value of the "schema_default_value" field.
+func (m *TemplateVersionMutation) ClearSchemaDefaultValue() {
+	m.schema_default_value = nil
+	m.clearedFields[templateversion.FieldSchemaDefaultValue] = struct{}{}
+}
+
+// SchemaDefaultValueCleared returns if the "schema_default_value" field was cleared in this mutation.
+func (m *TemplateVersionMutation) SchemaDefaultValueCleared() bool {
+	_, ok := m.clearedFields[templateversion.FieldSchemaDefaultValue]
+	return ok
+}
+
+// ResetSchemaDefaultValue resets all changes to the "schema_default_value" field.
+func (m *TemplateVersionMutation) ResetSchemaDefaultValue() {
+	m.schema_default_value = nil
+	delete(m.clearedFields, templateversion.FieldSchemaDefaultValue)
+}
+
 // SetProjectID sets the "project_id" field.
 func (m *TemplateVersionMutation) SetProjectID(o object.ID) {
 	m.project = &o
@@ -23660,7 +23929,7 @@ func (m *TemplateVersionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TemplateVersionMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.create_time != nil {
 		fields = append(fields, templateversion.FieldCreateTime)
 	}
@@ -23684,6 +23953,9 @@ func (m *TemplateVersionMutation) Fields() []string {
 	}
 	if m.uiSchema != nil {
 		fields = append(fields, templateversion.FieldUiSchema)
+	}
+	if m.schema_default_value != nil {
+		fields = append(fields, templateversion.FieldSchemaDefaultValue)
 	}
 	if m.project != nil {
 		fields = append(fields, templateversion.FieldProjectID)
@@ -23712,6 +23984,8 @@ func (m *TemplateVersionMutation) Field(name string) (ent.Value, bool) {
 		return m.Schema()
 	case templateversion.FieldUiSchema:
 		return m.UiSchema()
+	case templateversion.FieldSchemaDefaultValue:
+		return m.SchemaDefaultValue()
 	case templateversion.FieldProjectID:
 		return m.ProjectID()
 	}
@@ -23739,6 +24013,8 @@ func (m *TemplateVersionMutation) OldField(ctx context.Context, name string) (en
 		return m.OldSchema(ctx)
 	case templateversion.FieldUiSchema:
 		return m.OldUiSchema(ctx)
+	case templateversion.FieldSchemaDefaultValue:
+		return m.OldSchemaDefaultValue(ctx)
 	case templateversion.FieldProjectID:
 		return m.OldProjectID(ctx)
 	}
@@ -23806,6 +24082,13 @@ func (m *TemplateVersionMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUiSchema(v)
 		return nil
+	case templateversion.FieldSchemaDefaultValue:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSchemaDefaultValue(v)
+		return nil
 	case templateversion.FieldProjectID:
 		v, ok := value.(object.ID)
 		if !ok {
@@ -23843,6 +24126,9 @@ func (m *TemplateVersionMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *TemplateVersionMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(templateversion.FieldSchemaDefaultValue) {
+		fields = append(fields, templateversion.FieldSchemaDefaultValue)
+	}
 	if m.FieldCleared(templateversion.FieldProjectID) {
 		fields = append(fields, templateversion.FieldProjectID)
 	}
@@ -23860,6 +24146,9 @@ func (m *TemplateVersionMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *TemplateVersionMutation) ClearField(name string) error {
 	switch name {
+	case templateversion.FieldSchemaDefaultValue:
+		m.ClearSchemaDefaultValue()
+		return nil
 	case templateversion.FieldProjectID:
 		m.ClearProjectID()
 		return nil
@@ -23894,6 +24183,9 @@ func (m *TemplateVersionMutation) ResetField(name string) error {
 		return nil
 	case templateversion.FieldUiSchema:
 		m.ResetUiSchema()
+		return nil
+	case templateversion.FieldSchemaDefaultValue:
+		m.ResetSchemaDefaultValue()
 		return nil
 	case templateversion.FieldProjectID:
 		m.ResetProjectID()

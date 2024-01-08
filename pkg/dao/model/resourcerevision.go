@@ -48,6 +48,8 @@ type ResourceRevision struct {
 	TemplateID object.ID `json:"template_id,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
+	// Computed attributes generated from attributes and schemas.
+	ComputedAttributes property.Values `json:"computed_attributes,omitempty"`
 	// Variables of the revision.
 	Variables crypto.Map[string, string] `json:"variables,omitempty"`
 	// Input plan of the revision.
@@ -135,7 +137,7 @@ func (*ResourceRevision) scanValues(columns []string) ([]any, error) {
 			values[i] = new(crypto.Map[string, string])
 		case resourcerevision.FieldID, resourcerevision.FieldProjectID, resourcerevision.FieldEnvironmentID, resourcerevision.FieldResourceID, resourcerevision.FieldTemplateID:
 			values[i] = new(object.ID)
-		case resourcerevision.FieldAttributes:
+		case resourcerevision.FieldAttributes, resourcerevision.FieldComputedAttributes:
 			values[i] = new(property.Values)
 		case resourcerevision.FieldDuration:
 			values[i] = new(sql.NullInt64)
@@ -220,6 +222,12 @@ func (rr *ResourceRevision) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field attributes", values[i])
 			} else if value != nil {
 				rr.Attributes = *value
+			}
+		case resourcerevision.FieldComputedAttributes:
+			if value, ok := values[i].(*property.Values); !ok {
+				return fmt.Errorf("unexpected type %T for field computed_attributes", values[i])
+			} else if value != nil {
+				rr.ComputedAttributes = *value
 			}
 		case resourcerevision.FieldVariables:
 			if value, ok := values[i].(*crypto.Map[string, string]); !ok {
@@ -356,6 +364,9 @@ func (rr *ResourceRevision) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("attributes=")
 	builder.WriteString(fmt.Sprintf("%v", rr.Attributes))
+	builder.WriteString(", ")
+	builder.WriteString("computed_attributes=")
+	builder.WriteString(fmt.Sprintf("%v", rr.ComputedAttributes))
 	builder.WriteString(", ")
 	builder.WriteString("variables=")
 	builder.WriteString(fmt.Sprintf("%v", rr.Variables))

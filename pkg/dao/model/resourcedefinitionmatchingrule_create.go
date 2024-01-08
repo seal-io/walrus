@@ -86,6 +86,12 @@ func (rdmrc *ResourceDefinitionMatchingRuleCreate) SetOrder(i int) *ResourceDefi
 	return rdmrc
 }
 
+// SetSchemaDefaultValue sets the "schema_default_value" field.
+func (rdmrc *ResourceDefinitionMatchingRuleCreate) SetSchemaDefaultValue(b []byte) *ResourceDefinitionMatchingRuleCreate {
+	rdmrc.mutation.SetSchemaDefaultValue(b)
+	return rdmrc
+}
+
 // SetID sets the "id" field.
 func (rdmrc *ResourceDefinitionMatchingRuleCreate) SetID(o object.ID) *ResourceDefinitionMatchingRuleCreate {
 	rdmrc.mutation.SetID(o)
@@ -262,6 +268,10 @@ func (rdmrc *ResourceDefinitionMatchingRuleCreate) createSpec() (*ResourceDefini
 		_spec.SetField(resourcedefinitionmatchingrule.FieldOrder, field.TypeInt, value)
 		_node.Order = value
 	}
+	if value, ok := rdmrc.mutation.SchemaDefaultValue(); ok {
+		_spec.SetField(resourcedefinitionmatchingrule.FieldSchemaDefaultValue, field.TypeBytes, value)
+		_node.SchemaDefaultValue = value
+	}
 	if nodes := rdmrc.mutation.ResourceDefinitionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -351,6 +361,9 @@ func (rdmrc *ResourceDefinitionMatchingRuleCreate) Set(obj *ResourceDefinitionMa
 	if !reflect.ValueOf(obj.Attributes).IsZero() {
 		rdmrc.SetAttributes(obj.Attributes)
 	}
+	if !reflect.ValueOf(obj.SchemaDefaultValue).IsZero() {
+		rdmrc.SetSchemaDefaultValue(obj.SchemaDefaultValue)
+	}
 
 	// Record the given object.
 	rdmrc.object = obj
@@ -404,6 +417,9 @@ func (rdmrc *ResourceDefinitionMatchingRuleCreate) SaveE(ctx context.Context, cb
 		}
 		if _, set := rdmrc.mutation.Field(resourcedefinitionmatchingrule.FieldOrder); set {
 			obj.Order = x.Order
+		}
+		if _, set := rdmrc.mutation.Field(resourcedefinitionmatchingrule.FieldSchemaDefaultValue); set {
+			obj.SchemaDefaultValue = x.SchemaDefaultValue
 		}
 		obj.Edges = x.Edges
 	}
@@ -521,6 +537,9 @@ func (rdmrcb *ResourceDefinitionMatchingRuleCreateBulk) SaveE(ctx context.Contex
 			}
 			if _, set := rdmrcb.builders[i].mutation.Field(resourcedefinitionmatchingrule.FieldOrder); set {
 				objs[i].Order = x[i].Order
+			}
+			if _, set := rdmrcb.builders[i].mutation.Field(resourcedefinitionmatchingrule.FieldSchemaDefaultValue); set {
+				objs[i].SchemaDefaultValue = x[i].SchemaDefaultValue
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -708,6 +727,24 @@ func (u *ResourceDefinitionMatchingRuleUpsert) AddOrder(v int) *ResourceDefiniti
 	return u
 }
 
+// SetSchemaDefaultValue sets the "schema_default_value" field.
+func (u *ResourceDefinitionMatchingRuleUpsert) SetSchemaDefaultValue(v []byte) *ResourceDefinitionMatchingRuleUpsert {
+	u.Set(resourcedefinitionmatchingrule.FieldSchemaDefaultValue, v)
+	return u
+}
+
+// UpdateSchemaDefaultValue sets the "schema_default_value" field to the value that was provided on create.
+func (u *ResourceDefinitionMatchingRuleUpsert) UpdateSchemaDefaultValue() *ResourceDefinitionMatchingRuleUpsert {
+	u.SetExcluded(resourcedefinitionmatchingrule.FieldSchemaDefaultValue)
+	return u
+}
+
+// ClearSchemaDefaultValue clears the value of the "schema_default_value" field.
+func (u *ResourceDefinitionMatchingRuleUpsert) ClearSchemaDefaultValue() *ResourceDefinitionMatchingRuleUpsert {
+	u.SetNull(resourcedefinitionmatchingrule.FieldSchemaDefaultValue)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -832,6 +869,27 @@ func (u *ResourceDefinitionMatchingRuleUpsertOne) AddOrder(v int) *ResourceDefin
 func (u *ResourceDefinitionMatchingRuleUpsertOne) UpdateOrder() *ResourceDefinitionMatchingRuleUpsertOne {
 	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
 		s.UpdateOrder()
+	})
+}
+
+// SetSchemaDefaultValue sets the "schema_default_value" field.
+func (u *ResourceDefinitionMatchingRuleUpsertOne) SetSchemaDefaultValue(v []byte) *ResourceDefinitionMatchingRuleUpsertOne {
+	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
+		s.SetSchemaDefaultValue(v)
+	})
+}
+
+// UpdateSchemaDefaultValue sets the "schema_default_value" field to the value that was provided on create.
+func (u *ResourceDefinitionMatchingRuleUpsertOne) UpdateSchemaDefaultValue() *ResourceDefinitionMatchingRuleUpsertOne {
+	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
+		s.UpdateSchemaDefaultValue()
+	})
+}
+
+// ClearSchemaDefaultValue clears the value of the "schema_default_value" field.
+func (u *ResourceDefinitionMatchingRuleUpsertOne) ClearSchemaDefaultValue() *ResourceDefinitionMatchingRuleUpsertOne {
+	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
+		s.ClearSchemaDefaultValue()
 	})
 }
 
@@ -1124,6 +1182,27 @@ func (u *ResourceDefinitionMatchingRuleUpsertBulk) AddOrder(v int) *ResourceDefi
 func (u *ResourceDefinitionMatchingRuleUpsertBulk) UpdateOrder() *ResourceDefinitionMatchingRuleUpsertBulk {
 	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
 		s.UpdateOrder()
+	})
+}
+
+// SetSchemaDefaultValue sets the "schema_default_value" field.
+func (u *ResourceDefinitionMatchingRuleUpsertBulk) SetSchemaDefaultValue(v []byte) *ResourceDefinitionMatchingRuleUpsertBulk {
+	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
+		s.SetSchemaDefaultValue(v)
+	})
+}
+
+// UpdateSchemaDefaultValue sets the "schema_default_value" field to the value that was provided on create.
+func (u *ResourceDefinitionMatchingRuleUpsertBulk) UpdateSchemaDefaultValue() *ResourceDefinitionMatchingRuleUpsertBulk {
+	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
+		s.UpdateSchemaDefaultValue()
+	})
+}
+
+// ClearSchemaDefaultValue clears the value of the "schema_default_value" field.
+func (u *ResourceDefinitionMatchingRuleUpsertBulk) ClearSchemaDefaultValue() *ResourceDefinitionMatchingRuleUpsertBulk {
+	return u.Update(func(s *ResourceDefinitionMatchingRuleUpsert) {
+		s.ClearSchemaDefaultValue()
 	})
 }
 

@@ -108,6 +108,12 @@ func (rrc *ResourceRevisionCreate) SetAttributes(pr property.Values) *ResourceRe
 	return rrc
 }
 
+// SetComputedAttributes sets the "computed_attributes" field.
+func (rrc *ResourceRevisionCreate) SetComputedAttributes(pr property.Values) *ResourceRevisionCreate {
+	rrc.mutation.SetComputedAttributes(pr)
+	return rrc
+}
+
 // SetVariables sets the "variables" field.
 func (rrc *ResourceRevisionCreate) SetVariables(c crypto.Map[string, string]) *ResourceRevisionCreate {
 	rrc.mutation.SetVariables(c)
@@ -422,6 +428,10 @@ func (rrc *ResourceRevisionCreate) createSpec() (*ResourceRevision, *sqlgraph.Cr
 		_spec.SetField(resourcerevision.FieldAttributes, field.TypeOther, value)
 		_node.Attributes = value
 	}
+	if value, ok := rrc.mutation.ComputedAttributes(); ok {
+		_spec.SetField(resourcerevision.FieldComputedAttributes, field.TypeOther, value)
+		_node.ComputedAttributes = value
+	}
 	if value, ok := rrc.mutation.Variables(); ok {
 		_spec.SetField(resourcerevision.FieldVariables, field.TypeOther, value)
 		_node.Variables = value
@@ -559,6 +569,9 @@ func (rrc *ResourceRevisionCreate) Set(obj *ResourceRevision) *ResourceRevisionC
 	if !reflect.ValueOf(obj.Attributes).IsZero() {
 		rrc.SetAttributes(obj.Attributes)
 	}
+	if !reflect.ValueOf(obj.ComputedAttributes).IsZero() {
+		rrc.SetComputedAttributes(obj.ComputedAttributes)
+	}
 	if obj.Record != "" {
 		rrc.SetRecord(obj.Record)
 	}
@@ -624,6 +637,9 @@ func (rrc *ResourceRevisionCreate) SaveE(ctx context.Context, cbs ...func(ctx co
 		}
 		if _, set := rrc.mutation.Field(resourcerevision.FieldAttributes); set {
 			obj.Attributes = x.Attributes
+		}
+		if _, set := rrc.mutation.Field(resourcerevision.FieldComputedAttributes); set {
+			obj.ComputedAttributes = x.ComputedAttributes
 		}
 		if _, set := rrc.mutation.Field(resourcerevision.FieldInputPlan); set {
 			obj.InputPlan = x.InputPlan
@@ -762,6 +778,9 @@ func (rrcb *ResourceRevisionCreateBulk) SaveE(ctx context.Context, cbs ...func(c
 			}
 			if _, set := rrcb.builders[i].mutation.Field(resourcerevision.FieldAttributes); set {
 				objs[i].Attributes = x[i].Attributes
+			}
+			if _, set := rrcb.builders[i].mutation.Field(resourcerevision.FieldComputedAttributes); set {
+				objs[i].ComputedAttributes = x[i].ComputedAttributes
 			}
 			if _, set := rrcb.builders[i].mutation.Field(resourcerevision.FieldInputPlan); set {
 				objs[i].InputPlan = x[i].InputPlan
@@ -949,6 +968,24 @@ func (u *ResourceRevisionUpsert) UpdateAttributes() *ResourceRevisionUpsert {
 // ClearAttributes clears the value of the "attributes" field.
 func (u *ResourceRevisionUpsert) ClearAttributes() *ResourceRevisionUpsert {
 	u.SetNull(resourcerevision.FieldAttributes)
+	return u
+}
+
+// SetComputedAttributes sets the "computed_attributes" field.
+func (u *ResourceRevisionUpsert) SetComputedAttributes(v property.Values) *ResourceRevisionUpsert {
+	u.Set(resourcerevision.FieldComputedAttributes, v)
+	return u
+}
+
+// UpdateComputedAttributes sets the "computed_attributes" field to the value that was provided on create.
+func (u *ResourceRevisionUpsert) UpdateComputedAttributes() *ResourceRevisionUpsert {
+	u.SetExcluded(resourcerevision.FieldComputedAttributes)
+	return u
+}
+
+// ClearComputedAttributes clears the value of the "computed_attributes" field.
+func (u *ResourceRevisionUpsert) ClearComputedAttributes() *ResourceRevisionUpsert {
+	u.SetNull(resourcerevision.FieldComputedAttributes)
 	return u
 }
 
@@ -1197,6 +1234,27 @@ func (u *ResourceRevisionUpsertOne) UpdateAttributes() *ResourceRevisionUpsertOn
 func (u *ResourceRevisionUpsertOne) ClearAttributes() *ResourceRevisionUpsertOne {
 	return u.Update(func(s *ResourceRevisionUpsert) {
 		s.ClearAttributes()
+	})
+}
+
+// SetComputedAttributes sets the "computed_attributes" field.
+func (u *ResourceRevisionUpsertOne) SetComputedAttributes(v property.Values) *ResourceRevisionUpsertOne {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.SetComputedAttributes(v)
+	})
+}
+
+// UpdateComputedAttributes sets the "computed_attributes" field to the value that was provided on create.
+func (u *ResourceRevisionUpsertOne) UpdateComputedAttributes() *ResourceRevisionUpsertOne {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.UpdateComputedAttributes()
+	})
+}
+
+// ClearComputedAttributes clears the value of the "computed_attributes" field.
+func (u *ResourceRevisionUpsertOne) ClearComputedAttributes() *ResourceRevisionUpsertOne {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.ClearComputedAttributes()
 	})
 }
 
@@ -1631,6 +1689,27 @@ func (u *ResourceRevisionUpsertBulk) UpdateAttributes() *ResourceRevisionUpsertB
 func (u *ResourceRevisionUpsertBulk) ClearAttributes() *ResourceRevisionUpsertBulk {
 	return u.Update(func(s *ResourceRevisionUpsert) {
 		s.ClearAttributes()
+	})
+}
+
+// SetComputedAttributes sets the "computed_attributes" field.
+func (u *ResourceRevisionUpsertBulk) SetComputedAttributes(v property.Values) *ResourceRevisionUpsertBulk {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.SetComputedAttributes(v)
+	})
+}
+
+// UpdateComputedAttributes sets the "computed_attributes" field to the value that was provided on create.
+func (u *ResourceRevisionUpsertBulk) UpdateComputedAttributes() *ResourceRevisionUpsertBulk {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.UpdateComputedAttributes()
+	})
+}
+
+// ClearComputedAttributes clears the value of the "computed_attributes" field.
+func (u *ResourceRevisionUpsertBulk) ClearComputedAttributes() *ResourceRevisionUpsertBulk {
+	return u.Update(func(s *ResourceRevisionUpsert) {
+		s.ClearComputedAttributes()
 	})
 }
 

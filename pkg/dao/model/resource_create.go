@@ -190,6 +190,12 @@ func (rc *ResourceCreate) SetAttributes(pr property.Values) *ResourceCreate {
 	return rc
 }
 
+// SetComputedAttributes sets the "computed_attributes" field.
+func (rc *ResourceCreate) SetComputedAttributes(pr property.Values) *ResourceCreate {
+	rc.mutation.SetComputedAttributes(pr)
+	return rc
+}
+
 // SetEndpoints sets the "endpoints" field.
 func (rc *ResourceCreate) SetEndpoints(te types.ResourceEndpoints) *ResourceCreate {
 	rc.mutation.SetEndpoints(te)
@@ -459,6 +465,10 @@ func (rc *ResourceCreate) createSpec() (*Resource, *sqlgraph.CreateSpec) {
 		_spec.SetField(resource.FieldAttributes, field.TypeOther, value)
 		_node.Attributes = value
 	}
+	if value, ok := rc.mutation.ComputedAttributes(); ok {
+		_spec.SetField(resource.FieldComputedAttributes, field.TypeOther, value)
+		_node.ComputedAttributes = value
+	}
 	if value, ok := rc.mutation.Endpoints(); ok {
 		_spec.SetField(resource.FieldEndpoints, field.TypeJSON, value)
 		_node.Endpoints = value
@@ -669,6 +679,9 @@ func (rc *ResourceCreate) Set(obj *Resource) *ResourceCreate {
 	if !reflect.ValueOf(obj.Attributes).IsZero() {
 		rc.SetAttributes(obj.Attributes)
 	}
+	if !reflect.ValueOf(obj.ComputedAttributes).IsZero() {
+		rc.SetComputedAttributes(obj.ComputedAttributes)
+	}
 	if !reflect.ValueOf(obj.Endpoints).IsZero() {
 		rc.SetEndpoints(obj.Endpoints)
 	}
@@ -752,6 +765,9 @@ func (rc *ResourceCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Con
 		}
 		if _, set := rc.mutation.Field(resource.FieldAttributes); set {
 			obj.Attributes = x.Attributes
+		}
+		if _, set := rc.mutation.Field(resource.FieldComputedAttributes); set {
+			obj.ComputedAttributes = x.ComputedAttributes
 		}
 		if _, set := rc.mutation.Field(resource.FieldEndpoints); set {
 			obj.Endpoints = x.Endpoints
@@ -902,6 +918,9 @@ func (rcb *ResourceCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx contex
 			}
 			if _, set := rcb.builders[i].mutation.Field(resource.FieldAttributes); set {
 				objs[i].Attributes = x[i].Attributes
+			}
+			if _, set := rcb.builders[i].mutation.Field(resource.FieldComputedAttributes); set {
+				objs[i].ComputedAttributes = x[i].ComputedAttributes
 			}
 			if _, set := rcb.builders[i].mutation.Field(resource.FieldEndpoints); set {
 				objs[i].Endpoints = x[i].Endpoints
@@ -1173,6 +1192,24 @@ func (u *ResourceUpsert) ClearAttributes() *ResourceUpsert {
 	return u
 }
 
+// SetComputedAttributes sets the "computed_attributes" field.
+func (u *ResourceUpsert) SetComputedAttributes(v property.Values) *ResourceUpsert {
+	u.Set(resource.FieldComputedAttributes, v)
+	return u
+}
+
+// UpdateComputedAttributes sets the "computed_attributes" field to the value that was provided on create.
+func (u *ResourceUpsert) UpdateComputedAttributes() *ResourceUpsert {
+	u.SetExcluded(resource.FieldComputedAttributes)
+	return u
+}
+
+// ClearComputedAttributes clears the value of the "computed_attributes" field.
+func (u *ResourceUpsert) ClearComputedAttributes() *ResourceUpsert {
+	u.SetNull(resource.FieldComputedAttributes)
+	return u
+}
+
 // SetEndpoints sets the "endpoints" field.
 func (u *ResourceUpsert) SetEndpoints(v types.ResourceEndpoints) *ResourceUpsert {
 	u.Set(resource.FieldEndpoints, v)
@@ -1433,6 +1470,27 @@ func (u *ResourceUpsertOne) UpdateAttributes() *ResourceUpsertOne {
 func (u *ResourceUpsertOne) ClearAttributes() *ResourceUpsertOne {
 	return u.Update(func(s *ResourceUpsert) {
 		s.ClearAttributes()
+	})
+}
+
+// SetComputedAttributes sets the "computed_attributes" field.
+func (u *ResourceUpsertOne) SetComputedAttributes(v property.Values) *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.SetComputedAttributes(v)
+	})
+}
+
+// UpdateComputedAttributes sets the "computed_attributes" field to the value that was provided on create.
+func (u *ResourceUpsertOne) UpdateComputedAttributes() *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.UpdateComputedAttributes()
+	})
+}
+
+// ClearComputedAttributes clears the value of the "computed_attributes" field.
+func (u *ResourceUpsertOne) ClearComputedAttributes() *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.ClearComputedAttributes()
 	})
 }
 
@@ -1867,6 +1925,27 @@ func (u *ResourceUpsertBulk) UpdateAttributes() *ResourceUpsertBulk {
 func (u *ResourceUpsertBulk) ClearAttributes() *ResourceUpsertBulk {
 	return u.Update(func(s *ResourceUpsert) {
 		s.ClearAttributes()
+	})
+}
+
+// SetComputedAttributes sets the "computed_attributes" field.
+func (u *ResourceUpsertBulk) SetComputedAttributes(v property.Values) *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.SetComputedAttributes(v)
+	})
+}
+
+// UpdateComputedAttributes sets the "computed_attributes" field to the value that was provided on create.
+func (u *ResourceUpsertBulk) UpdateComputedAttributes() *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.UpdateComputedAttributes()
+	})
+}
+
+// ClearComputedAttributes clears the value of the "computed_attributes" field.
+func (u *ResourceUpsertBulk) ClearComputedAttributes() *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.ClearComputedAttributes()
 	})
 }
 

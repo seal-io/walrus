@@ -33,6 +33,8 @@ const (
 	FieldAttributes = "attributes"
 	// FieldOrder holds the string denoting the order field in the database.
 	FieldOrder = "order"
+	// FieldSchemaDefaultValue holds the string denoting the schema_default_value field in the database.
+	FieldSchemaDefaultValue = "schema_default_value"
 	// EdgeResourceDefinition holds the string denoting the resource_definition edge name in mutations.
 	EdgeResourceDefinition = "resource_definition"
 	// EdgeTemplate holds the string denoting the template edge name in mutations.
@@ -74,6 +76,7 @@ var Columns = []string{
 	FieldSelector,
 	FieldAttributes,
 	FieldOrder,
+	FieldSchemaDefaultValue,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

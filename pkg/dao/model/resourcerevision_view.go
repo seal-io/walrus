@@ -45,6 +45,8 @@ type ResourceRevisionCreateInput struct {
 	TemplateName string `path:"-" query:"-" json:"templateName"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Computed attributes generated from attributes and schemas.
+	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
 	// Variables of the revision.
 	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables,omitempty"`
 	// Type of deployer.
@@ -73,6 +75,7 @@ func (rrci *ResourceRevisionCreateInput) Model() *ResourceRevision {
 		TemplateVersion:           rrci.TemplateVersion,
 		TemplateName:              rrci.TemplateName,
 		Attributes:                rrci.Attributes,
+		ComputedAttributes:        rrci.ComputedAttributes,
 		Variables:                 rrci.Variables,
 		DeployerType:              rrci.DeployerType,
 		Duration:                  rrci.Duration,
@@ -149,6 +152,8 @@ type ResourceRevisionCreateInputsItem struct {
 	TemplateName string `path:"-" query:"-" json:"templateName"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Computed attributes generated from attributes and schemas.
+	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
 	// Variables of the revision.
 	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables,omitempty"`
 	// Type of deployer.
@@ -209,6 +214,7 @@ func (rrci *ResourceRevisionCreateInputs) Model() []*ResourceRevision {
 			TemplateVersion:           rrci.Items[i].TemplateVersion,
 			TemplateName:              rrci.Items[i].TemplateName,
 			Attributes:                rrci.Items[i].Attributes,
+			ComputedAttributes:        rrci.Items[i].ComputedAttributes,
 			Variables:                 rrci.Items[i].Variables,
 			DeployerType:              rrci.Items[i].DeployerType,
 			Duration:                  rrci.Items[i].Duration,
@@ -759,6 +765,8 @@ type ResourceRevisionUpdateInput struct {
 	TemplateVersion string `path:"-" query:"-" json:"templateVersion,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Computed attributes generated from attributes and schemas.
+	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
 	// Variables of the revision.
 	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables,omitempty"`
 	// Input plan of the revision.
@@ -788,6 +796,7 @@ func (rrui *ResourceRevisionUpdateInput) Model() *ResourceRevision {
 		ID:                        rrui.ID,
 		TemplateVersion:           rrui.TemplateVersion,
 		Attributes:                rrui.Attributes,
+		ComputedAttributes:        rrui.ComputedAttributes,
 		Variables:                 rrui.Variables,
 		InputPlan:                 rrui.InputPlan,
 		Output:                    rrui.Output,
@@ -832,6 +841,8 @@ type ResourceRevisionUpdateInputsItem struct {
 	TemplateVersion string `path:"-" query:"-" json:"templateVersion"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Computed attributes generated from attributes and schemas.
+	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
 	// Variables of the revision.
 	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables"`
 	// Input plan of the revision.
@@ -893,6 +904,7 @@ func (rrui *ResourceRevisionUpdateInputs) Model() []*ResourceRevision {
 			ID:                        rrui.Items[i].ID,
 			TemplateVersion:           rrui.Items[i].TemplateVersion,
 			Attributes:                rrui.Items[i].Attributes,
+			ComputedAttributes:        rrui.Items[i].ComputedAttributes,
 			Variables:                 rrui.Items[i].Variables,
 			InputPlan:                 rrui.Items[i].InputPlan,
 			Output:                    rrui.Items[i].Output,
@@ -1025,6 +1037,7 @@ type ResourceRevisionOutput struct {
 	TemplateVersion           string                      `json:"templateVersion,omitempty"`
 	TemplateID                object.ID                   `json:"templateID,omitempty"`
 	Attributes                property.Values             `json:"attributes,omitempty"`
+	ComputedAttributes        property.Values             `json:"computedAttributes,omitempty"`
 	Variables                 crypto.Map[string, string]  `json:"variables,omitempty"`
 	DeployerType              string                      `json:"deployerType,omitempty"`
 	Duration                  int                         `json:"duration,omitempty"`
@@ -1062,6 +1075,7 @@ func ExposeResourceRevision(_rr *ResourceRevision) *ResourceRevisionOutput {
 		TemplateVersion:           _rr.TemplateVersion,
 		TemplateID:                _rr.TemplateID,
 		Attributes:                _rr.Attributes,
+		ComputedAttributes:        _rr.ComputedAttributes,
 		Variables:                 _rr.Variables,
 		DeployerType:              _rr.DeployerType,
 		Duration:                  _rr.Duration,

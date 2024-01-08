@@ -103,6 +103,11 @@ func Attributes(v property.Values) predicate.ResourceRevision {
 	return predicate.ResourceRevision(sql.FieldEQ(FieldAttributes, v))
 }
 
+// ComputedAttributes applies equality check predicate on the "computed_attributes" field. It's identical to ComputedAttributesEQ.
+func ComputedAttributes(v property.Values) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldEQ(FieldComputedAttributes, v))
+}
+
 // Variables applies equality check predicate on the "variables" field. It's identical to VariablesEQ.
 func Variables(v crypto.Map[string, string]) predicate.ResourceRevision {
 	return predicate.ResourceRevision(sql.FieldEQ(FieldVariables, v))
@@ -651,6 +656,56 @@ func AttributesIsNil() predicate.ResourceRevision {
 // AttributesNotNil applies the NotNil predicate on the "attributes" field.
 func AttributesNotNil() predicate.ResourceRevision {
 	return predicate.ResourceRevision(sql.FieldNotNull(FieldAttributes))
+}
+
+// ComputedAttributesEQ applies the EQ predicate on the "computed_attributes" field.
+func ComputedAttributesEQ(v property.Values) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldEQ(FieldComputedAttributes, v))
+}
+
+// ComputedAttributesNEQ applies the NEQ predicate on the "computed_attributes" field.
+func ComputedAttributesNEQ(v property.Values) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldNEQ(FieldComputedAttributes, v))
+}
+
+// ComputedAttributesIn applies the In predicate on the "computed_attributes" field.
+func ComputedAttributesIn(vs ...property.Values) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldIn(FieldComputedAttributes, vs...))
+}
+
+// ComputedAttributesNotIn applies the NotIn predicate on the "computed_attributes" field.
+func ComputedAttributesNotIn(vs ...property.Values) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldNotIn(FieldComputedAttributes, vs...))
+}
+
+// ComputedAttributesGT applies the GT predicate on the "computed_attributes" field.
+func ComputedAttributesGT(v property.Values) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldGT(FieldComputedAttributes, v))
+}
+
+// ComputedAttributesGTE applies the GTE predicate on the "computed_attributes" field.
+func ComputedAttributesGTE(v property.Values) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldGTE(FieldComputedAttributes, v))
+}
+
+// ComputedAttributesLT applies the LT predicate on the "computed_attributes" field.
+func ComputedAttributesLT(v property.Values) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldLT(FieldComputedAttributes, v))
+}
+
+// ComputedAttributesLTE applies the LTE predicate on the "computed_attributes" field.
+func ComputedAttributesLTE(v property.Values) predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldLTE(FieldComputedAttributes, v))
+}
+
+// ComputedAttributesIsNil applies the IsNil predicate on the "computed_attributes" field.
+func ComputedAttributesIsNil() predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldIsNull(FieldComputedAttributes))
+}
+
+// ComputedAttributesNotNil applies the NotNil predicate on the "computed_attributes" field.
+func ComputedAttributesNotNil() predicate.ResourceRevision {
+	return predicate.ResourceRevision(sql.FieldNotNull(FieldComputedAttributes))
 }
 
 // VariablesEQ applies the EQ predicate on the "variables" field.

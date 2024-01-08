@@ -47,6 +47,8 @@ const (
 	FieldResourceDefinitionMatchingRuleID = "resource_definition_matching_rule_id"
 	// FieldAttributes holds the string denoting the attributes field in the database.
 	FieldAttributes = "attributes"
+	// FieldComputedAttributes holds the string denoting the computed_attributes field in the database.
+	FieldComputedAttributes = "computed_attributes"
 	// FieldEndpoints holds the string denoting the endpoints field in the database.
 	FieldEndpoints = "endpoints"
 	// FieldChangeComment holds the string denoting the change_comment field in the database.
@@ -144,6 +146,7 @@ var Columns = []string{
 	FieldResourceDefinitionID,
 	FieldResourceDefinitionMatchingRuleID,
 	FieldAttributes,
+	FieldComputedAttributes,
 	FieldEndpoints,
 	FieldChangeComment,
 }
@@ -245,6 +248,11 @@ func ByResourceDefinitionMatchingRuleID(opts ...sql.OrderTermOption) OrderOption
 // ByAttributes orders the results by the attributes field.
 func ByAttributes(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAttributes, opts...).ToFunc()
+}
+
+// ByComputedAttributes orders the results by the computed_attributes field.
+func ByComputedAttributes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldComputedAttributes, opts...).ToFunc()
 }
 
 // ByChangeComment orders the results by the change_comment field.

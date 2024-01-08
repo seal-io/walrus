@@ -37,6 +37,8 @@ const (
 	FieldSchema = "schema"
 	// FieldUiSchema holds the string denoting the uischema field in the database.
 	FieldUiSchema = "ui_schema"
+	// FieldSchemaDefaultValue holds the string denoting the schema_default_value field in the database.
+	FieldSchemaDefaultValue = "schema_default_value"
 	// FieldProjectID holds the string denoting the project_id field in the database.
 	FieldProjectID = "project_id"
 	// EdgeTemplate holds the string denoting the template edge name in mutations.
@@ -90,6 +92,7 @@ var Columns = []string{
 	FieldSource,
 	FieldSchema,
 	FieldUiSchema,
+	FieldSchemaDefaultValue,
 	FieldProjectID,
 }
 
