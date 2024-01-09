@@ -19,6 +19,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model/internal"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
@@ -83,6 +84,21 @@ func (rdmru *ResourceDefinitionMatchingRuleUpdate) SetTemplate(t *TemplateVersio
 	return rdmru.SetTemplateID(t.ID)
 }
 
+// AddResourceIDs adds the "resources" edge to the Resource entity by IDs.
+func (rdmru *ResourceDefinitionMatchingRuleUpdate) AddResourceIDs(ids ...object.ID) *ResourceDefinitionMatchingRuleUpdate {
+	rdmru.mutation.AddResourceIDs(ids...)
+	return rdmru
+}
+
+// AddResources adds the "resources" edges to the Resource entity.
+func (rdmru *ResourceDefinitionMatchingRuleUpdate) AddResources(r ...*Resource) *ResourceDefinitionMatchingRuleUpdate {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rdmru.AddResourceIDs(ids...)
+}
+
 // Mutation returns the ResourceDefinitionMatchingRuleMutation object of the builder.
 func (rdmru *ResourceDefinitionMatchingRuleUpdate) Mutation() *ResourceDefinitionMatchingRuleMutation {
 	return rdmru.mutation
@@ -92,6 +108,27 @@ func (rdmru *ResourceDefinitionMatchingRuleUpdate) Mutation() *ResourceDefinitio
 func (rdmru *ResourceDefinitionMatchingRuleUpdate) ClearTemplate() *ResourceDefinitionMatchingRuleUpdate {
 	rdmru.mutation.ClearTemplate()
 	return rdmru
+}
+
+// ClearResources clears all "resources" edges to the Resource entity.
+func (rdmru *ResourceDefinitionMatchingRuleUpdate) ClearResources() *ResourceDefinitionMatchingRuleUpdate {
+	rdmru.mutation.ClearResources()
+	return rdmru
+}
+
+// RemoveResourceIDs removes the "resources" edge to Resource entities by IDs.
+func (rdmru *ResourceDefinitionMatchingRuleUpdate) RemoveResourceIDs(ids ...object.ID) *ResourceDefinitionMatchingRuleUpdate {
+	rdmru.mutation.RemoveResourceIDs(ids...)
+	return rdmru
+}
+
+// RemoveResources removes "resources" edges to Resource entities.
+func (rdmru *ResourceDefinitionMatchingRuleUpdate) RemoveResources(r ...*Resource) *ResourceDefinitionMatchingRuleUpdate {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rdmru.RemoveResourceIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -249,6 +286,54 @@ func (rdmru *ResourceDefinitionMatchingRuleUpdate) sqlSave(ctx context.Context) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if rdmru.mutation.ResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   resourcedefinitionmatchingrule.ResourcesTable,
+			Columns: []string{resourcedefinitionmatchingrule.ResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = rdmru.schemaConfig.Resource
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rdmru.mutation.RemovedResourcesIDs(); len(nodes) > 0 && !rdmru.mutation.ResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   resourcedefinitionmatchingrule.ResourcesTable,
+			Columns: []string{resourcedefinitionmatchingrule.ResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = rdmru.schemaConfig.Resource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rdmru.mutation.ResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   resourcedefinitionmatchingrule.ResourcesTable,
+			Columns: []string{resourcedefinitionmatchingrule.ResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = rdmru.schemaConfig.Resource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = rdmru.schemaConfig.ResourceDefinitionMatchingRule
 	ctx = internal.NewSchemaConfigContext(ctx, rdmru.schemaConfig)
 	_spec.AddModifiers(rdmru.modifiers...)
@@ -316,6 +401,21 @@ func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) SetTemplate(t *TemplateVe
 	return rdmruo.SetTemplateID(t.ID)
 }
 
+// AddResourceIDs adds the "resources" edge to the Resource entity by IDs.
+func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) AddResourceIDs(ids ...object.ID) *ResourceDefinitionMatchingRuleUpdateOne {
+	rdmruo.mutation.AddResourceIDs(ids...)
+	return rdmruo
+}
+
+// AddResources adds the "resources" edges to the Resource entity.
+func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) AddResources(r ...*Resource) *ResourceDefinitionMatchingRuleUpdateOne {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rdmruo.AddResourceIDs(ids...)
+}
+
 // Mutation returns the ResourceDefinitionMatchingRuleMutation object of the builder.
 func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) Mutation() *ResourceDefinitionMatchingRuleMutation {
 	return rdmruo.mutation
@@ -325,6 +425,27 @@ func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) Mutation() *ResourceDefin
 func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) ClearTemplate() *ResourceDefinitionMatchingRuleUpdateOne {
 	rdmruo.mutation.ClearTemplate()
 	return rdmruo
+}
+
+// ClearResources clears all "resources" edges to the Resource entity.
+func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) ClearResources() *ResourceDefinitionMatchingRuleUpdateOne {
+	rdmruo.mutation.ClearResources()
+	return rdmruo
+}
+
+// RemoveResourceIDs removes the "resources" edge to Resource entities by IDs.
+func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) RemoveResourceIDs(ids ...object.ID) *ResourceDefinitionMatchingRuleUpdateOne {
+	rdmruo.mutation.RemoveResourceIDs(ids...)
+	return rdmruo
+}
+
+// RemoveResources removes "resources" edges to Resource entities.
+func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) RemoveResources(r ...*Resource) *ResourceDefinitionMatchingRuleUpdateOne {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rdmruo.RemoveResourceIDs(ids...)
 }
 
 // Where appends a list predicates to the ResourceDefinitionMatchingRuleUpdate builder.
@@ -610,6 +731,54 @@ func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) sqlSave(ctx context.Conte
 			},
 		}
 		edge.Schema = rdmruo.schemaConfig.ResourceDefinitionMatchingRule
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if rdmruo.mutation.ResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   resourcedefinitionmatchingrule.ResourcesTable,
+			Columns: []string{resourcedefinitionmatchingrule.ResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = rdmruo.schemaConfig.Resource
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rdmruo.mutation.RemovedResourcesIDs(); len(nodes) > 0 && !rdmruo.mutation.ResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   resourcedefinitionmatchingrule.ResourcesTable,
+			Columns: []string{resourcedefinitionmatchingrule.ResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = rdmruo.schemaConfig.Resource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rdmruo.mutation.ResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   resourcedefinitionmatchingrule.ResourcesTable,
+			Columns: []string{resourcedefinitionmatchingrule.ResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = rdmruo.schemaConfig.Resource
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

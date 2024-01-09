@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -17,6 +18,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model/internal"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
@@ -32,6 +34,7 @@ type ResourceDefinitionMatchingRuleQuery struct {
 	predicates             []predicate.ResourceDefinitionMatchingRule
 	withResourceDefinition *ResourceDefinitionQuery
 	withTemplate           *TemplateVersionQuery
+	withResources          *ResourceQuery
 	modifiers              []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -113,6 +116,31 @@ func (rdmrq *ResourceDefinitionMatchingRuleQuery) QueryTemplate() *TemplateVersi
 		schemaConfig := rdmrq.schemaConfig
 		step.To.Schema = schemaConfig.TemplateVersion
 		step.Edge.Schema = schemaConfig.ResourceDefinitionMatchingRule
+		fromU = sqlgraph.SetNeighbors(rdmrq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryResources chains the current query on the "resources" edge.
+func (rdmrq *ResourceDefinitionMatchingRuleQuery) QueryResources() *ResourceQuery {
+	query := (&ResourceClient{config: rdmrq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rdmrq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rdmrq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcedefinitionmatchingrule.Table, resourcedefinitionmatchingrule.FieldID, selector),
+			sqlgraph.To(resource.Table, resource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, resourcedefinitionmatchingrule.ResourcesTable, resourcedefinitionmatchingrule.ResourcesColumn),
+		)
+		schemaConfig := rdmrq.schemaConfig
+		step.To.Schema = schemaConfig.Resource
+		step.Edge.Schema = schemaConfig.Resource
 		fromU = sqlgraph.SetNeighbors(rdmrq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -313,6 +341,7 @@ func (rdmrq *ResourceDefinitionMatchingRuleQuery) Clone() *ResourceDefinitionMat
 		predicates:             append([]predicate.ResourceDefinitionMatchingRule{}, rdmrq.predicates...),
 		withResourceDefinition: rdmrq.withResourceDefinition.Clone(),
 		withTemplate:           rdmrq.withTemplate.Clone(),
+		withResources:          rdmrq.withResources.Clone(),
 		// clone intermediate query.
 		sql:  rdmrq.sql.Clone(),
 		path: rdmrq.path,
@@ -338,6 +367,17 @@ func (rdmrq *ResourceDefinitionMatchingRuleQuery) WithTemplate(opts ...func(*Tem
 		opt(query)
 	}
 	rdmrq.withTemplate = query
+	return rdmrq
+}
+
+// WithResources tells the query-builder to eager-load the nodes that are connected to
+// the "resources" edge. The optional arguments are used to configure the query builder of the edge.
+func (rdmrq *ResourceDefinitionMatchingRuleQuery) WithResources(opts ...func(*ResourceQuery)) *ResourceDefinitionMatchingRuleQuery {
+	query := (&ResourceClient{config: rdmrq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rdmrq.withResources = query
 	return rdmrq
 }
 
@@ -419,9 +459,10 @@ func (rdmrq *ResourceDefinitionMatchingRuleQuery) sqlAll(ctx context.Context, ho
 	var (
 		nodes       = []*ResourceDefinitionMatchingRule{}
 		_spec       = rdmrq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			rdmrq.withResourceDefinition != nil,
 			rdmrq.withTemplate != nil,
+			rdmrq.withResources != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -456,6 +497,13 @@ func (rdmrq *ResourceDefinitionMatchingRuleQuery) sqlAll(ctx context.Context, ho
 	if query := rdmrq.withTemplate; query != nil {
 		if err := rdmrq.loadTemplate(ctx, query, nodes, nil,
 			func(n *ResourceDefinitionMatchingRule, e *TemplateVersion) { n.Edges.Template = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := rdmrq.withResources; query != nil {
+		if err := rdmrq.loadResources(ctx, query, nodes,
+			func(n *ResourceDefinitionMatchingRule) { n.Edges.Resources = []*Resource{} },
+			func(n *ResourceDefinitionMatchingRule, e *Resource) { n.Edges.Resources = append(n.Edges.Resources, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -517,6 +565,39 @@ func (rdmrq *ResourceDefinitionMatchingRuleQuery) loadTemplate(ctx context.Conte
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (rdmrq *ResourceDefinitionMatchingRuleQuery) loadResources(ctx context.Context, query *ResourceQuery, nodes []*ResourceDefinitionMatchingRule, init func(*ResourceDefinitionMatchingRule), assign func(*ResourceDefinitionMatchingRule, *Resource)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[object.ID]*ResourceDefinitionMatchingRule)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(resource.FieldResourceDefinitionMatchingRuleID)
+	}
+	query.Where(predicate.Resource(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(resourcedefinitionmatchingrule.ResourcesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ResourceDefinitionMatchingRuleID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "resource_definition_matching_rule_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "resource_definition_matching_rule_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

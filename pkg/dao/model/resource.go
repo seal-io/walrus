@@ -17,6 +17,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -54,6 +55,8 @@ type Resource struct {
 	Type string `json:"type,omitempty"`
 	// ID of the resource definition to which the resource use.
 	ResourceDefinitionID *object.ID `json:"resource_definition_id,omitempty"`
+	// ID of the resource definition matching rule to which the resource use.
+	ResourceDefinitionMatchingRuleID *object.ID `json:"resource_definition_matching_rule_id,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
 	// Endpoints of the resource.
@@ -76,6 +79,8 @@ type ResourceEdges struct {
 	Template *TemplateVersion `json:"template,omitempty"`
 	// Definition of the resource.
 	ResourceDefinition *ResourceDefinition `json:"-"`
+	// Resource definition matching rule which the resource matches.
+	ResourceDefinitionMatchingRule *ResourceDefinitionMatchingRule `json:"resource_definition_matching_rule,omitempty"`
 	// Revisions that belong to the resource.
 	Revisions []*ResourceRevision `json:"revisions,omitempty"`
 	// Components that belong to the resource.
@@ -84,7 +89,7 @@ type ResourceEdges struct {
 	Dependencies []*ResourceRelationship `json:"dependencies,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
 }
 
 // ProjectOrErr returns the Project value or an error if the edge
@@ -139,10 +144,23 @@ func (e ResourceEdges) ResourceDefinitionOrErr() (*ResourceDefinition, error) {
 	return nil, &NotLoadedError{edge: "resource_definition"}
 }
 
+// ResourceDefinitionMatchingRuleOrErr returns the ResourceDefinitionMatchingRule value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ResourceEdges) ResourceDefinitionMatchingRuleOrErr() (*ResourceDefinitionMatchingRule, error) {
+	if e.loadedTypes[4] {
+		if e.ResourceDefinitionMatchingRule == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: resourcedefinitionmatchingrule.Label}
+		}
+		return e.ResourceDefinitionMatchingRule, nil
+	}
+	return nil, &NotLoadedError{edge: "resource_definition_matching_rule"}
+}
+
 // RevisionsOrErr returns the Revisions value or an error if the edge
 // was not loaded in eager-loading.
 func (e ResourceEdges) RevisionsOrErr() ([]*ResourceRevision, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.Revisions, nil
 	}
 	return nil, &NotLoadedError{edge: "revisions"}
@@ -151,7 +169,7 @@ func (e ResourceEdges) RevisionsOrErr() ([]*ResourceRevision, error) {
 // ComponentsOrErr returns the Components value or an error if the edge
 // was not loaded in eager-loading.
 func (e ResourceEdges) ComponentsOrErr() ([]*ResourceComponent, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.Components, nil
 	}
 	return nil, &NotLoadedError{edge: "components"}
@@ -160,7 +178,7 @@ func (e ResourceEdges) ComponentsOrErr() ([]*ResourceComponent, error) {
 // DependenciesOrErr returns the Dependencies value or an error if the edge
 // was not loaded in eager-loading.
 func (e ResourceEdges) DependenciesOrErr() ([]*ResourceRelationship, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[7] {
 		return e.Dependencies, nil
 	}
 	return nil, &NotLoadedError{edge: "dependencies"}
@@ -171,7 +189,7 @@ func (*Resource) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case resource.FieldTemplateID, resource.FieldResourceDefinitionID:
+		case resource.FieldTemplateID, resource.FieldResourceDefinitionID, resource.FieldResourceDefinitionMatchingRuleID:
 			values[i] = &sql.NullScanner{S: new(object.ID)}
 		case resource.FieldLabels, resource.FieldAnnotations, resource.FieldStatus, resource.FieldEndpoints:
 			values[i] = new([]byte)
@@ -286,6 +304,13 @@ func (r *Resource) assignValues(columns []string, values []any) error {
 				r.ResourceDefinitionID = new(object.ID)
 				*r.ResourceDefinitionID = *value.S.(*object.ID)
 			}
+		case resource.FieldResourceDefinitionMatchingRuleID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field resource_definition_matching_rule_id", values[i])
+			} else if value.Valid {
+				r.ResourceDefinitionMatchingRuleID = new(object.ID)
+				*r.ResourceDefinitionMatchingRuleID = *value.S.(*object.ID)
+			}
 		case resource.FieldAttributes:
 			if value, ok := values[i].(*property.Values); !ok {
 				return fmt.Errorf("unexpected type %T for field attributes", values[i])
@@ -337,6 +362,11 @@ func (r *Resource) QueryTemplate() *TemplateVersionQuery {
 // QueryResourceDefinition queries the "resource_definition" edge of the Resource entity.
 func (r *Resource) QueryResourceDefinition() *ResourceDefinitionQuery {
 	return NewResourceClient(r.config).QueryResourceDefinition(r)
+}
+
+// QueryResourceDefinitionMatchingRule queries the "resource_definition_matching_rule" edge of the Resource entity.
+func (r *Resource) QueryResourceDefinitionMatchingRule() *ResourceDefinitionMatchingRuleQuery {
+	return NewResourceClient(r.config).QueryResourceDefinitionMatchingRule(r)
 }
 
 // QueryRevisions queries the "revisions" edge of the Resource entity.
@@ -418,6 +448,11 @@ func (r *Resource) String() string {
 	builder.WriteString(", ")
 	if v := r.ResourceDefinitionID; v != nil {
 		builder.WriteString("resource_definition_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := r.ResourceDefinitionMatchingRuleID; v != nil {
+		builder.WriteString("resource_definition_matching_rule_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")

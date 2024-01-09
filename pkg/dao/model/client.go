@@ -2346,6 +2346,25 @@ func (c *ResourceClient) QueryResourceDefinition(r *Resource) *ResourceDefinitio
 	return query
 }
 
+// QueryResourceDefinitionMatchingRule queries the resource_definition_matching_rule edge of a Resource.
+func (c *ResourceClient) QueryResourceDefinitionMatchingRule(r *Resource) *ResourceDefinitionMatchingRuleQuery {
+	query := (&ResourceDefinitionMatchingRuleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resource.Table, resource.FieldID, id),
+			sqlgraph.To(resourcedefinitionmatchingrule.Table, resourcedefinitionmatchingrule.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, resource.ResourceDefinitionMatchingRuleTable, resource.ResourceDefinitionMatchingRuleColumn),
+		)
+		schemaConfig := r.schemaConfig
+		step.To.Schema = schemaConfig.ResourceDefinitionMatchingRule
+		step.Edge.Schema = schemaConfig.Resource
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryRevisions queries the revisions edge of a Resource.
 func (c *ResourceClient) QueryRevisions(r *Resource) *ResourceRevisionQuery {
 	query := (&ResourceRevisionClient{config: c.config}).Query()
@@ -3160,6 +3179,25 @@ func (c *ResourceDefinitionMatchingRuleClient) QueryTemplate(rdmr *ResourceDefin
 		schemaConfig := rdmr.schemaConfig
 		step.To.Schema = schemaConfig.TemplateVersion
 		step.Edge.Schema = schemaConfig.ResourceDefinitionMatchingRule
+		fromV = sqlgraph.Neighbors(rdmr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryResources queries the resources edge of a ResourceDefinitionMatchingRule.
+func (c *ResourceDefinitionMatchingRuleClient) QueryResources(rdmr *ResourceDefinitionMatchingRule) *ResourceQuery {
+	query := (&ResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rdmr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcedefinitionmatchingrule.Table, resourcedefinitionmatchingrule.FieldID, id),
+			sqlgraph.To(resource.Table, resource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, resourcedefinitionmatchingrule.ResourcesTable, resourcedefinitionmatchingrule.ResourcesColumn),
+		)
+		schemaConfig := rdmr.schemaConfig
+		step.To.Schema = schemaConfig.Resource
+		step.Edge.Schema = schemaConfig.Resource
 		fromV = sqlgraph.Neighbors(rdmr.driver.Dialect(), step)
 		return fromV, nil
 	}

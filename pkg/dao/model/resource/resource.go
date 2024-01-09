@@ -43,6 +43,8 @@ const (
 	FieldType = "type"
 	// FieldResourceDefinitionID holds the string denoting the resource_definition_id field in the database.
 	FieldResourceDefinitionID = "resource_definition_id"
+	// FieldResourceDefinitionMatchingRuleID holds the string denoting the resource_definition_matching_rule_id field in the database.
+	FieldResourceDefinitionMatchingRuleID = "resource_definition_matching_rule_id"
 	// FieldAttributes holds the string denoting the attributes field in the database.
 	FieldAttributes = "attributes"
 	// FieldEndpoints holds the string denoting the endpoints field in the database.
@@ -57,6 +59,8 @@ const (
 	EdgeTemplate = "template"
 	// EdgeResourceDefinition holds the string denoting the resource_definition edge name in mutations.
 	EdgeResourceDefinition = "resource_definition"
+	// EdgeResourceDefinitionMatchingRule holds the string denoting the resource_definition_matching_rule edge name in mutations.
+	EdgeResourceDefinitionMatchingRule = "resource_definition_matching_rule"
 	// EdgeRevisions holds the string denoting the revisions edge name in mutations.
 	EdgeRevisions = "revisions"
 	// EdgeComponents holds the string denoting the components edge name in mutations.
@@ -93,6 +97,13 @@ const (
 	ResourceDefinitionInverseTable = "resource_definitions"
 	// ResourceDefinitionColumn is the table column denoting the resource_definition relation/edge.
 	ResourceDefinitionColumn = "resource_definition_id"
+	// ResourceDefinitionMatchingRuleTable is the table that holds the resource_definition_matching_rule relation/edge.
+	ResourceDefinitionMatchingRuleTable = "resources"
+	// ResourceDefinitionMatchingRuleInverseTable is the table name for the ResourceDefinitionMatchingRule entity.
+	// It exists in this package in order to avoid circular dependency with the "resourcedefinitionmatchingrule" package.
+	ResourceDefinitionMatchingRuleInverseTable = "resource_definition_matching_rules"
+	// ResourceDefinitionMatchingRuleColumn is the table column denoting the resource_definition_matching_rule relation/edge.
+	ResourceDefinitionMatchingRuleColumn = "resource_definition_matching_rule_id"
 	// RevisionsTable is the table that holds the revisions relation/edge.
 	RevisionsTable = "resource_revisions"
 	// RevisionsInverseTable is the table name for the ResourceRevision entity.
@@ -131,6 +142,7 @@ var Columns = []string{
 	FieldTemplateID,
 	FieldType,
 	FieldResourceDefinitionID,
+	FieldResourceDefinitionMatchingRuleID,
 	FieldAttributes,
 	FieldEndpoints,
 	FieldChangeComment,
@@ -225,6 +237,11 @@ func ByResourceDefinitionID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldResourceDefinitionID, opts...).ToFunc()
 }
 
+// ByResourceDefinitionMatchingRuleID orders the results by the resource_definition_matching_rule_id field.
+func ByResourceDefinitionMatchingRuleID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldResourceDefinitionMatchingRuleID, opts...).ToFunc()
+}
+
 // ByAttributes orders the results by the attributes field.
 func ByAttributes(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAttributes, opts...).ToFunc()
@@ -260,6 +277,13 @@ func ByTemplateField(field string, opts ...sql.OrderTermOption) OrderOption {
 func ByResourceDefinitionField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newResourceDefinitionStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByResourceDefinitionMatchingRuleField orders the results by resource_definition_matching_rule field.
+func ByResourceDefinitionMatchingRuleField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newResourceDefinitionMatchingRuleStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -330,6 +354,13 @@ func newResourceDefinitionStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ResourceDefinitionInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, ResourceDefinitionTable, ResourceDefinitionColumn),
+	)
+}
+func newResourceDefinitionMatchingRuleStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ResourceDefinitionMatchingRuleInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ResourceDefinitionMatchingRuleTable, ResourceDefinitionMatchingRuleColumn),
 	)
 }
 func newRevisionsStep() *sqlgraph.Step {

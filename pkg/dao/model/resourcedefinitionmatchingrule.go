@@ -53,9 +53,11 @@ type ResourceDefinitionMatchingRuleEdges struct {
 	ResourceDefinition *ResourceDefinition `json:"resource_definition,omitempty"`
 	// Template version that connect to the relationship.
 	Template *TemplateVersion `json:"template,omitempty"`
+	// Resources that match the rule.
+	Resources []*Resource `json:"resources,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // ResourceDefinitionOrErr returns the ResourceDefinition value or an error if the edge
@@ -82,6 +84,15 @@ func (e ResourceDefinitionMatchingRuleEdges) TemplateOrErr() (*TemplateVersion, 
 		return e.Template, nil
 	}
 	return nil, &NotLoadedError{edge: "template"}
+}
+
+// ResourcesOrErr returns the Resources value or an error if the edge
+// was not loaded in eager-loading.
+func (e ResourceDefinitionMatchingRuleEdges) ResourcesOrErr() ([]*Resource, error) {
+	if e.loadedTypes[2] {
+		return e.Resources, nil
+	}
+	return nil, &NotLoadedError{edge: "resources"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -188,6 +199,11 @@ func (rdmr *ResourceDefinitionMatchingRule) QueryResourceDefinition() *ResourceD
 // QueryTemplate queries the "template" edge of the ResourceDefinitionMatchingRule entity.
 func (rdmr *ResourceDefinitionMatchingRule) QueryTemplate() *TemplateVersionQuery {
 	return NewResourceDefinitionMatchingRuleClient(rdmr.config).QueryTemplate(rdmr)
+}
+
+// QueryResources queries the "resources" edge of the ResourceDefinitionMatchingRule entity.
+func (rdmr *ResourceDefinitionMatchingRule) QueryResources() *ResourceQuery {
+	return NewResourceDefinitionMatchingRuleClient(rdmr.config).QueryResources(rdmr)
 }
 
 // Update returns a builder for updating this ResourceDefinitionMatchingRule.

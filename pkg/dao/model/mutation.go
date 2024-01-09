@@ -10476,42 +10476,44 @@ func (m *ProjectMutation) ResetEdge(name string) error {
 // ResourceMutation represents an operation that mutates the Resource nodes in the graph.
 type ResourceMutation struct {
 	config
-	op                         Op
-	typ                        string
-	id                         *object.ID
-	name                       *string
-	description                *string
-	labels                     *map[string]string
-	annotations                *map[string]string
-	create_time                *time.Time
-	update_time                *time.Time
-	status                     *status.Status
-	_type                      *string
-	attributes                 *property.Values
-	endpoints                  *types.ResourceEndpoints
-	appendendpoints            types.ResourceEndpoints
-	change_comment             *string
-	clearedFields              map[string]struct{}
-	project                    *object.ID
-	clearedproject             bool
-	environment                *object.ID
-	clearedenvironment         bool
-	template                   *object.ID
-	clearedtemplate            bool
-	resource_definition        *object.ID
-	clearedresource_definition bool
-	revisions                  map[object.ID]struct{}
-	removedrevisions           map[object.ID]struct{}
-	clearedrevisions           bool
-	components                 map[object.ID]struct{}
-	removedcomponents          map[object.ID]struct{}
-	clearedcomponents          bool
-	dependencies               map[object.ID]struct{}
-	removeddependencies        map[object.ID]struct{}
-	cleareddependencies        bool
-	done                       bool
-	oldValue                   func(context.Context) (*Resource, error)
-	predicates                 []predicate.Resource
+	op                                       Op
+	typ                                      string
+	id                                       *object.ID
+	name                                     *string
+	description                              *string
+	labels                                   *map[string]string
+	annotations                              *map[string]string
+	create_time                              *time.Time
+	update_time                              *time.Time
+	status                                   *status.Status
+	_type                                    *string
+	attributes                               *property.Values
+	endpoints                                *types.ResourceEndpoints
+	appendendpoints                          types.ResourceEndpoints
+	change_comment                           *string
+	clearedFields                            map[string]struct{}
+	project                                  *object.ID
+	clearedproject                           bool
+	environment                              *object.ID
+	clearedenvironment                       bool
+	template                                 *object.ID
+	clearedtemplate                          bool
+	resource_definition                      *object.ID
+	clearedresource_definition               bool
+	resource_definition_matching_rule        *object.ID
+	clearedresource_definition_matching_rule bool
+	revisions                                map[object.ID]struct{}
+	removedrevisions                         map[object.ID]struct{}
+	clearedrevisions                         bool
+	components                               map[object.ID]struct{}
+	removedcomponents                        map[object.ID]struct{}
+	clearedcomponents                        bool
+	dependencies                             map[object.ID]struct{}
+	removeddependencies                      map[object.ID]struct{}
+	cleareddependencies                      bool
+	done                                     bool
+	oldValue                                 func(context.Context) (*Resource, error)
+	predicates                               []predicate.Resource
 }
 
 var _ ent.Mutation = (*ResourceMutation)(nil)
@@ -11141,6 +11143,55 @@ func (m *ResourceMutation) ResetResourceDefinitionID() {
 	delete(m.clearedFields, resource.FieldResourceDefinitionID)
 }
 
+// SetResourceDefinitionMatchingRuleID sets the "resource_definition_matching_rule_id" field.
+func (m *ResourceMutation) SetResourceDefinitionMatchingRuleID(o object.ID) {
+	m.resource_definition_matching_rule = &o
+}
+
+// ResourceDefinitionMatchingRuleID returns the value of the "resource_definition_matching_rule_id" field in the mutation.
+func (m *ResourceMutation) ResourceDefinitionMatchingRuleID() (r object.ID, exists bool) {
+	v := m.resource_definition_matching_rule
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResourceDefinitionMatchingRuleID returns the old "resource_definition_matching_rule_id" field's value of the Resource entity.
+// If the Resource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceMutation) OldResourceDefinitionMatchingRuleID(ctx context.Context) (v *object.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResourceDefinitionMatchingRuleID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResourceDefinitionMatchingRuleID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResourceDefinitionMatchingRuleID: %w", err)
+	}
+	return oldValue.ResourceDefinitionMatchingRuleID, nil
+}
+
+// ClearResourceDefinitionMatchingRuleID clears the value of the "resource_definition_matching_rule_id" field.
+func (m *ResourceMutation) ClearResourceDefinitionMatchingRuleID() {
+	m.resource_definition_matching_rule = nil
+	m.clearedFields[resource.FieldResourceDefinitionMatchingRuleID] = struct{}{}
+}
+
+// ResourceDefinitionMatchingRuleIDCleared returns if the "resource_definition_matching_rule_id" field was cleared in this mutation.
+func (m *ResourceMutation) ResourceDefinitionMatchingRuleIDCleared() bool {
+	_, ok := m.clearedFields[resource.FieldResourceDefinitionMatchingRuleID]
+	return ok
+}
+
+// ResetResourceDefinitionMatchingRuleID resets all changes to the "resource_definition_matching_rule_id" field.
+func (m *ResourceMutation) ResetResourceDefinitionMatchingRuleID() {
+	m.resource_definition_matching_rule = nil
+	delete(m.clearedFields, resource.FieldResourceDefinitionMatchingRuleID)
+}
+
 // SetAttributes sets the "attributes" field.
 func (m *ResourceMutation) SetAttributes(pr property.Values) {
 	m.attributes = &pr
@@ -11408,6 +11459,32 @@ func (m *ResourceMutation) ResetResourceDefinition() {
 	m.clearedresource_definition = false
 }
 
+// ClearResourceDefinitionMatchingRule clears the "resource_definition_matching_rule" edge to the ResourceDefinitionMatchingRule entity.
+func (m *ResourceMutation) ClearResourceDefinitionMatchingRule() {
+	m.clearedresource_definition_matching_rule = true
+}
+
+// ResourceDefinitionMatchingRuleCleared reports if the "resource_definition_matching_rule" edge to the ResourceDefinitionMatchingRule entity was cleared.
+func (m *ResourceMutation) ResourceDefinitionMatchingRuleCleared() bool {
+	return m.ResourceDefinitionMatchingRuleIDCleared() || m.clearedresource_definition_matching_rule
+}
+
+// ResourceDefinitionMatchingRuleIDs returns the "resource_definition_matching_rule" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ResourceDefinitionMatchingRuleID instead. It exists only for internal usage by the builders.
+func (m *ResourceMutation) ResourceDefinitionMatchingRuleIDs() (ids []object.ID) {
+	if id := m.resource_definition_matching_rule; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetResourceDefinitionMatchingRule resets all changes to the "resource_definition_matching_rule" edge.
+func (m *ResourceMutation) ResetResourceDefinitionMatchingRule() {
+	m.resource_definition_matching_rule = nil
+	m.clearedresource_definition_matching_rule = false
+}
+
 // AddRevisionIDs adds the "revisions" edge to the ResourceRevision entity by ids.
 func (m *ResourceMutation) AddRevisionIDs(ids ...object.ID) {
 	if m.revisions == nil {
@@ -11604,7 +11681,7 @@ func (m *ResourceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ResourceMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 16)
 	if m.name != nil {
 		fields = append(fields, resource.FieldName)
 	}
@@ -11640,6 +11717,9 @@ func (m *ResourceMutation) Fields() []string {
 	}
 	if m.resource_definition != nil {
 		fields = append(fields, resource.FieldResourceDefinitionID)
+	}
+	if m.resource_definition_matching_rule != nil {
+		fields = append(fields, resource.FieldResourceDefinitionMatchingRuleID)
 	}
 	if m.attributes != nil {
 		fields = append(fields, resource.FieldAttributes)
@@ -11682,6 +11762,8 @@ func (m *ResourceMutation) Field(name string) (ent.Value, bool) {
 		return m.GetType()
 	case resource.FieldResourceDefinitionID:
 		return m.ResourceDefinitionID()
+	case resource.FieldResourceDefinitionMatchingRuleID:
+		return m.ResourceDefinitionMatchingRuleID()
 	case resource.FieldAttributes:
 		return m.Attributes()
 	case resource.FieldEndpoints:
@@ -11721,6 +11803,8 @@ func (m *ResourceMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldType(ctx)
 	case resource.FieldResourceDefinitionID:
 		return m.OldResourceDefinitionID(ctx)
+	case resource.FieldResourceDefinitionMatchingRuleID:
+		return m.OldResourceDefinitionMatchingRuleID(ctx)
 	case resource.FieldAttributes:
 		return m.OldAttributes(ctx)
 	case resource.FieldEndpoints:
@@ -11820,6 +11904,13 @@ func (m *ResourceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetResourceDefinitionID(v)
 		return nil
+	case resource.FieldResourceDefinitionMatchingRuleID:
+		v, ok := value.(object.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResourceDefinitionMatchingRuleID(v)
+		return nil
 	case resource.FieldAttributes:
 		v, ok := value.(property.Values)
 		if !ok {
@@ -11892,6 +11983,9 @@ func (m *ResourceMutation) ClearedFields() []string {
 	if m.FieldCleared(resource.FieldResourceDefinitionID) {
 		fields = append(fields, resource.FieldResourceDefinitionID)
 	}
+	if m.FieldCleared(resource.FieldResourceDefinitionMatchingRuleID) {
+		fields = append(fields, resource.FieldResourceDefinitionMatchingRuleID)
+	}
 	if m.FieldCleared(resource.FieldAttributes) {
 		fields = append(fields, resource.FieldAttributes)
 	}
@@ -11935,6 +12029,9 @@ func (m *ResourceMutation) ClearField(name string) error {
 		return nil
 	case resource.FieldResourceDefinitionID:
 		m.ClearResourceDefinitionID()
+		return nil
+	case resource.FieldResourceDefinitionMatchingRuleID:
+		m.ClearResourceDefinitionMatchingRuleID()
 		return nil
 	case resource.FieldAttributes:
 		m.ClearAttributes()
@@ -11989,6 +12086,9 @@ func (m *ResourceMutation) ResetField(name string) error {
 	case resource.FieldResourceDefinitionID:
 		m.ResetResourceDefinitionID()
 		return nil
+	case resource.FieldResourceDefinitionMatchingRuleID:
+		m.ResetResourceDefinitionMatchingRuleID()
+		return nil
 	case resource.FieldAttributes:
 		m.ResetAttributes()
 		return nil
@@ -12004,7 +12104,7 @@ func (m *ResourceMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ResourceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.project != nil {
 		edges = append(edges, resource.EdgeProject)
 	}
@@ -12016,6 +12116,9 @@ func (m *ResourceMutation) AddedEdges() []string {
 	}
 	if m.resource_definition != nil {
 		edges = append(edges, resource.EdgeResourceDefinition)
+	}
+	if m.resource_definition_matching_rule != nil {
+		edges = append(edges, resource.EdgeResourceDefinitionMatchingRule)
 	}
 	if m.revisions != nil {
 		edges = append(edges, resource.EdgeRevisions)
@@ -12049,6 +12152,10 @@ func (m *ResourceMutation) AddedIDs(name string) []ent.Value {
 		if id := m.resource_definition; id != nil {
 			return []ent.Value{*id}
 		}
+	case resource.EdgeResourceDefinitionMatchingRule:
+		if id := m.resource_definition_matching_rule; id != nil {
+			return []ent.Value{*id}
+		}
 	case resource.EdgeRevisions:
 		ids := make([]ent.Value, 0, len(m.revisions))
 		for id := range m.revisions {
@@ -12073,7 +12180,7 @@ func (m *ResourceMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ResourceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.removedrevisions != nil {
 		edges = append(edges, resource.EdgeRevisions)
 	}
@@ -12114,7 +12221,7 @@ func (m *ResourceMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ResourceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.clearedproject {
 		edges = append(edges, resource.EdgeProject)
 	}
@@ -12126,6 +12233,9 @@ func (m *ResourceMutation) ClearedEdges() []string {
 	}
 	if m.clearedresource_definition {
 		edges = append(edges, resource.EdgeResourceDefinition)
+	}
+	if m.clearedresource_definition_matching_rule {
+		edges = append(edges, resource.EdgeResourceDefinitionMatchingRule)
 	}
 	if m.clearedrevisions {
 		edges = append(edges, resource.EdgeRevisions)
@@ -12151,6 +12261,8 @@ func (m *ResourceMutation) EdgeCleared(name string) bool {
 		return m.clearedtemplate
 	case resource.EdgeResourceDefinition:
 		return m.clearedresource_definition
+	case resource.EdgeResourceDefinitionMatchingRule:
+		return m.clearedresource_definition_matching_rule
 	case resource.EdgeRevisions:
 		return m.clearedrevisions
 	case resource.EdgeComponents:
@@ -12177,6 +12289,9 @@ func (m *ResourceMutation) ClearEdge(name string) error {
 	case resource.EdgeResourceDefinition:
 		m.ClearResourceDefinition()
 		return nil
+	case resource.EdgeResourceDefinitionMatchingRule:
+		m.ClearResourceDefinitionMatchingRule()
+		return nil
 	}
 	return fmt.Errorf("unknown Resource unique edge %s", name)
 }
@@ -12196,6 +12311,9 @@ func (m *ResourceMutation) ResetEdge(name string) error {
 		return nil
 	case resource.EdgeResourceDefinition:
 		m.ResetResourceDefinition()
+		return nil
+	case resource.EdgeResourceDefinitionMatchingRule:
+		m.ResetResourceDefinitionMatchingRule()
 		return nil
 	case resource.EdgeRevisions:
 		m.ResetRevisions()
@@ -15515,6 +15633,9 @@ type ResourceDefinitionMatchingRuleMutation struct {
 	clearedresource_definition bool
 	template                   *object.ID
 	clearedtemplate            bool
+	resources                  map[object.ID]struct{}
+	removedresources           map[object.ID]struct{}
+	clearedresources           bool
 	done                       bool
 	oldValue                   func(context.Context) (*ResourceDefinitionMatchingRule, error)
 	predicates                 []predicate.ResourceDefinitionMatchingRule
@@ -15961,6 +16082,60 @@ func (m *ResourceDefinitionMatchingRuleMutation) ResetTemplate() {
 	m.clearedtemplate = false
 }
 
+// AddResourceIDs adds the "resources" edge to the Resource entity by ids.
+func (m *ResourceDefinitionMatchingRuleMutation) AddResourceIDs(ids ...object.ID) {
+	if m.resources == nil {
+		m.resources = make(map[object.ID]struct{})
+	}
+	for i := range ids {
+		m.resources[ids[i]] = struct{}{}
+	}
+}
+
+// ClearResources clears the "resources" edge to the Resource entity.
+func (m *ResourceDefinitionMatchingRuleMutation) ClearResources() {
+	m.clearedresources = true
+}
+
+// ResourcesCleared reports if the "resources" edge to the Resource entity was cleared.
+func (m *ResourceDefinitionMatchingRuleMutation) ResourcesCleared() bool {
+	return m.clearedresources
+}
+
+// RemoveResourceIDs removes the "resources" edge to the Resource entity by IDs.
+func (m *ResourceDefinitionMatchingRuleMutation) RemoveResourceIDs(ids ...object.ID) {
+	if m.removedresources == nil {
+		m.removedresources = make(map[object.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.resources, ids[i])
+		m.removedresources[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedResources returns the removed IDs of the "resources" edge to the Resource entity.
+func (m *ResourceDefinitionMatchingRuleMutation) RemovedResourcesIDs() (ids []object.ID) {
+	for id := range m.removedresources {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResourcesIDs returns the "resources" edge IDs in the mutation.
+func (m *ResourceDefinitionMatchingRuleMutation) ResourcesIDs() (ids []object.ID) {
+	for id := range m.resources {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetResources resets all changes to the "resources" edge.
+func (m *ResourceDefinitionMatchingRuleMutation) ResetResources() {
+	m.resources = nil
+	m.clearedresources = false
+	m.removedresources = nil
+}
+
 // Where appends a list predicates to the ResourceDefinitionMatchingRuleMutation builder.
 func (m *ResourceDefinitionMatchingRuleMutation) Where(ps ...predicate.ResourceDefinitionMatchingRule) {
 	m.predicates = append(m.predicates, ps...)
@@ -16220,12 +16395,15 @@ func (m *ResourceDefinitionMatchingRuleMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ResourceDefinitionMatchingRuleMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.resource_definition != nil {
 		edges = append(edges, resourcedefinitionmatchingrule.EdgeResourceDefinition)
 	}
 	if m.template != nil {
 		edges = append(edges, resourcedefinitionmatchingrule.EdgeTemplate)
+	}
+	if m.resources != nil {
+		edges = append(edges, resourcedefinitionmatchingrule.EdgeResources)
 	}
 	return edges
 }
@@ -16242,30 +16420,50 @@ func (m *ResourceDefinitionMatchingRuleMutation) AddedIDs(name string) []ent.Val
 		if id := m.template; id != nil {
 			return []ent.Value{*id}
 		}
+	case resourcedefinitionmatchingrule.EdgeResources:
+		ids := make([]ent.Value, 0, len(m.resources))
+		for id := range m.resources {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ResourceDefinitionMatchingRuleMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.removedresources != nil {
+		edges = append(edges, resourcedefinitionmatchingrule.EdgeResources)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *ResourceDefinitionMatchingRuleMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case resourcedefinitionmatchingrule.EdgeResources:
+		ids := make([]ent.Value, 0, len(m.removedresources))
+		for id := range m.removedresources {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ResourceDefinitionMatchingRuleMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedresource_definition {
 		edges = append(edges, resourcedefinitionmatchingrule.EdgeResourceDefinition)
 	}
 	if m.clearedtemplate {
 		edges = append(edges, resourcedefinitionmatchingrule.EdgeTemplate)
+	}
+	if m.clearedresources {
+		edges = append(edges, resourcedefinitionmatchingrule.EdgeResources)
 	}
 	return edges
 }
@@ -16278,6 +16476,8 @@ func (m *ResourceDefinitionMatchingRuleMutation) EdgeCleared(name string) bool {
 		return m.clearedresource_definition
 	case resourcedefinitionmatchingrule.EdgeTemplate:
 		return m.clearedtemplate
+	case resourcedefinitionmatchingrule.EdgeResources:
+		return m.clearedresources
 	}
 	return false
 }
@@ -16305,6 +16505,9 @@ func (m *ResourceDefinitionMatchingRuleMutation) ResetEdge(name string) error {
 		return nil
 	case resourcedefinitionmatchingrule.EdgeTemplate:
 		m.ResetTemplate()
+		return nil
+	case resourcedefinitionmatchingrule.EdgeResources:
+		m.ResetResources()
 		return nil
 	}
 	return fmt.Errorf("unknown ResourceDefinitionMatchingRule edge %s", name)
