@@ -13,6 +13,7 @@ openAPISchema:
             x-walrus-ui:
               colSpan: 12
               order: 1
+              widget: YamlEditor
           second:
             description: The second output.
             title: Second
@@ -24,6 +25,7 @@ openAPISchema:
             x-walrus-ui:
               colSpan: 12
               order: 2
+              widget: YamlEditor
         type: object
       variables:
         properties:
