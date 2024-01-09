@@ -104,11 +104,11 @@ func TestParseAttributeReplace(t *testing.T) {
 			name: "parse combined",
 			attributes: map[string]any{
 				"foo": "${var.foo}",
-				"bar": "${svc.foo1.bar}-${res.foo2.bar}",
+				"bar": "${res.foo1.bar}-${res.foo2.bar}",
 			},
 			replaced:                true,
 			expectedVariableNames:   []string{"foo"},
-			expectedResourceOutputs: []string{"res_foo2_bar", "svc_foo1_bar"},
+			expectedResourceOutputs: []string{"res_foo1_bar", "res_foo2_bar"},
 			expectedAttributes: map[string]any{
 				"foo": "${var._walrus_var_foo}",
 				"bar": "${var._walrus_res_foo1_bar}-${var._walrus_res_foo2_bar}",
@@ -119,14 +119,14 @@ func TestParseAttributeReplace(t *testing.T) {
 			name: "parse combined with interpolation",
 			attributes: map[string]any{
 				"foo":    "${var.foo}",
-				"bar":    "${svc.foo1.bar}-${res.foo2.bar}",
-				"baz":    "${var.foo}-${svc.foo1.bar}-${res.foo2.bar}",
+				"bar":    "${res.foo1.bar}-${res.foo2.bar}",
+				"baz":    "${var.foo}-${res.foo1.bar}-${res.foo2.bar}",
 				"qux":    "${MYSQL_DATABASE}",
 				"double": "$${ENV_PORT}",
 			},
 			replaced:                true,
 			expectedVariableNames:   []string{"foo"},
-			expectedResourceOutputs: []string{"res_foo2_bar", "svc_foo1_bar"},
+			expectedResourceOutputs: []string{"res_foo1_bar", "res_foo2_bar"},
 			expectedAttributes: map[string]any{
 				"foo":    "${var._walrus_var_foo}",
 				"bar":    "${var._walrus_res_foo1_bar}-${var._walrus_res_foo2_bar}",
@@ -141,7 +141,7 @@ func TestParseAttributeReplace(t *testing.T) {
 			attributes: map[string]any{
 				"foo": []string{
 					"${var.foo}",
-					"${svc.foo1.bar}-${res.foo2.bar}",
+					"${res.foo1.bar}-${res.foo2.bar}",
 				},
 				"ENV": []string{
 					"${ENV_PORT}",
@@ -150,7 +150,7 @@ func TestParseAttributeReplace(t *testing.T) {
 			},
 			replaced:                true,
 			expectedVariableNames:   []string{"foo"},
-			expectedResourceOutputs: []string{"res_foo2_bar", "svc_foo1_bar"},
+			expectedResourceOutputs: []string{"res_foo1_bar", "res_foo2_bar"},
 			expectedAttributes: map[string]any{
 				"foo": []any{
 					"${var._walrus_var_foo}",

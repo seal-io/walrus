@@ -24,7 +24,7 @@ func ResourceComponentRelationshipUpdateWithDependencies(
 	recordResources,
 	createResources model.ResourceComponents,
 ) error {
-	logger := log.WithName("dao").WithName("service-revision")
+	logger := log.WithName("dao").WithName("resource-component-relationship")
 
 	resourceMap := ResourceComponentToMap(append(recordResources, createResources...))
 

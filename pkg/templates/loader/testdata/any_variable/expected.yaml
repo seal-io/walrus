@@ -12,7 +12,6 @@ openAPISchema:
                 type: dynamic
               x-walrus-ui:
                 colSpan: 12
-            nullable: true
             title: List Any With Default
             type: array
             x-walrus-original:
@@ -23,6 +22,7 @@ openAPISchema:
               colSpan: 12
               group: Basic
               order: 1
+              widget: YamlEditor
           list_map_any_with_default:
             default:
             - name: default-name
@@ -40,7 +40,6 @@ openAPISchema:
                 - dynamic
               x-walrus-ui:
                 colSpan: 12
-            nullable: true
             title: List Map Any With Default
             type: array
             x-walrus-original:
@@ -52,6 +51,7 @@ openAPISchema:
               colSpan: 12
               group: Basic
               order: 3
+              widget: YamlEditor
           list_object_with_any_default:
             items:
               properties:
@@ -60,7 +60,6 @@ openAPISchema:
                     headers:
                       X-Forwarded-Proto: https
                     method: GET
-                  nullable: true
                   title: Any Data
                   type: object
                   x-walrus-original:
@@ -88,6 +87,7 @@ openAPISchema:
               colSpan: 12
               group: Basic
               order: 5
+              widget: YamlEditor
           map_any_with_default:
             additionalProperties:
               type: object
@@ -97,7 +97,6 @@ openAPISchema:
                 colSpan: 12
             default:
               name: default-name
-            nullable: true
             title: Map Any With Default
             type: object
             x-walrus-original:
@@ -108,6 +107,7 @@ openAPISchema:
               colSpan: 12
               group: Basic
               order: 2
+              widget: YamlEditor
           map_object_with_any_default:
             additionalProperties:
               properties:
@@ -116,7 +116,6 @@ openAPISchema:
                     headers:
                       X-Forwarded-Proto: https
                     method: GET
-                  nullable: true
                   title: Any Data
                   type: object
                   x-walrus-original:
@@ -144,6 +143,7 @@ openAPISchema:
               colSpan: 12
               group: Basic
               order: 6
+              widget: YamlEditor
           object_with_any_default:
             properties:
               any_data:
@@ -151,7 +151,6 @@ openAPISchema:
                   headers:
                     X-Forwarded-Proto: https
                   method: GET
-                nullable: true
                 title: Any Data
                 type: object
                 x-walrus-original:
@@ -170,6 +169,7 @@ openAPISchema:
               colSpan: 12
               group: Basic
               order: 4
+              widget: YamlEditor
         required:
         - list_object_with_any_default
         - map_object_with_any_default

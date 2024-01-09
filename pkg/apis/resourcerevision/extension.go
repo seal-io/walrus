@@ -55,7 +55,7 @@ func (h Handler) RouteGetTerraformStates(
 func (h Handler) RouteUpdateTerraformStates(
 	req RouteUpdateTerraformStatesRequest,
 ) (err error) {
-	logger := log.WithName("api").WithName("service-revision")
+	logger := log.WithName("api").WithName("resource-revision")
 
 	entity, err := h.modelClient.ResourceRevisions().Query().
 		Where(resourcerevision.ID(req.ID)).
@@ -259,13 +259,13 @@ func manageResources(
 	}
 
 	gopool.Go(func() {
-		logger := log.WithName("api").WithName("service-revision")
+		logger := log.WithName("api").WithName("resource-revision")
 
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 		defer cancel()
 
 		if err = reconcileResources(ctx, modelClient, entity.ResourceID, connRess); err != nil {
-			logger.Errorf("sync service status and resource label failed: %v", err)
+			logger.Errorf("sync resource status and label failed: %v", err)
 		}
 	})
 
@@ -277,10 +277,10 @@ func manageResources(
 func reconcileResources(
 	ctx context.Context,
 	modelClient model.ClientSet,
-	serviceID object.ID,
+	resourceID object.ID,
 	connRess map[object.ID][]*model.ResourceComponent,
 ) error {
-	logger := log.WithName("api").WithName("service-revision")
+	logger := log.WithName("api").WithName("resource-revision")
 
 	// Fetch related connectors at once,
 	// and then index these connectors by its id.
@@ -355,35 +355,35 @@ func reconcileResources(
 	}
 
 	// State resource.
-	svc, err := modelClient.Resources().Query().
-		Where(resource.ID(serviceID)).
+	res, err := modelClient.Resources().Query().
+		Where(resource.ID(resourceID)).
 		Select(
 			resource.FieldID,
 			resource.FieldStatus).
 		Only(ctx)
 	if err != nil {
-		return fmt.Errorf("cannot get service: %w", err)
+		return fmt.Errorf("cannot get resource: %w", err)
 	}
 
-	if status.ResourceStatusDeleted.Exist(svc) ||
-		status.ResourceStatusStopped.Exist(svc) {
+	if status.ResourceStatusDeleted.Exist(res) ||
+		status.ResourceStatusStopped.Exist(res) {
 		// Skip if the service is on deleting or stopping.
 		return nil
 	}
 
 	switch {
 	case sr.Error:
-		status.ResourceStatusReady.False(svc, "")
+		status.ResourceStatusReady.False(res, "")
 	case sr.Transitioning:
-		status.ResourceStatusReady.Unknown(svc, "")
+		status.ResourceStatusReady.Unknown(res, "")
 	default:
-		status.ResourceStatusReady.True(svc, "")
+		status.ResourceStatusReady.True(res, "")
 	}
 
-	svc.Status.SetSummary(status.WalkResource(&svc.Status))
+	res.Status.SetSummary(status.WalkResource(&res.Status))
 
-	return modelClient.Resources().UpdateOne(svc).
-		SetStatus(svc.Status).
+	return modelClient.Resources().UpdateOne(res).
+		SetStatus(res.Status).
 		Exec(ctx)
 }
 

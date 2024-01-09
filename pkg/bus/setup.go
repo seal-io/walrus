@@ -4,6 +4,7 @@ import (
 	"context"
 
 	authstoken "github.com/seal-io/walrus/pkg/auths/token"
+	"github.com/seal-io/walrus/pkg/bus/builtin"
 	"github.com/seal-io/walrus/pkg/bus/catalog"
 	"github.com/seal-io/walrus/pkg/bus/environment"
 	"github.com/seal-io/walrus/pkg/bus/resourcerevision"
@@ -16,6 +17,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/deployer/terraform"
 	pkgenv "github.com/seal-io/walrus/pkg/environment"
+	"github.com/seal-io/walrus/pkg/resourcedefinitions"
 	"github.com/seal-io/walrus/pkg/templates"
 )
 
@@ -69,6 +71,13 @@ func Setup(ctx context.Context, opts SetupOptions) (err error) {
 	// Catalog.
 	err = catalog.AddSubscriber("sync-catalog",
 		pkgcatalog.CatalogSync(opts.ModelClient).Do)
+	if err != nil {
+		return
+	}
+
+	// Builtin.
+	err = builtin.AddSubscriber("sync-builtin-resource-definitions",
+		resourcedefinitions.SyncBuiltinResourceDefinitions)
 	if err != nil {
 		return
 	}

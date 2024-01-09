@@ -109,12 +109,12 @@ func (in *RelationshipCheckTask) applyResources(ctx context.Context) error {
 		return err
 	}
 
-	for _, svc := range resources {
-		if status.ResourceStatusStopped.Exist(svc) {
+	for _, res := range resources {
+		if status.ResourceStatusStopped.Exist(res) {
 			continue
 		}
 
-		ok, err := in.checkDependencies(ctx, svc)
+		ok, err := in.checkDependencies(ctx, res)
 		if err != nil {
 			return err
 		}
@@ -124,7 +124,7 @@ func (in *RelationshipCheckTask) applyResources(ctx context.Context) error {
 		}
 
 		// Deploy.
-		err = in.deployResource(ctx, svc)
+		err = in.deployResource(ctx, res)
 		if err != nil {
 			return err
 		}
@@ -199,11 +199,11 @@ func (in *RelationshipCheckTask) stopResources(ctx context.Context) error {
 	return nil
 }
 
-func (in *RelationshipCheckTask) checkDependencies(ctx context.Context, svc *model.Resource) (bool, error) {
+func (in *RelationshipCheckTask) checkDependencies(ctx context.Context, res *model.Resource) (bool, error) {
 	dependencies, err := in.modelClient.ResourceRelationships().Query().
 		Where(
-			resourcerelationship.ResourceIDEQ(svc.ID),
-			resourcerelationship.DependencyIDNEQ(svc.ID),
+			resourcerelationship.ResourceIDEQ(res.ID),
+			resourcerelationship.DependencyIDNEQ(res.ID),
 			resourcerelationship.Type(types.ResourceRelationshipTypeImplicit),
 		).
 		All(ctx)
@@ -239,12 +239,12 @@ func (in *RelationshipCheckTask) checkDependencies(ctx context.Context, svc *mod
 		return false, err
 	}
 
-	for _, depSvc := range dependencyResources {
-		if pkgresource.IsStatusReady(depSvc) {
+	for _, depRes := range dependencyResources {
+		if pkgresource.IsStatusReady(depRes) {
 			continue
 		}
 
-		err = in.setResourceStatusFalse(ctx, svc, depSvc)
+		err = in.setResourceStatusFalse(ctx, res, depRes)
 		if err != nil {
 			return false, err
 		}
@@ -272,26 +272,26 @@ func (in *RelationshipCheckTask) deployResource(ctx context.Context, entity *mod
 // setResourceStatusFalse sets a resource status to false if parent dependencies statuses are false or deleted.
 func (in *RelationshipCheckTask) setResourceStatusFalse(
 	ctx context.Context,
-	svc, parentResource *model.Resource,
+	res, parentResource *model.Resource,
 ) error {
 	if pkgresource.IsStatusFalse(parentResource) {
 		status.ResourceStatusProgressing.False(
-			svc,
+			res,
 			fmt.Sprintf("Parent resource status is false, name: %s", parentResource.Name),
 		)
 
-		err := pkgresource.UpdateStatus(ctx, in.modelClient, svc)
+		err := pkgresource.UpdateStatus(ctx, in.modelClient, res)
 		if err != nil {
 			return err
 		}
 	}
 
 	if pkgresource.IsStatusDeleted(parentResource) {
-		status.ResourceStatusProgressing.False(svc,
+		status.ResourceStatusProgressing.False(res,
 			fmt.Sprintf("Parent resource status is deleted, name: %s", parentResource.Name),
 		)
 
-		err := pkgresource.UpdateStatus(ctx, in.modelClient, svc)
+		err := pkgresource.UpdateStatus(ctx, in.modelClient, res)
 		if err != nil {
 			return err
 		}

@@ -17,7 +17,6 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
-	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	"github.com/seal-io/walrus/pkg/terraform/parser"
 	"github.com/seal-io/walrus/utils/json"
 )
@@ -90,8 +89,8 @@ func ParseModuleAttributes(
 	return attrs, variables, outputs, nil
 }
 
-// toDependOutputMap splits the dependencyResourceOutputs from {service/resource}_{resource_name}_{output_name}
-// to a map of {resource_name}_{output_name}:{service/resource}.
+// toDependOutputMap splits the dependencyResourceOutputs from {resource}_{resource_name}_{output_name}
+// to a map of {resource_name}_{output_name}:{resource}.
 func toDependOutputMap(dependencyResourceOutputs []string) map[string]string {
 	dependOutputMap := make(map[string]string, 0)
 
@@ -107,7 +106,6 @@ func toDependOutputMap(dependencyResourceOutputs []string) map[string]string {
 }
 
 // parseAttributeReplace parses attribute variable ${var.name} replaces it with ${var._variablePrefix+name},
-// service reference ${svc.name.output} replaces it with ${var._resourcePrefix+name},
 // resource reference ${res.name.output} replaces it with ${var._resourcePrefix+name}
 // and returns variable names and output names.
 // Replaced flag indicates whether to replace the module attribute variable with prefix string.
@@ -121,7 +119,7 @@ func parseAttributeReplace(
 	}
 
 	variableMatches := _variableReg.FindAllSubmatch(bs, -1)
-	serviceMatches := _resourceReg.FindAllSubmatch(bs, -1)
+	resourceMatches := _resourceReg.FindAllSubmatch(bs, -1)
 
 	variableMatched := sets.NewString()
 
@@ -131,21 +129,20 @@ func parseAttributeReplace(
 		}
 	}
 
-	serviceMatched := sets.NewString()
+	resourceMatched := sets.NewString()
 
-	for _, match := range serviceMatches {
+	for _, match := range resourceMatches {
 		if len(match) > 1 {
 			// Resource outputs are in the form:
-			// - service_{resource_name}_{output_name} or
-			// - resource_{resource_name}_{output_name}.
-			serviceMatched.Insert(string(match[1]) + "_" + string(match[2]) + "_" + string(match[3]))
+			// - res_{resource_name}_{output_name}.
+			resourceMatched.Insert("res_" + string(match[1]) + "_" + string(match[2]))
 		}
 	}
 
 	variableRepl := "${var." + _variablePrefix + "${1}}"
 	bs = _variableReg.ReplaceAll(bs, []byte(variableRepl))
 
-	resourceRepl := "${var." + _resourcePrefix + "${2}_${3}}"
+	resourceRepl := "${var." + _resourcePrefix + "${1}_${2}}"
 	bs = _resourceReg.ReplaceAll(bs, []byte(resourceRepl))
 
 	// Replace interpolation from ${} to $${} to avoid escape sequences.
@@ -176,7 +173,7 @@ func parseAttributeReplace(
 		}
 	}
 
-	return attributes, variableMatched.List(), serviceMatched.List(), nil
+	return attributes, variableMatched.List(), resourceMatched.List(), nil
 }
 
 func getVariables(
@@ -366,13 +363,7 @@ func getServiceDependencyOutputs(
 		}
 
 		for n, o := range revisionOutput {
-			outputRefKind, ok := dependOutputs[n]
-			if !ok {
-				continue
-			}
-
-			if outputRefKind == "service" && !pkgresource.IsService(r.Edges.Resource) {
-				// An output reference in format ${service.name.output_name} only applies to resource of service type.
+			if _, ok := dependOutputs[n]; !ok {
 				continue
 			}
 

@@ -233,17 +233,15 @@ func (l *TerraformLoader) getVariableSchemaFromTerraform(mod *tfconfig.Module) (
 		// Parse tf expression from type.
 		var (
 			tfType       = cty.DynamicPseudoType
-			def          = v.Default
+			defValue     = v.Default
+			defObj       any
 			order        = i + 1
 			tyExpression any
-			nullable     bool
 		)
 
 		// Required and keys.
 		if v.Required {
 			required = append(required, v.Name)
-		} else {
-			nullable = true
 		}
 
 		keys[i] = v.Name
@@ -256,16 +254,11 @@ func (l *TerraformLoader) getVariableSchemaFromTerraform(mod *tfconfig.Module) (
 				return nil, fmt.Errorf("error parsing expression: %w", diags)
 			}
 
-			var conDef *typeexpr.Defaults
-
-			tfType, conDef, diags = typeexpr.TypeConstraintWithDefaults(expr)
+			tfType, defObj, diags = typeexpr.TypeConstraintWithDefaults(expr)
 			if diags.HasErrors() {
 				return nil, fmt.Errorf("error getting type: %w", diags)
 			}
 
-			if conDef != nil && (conDef.DefaultValues != nil || conDef.Children != nil) {
-				def = conDef
-			}
 			tyExpression = expr
 		} else if v.Default != nil {
 			// Empty type, use default value to get type.
@@ -288,13 +281,13 @@ func (l *TerraformLoader) getVariableSchemaFromTerraform(mod *tfconfig.Module) (
 			l.translator.SchemaOfOriginalType(
 				tfType,
 				translator.Options{
-					Name:        v.Name,
-					Default:     def,
-					Description: v.Description,
-					Sensitive:   v.Sensitive,
-					Order:       order,
-					TypeExpress: tyExpression,
-					Nullable:    nullable,
+					Name:          v.Name,
+					DefaultValue:  defValue,
+					DefaultObject: defObj,
+					Description:   v.Description,
+					Sensitive:     v.Sensitive,
+					Order:         order,
+					TypeExpress:   tyExpression,
 				}))
 	}
 

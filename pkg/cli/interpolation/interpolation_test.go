@@ -28,7 +28,6 @@ func TestInterpolation(t *testing.T) {
 		// Built-in.
 		{test: "${var.test}", expected: "${var.test}"},
 		{test: "${res.test.output}", expected: "${res.test.output}"},
-		{test: "${svc.test.output}", expected: "${svc.test.output}"},
 		{test: "${unsupported.test}", isErr: true},
 
 		// File.

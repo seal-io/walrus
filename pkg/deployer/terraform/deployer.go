@@ -62,15 +62,15 @@ const (
 	// _variablePrefix the prefix of the variable name.
 	_variablePrefix = "_walrus_var_"
 
-	// _resourcePrefix the prefix of the service output name.
+	// _resourcePrefix the prefix of the resource output name.
 	_resourcePrefix = "_walrus_res_"
 )
 
 var (
 	// _variableReg the regexp to match the variable.
 	_variableReg = regexp.MustCompile(`\${var\.([a-zA-Z0-9_-]+)}`)
-	// _resourceReg the regexp to match the service/resource output.
-	_resourceReg = regexp.MustCompile(`\${(svc|res)\.([^.}]+)\.([^.}]+)}`)
+	// _resourceReg the regexp to match the resource output.
+	_resourceReg = regexp.MustCompile(`\${res\.([^.}]+)\.([^.}]+)}`)
 	// _interpolationReg is the regular expression for matching non-reference or non-variable expressions.
 	// Reference: https://developer.hashicorp.com/terraform/language/expressions/strings#escape-sequences-1
 	// To handle escape sequences, ${xxx} is converted to $${xxx}.
@@ -443,6 +443,7 @@ func (d Deployer) createRevision(
 			resource.FieldEnvironmentID,
 			resource.FieldType,
 			resource.FieldLabels,
+			resource.FieldAnnotations,
 			resource.FieldAttributes).
 		Only(ctx)
 	if err != nil {
@@ -499,13 +500,23 @@ func (d Deployer) createRevision(
 			attributes[k] = v
 		}
 	default:
-		return nil, errors.New("service has no template or resource definition")
+		return nil, errors.New("missing template or resource definition")
 	}
 
-	s := session.MustGetSubject(ctx)
+	var subjectID object.ID
+
+	s, _ := session.GetSubject(ctx)
+	if s.ID != "" {
+		subjectID = s.ID
+	} else {
+		subjectID, err = pkgresource.GetSubjectID(res)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	userSubject, err := mc.Subjects().Query().
-		Where(subject.ID(s.ID)).
+		Where(subject.ID(subjectID)).
 		Only(ctx)
 	if err != nil {
 		return nil, err

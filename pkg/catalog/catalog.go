@@ -10,6 +10,7 @@ import (
 	"github.com/drone/go-scm/scm"
 	"go.uber.org/multierr"
 
+	"github.com/seal-io/walrus/pkg/bus/builtin"
 	"github.com/seal-io/walrus/pkg/bus/catalog"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
@@ -24,8 +25,10 @@ import (
 	"github.com/seal-io/walrus/utils/version"
 )
 
-// WalrusServiceRepositoryTopic indicates the repository stores a service template.
-const WalrusServiceRepositoryTopic = "walrus-service"
+const (
+	// WalrusResourceDefinitionRepositoryTopic indicates the repository stores a resource definition template.
+	WalrusResourceDefinitionRepositoryTopic = "walrus-resource-definition"
+)
 
 // getRepos returns org and a list of repositories from the given catalog.
 func getRepos(ctx context.Context, c *model.Catalog, ua string, skipTLSVerify bool) ([]*vcs.Repository, error) {
@@ -154,11 +157,7 @@ func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) er
 					ProjectID:   c.ProjectID,
 				}
 
-				if isServiceTemplateRepo(repo.Topics) {
-					t.Labels = map[string]string{
-						types.LabelWalrusCategory: "service",
-					}
-				}
+				t.Labels = createWalrusBuiltinLabels(repo.Topics)
 
 				logger.Debugf("syncing  \"%s:%s\" of catalog %q", c.Name, repo.Name, c.ID)
 
@@ -189,14 +188,21 @@ func normalizeTemplateName(name string) string {
 	return strings.TrimPrefix(name, "terraform-")
 }
 
-func isServiceTemplateRepo(topics []string) bool {
-	for _, t := range topics {
-		if t == WalrusServiceRepositoryTopic {
-			return true
+func createWalrusBuiltinLabels(topics []string) map[string]string {
+	labels := make(map[string]string)
+
+	for _, topic := range topics {
+		switch {
+		case topic == WalrusResourceDefinitionRepositoryTopic:
+			labels[types.LabelWalrusResourceDefinition] = "true"
+		case strings.HasPrefix(topic, "c-"):
+			labels[types.LabelWalrusConnectorType] = strings.TrimPrefix(topic, "c-")
+		case strings.HasPrefix(topic, "t-"):
+			labels[types.LabelWalrusResourceType] = strings.TrimPrefix(topic, "t-")
 		}
 	}
 
-	return false
+	return labels
 }
 
 type catalogSyncer struct {
@@ -244,6 +250,14 @@ func UpdateStatusWithSyncErr(ctx context.Context, mc model.ClientSet, c *model.C
 	} else {
 		status.CatalogStatusReady.Reset(c, "")
 		status.CatalogStatusReady.True(c, "")
+
+		// Notify builtin catalog to update builtin resource definitions.
+		if c.Name == "builtin" && settings.EnableBuiltinResourceDefinition.ShouldValueBool(ctx, mc) {
+			err := builtin.Notify(ctx, mc, c)
+			if err != nil {
+				logger.Errorf("failed to notify builtin catalog: %v", err)
+			}
+		}
 	}
 
 	c.Status.SetSummary(status.WalkCatalog(&c.Status))

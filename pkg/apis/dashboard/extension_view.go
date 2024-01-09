@@ -28,8 +28,6 @@ type (
 	CollectionRouteGetLatestResourceRevisionsRequest struct {
 		_ struct{} `route:"GET=/latest-resource-revisions"`
 
-		IsService *bool `query:"isService,omitempty"`
-
 		Context *gin.Context
 	}
 
@@ -57,8 +55,6 @@ type (
 		Environment int `json:"environment"`
 		// Connector number.
 		Connector int `json:"connector"`
-		// Service number.
-		Service int `json:"service"`
 		// Resource number.
 		Resource int `json:"resource"`
 		// Resource component number.

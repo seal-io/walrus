@@ -18,13 +18,15 @@ type Translator interface {
 }
 
 type Options struct {
-	Name        string
-	Default     any
-	Description string
-	Sensitive   bool
-	Order       int
-	TypeExpress any
-	Nullable    bool
+	Name          string
+	DefaultValue  any
+	DefaultObject any
+	Description   string
+	Sensitive     bool
+	Order         int
+	TypeExpress   any
+	// IgnoreWidget used for skipping add widget for any type in sub schema.
+	IgnoreWidget bool
 }
 
 // SchemaOfType generates openAPI schema from original type.
@@ -46,7 +48,7 @@ func SchemaOfType(typ any, opts Options) (schema openapi3.Schema) {
 
 	// Default unknown type.
 	s = openapi3.NewSchema().
-		WithDefault(opts.Default)
+		WithDefault(opts.DefaultValue)
 	s.Title = opts.Name
 	s.Description = opts.Description
 	s.WriteOnly = opts.Sensitive

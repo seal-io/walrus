@@ -7,11 +7,11 @@ import (
 )
 
 const (
-	// VertexKindResource indicates the vertex kind of service, it contains resource groups.
+	// VertexKindResource indicates the vertex kind of resource, it contains resource groups.
 	VertexKindResource = "Resource"
 	// VertexKindResourceComponentGroup indicates the group resource that generates same type resources.
 	VertexKindResourceComponentGroup = "ResourceComponentGroup"
-	// VertexKindResourceComponent indicates the vertex kind of service resource.
+	// VertexKindResourceComponent indicates the vertex kind of resource component.
 	VertexKindResourceComponent = "ResourceComponent"
 
 	// EdgeTypeComposition indicates vertex is composed of another vertex.

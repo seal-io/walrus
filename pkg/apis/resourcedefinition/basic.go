@@ -10,13 +10,14 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
+	"github.com/seal-io/walrus/pkg/resourcedefinitions"
 	"github.com/seal-io/walrus/utils/topic"
 )
 
 func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 	entity := req.Model()
 
-	if err := generateSchema(req.Context, req.Client, entity); err != nil {
+	if err := resourcedefinitions.GenerateSchema(req.Context, req.Client, entity); err != nil {
 		return nil, fmt.Errorf("failed to generate schema: %w", err)
 	}
 
@@ -67,7 +68,7 @@ func (h Handler) Get(req GetRequest) (GetResponse, error) {
 func (h Handler) Update(req UpdateRequest) error {
 	entity := req.Model()
 
-	if err := generateSchema(req.Context, req.Client, entity); err != nil {
+	if err := resourcedefinitions.GenerateSchema(req.Context, req.Client, entity); err != nil {
 		return fmt.Errorf("failed to generate schema: %w", err)
 	}
 

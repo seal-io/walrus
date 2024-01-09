@@ -8,7 +8,9 @@ import (
 
 	dtypes "github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
 	envbus "github.com/seal-io/walrus/pkg/bus/environment"
 	"github.com/seal-io/walrus/pkg/dao"
@@ -169,16 +171,48 @@ func (r *Server) applyKubernetesConnector(
 }
 
 func (r *Server) readKubeConfig() (string, error) {
-	kubeConfig := r.KubeConfig
-	if kubeConfig == "" {
+	inClusterConfig, err := rest.InClusterConfig()
+	if err == nil {
+		caData, err := os.ReadFile(inClusterConfig.TLSClientConfig.CAFile)
+		if err != nil {
+			return "", err
+		}
+
+		kc := clientcmdapi.Config{
+			Clusters: map[string]*clientcmdapi.Cluster{
+				"default": {
+					Server:                   inClusterConfig.Host,
+					CertificateAuthorityData: caData,
+				},
+			},
+			Contexts: map[string]*clientcmdapi.Context{
+				"default": {
+					Cluster:  "default",
+					AuthInfo: "default",
+				},
+			},
+			CurrentContext: "default",
+			AuthInfos: map[string]*clientcmdapi.AuthInfo{
+				"default": {
+					Token: inClusterConfig.BearerToken,
+				},
+			},
+		}
+		kcData, err := clientcmd.Write(kc)
+
+		return string(kcData), err
+	}
+
+	kubeConfigPath := r.KubeConfig
+	if kubeConfigPath == "" {
 		home, err := os.UserHomeDir()
 		if err != nil {
 			return "", err
 		}
-		kubeConfig = filepath.Join(home, clientcmd.RecommendedHomeDir, clientcmd.RecommendedFileName)
+		kubeConfigPath = filepath.Join(home, clientcmd.RecommendedHomeDir, clientcmd.RecommendedFileName)
 	}
 
-	kubeConfigData, err := os.ReadFile(kubeConfig)
+	kubeConfigData, err := os.ReadFile(kubeConfigPath)
 	if err != nil {
 		return "", err
 	}
