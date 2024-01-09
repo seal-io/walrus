@@ -120,6 +120,20 @@ func (rdc *ResourceDefinitionCreate) SetUiSchema(ts *types.UISchema) *ResourceDe
 	return rdc
 }
 
+// SetBuiltin sets the "builtin" field.
+func (rdc *ResourceDefinitionCreate) SetBuiltin(b bool) *ResourceDefinitionCreate {
+	rdc.mutation.SetBuiltin(b)
+	return rdc
+}
+
+// SetNillableBuiltin sets the "builtin" field if the given value is not nil.
+func (rdc *ResourceDefinitionCreate) SetNillableBuiltin(b *bool) *ResourceDefinitionCreate {
+	if b != nil {
+		rdc.SetBuiltin(*b)
+	}
+	return rdc
+}
+
 // SetID sets the "id" field.
 func (rdc *ResourceDefinitionCreate) SetID(o object.ID) *ResourceDefinitionCreate {
 	rdc.mutation.SetID(o)
@@ -223,6 +237,10 @@ func (rdc *ResourceDefinitionCreate) defaults() error {
 		v := resourcedefinition.DefaultUiSchema
 		rdc.mutation.SetUiSchema(v)
 	}
+	if _, ok := rdc.mutation.Builtin(); !ok {
+		v := resourcedefinition.DefaultBuiltin
+		rdc.mutation.SetBuiltin(v)
+	}
 	return nil
 }
 
@@ -252,6 +270,9 @@ func (rdc *ResourceDefinitionCreate) check() error {
 		if err := v.Validate(); err != nil {
 			return &ValidationError{Name: "schema", err: fmt.Errorf(`model: validator failed for field "ResourceDefinition.schema": %w`, err)}
 		}
+	}
+	if _, ok := rdc.mutation.Builtin(); !ok {
+		return &ValidationError{Name: "builtin", err: errors.New(`model: missing required field "ResourceDefinition.builtin"`)}
 	}
 	return nil
 }
@@ -326,6 +347,10 @@ func (rdc *ResourceDefinitionCreate) createSpec() (*ResourceDefinition, *sqlgrap
 		_spec.SetField(resourcedefinition.FieldUiSchema, field.TypeJSON, value)
 		_node.UiSchema = value
 	}
+	if value, ok := rdc.mutation.Builtin(); ok {
+		_spec.SetField(resourcedefinition.FieldBuiltin, field.TypeBool, value)
+		_node.Builtin = value
+	}
 	if nodes := rdc.mutation.MatchingRulesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -386,6 +411,7 @@ func (rdc *ResourceDefinitionCreate) Set(obj *ResourceDefinition) *ResourceDefin
 	rdc.SetName(obj.Name)
 	rdc.SetType(obj.Type)
 	rdc.SetSchema(obj.Schema)
+	rdc.SetBuiltin(obj.Builtin)
 
 	// Optional.
 	if obj.Description != "" {
@@ -830,6 +856,9 @@ func (u *ResourceDefinitionUpsertOne) UpdateNewValues() *ResourceDefinitionUpser
 		if _, exists := u.create.mutation.GetType(); exists {
 			s.SetIgnore(resourcedefinition.FieldType)
 		}
+		if _, exists := u.create.mutation.Builtin(); exists {
+			s.SetIgnore(resourcedefinition.FieldBuiltin)
+		}
 	}))
 	return u
 }
@@ -1162,6 +1191,9 @@ func (u *ResourceDefinitionUpsertBulk) UpdateNewValues() *ResourceDefinitionUpse
 			}
 			if _, exists := b.mutation.GetType(); exists {
 				s.SetIgnore(resourcedefinition.FieldType)
+			}
+			if _, exists := b.mutation.Builtin(); exists {
+				s.SetIgnore(resourcedefinition.FieldBuiltin)
 			}
 		}
 	}))

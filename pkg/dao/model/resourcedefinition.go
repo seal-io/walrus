@@ -42,6 +42,8 @@ type ResourceDefinition struct {
 	Schema types.Schema `json:"schema,omitempty"`
 	// UI schema of the resource definition.
 	UiSchema *types.UISchema `json:"uiSchema,omitempty"`
+	// Indicate whether the resource definition is builtin, decided when creating.
+	Builtin bool `json:"builtin,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ResourceDefinitionQuery when eager-loading is set.
 	Edges        ResourceDefinitionEdges `json:"edges,omitempty"`
@@ -86,6 +88,8 @@ func (*ResourceDefinition) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case resourcedefinition.FieldID:
 			values[i] = new(object.ID)
+		case resourcedefinition.FieldBuiltin:
+			values[i] = new(sql.NullBool)
 		case resourcedefinition.FieldName, resourcedefinition.FieldDescription, resourcedefinition.FieldType:
 			values[i] = new(sql.NullString)
 		case resourcedefinition.FieldCreateTime, resourcedefinition.FieldUpdateTime:
@@ -175,6 +179,12 @@ func (rd *ResourceDefinition) assignValues(columns []string, values []any) error
 					return fmt.Errorf("unmarshal field uiSchema: %w", err)
 				}
 			}
+		case resourcedefinition.FieldBuiltin:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field builtin", values[i])
+			} else if value.Valid {
+				rd.Builtin = value.Bool
+			}
 		default:
 			rd.selectValues.Set(columns[i], values[i])
 		}
@@ -251,6 +261,9 @@ func (rd *ResourceDefinition) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("uiSchema=")
 	builder.WriteString(fmt.Sprintf("%v", rd.UiSchema))
+	builder.WriteString(", ")
+	builder.WriteString("builtin=")
+	builder.WriteString(fmt.Sprintf("%v", rd.Builtin))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -14350,6 +14350,7 @@ type ResourceDefinitionMutation struct {
 	_type                 *string
 	schema                *types.Schema
 	uiSchema              **types.UISchema
+	builtin               *bool
 	clearedFields         map[string]struct{}
 	matching_rules        map[object.ID]struct{}
 	removedmatching_rules map[object.ID]struct{}
@@ -14842,6 +14843,42 @@ func (m *ResourceDefinitionMutation) ResetUiSchema() {
 	delete(m.clearedFields, resourcedefinition.FieldUiSchema)
 }
 
+// SetBuiltin sets the "builtin" field.
+func (m *ResourceDefinitionMutation) SetBuiltin(b bool) {
+	m.builtin = &b
+}
+
+// Builtin returns the value of the "builtin" field in the mutation.
+func (m *ResourceDefinitionMutation) Builtin() (r bool, exists bool) {
+	v := m.builtin
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBuiltin returns the old "builtin" field's value of the ResourceDefinition entity.
+// If the ResourceDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceDefinitionMutation) OldBuiltin(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBuiltin is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBuiltin requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBuiltin: %w", err)
+	}
+	return oldValue.Builtin, nil
+}
+
+// ResetBuiltin resets all changes to the "builtin" field.
+func (m *ResourceDefinitionMutation) ResetBuiltin() {
+	m.builtin = nil
+}
+
 // AddMatchingRuleIDs adds the "matching_rules" edge to the ResourceDefinitionMatchingRule entity by ids.
 func (m *ResourceDefinitionMutation) AddMatchingRuleIDs(ids ...object.ID) {
 	if m.matching_rules == nil {
@@ -14984,7 +15021,7 @@ func (m *ResourceDefinitionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ResourceDefinitionMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.name != nil {
 		fields = append(fields, resourcedefinition.FieldName)
 	}
@@ -15012,6 +15049,9 @@ func (m *ResourceDefinitionMutation) Fields() []string {
 	if m.uiSchema != nil {
 		fields = append(fields, resourcedefinition.FieldUiSchema)
 	}
+	if m.builtin != nil {
+		fields = append(fields, resourcedefinition.FieldBuiltin)
+	}
 	return fields
 }
 
@@ -15038,6 +15078,8 @@ func (m *ResourceDefinitionMutation) Field(name string) (ent.Value, bool) {
 		return m.Schema()
 	case resourcedefinition.FieldUiSchema:
 		return m.UiSchema()
+	case resourcedefinition.FieldBuiltin:
+		return m.Builtin()
 	}
 	return nil, false
 }
@@ -15065,6 +15107,8 @@ func (m *ResourceDefinitionMutation) OldField(ctx context.Context, name string) 
 		return m.OldSchema(ctx)
 	case resourcedefinition.FieldUiSchema:
 		return m.OldUiSchema(ctx)
+	case resourcedefinition.FieldBuiltin:
+		return m.OldBuiltin(ctx)
 	}
 	return nil, fmt.Errorf("unknown ResourceDefinition field %s", name)
 }
@@ -15136,6 +15180,13 @@ func (m *ResourceDefinitionMutation) SetField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUiSchema(v)
+		return nil
+	case resourcedefinition.FieldBuiltin:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBuiltin(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ResourceDefinition field %s", name)
@@ -15239,6 +15290,9 @@ func (m *ResourceDefinitionMutation) ResetField(name string) error {
 		return nil
 	case resourcedefinition.FieldUiSchema:
 		m.ResetUiSchema()
+		return nil
+	case resourcedefinition.FieldBuiltin:
+		m.ResetBuiltin()
 		return nil
 	}
 	return fmt.Errorf("unknown ResourceDefinition field %s", name)

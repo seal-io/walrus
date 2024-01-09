@@ -86,6 +86,11 @@ func Type(v string) predicate.ResourceDefinition {
 	return predicate.ResourceDefinition(sql.FieldEQ(FieldType, v))
 }
 
+// Builtin applies equality check predicate on the "builtin" field. It's identical to BuiltinEQ.
+func Builtin(v bool) predicate.ResourceDefinition {
+	return predicate.ResourceDefinition(sql.FieldEQ(FieldBuiltin, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.ResourceDefinition {
 	return predicate.ResourceDefinition(sql.FieldEQ(FieldName, v))
@@ -399,6 +404,16 @@ func UiSchemaIsNil() predicate.ResourceDefinition {
 // UiSchemaNotNil applies the NotNil predicate on the "uiSchema" field.
 func UiSchemaNotNil() predicate.ResourceDefinition {
 	return predicate.ResourceDefinition(sql.FieldNotNull(FieldUiSchema))
+}
+
+// BuiltinEQ applies the EQ predicate on the "builtin" field.
+func BuiltinEQ(v bool) predicate.ResourceDefinition {
+	return predicate.ResourceDefinition(sql.FieldEQ(FieldBuiltin, v))
+}
+
+// BuiltinNEQ applies the NEQ predicate on the "builtin" field.
+func BuiltinNEQ(v bool) predicate.ResourceDefinition {
+	return predicate.ResourceDefinition(sql.FieldNEQ(FieldBuiltin, v))
 }
 
 // HasMatchingRules applies the HasEdge predicate on the "matching_rules" edge.
