@@ -60,6 +60,13 @@ func (Resource) Fields() []ent.Field {
 			Nillable().
 			Annotations(
 				entx.SkipIO()),
+		object.IDField("resource_definition_matching_rule_id").
+			Comment("ID of the resource definition matching rule to which the resource use.").
+			Optional().
+			Nillable().
+			Annotations(
+				entx.SkipIO(),
+			),
 		property.ValuesField("attributes").
 			Comment("Attributes to configure the template.").
 			Optional(),
@@ -119,6 +126,16 @@ func (Resource) Edges() []ent.Edge {
 			// Hide the edge from the API, but generate the input for validation and edge resolution.
 			// Mapping from type to definition_edge.type is done in the API layer.
 			StructTag(`json:"-"`),
+		// ResourceDefinitionMatchingRules 1-* Resources.
+		edge.From("resource_definition_matching_rule", ResourceDefinitionMatchingRule.Type).
+			Ref("resources").
+			Field("resource_definition_matching_rule_id").
+			Comment("Resource definition matching rule which the resource matches.").
+			Unique().
+			Annotations(
+				entx.SkipInput(entx.WithQuery()),
+				entx.Input(entx.WithCreate(), entx.WithUpdate()),
+			),
 		// Resource 1-* ResourceRevisions.
 		edge.To("revisions", ResourceRevision.Type).
 			Comment("Revisions that belong to the resource.").
