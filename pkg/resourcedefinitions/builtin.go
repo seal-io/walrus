@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/seal-io/walrus/pkg/bus/builtin"
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -54,6 +56,9 @@ func SyncBuiltinResourceDefinitions(ctx context.Context, m builtin.BusMessage) e
 	resourceDefinitions := make([]*model.ResourceDefinition, 0, len(resourceTypeToConnectorTypes))
 
 	for res, conns := range resourceTypeToConnectorTypes {
+		// Sort the connector types to ensure the order of matching rules is deterministic.
+		slices.Sort(conns)
+
 		var definition *model.ResourceDefinition
 
 		definition, err = newResourceDefinition(ctx, mc, res, conns)
@@ -103,8 +108,10 @@ func newResourceDefinition(
 
 	bn := "builtin-" + resourceType
 	rd := &model.ResourceDefinition{
-		Name: bn,
-		Type: bn,
+		Name:        bn,
+		Type:        bn,
+		Description: "Walrus Builtin Resource Definition",
+		Builtin:     true,
 		Edges: model.ResourceDefinitionEdges{
 			MatchingRules: matchingRules,
 		},
@@ -135,7 +142,7 @@ func newMatchingRule(
 	}
 
 	m := &model.ResourceDefinitionMatchingRule{
-		Name:       connectorType,
+		Name:       name,
 		TemplateID: version.ID,
 		Selector: types.Selector{EnvironmentLabels: map[string]string{
 			dao.ProviderLabelPrefix + connectorType: dao.LabelValueTrue,
