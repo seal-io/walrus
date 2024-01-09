@@ -49,6 +49,11 @@ func (ResourceDefinition) Fields() []ent.Field {
 			Annotations(
 				entx.SkipClearingOptionalField(),
 				entx.Input(entx.WithUpdate())),
+		field.Bool("builtin").
+			Comment("Indicate whether the resource definition is builtin, decided when creating.").
+			Default(false).
+			Immutable().
+			Annotations(entx.SkipInput()),
 	}
 }
 
