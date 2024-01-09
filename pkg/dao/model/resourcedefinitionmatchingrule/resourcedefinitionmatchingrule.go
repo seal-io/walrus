@@ -37,6 +37,8 @@ const (
 	EdgeResourceDefinition = "resource_definition"
 	// EdgeTemplate holds the string denoting the template edge name in mutations.
 	EdgeTemplate = "template"
+	// EdgeResources holds the string denoting the resources edge name in mutations.
+	EdgeResources = "resources"
 	// Table holds the table name of the resourcedefinitionmatchingrule in the database.
 	Table = "resource_definition_matching_rules"
 	// ResourceDefinitionTable is the table that holds the resource_definition relation/edge.
@@ -53,6 +55,13 @@ const (
 	TemplateInverseTable = "template_versions"
 	// TemplateColumn is the table column denoting the template relation/edge.
 	TemplateColumn = "template_id"
+	// ResourcesTable is the table that holds the resources relation/edge.
+	ResourcesTable = "resources"
+	// ResourcesInverseTable is the table name for the Resource entity.
+	// It exists in this package in order to avoid circular dependency with the "resource" package.
+	ResourcesInverseTable = "resources"
+	// ResourcesColumn is the table column denoting the resources relation/edge.
+	ResourcesColumn = "resource_definition_matching_rule_id"
 )
 
 // Columns holds all SQL columns for resourcedefinitionmatchingrule fields.
@@ -145,6 +154,20 @@ func ByTemplateField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newTemplateStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByResourcesCount orders the results by resources count.
+func ByResourcesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newResourcesStep(), opts...)
+	}
+}
+
+// ByResources orders the results by resources terms.
+func ByResources(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newResourcesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newResourceDefinitionStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -157,6 +180,13 @@ func newTemplateStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TemplateInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, TemplateTable, TemplateColumn),
+	)
+}
+func newResourcesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ResourcesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ResourcesTable, ResourcesColumn),
 	)
 }
 

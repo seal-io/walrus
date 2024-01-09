@@ -316,6 +316,7 @@ var (
 		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "resource_definition_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "resource_definition_matching_rule_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "template_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// ResourcesTable holds the schema information for the "resources" table.
@@ -343,8 +344,14 @@ var (
 				OnDelete:   schema.Restrict,
 			},
 			{
-				Symbol:     "resources_template_versions_resources",
+				Symbol:     "resources_resource_definition_matching_rules_resources",
 				Columns:    []*schema.Column{ResourcesColumns[15]},
+				RefColumns: []*schema.Column{ResourceDefinitionMatchingRulesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "resources_template_versions_resources",
+				Columns:    []*schema.Column{ResourcesColumns[16]},
 				RefColumns: []*schema.Column{TemplateVersionsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
@@ -1267,7 +1274,8 @@ func init() {
 	ResourcesTable.ForeignKeys[0].RefTable = EnvironmentsTable
 	ResourcesTable.ForeignKeys[1].RefTable = ProjectsTable
 	ResourcesTable.ForeignKeys[2].RefTable = ResourceDefinitionsTable
-	ResourcesTable.ForeignKeys[3].RefTable = TemplateVersionsTable
+	ResourcesTable.ForeignKeys[3].RefTable = ResourceDefinitionMatchingRulesTable
+	ResourcesTable.ForeignKeys[4].RefTable = TemplateVersionsTable
 	ResourceComponentsTable.ForeignKeys[0].RefTable = ConnectorsTable
 	ResourceComponentsTable.ForeignKeys[1].RefTable = EnvironmentsTable
 	ResourceComponentsTable.ForeignKeys[2].RefTable = ProjectsTable

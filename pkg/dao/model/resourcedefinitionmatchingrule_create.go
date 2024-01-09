@@ -17,6 +17,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
@@ -99,6 +100,21 @@ func (rdmrc *ResourceDefinitionMatchingRuleCreate) SetResourceDefinition(r *Reso
 // SetTemplate sets the "template" edge to the TemplateVersion entity.
 func (rdmrc *ResourceDefinitionMatchingRuleCreate) SetTemplate(t *TemplateVersion) *ResourceDefinitionMatchingRuleCreate {
 	return rdmrc.SetTemplateID(t.ID)
+}
+
+// AddResourceIDs adds the "resources" edge to the Resource entity by IDs.
+func (rdmrc *ResourceDefinitionMatchingRuleCreate) AddResourceIDs(ids ...object.ID) *ResourceDefinitionMatchingRuleCreate {
+	rdmrc.mutation.AddResourceIDs(ids...)
+	return rdmrc
+}
+
+// AddResources adds the "resources" edges to the Resource entity.
+func (rdmrc *ResourceDefinitionMatchingRuleCreate) AddResources(r ...*Resource) *ResourceDefinitionMatchingRuleCreate {
+	ids := make([]object.ID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rdmrc.AddResourceIDs(ids...)
 }
 
 // Mutation returns the ResourceDefinitionMatchingRuleMutation object of the builder.
@@ -280,6 +296,23 @@ func (rdmrc *ResourceDefinitionMatchingRuleCreate) createSpec() (*ResourceDefini
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.TemplateID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rdmrc.mutation.ResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   resourcedefinitionmatchingrule.ResourcesTable,
+			Columns: []string{resourcedefinitionmatchingrule.ResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = rdmrc.schemaConfig.Resource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

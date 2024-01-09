@@ -22,6 +22,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
@@ -169,6 +170,20 @@ func (rc *ResourceCreate) SetNillableResourceDefinitionID(o *object.ID) *Resourc
 	return rc
 }
 
+// SetResourceDefinitionMatchingRuleID sets the "resource_definition_matching_rule_id" field.
+func (rc *ResourceCreate) SetResourceDefinitionMatchingRuleID(o object.ID) *ResourceCreate {
+	rc.mutation.SetResourceDefinitionMatchingRuleID(o)
+	return rc
+}
+
+// SetNillableResourceDefinitionMatchingRuleID sets the "resource_definition_matching_rule_id" field if the given value is not nil.
+func (rc *ResourceCreate) SetNillableResourceDefinitionMatchingRuleID(o *object.ID) *ResourceCreate {
+	if o != nil {
+		rc.SetResourceDefinitionMatchingRuleID(*o)
+	}
+	return rc
+}
+
 // SetAttributes sets the "attributes" field.
 func (rc *ResourceCreate) SetAttributes(pr property.Values) *ResourceCreate {
 	rc.mutation.SetAttributes(pr)
@@ -219,6 +234,11 @@ func (rc *ResourceCreate) SetTemplate(t *TemplateVersion) *ResourceCreate {
 // SetResourceDefinition sets the "resource_definition" edge to the ResourceDefinition entity.
 func (rc *ResourceCreate) SetResourceDefinition(r *ResourceDefinition) *ResourceCreate {
 	return rc.SetResourceDefinitionID(r.ID)
+}
+
+// SetResourceDefinitionMatchingRule sets the "resource_definition_matching_rule" edge to the ResourceDefinitionMatchingRule entity.
+func (rc *ResourceCreate) SetResourceDefinitionMatchingRule(r *ResourceDefinitionMatchingRule) *ResourceCreate {
+	return rc.SetResourceDefinitionMatchingRuleID(r.ID)
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ResourceRevision entity by IDs.
@@ -519,6 +539,24 @@ func (rc *ResourceCreate) createSpec() (*Resource, *sqlgraph.CreateSpec) {
 		_node.ResourceDefinitionID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := rc.mutation.ResourceDefinitionMatchingRuleIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   resource.ResourceDefinitionMatchingRuleTable,
+			Columns: []string{resource.ResourceDefinitionMatchingRuleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcedefinitionmatchingrule.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = rc.schemaConfig.Resource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ResourceDefinitionMatchingRuleID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := rc.mutation.RevisionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -625,6 +663,9 @@ func (rc *ResourceCreate) Set(obj *Resource) *ResourceCreate {
 	if obj.ResourceDefinitionID != nil {
 		rc.SetResourceDefinitionID(*obj.ResourceDefinitionID)
 	}
+	if obj.ResourceDefinitionMatchingRuleID != nil {
+		rc.SetResourceDefinitionMatchingRuleID(*obj.ResourceDefinitionMatchingRuleID)
+	}
 	if !reflect.ValueOf(obj.Attributes).IsZero() {
 		rc.SetAttributes(obj.Attributes)
 	}
@@ -705,6 +746,9 @@ func (rc *ResourceCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Con
 		}
 		if _, set := rc.mutation.Field(resource.FieldResourceDefinitionID); set {
 			obj.ResourceDefinitionID = x.ResourceDefinitionID
+		}
+		if _, set := rc.mutation.Field(resource.FieldResourceDefinitionMatchingRuleID); set {
+			obj.ResourceDefinitionMatchingRuleID = x.ResourceDefinitionMatchingRuleID
 		}
 		if _, set := rc.mutation.Field(resource.FieldAttributes); set {
 			obj.Attributes = x.Attributes
@@ -852,6 +896,9 @@ func (rcb *ResourceCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx contex
 			}
 			if _, set := rcb.builders[i].mutation.Field(resource.FieldResourceDefinitionID); set {
 				objs[i].ResourceDefinitionID = x[i].ResourceDefinitionID
+			}
+			if _, set := rcb.builders[i].mutation.Field(resource.FieldResourceDefinitionMatchingRuleID); set {
+				objs[i].ResourceDefinitionMatchingRuleID = x[i].ResourceDefinitionMatchingRuleID
 			}
 			if _, set := rcb.builders[i].mutation.Field(resource.FieldAttributes); set {
 				objs[i].Attributes = x[i].Attributes
@@ -1087,6 +1134,24 @@ func (u *ResourceUpsert) UpdateTemplateID() *ResourceUpsert {
 // ClearTemplateID clears the value of the "template_id" field.
 func (u *ResourceUpsert) ClearTemplateID() *ResourceUpsert {
 	u.SetNull(resource.FieldTemplateID)
+	return u
+}
+
+// SetResourceDefinitionMatchingRuleID sets the "resource_definition_matching_rule_id" field.
+func (u *ResourceUpsert) SetResourceDefinitionMatchingRuleID(v object.ID) *ResourceUpsert {
+	u.Set(resource.FieldResourceDefinitionMatchingRuleID, v)
+	return u
+}
+
+// UpdateResourceDefinitionMatchingRuleID sets the "resource_definition_matching_rule_id" field to the value that was provided on create.
+func (u *ResourceUpsert) UpdateResourceDefinitionMatchingRuleID() *ResourceUpsert {
+	u.SetExcluded(resource.FieldResourceDefinitionMatchingRuleID)
+	return u
+}
+
+// ClearResourceDefinitionMatchingRuleID clears the value of the "resource_definition_matching_rule_id" field.
+func (u *ResourceUpsert) ClearResourceDefinitionMatchingRuleID() *ResourceUpsert {
+	u.SetNull(resource.FieldResourceDefinitionMatchingRuleID)
 	return u
 }
 
@@ -1326,6 +1391,27 @@ func (u *ResourceUpsertOne) UpdateTemplateID() *ResourceUpsertOne {
 func (u *ResourceUpsertOne) ClearTemplateID() *ResourceUpsertOne {
 	return u.Update(func(s *ResourceUpsert) {
 		s.ClearTemplateID()
+	})
+}
+
+// SetResourceDefinitionMatchingRuleID sets the "resource_definition_matching_rule_id" field.
+func (u *ResourceUpsertOne) SetResourceDefinitionMatchingRuleID(v object.ID) *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.SetResourceDefinitionMatchingRuleID(v)
+	})
+}
+
+// UpdateResourceDefinitionMatchingRuleID sets the "resource_definition_matching_rule_id" field to the value that was provided on create.
+func (u *ResourceUpsertOne) UpdateResourceDefinitionMatchingRuleID() *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.UpdateResourceDefinitionMatchingRuleID()
+	})
+}
+
+// ClearResourceDefinitionMatchingRuleID clears the value of the "resource_definition_matching_rule_id" field.
+func (u *ResourceUpsertOne) ClearResourceDefinitionMatchingRuleID() *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.ClearResourceDefinitionMatchingRuleID()
 	})
 }
 
@@ -1739,6 +1825,27 @@ func (u *ResourceUpsertBulk) UpdateTemplateID() *ResourceUpsertBulk {
 func (u *ResourceUpsertBulk) ClearTemplateID() *ResourceUpsertBulk {
 	return u.Update(func(s *ResourceUpsert) {
 		s.ClearTemplateID()
+	})
+}
+
+// SetResourceDefinitionMatchingRuleID sets the "resource_definition_matching_rule_id" field.
+func (u *ResourceUpsertBulk) SetResourceDefinitionMatchingRuleID(v object.ID) *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.SetResourceDefinitionMatchingRuleID(v)
+	})
+}
+
+// UpdateResourceDefinitionMatchingRuleID sets the "resource_definition_matching_rule_id" field to the value that was provided on create.
+func (u *ResourceUpsertBulk) UpdateResourceDefinitionMatchingRuleID() *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.UpdateResourceDefinitionMatchingRuleID()
+	})
+}
+
+// ClearResourceDefinitionMatchingRuleID clears the value of the "resource_definition_matching_rule_id" field.
+func (u *ResourceUpsertBulk) ClearResourceDefinitionMatchingRuleID() *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.ClearResourceDefinitionMatchingRuleID()
 	})
 }
 

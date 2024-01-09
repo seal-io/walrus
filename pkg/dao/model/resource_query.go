@@ -23,6 +23,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
@@ -32,18 +33,19 @@ import (
 // ResourceQuery is the builder for querying Resource entities.
 type ResourceQuery struct {
 	config
-	ctx                    *QueryContext
-	order                  []resource.OrderOption
-	inters                 []Interceptor
-	predicates             []predicate.Resource
-	withProject            *ProjectQuery
-	withEnvironment        *EnvironmentQuery
-	withTemplate           *TemplateVersionQuery
-	withResourceDefinition *ResourceDefinitionQuery
-	withRevisions          *ResourceRevisionQuery
-	withComponents         *ResourceComponentQuery
-	withDependencies       *ResourceRelationshipQuery
-	modifiers              []func(*sql.Selector)
+	ctx                                *QueryContext
+	order                              []resource.OrderOption
+	inters                             []Interceptor
+	predicates                         []predicate.Resource
+	withProject                        *ProjectQuery
+	withEnvironment                    *EnvironmentQuery
+	withTemplate                       *TemplateVersionQuery
+	withResourceDefinition             *ResourceDefinitionQuery
+	withResourceDefinitionMatchingRule *ResourceDefinitionMatchingRuleQuery
+	withRevisions                      *ResourceRevisionQuery
+	withComponents                     *ResourceComponentQuery
+	withDependencies                   *ResourceRelationshipQuery
+	modifiers                          []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -173,6 +175,31 @@ func (rq *ResourceQuery) QueryResourceDefinition() *ResourceDefinitionQuery {
 		)
 		schemaConfig := rq.schemaConfig
 		step.To.Schema = schemaConfig.ResourceDefinition
+		step.Edge.Schema = schemaConfig.Resource
+		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryResourceDefinitionMatchingRule chains the current query on the "resource_definition_matching_rule" edge.
+func (rq *ResourceQuery) QueryResourceDefinitionMatchingRule() *ResourceDefinitionMatchingRuleQuery {
+	query := (&ResourceDefinitionMatchingRuleClient{config: rq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resource.Table, resource.FieldID, selector),
+			sqlgraph.To(resourcedefinitionmatchingrule.Table, resourcedefinitionmatchingrule.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, resource.ResourceDefinitionMatchingRuleTable, resource.ResourceDefinitionMatchingRuleColumn),
+		)
+		schemaConfig := rq.schemaConfig
+		step.To.Schema = schemaConfig.ResourceDefinitionMatchingRule
 		step.Edge.Schema = schemaConfig.Resource
 		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
 		return fromU, nil
@@ -442,18 +469,19 @@ func (rq *ResourceQuery) Clone() *ResourceQuery {
 		return nil
 	}
 	return &ResourceQuery{
-		config:                 rq.config,
-		ctx:                    rq.ctx.Clone(),
-		order:                  append([]resource.OrderOption{}, rq.order...),
-		inters:                 append([]Interceptor{}, rq.inters...),
-		predicates:             append([]predicate.Resource{}, rq.predicates...),
-		withProject:            rq.withProject.Clone(),
-		withEnvironment:        rq.withEnvironment.Clone(),
-		withTemplate:           rq.withTemplate.Clone(),
-		withResourceDefinition: rq.withResourceDefinition.Clone(),
-		withRevisions:          rq.withRevisions.Clone(),
-		withComponents:         rq.withComponents.Clone(),
-		withDependencies:       rq.withDependencies.Clone(),
+		config:                             rq.config,
+		ctx:                                rq.ctx.Clone(),
+		order:                              append([]resource.OrderOption{}, rq.order...),
+		inters:                             append([]Interceptor{}, rq.inters...),
+		predicates:                         append([]predicate.Resource{}, rq.predicates...),
+		withProject:                        rq.withProject.Clone(),
+		withEnvironment:                    rq.withEnvironment.Clone(),
+		withTemplate:                       rq.withTemplate.Clone(),
+		withResourceDefinition:             rq.withResourceDefinition.Clone(),
+		withResourceDefinitionMatchingRule: rq.withResourceDefinitionMatchingRule.Clone(),
+		withRevisions:                      rq.withRevisions.Clone(),
+		withComponents:                     rq.withComponents.Clone(),
+		withDependencies:                   rq.withDependencies.Clone(),
 		// clone intermediate query.
 		sql:  rq.sql.Clone(),
 		path: rq.path,
@@ -501,6 +529,17 @@ func (rq *ResourceQuery) WithResourceDefinition(opts ...func(*ResourceDefinition
 		opt(query)
 	}
 	rq.withResourceDefinition = query
+	return rq
+}
+
+// WithResourceDefinitionMatchingRule tells the query-builder to eager-load the nodes that are connected to
+// the "resource_definition_matching_rule" edge. The optional arguments are used to configure the query builder of the edge.
+func (rq *ResourceQuery) WithResourceDefinitionMatchingRule(opts ...func(*ResourceDefinitionMatchingRuleQuery)) *ResourceQuery {
+	query := (&ResourceDefinitionMatchingRuleClient{config: rq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rq.withResourceDefinitionMatchingRule = query
 	return rq
 }
 
@@ -615,11 +654,12 @@ func (rq *ResourceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Res
 	var (
 		nodes       = []*Resource{}
 		_spec       = rq.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [8]bool{
 			rq.withProject != nil,
 			rq.withEnvironment != nil,
 			rq.withTemplate != nil,
 			rq.withResourceDefinition != nil,
+			rq.withResourceDefinitionMatchingRule != nil,
 			rq.withRevisions != nil,
 			rq.withComponents != nil,
 			rq.withDependencies != nil,
@@ -669,6 +709,12 @@ func (rq *ResourceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Res
 	if query := rq.withResourceDefinition; query != nil {
 		if err := rq.loadResourceDefinition(ctx, query, nodes, nil,
 			func(n *Resource, e *ResourceDefinition) { n.Edges.ResourceDefinition = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := rq.withResourceDefinitionMatchingRule; query != nil {
+		if err := rq.loadResourceDefinitionMatchingRule(ctx, query, nodes, nil,
+			func(n *Resource, e *ResourceDefinitionMatchingRule) { n.Edges.ResourceDefinitionMatchingRule = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -818,6 +864,38 @@ func (rq *ResourceQuery) loadResourceDefinition(ctx context.Context, query *Reso
 	}
 	return nil
 }
+func (rq *ResourceQuery) loadResourceDefinitionMatchingRule(ctx context.Context, query *ResourceDefinitionMatchingRuleQuery, nodes []*Resource, init func(*Resource), assign func(*Resource, *ResourceDefinitionMatchingRule)) error {
+	ids := make([]object.ID, 0, len(nodes))
+	nodeids := make(map[object.ID][]*Resource)
+	for i := range nodes {
+		if nodes[i].ResourceDefinitionMatchingRuleID == nil {
+			continue
+		}
+		fk := *nodes[i].ResourceDefinitionMatchingRuleID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(resourcedefinitionmatchingrule.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "resource_definition_matching_rule_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (rq *ResourceQuery) loadRevisions(ctx context.Context, query *ResourceRevisionQuery, nodes []*Resource, init func(*Resource), assign func(*Resource, *ResourceRevision)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[object.ID]*Resource)
@@ -950,6 +1028,9 @@ func (rq *ResourceQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if rq.withResourceDefinition != nil {
 			_spec.Node.AddColumnOnce(resource.FieldResourceDefinitionID)
+		}
+		if rq.withResourceDefinitionMatchingRule != nil {
+			_spec.Node.AddColumnOnce(resource.FieldResourceDefinitionMatchingRuleID)
 		}
 	}
 	if ps := rq.predicates; len(ps) > 0 {

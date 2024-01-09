@@ -50,6 +50,8 @@ type ResourceCreateInput struct {
 	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template,omitempty"`
 	// ResourceDefinition specifies full inserting the new ResourceDefinition entity of the Resource entity.
 	ResourceDefinition *ResourceDefinitionQueryInput `uri:"-" query:"-" json:"-"`
+	// ResourceDefinitionMatchingRule specifies full inserting the new ResourceDefinitionMatchingRule entity of the Resource entity.
+	ResourceDefinitionMatchingRule *ResourceDefinitionMatchingRuleQueryInput `uri:"-" query:"-" json:"resourceDefinitionMatchingRule,omitempty"`
 }
 
 // Model returns the Resource entity for creating,
@@ -81,6 +83,9 @@ func (rci *ResourceCreateInput) Model() *Resource {
 	}
 	if rci.ResourceDefinition != nil {
 		_r.ResourceDefinitionID = &rci.ResourceDefinition.ID
+	}
+	if rci.ResourceDefinitionMatchingRule != nil {
+		_r.ResourceDefinitionMatchingRuleID = &rci.ResourceDefinitionMatchingRule.ID
 	}
 	return _r
 }
@@ -137,6 +142,16 @@ func (rci *ResourceCreateInput) ValidateWith(ctx context.Context, cs ClientSet, 
 		}
 	}
 
+	if rci.ResourceDefinitionMatchingRule != nil {
+		if err := rci.ResourceDefinitionMatchingRule.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rci.ResourceDefinitionMatchingRule = nil
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -161,6 +176,8 @@ type ResourceCreateInputsItem struct {
 	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template,omitempty"`
 	// ResourceDefinition specifies full inserting the new ResourceDefinition entity.
 	ResourceDefinition *ResourceDefinitionQueryInput `uri:"-" query:"-" json:"-"`
+	// ResourceDefinitionMatchingRule specifies full inserting the new ResourceDefinitionMatchingRule entity.
+	ResourceDefinitionMatchingRule *ResourceDefinitionMatchingRuleQueryInput `uri:"-" query:"-" json:"resourceDefinitionMatchingRule,omitempty"`
 }
 
 // ValidateWith checks the ResourceCreateInputsItem entity with the given context and client set.
@@ -189,6 +206,16 @@ func (rci *ResourceCreateInputsItem) ValidateWith(ctx context.Context, cs Client
 				return err
 			} else {
 				rci.ResourceDefinition = nil
+			}
+		}
+	}
+
+	if rci.ResourceDefinitionMatchingRule != nil {
+		if err := rci.ResourceDefinitionMatchingRule.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rci.ResourceDefinitionMatchingRule = nil
 			}
 		}
 	}
@@ -242,6 +269,9 @@ func (rci *ResourceCreateInputs) Model() []*Resource {
 		}
 		if rci.Items[i].ResourceDefinition != nil {
 			_r.ResourceDefinitionID = &rci.Items[i].ResourceDefinition.ID
+		}
+		if rci.Items[i].ResourceDefinitionMatchingRule != nil {
+			_r.ResourceDefinitionMatchingRuleID = &rci.Items[i].ResourceDefinitionMatchingRule.ID
 		}
 
 		_rs[i] = _r
@@ -784,6 +814,8 @@ type ResourceUpdateInput struct {
 	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template,omitempty"`
 	// ResourceDefinition indicates replacing the stale ResourceDefinition entity.
 	ResourceDefinition *ResourceDefinitionQueryInput `uri:"-" query:"-" json:"-"`
+	// ResourceDefinitionMatchingRule indicates replacing the stale ResourceDefinitionMatchingRule entity.
+	ResourceDefinitionMatchingRule *ResourceDefinitionMatchingRuleQueryInput `uri:"-" query:"-" json:"resourceDefinitionMatchingRule,omitempty"`
 }
 
 // Model returns the Resource entity for modifying,
@@ -808,6 +840,9 @@ func (rui *ResourceUpdateInput) Model() *Resource {
 	}
 	if rui.ResourceDefinition != nil {
 		_r.ResourceDefinitionID = &rui.ResourceDefinition.ID
+	}
+	if rui.ResourceDefinitionMatchingRule != nil {
+		_r.ResourceDefinitionMatchingRuleID = &rui.ResourceDefinitionMatchingRule.ID
 	}
 	return _r
 }
@@ -851,6 +886,16 @@ func (rui *ResourceUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, 
 		}
 	}
 
+	if rui.ResourceDefinitionMatchingRule != nil {
+		if err := rui.ResourceDefinitionMatchingRule.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rui.ResourceDefinitionMatchingRule = nil
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -876,6 +921,8 @@ type ResourceUpdateInputsItem struct {
 	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template,omitempty"`
 	// ResourceDefinition indicates replacing the stale ResourceDefinition entity.
 	ResourceDefinition *ResourceDefinitionQueryInput `uri:"-" query:"-" json:"-"`
+	// ResourceDefinitionMatchingRule indicates replacing the stale ResourceDefinitionMatchingRule entity.
+	ResourceDefinitionMatchingRule *ResourceDefinitionMatchingRuleQueryInput `uri:"-" query:"-" json:"resourceDefinitionMatchingRule,omitempty"`
 }
 
 // ValidateWith checks the ResourceUpdateInputsItem entity with the given context and client set.
@@ -904,6 +951,16 @@ func (rui *ResourceUpdateInputsItem) ValidateWith(ctx context.Context, cs Client
 				return err
 			} else {
 				rui.ResourceDefinition = nil
+			}
+		}
+	}
+
+	if rui.ResourceDefinitionMatchingRule != nil {
+		if err := rui.ResourceDefinitionMatchingRule.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rui.ResourceDefinitionMatchingRule = nil
 			}
 		}
 	}
@@ -950,6 +1007,9 @@ func (rui *ResourceUpdateInputs) Model() []*Resource {
 		}
 		if rui.Items[i].ResourceDefinition != nil {
 			_r.ResourceDefinitionID = &rui.Items[i].ResourceDefinition.ID
+		}
+		if rui.Items[i].ResourceDefinitionMatchingRule != nil {
+			_r.ResourceDefinitionMatchingRuleID = &rui.Items[i].ResourceDefinitionMatchingRule.ID
 		}
 
 		_rs[i] = _r
@@ -1095,9 +1155,10 @@ type ResourceOutput struct {
 	Attributes  property.Values         `json:"attributes,omitempty"`
 	Endpoints   types.ResourceEndpoints `json:"endpoints,omitempty"`
 
-	Project     *ProjectOutput         `json:"project,omitempty"`
-	Environment *EnvironmentOutput     `json:"environment,omitempty"`
-	Template    *TemplateVersionOutput `json:"template,omitempty"`
+	Project                        *ProjectOutput                        `json:"project,omitempty"`
+	Environment                    *EnvironmentOutput                    `json:"environment,omitempty"`
+	Template                       *TemplateVersionOutput                `json:"template,omitempty"`
+	ResourceDefinitionMatchingRule *ResourceDefinitionMatchingRuleOutput `json:"resourceDefinitionMatchingRule,omitempty"`
 }
 
 // View returns the output of Resource entity.
@@ -1148,6 +1209,13 @@ func ExposeResource(_r *Resource) *ResourceOutput {
 	} else if _r.TemplateID != nil {
 		ro.Template = &TemplateVersionOutput{
 			ID: *_r.TemplateID,
+		}
+	}
+	if _r.Edges.ResourceDefinitionMatchingRule != nil {
+		ro.ResourceDefinitionMatchingRule = ExposeResourceDefinitionMatchingRule(_r.Edges.ResourceDefinitionMatchingRule)
+	} else if _r.ResourceDefinitionMatchingRuleID != nil {
+		ro.ResourceDefinitionMatchingRule = &ResourceDefinitionMatchingRuleOutput{
+			ID: *_r.ResourceDefinitionMatchingRuleID,
 		}
 	}
 	return ro

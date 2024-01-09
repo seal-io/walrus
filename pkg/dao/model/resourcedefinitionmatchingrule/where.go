@@ -485,6 +485,35 @@ func HasTemplateWith(preds ...predicate.TemplateVersion) predicate.ResourceDefin
 	})
 }
 
+// HasResources applies the HasEdge predicate on the "resources" edge.
+func HasResources() predicate.ResourceDefinitionMatchingRule {
+	return predicate.ResourceDefinitionMatchingRule(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ResourcesTable, ResourcesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Resource
+		step.Edge.Schema = schemaConfig.Resource
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasResourcesWith applies the HasEdge predicate on the "resources" edge with a given conditions (other predicates).
+func HasResourcesWith(preds ...predicate.Resource) predicate.ResourceDefinitionMatchingRule {
+	return predicate.ResourceDefinitionMatchingRule(func(s *sql.Selector) {
+		step := newResourcesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Resource
+		step.Edge.Schema = schemaConfig.Resource
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.ResourceDefinitionMatchingRule) predicate.ResourceDefinitionMatchingRule {
 	return predicate.ResourceDefinitionMatchingRule(func(s *sql.Selector) {

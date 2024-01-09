@@ -107,6 +107,11 @@ func ResourceDefinitionID(v object.ID) predicate.Resource {
 	return predicate.Resource(sql.FieldEQ(FieldResourceDefinitionID, v))
 }
 
+// ResourceDefinitionMatchingRuleID applies equality check predicate on the "resource_definition_matching_rule_id" field. It's identical to ResourceDefinitionMatchingRuleIDEQ.
+func ResourceDefinitionMatchingRuleID(v object.ID) predicate.Resource {
+	return predicate.Resource(sql.FieldEQ(FieldResourceDefinitionMatchingRuleID, v))
+}
+
 // Attributes applies equality check predicate on the "attributes" field. It's identical to AttributesEQ.
 func Attributes(v property.Values) predicate.Resource {
 	return predicate.Resource(sql.FieldEQ(FieldAttributes, v))
@@ -742,6 +747,86 @@ func ResourceDefinitionIDContainsFold(v object.ID) predicate.Resource {
 	return predicate.Resource(sql.FieldContainsFold(FieldResourceDefinitionID, vc))
 }
 
+// ResourceDefinitionMatchingRuleIDEQ applies the EQ predicate on the "resource_definition_matching_rule_id" field.
+func ResourceDefinitionMatchingRuleIDEQ(v object.ID) predicate.Resource {
+	return predicate.Resource(sql.FieldEQ(FieldResourceDefinitionMatchingRuleID, v))
+}
+
+// ResourceDefinitionMatchingRuleIDNEQ applies the NEQ predicate on the "resource_definition_matching_rule_id" field.
+func ResourceDefinitionMatchingRuleIDNEQ(v object.ID) predicate.Resource {
+	return predicate.Resource(sql.FieldNEQ(FieldResourceDefinitionMatchingRuleID, v))
+}
+
+// ResourceDefinitionMatchingRuleIDIn applies the In predicate on the "resource_definition_matching_rule_id" field.
+func ResourceDefinitionMatchingRuleIDIn(vs ...object.ID) predicate.Resource {
+	return predicate.Resource(sql.FieldIn(FieldResourceDefinitionMatchingRuleID, vs...))
+}
+
+// ResourceDefinitionMatchingRuleIDNotIn applies the NotIn predicate on the "resource_definition_matching_rule_id" field.
+func ResourceDefinitionMatchingRuleIDNotIn(vs ...object.ID) predicate.Resource {
+	return predicate.Resource(sql.FieldNotIn(FieldResourceDefinitionMatchingRuleID, vs...))
+}
+
+// ResourceDefinitionMatchingRuleIDGT applies the GT predicate on the "resource_definition_matching_rule_id" field.
+func ResourceDefinitionMatchingRuleIDGT(v object.ID) predicate.Resource {
+	return predicate.Resource(sql.FieldGT(FieldResourceDefinitionMatchingRuleID, v))
+}
+
+// ResourceDefinitionMatchingRuleIDGTE applies the GTE predicate on the "resource_definition_matching_rule_id" field.
+func ResourceDefinitionMatchingRuleIDGTE(v object.ID) predicate.Resource {
+	return predicate.Resource(sql.FieldGTE(FieldResourceDefinitionMatchingRuleID, v))
+}
+
+// ResourceDefinitionMatchingRuleIDLT applies the LT predicate on the "resource_definition_matching_rule_id" field.
+func ResourceDefinitionMatchingRuleIDLT(v object.ID) predicate.Resource {
+	return predicate.Resource(sql.FieldLT(FieldResourceDefinitionMatchingRuleID, v))
+}
+
+// ResourceDefinitionMatchingRuleIDLTE applies the LTE predicate on the "resource_definition_matching_rule_id" field.
+func ResourceDefinitionMatchingRuleIDLTE(v object.ID) predicate.Resource {
+	return predicate.Resource(sql.FieldLTE(FieldResourceDefinitionMatchingRuleID, v))
+}
+
+// ResourceDefinitionMatchingRuleIDContains applies the Contains predicate on the "resource_definition_matching_rule_id" field.
+func ResourceDefinitionMatchingRuleIDContains(v object.ID) predicate.Resource {
+	vc := string(v)
+	return predicate.Resource(sql.FieldContains(FieldResourceDefinitionMatchingRuleID, vc))
+}
+
+// ResourceDefinitionMatchingRuleIDHasPrefix applies the HasPrefix predicate on the "resource_definition_matching_rule_id" field.
+func ResourceDefinitionMatchingRuleIDHasPrefix(v object.ID) predicate.Resource {
+	vc := string(v)
+	return predicate.Resource(sql.FieldHasPrefix(FieldResourceDefinitionMatchingRuleID, vc))
+}
+
+// ResourceDefinitionMatchingRuleIDHasSuffix applies the HasSuffix predicate on the "resource_definition_matching_rule_id" field.
+func ResourceDefinitionMatchingRuleIDHasSuffix(v object.ID) predicate.Resource {
+	vc := string(v)
+	return predicate.Resource(sql.FieldHasSuffix(FieldResourceDefinitionMatchingRuleID, vc))
+}
+
+// ResourceDefinitionMatchingRuleIDIsNil applies the IsNil predicate on the "resource_definition_matching_rule_id" field.
+func ResourceDefinitionMatchingRuleIDIsNil() predicate.Resource {
+	return predicate.Resource(sql.FieldIsNull(FieldResourceDefinitionMatchingRuleID))
+}
+
+// ResourceDefinitionMatchingRuleIDNotNil applies the NotNil predicate on the "resource_definition_matching_rule_id" field.
+func ResourceDefinitionMatchingRuleIDNotNil() predicate.Resource {
+	return predicate.Resource(sql.FieldNotNull(FieldResourceDefinitionMatchingRuleID))
+}
+
+// ResourceDefinitionMatchingRuleIDEqualFold applies the EqualFold predicate on the "resource_definition_matching_rule_id" field.
+func ResourceDefinitionMatchingRuleIDEqualFold(v object.ID) predicate.Resource {
+	vc := string(v)
+	return predicate.Resource(sql.FieldEqualFold(FieldResourceDefinitionMatchingRuleID, vc))
+}
+
+// ResourceDefinitionMatchingRuleIDContainsFold applies the ContainsFold predicate on the "resource_definition_matching_rule_id" field.
+func ResourceDefinitionMatchingRuleIDContainsFold(v object.ID) predicate.Resource {
+	vc := string(v)
+	return predicate.Resource(sql.FieldContainsFold(FieldResourceDefinitionMatchingRuleID, vc))
+}
+
 // AttributesEQ applies the EQ predicate on the "attributes" field.
 func AttributesEQ(v property.Values) predicate.Resource {
 	return predicate.Resource(sql.FieldEQ(FieldAttributes, v))
@@ -984,6 +1069,35 @@ func HasResourceDefinitionWith(preds ...predicate.ResourceDefinition) predicate.
 		step := newResourceDefinitionStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ResourceDefinition
+		step.Edge.Schema = schemaConfig.Resource
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasResourceDefinitionMatchingRule applies the HasEdge predicate on the "resource_definition_matching_rule" edge.
+func HasResourceDefinitionMatchingRule() predicate.Resource {
+	return predicate.Resource(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ResourceDefinitionMatchingRuleTable, ResourceDefinitionMatchingRuleColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ResourceDefinitionMatchingRule
+		step.Edge.Schema = schemaConfig.Resource
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasResourceDefinitionMatchingRuleWith applies the HasEdge predicate on the "resource_definition_matching_rule" edge with a given conditions (other predicates).
+func HasResourceDefinitionMatchingRuleWith(preds ...predicate.ResourceDefinitionMatchingRule) predicate.Resource {
+	return predicate.Resource(func(s *sql.Selector) {
+		step := newResourceDefinitionMatchingRuleStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ResourceDefinitionMatchingRule
 		step.Edge.Schema = schemaConfig.Resource
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
