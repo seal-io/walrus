@@ -81,6 +81,11 @@ func (ResourceDefinitionMatchingRule) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.Restrict),
 				entx.Input(entx.WithUpdate())),
+		edge.To("resources", Resource.Type).
+			Comment("Resources that match the rule.").
+			Annotations(
+				entsql.OnDelete(entsql.Restrict),
+				entx.SkipIO()),
 	}
 }
 
