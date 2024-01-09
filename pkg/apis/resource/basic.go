@@ -151,6 +151,7 @@ var (
 	sortFields = []string{
 		resource.FieldName,
 		resource.FieldCreateTime,
+		resource.FieldType,
 	}
 )
 
