@@ -509,6 +509,10 @@ func init() {
 	resourcedefinitionDescUiSchema := resourcedefinitionFields[2].Descriptor()
 	// resourcedefinition.DefaultUiSchema holds the default value on creation for the uiSchema field.
 	resourcedefinition.DefaultUiSchema = resourcedefinitionDescUiSchema.Default.(*types.UISchema)
+	// resourcedefinitionDescBuiltin is the schema descriptor for builtin field.
+	resourcedefinitionDescBuiltin := resourcedefinitionFields[3].Descriptor()
+	// resourcedefinition.DefaultBuiltin holds the default value on creation for the builtin field.
+	resourcedefinition.DefaultBuiltin = resourcedefinitionDescBuiltin.Default.(bool)
 	resourcedefinitionmatchingruleMixin := schema.ResourceDefinitionMatchingRule{}.Mixin()
 	resourcedefinitionmatchingruleMixinHooks0 := resourcedefinitionmatchingruleMixin[0].Hooks()
 	resourcedefinitionmatchingrule.Hooks[0] = resourcedefinitionmatchingruleMixinHooks0[0]

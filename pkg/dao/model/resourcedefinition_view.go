@@ -429,6 +429,7 @@ func (rdpi *ResourceDefinitionPatchInput) ValidateWith(ctx context.Context, cs C
 			resourcedefinition.FieldCreateTime,
 			resourcedefinition.FieldUpdateTime,
 			resourcedefinition.FieldSchema,
+			resourcedefinition.FieldBuiltin,
 		)...,
 	)
 
@@ -875,6 +876,7 @@ type ResourceDefinitionOutput struct {
 	Type        string            `json:"type,omitempty"`
 	Schema      types.Schema      `json:"schema,omitempty"`
 	UiSchema    *types.UISchema   `json:"uiSchema,omitempty"`
+	Builtin     bool              `json:"builtin,omitempty"`
 
 	MatchingRules []*ResourceDefinitionMatchingRuleOutput `json:"matchingRules,omitempty"`
 }
@@ -905,6 +907,7 @@ func ExposeResourceDefinition(_rd *ResourceDefinition) *ResourceDefinitionOutput
 		Type:        _rd.Type,
 		Schema:      _rd.Schema,
 		UiSchema:    _rd.UiSchema,
+		Builtin:     _rd.Builtin,
 	}
 
 	if _rd.Edges.MatchingRules != nil {

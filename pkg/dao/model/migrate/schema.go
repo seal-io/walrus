@@ -477,6 +477,7 @@ var (
 		{Name: "type", Type: field.TypeString},
 		{Name: "schema", Type: field.TypeJSON},
 		{Name: "ui_schema", Type: field.TypeJSON, Nullable: true},
+		{Name: "builtin", Type: field.TypeBool, Default: false},
 	}
 	// ResourceDefinitionsTable holds the schema information for the "resource_definitions" table.
 	ResourceDefinitionsTable = &schema.Table{

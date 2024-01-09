@@ -39,6 +39,8 @@ const (
 	FieldSchema = "schema"
 	// FieldUiSchema holds the string denoting the uischema field in the database.
 	FieldUiSchema = "ui_schema"
+	// FieldBuiltin holds the string denoting the builtin field in the database.
+	FieldBuiltin = "builtin"
 	// EdgeMatchingRules holds the string denoting the matching_rules edge name in mutations.
 	EdgeMatchingRules = "matching_rules"
 	// EdgeResources holds the string denoting the resources edge name in mutations.
@@ -73,6 +75,7 @@ var Columns = []string{
 	FieldType,
 	FieldSchema,
 	FieldUiSchema,
+	FieldBuiltin,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -108,6 +111,8 @@ var (
 	DefaultSchema types.Schema
 	// DefaultUiSchema holds the default value on creation for the "uiSchema" field.
 	DefaultUiSchema *types.UISchema
+	// DefaultBuiltin holds the default value on creation for the "builtin" field.
+	DefaultBuiltin bool
 )
 
 // OrderOption defines the ordering options for the ResourceDefinition queries.
@@ -141,6 +146,11 @@ func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
 // ByType orders the results by the type field.
 func ByType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldType, opts...).ToFunc()
+}
+
+// ByBuiltin orders the results by the builtin field.
+func ByBuiltin(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBuiltin, opts...).ToFunc()
 }
 
 // ByMatchingRulesCount orders the results by matching_rules count.
