@@ -105,7 +105,7 @@ func syncTemplateFromRef(
 	}
 
 	// Load schema.
-	originSchema, fileSchema, err := getSchemas(rootDir, entity.Name)
+	originSchema, uiSchema, err := getSchemas(rootDir, entity.Name)
 	if err != nil {
 		logger.Errorf("%s:%s get schemas failed", entity.Name, repo.Reference)
 		return err
@@ -151,7 +151,7 @@ func syncTemplateFromRef(
 			Version:    ref,
 			Source:     source + "?ref=" + repo.Reference,
 			Schema:     *originSchema,
-			UiSchema:   fileSchema.Expose(),
+			UiSchema:   *uiSchema,
 			ProjectID:  entity.ProjectID,
 		}).
 		OnConflict(conflictOptions...).
@@ -445,7 +445,7 @@ func syncTemplateVersion(ctx context.Context, mc model.ClientSet, tv *model.Temp
 	}
 
 	// Load schema.
-	originSchema, fileSchema, err := getSchemas(rootDir, tv.Name)
+	originSchema, uiSchema, err := getSchemas(rootDir, tv.Name)
 	if err != nil {
 		return err
 	}
@@ -453,21 +453,26 @@ func syncTemplateVersion(ctx context.Context, mc model.ClientSet, tv *model.Temp
 	// Update template version.
 	return mc.TemplateVersions().UpdateOne(tv).
 		SetSchema(*originSchema).
-		SetUiSchema(fileSchema.Expose()).
+		SetUiSchema(*uiSchema).
 		Exec(ctx)
 }
 
 // getSchemas returns template version schema and ui schema from a git repository.
-func getSchemas(rootDir, templateName string) (*types.TemplateVersionSchema, *types.TemplateVersionSchema, error) {
+func getSchemas(rootDir, templateName string) (*types.TemplateVersionSchema, *types.UISchema, error) {
 	// Load schema.
 	originSchema, err := loader.LoadOriginalSchema(rootDir, templateName)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	fileSchema, err := loader.LoadAndMergeSchema(rootDir, templateName)
+	fileSchema, err := loader.LoadFileSchema(rootDir, templateName)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	uiSchema := originSchema.Expose()
+	if fileSchema != nil {
+		uiSchema = fileSchema.Expose()
 	}
 
 	satisfy, err := isConstraintSatisfied(fileSchema)
@@ -479,5 +484,5 @@ func getSchemas(rootDir, templateName string) (*types.TemplateVersionSchema, *ty
 		return nil, nil, fmt.Errorf("%s does not satisfy server version constraint", templateName)
 	}
 
-	return originSchema, fileSchema, nil
+	return originSchema, &uiSchema, nil
 }

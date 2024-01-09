@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"sigs.k8s.io/yaml"
+
+	"github.com/seal-io/walrus/pkg/dao/types"
 )
 
 func TestLoadTerraformSchema(t *testing.T) {
@@ -78,7 +80,18 @@ func TestLoadTerraformSchema(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			loader := NewTerraformLoader()
 
-			actualOutput, actualError := loader.Load(tc.input, "dev-template", ModeSchemaFile)
+			var (
+				actualOutput *types.TemplateVersionSchema
+				actualError  error
+			)
+
+			_, err := os.Stat(filepath.Join(tc.input, "schema.yaml"))
+			if err == nil {
+				actualOutput, actualError = loader.Load(tc.input, "dev-template", ModeSchemaFile)
+			} else {
+				actualOutput, actualError = loader.Load(tc.input, "dev-template", ModeOriginal)
+			}
+
 			assert.Equal(t, tc.expectedError, actualError != nil)
 
 			if tc.expectedError {

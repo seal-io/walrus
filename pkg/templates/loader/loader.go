@@ -1,8 +1,6 @@
 package loader
 
 import (
-	"fmt"
-
 	"github.com/seal-io/walrus/pkg/dao/types"
 )
 
@@ -11,8 +9,8 @@ type SchemaLoader interface {
 	Load(rootDir, templateName string, mode Mode) (*types.TemplateVersionSchema, error)
 }
 
-// LoadSchemaPreferFile loads schema from template, prefer load from schema.yaml file.
-func LoadSchemaPreferFile(rootDir, templateName string) (s *types.TemplateVersionSchema, err error) {
+// LoadFileSchema loads schema from schema.yaml file.
+func LoadFileSchema(rootDir, templateName string) (s *types.TemplateVersionSchema, err error) {
 	return LoadSchema(rootDir, templateName, ModeSchemaFile)
 }
 
@@ -32,17 +30,7 @@ func LoadSchema(rootDir, templateName string, mode Mode) (s *types.TemplateVersi
 	// Terraform.
 	tf := NewTerraformLoader()
 
-	s, err = tf.Load(rootDir, templateName, mode)
-	if err != nil {
-		return nil, err
-	}
-
-	if s != nil {
-		return s, nil
-	}
-
-	// Continue with other loaders in the future.
-	return nil, fmt.Errorf("no supported schema found for template %s", templateName)
+	return tf.Load(rootDir, templateName, mode)
 }
 
 type Mode uint8

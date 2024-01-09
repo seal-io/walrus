@@ -175,7 +175,7 @@ func (l *TerraformLoader) getVariableSchema(
 // applyMissingConfig apply the missing config to schema generate from schema.yaml.
 func (l *TerraformLoader) applyMissingConfig(generated, customized *openapi3.Schema) *openapi3.Schema {
 	if customized == nil {
-		return generated
+		return nil
 	}
 
 	s := *customized
