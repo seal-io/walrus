@@ -12,7 +12,14 @@ openAPISchema:
               colSpan: 12
               group: Basic
               order: 1
+              widget: YamlEditor
           any_map:
+            additionalProperties:
+              type: object
+              x-walrus-original:
+                type: dynamic
+              x-walrus-ui:
+                colSpan: 12
             title: Any Map
             type: object
             x-walrus-original:
@@ -23,6 +30,7 @@ openAPISchema:
               colSpan: 12
               group: Basic
               order: 2
+              widget: YamlEditor
           list_object:
             items:
               properties:

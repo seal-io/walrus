@@ -25,6 +25,8 @@ type Options struct {
 	Sensitive     bool
 	Order         int
 	TypeExpress   any
+	// IgnoreWidget used for skipping add widget for any type in sub schema.
+	IgnoreWidget bool
 }
 
 // SchemaOfType generates openAPI schema from original type.

@@ -6,8 +6,14 @@ openAPISchema:
           list_any_with_default:
             default:
             - name: default-name
+            items:
+              type: object
+              x-walrus-original:
+                type: dynamic
+              x-walrus-ui:
+                colSpan: 12
             title: List Any With Default
-            type: object
+            type: array
             x-walrus-original:
               type:
               - list
@@ -16,11 +22,26 @@ openAPISchema:
               colSpan: 12
               group: Basic
               order: 1
+              widget: YamlEditor
           list_map_any_with_default:
             default:
             - name: default-name
+            items:
+              additionalProperties:
+                type: object
+                x-walrus-original:
+                  type: dynamic
+                x-walrus-ui:
+                  colSpan: 12
+              type: object
+              x-walrus-original:
+                type:
+                - map
+                - dynamic
+              x-walrus-ui:
+                colSpan: 12
             title: List Map Any With Default
-            type: object
+            type: array
             x-walrus-original:
               type:
               - list
@@ -30,9 +51,32 @@ openAPISchema:
               colSpan: 12
               group: Basic
               order: 3
+              widget: YamlEditor
           list_object_with_any_default:
+            items:
+              properties:
+                any_data:
+                  default:
+                    headers:
+                      X-Forwarded-Proto: https
+                    method: GET
+                  title: Any Data
+                  type: object
+                  x-walrus-original:
+                    type: dynamic
+                  x-walrus-ui:
+                    colSpan: 12
+                    order: 1
+              type: object
+              x-walrus-original:
+                type:
+                - object
+                - any_data: dynamic
+                - - any_data
+              x-walrus-ui:
+                colSpan: 12
             title: List Object With Any Default
-            type: object
+            type: array
             x-walrus-original:
               type:
               - list
@@ -43,7 +87,14 @@ openAPISchema:
               colSpan: 12
               group: Basic
               order: 5
+              widget: YamlEditor
           map_any_with_default:
+            additionalProperties:
+              type: object
+              x-walrus-original:
+                type: dynamic
+              x-walrus-ui:
+                colSpan: 12
             default:
               name: default-name
             title: Map Any With Default
@@ -56,7 +107,30 @@ openAPISchema:
               colSpan: 12
               group: Basic
               order: 2
+              widget: YamlEditor
           map_object_with_any_default:
+            additionalProperties:
+              properties:
+                any_data:
+                  default:
+                    headers:
+                      X-Forwarded-Proto: https
+                    method: GET
+                  title: Any Data
+                  type: object
+                  x-walrus-original:
+                    type: dynamic
+                  x-walrus-ui:
+                    colSpan: 12
+                    order: 1
+              type: object
+              x-walrus-original:
+                type:
+                - object
+                - any_data: dynamic
+                - - any_data
+              x-walrus-ui:
+                colSpan: 12
             title: Map Object With Any Default
             type: object
             x-walrus-original:
@@ -69,7 +143,21 @@ openAPISchema:
               colSpan: 12
               group: Basic
               order: 6
+              widget: YamlEditor
           object_with_any_default:
+            properties:
+              any_data:
+                default:
+                  headers:
+                    X-Forwarded-Proto: https
+                  method: GET
+                title: Any Data
+                type: object
+                x-walrus-original:
+                  type: dynamic
+                x-walrus-ui:
+                  colSpan: 12
+                  order: 1
             title: Object With Any Default
             type: object
             x-walrus-original:
@@ -81,6 +169,7 @@ openAPISchema:
               colSpan: 12
               group: Basic
               order: 4
+              widget: YamlEditor
         required:
         - list_object_with_any_default
         - map_object_with_any_default

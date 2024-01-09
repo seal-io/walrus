@@ -44,7 +44,7 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 	)
 
 	switch {
-	case typ.HasDynamicTypes():
+	case typ == cty.DynamicPseudoType:
 		// Empty Type.
 		s = openapi3.NewObjectSchema()
 
@@ -52,11 +52,7 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 		setDefault(s, dv)
 
 		// Extensions.
-		s.Extensions = openapi.NewExt().
-			WithOriginalType(typ).
-			WithUIOrder(order).
-			WithUIColSpan(12).
-			Export()
+		s.Extensions, _ = newCollectionExt(typ, order, opts)
 	case typ == cty.Bool:
 		// Schema.
 		s = openapi3.NewBoolSchema()
@@ -110,21 +106,19 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 		}
 		etpDef := getChildDefault(do)
 
+		// Extensions.
+		var ignoreWidget bool
+		s.Extensions, ignoreWidget = newCollectionExt(typ, order, opts)
+
 		// Property.
 		it := t.SchemaOfOriginalType(typ.ElementType(), Options{
 			DefaultObject: etpDef,
 			Sensitive:     sensitive,
 			Order:         -1,
 			TypeExpress:   getListItemExpression(opts.TypeExpress),
+			IgnoreWidget:  ignoreWidget,
 		})
 		s.WithItems(it)
-
-		// Extensions.
-		s.Extensions = openapi.NewExt().
-			WithOriginalType(typ).
-			WithUIOrder(order).
-			WithUIColSpan(12).
-			Export()
 
 	case typ.IsTupleType():
 		// Schema.
@@ -137,6 +131,10 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 
 		// TODO(michelia): support tuple items default.
 
+		// Extensions.
+		var ignoreWidget bool
+		s.Extensions, ignoreWidget = newCollectionExt(typ, order, opts)
+
 		// Property.
 		var (
 			ts   = typ.TupleElementTypes()
@@ -146,8 +144,9 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 
 		for i, tt := range ts {
 			o := Options{
-				Sensitive: sensitive,
-				Order:     -1,
+				Sensitive:    sensitive,
+				Order:        -1,
+				IgnoreWidget: ignoreWidget,
 			}
 			if len(te) > i {
 				o.TypeExpress = te[i]
@@ -181,13 +180,6 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 			s.WithItems(openapi3.NewObjectSchema())
 		}
 
-		// Extensions.
-		s.Extensions = openapi.NewExt().
-			WithOriginalType(typ).
-			WithUIOrder(order).
-			WithUIColSpan(12).
-			Export()
-
 	case typ.IsMapType():
 		// Schema.
 		s = openapi3.NewObjectSchema()
@@ -202,6 +194,10 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 			mtpDef = getChildDefault(do)
 		)
 
+		// Extensions.
+		var ignoreWidget bool
+		s.Extensions, ignoreWidget = newCollectionExt(typ, order, opts)
+
 		// Property.
 		if mtp != nil {
 			it := t.SchemaOfOriginalType(*mtp, Options{
@@ -209,16 +205,10 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 				Sensitive:     sensitive,
 				Order:         -1,
 				TypeExpress:   getMapItemExpression(opts.TypeExpress),
+				IgnoreWidget:  ignoreWidget,
 			})
 			s.WithAdditionalProperties(it)
 		}
-
-		// Extensions.
-		s.Extensions = openapi.NewExt().
-			WithOriginalType(typ).
-			WithUIOrder(order).
-			WithUIColSpan(12).
-			Export()
 
 	case typ.IsObjectType():
 		// Schema.
@@ -246,6 +236,10 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 				}
 			}
 		}
+
+		// Extensions.
+		var ignoreWidget bool
+		s.Extensions, ignoreWidget = newCollectionExt(typ, order, opts)
 
 		// Property Order.
 		var (
@@ -283,17 +277,12 @@ func (t TerraformTranslator) SchemaOfOriginalType(tp any, opts Options) *openapi
 				Sensitive:     sensitive,
 				Order:         propOrder[n],
 				TypeExpress:   propExpr[n],
+				IgnoreWidget:  ignoreWidget,
 			})
 
 			s.WithProperty(n, st)
 		}
 
-		// Extensions.
-		s.Extensions = openapi.NewExt().
-			WithOriginalType(typ).
-			WithUIOrder(order).
-			WithUIColSpan(12).
-			Export()
 		sort.Strings(s.Required)
 	}
 
@@ -523,4 +512,21 @@ func getMapItemExpression(expr any) hclsyntax.Expression {
 	}
 
 	return getMapItemExpression(fe.Args[0])
+}
+
+func newCollectionExt(typ cty.Type, order int, opts Options) (map[string]any, bool) {
+	var ignoreWidget bool
+	ext := openapi.NewExt().
+		WithOriginalType(typ).
+		WithUIOrder(order).
+		WithUIColSpan(12)
+
+	if opts.IgnoreWidget {
+		ignoreWidget = opts.IgnoreWidget
+	} else if typ.HasDynamicTypes() && !opts.IgnoreWidget {
+		ext.WithUIWidget(openapi.UIWidgetYamlEditor)
+		ignoreWidget = true
+	}
+
+	return ext.Export(), ignoreWidget
 }

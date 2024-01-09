@@ -52,6 +52,10 @@ const (
 	*/
 )
 
+const (
+	UIWidgetYamlEditor = "YamlEditor"
+)
+
 const WalrusContextVariableName = "context"
 
 // ExtUI is a struct wrap the UI extension.
