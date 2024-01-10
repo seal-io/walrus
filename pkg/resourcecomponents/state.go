@@ -72,24 +72,13 @@ func State(
 			sr.merge(st.Error, st.Transitioning)
 		}
 
-		// Get endpoints of the resource component.
-		eps, err := op.GetEndpoints(ctx, candidates[i])
-		if err != nil {
-			berr = multierr.Append(berr, err)
-		}
-
-		// New resource component status.
-		newStatus := types.ResourceComponentStatus{
-			Status:            *st,
-			ResourceEndpoints: eps,
-		}
-		if candidates[i].Status.Equal(newStatus) {
+		if candidates[i].Status.Equal(*st) {
 			// Do not update if the status is same as previous.
 			continue
 		}
 
 		err = modelClient.ResourceComponents().UpdateOne(candidates[i]).
-			SetStatus(newStatus).
+			SetStatus(*st).
 			Exec(ctx)
 		if err != nil {
 			if model.IsNotFound(err) {

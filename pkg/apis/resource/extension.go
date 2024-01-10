@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"path/filepath"
 	"sort"
 	"strings"
 
@@ -22,7 +21,6 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
-	"github.com/seal-io/walrus/pkg/operator/k8s/intercept"
 	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	pkgcomponent "github.com/seal-io/walrus/pkg/resourcecomponents"
 	tfparser "github.com/seal-io/walrus/pkg/terraform/parser"
@@ -296,28 +294,6 @@ func (h Handler) RouteGetAccessEndpoints(req RouteGetAccessEndpointsRequest) (Ro
 }
 
 func (h Handler) getAccessEndpoints(ctx context.Context, id object.ID) ([]AccessEndpoint, error) {
-	// Endpoints from output.
-	oeps, err := h.getEndpointsFromOutput(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	// Endpoints from resources.
-	reps, err := h.getEndpointsFromResources(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	eps := oeps
-	eps = append(eps, reps...)
-	sort.SliceStable(eps, func(i, j int) bool {
-		return eps[j].Name < eps[i].Name
-	})
-
-	return eps, nil
-}
-
-func (h Handler) getEndpointsFromOutput(ctx context.Context, id object.ID) ([]AccessEndpoint, error) {
 	outputs, err := h.getResourceOutputs(ctx, id, true)
 	if err != nil {
 		return nil, err
@@ -377,53 +353,9 @@ func (h Handler) getEndpointsFromOutput(ctx context.Context, id object.ID) ([]Ac
 		}
 	}
 
-	return endpoints, nil
-}
-
-func (h Handler) getEndpointsFromResources(ctx context.Context, id object.ID) ([]AccessEndpoint, error) {
-	sr, err := h.getLatestRevision(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	if sr == nil {
-		return nil, nil
-	}
-
-	if !status.ResourceRevisionStatusReady.IsTrue(sr) {
-		return nil, nil
-	}
-
-	res, err := h.modelClient.ResourceComponents().Query().
-		Where(
-			resourcecomponent.ResourceID(id),
-			resourcecomponent.Mode(types.ResourceComponentModeManaged),
-			resourcecomponent.TypeIn(intercept.TFEndpointsTypes...)).
-		Select(
-			resourcecomponent.FieldConnectorID,
-			resourcecomponent.FieldType,
-			resourcecomponent.FieldName,
-			resourcecomponent.FieldStatus,
-		).
-		All(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(res) == 0 {
-		return nil, nil
-	}
-
-	var endpoints []AccessEndpoint
-
-	for _, v := range res {
-		for _, eps := range v.Status.ResourceEndpoints {
-			endpoints = append(endpoints, AccessEndpoint{
-				Name:      filepath.Join(eps.EndpointType, filepath.Base(v.Name)),
-				Endpoints: eps.Endpoints,
-			})
-		}
-	}
+	sort.SliceStable(endpoints, func(i, j int) bool {
+		return endpoints[j].Name < endpoints[i].Name
+	})
 
 	return endpoints, nil
 }
