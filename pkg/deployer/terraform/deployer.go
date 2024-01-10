@@ -476,6 +476,14 @@ func (d Deployer) createRevision(
 		if matchRule == nil {
 			return nil, fmt.Errorf("resource definition %s does not match resource %s", rd.Name, res.Name)
 		}
+
+		_, err = mc.Resources().UpdateOne(res).
+			SetResourceDefinitionMatchingRuleID(matchRule.ID).
+			Save(ctx)
+		if err != nil {
+			return nil, err
+		}
+
 		templateName = matchRule.Edges.Template.Name
 		templateVersion = matchRule.Edges.Template.Version
 

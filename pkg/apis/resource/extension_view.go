@@ -497,6 +497,8 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 			resource.FieldResourceDefinitionID,
 			resource.FieldStatus,
 			resource.FieldAttributes,
+			resource.FieldEnvironmentID,
+			resource.FieldProjectID,
 		).
 		WithTemplate(func(tvq *model.TemplateVersionQuery) {
 			tvq.Select(
@@ -547,6 +549,20 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 				ID:   *entity.TemplateID,
 				Name: entity.Edges.Template.Name,
 			}
+		}
+
+		var projectID, environmentID object.ID
+
+		if r.Project != nil {
+			projectID = r.Project.ID
+		} else {
+			projectID = entity.ProjectID
+		}
+
+		if r.Environment != nil {
+			environmentID = r.Environment.ID
+		} else {
+			environmentID = entity.EnvironmentID
 		}
 
 		switch {
@@ -602,7 +618,7 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 			}
 
 			env, err := r.Client.Environments().Query().
-				Where(environment.ID(r.Environment.ID)).
+				Where(environment.ID(environmentID)).
 				Select(
 					environment.FieldID,
 					environment.FieldName,
@@ -633,7 +649,7 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 
 		// Verify that variables in attributes are valid.
 		if err := validateVariable(r.Context, r.Client,
-			input.Attributes, input.Name, r.Project.ID, r.Environment.ID); err != nil {
+			input.Attributes, input.Name, projectID, environmentID); err != nil {
 			return err
 		}
 

@@ -101,7 +101,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		r.Routes(dashboard.Handle(opts.ModelClient))
 		r.Routes(perspective.Handle(opts.ModelClient))
 		r.Routes(project.Handle(opts.ModelClient, opts.K8sConfig, wc))
-		r.Routes(resourcedefinition.Handle(opts.ModelClient))
+		r.Routes(resourcedefinition.Handle(opts.ModelClient, opts.K8sConfig))
 		r.Routes(role.Handle(opts.ModelClient))
 		r.Routes(setting.Handle(opts.ModelClient))
 		r.Routes(subject.Handle(opts.ModelClient))
