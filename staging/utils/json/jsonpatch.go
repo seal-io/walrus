@@ -27,3 +27,25 @@ func PatchObject(obj, patchObject any) (any, error) {
 
 	return obj, nil
 }
+
+func ApplyPatches(doc []byte, patches ...[]byte) ([]byte, error) {
+	var err error
+
+	for i := range patches {
+		if len(patches[i]) == 0 {
+			continue
+		}
+
+		if len(doc) == 0 {
+			doc = patches[i]
+			continue
+		}
+
+		doc, err = jsonpatch.MergePatch(doc, patches[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return doc, nil
+}
