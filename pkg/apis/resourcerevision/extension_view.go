@@ -11,9 +11,10 @@ import (
 )
 
 type RevisionDiff struct {
-	TemplateName    string          `json:"templateName"`
-	TemplateVersion string          `json:"templateVersion"`
-	Attributes      property.Values `json:"attributes"`
+	TemplateName       string          `json:"templateName"`
+	TemplateVersion    string          `json:"templateVersion"`
+	Attributes         property.Values `json:"attributes"`
+	ComputedAttributes property.Values `json:"computedAttributes"`
 }
 
 type (

@@ -11,6 +11,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	"github.com/seal-io/walrus/pkg/resourcedefinitions"
+	"github.com/seal-io/walrus/pkg/templates"
 	"github.com/seal-io/walrus/utils/topic"
 )
 
@@ -21,7 +22,12 @@ func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 		return nil, fmt.Errorf("failed to generate schema: %w", err)
 	}
 
-	err := h.modelClient.WithTx(req.Context, func(tx *model.Tx) (err error) {
+	err := templates.SetResourceDefinitionSchemaDefault(req.Context, entity)
+	if err != nil {
+		return nil, err
+	}
+
+	err = h.modelClient.WithTx(req.Context, func(tx *model.Tx) (err error) {
 		entity, err = tx.ResourceDefinitions().Create().
 			Set(entity).
 			SaveE(req.Context, dao.ResourceDefinitionMatchingRulesEdgeSave)
@@ -72,7 +78,12 @@ func (h Handler) Update(req UpdateRequest) error {
 		return fmt.Errorf("failed to generate schema: %w", err)
 	}
 
-	err := h.modelClient.WithTx(req.Context, func(tx *model.Tx) (err error) {
+	err := templates.SetResourceDefinitionSchemaDefault(req.Context, entity)
+	if err != nil {
+		return err
+	}
+
+	err = h.modelClient.WithTx(req.Context, func(tx *model.Tx) (err error) {
 		entity, err = tx.ResourceDefinitions().UpdateOne(entity).
 			Set(entity).
 			SaveE(req.Context, dao.ResourceDefinitionMatchingRulesEdgeSave)

@@ -76,10 +76,6 @@ func (r *RouteUpgradeRequest) Validate() error {
 			"cannot update resource draft in %q status", entity.Status.SummaryStatus)
 	}
 
-	if r.ReuseAttributes {
-		r.Attributes = entity.Attributes
-	}
-
 	if entity.ResourceDefinitionID != nil {
 		r.ResourceDefinition = &model.ResourceDefinitionQueryInput{
 			Type: entity.Edges.ResourceDefinition.Type,
@@ -92,6 +88,20 @@ func (r *RouteUpgradeRequest) Validate() error {
 			ID:   *entity.TemplateID,
 			Name: entity.Edges.Template.Name,
 		}
+	}
+
+	if r.ReuseAttributes {
+		r.Attributes = entity.Attributes
+		r.ComputedAttributes = entity.ComputedAttributes
+	} else {
+		en := r.Model()
+
+		computedAttr, err := genComputedAttributes(r.Context, en, r.Client)
+		if err != nil {
+			return err
+		}
+
+		r.ComputedAttributes = computedAttr
 	}
 
 	switch {
@@ -111,18 +121,9 @@ func (r *RouteUpgradeRequest) Validate() error {
 			return fmt.Errorf("failed to get template version: %w", err)
 		}
 
-		// Verify attributes with schema.
-		// TODO(thxCode): migrate schema to ui schema, then reduce if-else.
-		if s := tv.UiSchema; !s.IsEmpty() {
-			err = r.Attributes.ValidateWith(s.VariableSchema())
-			if err != nil {
-				return fmt.Errorf("invalid variables: violate ui schema: %w", err)
-			}
-		} else if s := tv.Schema; !s.IsEmpty() {
-			err = r.Attributes.ValidateWith(s.VariableSchema())
-			if err != nil {
-				return fmt.Errorf("invalid variables: %w", err)
-			}
+		err = validateAttributesWithTemplate(r.Attributes, tv)
+		if err != nil {
+			return err
 		}
 	case r.ResourceDefinition != nil:
 		rd, err := r.Client.ResourceDefinitions().Query().
@@ -140,10 +141,19 @@ func (r *RouteUpgradeRequest) Validate() error {
 						)
 					})
 			}).
-			Select(resourcedefinition.FieldID, resourcedefinition.FieldName).
+			Select(
+				resourcedefinition.FieldID,
+				resourcedefinition.FieldName,
+				resourcedefinition.FieldSchema,
+				resourcedefinition.FieldUiSchema).
 			Only(r.Context)
 		if err != nil {
 			return fmt.Errorf("failed to get resource definition: %w", err)
+		}
+
+		err = validateAttributesWithResourceDefinition(r.Attributes, rd)
+		if err != nil {
+			return err
 		}
 
 		env, err := r.Client.Environments().Query().
@@ -533,10 +543,6 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 
 		input := r.Items[i]
 
-		if r.ReuseAttributes {
-			input.Attributes = entity.Attributes
-		}
-
 		if entity.ResourceDefinitionID != nil {
 			input.ResourceDefinition = &model.ResourceDefinitionQueryInput{
 				Type: entity.Edges.ResourceDefinition.Type,
@@ -548,6 +554,18 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 			input.Template = &model.TemplateVersionQueryInput{
 				ID:   *entity.TemplateID,
 				Name: entity.Edges.Template.Name,
+			}
+		}
+
+		if r.ReuseAttributes {
+			input.Attributes = entity.Attributes
+			input.ComputedAttributes = entity.ComputedAttributes
+		} else {
+			en := updateInputsItemToResource(entity.Type, input, r.Project, r.Environment)
+
+			input.ComputedAttributes, err = genComputedAttributes(r.Context, en, r.Client)
+			if err != nil {
+				return err
 			}
 		}
 
@@ -582,18 +600,9 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 				return fmt.Errorf("failed to get template version: %w", err)
 			}
 
-			// Verify attributes with schema.
-			// TODO(thxCode): migrate schema to ui schema, then reduce if-else.
-			if s := tv.UiSchema; !s.IsEmpty() {
-				err = input.Attributes.ValidateWith(s.VariableSchema())
-				if err != nil {
-					return fmt.Errorf("invalid variables: violate ui schema: %w", err)
-				}
-			} else if s := tv.Schema; !s.IsEmpty() {
-				err = input.Attributes.ValidateWith(s.VariableSchema())
-				if err != nil {
-					return fmt.Errorf("invalid variables: %w", err)
-				}
+			err = validateAttributesWithTemplate(input.Attributes, tv)
+			if err != nil {
+				return err
 			}
 		case input.ResourceDefinition != nil:
 			rd, err := r.Client.ResourceDefinitions().Query().
@@ -611,10 +620,19 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 							)
 						})
 				}).
-				Select(resourcedefinition.FieldID, resourcedefinition.FieldName).
+				Select(
+					resourcedefinition.FieldID,
+					resourcedefinition.FieldName,
+					resourcedefinition.FieldSchema,
+					resourcedefinition.FieldUiSchema).
 				Only(r.Context)
 			if err != nil {
 				return fmt.Errorf("failed to get resource definition: %w", err)
+			}
+
+			err = validateAttributesWithResourceDefinition(input.Attributes, rd)
+			if err != nil {
+				return err
 			}
 
 			env, err := r.Client.Environments().Query().
