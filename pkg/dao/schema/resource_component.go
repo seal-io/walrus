@@ -21,6 +21,7 @@ func (ResourceComponent) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID(),
 		mixin.Time(),
+		mixin.Status(),
 	}
 }
 
@@ -76,9 +77,6 @@ func (ResourceComponent) Fields() []ent.Field {
 			Comment("Shape of the component, it can be class or instance shape.").
 			NotEmpty().
 			Immutable(),
-		field.JSON("status", types.ResourceComponentStatus{}).
-			Comment("Status of the component.").
-			Optional(),
 		field.JSON("keys", &types.ResourceComponentOperationKeys{}).
 			Comment("Keys of the component.").
 			Optional().
