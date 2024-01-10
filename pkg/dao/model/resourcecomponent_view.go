@@ -15,6 +15,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/utils/json"
 )
 
@@ -40,8 +41,6 @@ type ResourceComponentCreateInput struct {
 	Type string `path:"-" query:"-" json:"type"`
 	// Mode that manages the generated component, it is the management way of the deployer to the component, which provides by deployer.
 	Mode string `path:"-" query:"-" json:"mode"`
-	// Status of the component.
-	Status types.ResourceComponentStatus `path:"-" query:"-" json:"status,omitempty"`
 
 	// Components specifies full inserting the new ResourceComponent entities of the ResourceComponent entity.
 	Components []*ResourceComponentCreateInput `uri:"-" query:"-" json:"components,omitempty"`
@@ -64,7 +63,6 @@ func (rcci *ResourceComponentCreateInput) Model() *ResourceComponent {
 		Name:         rcci.Name,
 		Type:         rcci.Type,
 		Mode:         rcci.Mode,
-		Status:       rcci.Status,
 	}
 
 	if rcci.Project != nil {
@@ -208,8 +206,6 @@ type ResourceComponentCreateInputsItem struct {
 	Type string `path:"-" query:"-" json:"type"`
 	// Mode that manages the generated component, it is the management way of the deployer to the component, which provides by deployer.
 	Mode string `path:"-" query:"-" json:"mode"`
-	// Status of the component.
-	Status types.ResourceComponentStatus `path:"-" query:"-" json:"status,omitempty"`
 
 	// Components specifies full inserting the new ResourceComponent entities.
 	Components []*ResourceComponentCreateInput `uri:"-" query:"-" json:"components,omitempty"`
@@ -306,7 +302,6 @@ func (rcci *ResourceComponentCreateInputs) Model() []*ResourceComponent {
 			Name:         rcci.Items[i].Name,
 			Type:         rcci.Items[i].Type,
 			Mode:         rcci.Items[i].Mode,
-			Status:       rcci.Items[i].Status,
 		}
 
 		if rcci.Project != nil {
@@ -659,6 +654,7 @@ func (rcpi *ResourceComponentPatchInput) ValidateWith(ctx context.Context, cs Cl
 		resourcecomponent.WithoutFields(
 			resourcecomponent.FieldCreateTime,
 			resourcecomponent.FieldUpdateTime,
+			resourcecomponent.FieldStatus,
 		)...,
 	)
 
@@ -880,9 +876,6 @@ func (rcqi *ResourceComponentQueryInputs) ValidateWith(ctx context.Context, cs C
 type ResourceComponentUpdateInput struct {
 	ResourceComponentQueryInput `path:",inline" query:"-" json:"-"`
 
-	// Status of the component.
-	Status types.ResourceComponentStatus `path:"-" query:"-" json:"status,omitempty"`
-
 	// Components indicates replacing the stale ResourceComponent entities.
 	Components []*ResourceComponentCreateInput `uri:"-" query:"-" json:"components,omitempty"`
 	// Instances indicates replacing the stale ResourceComponent entities.
@@ -899,8 +892,7 @@ func (rcui *ResourceComponentUpdateInput) Model() *ResourceComponent {
 	}
 
 	_rc := &ResourceComponent{
-		ID:     rcui.ID,
-		Status: rcui.Status,
+		ID: rcui.ID,
 	}
 
 	if rcui.Components != nil {
@@ -1008,9 +1000,6 @@ type ResourceComponentUpdateInputsItem struct {
 	// ID of the ResourceComponent entity.
 	ID object.ID `path:"-" query:"-" json:"id"`
 
-	// Status of the component.
-	Status types.ResourceComponentStatus `path:"-" query:"-" json:"status,omitempty"`
-
 	// Components indicates replacing the stale ResourceComponent entities.
 	Components []*ResourceComponentCreateInput `uri:"-" query:"-" json:"components,omitempty"`
 	// Instances indicates replacing the stale ResourceComponent entities.
@@ -1101,8 +1090,7 @@ func (rcui *ResourceComponentUpdateInputs) Model() []*ResourceComponent {
 
 	for i := range rcui.Items {
 		_rc := &ResourceComponent{
-			ID:     rcui.Items[i].ID,
-			Status: rcui.Items[i].Status,
+			ID: rcui.Items[i].ID,
 		}
 
 		if rcui.Items[i].Components != nil {
@@ -1257,12 +1245,12 @@ type ResourceComponentOutput struct {
 	ID           object.ID                             `json:"id,omitempty"`
 	CreateTime   *time.Time                            `json:"createTime,omitempty"`
 	UpdateTime   *time.Time                            `json:"updateTime,omitempty"`
+	Status       status.Status                         `json:"status,omitempty"`
 	Mode         string                                `json:"mode,omitempty"`
 	Type         string                                `json:"type,omitempty"`
 	Name         string                                `json:"name,omitempty"`
 	DeployerType string                                `json:"deployerType,omitempty"`
 	Shape        string                                `json:"shape,omitempty"`
-	Status       types.ResourceComponentStatus         `json:"status,omitempty"`
 	Keys         *types.ResourceComponentOperationKeys `json:"keys,omitempty"`
 
 	Project      *ProjectOutput                         `json:"project,omitempty"`
@@ -1296,12 +1284,12 @@ func ExposeResourceComponent(_rc *ResourceComponent) *ResourceComponentOutput {
 		ID:           _rc.ID,
 		CreateTime:   _rc.CreateTime,
 		UpdateTime:   _rc.UpdateTime,
+		Status:       _rc.Status,
 		Mode:         _rc.Mode,
 		Type:         _rc.Type,
 		Name:         _rc.Name,
 		DeployerType: _rc.DeployerType,
 		Shape:        _rc.Shape,
-		Status:       _rc.Status,
 		Keys:         _rc.Keys,
 	}
 

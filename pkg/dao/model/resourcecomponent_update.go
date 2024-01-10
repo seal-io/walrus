@@ -22,8 +22,8 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponentrelationship"
-	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
 // ResourceComponentUpdate is the builder for updating ResourceComponent entities.
@@ -48,15 +48,15 @@ func (rcu *ResourceComponentUpdate) SetUpdateTime(t time.Time) *ResourceComponen
 }
 
 // SetStatus sets the "status" field.
-func (rcu *ResourceComponentUpdate) SetStatus(tcs types.ResourceComponentStatus) *ResourceComponentUpdate {
-	rcu.mutation.SetStatus(tcs)
+func (rcu *ResourceComponentUpdate) SetStatus(s status.Status) *ResourceComponentUpdate {
+	rcu.mutation.SetStatus(s)
 	return rcu
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (rcu *ResourceComponentUpdate) SetNillableStatus(tcs *types.ResourceComponentStatus) *ResourceComponentUpdate {
-	if tcs != nil {
-		rcu.SetStatus(*tcs)
+func (rcu *ResourceComponentUpdate) SetNillableStatus(s *status.Status) *ResourceComponentUpdate {
+	if s != nil {
+		rcu.SetStatus(*s)
 	}
 	return rcu
 }
@@ -274,8 +274,6 @@ func (rcu *ResourceComponentUpdate) Set(obj *ResourceComponent) *ResourceCompone
 	// Without Default.
 	if !reflect.ValueOf(obj.Status).IsZero() {
 		rcu.SetStatus(obj.Status)
-	} else {
-		rcu.ClearStatus()
 	}
 
 	// With Default.
@@ -492,15 +490,15 @@ func (rcuo *ResourceComponentUpdateOne) SetUpdateTime(t time.Time) *ResourceComp
 }
 
 // SetStatus sets the "status" field.
-func (rcuo *ResourceComponentUpdateOne) SetStatus(tcs types.ResourceComponentStatus) *ResourceComponentUpdateOne {
-	rcuo.mutation.SetStatus(tcs)
+func (rcuo *ResourceComponentUpdateOne) SetStatus(s status.Status) *ResourceComponentUpdateOne {
+	rcuo.mutation.SetStatus(s)
 	return rcuo
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (rcuo *ResourceComponentUpdateOne) SetNillableStatus(tcs *types.ResourceComponentStatus) *ResourceComponentUpdateOne {
-	if tcs != nil {
-		rcuo.SetStatus(*tcs)
+func (rcuo *ResourceComponentUpdateOne) SetNillableStatus(s *status.Status) *ResourceComponentUpdateOne {
+	if s != nil {
+		rcuo.SetStatus(*s)
 	}
 	return rcuo
 }
@@ -743,8 +741,6 @@ func (rcuo *ResourceComponentUpdateOne) Set(obj *ResourceComponent) *ResourceCom
 				if !db.Status.Equal(obj.Status) {
 					rcuo.SetStatus(obj.Status)
 				}
-			} else {
-				rcuo.ClearStatus()
 			}
 
 			// With Default.
