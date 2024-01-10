@@ -339,7 +339,7 @@ func GetTemplateVersions(
 			Version:    tag,
 			Source:     source + "?ref=" + tag,
 			Schema:     *schema.Schema,
-			UiSchema:   schema.UISchema.Expose(),
+			UiSchema:   *schema.UISchema,
 			ProjectID:  entity.ProjectID,
 		})
 	}
