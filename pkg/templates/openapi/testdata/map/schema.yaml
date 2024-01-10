@@ -1,0 +1,62 @@
+openapi: 3.0.3
+info:
+  title: OpenAPI schema for template map
+components:
+  schemas:
+    variables:
+      type: object
+      properties:
+        map_object_with_default_and_nest_object:
+          title: Map Object With Default And Nest Object
+          type: object
+          default:
+            ab:
+              age: 23
+              email:
+                address: bob
+                domain: example.com
+              name: Bob
+          additionalProperties:
+            properties:
+              age:
+                title: Age
+                type: number
+                x-walrus-ui:
+                  order: 2
+              email:
+                default:
+                  address: bob_nest
+                  domain: nest.com
+                properties:
+                  address:
+                    title: Address
+                    type: string
+                    x-walrus-ui:
+                      order: 1
+                  domain:
+                    default: attr.com
+                    title: Domain
+                    type: string
+                    x-walrus-ui:
+                      order: 2
+                required:
+                - address
+                title: Email
+                type: object
+                x-walrus-ui:
+                  colSpan: 12
+                  order: 3
+              name:
+                title: Name
+                type: string
+                x-walrus-ui:
+                  order: 1
+            required:
+            - age
+            - name
+            type: object
+            x-walrus-ui:
+              colSpan: 12
+          x-walrus-ui:
+            colSpan: 12
+            order: 1

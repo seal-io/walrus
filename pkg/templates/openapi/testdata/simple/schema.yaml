@@ -1,0 +1,26 @@
+openapi: 3.0.3
+info:
+  title: OpenAPI schema for template simple
+components:
+  schemas:
+    variables:
+      type: object
+      properties:
+        str:
+          title: Str
+          type: string
+          default: variable-test
+          x-walrus-ui:
+            order: 1
+        num:
+          title: Num
+          type: number
+          default: 123
+          x-walrus-ui:
+            order: 2
+        bool:
+          title: Bool
+          type: boolean
+          default: true
+          x-walrus-ui:
+            order: 3
