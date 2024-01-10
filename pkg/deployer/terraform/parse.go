@@ -354,20 +354,27 @@ func getServiceDependencyOutputs(
 		return nil, err
 	}
 
-	outputs := make(map[string]parser.OutputState, 0)
+	outputs := make(map[string]parser.OutputState)
+
+	var p parser.ResourceRevisionParser
 
 	for _, r := range dependencyRevisions {
-		revisionOutput, err := parser.ParseStateOutputRawMap(r)
+		osm, err := p.GetOutputsMap(r)
 		if err != nil {
 			return nil, err
 		}
 
-		for n, o := range revisionOutput {
+		for n, o := range osm {
 			if _, ok := dependOutputs[n]; !ok {
 				continue
 			}
 
-			outputs[n] = o
+			// FIXME(thxCode): migrate parser.OutputState to types.OutputValue.
+			outputs[n] = parser.OutputState{
+				Value:     o.Value,
+				Type:      o.Type,
+				Sensitive: o.Sensitive,
+			}
 		}
 	}
 

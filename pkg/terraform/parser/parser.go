@@ -26,33 +26,13 @@ import (
 // ConnectorSeparator is used to separate the connector id and the instance name.
 const ConnectorSeparator = "connector--"
 
-type Provider = tfaddr.Provider
+type ResourceRevisionParser struct{}
 
-// AbsProviderConfig is the absolute address of a provider configuration
-// within a particular module instance.
-type AbsProviderConfig struct {
-	Provider Provider
-	Alias    string
-}
-
-type Parser struct{}
-
-// ParseResourceRevision parse the service revision output(terraform state) to service resources,
-// returns list must not be `nil` unless unexpected input or raising error,
+// GetResourcesAndDependencies returns the resources and dependency resources after parsed the resource revision output.
+//
+// GetResourcesAndDependencies returns list must not be `nil` unless unexpected input or raising error,
 // it can be used to clean stale items safety if got an empty list.
-func (p Parser) ParseResourceRevision(revision *model.ResourceRevision) (
-	model.ResourceComponents, map[string][]string, error,
-) {
-	return p.ParseState(revision.Output, revision)
-}
-
-// ParseState parse the terraform state to service resources,
-// returns list must not be `nil` unless unexpected input or raising error,
-// it can be used to clean stale items safety if got an empty list.
-func (p Parser) ParseState(
-	stateStr string,
-	revision *model.ResourceRevision,
-) (
+func (ResourceRevisionParser) GetResourcesAndDependencies(revision *model.ResourceRevision) (
 	resources model.ResourceComponents,
 	dependencies map[string][]string,
 	err error,
@@ -61,7 +41,7 @@ func (p Parser) ParseState(
 	dependencies = make(map[string][]string)
 
 	var revisionState state
-	if err := json.Unmarshal([]byte(stateStr), &revisionState); err != nil {
+	if err := json.Unmarshal([]byte(revision.Output), &revisionState); err != nil {
 		return nil, nil, err
 	}
 
@@ -188,62 +168,116 @@ func (p Parser) ParseState(
 	return resources, dependencies, nil
 }
 
-func ParseStateOutputRawMap(revision *model.ResourceRevision) (map[string]OutputState, error) {
+// GetOutputsMap returns the original outputs after parsed the resource revision output(terraform state).
+//
+// Since we mutate the output names before executing a terraform deployment,
+// the output's name(hcl label) is not the same as the original one defined on the terraform template.
+//
+// This function is used for bridging the referring between multiple (walrus)resources.
+// Use GetOriginalOutputsMap if wanna the original outputs.
+func (ResourceRevisionParser) GetOutputsMap(revision *model.ResourceRevision) (map[string]types.OutputValue, error) {
 	if len(revision.Output) == 0 {
 		return nil, nil
 	}
 
-	var revisionState state
-	if err := json.Unmarshal([]byte(revision.Output), &revisionState); err != nil {
+	// Get outputs from state, expected format:
+	// {
+	//   "outputs": {}
+	// }.
+	r := json.Get(strs.ToBytes(&revision.Output), "outputs")
+	if !r.Exists() || !r.IsObject() {
+		return map[string]types.OutputValue{}, nil
+	}
+
+	var osm map[string]types.OutputValue
+	if err := json.Unmarshal(strs.ToBytes(&r.Raw), &osm); err != nil {
 		return nil, err
 	}
 
-	return revisionState.Outputs, nil
+	return osm, nil
 }
 
-func ParseStateOutput(revision *model.ResourceRevision) ([]types.OutputValue, error) {
-	if len(revision.Output) == 0 {
-		return nil, nil
+// GetOriginalOutputs returns the original outputs after parsed the resource revision output(terraform state).
+//
+// The given revision must carry the resource on the edges, especially the resource's name.
+//
+// This function returns the original outputs,
+// which means the output's name(hcl label) is the same as the original one defined on the terraform template.
+func (p ResourceRevisionParser) GetOriginalOutputs(revision *model.ResourceRevision) ([]types.OutputValue, error) {
+	if revision.Edges.Resource == nil || revision.Edges.Resource.Name == "" {
+		return nil, errors.New("resource name is empty")
 	}
 
-	var revisionState state
-	if err := json.Unmarshal([]byte(revision.Output), &revisionState); err != nil {
+	osm, err := p.GetOutputsMap(revision)
+	if err != nil {
 		return nil, err
 	}
 
-	sn := revision.Edges.Resource.Name
-
 	var (
-		outputs []types.OutputValue
-		count   = 1
+		prefix = revision.Edges.Resource.Name + "_"
+		oss    = make([]types.OutputValue, 0, len(osm))
+		count  int
 	)
 
-	for n, o := range revisionState.Outputs {
-		if strings.Index(n, sn) == 0 {
-			val := o.Value
-			if o.Sensitive {
-				val = []byte(`"<sensitive>"`)
-			}
+	for _, mn := range sets.StringKeySet(osm).List() {
+		// E.g. `n` is in form of `{resource name}_{output name}`.
+		n := strings.TrimPrefix(mn, prefix)
+		if n == mn {
+			continue
+		}
+		o := osm[mn]
 
-			s := translator.SchemaOfType(
-				o.Type,
-				translator.Options{
-					Name:      n,
-					Sensitive: o.Sensitive,
-					Order:     count,
-				})
+		count++
 
-			outputs = append(outputs, types.OutputValue{
-				Name:   strings.TrimPrefix(n, sn+"_"), // Name format is serviceName_outputName.
-				Value:  val,
-				Schema: s,
+		s := translator.SchemaOfType(
+			o.Type,
+			translator.Options{
+				Name:      n,
+				Sensitive: o.Sensitive,
+				Order:     count,
 			})
 
-			count++
+		v := o.Value
+		if o.Sensitive {
+			v = []byte(`"<sensitive>"`)
 		}
+
+		oss = append(oss, types.OutputValue{
+			Name:   n,
+			Value:  v,
+			Type:   o.Type,
+			Schema: s,
+		})
 	}
 
-	return outputs, nil
+	return oss, nil
+}
+
+// GetOriginalOutputsMap is similar to GetOriginalOutputs,
+// but returns the original outputs in map form.
+func (p ResourceRevisionParser) GetOriginalOutputsMap(
+	revision *model.ResourceRevision,
+) (map[string]types.OutputValue, error) {
+	oss, err := p.GetOriginalOutputs(revision)
+	if err != nil {
+		return nil, err
+	}
+
+	osm := make(map[string]types.OutputValue, len(oss))
+	for i := range oss {
+		osm[oss[i].Name] = oss[i]
+	}
+
+	return osm, nil
+}
+
+type Provider = tfaddr.Provider
+
+// AbsProviderConfig is the absolute address of a provider configuration
+// within a particular module instance.
+type AbsProviderConfig struct {
+	Provider Provider
+	Alias    string
 }
 
 // ParseInstanceProviderConnector get the provider connector from the provider instance string.

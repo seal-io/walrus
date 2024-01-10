@@ -29,6 +29,7 @@ import (
 	"github.com/seal-io/walrus/pkg/resourcecomponents"
 	tfparser "github.com/seal-io/walrus/pkg/terraform/parser"
 	"github.com/seal-io/walrus/utils/gopool"
+	"github.com/seal-io/walrus/utils/json"
 	"github.com/seal-io/walrus/utils/log"
 )
 
@@ -124,23 +125,26 @@ func (h Handler) RouteUpdateTerraformStates(
 		return err
 	}
 
-	return manageResourceComponents(req.Context, h.modelClient, entity)
+	return manageResourceComponentsAndEndpoints(req.Context, h.modelClient, entity)
 }
 
-// manageResourceComponents parses the resource components from the given revision,
-// removes the stale resource components from the database,
-// creates the new resource components to the database,
-// and then execute reconcileResourceComponents for the new created resource components.
-func manageResourceComponents(
+// manageResourceComponentsAndEndpoints parses and updates the resource components/endpoints,
+// and execute reconcileResourceComponents for the new created resource components.
+func manageResourceComponentsAndEndpoints(
 	ctx context.Context,
 	modelClient model.ClientSet,
 	entity *model.ResourceRevision,
 ) error {
-	var p tfparser.Parser
+	var p tfparser.ResourceRevisionParser
 
-	observedRess, dependencies, err := p.ParseResourceRevision(entity)
+	mappedOutputs, err := p.GetOriginalOutputsMap(entity)
 	if err != nil {
-		return err
+		return fmt.Errorf("error getting original outputs: %w", err)
+	}
+
+	observedRess, dependencies, err := p.GetResourcesAndDependencies(entity)
+	if err != nil {
+		return fmt.Errorf("error getting resources and dependencies: %w", err)
 	}
 
 	// Get record components from local.
@@ -207,7 +211,6 @@ func manageResourceComponents(
 			}
 
 			// TODO(thxCode): move the following codes into DAO.
-
 			err = dao.ResourceComponentRelationshipUpdateWithDependencies(ctx, tx, dependencies, recordRess, createRess)
 			if err != nil {
 				return err
@@ -222,6 +225,27 @@ func manageResourceComponents(
 			if err != nil && !errors.Is(err, sql.ErrNoRows) {
 				return err
 			}
+		}
+
+		// Parse endpoints from outputs,
+		// the expected output is named by `walrus_endpoints` or `endpoints`,
+		// and structures in `map[string]string` format.
+		var m map[string]string
+
+		for _, l := range []string{"walrus_endpoints", "endpoints"} {
+			if v, ok := mappedOutputs[l]; ok {
+				if err := json.Unmarshal(v.Value, &m); err == nil {
+					break
+				}
+			}
+		}
+
+		// Update endpoints.
+		err = tx.Resources().UpdateOneID(entity.ResourceID).
+			SetEndpoints(types.ResourceEndpointsFromMap(m).Sort()).
+			Exec(ctx)
+		if err != nil {
+			return err
 		}
 
 		return nil

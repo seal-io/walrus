@@ -3,11 +3,6 @@ package resource
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"sort"
-	"strings"
-
-	"github.com/getkin/kin-openapi/openapi3"
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao"
@@ -18,7 +13,6 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
-	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	pkgresource "github.com/seal-io/walrus/pkg/resource"
@@ -27,7 +21,6 @@ import (
 	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/topic"
-	"github.com/seal-io/walrus/utils/validation"
 )
 
 func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
@@ -224,9 +217,9 @@ func (h Handler) RouteStop(req RouteStopRequest) error {
 	return pkgresource.Stop(req.Context, req.Client, entity, opts)
 }
 
-func (h Handler) RouteGetAccessEndpoints(req RouteGetAccessEndpointsRequest) (RouteGetAccessEndpointsResponse, error) {
+func (h Handler) RouteGetEndpoints(req RouteGetEndpointsRequest) (RouteGetEndpointsResponse, error) {
 	if stream := req.Stream; stream != nil {
-		t, err := topic.Subscribe(modelchange.ResourceRevision)
+		t, err := topic.Subscribe(modelchange.Resource)
 		if err != nil {
 			return nil, err
 		}
@@ -251,113 +244,37 @@ func (h Handler) RouteGetAccessEndpoints(req RouteGetAccessEndpointsRequest) (Ro
 			}
 
 			for _, id := range dm.IDs() {
-				ar, err := h.modelClient.ResourceRevisions().Query().
-					Where(resourcerevision.ID(id)).
+				if id != req.ID {
+					continue
+				}
+
+				entity, err := h.modelClient.Resources().Query().
+					Where(resource.ID(id)).
+					Select(resource.FieldEndpoints).
 					Only(stream)
 				if err != nil {
 					return nil, err
 				}
 
-				if ar.ResourceID != req.ID {
-					continue
-				}
-
-				var resp *runtime.ResponseCollection
-
-				switch dm.Type {
-				case modelchange.EventTypeCreate:
-					// While create new resource revision, clean the endpoints.
-					resp = runtime.TypedResponse(modelchange.EventTypeDelete.String(), nil)
-				case modelchange.EventTypeUpdate:
-					// While the resource revision status is updated,
-					// the endpoints is updated to the current revision.
-					eps, err := h.getAccessEndpoints(stream, req.ID)
-					if err != nil {
-						return nil, err
-					}
-
-					if len(eps) == 0 {
-						continue
-					}
-
-					resp = runtime.TypedResponse(modelchange.EventTypeUpdate.String(), eps)
-				}
-
+				resp := runtime.TypedResponse(modelchange.EventTypeUpdate.String(), entity.Endpoints)
 				if err = stream.SendJSON(resp); err != nil {
 					return nil, err
 				}
+
+				break // NB(thxCode): reduce duplicated sending in the same event.
 			}
 		}
 	}
 
-	return h.getAccessEndpoints(req.Context, req.ID)
-}
-
-func (h Handler) getAccessEndpoints(ctx context.Context, id object.ID) ([]AccessEndpoint, error) {
-	outputs, err := h.getResourceOutputs(ctx, id, true)
+	entity, err := h.modelClient.Resources().Query().
+		Where(resource.ID(req.ID)).
+		Select(resource.FieldEndpoints).
+		Only(req.Context)
 	if err != nil {
 		return nil, err
 	}
 
-	var (
-		invalidTypeErr = errorx.NewHttpError(http.StatusBadRequest,
-			"element type of output endpoints should be string")
-		endpoints = make([]AccessEndpoint, 0, len(outputs))
-	)
-
-	for _, v := range outputs {
-		if !strings.HasPrefix(v.Name, "endpoint") {
-			continue
-		}
-
-		switch {
-		case v.Schema.Type == openapi3.TypeString:
-			ep, _, err := property.GetString(v.Value)
-			if err != nil {
-				return nil, err
-			}
-
-			if err = validation.IsValidEndpoint(ep); err != nil {
-				return nil, errorx.NewHttpError(http.StatusBadRequest, err.Error())
-			}
-
-			endpoints = append(endpoints, AccessEndpoint{
-				Endpoints: []string{ep},
-				Name:      v.Name,
-			})
-		case v.Schema.Type == openapi3.TypeArray:
-			if v.Schema.Items != nil && v.Schema.Items.Value != nil {
-				if v.Schema.Items.Value.Type != openapi3.TypeObject &&
-					v.Schema.Items.Value.Type != openapi3.TypeString {
-					return nil, invalidTypeErr
-				}
-			}
-
-			eps, _, err := property.GetSlice[string](v.Value)
-			if err != nil {
-				return nil, err
-			}
-
-			if err := validation.IsValidEndpoints(eps); err != nil {
-				return nil, err
-			}
-
-			if len(eps) == 0 {
-				continue
-			}
-
-			endpoints = append(endpoints, AccessEndpoint{
-				Endpoints: eps,
-				Name:      v.Name,
-			})
-		}
-	}
-
-	sort.SliceStable(endpoints, func(i, j int) bool {
-		return endpoints[j].Name < endpoints[i].Name
-	})
-
-	return endpoints, nil
+	return entity.Endpoints, nil
 }
 
 func (h Handler) RouteGetOutputs(req RouteGetOutputsRequest) (RouteGetOutputsResponse, error) {
@@ -448,7 +365,9 @@ func (h Handler) getResourceOutputs(ctx context.Context, id object.ID, onlySucce
 		return nil, nil
 	}
 
-	o, err := tfparser.ParseStateOutput(sr)
+	var p tfparser.ResourceRevisionParser
+
+	o, err := p.GetOriginalOutputs(sr)
 	if err != nil {
 		return nil, fmt.Errorf("error get outputs: %w", err)
 	}

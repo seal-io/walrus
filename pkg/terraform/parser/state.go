@@ -17,6 +17,9 @@ type state struct {
 	CheckResults     []checkResults         `json:"check_results"`
 }
 
+// OutputState is the state of the output.
+//
+// Deprecated: please use types.OutputValue instead.
 type OutputState struct {
 	Value     property.Value `json:"value"`
 	Type      cty.Type       `json:"type"`
