@@ -340,18 +340,18 @@ func (r *RouteStartRequest) Validate() error {
 }
 
 type (
-	RouteGetAccessEndpointsRequest struct {
-		_ struct{} `route:"GET=/access-endpoints"`
+	RouteGetEndpointsRequest struct {
+		_ struct{} `route:"GET=/endpoints"`
 
 		model.ResourceQueryInput `path:",inline"`
 
 		Stream *runtime.RequestUnidiStream
 	}
 
-	RouteGetAccessEndpointsResponse = []AccessEndpoint
+	RouteGetEndpointsResponse = types.ResourceEndpoints
 )
 
-func (r *RouteGetAccessEndpointsRequest) SetStream(stream runtime.RequestUnidiStream) {
+func (r *RouteGetEndpointsRequest) SetStream(stream runtime.RequestUnidiStream) {
 	r.Stream = &stream
 }
 
