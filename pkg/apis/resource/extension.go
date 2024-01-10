@@ -40,61 +40,7 @@ func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 		entity = req.Model()
 	}
 
-	return h.upgrade(req.Context, entity, req.Draft)
-}
-
-func (h Handler) upgrade(ctx context.Context, entity *model.Resource, draft bool) error {
-	if draft {
-		_, err := h.modelClient.Resources().
-			UpdateOne(entity).
-			Set(entity).
-			Save(ctx)
-
-		return err
-	}
-
-	// Update resource, mark status from deploying.
-	status.ResourceStatusDeployed.Reset(entity, "Upgrading")
-	entity.Status.SetSummary(status.WalkResource(&entity.Status))
-
-	err := h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
-		entity, err = tx.Resources().UpdateOne(entity).
-			Set(entity).
-			SaveE(ctx, dao.ResourceDependenciesEdgeSave)
-
-		return err
-	})
-	if err != nil {
-		return errorx.Wrap(err, "error updating resource")
-	}
-
-	return h.apply(ctx, entity)
-}
-
-func (h Handler) apply(ctx context.Context, entity *model.Resource) error {
-	dp, err := h.getDeployer(ctx)
-	if err != nil {
-		return err
-	}
-	// Apply resource.
-	applyOpts := pkgresource.Options{
-		Deployer: dp,
-	}
-
-	ready, err := pkgresource.CheckDependencyStatus(ctx, h.modelClient, dp, entity)
-	if err != nil {
-		return errorx.Wrap(err, "error checking dependency status")
-	}
-
-	if ready {
-		return pkgresource.Apply(
-			ctx,
-			h.modelClient,
-			entity,
-			applyOpts)
-	}
-
-	return nil
+	return upgrade(req.Context, h.kubeConfig, h.modelClient, entity, req.Draft)
 }
 
 func (h Handler) RouteRollback(req RouteRollbackRequest) error {
@@ -136,7 +82,7 @@ func (h Handler) RouteRollback(req RouteRollbackRequest) error {
 		return errorx.Wrap(err, "error updating resource")
 	}
 
-	dp, err := h.getDeployer(req.Context)
+	dp, err := getDeployer(req.Context, h.kubeConfig)
 	if err != nil {
 		return err
 	}
@@ -176,7 +122,7 @@ func (h Handler) start(ctx context.Context, entity *model.Resource) error {
 		return errorx.Wrap(err, "error updating resource")
 	}
 
-	dp, err := h.getDeployer(ctx)
+	dp, err := getDeployer(ctx, h.kubeConfig)
 	if err != nil {
 		return err
 	}
@@ -202,7 +148,7 @@ func (h Handler) start(ctx context.Context, entity *model.Resource) error {
 }
 
 func (h Handler) RouteStop(req RouteStopRequest) error {
-	dp, err := h.getDeployer(req.Context)
+	dp, err := getDeployer(req.Context, h.kubeConfig)
 	if err != nil {
 		return err
 	}
@@ -463,7 +409,7 @@ func (h Handler) CollectionRouteStart(req CollectionRouteStartRequest) error {
 }
 
 func (h Handler) CollectionRouteStop(req CollectionRouteStopRequest) error {
-	dp, err := h.getDeployer(req.Context)
+	dp, err := getDeployer(req.Context, h.kubeConfig)
 	if err != nil {
 		return err
 	}
@@ -490,35 +436,5 @@ func (h Handler) CollectionRouteStop(req CollectionRouteStopRequest) error {
 }
 
 func (h Handler) CollectionRouteUpgrade(req CollectionRouteUpgradeRequest) error {
-	var (
-		resources []*model.Resource
-		err       error
-	)
-
-	if req.ReuseAttributes {
-		resources, err = h.modelClient.Resources().Query().
-			Where(resource.IDIn(req.IDs()...)).
-			All(req.Context)
-		if err != nil {
-			return err
-		}
-	} else {
-		resources = req.Model()
-	}
-
-	// Make sure the resources are upgraded in topological order.
-	resources, err = pkgresource.TopologicalSortResources(resources)
-	if err != nil {
-		return err
-	}
-
-	for _, entity := range resources {
-		entity.ChangeComment = req.ChangeComment
-
-		if err := h.upgrade(req.Context, entity, req.Draft); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return UpgradeResources(req, h.modelClient, h.kubeConfig)
 }

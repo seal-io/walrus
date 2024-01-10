@@ -1,6 +1,7 @@
 package resourcedefinition
 
 import (
+	apiresource "github.com/seal-io/walrus/pkg/apis/resource"
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
@@ -17,8 +18,27 @@ type (
 
 		model.ResourceDefinitionQueryInput `path:",inline"`
 
+		ProjectName      string `query:"projectName,omitempty"`
+		MatchingRuleName string `query:"matchingRuleName,omitempty"`
+
 		Stream *runtime.RequestUnidiStream
 	}
 
 	RouteGetResourcesResponse = []*model.ResourceOutput
+)
+
+type (
+	RouteDeleteResourcesRequest struct {
+		_ struct{} `route:"DELETE=/resources"`
+
+		apiresource.CollectionDeleteRequest `json:",inline" query:",inline"`
+	}
+)
+
+type (
+	RouteUpgradeResourcesRequest struct {
+		_ struct{} `route:"POST=/resources/_/upgrade"`
+
+		apiresource.CollectionRouteUpgradeRequest `json:",inline"`
+	}
 )

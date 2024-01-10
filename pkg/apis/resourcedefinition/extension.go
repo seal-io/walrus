@@ -1,9 +1,13 @@
 package resourcedefinition
 
 import (
+	apiresource "github.com/seal-io/walrus/pkg/apis/resource"
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/environment"
+	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	"github.com/seal-io/walrus/utils/topic"
@@ -27,6 +31,16 @@ func (h Handler) RouteGetResources(req RouteGetResourcesRequest) (RouteGetResour
 
 	if queries, ok := req.Querying(queryResourceFields); ok {
 		query.Where(queries)
+	}
+
+	if req.ProjectName != "" {
+		query.Where(resource.HasProjectWith(project.Name(req.ProjectName)))
+	}
+
+	if req.MatchingRuleName != "" {
+		query.Where(
+			resource.HasResourceDefinitionMatchingRuleWith(resourcedefinitionmatchingrule.Name(req.MatchingRuleName)),
+		)
 	}
 
 	if stream := req.Stream; stream != nil {
@@ -76,6 +90,15 @@ func (h Handler) RouteGetResources(req RouteGetResourcesRequest) (RouteGetResour
 							templateversion.FieldID,
 							templateversion.FieldName,
 							templateversion.FieldVersion)
+					}).
+					WithProject(func(pq *model.ProjectQuery) {
+						pq.Select(project.FieldName)
+					}).
+					WithEnvironment(func(eq *model.EnvironmentQuery) {
+						eq.Select(environment.FieldName)
+					}).
+					WithResourceDefinitionMatchingRule(func(rdm *model.ResourceDefinitionMatchingRuleQuery) {
+						rdm.Select(resourcedefinitionmatchingrule.FieldName)
 					}).
 					Unique(false).
 					All(stream)
@@ -137,6 +160,15 @@ func (h Handler) RouteGetResources(req RouteGetResourcesRequest) (RouteGetResour
 				templateversion.FieldName,
 				templateversion.FieldVersion)
 		}).
+		WithProject(func(pq *model.ProjectQuery) {
+			pq.Select(project.FieldName)
+		}).
+		WithEnvironment(func(eq *model.EnvironmentQuery) {
+			eq.Select(environment.FieldName)
+		}).
+		WithResourceDefinitionMatchingRule(func(rdm *model.ResourceDefinitionMatchingRuleQuery) {
+			rdm.Select(resourcedefinitionmatchingrule.FieldName)
+		}).
 		Unique(false).
 		All(req.Context)
 	if err != nil {
@@ -144,4 +176,12 @@ func (h Handler) RouteGetResources(req RouteGetResourcesRequest) (RouteGetResour
 	}
 
 	return model.ExposeResources(entities), cnt, nil
+}
+
+func (h Handler) RouteDeleteResources(req RouteDeleteResourcesRequest) error {
+	return apiresource.DeleteResources(req.CollectionDeleteRequest, h.modelClient, h.kubeConfig)
+}
+
+func (h Handler) RouteUpgradeResources(req RouteUpgradeResourcesRequest) error {
+	return apiresource.UpgradeResources(req.CollectionRouteUpgradeRequest, h.modelClient, h.kubeConfig)
 }

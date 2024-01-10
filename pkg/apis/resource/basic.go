@@ -1,8 +1,6 @@
 package resource
 
 import (
-	"context"
-
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
@@ -10,9 +8,6 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
-	"github.com/seal-io/walrus/pkg/deployer"
-	deployertf "github.com/seal-io/walrus/pkg/deployer/terraform"
-	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
 	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/topic"
@@ -38,7 +33,7 @@ func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 		return model.ExposeResource(entity), err
 	}
 
-	dp, err := h.getDeployer(req.Context)
+	dp, err := getDeployer(req.Context, h.kubeConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +86,7 @@ func (h Handler) Delete(req DeleteRequest) (err error) {
 			Exec(req.Context)
 	}
 
-	dp, err := h.getDeployer(req.Context)
+	dp, err := getDeployer(req.Context, h.kubeConfig)
 	if err != nil {
 		return err
 	}
@@ -110,13 +105,13 @@ func (h Handler) Delete(req DeleteRequest) (err error) {
 func (h Handler) Patch(req PatchRequest) error {
 	entity := req.Model()
 
-	return h.upgrade(req.Context, entity, req.Draft)
+	return upgrade(req.Context, h.kubeConfig, h.modelClient, entity, req.Draft)
 }
 
 func (h Handler) CollectionCreate(req CollectionCreateRequest) (CollectionCreateResponse, error) {
 	entities := req.Model()
 
-	dp, err := h.getDeployer(req.Context)
+	dp, err := getDeployer(req.Context, h.kubeConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -295,63 +290,5 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 }
 
 func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
-	ids := req.IDs()
-
-	return h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
-		if req.WithoutCleanup {
-			// Do not clean deployed native resources.
-			_, err := tx.Resources().Delete().
-				Where(resource.IDIn(ids...)).
-				Exec(req.Context)
-
-			return err
-		}
-
-		resources, err := tx.Resources().Query().
-			Where(resource.IDIn(ids...)).
-			All(req.Context)
-		if err != nil {
-			return err
-		}
-
-		resources, err = pkgresource.ReverseTopologicalSortResources(resources)
-		if err != nil {
-			return err
-		}
-
-		deployerOpts := deptypes.CreateOptions{
-			Type:       deployertf.DeployerType,
-			KubeConfig: h.kubeConfig,
-		}
-
-		dp, err := deployer.Get(req.Context, deployerOpts)
-		if err != nil {
-			return err
-		}
-
-		destroyOpts := pkgresource.Options{
-			Deployer: dp,
-		}
-
-		for _, s := range resources {
-			err = pkgresource.Destroy(req.Context, tx, s, destroyOpts)
-			if err != nil {
-				return err
-			}
-		}
-
-		return nil
-	})
-}
-
-func (h Handler) getDeployer(ctx context.Context) (deptypes.Deployer, error) {
-	dep, err := deployer.Get(ctx, deptypes.CreateOptions{
-		Type:       deployertf.DeployerType,
-		KubeConfig: h.kubeConfig,
-	})
-	if err != nil {
-		return nil, errorx.Wrap(err, "failed to get deployer")
-	}
-
-	return dep, nil
+	return DeleteResources(req, h.modelClient, h.kubeConfig)
 }
