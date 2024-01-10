@@ -93,46 +93,6 @@ func (o Operator) Log(ctx context.Context, s string, options optypes.LogOptions)
 	return nil
 }
 
-func (o Operator) GetEndpoints(
-	ctx context.Context,
-	resource *model.ResourceComponent,
-) ([]types.ResourceComponentEndpoint, error) {
-	if resource.Type != "docker_container" {
-		return nil, nil
-	}
-
-	info, err := o.client.ContainerInspect(ctx, resource.Name)
-	if err != nil {
-		return nil, err
-	}
-
-	if info.NetworkSettings == nil {
-		return nil, nil
-	}
-
-	eps := make([]types.ResourceComponentEndpoint, 0, len(info.NetworkSettings.Ports))
-
-	for port, bindings := range info.NetworkSettings.Ports {
-		portEps := make([]string, 0, len(bindings))
-
-		for _, binding := range bindings {
-			hostIP := "127.0.0.1"
-			if binding.HostIP != "" && binding.HostIP != "0.0.0.0" {
-				hostIP = binding.HostIP
-			}
-
-			portEps = append(portEps, fmt.Sprintf("%s:%s", hostIP, binding.HostPort))
-		}
-
-		eps = append(eps, types.ResourceComponentEndpoint{
-			EndpointType: fmt.Sprintf("Expose/%s", port),
-			Endpoints:    portEps,
-		})
-	}
-
-	return eps, nil
-}
-
 func (o Operator) GetComponents(
 	ctx context.Context,
 	resource *model.ResourceComponent,
