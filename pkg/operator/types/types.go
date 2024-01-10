@@ -48,12 +48,6 @@ type Operator interface {
 	// ID, DeployerType, Type and Name.
 	GetStatus(context.Context, *model.ResourceComponent) (*status.Status, error)
 
-	// GetEndpoints gets endpoints of the given resource.
-	//
-	// The given model.ResourceComponent item must specify the following fields:
-	// ID, DeployerType, Type and Name.
-	GetEndpoints(context.Context, *model.ResourceComponent) ([]types.ResourceComponentEndpoint, error)
-
 	// GetComponents gets components of the given resource,
 	// returns list must not be `nil` unless unexpected input or raising error,
 	// it can be used to clean stale items safety if got an empty list.

@@ -54,13 +54,6 @@ func (Operator) GetStatus(ctx context.Context, resource *model.ResourceComponent
 	}, nil
 }
 
-func (Operator) GetEndpoints(
-	ctx context.Context,
-	resource *model.ResourceComponent,
-) ([]types.ResourceComponentEndpoint, error) {
-	return nil, nil
-}
-
 func (Operator) GetComponents(
 	ctx context.Context,
 	resource *model.ResourceComponent,

@@ -145,13 +145,6 @@ func (o Operator) Log(ctx context.Context, s string, options optypes.LogOptions)
 	return resourcelog.Log(newCtx, s, options)
 }
 
-func (o Operator) GetEndpoints(
-	ctx context.Context,
-	resource *model.ResourceComponent,
-) ([]types.ResourceComponentEndpoint, error) {
-	return nil, nil
-}
-
 func (o Operator) GetComponents(
 	ctx context.Context,
 	resource *model.ResourceComponent,
