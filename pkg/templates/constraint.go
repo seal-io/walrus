@@ -19,7 +19,7 @@ import (
 
 type schemaGroup struct {
 	Schema   *types.TemplateVersionSchema
-	UISchema *types.TemplateVersionSchema
+	UISchema *types.UISchema
 }
 
 // getValidVersions get valid terraform module versions.
@@ -80,7 +80,7 @@ func getValidVersions(
 			continue
 		}
 
-		fileSchema, err := loader.LoadAndMergeSchema(dir, entity.Name)
+		fileSchema, err := loader.LoadFileSchema(dir, entity.Name)
 		if err != nil {
 			logger.Warnf("failed to load \"%s:%s\" of catalog %q schema: %v", entity.Name, tag, entity.CatalogID, err)
 			continue
@@ -122,10 +122,15 @@ func getValidVersions(
 			continue
 		}
 
+		uiSchema := schema.Expose()
+		if fileSchema != nil {
+			uiSchema = fileSchema.Expose()
+		}
+
 		validVersions = append(validVersions, v)
 		versionSchema[v] = &schemaGroup{
 			Schema:   schema,
-			UISchema: fileSchema,
+			UISchema: &uiSchema,
 		}
 	}
 
