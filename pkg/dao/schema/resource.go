@@ -10,6 +10,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/entx"
 	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/schema/mixin"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 )
@@ -51,18 +52,19 @@ func (Resource) Fields() []ent.Field {
 			Immutable().
 			Optional().
 			Annotations(
-				entx.Input(entx.WithCreate(), entx.WithQuery()),
-			),
+				entx.Input(entx.WithCreate(), entx.WithQuery())),
 		object.IDField("resource_definition_id").
 			Comment("ID of the resource definition to which the resource use.").
 			Immutable().
 			Optional().
 			Nillable().
 			Annotations(
-				entx.SkipIO(),
-			),
+				entx.SkipIO()),
 		property.ValuesField("attributes").
 			Comment("Attributes to configure the template.").
+			Optional(),
+		field.JSON("endpoints", types.ResourceEndpoints{}).
+			Comment("Endpoints of the resource.").
 			Optional(),
 		field.String("change_comment").
 			Comment("Change comment of the resource.").
