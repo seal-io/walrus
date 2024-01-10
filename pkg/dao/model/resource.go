@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
@@ -55,6 +56,8 @@ type Resource struct {
 	ResourceDefinitionID *object.ID `json:"resource_definition_id,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
+	// Endpoints of the resource.
+	Endpoints types.ResourceEndpoints `json:"endpoints,omitempty"`
 	// Change comment of the resource.
 	ChangeComment string `json:"change_comment,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -170,7 +173,7 @@ func (*Resource) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case resource.FieldTemplateID, resource.FieldResourceDefinitionID:
 			values[i] = &sql.NullScanner{S: new(object.ID)}
-		case resource.FieldLabels, resource.FieldAnnotations, resource.FieldStatus:
+		case resource.FieldLabels, resource.FieldAnnotations, resource.FieldStatus, resource.FieldEndpoints:
 			values[i] = new([]byte)
 		case resource.FieldID, resource.FieldProjectID, resource.FieldEnvironmentID:
 			values[i] = new(object.ID)
@@ -288,6 +291,14 @@ func (r *Resource) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field attributes", values[i])
 			} else if value != nil {
 				r.Attributes = *value
+			}
+		case resource.FieldEndpoints:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field endpoints", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &r.Endpoints); err != nil {
+					return fmt.Errorf("unmarshal field endpoints: %w", err)
+				}
 			}
 		case resource.FieldChangeComment:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -412,6 +423,9 @@ func (r *Resource) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("attributes=")
 	builder.WriteString(fmt.Sprintf("%v", r.Attributes))
+	builder.WriteString(", ")
+	builder.WriteString("endpoints=")
+	builder.WriteString(fmt.Sprintf("%v", r.Endpoints))
 	builder.WriteString(", ")
 	builder.WriteString("change_comment=")
 	builder.WriteString(r.ChangeComment)

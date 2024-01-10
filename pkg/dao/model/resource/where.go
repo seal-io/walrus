@@ -792,6 +792,16 @@ func AttributesNotNil() predicate.Resource {
 	return predicate.Resource(sql.FieldNotNull(FieldAttributes))
 }
 
+// EndpointsIsNil applies the IsNil predicate on the "endpoints" field.
+func EndpointsIsNil() predicate.Resource {
+	return predicate.Resource(sql.FieldIsNull(FieldEndpoints))
+}
+
+// EndpointsNotNil applies the NotNil predicate on the "endpoints" field.
+func EndpointsNotNil() predicate.Resource {
+	return predicate.Resource(sql.FieldNotNull(FieldEndpoints))
+}
+
 // ChangeCommentEQ applies the EQ predicate on the "change_comment" field.
 func ChangeCommentEQ(v string) predicate.Resource {
 	return predicate.Resource(sql.FieldEQ(FieldChangeComment, v))

@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/walrus/pkg/dao/model/internal"
@@ -25,6 +26,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
@@ -144,6 +146,24 @@ func (ru *ResourceUpdate) SetAttributes(pr property.Values) *ResourceUpdate {
 // ClearAttributes clears the value of the "attributes" field.
 func (ru *ResourceUpdate) ClearAttributes() *ResourceUpdate {
 	ru.mutation.ClearAttributes()
+	return ru
+}
+
+// SetEndpoints sets the "endpoints" field.
+func (ru *ResourceUpdate) SetEndpoints(te types.ResourceEndpoints) *ResourceUpdate {
+	ru.mutation.SetEndpoints(te)
+	return ru
+}
+
+// AppendEndpoints appends te to the "endpoints" field.
+func (ru *ResourceUpdate) AppendEndpoints(te types.ResourceEndpoints) *ResourceUpdate {
+	ru.mutation.AppendEndpoints(te)
+	return ru
+}
+
+// ClearEndpoints clears the value of the "endpoints" field.
+func (ru *ResourceUpdate) ClearEndpoints() *ResourceUpdate {
+	ru.mutation.ClearEndpoints()
 	return ru
 }
 
@@ -403,6 +423,11 @@ func (ru *ResourceUpdate) Set(obj *Resource) *ResourceUpdate {
 	} else {
 		ru.ClearAttributes()
 	}
+	if !reflect.ValueOf(obj.Endpoints).IsZero() {
+		ru.SetEndpoints(obj.Endpoints)
+	} else {
+		ru.ClearEndpoints()
+	}
 	if obj.ChangeComment != "" {
 		ru.SetChangeComment(obj.ChangeComment)
 	} else {
@@ -473,6 +498,17 @@ func (ru *ResourceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if ru.mutation.AttributesCleared() {
 		_spec.ClearField(resource.FieldAttributes, field.TypeOther)
+	}
+	if value, ok := ru.mutation.Endpoints(); ok {
+		_spec.SetField(resource.FieldEndpoints, field.TypeJSON, value)
+	}
+	if value, ok := ru.mutation.AppendedEndpoints(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, resource.FieldEndpoints, value)
+		})
+	}
+	if ru.mutation.EndpointsCleared() {
+		_spec.ClearField(resource.FieldEndpoints, field.TypeJSON)
 	}
 	if value, ok := ru.mutation.ChangeComment(); ok {
 		_spec.SetField(resource.FieldChangeComment, field.TypeString, value)
@@ -782,6 +818,24 @@ func (ruo *ResourceUpdateOne) ClearAttributes() *ResourceUpdateOne {
 	return ruo
 }
 
+// SetEndpoints sets the "endpoints" field.
+func (ruo *ResourceUpdateOne) SetEndpoints(te types.ResourceEndpoints) *ResourceUpdateOne {
+	ruo.mutation.SetEndpoints(te)
+	return ruo
+}
+
+// AppendEndpoints appends te to the "endpoints" field.
+func (ruo *ResourceUpdateOne) AppendEndpoints(te types.ResourceEndpoints) *ResourceUpdateOne {
+	ruo.mutation.AppendEndpoints(te)
+	return ruo
+}
+
+// ClearEndpoints clears the value of the "endpoints" field.
+func (ruo *ResourceUpdateOne) ClearEndpoints() *ResourceUpdateOne {
+	ruo.mutation.ClearEndpoints()
+	return ruo
+}
+
 // SetChangeComment sets the "change_comment" field.
 func (ruo *ResourceUpdateOne) SetChangeComment(s string) *ResourceUpdateOne {
 	ruo.mutation.SetChangeComment(s)
@@ -1073,6 +1127,13 @@ func (ruo *ResourceUpdateOne) Set(obj *Resource) *ResourceUpdateOne {
 			} else {
 				ruo.ClearAttributes()
 			}
+			if !reflect.ValueOf(obj.Endpoints).IsZero() {
+				if !reflect.DeepEqual(db.Endpoints, obj.Endpoints) {
+					ruo.SetEndpoints(obj.Endpoints)
+				}
+			} else {
+				ruo.ClearEndpoints()
+			}
 			if obj.ChangeComment != "" {
 				if db.ChangeComment != obj.ChangeComment {
 					ruo.SetChangeComment(obj.ChangeComment)
@@ -1147,6 +1208,9 @@ func (ruo *ResourceUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context
 		}
 		if _, set := ruo.mutation.Field(resource.FieldAttributes); set {
 			obj.Attributes = x.Attributes
+		}
+		if _, set := ruo.mutation.Field(resource.FieldEndpoints); set {
+			obj.Endpoints = x.Endpoints
 		}
 		if _, set := ruo.mutation.Field(resource.FieldChangeComment); set {
 			obj.ChangeComment = x.ChangeComment
@@ -1256,6 +1320,17 @@ func (ruo *ResourceUpdateOne) sqlSave(ctx context.Context) (_node *Resource, err
 	}
 	if ruo.mutation.AttributesCleared() {
 		_spec.ClearField(resource.FieldAttributes, field.TypeOther)
+	}
+	if value, ok := ruo.mutation.Endpoints(); ok {
+		_spec.SetField(resource.FieldEndpoints, field.TypeJSON, value)
+	}
+	if value, ok := ruo.mutation.AppendedEndpoints(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, resource.FieldEndpoints, value)
+		})
+	}
+	if ruo.mutation.EndpointsCleared() {
+		_spec.ClearField(resource.FieldEndpoints, field.TypeJSON)
 	}
 	if value, ok := ruo.mutation.ChangeComment(); ok {
 		_spec.SetField(resource.FieldChangeComment, field.TypeString, value)
