@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
@@ -40,6 +41,8 @@ type ResourceCreateInput struct {
 	Type string `path:"-" query:"-" json:"type,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Endpoints of the resource.
+	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,omitempty"`
 	// Change comment of the resource.
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 
@@ -62,6 +65,7 @@ func (rci *ResourceCreateInput) Model() *Resource {
 		Labels:        rci.Labels,
 		Type:          rci.Type,
 		Attributes:    rci.Attributes,
+		Endpoints:     rci.Endpoints,
 		ChangeComment: rci.ChangeComment,
 	}
 
@@ -148,6 +152,8 @@ type ResourceCreateInputsItem struct {
 	Type string `path:"-" query:"-" json:"type,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Endpoints of the resource.
+	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,omitempty"`
 	// Change comment of the resource.
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 
@@ -220,6 +226,7 @@ func (rci *ResourceCreateInputs) Model() []*Resource {
 			Labels:        rci.Items[i].Labels,
 			Type:          rci.Items[i].Type,
 			Attributes:    rci.Items[i].Attributes,
+			Endpoints:     rci.Items[i].Endpoints,
 			ChangeComment: rci.Items[i].ChangeComment,
 		}
 
@@ -768,6 +775,8 @@ type ResourceUpdateInput struct {
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Endpoints of the resource.
+	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,omitempty"`
 	// Change comment of the resource.
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 
@@ -790,6 +799,7 @@ func (rui *ResourceUpdateInput) Model() *Resource {
 		Description:   rui.Description,
 		Labels:        rui.Labels,
 		Attributes:    rui.Attributes,
+		Endpoints:     rui.Endpoints,
 		ChangeComment: rui.ChangeComment,
 	}
 
@@ -857,6 +867,8 @@ type ResourceUpdateInputsItem struct {
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Endpoints of the resource.
+	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,omitempty"`
 	// Change comment of the resource.
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 
@@ -929,6 +941,7 @@ func (rui *ResourceUpdateInputs) Model() []*Resource {
 			Description:   rui.Items[i].Description,
 			Labels:        rui.Items[i].Labels,
 			Attributes:    rui.Items[i].Attributes,
+			Endpoints:     rui.Items[i].Endpoints,
 			ChangeComment: rui.Items[i].ChangeComment,
 		}
 
@@ -1071,15 +1084,16 @@ func (rui *ResourceUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet,
 
 // ResourceOutput holds the output of the Resource entity.
 type ResourceOutput struct {
-	ID          object.ID         `json:"id,omitempty"`
-	Name        string            `json:"name,omitempty"`
-	Description string            `json:"description,omitempty"`
-	Labels      map[string]string `json:"labels,omitempty"`
-	CreateTime  *time.Time        `json:"createTime,omitempty"`
-	UpdateTime  *time.Time        `json:"updateTime,omitempty"`
-	Status      status.Status     `json:"status,omitempty"`
-	Type        string            `json:"type,omitempty"`
-	Attributes  property.Values   `json:"attributes,omitempty"`
+	ID          object.ID               `json:"id,omitempty"`
+	Name        string                  `json:"name,omitempty"`
+	Description string                  `json:"description,omitempty"`
+	Labels      map[string]string       `json:"labels,omitempty"`
+	CreateTime  *time.Time              `json:"createTime,omitempty"`
+	UpdateTime  *time.Time              `json:"updateTime,omitempty"`
+	Status      status.Status           `json:"status,omitempty"`
+	Type        string                  `json:"type,omitempty"`
+	Attributes  property.Values         `json:"attributes,omitempty"`
+	Endpoints   types.ResourceEndpoints `json:"endpoints,omitempty"`
 
 	Project     *ProjectOutput         `json:"project,omitempty"`
 	Environment *EnvironmentOutput     `json:"environment,omitempty"`
@@ -1112,6 +1126,7 @@ func ExposeResource(_r *Resource) *ResourceOutput {
 		Status:      _r.Status,
 		Type:        _r.Type,
 		Attributes:  _r.Attributes,
+		Endpoints:   _r.Endpoints,
 	}
 
 	if _r.Edges.Project != nil {

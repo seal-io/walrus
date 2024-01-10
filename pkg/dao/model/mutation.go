@@ -10488,6 +10488,8 @@ type ResourceMutation struct {
 	status                     *status.Status
 	_type                      *string
 	attributes                 *property.Values
+	endpoints                  *types.ResourceEndpoints
+	appendendpoints            types.ResourceEndpoints
 	change_comment             *string
 	clearedFields              map[string]struct{}
 	project                    *object.ID
@@ -11188,6 +11190,71 @@ func (m *ResourceMutation) ResetAttributes() {
 	delete(m.clearedFields, resource.FieldAttributes)
 }
 
+// SetEndpoints sets the "endpoints" field.
+func (m *ResourceMutation) SetEndpoints(te types.ResourceEndpoints) {
+	m.endpoints = &te
+	m.appendendpoints = nil
+}
+
+// Endpoints returns the value of the "endpoints" field in the mutation.
+func (m *ResourceMutation) Endpoints() (r types.ResourceEndpoints, exists bool) {
+	v := m.endpoints
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndpoints returns the old "endpoints" field's value of the Resource entity.
+// If the Resource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceMutation) OldEndpoints(ctx context.Context) (v types.ResourceEndpoints, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndpoints is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndpoints requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndpoints: %w", err)
+	}
+	return oldValue.Endpoints, nil
+}
+
+// AppendEndpoints adds te to the "endpoints" field.
+func (m *ResourceMutation) AppendEndpoints(te types.ResourceEndpoints) {
+	m.appendendpoints = append(m.appendendpoints, te...)
+}
+
+// AppendedEndpoints returns the list of values that were appended to the "endpoints" field in this mutation.
+func (m *ResourceMutation) AppendedEndpoints() (types.ResourceEndpoints, bool) {
+	if len(m.appendendpoints) == 0 {
+		return nil, false
+	}
+	return m.appendendpoints, true
+}
+
+// ClearEndpoints clears the value of the "endpoints" field.
+func (m *ResourceMutation) ClearEndpoints() {
+	m.endpoints = nil
+	m.appendendpoints = nil
+	m.clearedFields[resource.FieldEndpoints] = struct{}{}
+}
+
+// EndpointsCleared returns if the "endpoints" field was cleared in this mutation.
+func (m *ResourceMutation) EndpointsCleared() bool {
+	_, ok := m.clearedFields[resource.FieldEndpoints]
+	return ok
+}
+
+// ResetEndpoints resets all changes to the "endpoints" field.
+func (m *ResourceMutation) ResetEndpoints() {
+	m.endpoints = nil
+	m.appendendpoints = nil
+	delete(m.clearedFields, resource.FieldEndpoints)
+}
+
 // SetChangeComment sets the "change_comment" field.
 func (m *ResourceMutation) SetChangeComment(s string) {
 	m.change_comment = &s
@@ -11537,7 +11604,7 @@ func (m *ResourceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ResourceMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 15)
 	if m.name != nil {
 		fields = append(fields, resource.FieldName)
 	}
@@ -11577,6 +11644,9 @@ func (m *ResourceMutation) Fields() []string {
 	if m.attributes != nil {
 		fields = append(fields, resource.FieldAttributes)
 	}
+	if m.endpoints != nil {
+		fields = append(fields, resource.FieldEndpoints)
+	}
 	if m.change_comment != nil {
 		fields = append(fields, resource.FieldChangeComment)
 	}
@@ -11614,6 +11684,8 @@ func (m *ResourceMutation) Field(name string) (ent.Value, bool) {
 		return m.ResourceDefinitionID()
 	case resource.FieldAttributes:
 		return m.Attributes()
+	case resource.FieldEndpoints:
+		return m.Endpoints()
 	case resource.FieldChangeComment:
 		return m.ChangeComment()
 	}
@@ -11651,6 +11723,8 @@ func (m *ResourceMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldResourceDefinitionID(ctx)
 	case resource.FieldAttributes:
 		return m.OldAttributes(ctx)
+	case resource.FieldEndpoints:
+		return m.OldEndpoints(ctx)
 	case resource.FieldChangeComment:
 		return m.OldChangeComment(ctx)
 	}
@@ -11753,6 +11827,13 @@ func (m *ResourceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetAttributes(v)
 		return nil
+	case resource.FieldEndpoints:
+		v, ok := value.(types.ResourceEndpoints)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndpoints(v)
+		return nil
 	case resource.FieldChangeComment:
 		v, ok := value.(string)
 		if !ok {
@@ -11814,6 +11895,9 @@ func (m *ResourceMutation) ClearedFields() []string {
 	if m.FieldCleared(resource.FieldAttributes) {
 		fields = append(fields, resource.FieldAttributes)
 	}
+	if m.FieldCleared(resource.FieldEndpoints) {
+		fields = append(fields, resource.FieldEndpoints)
+	}
 	if m.FieldCleared(resource.FieldChangeComment) {
 		fields = append(fields, resource.FieldChangeComment)
 	}
@@ -11854,6 +11938,9 @@ func (m *ResourceMutation) ClearField(name string) error {
 		return nil
 	case resource.FieldAttributes:
 		m.ClearAttributes()
+		return nil
+	case resource.FieldEndpoints:
+		m.ClearEndpoints()
 		return nil
 	case resource.FieldChangeComment:
 		m.ClearChangeComment()
@@ -11904,6 +11991,9 @@ func (m *ResourceMutation) ResetField(name string) error {
 		return nil
 	case resource.FieldAttributes:
 		m.ResetAttributes()
+		return nil
+	case resource.FieldEndpoints:
+		m.ResetEndpoints()
 		return nil
 	case resource.FieldChangeComment:
 		m.ResetChangeComment()

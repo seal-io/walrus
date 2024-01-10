@@ -45,6 +45,8 @@ const (
 	FieldResourceDefinitionID = "resource_definition_id"
 	// FieldAttributes holds the string denoting the attributes field in the database.
 	FieldAttributes = "attributes"
+	// FieldEndpoints holds the string denoting the endpoints field in the database.
+	FieldEndpoints = "endpoints"
 	// FieldChangeComment holds the string denoting the change_comment field in the database.
 	FieldChangeComment = "change_comment"
 	// EdgeProject holds the string denoting the project edge name in mutations.
@@ -130,6 +132,7 @@ var Columns = []string{
 	FieldType,
 	FieldResourceDefinitionID,
 	FieldAttributes,
+	FieldEndpoints,
 	FieldChangeComment,
 }
 

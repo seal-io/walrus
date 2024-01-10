@@ -25,6 +25,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
@@ -171,6 +172,12 @@ func (rc *ResourceCreate) SetNillableResourceDefinitionID(o *object.ID) *Resourc
 // SetAttributes sets the "attributes" field.
 func (rc *ResourceCreate) SetAttributes(pr property.Values) *ResourceCreate {
 	rc.mutation.SetAttributes(pr)
+	return rc
+}
+
+// SetEndpoints sets the "endpoints" field.
+func (rc *ResourceCreate) SetEndpoints(te types.ResourceEndpoints) *ResourceCreate {
+	rc.mutation.SetEndpoints(te)
 	return rc
 }
 
@@ -432,6 +439,10 @@ func (rc *ResourceCreate) createSpec() (*Resource, *sqlgraph.CreateSpec) {
 		_spec.SetField(resource.FieldAttributes, field.TypeOther, value)
 		_node.Attributes = value
 	}
+	if value, ok := rc.mutation.Endpoints(); ok {
+		_spec.SetField(resource.FieldEndpoints, field.TypeJSON, value)
+		_node.Endpoints = value
+	}
 	if value, ok := rc.mutation.ChangeComment(); ok {
 		_spec.SetField(resource.FieldChangeComment, field.TypeString, value)
 		_node.ChangeComment = value
@@ -617,6 +628,9 @@ func (rc *ResourceCreate) Set(obj *Resource) *ResourceCreate {
 	if !reflect.ValueOf(obj.Attributes).IsZero() {
 		rc.SetAttributes(obj.Attributes)
 	}
+	if !reflect.ValueOf(obj.Endpoints).IsZero() {
+		rc.SetEndpoints(obj.Endpoints)
+	}
 	if obj.ChangeComment != "" {
 		rc.SetChangeComment(obj.ChangeComment)
 	}
@@ -694,6 +708,9 @@ func (rc *ResourceCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Con
 		}
 		if _, set := rc.mutation.Field(resource.FieldAttributes); set {
 			obj.Attributes = x.Attributes
+		}
+		if _, set := rc.mutation.Field(resource.FieldEndpoints); set {
+			obj.Endpoints = x.Endpoints
 		}
 		if _, set := rc.mutation.Field(resource.FieldChangeComment); set {
 			obj.ChangeComment = x.ChangeComment
@@ -838,6 +855,9 @@ func (rcb *ResourceCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx contex
 			}
 			if _, set := rcb.builders[i].mutation.Field(resource.FieldAttributes); set {
 				objs[i].Attributes = x[i].Attributes
+			}
+			if _, set := rcb.builders[i].mutation.Field(resource.FieldEndpoints); set {
+				objs[i].Endpoints = x[i].Endpoints
 			}
 			if _, set := rcb.builders[i].mutation.Field(resource.FieldChangeComment); set {
 				objs[i].ChangeComment = x[i].ChangeComment
@@ -1088,6 +1108,24 @@ func (u *ResourceUpsert) ClearAttributes() *ResourceUpsert {
 	return u
 }
 
+// SetEndpoints sets the "endpoints" field.
+func (u *ResourceUpsert) SetEndpoints(v types.ResourceEndpoints) *ResourceUpsert {
+	u.Set(resource.FieldEndpoints, v)
+	return u
+}
+
+// UpdateEndpoints sets the "endpoints" field to the value that was provided on create.
+func (u *ResourceUpsert) UpdateEndpoints() *ResourceUpsert {
+	u.SetExcluded(resource.FieldEndpoints)
+	return u
+}
+
+// ClearEndpoints clears the value of the "endpoints" field.
+func (u *ResourceUpsert) ClearEndpoints() *ResourceUpsert {
+	u.SetNull(resource.FieldEndpoints)
+	return u
+}
+
 // SetChangeComment sets the "change_comment" field.
 func (u *ResourceUpsert) SetChangeComment(v string) *ResourceUpsert {
 	u.Set(resource.FieldChangeComment, v)
@@ -1309,6 +1347,27 @@ func (u *ResourceUpsertOne) UpdateAttributes() *ResourceUpsertOne {
 func (u *ResourceUpsertOne) ClearAttributes() *ResourceUpsertOne {
 	return u.Update(func(s *ResourceUpsert) {
 		s.ClearAttributes()
+	})
+}
+
+// SetEndpoints sets the "endpoints" field.
+func (u *ResourceUpsertOne) SetEndpoints(v types.ResourceEndpoints) *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.SetEndpoints(v)
+	})
+}
+
+// UpdateEndpoints sets the "endpoints" field to the value that was provided on create.
+func (u *ResourceUpsertOne) UpdateEndpoints() *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.UpdateEndpoints()
+	})
+}
+
+// ClearEndpoints clears the value of the "endpoints" field.
+func (u *ResourceUpsertOne) ClearEndpoints() *ResourceUpsertOne {
+	return u.Update(func(s *ResourceUpsert) {
+		s.ClearEndpoints()
 	})
 }
 
@@ -1701,6 +1760,27 @@ func (u *ResourceUpsertBulk) UpdateAttributes() *ResourceUpsertBulk {
 func (u *ResourceUpsertBulk) ClearAttributes() *ResourceUpsertBulk {
 	return u.Update(func(s *ResourceUpsert) {
 		s.ClearAttributes()
+	})
+}
+
+// SetEndpoints sets the "endpoints" field.
+func (u *ResourceUpsertBulk) SetEndpoints(v types.ResourceEndpoints) *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.SetEndpoints(v)
+	})
+}
+
+// UpdateEndpoints sets the "endpoints" field to the value that was provided on create.
+func (u *ResourceUpsertBulk) UpdateEndpoints() *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.UpdateEndpoints()
+	})
+}
+
+// ClearEndpoints clears the value of the "endpoints" field.
+func (u *ResourceUpsertBulk) ClearEndpoints() *ResourceUpsertBulk {
+	return u.Update(func(s *ResourceUpsert) {
+		s.ClearEndpoints()
 	})
 }
 
