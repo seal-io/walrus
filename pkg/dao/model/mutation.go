@@ -12128,12 +12128,12 @@ type ResourceComponentMutation struct {
 	id                  *object.ID
 	create_time         *time.Time
 	update_time         *time.Time
+	status              *status.Status
 	mode                *string
 	_type               *string
 	name                *string
 	deployer_type       *string
 	shape               *string
-	status              *types.ResourceComponentStatus
 	clearedFields       map[string]struct{}
 	project             *object.ID
 	clearedproject      bool
@@ -12335,6 +12335,55 @@ func (m *ResourceComponentMutation) OldUpdateTime(ctx context.Context) (v *time.
 // ResetUpdateTime resets all changes to the "update_time" field.
 func (m *ResourceComponentMutation) ResetUpdateTime() {
 	m.update_time = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *ResourceComponentMutation) SetStatus(s status.Status) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *ResourceComponentMutation) Status() (r status.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the ResourceComponent entity.
+// If the ResourceComponent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceComponentMutation) OldStatus(ctx context.Context) (v status.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ClearStatus clears the value of the "status" field.
+func (m *ResourceComponentMutation) ClearStatus() {
+	m.status = nil
+	m.clearedFields[resourcecomponent.FieldStatus] = struct{}{}
+}
+
+// StatusCleared returns if the "status" field was cleared in this mutation.
+func (m *ResourceComponentMutation) StatusCleared() bool {
+	_, ok := m.clearedFields[resourcecomponent.FieldStatus]
+	return ok
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *ResourceComponentMutation) ResetStatus() {
+	m.status = nil
+	delete(m.clearedFields, resourcecomponent.FieldStatus)
 }
 
 // SetProjectID sets the "project_id" field.
@@ -12759,55 +12808,6 @@ func (m *ResourceComponentMutation) ResetShape() {
 	m.shape = nil
 }
 
-// SetStatus sets the "status" field.
-func (m *ResourceComponentMutation) SetStatus(tcs types.ResourceComponentStatus) {
-	m.status = &tcs
-}
-
-// Status returns the value of the "status" field in the mutation.
-func (m *ResourceComponentMutation) Status() (r types.ResourceComponentStatus, exists bool) {
-	v := m.status
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStatus returns the old "status" field's value of the ResourceComponent entity.
-// If the ResourceComponent object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ResourceComponentMutation) OldStatus(ctx context.Context) (v types.ResourceComponentStatus, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatus requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
-	}
-	return oldValue.Status, nil
-}
-
-// ClearStatus clears the value of the "status" field.
-func (m *ResourceComponentMutation) ClearStatus() {
-	m.status = nil
-	m.clearedFields[resourcecomponent.FieldStatus] = struct{}{}
-}
-
-// StatusCleared returns if the "status" field was cleared in this mutation.
-func (m *ResourceComponentMutation) StatusCleared() bool {
-	_, ok := m.clearedFields[resourcecomponent.FieldStatus]
-	return ok
-}
-
-// ResetStatus resets all changes to the "status" field.
-func (m *ResourceComponentMutation) ResetStatus() {
-	m.status = nil
-	delete(m.clearedFields, resourcecomponent.FieldStatus)
-}
-
 // ClearProject clears the "project" edge to the Project entity.
 func (m *ResourceComponentMutation) ClearProject() {
 	m.clearedproject = true
@@ -13167,6 +13167,9 @@ func (m *ResourceComponentMutation) Fields() []string {
 	if m.update_time != nil {
 		fields = append(fields, resourcecomponent.FieldUpdateTime)
 	}
+	if m.status != nil {
+		fields = append(fields, resourcecomponent.FieldStatus)
+	}
 	if m.project != nil {
 		fields = append(fields, resourcecomponent.FieldProjectID)
 	}
@@ -13200,9 +13203,6 @@ func (m *ResourceComponentMutation) Fields() []string {
 	if m.shape != nil {
 		fields = append(fields, resourcecomponent.FieldShape)
 	}
-	if m.status != nil {
-		fields = append(fields, resourcecomponent.FieldStatus)
-	}
 	return fields
 }
 
@@ -13215,6 +13215,8 @@ func (m *ResourceComponentMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case resourcecomponent.FieldUpdateTime:
 		return m.UpdateTime()
+	case resourcecomponent.FieldStatus:
+		return m.Status()
 	case resourcecomponent.FieldProjectID:
 		return m.ProjectID()
 	case resourcecomponent.FieldEnvironmentID:
@@ -13237,8 +13239,6 @@ func (m *ResourceComponentMutation) Field(name string) (ent.Value, bool) {
 		return m.DeployerType()
 	case resourcecomponent.FieldShape:
 		return m.Shape()
-	case resourcecomponent.FieldStatus:
-		return m.Status()
 	}
 	return nil, false
 }
@@ -13252,6 +13252,8 @@ func (m *ResourceComponentMutation) OldField(ctx context.Context, name string) (
 		return m.OldCreateTime(ctx)
 	case resourcecomponent.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
+	case resourcecomponent.FieldStatus:
+		return m.OldStatus(ctx)
 	case resourcecomponent.FieldProjectID:
 		return m.OldProjectID(ctx)
 	case resourcecomponent.FieldEnvironmentID:
@@ -13274,8 +13276,6 @@ func (m *ResourceComponentMutation) OldField(ctx context.Context, name string) (
 		return m.OldDeployerType(ctx)
 	case resourcecomponent.FieldShape:
 		return m.OldShape(ctx)
-	case resourcecomponent.FieldStatus:
-		return m.OldStatus(ctx)
 	}
 	return nil, fmt.Errorf("unknown ResourceComponent field %s", name)
 }
@@ -13298,6 +13298,13 @@ func (m *ResourceComponentMutation) SetField(name string, value ent.Value) error
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdateTime(v)
+		return nil
+	case resourcecomponent.FieldStatus:
+		v, ok := value.(status.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
 		return nil
 	case resourcecomponent.FieldProjectID:
 		v, ok := value.(object.ID)
@@ -13376,13 +13383,6 @@ func (m *ResourceComponentMutation) SetField(name string, value ent.Value) error
 		}
 		m.SetShape(v)
 		return nil
-	case resourcecomponent.FieldStatus:
-		v, ok := value.(types.ResourceComponentStatus)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatus(v)
-		return nil
 	}
 	return fmt.Errorf("unknown ResourceComponent field %s", name)
 }
@@ -13413,14 +13413,14 @@ func (m *ResourceComponentMutation) AddField(name string, value ent.Value) error
 // mutation.
 func (m *ResourceComponentMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(resourcecomponent.FieldStatus) {
+		fields = append(fields, resourcecomponent.FieldStatus)
+	}
 	if m.FieldCleared(resourcecomponent.FieldCompositionID) {
 		fields = append(fields, resourcecomponent.FieldCompositionID)
 	}
 	if m.FieldCleared(resourcecomponent.FieldClassID) {
 		fields = append(fields, resourcecomponent.FieldClassID)
-	}
-	if m.FieldCleared(resourcecomponent.FieldStatus) {
-		fields = append(fields, resourcecomponent.FieldStatus)
 	}
 	return fields
 }
@@ -13436,14 +13436,14 @@ func (m *ResourceComponentMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *ResourceComponentMutation) ClearField(name string) error {
 	switch name {
+	case resourcecomponent.FieldStatus:
+		m.ClearStatus()
+		return nil
 	case resourcecomponent.FieldCompositionID:
 		m.ClearCompositionID()
 		return nil
 	case resourcecomponent.FieldClassID:
 		m.ClearClassID()
-		return nil
-	case resourcecomponent.FieldStatus:
-		m.ClearStatus()
 		return nil
 	}
 	return fmt.Errorf("unknown ResourceComponent nullable field %s", name)
@@ -13458,6 +13458,9 @@ func (m *ResourceComponentMutation) ResetField(name string) error {
 		return nil
 	case resourcecomponent.FieldUpdateTime:
 		m.ResetUpdateTime()
+		return nil
+	case resourcecomponent.FieldStatus:
+		m.ResetStatus()
 		return nil
 	case resourcecomponent.FieldProjectID:
 		m.ResetProjectID()
@@ -13491,9 +13494,6 @@ func (m *ResourceComponentMutation) ResetField(name string) error {
 		return nil
 	case resourcecomponent.FieldShape:
 		m.ResetShape()
-		return nil
-	case resourcecomponent.FieldStatus:
-		m.ResetStatus()
 		return nil
 	}
 	return fmt.Errorf("unknown ResourceComponent field %s", name)

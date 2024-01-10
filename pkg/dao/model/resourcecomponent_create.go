@@ -23,8 +23,8 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponentrelationship"
-	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
 // ResourceComponentCreate is the builder for creating a ResourceComponent entity.
@@ -61,6 +61,20 @@ func (rcc *ResourceComponentCreate) SetUpdateTime(t time.Time) *ResourceComponen
 func (rcc *ResourceComponentCreate) SetNillableUpdateTime(t *time.Time) *ResourceComponentCreate {
 	if t != nil {
 		rcc.SetUpdateTime(*t)
+	}
+	return rcc
+}
+
+// SetStatus sets the "status" field.
+func (rcc *ResourceComponentCreate) SetStatus(s status.Status) *ResourceComponentCreate {
+	rcc.mutation.SetStatus(s)
+	return rcc
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (rcc *ResourceComponentCreate) SetNillableStatus(s *status.Status) *ResourceComponentCreate {
+	if s != nil {
+		rcc.SetStatus(*s)
 	}
 	return rcc
 }
@@ -144,20 +158,6 @@ func (rcc *ResourceComponentCreate) SetDeployerType(s string) *ResourceComponent
 // SetShape sets the "shape" field.
 func (rcc *ResourceComponentCreate) SetShape(s string) *ResourceComponentCreate {
 	rcc.mutation.SetShape(s)
-	return rcc
-}
-
-// SetStatus sets the "status" field.
-func (rcc *ResourceComponentCreate) SetStatus(tcs types.ResourceComponentStatus) *ResourceComponentCreate {
-	rcc.mutation.SetStatus(tcs)
-	return rcc
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (rcc *ResourceComponentCreate) SetNillableStatus(tcs *types.ResourceComponentStatus) *ResourceComponentCreate {
-	if tcs != nil {
-		rcc.SetStatus(*tcs)
-	}
 	return rcc
 }
 
@@ -433,6 +433,10 @@ func (rcc *ResourceComponentCreate) createSpec() (*ResourceComponent, *sqlgraph.
 		_spec.SetField(resourcecomponent.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
 	}
+	if value, ok := rcc.mutation.Status(); ok {
+		_spec.SetField(resourcecomponent.FieldStatus, field.TypeJSON, value)
+		_node.Status = value
+	}
 	if value, ok := rcc.mutation.Mode(); ok {
 		_spec.SetField(resourcecomponent.FieldMode, field.TypeString, value)
 		_node.Mode = value
@@ -452,10 +456,6 @@ func (rcc *ResourceComponentCreate) createSpec() (*ResourceComponent, *sqlgraph.
 	if value, ok := rcc.mutation.Shape(); ok {
 		_spec.SetField(resourcecomponent.FieldShape, field.TypeString, value)
 		_node.Shape = value
-	}
-	if value, ok := rcc.mutation.Status(); ok {
-		_spec.SetField(resourcecomponent.FieldStatus, field.TypeJSON, value)
-		_node.Status = value
 	}
 	if nodes := rcc.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -656,14 +656,14 @@ func (rcc *ResourceComponentCreate) Set(obj *ResourceComponent) *ResourceCompone
 	if obj.UpdateTime != nil {
 		rcc.SetUpdateTime(*obj.UpdateTime)
 	}
+	if !reflect.ValueOf(obj.Status).IsZero() {
+		rcc.SetStatus(obj.Status)
+	}
 	if obj.CompositionID != "" {
 		rcc.SetCompositionID(obj.CompositionID)
 	}
 	if obj.ClassID != "" {
 		rcc.SetClassID(obj.ClassID)
-	}
-	if !reflect.ValueOf(obj.Status).IsZero() {
-		rcc.SetStatus(obj.Status)
 	}
 
 	// Record the given object.
@@ -701,6 +701,9 @@ func (rcc *ResourceComponentCreate) SaveE(ctx context.Context, cbs ...func(ctx c
 	mc := rcc.getClientSet()
 
 	if x := rcc.object; x != nil {
+		if _, set := rcc.mutation.Field(resourcecomponent.FieldStatus); set {
+			obj.Status = x.Status
+		}
 		if _, set := rcc.mutation.Field(resourcecomponent.FieldProjectID); set {
 			obj.ProjectID = x.ProjectID
 		}
@@ -733,9 +736,6 @@ func (rcc *ResourceComponentCreate) SaveE(ctx context.Context, cbs ...func(ctx c
 		}
 		if _, set := rcc.mutation.Field(resourcecomponent.FieldShape); set {
 			obj.Shape = x.Shape
-		}
-		if _, set := rcc.mutation.Field(resourcecomponent.FieldStatus); set {
-			obj.Status = x.Status
 		}
 		obj.Edges = x.Edges
 	}
@@ -836,6 +836,9 @@ func (rccb *ResourceComponentCreateBulk) SaveE(ctx context.Context, cbs ...func(
 
 	if x := rccb.objects; x != nil {
 		for i := range x {
+			if _, set := rccb.builders[i].mutation.Field(resourcecomponent.FieldStatus); set {
+				objs[i].Status = x[i].Status
+			}
 			if _, set := rccb.builders[i].mutation.Field(resourcecomponent.FieldProjectID); set {
 				objs[i].ProjectID = x[i].ProjectID
 			}
@@ -868,9 +871,6 @@ func (rccb *ResourceComponentCreateBulk) SaveE(ctx context.Context, cbs ...func(
 			}
 			if _, set := rccb.builders[i].mutation.Field(resourcecomponent.FieldShape); set {
 				objs[i].Shape = x[i].Shape
-			}
-			if _, set := rccb.builders[i].mutation.Field(resourcecomponent.FieldStatus); set {
-				objs[i].Status = x[i].Status
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -1011,7 +1011,7 @@ func (u *ResourceComponentUpsert) UpdateUpdateTime() *ResourceComponentUpsert {
 }
 
 // SetStatus sets the "status" field.
-func (u *ResourceComponentUpsert) SetStatus(v types.ResourceComponentStatus) *ResourceComponentUpsert {
+func (u *ResourceComponentUpsert) SetStatus(v status.Status) *ResourceComponentUpsert {
 	u.Set(resourcecomponent.FieldStatus, v)
 	return u
 }
@@ -1127,7 +1127,7 @@ func (u *ResourceComponentUpsertOne) UpdateUpdateTime() *ResourceComponentUpsert
 }
 
 // SetStatus sets the "status" field.
-func (u *ResourceComponentUpsertOne) SetStatus(v types.ResourceComponentStatus) *ResourceComponentUpsertOne {
+func (u *ResourceComponentUpsertOne) SetStatus(v status.Status) *ResourceComponentUpsertOne {
 	return u.Update(func(s *ResourceComponentUpsert) {
 		s.SetStatus(v)
 	})
@@ -1411,7 +1411,7 @@ func (u *ResourceComponentUpsertBulk) UpdateUpdateTime() *ResourceComponentUpser
 }
 
 // SetStatus sets the "status" field.
-func (u *ResourceComponentUpsertBulk) SetStatus(v types.ResourceComponentStatus) *ResourceComponentUpsertBulk {
+func (u *ResourceComponentUpsertBulk) SetStatus(v status.Status) *ResourceComponentUpsertBulk {
 	return u.Update(func(s *ResourceComponentUpsert) {
 		s.SetStatus(v)
 	})

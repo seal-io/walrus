@@ -206,6 +206,16 @@ func UpdateTimeLTE(v time.Time) predicate.ResourceComponent {
 	return predicate.ResourceComponent(sql.FieldLTE(FieldUpdateTime, v))
 }
 
+// StatusIsNil applies the IsNil predicate on the "status" field.
+func StatusIsNil() predicate.ResourceComponent {
+	return predicate.ResourceComponent(sql.FieldIsNull(FieldStatus))
+}
+
+// StatusNotNil applies the NotNil predicate on the "status" field.
+func StatusNotNil() predicate.ResourceComponent {
+	return predicate.ResourceComponent(sql.FieldNotNull(FieldStatus))
+}
+
 // ProjectIDEQ applies the EQ predicate on the "project_id" field.
 func ProjectIDEQ(v object.ID) predicate.ResourceComponent {
 	return predicate.ResourceComponent(sql.FieldEQ(FieldProjectID, v))
@@ -969,16 +979,6 @@ func ShapeEqualFold(v string) predicate.ResourceComponent {
 // ShapeContainsFold applies the ContainsFold predicate on the "shape" field.
 func ShapeContainsFold(v string) predicate.ResourceComponent {
 	return predicate.ResourceComponent(sql.FieldContainsFold(FieldShape, v))
-}
-
-// StatusIsNil applies the IsNil predicate on the "status" field.
-func StatusIsNil() predicate.ResourceComponent {
-	return predicate.ResourceComponent(sql.FieldIsNull(FieldStatus))
-}
-
-// StatusNotNil applies the NotNil predicate on the "status" field.
-func StatusNotNil() predicate.ResourceComponent {
-	return predicate.ResourceComponent(sql.FieldNotNull(FieldStatus))
 }
 
 // HasProject applies the HasEdge predicate on the "project" edge.
