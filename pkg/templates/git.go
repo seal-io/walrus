@@ -36,7 +36,7 @@ func CreateTemplateVersionsFromRepo(
 	logger := log.WithName("template")
 
 	// Create template versions.
-	templateVersions, err := GetTemplateVersions(entity, versions, versionSchema)
+	templateVersions, err := GetTemplateVersions(ctx, entity, versions, versionSchema)
 	if err != nil {
 		return err
 	}
@@ -143,17 +143,25 @@ func syncTemplateFromRef(
 		source += "//" + repo.SubPath
 	}
 
+	// Generate template version.
+	tv := &model.TemplateVersion{
+		TemplateID: entity.ID,
+		Name:       entity.Name,
+		Version:    ref,
+		Source:     source + "?ref=" + repo.Reference,
+		Schema:     *originSchema,
+		UiSchema:   *uiSchema,
+		ProjectID:  entity.ProjectID,
+	}
+
+	err = SetTemplateSchemaDefault(ctx, tv)
+	if err != nil {
+		return err
+	}
+
 	// Create or update a template version.
 	return mc.TemplateVersions().Create().
-		Set(&model.TemplateVersion{
-			TemplateID: entity.ID,
-			Name:       entity.Name,
-			Version:    ref,
-			Source:     source + "?ref=" + repo.Reference,
-			Schema:     *originSchema,
-			UiSchema:   *uiSchema,
-			ProjectID:  entity.ProjectID,
-		}).
+		Set(tv).
 		OnConflict(conflictOptions...).
 		UpdateNewValues().
 		Exec(ctx)
@@ -300,6 +308,7 @@ func SyncTemplateFromGitRepo(
 // GetTemplateVersions retrieves template versions from a git repository.
 // It will save images to the database if they are found in the repository.
 func GetTemplateVersions(
+	ctx context.Context,
 	entity *model.Template,
 	newVersions []*version.Version,
 	versionSchema map[*version.Version]*schemaGroup,
@@ -333,7 +342,8 @@ func GetTemplateVersions(
 			source += "//" + repo.SubPath
 		}
 
-		tvs = append(tvs, &model.TemplateVersion{
+		// Generate template version.
+		tv := &model.TemplateVersion{
 			TemplateID: entity.ID,
 			Name:       entity.Name,
 			Version:    tag,
@@ -341,7 +351,14 @@ func GetTemplateVersions(
 			Schema:     *schema.Schema,
 			UiSchema:   *schema.UISchema,
 			ProjectID:  entity.ProjectID,
-		})
+		}
+
+		err = SetTemplateSchemaDefault(ctx, tv)
+		if err != nil {
+			return nil, err
+		}
+
+		tvs = append(tvs, tv)
 	}
 
 	return tvs, nil

@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/templates"
 	"github.com/seal-io/walrus/utils/log"
 )
 
@@ -118,6 +119,11 @@ func newResourceDefinition(
 	}
 
 	err := GenerateSchema(ctx, mc, rd)
+	if err != nil {
+		return nil, err
+	}
+
+	err = templates.SetResourceDefinitionSchemaDefault(ctx, rd)
 	if err != nil {
 		return nil, err
 	}

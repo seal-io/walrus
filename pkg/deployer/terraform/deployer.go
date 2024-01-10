@@ -33,7 +33,6 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
-	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
 	pkgenv "github.com/seal-io/walrus/pkg/environment"
@@ -444,7 +443,8 @@ func (d Deployer) createRevision(
 			resource.FieldType,
 			resource.FieldLabels,
 			resource.FieldAnnotations,
-			resource.FieldAttributes).
+			resource.FieldAttributes,
+			resource.FieldComputedAttributes).
 		Only(ctx)
 	if err != nil {
 		return nil, err
@@ -453,7 +453,8 @@ func (d Deployer) createRevision(
 	var (
 		templateID                    object.ID
 		templateName, templateVersion string
-		attributes                    property.Values
+		attributes                    = res.Attributes
+		computedAttributes            = res.ComputedAttributes
 	)
 
 	switch {
@@ -461,7 +462,6 @@ func (d Deployer) createRevision(
 		templateID = res.Edges.Template.TemplateID
 		templateName = res.Edges.Template.Name
 		templateVersion = res.Edges.Template.Version
-		attributes = res.Attributes
 	case res.ResourceDefinitionID != nil:
 		rd := res.Edges.ResourceDefinition
 		matchRule := resourcedefinitions.Match(
@@ -497,16 +497,6 @@ func (d Deployer) createRevision(
 		if err != nil {
 			return nil, err
 		}
-
-		// Merge attributes. Resource attributes take precedence over resource definition attributes.
-		attributes = matchRule.Attributes
-		if attributes == nil {
-			attributes = make(property.Values)
-		}
-
-		for k, v := range res.Attributes {
-			attributes[k] = v
-		}
 	default:
 		return nil, errors.New("missing template or resource definition")
 	}
@@ -531,16 +521,17 @@ func (d Deployer) createRevision(
 	}
 
 	entity := &model.ResourceRevision{
-		ProjectID:       res.ProjectID,
-		EnvironmentID:   res.EnvironmentID,
-		ResourceID:      res.ID,
-		TemplateID:      templateID,
-		TemplateName:    templateName,
-		TemplateVersion: templateVersion,
-		Attributes:      attributes,
-		DeployerType:    DeployerType,
-		CreatedBy:       userSubject.Name,
-		ChangeComment:   opts.ChangeComment,
+		ProjectID:          res.ProjectID,
+		EnvironmentID:      res.EnvironmentID,
+		ResourceID:         res.ID,
+		TemplateID:         templateID,
+		TemplateName:       templateName,
+		TemplateVersion:    templateVersion,
+		Attributes:         attributes,
+		ComputedAttributes: computedAttributes,
+		DeployerType:       DeployerType,
+		CreatedBy:          userSubject.Name,
+		ChangeComment:      opts.ChangeComment,
 	}
 
 	status.ResourceRevisionStatusReady.Unknown(entity, "")
@@ -575,6 +566,7 @@ func (d Deployer) createRevision(
 			entity.TemplateName = prevEntity.TemplateName
 			entity.TemplateVersion = prevEntity.TemplateVersion
 			entity.Attributes = prevEntity.Attributes
+			entity.ComputedAttributes = prevEntity.ComputedAttributes
 			entity.InputPlan = prevEntity.InputPlan
 		}
 	}
@@ -952,7 +944,7 @@ func getModuleConfig(
 	)
 
 	if variablesSchema != nil {
-		attrs, err := translator.ToGoTypeValues(revision.Attributes, *variablesSchema)
+		attrs, err := translator.ToGoTypeValues(revision.ComputedAttributes, *variablesSchema)
 		if err != nil {
 			return nil, err
 		}

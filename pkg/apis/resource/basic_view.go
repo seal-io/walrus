@@ -100,8 +100,6 @@ func (r *PatchRequest) Validate() error {
 		return err
 	}
 
-	patched := r.Model()
-
 	entity, err := r.Client.Resources().Query().
 		Where(resource.ID(r.ID)).
 		Select(
@@ -119,6 +117,8 @@ func (r *PatchRequest) Validate() error {
 		WithResourceDefinition(func(rdq *model.ResourceDefinitionQuery) {
 			rdq.Select(
 				resourcedefinition.FieldType,
+				resourcedefinition.FieldSchema,
+				resourcedefinition.FieldUiSchema,
 			)
 		}).
 		Only(r.Context)
@@ -131,29 +131,27 @@ func (r *PatchRequest) Validate() error {
 			"cannot update resource draft in %q status", entity.Status.SummaryStatus)
 	}
 
+	patched := r.Model()
+	patched.Edges = entity.Edges
+
 	switch {
-	case entity.TemplateID != nil:
+	case patched.TemplateID != nil:
 		if patched.TemplateID.String() != entity.TemplateID.String() {
 			return errors.New("invalid template: immutable")
 		}
 
-		// Verify attributes with schema.
-		// TODO(thxCode): migrate schema to ui schema, then reduce if-else.
-		tv := entity.Edges.Template
-		if s := tv.UiSchema; !s.IsEmpty() {
-			err = r.Attributes.ValidateWith(s.VariableSchema())
-			if err != nil {
-				return fmt.Errorf("invalid variables: violate ui schema: %w", err)
-			}
-		} else if s := tv.Schema; !s.IsEmpty() {
-			err = r.Attributes.ValidateWith(s.VariableSchema())
-			if err != nil {
-				return fmt.Errorf("invalid variables: %w", err)
-			}
+		err = validateAttributesWithTemplate(r.Attributes, patched.Edges.Template)
+		if err != nil {
+			return err
 		}
-	case entity.ResourceDefinitionID != nil:
+	case patched.ResourceDefinitionID != nil:
 		if patched.ResourceDefinitionID.String() != entity.ResourceDefinitionID.String() {
 			return errors.New("invalid resource definition: immutable")
+		}
+
+		err = validateAttributesWithResourceDefinition(r.Attributes, patched.Edges.ResourceDefinition)
+		if err != nil {
+			return err
 		}
 
 		env, err := r.Client.Environments().Query().
@@ -172,7 +170,7 @@ func (r *PatchRequest) Validate() error {
 		}
 
 		rule := resourcedefinitions.Match(
-			entity.Edges.ResourceDefinition.Edges.MatchingRules,
+			patched.Edges.ResourceDefinition.Edges.MatchingRules,
 			env.Edges.Project.Name,
 			env.Name,
 			env.Type,
@@ -182,7 +180,7 @@ func (r *PatchRequest) Validate() error {
 		if rule == nil {
 			return fmt.Errorf(
 				"resource definition %s does not match environment %s",
-				entity.ResourceDefinitionID,
+				patched.ResourceDefinitionID,
 				env.Name,
 			)
 		}
@@ -202,6 +200,12 @@ func (r *PatchRequest) Validate() error {
 	}
 
 	if err = ValidateRevisionsStatus(r.Context, r.Client, patched.ID); err != nil {
+		return err
+	}
+
+	// Set computedAttributes.
+	patched.ComputedAttributes, err = genComputedAttributes(r.Context, patched, r.Client)
+	if err != nil {
 		return err
 	}
 
@@ -313,6 +317,8 @@ func (r *CollectionCreateRequest) Validate() error {
 			resourcedefinition.FieldID,
 			resourcedefinition.FieldName,
 			resourcedefinition.FieldType,
+			resourcedefinition.FieldSchema,
+			resourcedefinition.FieldUiSchema,
 		).
 		WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
 			rq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
@@ -340,20 +346,16 @@ func (r *CollectionCreateRequest) Validate() error {
 	for _, res := range r.Items {
 		switch {
 		case res.Template != nil:
-			// Verify attributes with schema.
-			// TODO(thxCode): migrate schema to ui schema, then reduce if-else.
-			if s := tvm[res.Template.ID].UiSchema; !s.IsEmpty() {
-				err = res.Attributes.ValidateWith(s.VariableSchema())
-				if err != nil {
-					return fmt.Errorf("invalid variables: violate ui schema: %w", err)
-				}
-			} else if s := tvm[res.Template.ID].Schema; !s.IsEmpty() {
-				err = res.Attributes.ValidateWith(s.VariableSchema())
-				if err != nil {
-					return fmt.Errorf("invalid variables: %w", err)
-				}
+			err = validateAttributesWithTemplate(res.Attributes, tvm[res.Template.ID])
+			if err != nil {
+				return err
 			}
 		case res.Type != "":
+			err = validateAttributesWithResourceDefinition(res.Attributes, rdm[res.Type])
+			if err != nil {
+				return err
+			}
+
 			rule := resourcedefinitions.Match(
 				rdm[res.Type].Edges.MatchingRules,
 				env.Edges.Project.Name,
@@ -369,6 +371,15 @@ func (r *CollectionCreateRequest) Validate() error {
 
 		// Verify that variables in attributes are valid.
 		err = validateVariable(r.Context, r.Client, res.Attributes, res.Name, r.Project.ID, r.Environment.ID)
+		if err != nil {
+			return err
+		}
+
+		// Set computedAttributes.
+		var err error
+		en := createInputsItemToResource(res, r.Project, r.Environment)
+
+		res.ComputedAttributes, err = genComputedAttributes(r.Context, en, r.Client)
 		if err != nil {
 			return err
 		}
@@ -574,19 +585,11 @@ func ValidateCreateInput(rci *model.ResourceCreateInput) error {
 			return err
 		}
 
-		// Verify variables with schema.
-		// TODO(thxCode): migrate schema to ui schema, then reduce if-else.
-		if s := tv.UiSchema; !s.IsEmpty() {
-			err = rci.Attributes.ValidateWith(s.VariableSchema())
-			if err != nil {
-				return fmt.Errorf("invalid variables: violate ui schema: %w", err)
-			}
-		} else if s := tv.Schema; !s.IsEmpty() {
-			err = rci.Attributes.ValidateWith(s.VariableSchema())
-			if err != nil {
-				return fmt.Errorf("invalid variables: %w", err)
-			}
+		err = validateAttributesWithTemplate(rci.Attributes, tv)
+		if err != nil {
+			return err
 		}
+
 	case rci.Type != "":
 		rd, err := rci.Client.ResourceDefinitions().Query().
 			Where(resourcedefinition.Type(rci.Type)).
@@ -603,10 +606,19 @@ func ValidateCreateInput(rci *model.ResourceCreateInput) error {
 						)
 					})
 			}).
-			Select(resourcedefinition.FieldID, resourcedefinition.FieldName).
+			Select(
+				resourcedefinition.FieldID,
+				resourcedefinition.FieldName,
+				resourcedefinition.FieldSchema,
+				resourcedefinition.FieldUiSchema).
 			Only(rci.Context)
 		if err != nil {
 			return fmt.Errorf("failed to get resource definition: %w", err)
+		}
+
+		err = validateAttributesWithResourceDefinition(rci.Attributes, rd)
+		if err != nil {
+			return err
 		}
 
 		rule := resourcedefinitions.Match(
@@ -628,6 +640,37 @@ func ValidateCreateInput(rci *model.ResourceCreateInput) error {
 	err = validateVariable(rci.Context, rci.Client, rci.Attributes, rci.Name, rci.Project.ID, rci.Environment.ID)
 	if err != nil {
 		return err
+	}
+
+	// Set computedAttributes.
+	en := rci.Model()
+
+	rci.ComputedAttributes, err = genComputedAttributes(rci.Context, en, rci.Client)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func validateAttributesWithTemplate(attrs property.Values, tv *model.TemplateVersion) error {
+	if s := tv.UiSchema; !s.IsEmpty() {
+		err := attrs.ValidateWith(s.VariableSchema())
+		if err != nil {
+			return fmt.Errorf("invalid variables: violate ui schema: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func validateAttributesWithResourceDefinition(attrs property.Values, rd *model.ResourceDefinition) error {
+	rdo := dao.ExposeResourceDefinition(rd)
+	if s := rdo.UiSchema; !s.IsEmpty() {
+		err := attrs.ValidateWith(s.VariableSchema())
+		if err != nil {
+			return fmt.Errorf("invalid variables: violate ui schema: %w", err)
+		}
 	}
 
 	return nil

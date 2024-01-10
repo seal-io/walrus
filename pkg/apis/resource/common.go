@@ -83,17 +83,6 @@ func UpgradeResources(req CollectionRouteUpgradeRequest, mc model.ClientSet, kub
 		err       error
 	)
 
-	if req.ReuseAttributes {
-		resources, err = mc.Resources().Query().
-			Where(resource.IDIn(req.IDs()...)).
-			All(req.Context)
-		if err != nil {
-			return err
-		}
-	} else {
-		resources = req.Model()
-	}
-
 	// Make sure the resources are upgraded in topological order.
 	resources, err = pkgresource.TopologicalSortResources(resources)
 	if err != nil {

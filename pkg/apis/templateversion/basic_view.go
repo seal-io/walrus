@@ -19,5 +19,14 @@ func (r *UpdateRequest) Validate() error {
 		return err
 	}
 
+	if r.TemplateVersionUpdateInput.Schema.IsEmpty() {
+		tv, err := r.Client.TemplateVersion.Get(r.Context, r.ID)
+		if err != nil {
+			return err
+		}
+
+		r.TemplateVersionUpdateInput.Schema = tv.Schema
+	}
+
 	return nil
 }

@@ -24,21 +24,7 @@ import (
 )
 
 func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
-	var (
-		entity *model.Resource
-		err    error
-	)
-
-	if req.ReuseAttributes {
-		entity, err = h.modelClient.Resources().Query().
-			Where(resource.ID(req.ID)).
-			Only(req.Context)
-		if err != nil {
-			return err
-		}
-	} else {
-		entity = req.Model()
-	}
+	entity := req.Model()
 
 	return upgrade(req.Context, h.kubeConfig, h.modelClient, entity, req.Draft)
 }
@@ -56,6 +42,7 @@ func (h Handler) RouteRollback(req RouteRollbackRequest) error {
 
 	entity := rev.Edges.Resource
 	entity.Attributes = rev.Attributes
+	entity.ComputedAttributes = rev.ComputedAttributes
 	entity.ChangeComment = req.ChangeComment
 
 	if entity.TemplateID != nil {
