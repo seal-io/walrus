@@ -124,14 +124,14 @@ func (h Handler) RouteUpdateTerraformStates(
 		return err
 	}
 
-	return manageResources(req.Context, h.modelClient, entity)
+	return manageResourceComponents(req.Context, h.modelClient, entity)
 }
 
-// manageResources parses the resources from the given revision,
-// removes the stale resources from the database,
-// creates the new resources to the database,
-// and then execute reconcileResources for the new created resources.
-func manageResources(
+// manageResourceComponents parses the resource components from the given revision,
+// removes the stale resource components from the database,
+// creates the new resource components to the database,
+// and then execute reconcileResourceComponents for the new created resource components.
+func manageResourceComponents(
 	ctx context.Context,
 	modelClient model.ClientSet,
 	entity *model.ResourceRevision,
@@ -143,7 +143,7 @@ func manageResources(
 		return err
 	}
 
-	// Get record resources from local.
+	// Get record components from local.
 	recordRess, err := modelClient.ResourceComponents().Query().
 		Where(resourcecomponent.ResourceID(entity.ResourceID)).
 		All(ctx)
@@ -187,7 +187,7 @@ func manageResources(
 	replacedRess := make([]*model.ResourceComponent, 0)
 
 	err = modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		// Update resources with new instances.
+		// Update components with new items.
 		for _, r := range updatedRess {
 			rp, err := dao.ResourceComponentInstancesEdgeSaveWithResult(ctx, tx, r)
 			if err != nil {
@@ -197,7 +197,7 @@ func manageResources(
 			replacedRess = append(replacedRess, rp...)
 		}
 
-		// Create new resources.
+		// Create new components.
 		if len(createRess) != 0 {
 			createRess, err = tx.ResourceComponents().CreateBulk().
 				Set(createRess...).
@@ -214,7 +214,7 @@ func manageResources(
 			}
 		}
 
-		// Delete stale resources.
+		// Delete stale components.
 		if len(deleteRessIDs) != 0 {
 			_, err = tx.ResourceComponents().Delete().
 				Where(resourcecomponent.IDIn(deleteRessIDs...)).
@@ -264,17 +264,17 @@ func manageResources(
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 		defer cancel()
 
-		if err = reconcileResources(ctx, modelClient, entity.ResourceID, connRess); err != nil {
-			logger.Errorf("sync resource status and label failed: %v", err)
+		if err = reconcileResourceComponents(ctx, modelClient, entity.ResourceID, connRess); err != nil {
+			logger.Errorf("error reconciling resource components: %v", err)
 		}
 	})
 
 	return nil
 }
 
-// reconcileResources reconciles the resources,
-// including states resources/labels resources/composes resources.
-func reconcileResources(
+// reconcileResourceComponents reconciles the resource components,
+// including states/labels/composes resource components.
+func reconcileResourceComponents(
 	ctx context.Context,
 	modelClient model.ClientSet,
 	resourceID object.ID,
@@ -330,13 +330,13 @@ func reconcileResources(
 			continue
 		}
 
-		// Discover resources.
+		// Discover components.
 		ncrs, err := resourcecomponents.Discover(ctx, op, modelClient, crs)
 		if err != nil {
 			logger.Errorf("error discovering component resources: %v", err)
 		}
 
-		// State resources.
+		// State components.
 		nsr, err := resourcecomponents.State(ctx, op, modelClient, append(crs, ncrs...))
 		if err != nil {
 			logger.Errorf("error stating resources: %v", err)
@@ -347,7 +347,7 @@ func reconcileResources(
 
 		sr.Merge(nsr)
 
-		// Label resources.
+		// Label components.
 		err = resourcecomponents.Label(ctx, op, crs)
 		if err != nil {
 			logger.Errorf("error labeling resources: %v", err)

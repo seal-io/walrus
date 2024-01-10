@@ -1,14 +1,5 @@
 package types
 
-import (
-	"crypto/md5" // #nosec
-	"encoding/hex"
-	"reflect"
-	"sort"
-
-	"github.com/seal-io/walrus/pkg/dao/types/status"
-)
-
 const (
 	// ResourceComponentModeManaged indicates the resource created to target platform,
 	// it is writable(update or delete).
@@ -33,72 +24,6 @@ const (
 // ResourceComponentRelationshipTypeDependency indicates the relationship between resource component
 // and its dependencies.
 const ResourceComponentRelationshipTypeDependency = "Dependency"
-
-type ResourceComponentEndpoint struct {
-	// EndpointType is the extra info for resource component type, like nodePort, loadBalance.
-	EndpointType string `json:"endpointType,omitempty"`
-	// Endpoints are the access endpoints.
-	Endpoints []string `json:"endpoints,omitempty"`
-}
-
-type ResourceComponentStatus struct {
-	status.Status `json:",inline"`
-
-	ResourceEndpoints ResourceComponentEndpoints `json:"resourceEndpoints,omitempty"`
-}
-
-func (a ResourceComponentStatus) Equal(newArs ResourceComponentStatus) bool {
-	// Status.
-	if !a.Status.Equal(newArs.Status) {
-		return false
-	}
-
-	// Endpoints.
-	return a.ResourceEndpoints.Equal(newArs.ResourceEndpoints)
-}
-
-type ResourceComponentEndpoints []ResourceComponentEndpoint
-
-func (a ResourceComponentEndpoints) Equal(eps ResourceComponentEndpoints) bool {
-	if len(a) != len(eps) {
-		return false
-	}
-	sortEndpoints := func(eps ResourceComponentEndpoints) {
-		for i := range eps {
-			sort.Strings(eps[i].Endpoints)
-		}
-
-		sort.SliceStable(eps, func(i, j int) bool {
-			if eps[i].EndpointType != eps[j].EndpointType {
-				return eps[i].EndpointType < eps[j].EndpointType
-			}
-
-			if len(eps[i].Endpoints) != len(eps[j].Endpoints) {
-				return len(eps[i].Endpoints) < len(eps[j].Endpoints)
-			}
-
-			if len(eps[i].Endpoints) != len(eps[j].Endpoints) {
-				return len(eps[i].Endpoints) < len(eps[j].Endpoints)
-			}
-
-			return hashAddrs(eps[i].Endpoints) < hashAddrs(eps[j].Endpoints)
-		})
-	}
-
-	sortEndpoints(a)
-	sortEndpoints(eps)
-
-	return reflect.DeepEqual(a, eps)
-}
-
-func hashAddrs(addrs []string) string {
-	h := md5.New() // #nosec
-	for _, v := range addrs {
-		h.Write([]byte(v))
-	}
-
-	return hex.EncodeToString(h.Sum(nil))
-}
 
 type ResourceComponentOperationKeys struct {
 	// Labels stores label of layer,
