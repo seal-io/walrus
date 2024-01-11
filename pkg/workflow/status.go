@@ -125,6 +125,7 @@ func (m *StatusSyncer) SyncWorkflowExecutionStatus(ctx context.Context, wf *wfv1
 	case wfv1.WorkflowFailed, wfv1.WorkflowError:
 		switch {
 		case status.WorkflowExecutionStatusCanceled.IsUnknown(we):
+			status.WorkflowExecutionStatusCanceled.Reset(we, "")
 			status.WorkflowExecutionStatusCanceled.True(we, wf.Status.Message)
 		default:
 			status.WorkflowExecutionStatusPending.True(we, "")
