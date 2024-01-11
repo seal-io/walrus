@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/settings"
 	"github.com/seal-io/walrus/pkg/templates/loader"
+	"github.com/seal-io/walrus/pkg/templates/openapi"
 	"github.com/seal-io/walrus/pkg/vcs"
 	"github.com/seal-io/walrus/pkg/vcs/driver/gitlab"
 	"github.com/seal-io/walrus/utils/log"
@@ -487,7 +488,7 @@ func getSchemas(rootDir, templateName string) (*types.TemplateVersionSchema, *ty
 		return nil, nil, err
 	}
 
-	uiSchema := originSchema.Expose()
+	uiSchema := originSchema.Expose(openapi.WalrusContextVariableName)
 	if fileSchema != nil {
 		uiSchema = fileSchema.Expose()
 	}

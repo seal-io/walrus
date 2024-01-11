@@ -6,6 +6,7 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"gopkg.in/yaml.v2"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/templates/openapi"
@@ -74,19 +75,32 @@ type WrapComponents struct {
 }
 
 // FormattedOpenAPI generates formatted openapi yaml.
-func FormattedOpenAPI(s types.Schema) ([]byte, error) {
+func FormattedOpenAPI(originSchema, fileSchema *types.TemplateVersionSchema) ([]byte, error) {
+	// Get variables sequence.
+	vs := originSchema.VariableSchema()
+	oseq := openapi.GetExtOriginal(vs.Extensions).VariablesSequence
+
 	// Expose Variables.
-	es := s.Expose()
+	es := originSchema.Expose(openapi.WalrusContextVariableName)
 	if es.IsEmpty() {
 		return nil, nil
 	}
 
-	// Get variables sequence.
-	vs := s.VariableSchema()
-	oseq := openapi.GetExtOriginal(vs.Extensions).VariablesSequence
+	var (
+		merged *openapi3.Schema
+		err    error
+	)
 
-	// Remove context.
-	es.RemoveVariableContext()
+	if fileSchema == nil || fileSchema.IsEmpty() {
+		merged = es.VariableSchema()
+	} else {
+		fe := fileSchema.Expose()
+
+		merged, err = openapi.UnionSchema(es.VariableSchema(), fe.VariableSchema())
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	seq := make([]string, 0)
 
@@ -98,10 +112,17 @@ func FormattedOpenAPI(s types.Schema) ([]byte, error) {
 		seq = append(seq, v)
 	}
 
+	exist := sets.NewString(seq...)
+	for n := range merged.Properties {
+		if !exist.Has(n) {
+			seq = append(seq, n)
+		}
+	}
+
 	// Sorted Variables to the same sequence original defined, since the properties is a map,
 	// so need to generate sorted map.
 	// 1. First convert to the json.
-	propsJsonByte, err := json.Marshal(es.VariableSchema().Properties)
+	propsJsonByte, err := json.Marshal(merged.Properties)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +147,7 @@ func FormattedOpenAPI(s types.Schema) ([]byte, error) {
 	}
 
 	// 4. Generate key sorted variables.
-	esv := *es.OpenAPISchema.Components.Schemas["variables"].Value
+	esv := *es.OpenAPISchema.Components.Schemas[types.VariableSchemaKey].Value
 
 	w := WrapOpenAPI{
 		OpenAPI: es.OpenAPISchema.OpenAPI,
@@ -136,7 +157,7 @@ func FormattedOpenAPI(s types.Schema) ([]byte, error) {
 		},
 		Components: WrapComponents{
 			Schemas: map[string]any{
-				"variables": genVariable(esv, sortedProps),
+				types.VariableSchemaKey: genVariable(esv, sortedProps),
 			},
 		},
 	}

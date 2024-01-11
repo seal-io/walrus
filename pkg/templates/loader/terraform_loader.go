@@ -545,13 +545,6 @@ func (l *TerraformLoader) injectExts(vs *openapi3.Schema) {
 			continue
 		}
 
-		// Walrus Context.
-		if n == "context" {
-			vs.Properties[n].Value.Extensions = openapi.NewExtFromMap(vs.Properties[n].Value.Extensions).
-				WithUIHidden().
-				Export()
-		}
-
 		// Group.
 		extUI := openapi.GetExtUI(v.Value.Extensions)
 		if extUI.Group == "" {
