@@ -10,6 +10,7 @@ import (
 	"github.com/seal-io/walrus/pkg/auths/session"
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/environment"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
@@ -520,7 +521,7 @@ func IsInactive(r *model.Resource) bool {
 		r.Status.SummaryStatus == status.ResourceStatusStopped.String()
 }
 
-func SetDefaultLabels(r *model.Resource, env *model.Environment) error {
+func SetEnvResourceDefaultLabels(env *model.Environment, r *model.Resource) error {
 	if r == nil || env == nil {
 		return errorx.Errorf("resource or environment is nil")
 	}
@@ -539,6 +540,44 @@ func SetDefaultLabels(r *model.Resource, env *model.Environment) error {
 	case types.EnvironmentDevelopment, types.EnvironmentStaging:
 		r.Labels[types.LabelResourceStoppable] = "true"
 	default:
+	}
+
+	return nil
+}
+
+// SetDefaultLabels sets default labels for the provided resources.
+func SetDefaultLabels(ctx context.Context, mc model.ClientSet, entities ...*model.Resource) error {
+	if len(entities) == 0 {
+		return nil
+	}
+
+	envIDs := make([]object.ID, 0, len(entities))
+
+	for _, entity := range entities {
+		envIDs = append(envIDs, entity.EnvironmentID)
+	}
+
+	envs, err := mc.Environments().Query().
+		Where(environment.IDIn(envIDs...)).
+		All(ctx)
+	if err != nil {
+		return err
+	}
+
+	envMap := make(map[object.ID]*model.Environment, len(envs))
+	for _, env := range envs {
+		envMap[env.ID] = env
+	}
+
+	for _, entity := range entities {
+		env, ok := envMap[entity.EnvironmentID]
+		if !ok {
+			return fmt.Errorf("environment %q not found", entity.EnvironmentID)
+		}
+
+		if err := SetEnvResourceDefaultLabels(env, entity); err != nil {
+			return err
+		}
 	}
 
 	return nil
