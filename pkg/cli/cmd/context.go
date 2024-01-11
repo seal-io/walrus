@@ -64,6 +64,9 @@ func Context(serverConfig *config.Config) *cobra.Command {
 			if err != nil {
 				panic(err)
 			}
+
+			fmt.Println("Switched context successfully.")
+			contextCurrent(serverConfig)
 		},
 	}
 
