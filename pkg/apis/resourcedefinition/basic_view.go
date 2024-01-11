@@ -25,6 +25,12 @@ func (r *CreateRequest) Validate() error {
 		return err
 	}
 
+	if r.UiSchema != nil {
+		if err := r.UiSchema.Validate(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -41,6 +47,12 @@ type UpdateRequest struct {
 func (r *UpdateRequest) Validate() error {
 	if err := r.ResourceDefinitionUpdateInput.Validate(); err != nil {
 		return err
+	}
+
+	if r.UiSchema != nil {
+		if err := r.UiSchema.Validate(); err != nil {
+			return err
+		}
 	}
 
 	return nil
