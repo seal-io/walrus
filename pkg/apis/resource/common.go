@@ -56,6 +56,17 @@ func DeleteResources(req CollectionDeleteRequest, mc model.ClientSet, kubeConfig
 		}
 
 		for _, s := range resources {
+			if err := pkgresource.SetSubjectID(req.Context, s); err != nil {
+				return err
+			}
+
+			s, err = tx.Resources().UpdateOne(s).
+				SetAnnotations(s.Annotations).
+				Save(req.Context)
+			if err != nil {
+				return err
+			}
+
 			err = pkgresource.Destroy(req.Context, tx, s, destroyOpts)
 			if err != nil {
 				return err
@@ -119,6 +130,10 @@ func upgrade(
 	// Update resource, mark status from deploying.
 	status.ResourceStatusDeployed.Reset(entity, "Upgrading")
 	entity.Status.SetSummary(status.WalkResource(&entity.Status))
+
+	if err := pkgresource.SetSubjectID(ctx, entity); err != nil {
+		return err
+	}
 
 	err := mc.WithTx(ctx, func(tx *model.Tx) (err error) {
 		entity, err = tx.Resources().UpdateOne(entity).

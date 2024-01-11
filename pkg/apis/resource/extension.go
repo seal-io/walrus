@@ -75,6 +75,10 @@ func (h Handler) RouteRollback(req RouteRollbackRequest) error {
 	status.ResourceStatusDeployed.Reset(entity, "Rolling back")
 	entity.Status.SetSummary(status.WalkResource(&entity.Status))
 
+	if err := pkgresource.SetSubjectID(req.Context, entity); err != nil {
+		return err
+	}
+
 	entity, err = h.modelClient.Resources().UpdateOne(entity).
 		Set(entity).
 		SaveE(req.Context, dao.ResourceDependenciesEdgeSave)
@@ -110,6 +114,10 @@ func (h Handler) start(ctx context.Context, entity *model.Resource) error {
 	status.ResourceStatusStopped.Remove(entity)
 	status.ResourceStatusDeployed.Reset(entity, "Deploying")
 	entity.Status.SetSummary(status.WalkResource(&entity.Status))
+
+	if err := pkgresource.SetSubjectID(ctx, entity); err != nil {
+		return err
+	}
 
 	err := h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
 		entity, err = tx.Resources().UpdateOne(entity).
@@ -157,10 +165,26 @@ func (h Handler) RouteStop(req RouteStopRequest) error {
 		Deployer: dp,
 	}
 
-	entity := req.Model()
+	entity, err := h.modelClient.Resources().Query().
+		Where(resource.ID(req.ID)).
+		Only(req.Context)
+	if err != nil {
+		return err
+	}
 	entity.ChangeComment = req.ChangeComment
 
-	return pkgresource.Stop(req.Context, req.Client, entity, opts)
+	if err := pkgresource.SetSubjectID(req.Context, entity); err != nil {
+		return err
+	}
+
+	entity, err = h.modelClient.Resources().UpdateOne(entity).
+		Set(entity).
+		Save(req.Context)
+	if err != nil {
+		return errorx.Wrap(err, "error updating resource")
+	}
+
+	return pkgresource.Stop(req.Context, h.modelClient, entity, opts)
 }
 
 func (h Handler) RouteGetEndpoints(req RouteGetEndpointsRequest) (RouteGetEndpointsResponse, error) {
@@ -427,7 +451,18 @@ func (h Handler) CollectionRouteStop(req CollectionRouteStopRequest) error {
 		res := resources[i]
 		res.ChangeComment = req.ChangeComment
 
-		if err := pkgresource.Stop(req.Context, req.Client, res, opts); err != nil {
+		if err := pkgresource.SetSubjectID(req.Context, res); err != nil {
+			return err
+		}
+
+		res, err := h.modelClient.Resources().UpdateOne(res).
+			Set(res).
+			Save(req.Context)
+		if err != nil {
+			return errorx.Wrap(err, "error updating resource")
+		}
+
+		if err := pkgresource.Stop(req.Context, h.modelClient, res, opts); err != nil {
 			return err
 		}
 	}
