@@ -49,10 +49,14 @@ func (s *Schema) IsEmpty() bool {
 }
 
 // Expose returns the UI schema of the schema.
-func (s *Schema) Expose() UISchema {
+func (s *Schema) Expose(skipProps ...string) UISchema {
 	vs := s.VariableSchema()
 	if vs == nil {
 		return UISchema{}
+	}
+
+	for _, v := range skipProps {
+		delete(vs.Properties, v)
 	}
 
 	// In order to prevent the remove ext affect the original schema, serialize and deserialize to copy the schema.
@@ -184,12 +188,6 @@ func (s *UISchema) SetVariableSchema(v *openapi3.Schema) {
 	}
 
 	s.OpenAPISchema.Components.Schemas[VariableSchemaKey].Value = v
-}
-
-func (s *UISchema) RemoveVariableContext() {
-	variableSchema := openapi.RemoveVariableContext(s.VariableSchema())
-
-	s.SetVariableSchema(variableSchema)
 }
 
 // Validate reports if the ui schema is valid.

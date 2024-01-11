@@ -24,16 +24,21 @@ func Generate(opts GenerateOption) error {
 
 	tmplName := filepath.Base(opts.Dir)
 
-	s, err := loader.LoadAndMergeSchema(opts.Dir, tmplName)
+	s, err := loader.LoadOriginalSchema(opts.Dir, tmplName)
 	if err != nil {
 		return err
 	}
 
-	if s.IsEmpty() {
+	if s == nil || s.IsEmpty() {
 		return fmt.Errorf("no supported schema found for template %s", tmplName)
 	}
 
-	b, err := FormattedOpenAPI(s.Schema)
+	us, err := loader.LoadFileSchema(opts.Dir, tmplName)
+	if err != nil {
+		return err
+	}
+
+	b, err := FormattedOpenAPI(s, us)
 	if err != nil {
 		return err
 	}
