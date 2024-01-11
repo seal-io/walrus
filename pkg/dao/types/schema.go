@@ -192,6 +192,15 @@ func (s *UISchema) RemoveVariableContext() {
 	s.SetVariableSchema(variableSchema)
 }
 
+// Validate reports if the ui schema is valid.
+func (s *UISchema) Validate() error {
+	w := Schema{
+		OpenAPISchema: s.OpenAPISchema,
+	}
+
+	return w.Validate()
+}
+
 // TemplateVersionSchema include the internal template variables schema and template data.
 type TemplateVersionSchema struct {
 	Schema `json:",inline"`
