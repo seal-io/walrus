@@ -6,6 +6,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -145,7 +146,32 @@ func (r RequestBidiStream) Write(p []byte) (n int, err error) {
 
 	defer func() { _ = msgWriter.Close() }()
 
-	n, err = msgWriter.Write(p)
+	// NB(thxCode): since we are using websocket.TextMessage,
+	// we must ensure the given data is valid UTF-8.
+	if !utf8.Valid(p) {
+		var (
+			np = make([]byte, 0, len(p))
+			c  = 0
+		)
+
+		for {
+			rn, rs := utf8.DecodeRune(p[c:])
+			if rs == 0 {
+				break
+			}
+
+			if rn != utf8.RuneError {
+				np = append(np, p[c:c+rs]...)
+			}
+			c += rs
+		}
+
+		n = len(p)
+		_, err = msgWriter.Write(np)
+	} else {
+		n, err = msgWriter.Write(p)
+	}
+
 	if err == nil {
 		// Measure write bytes.
 		r.connWriteBytes.Add(int64(n))
