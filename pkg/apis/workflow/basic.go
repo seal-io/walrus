@@ -119,7 +119,6 @@ func (h Handler) Delete(req DeleteRequest) (err error) {
 
 var (
 	queryFields = []string{
-		workflow.FieldID,
 		workflow.FieldName,
 	}
 	getFields  = workflow.WithoutFields()
