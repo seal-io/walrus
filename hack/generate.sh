@@ -15,6 +15,17 @@ function generate() {
   go run -mod=mod "${path}"
 
   go generate ./...
+
+  # FIXME(thxCode): remove this after bumped entc version.
+  if [[ "${task}" == "entc" ]]; then
+    local gofmt_opts=(
+      "-w"
+      "-r"
+      "interface{} -> any"
+      "${ROOT_DIR}/pkg/dao/model"
+    )
+    gofmt "${gofmt_opts[@]}"
+  fi
 }
 
 function dispatch() {
@@ -42,12 +53,12 @@ function dispatch() {
 }
 
 function validate_gotext() {
-    if [[ -n "$(command -v gotext)" ]]; then
-      return 0
-    fi
+  if [[ -n "$(command -v gotext)" ]]; then
+    return 0
+  fi
 
-    seal::log::info "installing gotext"
-    go install golang.org/x/text/cmd/gotext@latest
+  seal::log::info "installing gotext"
+  go install golang.org/x/text/cmd/gotext@latest
 }
 
 #
