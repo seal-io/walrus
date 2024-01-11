@@ -16,14 +16,7 @@ import (
 func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 	entity := req.Model()
 
-	env, err := h.modelClient.Environments().Query().
-		Where(environment.ID(entity.EnvironmentID)).
-		Only(req.Context)
-	if err != nil {
-		return nil, err
-	}
-
-	err = pkgresource.SetDefaultLabels(entity, env)
+	err := pkgresource.SetDefaultLabels(req.Context, h.modelClient, entity)
 	if err != nil {
 		return nil, err
 	}
@@ -118,6 +111,10 @@ func (h Handler) CollectionCreate(req CollectionCreateRequest) (CollectionCreate
 
 	err = h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
 		if err := pkgresource.SetSubjectID(req.Context, entities...); err != nil {
+			return err
+		}
+
+		if err := pkgresource.SetDefaultLabels(req.Context, tx, entities...); err != nil {
 			return err
 		}
 

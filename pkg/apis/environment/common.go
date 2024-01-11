@@ -58,7 +58,7 @@ func createEnvironment(
 			res.ProjectID = entity.ProjectID
 			res.EnvironmentID = entity.ID
 
-			err = pkgresource.SetDefaultLabels(res, entity)
+			err = pkgresource.SetEnvResourceDefaultLabels(entity, res)
 			if err != nil {
 				return err
 			}
