@@ -75,11 +75,7 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 						"templates",
 						"templateVersions",
 						"resourceDefinitions",
-						"variables",
-						"workflows",
-						"workflowExecutions",
-						"workflowStageExecutions",
-						"workflowStepExecutions"),
+						"variables"),
 				},
 				{
 					Actions: types.RolePolicyFields(http.MethodPost, http.MethodGet),
