@@ -473,6 +473,8 @@ func filename(req RouteExportRequest, resSpec []types.ResourceSpec) string {
 }
 
 func toResourceSpec(res *model.Resource) types.ResourceSpec {
+	// Remove stoppable label to export en.
+	delete(res.Labels, types.LabelResourceStoppable)
 	spec := types.ResourceSpec{
 		Name:        res.Name,
 		Description: res.Description,
