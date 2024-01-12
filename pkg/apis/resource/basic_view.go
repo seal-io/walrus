@@ -367,6 +367,8 @@ func (r *CollectionCreateRequest) Validate() error {
 			if rule == nil {
 				return fmt.Errorf("no matching resource definition for %q", res.Name)
 			}
+		default:
+			return errors.New("template or resource definition is required")
 		}
 
 		// Verify that variables in attributes are valid.
