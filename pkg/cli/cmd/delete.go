@@ -42,7 +42,7 @@ func Delete(sc *config.Config) (*cobra.Command, error) {
 				})
 			}
 
-			// Apply the files.
+			// Delete the files.
 			wg.Go(func(ctx context.Context) error {
 				operator := manifest.DefaultDeleteOperator(sc, flags.Wait)
 				r, err := operator.Operate(set)

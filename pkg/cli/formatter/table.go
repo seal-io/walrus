@@ -11,6 +11,7 @@ import (
 	"github.com/alexeyco/simpletable"
 	"k8s.io/apimachinery/pkg/util/sets"
 
+	"github.com/seal-io/walrus/pkg/cli/common"
 	"github.com/seal-io/walrus/utils/json"
 )
 
@@ -35,7 +36,7 @@ func (f *TableFormatter) Format(resp *http.Response) ([]byte, error) {
 			return nil, fmt.Errorf("unexpected status code %d", resp.StatusCode)
 		}
 
-		data := errorResponse{}
+		data := common.ErrorResponse{}
 
 		err := json.Unmarshal(body, &data)
 		if err != nil {
@@ -287,10 +288,4 @@ func (f *TableFormatter) resourceItem(data map[string]any) string {
 	}
 
 	return table.String()
-}
-
-type errorResponse struct {
-	Message    string `json:"message"`
-	Status     int    `json:"status"`
-	StatusText string `json:"statusText"`
 }
