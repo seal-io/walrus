@@ -73,8 +73,7 @@ func (r *DeleteRequest) Validate() error {
 			return fmt.Errorf("failed to get resources: %w", err)
 		}
 
-		return errorx.HttpErrorf(
-			http.StatusConflict,
+		return fmt.Errorf(
 			"resource about to be deleted is the dependency of: %v",
 			strs.Join(", ", names...),
 		)
@@ -428,8 +427,7 @@ func (r *CollectionDeleteRequest) Validate() error {
 			return fmt.Errorf("failed to get resources: %w", err)
 		}
 
-		return errorx.HttpErrorf(
-			http.StatusConflict,
+		return fmt.Errorf(
 			"resource about to be deleted is the dependency of: %v",
 			strs.Join(", ", names...),
 		)

@@ -271,7 +271,6 @@ func (o *DeleteOperator) delete(set ObjectSet) (r OperateResult, err error) {
 		}
 
 		r.NotFound.Add(notFound.All()...)
-		r.Failed.Add(unchanged.All()...)
 
 		if unchanged.Len() == 0 {
 			continue
