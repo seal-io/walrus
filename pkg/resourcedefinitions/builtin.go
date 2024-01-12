@@ -109,7 +109,7 @@ func newResourceDefinition(
 	bn := "builtin-" + resourceType
 	rd := &model.ResourceDefinition{
 		Name:        bn,
-		Type:        bn,
+		Type:        resourceType,
 		Description: "Walrus Builtin Resource Definition",
 		Builtin:     true,
 		Edges: model.ResourceDefinitionEdges{
