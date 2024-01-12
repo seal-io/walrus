@@ -263,8 +263,11 @@ func (in *scheduler) Start(ctx context.Context, lc Locker) error {
 	s := gocron.NewScheduler(time.Now().Location())
 	s.WaitForScheduleAll()
 	s.TagsUnique()
-	s.StartAsync()
 	s.WithDistributedLocker(lc)
+
+	// Start after configured.
+	s.StartAsync()
+
 	in.c = ctx
 	in.s = s
 
