@@ -100,8 +100,6 @@ func (r *PatchRequest) Validate() error {
 		return err
 	}
 
-	patched := r.Model()
-
 	entity, err := r.Client.Resources().Query().
 		Where(resource.ID(r.ID)).
 		Select(
@@ -131,8 +129,11 @@ func (r *PatchRequest) Validate() error {
 			"cannot update resource draft in %q status", entity.Status.SummaryStatus)
 	}
 
+	patched := r.Model()
+	patched.Edges = entity.Edges
+
 	switch {
-	case entity.TemplateID != nil:
+	case patched.TemplateID != nil:
 		if patched.TemplateID.String() != entity.TemplateID.String() {
 			return errors.New("invalid template: immutable")
 		}
@@ -151,7 +152,7 @@ func (r *PatchRequest) Validate() error {
 				return fmt.Errorf("invalid variables: %w", err)
 			}
 		}
-	case entity.ResourceDefinitionID != nil:
+	case patched.ResourceDefinitionID != nil:
 		if patched.ResourceDefinitionID.String() != entity.ResourceDefinitionID.String() {
 			return errors.New("invalid resource definition: immutable")
 		}
@@ -365,6 +366,8 @@ func (r *CollectionCreateRequest) Validate() error {
 			if rule == nil {
 				return fmt.Errorf("no matching resource definition for %q", res.Name)
 			}
+		default:
+			return errors.New("template or resource definition is required")
 		}
 
 		// Verify that variables in attributes are valid.
