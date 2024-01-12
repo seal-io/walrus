@@ -1,10 +1,7 @@
 package types
 
 import (
-	"bytes"
-
 	"gopkg.in/yaml.v2"
-	k8syaml "sigs.k8s.io/yaml"
 
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/utils/json"
@@ -13,9 +10,6 @@ import (
 const (
 	WalrusFileVersion = "v1"
 )
-
-// SequenceWalrusFileKeys is the sequence of walrus file keys.
-var SequenceWalrusFileKeys = []string{"version", "resources"}
 
 // WalrusFile is the spec for the WalrusFile.
 type WalrusFile struct {
@@ -34,56 +28,38 @@ func (w *WalrusFile) Yaml() ([]byte, error) {
 		return nil, err
 	}
 
-	yb, err := k8syaml.JSONToYAML(b)
+	// Convert to yaml mapSlice to keep the order of keys.
+	var m yaml.MapSlice
+
+	err = yaml.Unmarshal(b, &m)
 	if err != nil {
 		return nil, err
 	}
 
-	m := make(map[string]any)
-
-	err = yaml.Unmarshal(yb, &m)
+	out, err := yaml.Marshal(m)
 	if err != nil {
 		return nil, err
 	}
 
-	// Generate key sorted yaml.
-	sorted := make(yaml.MapSlice, len(m))
-
-	for i, v := range SequenceWalrusFileKeys {
-		if _, ok := m[v]; !ok {
-			continue
-		}
-		sorted[i] = yaml.MapItem{
-			Key:   v,
-			Value: m[v],
-		}
-	}
-
-	var buf bytes.Buffer
-	enc := yaml.NewEncoder(&buf)
-
-	err = enc.Encode(sorted)
-	if err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
+	return out, nil
 }
 
 // ResourceSpec include the fields walrus file related.
+// The walrus file yaml preserves the order of the fields in this struct.
 type ResourceSpec struct {
+	Name        string `json:"name" yaml:"name,omitempty"`
+	Description string `json:"description,omitempty" yaml:"description,omitempty"`
+
 	// Scope.
 	Project     *MetadataName `json:"project,omitempty" yaml:"project,omitempty"`
 	Environment *MetadataName `json:"environment,omitempty" yaml:"environment,omitempty"`
 
-	Name        string            `json:"name" yaml:"name,omitempty"`
-	Description string            `json:"description,omitempty" yaml:"description,omitempty"`
-	Labels      map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
-	Attributes  property.Values   `json:"attributes,omitempty" yaml:"attributes,omitempty"`
-
 	// Template or resource definition type.
 	Type     string        `json:"type,omitempty" yaml:"type,omitempty"`
 	Template *TemplateSpec `json:"template,omitempty" yaml:"template,omitempty"`
+
+	Labels     map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
+	Attributes property.Values   `json:"attributes,omitempty" yaml:"attributes,omitempty"`
 }
 
 // MetadataName is the name of the resource.
