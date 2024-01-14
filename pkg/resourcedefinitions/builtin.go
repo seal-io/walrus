@@ -118,12 +118,12 @@ func newResourceDefinition(
 		},
 	}
 
-	err := GenerateSchema(ctx, mc, rd)
+	err := templates.SetResourceDefinitionSchemaDefault(ctx, rd)
 	if err != nil {
 		return nil, err
 	}
 
-	err = templates.SetResourceDefinitionSchemaDefault(ctx, rd)
+	err = GenSchema(ctx, mc, rd)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func newMatchingRule(
 	}
 
 	m := &model.ResourceDefinitionMatchingRule{
-		Name:       name,
+		Name:       connectorType,
 		TemplateID: version.ID,
 		Selector: types.Selector{EnvironmentLabels: map[string]string{
 			dao.ProviderLabelPrefix + connectorType: dao.LabelValueTrue,

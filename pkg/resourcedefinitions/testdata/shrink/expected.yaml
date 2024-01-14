@@ -127,6 +127,9 @@ components:
         storage:
           type: object
           title: Storage
+          default:
+            size: 20480
+            class: local_ssd
           nullable: true
           properties:
             test_size: # MERGE: mutually exclusive
@@ -148,6 +151,7 @@ components:
             class:
               type: string
               title: Class
+              default: local_ssd
               nullable: true
               description: Specify the storage class.
               x-walrus-ui:

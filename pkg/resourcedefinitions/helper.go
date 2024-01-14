@@ -1,13 +1,13 @@
 package resourcedefinitions
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"math"
 	"reflect"
 
 	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/tidwall/gjson"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -19,6 +19,7 @@ import (
 	"github.com/seal-io/walrus/pkg/templates/openapi"
 	"github.com/seal-io/walrus/utils/json"
 	"github.com/seal-io/walrus/utils/pointer"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 const (
@@ -28,22 +29,26 @@ const (
 	originalExtensionKey = openapi.ExtOriginalKey
 )
 
-// GenerateSchema generates definition schema with inputs/outputs intersection of matching template versions.
-func GenerateSchema(ctx context.Context, mc model.ClientSet, df *model.ResourceDefinition) error {
-	// Prepare the match rule schemas.
-	var scss []openapi3.Schemas
+// GenSchema generates the schema for the resource definition.
+//
+// This function performs the following logic:
+//  1. Quickly perform schema aligning to select common parts between multiple rules' template.
+//  2. Refill the same default value to the variable schema if allowed.
+//     The default value comes from the SchemaDefaultValue of the matching rule.
+func GenSchema(ctx context.Context, mc model.ClientSet, df *model.ResourceDefinition) error {
+	// Map default values.
+	defMap := make(map[object.ID][]byte, len(df.Edges.MatchingRules))
 	{
-		// Map default variables.
-		defaultsMapping := make(map[object.ID][]byte, len(df.Edges.MatchingRules))
 		for _, mr := range df.Edges.MatchingRules {
-			defaultsMapping[mr.TemplateID] = json.ShouldMarshal(mr.Attributes)
+			defMap[mr.TemplateID] = mr.SchemaDefaultValue
 		}
+	}
 
-		// Map schemas.
-		schemasMapping := make(map[object.ID]openapi3.Schemas, len(df.Edges.MatchingRules))
-
+	// Fetch schemas.
+	scss := make([]openapi3.Schemas, 0, len(df.Edges.MatchingRules))
+	{
 		tvs, err := mc.TemplateVersions().Query().
-			Where(templateversion.IDIn(sets.KeySet(defaultsMapping).UnsortedList()...)).
+			Where(templateversion.IDIn(sets.KeySet(defMap).UnsortedList()...)).
 			All(ctx)
 		if err != nil {
 			return err
@@ -56,7 +61,7 @@ func GenerateSchema(ctx context.Context, mc model.ClientSet, df *model.ResourceD
 				continue
 			case uis == nil || uis.Components == nil || len(uis.Components.Schemas) == 0:
 				// Use the original schema directly.
-				schemasMapping[tvs[i].ID] = tvs[i].Schema.OpenAPISchema.Components.Schemas
+				scss = append(scss, s.Components.Schemas)
 			default:
 				// Use the custom variables schema ref.
 				ss, uiss := s.Components.Schemas, uis.Components.Schemas
@@ -64,24 +69,26 @@ func GenerateSchema(ctx context.Context, mc model.ClientSet, df *model.ResourceD
 					// Override the original schema with custom schema.
 					ss[variablesSchemaKey] = uiss[variablesSchemaKey]
 				}
-				schemasMapping[tvs[i].ID] = ss
-			}
 
-			// Merge defaults.
-			for k := range schemasMapping {
-				defaultVariablesSchemaRef(schemasMapping[k][variablesSchemaKey], defaultsMapping[k])
+				scss = append(scss, ss)
 			}
 		}
-
-		// Flatten.
-		scss = maps.Values(schemasMapping)
 	}
 
-	// Merge schemas.
-	scs := alignSchemas(scss)
+	// Align schemas.
+	var (
+		nb  = make(map[string]any)
+		scs = alignSchemas(nb, scss)
+	)
+	// Return directly if no schemas.
 	if len(scs) == 0 {
-		// Return directly if no schemas.
 		return nil
+	}
+
+	// Refill default value to variable schema.
+	defs := maps.Values(defMap)
+	if sr, ok := scs[variablesSchemaKey]; ok {
+		refillVariableSchemaRef(nb, "", sr, defs)
 	}
 
 	df.Schema = types.Schema{
@@ -100,67 +107,10 @@ func GenerateSchema(ctx context.Context, mc model.ClientSet, df *model.ResourceD
 	return nil
 }
 
-// defaultVariablesSchemaRef sets the default values for the variables schema ref.
-func defaultVariablesSchemaRef(vsr *openapi3.SchemaRef, defs []byte) {
-	if vsr == nil || vsr.Value == nil || vsr.Value.Type == "" {
-		return
-	}
-
-	jp := json.Get(defs, "@this")
-	if !jp.Exists() {
-		return
-	}
-
-	switch {
-	default:
-		vsr.Value.Default = jp.Value()
-	case vsr.Value.Type == openapi3.TypeObject:
-		if !jp.IsObject() || jp.Raw == "{}" {
-			return
-		}
-
-		// Default pure object.
-		if len(vsr.Value.Properties) != 0 {
-			for vk, vvsr := range vsr.Value.Properties {
-				vr := jp.Get(vk)
-				if !vr.Exists() {
-					continue
-				}
-
-				defaultVariablesSchemaRef(vvsr, []byte(vr.Raw))
-			}
-
-			return
-		}
-
-		// Default the entry of map.
-		defaultVariablesSchemaRef(vsr.Value.AdditionalProperties.Schema, []byte(jp.Raw))
-	case vsr.Value.Type == openapi3.TypeArray:
-		if !jp.IsArray() || jp.Raw == "[]" {
-			return
-		}
-
-		// Default the element of array with the first available item.
-		var ri gjson.Result
-		for i, rs := 0, jp.Array(); i < len(rs) && !ri.Exists(); i++ {
-			ri = rs[i]
-		}
-
-		if !ri.Exists() {
-			return
-		}
-
-		defaultVariablesSchemaRef(vsr.Value.Items, []byte(ri.Raw))
-	}
-}
-
 // alignSchemas aligns the schemas,
 // which is performs on the first-level properties of the variables schemas and outputs schemas.
-func alignSchemas(scs []openapi3.Schemas) openapi3.Schemas {
-	var (
-		ret = openapi3.Schemas{}
-		nb  = map[string]any{}
-	)
+func alignSchemas(nb map[string]any, scs []openapi3.Schemas) openapi3.Schemas {
+	ret := openapi3.Schemas{}
 
 	for _, k := range []string{variablesSchemaKey, outputsSchemaKey} {
 		var lsr *openapi3.SchemaRef
@@ -208,6 +158,15 @@ var (
 	sentenceTerminators = sets.New('.', '!', '。', '！')
 )
 
+const (
+	mefDescription = "description"
+	mefNumber      = "number"
+	mefLength      = "length"
+	mefItems       = "items"
+	mefEnum        = "enum"
+	mefDefault     = "default"
+)
+
 // alignSchemaRef aligns the schema,
 // which always move in the direction of shrinking at first, if not found, then expanding.
 func alignSchemaRef(nb map[string]any, key string, lsr, rsr *openapi3.SchemaRef) {
@@ -233,7 +192,7 @@ func alignSchemaRef(nb map[string]any, key string, lsr, rsr *openapi3.SchemaRef)
 					continue
 				}
 
-				key = key + "." + k
+				key = getKey(key, k)
 				if nb[key] == nil {
 					nb[key] = map[string]any{}
 				}
@@ -251,6 +210,11 @@ func alignSchemaRef(nb map[string]any, key string, lsr, rsr *openapi3.SchemaRef)
 			alignSchemaRef(nb, key, lv.AdditionalProperties.Schema, rv.AdditionalProperties.Schema)
 		}
 	case openapi3.TypeArray:
+		key = getKey(key, "@this.0")
+		if nb[key] == nil {
+			nb[key] = map[string]any{}
+		}
+
 		alignSchemaRef(nb, key, lv.Items, rv.Items)
 	}
 
@@ -261,15 +225,6 @@ func alignSchemaRef(nb map[string]any, key string, lsr, rsr *openapi3.SchemaRef)
 	if !lv.WriteOnly && rv.WriteOnly {
 		lv.WriteOnly = rv.WriteOnly
 	}
-
-	const (
-		mefDescription = "description"
-		mefNumber      = "number"
-		mefLength      = "length"
-		mefItems       = "items"
-		mefEnum        = "enum"
-		mefDefault     = "default"
-	)
 
 	// Find the most complete sentence.
 	// If not found, it cleans up the description.
@@ -310,18 +265,8 @@ func alignSchemaRef(nb map[string]any, key string, lsr, rsr *openapi3.SchemaRef)
 		}
 	}
 
-	// Confirm the default value.
-	// If not the same, it cleans up the default value.
-	if nb[mefDefault] == nil {
-		if (lv.Default != nil && rv.Default == nil) ||
-			(lv.Default != nil && rv.Default != nil && !reflect.DeepEqual(lv.Default, rv.Default)) {
-			lv.Default = nil
-			nb[mefDefault] = &mutuallyExclusive
-		}
-	}
-
 	// Get the optimal range.
-	// If found mutually mutuallyExclusive case, it cleans up all enum-related fields.
+	// If found mutually exclusive case, it cleans up all enum-related fields.
 	if nb[mefEnum] == nil {
 		switch {
 		case lv.Enum == nil && len(rv.Enum) != 0: // Copy.
@@ -388,7 +333,7 @@ func alignSchemaRef(nb map[string]any, key string, lsr, rsr *openapi3.SchemaRef)
 	}
 
 	// Get the optimal range.
-	// If found mutually mutuallyExclusive case, it cleans up all length-related fields.
+	// If found mutually exclusive case, it cleans up all length-related fields.
 	if nb[mefLength] == nil {
 		if lv.MinLength < rv.MinLength {
 			lv.MinLength = rv.MinLength
@@ -407,7 +352,7 @@ func alignSchemaRef(nb map[string]any, key string, lsr, rsr *openapi3.SchemaRef)
 	}
 
 	// Get the optimal range.
-	// If found mutually mutuallyExclusive case, it cleans up all items-related fields.
+	// If found mutually exclusive case, it cleans up all items-related fields.
 	if nb[mefItems] == nil {
 		if lv.MinItems < rv.MinItems {
 			lv.MinItems = rv.MinItems
@@ -426,7 +371,7 @@ func alignSchemaRef(nb map[string]any, key string, lsr, rsr *openapi3.SchemaRef)
 	}
 
 	// Get the optimal range.
-	// If found mutually mutuallyExclusive case, it cleans up all number-related fields.
+	// If found mutually exclusive case, it cleans up all number-related fields.
 	if nb[mefNumber] == nil {
 		lvn, rvn := pointer.Deref(lv.Min, 0), pointer.Deref(rv.Min, 0)
 		if lv.ExclusiveMin {
@@ -521,4 +466,105 @@ func isSchemaRefTypeEqual(lsr, rsr *openapi3.SchemaRef) bool {
 		// Compare type array.
 		return isSchemaRefTypeEqual(lv.Items, rv.Items)
 	}
+}
+
+// refillVariableSchemaRef refills the default value to the variable schema.
+func refillVariableSchemaRef(nb map[string]any, key string, sr *openapi3.SchemaRef, defs [][]byte) {
+	if sr == nil || sr.Value == nil {
+		return
+	}
+
+	v := sr.Value
+
+	switch v.Type {
+	case openapi3.TypeObject:
+		switch {
+		case v.Properties != nil:
+			if isDefaultableSchemaRef(nb) {
+				v.Default = getDefaultValue(key, defs)
+			}
+
+			for k := range v.Properties {
+				nkey := getKey(key, k)
+				if nb[nkey] == nil {
+					nb[nkey] = map[string]any{}
+				}
+
+				if nb := nb[nkey].(map[string]any); isDefaultableSchemaRef(nb) {
+					refillVariableSchemaRef(nb, nkey, v.Properties[k], defs)
+				}
+			}
+		case isDefaultableSchemaRef(nb):
+			v.AdditionalProperties.Schema.Value.Default = getDefaultValue(key, defs)
+		}
+
+		return
+	case openapi3.TypeArray:
+		nkey := getKey(key, "@this")
+		v.Default = getDefaultValue(nkey, defs)
+
+		nkey = getKey(nkey, "0")
+		if nb[nkey] == nil {
+			nb[nkey] = map[string]any{}
+		}
+
+		if nb := nb[nkey].(map[string]any); isDefaultableSchemaRef(nb) {
+			refillVariableSchemaRef(nb, nkey, v.Items, defs)
+		}
+
+		return
+	}
+
+	if isDefaultableSchemaRef(nb) {
+		v.Default = getDefaultValue(key, defs)
+	}
+}
+
+// isDefaultableSchemaRef checks whether the schema ref can set default.
+func isDefaultableSchemaRef(nb map[string]any) bool {
+	return nb == nil || nb[mefDefault] == nil
+}
+
+// getKey returns the key with prefix,
+// if the prefix is empty, it returns the key directly.
+func getKey(prefix, key string) string {
+	if prefix == "" {
+		return key
+	}
+
+	return prefix + "." + key
+}
+
+// getDefaultValue returns the default value of the key,
+// if all value of the given default value slice are not the same, it returns nil.
+func getDefaultValue(key string, defs [][]byte) json.RawMessage {
+	var def []byte
+
+	for _, d := range defs {
+		if d == nil {
+			def = nil
+			break
+		}
+
+		jq := json.Get(d, key)
+		if !jq.Exists() {
+			break
+		}
+
+		if def == nil {
+			def = strs.ToBytes(&jq.Raw)
+			continue
+		}
+
+		if !bytes.Equal(def, strs.ToBytes(&jq.Raw)) {
+			def = nil
+			break
+		}
+	}
+
+	if def == nil {
+		return nil
+	}
+
+	return def
 }
