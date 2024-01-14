@@ -58,7 +58,7 @@ func Test_alignSchemas(t *testing.T) {
 
 		expectedSchemas := expectedOpenAPISchema.Components.Schemas
 
-		actualSchema := alignSchemas(givens)
+		actualSchema := alignSchemas(map[string]any{}, givens)
 		assert.Equal(t, expectedSchemas, actualSchema, tc.Name())
 	}
 }

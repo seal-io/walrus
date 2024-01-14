@@ -18,13 +18,14 @@ import (
 func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 	entity := req.Model()
 
-	if err := resourcedefinitions.GenerateSchema(req.Context, req.Client, entity); err != nil {
-		return nil, fmt.Errorf("failed to generate schema: %w", err)
-	}
-
 	err := templates.SetResourceDefinitionSchemaDefault(req.Context, entity)
 	if err != nil {
 		return nil, err
+	}
+
+	err = resourcedefinitions.GenSchema(req.Context, req.Client, entity)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate schema: %w", err)
 	}
 
 	err = h.modelClient.WithTx(req.Context, func(tx *model.Tx) (err error) {
@@ -74,13 +75,14 @@ func (h Handler) Get(req GetRequest) (GetResponse, error) {
 func (h Handler) Update(req UpdateRequest) error {
 	entity := req.Model()
 
-	if err := resourcedefinitions.GenerateSchema(req.Context, req.Client, entity); err != nil {
-		return fmt.Errorf("failed to generate schema: %w", err)
-	}
-
 	err := templates.SetResourceDefinitionSchemaDefault(req.Context, entity)
 	if err != nil {
 		return err
+	}
+
+	err = resourcedefinitions.GenSchema(req.Context, req.Client, entity)
+	if err != nil {
+		return fmt.Errorf("failed to generate schema: %w", err)
 	}
 
 	err = h.modelClient.WithTx(req.Context, func(tx *model.Tx) (err error) {
