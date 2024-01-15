@@ -4,7 +4,7 @@ import (
 	"reflect"
 )
 
-// RemoveNulls takes a map of type map[string]interface{} and removes all nil values from it.
+// RemoveNulls takes a map of type map[string]any and removes all nil values from it.
 func RemoveNulls(m map[string]any) {
 	val := reflect.ValueOf(m)
 	for _, e := range val.MapKeys() {
@@ -53,7 +53,7 @@ func CopyMap(m map[string]any) map[string]any {
 	return cp
 }
 
-// GetString gets a string value by key from a map of type map[string]interface{}.
+// GetString gets a string value by key from a map of type map[string]any.
 func GetString(m map[string]any, key string) string {
 	v, exist := m[key]
 	if !exist {

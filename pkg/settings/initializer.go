@@ -14,7 +14,7 @@ type initializer func(string) string
 // initializeFromSpecifiedEnv searches the variable of the given environment name,
 // returns the default value if not found the specified environment.
 //
-//nolint:unparam
+// nolint:unparam
 func initializeFromSpecifiedEnv(envName, defValue string) initializer {
 	return func(id string) string {
 		envValue := os.Getenv(envName)

@@ -77,7 +77,7 @@ func install() error {
 		5*time.Minute,
 		false,
 		func(ctx context.Context) (done bool, err error) {
-			//nolint:nilerr
+			// nolint:nilerr
 			if err = cfg.ValidateAndSetup(); err != nil {
 				return false, nil
 			}

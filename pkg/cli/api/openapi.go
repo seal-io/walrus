@@ -566,12 +566,12 @@ func deGroupedName(group, name string) string {
 }
 
 // getTableColumns get the columns show in table format.
-func getTableColumns(body openapi3.Responses, comps *openapi3.Components) []string {
+func getTableColumns(body *openapi3.Responses, comps *openapi3.Components) []string {
 	if body == nil {
 		return nil
 	}
 
-	bodyRef := body.Get(http.StatusOK)
+	bodyRef := body.Status(http.StatusOK)
 	if bodyRef == nil ||
 		bodyRef.Value == nil ||
 		bodyRef.Value.Content.Get(JsonMediaType) == nil ||

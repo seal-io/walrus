@@ -210,7 +210,7 @@ func getResourceRevisionStatusStats(
 	}
 
 	// Map status by time series.
-	format := "2006-01-02"
+	format := time.DateOnly
 
 	switch step {
 	case timex.Month:

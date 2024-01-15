@@ -94,7 +94,7 @@ func CompareVersion(sc *config.Config) (shouldUpdate bool, err error) {
 
 		if cv.Minor() != sv.Minor() {
 			log.Warnf(
-				//nolint:lll
+				// nolint:lll
 				"minor version mismatch detected between cli (%s) and server (%s). It is recommended to use a compatible version",
 				v.ClientVersion.Version,
 				v.ServerVersion.Version,

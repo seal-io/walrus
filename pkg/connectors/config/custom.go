@@ -12,14 +12,14 @@ import (
 // E.g. A custom helm connector
 //
 //	configData := CustomConfig{
-//		Attributes: map[string]interface{}{
+//		Attributes: map[string]any{
 //			"access_url": "http://localhost:8080",
 //		},
 //		Dependencies: []Dependency{
 //			{
 //				Type: "kubernetes",
 //				Label: []string{},
-//				Attributes: map[string]interface{}{
+//				Attributes: map[string]any{
 //					"config_path": "/home/user/.kube/config",
 //				},
 //			},

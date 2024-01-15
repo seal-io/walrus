@@ -10,7 +10,7 @@ import (
 	"github.com/seal-io/walrus/utils/strs"
 )
 
-// ObjectFlag creates a custom flag for map[string]interface{}.
+// ObjectFlag creates a custom flag for map[string]any.
 type ObjectFlag map[string]any
 
 // String returns a string represent of this flag.

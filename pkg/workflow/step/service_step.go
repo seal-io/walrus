@@ -15,7 +15,7 @@ import (
 	"github.com/seal-io/walrus/pkg/workflow/step/types"
 )
 
-//nolint:lll
+// nolint:lll
 const stepSource = `#!/bin/sh
 set -e
 set -o pipefail

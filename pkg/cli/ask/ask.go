@@ -41,7 +41,7 @@ type PasswordTemplateData struct {
 // PasswordQuestionTemplate is a template with color formatting.
 // See Documentation: https://github.com/mgutz/ansi#style-format
 //
-//nolint:lll
+// nolint:lll
 var PasswordQuestionTemplate = `
 {{- if .ShowHelp }}{{- color .Config.Icons.Help.Format }}{{ .Config.Icons.Help.Text }} {{ .Help }}{{color "reset"}}{{"\n"}}{{end}}
 {{- color .Config.Icons.Question.Format }}{{ .Config.Icons.Question.Text }} {{color "reset"}}
@@ -145,7 +145,7 @@ func (p *Password) Required(val any) error {
 	// If the value passed in is the zero value of the appropriate type.
 	if isZero(value) && value.Kind() != reflect.Bool && p.Default == "" {
 		// This error message should render as capitalized
-		//nolint:stylecheck
+		// nolint:stylecheck
 		return errors.New("Value is required")
 	}
 
