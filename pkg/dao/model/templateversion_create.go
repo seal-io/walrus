@@ -1041,6 +1041,7 @@ func (u *TemplateVersionUpsertOne) IDX(ctx context.Context) object.ID {
 // TemplateVersionCreateBulk is the builder for creating many TemplateVersion entities in bulk.
 type TemplateVersionCreateBulk struct {
 	config
+	err        error
 	builders   []*TemplateVersionCreate
 	conflict   []sql.ConflictOption
 	objects    []*TemplateVersion
@@ -1049,6 +1050,9 @@ type TemplateVersionCreateBulk struct {
 
 // Save creates the TemplateVersion entities in the database.
 func (tvcb *TemplateVersionCreateBulk) Save(ctx context.Context) ([]*TemplateVersion, error) {
+	if tvcb.err != nil {
+		return nil, tvcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(tvcb.builders))
 	nodes := make([]*TemplateVersion, len(tvcb.builders))
 	mutators := make([]Mutator, len(tvcb.builders))
@@ -1296,6 +1300,9 @@ func (u *TemplateVersionUpsertBulk) ClearSchemaDefaultValue() *TemplateVersionUp
 
 // Exec executes the query.
 func (u *TemplateVersionUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the TemplateVersionCreateBulk instead", i)

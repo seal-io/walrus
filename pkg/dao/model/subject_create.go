@@ -855,6 +855,7 @@ func (u *SubjectUpsertOne) IDX(ctx context.Context) object.ID {
 // SubjectCreateBulk is the builder for creating many Subject entities in bulk.
 type SubjectCreateBulk struct {
 	config
+	err        error
 	builders   []*SubjectCreate
 	conflict   []sql.ConflictOption
 	objects    []*Subject
@@ -863,6 +864,9 @@ type SubjectCreateBulk struct {
 
 // Save creates the Subject entities in the database.
 func (scb *SubjectCreateBulk) Save(ctx context.Context) ([]*Subject, error) {
+	if scb.err != nil {
+		return nil, scb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(scb.builders))
 	nodes := make([]*Subject, len(scb.builders))
 	mutators := make([]Mutator, len(scb.builders))
@@ -1079,6 +1083,9 @@ func (u *SubjectUpsertBulk) ClearDescription() *SubjectUpsertBulk {
 
 // Exec executes the query.
 func (u *SubjectUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the SubjectCreateBulk instead", i)

@@ -49,9 +49,25 @@ func (rdmru *ResourceDefinitionMatchingRuleUpdate) SetTemplateID(o object.ID) *R
 	return rdmru
 }
 
+// SetNillableTemplateID sets the "template_id" field if the given value is not nil.
+func (rdmru *ResourceDefinitionMatchingRuleUpdate) SetNillableTemplateID(o *object.ID) *ResourceDefinitionMatchingRuleUpdate {
+	if o != nil {
+		rdmru.SetTemplateID(*o)
+	}
+	return rdmru
+}
+
 // SetSelector sets the "selector" field.
 func (rdmru *ResourceDefinitionMatchingRuleUpdate) SetSelector(t types.Selector) *ResourceDefinitionMatchingRuleUpdate {
 	rdmru.mutation.SetSelector(t)
+	return rdmru
+}
+
+// SetNillableSelector sets the "selector" field if the given value is not nil.
+func (rdmru *ResourceDefinitionMatchingRuleUpdate) SetNillableSelector(t *types.Selector) *ResourceDefinitionMatchingRuleUpdate {
+	if t != nil {
+		rdmru.SetSelector(*t)
+	}
 	return rdmru
 }
 
@@ -71,6 +87,14 @@ func (rdmru *ResourceDefinitionMatchingRuleUpdate) ClearAttributes() *ResourceDe
 func (rdmru *ResourceDefinitionMatchingRuleUpdate) SetOrder(i int) *ResourceDefinitionMatchingRuleUpdate {
 	rdmru.mutation.ResetOrder()
 	rdmru.mutation.SetOrder(i)
+	return rdmru
+}
+
+// SetNillableOrder sets the "order" field if the given value is not nil.
+func (rdmru *ResourceDefinitionMatchingRuleUpdate) SetNillableOrder(i *int) *ResourceDefinitionMatchingRuleUpdate {
+	if i != nil {
+		rdmru.SetOrder(*i)
+	}
 	return rdmru
 }
 
@@ -387,9 +411,25 @@ func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) SetTemplateID(o object.ID
 	return rdmruo
 }
 
+// SetNillableTemplateID sets the "template_id" field if the given value is not nil.
+func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) SetNillableTemplateID(o *object.ID) *ResourceDefinitionMatchingRuleUpdateOne {
+	if o != nil {
+		rdmruo.SetTemplateID(*o)
+	}
+	return rdmruo
+}
+
 // SetSelector sets the "selector" field.
 func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) SetSelector(t types.Selector) *ResourceDefinitionMatchingRuleUpdateOne {
 	rdmruo.mutation.SetSelector(t)
+	return rdmruo
+}
+
+// SetNillableSelector sets the "selector" field if the given value is not nil.
+func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) SetNillableSelector(t *types.Selector) *ResourceDefinitionMatchingRuleUpdateOne {
+	if t != nil {
+		rdmruo.SetSelector(*t)
+	}
 	return rdmruo
 }
 
@@ -409,6 +449,14 @@ func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) ClearAttributes() *Resour
 func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) SetOrder(i int) *ResourceDefinitionMatchingRuleUpdateOne {
 	rdmruo.mutation.ResetOrder()
 	rdmruo.mutation.SetOrder(i)
+	return rdmruo
+}
+
+// SetNillableOrder sets the "order" field if the given value is not nil.
+func (rdmruo *ResourceDefinitionMatchingRuleUpdateOne) SetNillableOrder(i *int) *ResourceDefinitionMatchingRuleUpdateOne {
+	if i != nil {
+		rdmruo.SetOrder(*i)
+	}
 	return rdmruo
 }
 

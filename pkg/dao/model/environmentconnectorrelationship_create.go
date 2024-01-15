@@ -651,6 +651,7 @@ func (u *EnvironmentConnectorRelationshipUpsertOne) IDX(ctx context.Context) obj
 // EnvironmentConnectorRelationshipCreateBulk is the builder for creating many EnvironmentConnectorRelationship entities in bulk.
 type EnvironmentConnectorRelationshipCreateBulk struct {
 	config
+	err        error
 	builders   []*EnvironmentConnectorRelationshipCreate
 	conflict   []sql.ConflictOption
 	objects    []*EnvironmentConnectorRelationship
@@ -659,6 +660,9 @@ type EnvironmentConnectorRelationshipCreateBulk struct {
 
 // Save creates the EnvironmentConnectorRelationship entities in the database.
 func (ecrcb *EnvironmentConnectorRelationshipCreateBulk) Save(ctx context.Context) ([]*EnvironmentConnectorRelationship, error) {
+	if ecrcb.err != nil {
+		return nil, ecrcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(ecrcb.builders))
 	nodes := make([]*EnvironmentConnectorRelationship, len(ecrcb.builders))
 	mutators := make([]Mutator, len(ecrcb.builders))
@@ -834,6 +838,9 @@ func (u *EnvironmentConnectorRelationshipUpsertBulk) Update(set func(*Environmen
 
 // Exec executes the query.
 func (u *EnvironmentConnectorRelationshipUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the EnvironmentConnectorRelationshipCreateBulk instead", i)

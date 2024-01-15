@@ -1334,6 +1334,7 @@ func (u *ConnectorUpsertOne) IDX(ctx context.Context) object.ID {
 // ConnectorCreateBulk is the builder for creating many Connector entities in bulk.
 type ConnectorCreateBulk struct {
 	config
+	err        error
 	builders   []*ConnectorCreate
 	conflict   []sql.ConflictOption
 	objects    []*Connector
@@ -1342,6 +1343,9 @@ type ConnectorCreateBulk struct {
 
 // Save creates the Connector entities in the database.
 func (ccb *ConnectorCreateBulk) Save(ctx context.Context) ([]*Connector, error) {
+	if ccb.err != nil {
+		return nil, ccb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(ccb.builders))
 	nodes := make([]*Connector, len(ccb.builders))
 	mutators := make([]Mutator, len(ccb.builders))
@@ -1694,6 +1698,9 @@ func (u *ConnectorUpsertBulk) ClearFinOpsCustomPricing() *ConnectorUpsertBulk {
 
 // Exec executes the query.
 func (u *ConnectorUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the ConnectorCreateBulk instead", i)

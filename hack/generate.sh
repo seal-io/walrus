@@ -14,8 +14,6 @@ function generate() {
 
   go run -mod=mod "${path}"
 
-  go generate ./...
-
   # FIXME(thxCode): remove this after bumped entc version.
   if [[ "${task}" == "entc" ]]; then
     local gofmt_opts=(
@@ -52,22 +50,11 @@ function dispatch() {
   done
 }
 
-function validate_gotext() {
-  if [[ -n "$(command -v gotext)" ]]; then
-    return 0
-  fi
-
-  seal::log::info "installing gotext"
-  go install golang.org/x/text/cmd/gotext@latest
-}
-
 #
 # main
 #
 
 seal::log::info "+++ GENERATE +++"
-
-validate_gotext
 
 dispatch "walrus" "${ROOT_DIR}" "$@"
 

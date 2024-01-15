@@ -96,9 +96,25 @@ func (pu *PerspectiveUpdate) SetStartTime(s string) *PerspectiveUpdate {
 	return pu
 }
 
+// SetNillableStartTime sets the "start_time" field if the given value is not nil.
+func (pu *PerspectiveUpdate) SetNillableStartTime(s *string) *PerspectiveUpdate {
+	if s != nil {
+		pu.SetStartTime(*s)
+	}
+	return pu
+}
+
 // SetEndTime sets the "end_time" field.
 func (pu *PerspectiveUpdate) SetEndTime(s string) *PerspectiveUpdate {
 	pu.mutation.SetEndTime(s)
+	return pu
+}
+
+// SetNillableEndTime sets the "end_time" field if the given value is not nil.
+func (pu *PerspectiveUpdate) SetNillableEndTime(s *string) *PerspectiveUpdate {
+	if s != nil {
+		pu.SetEndTime(*s)
+	}
 	return pu
 }
 
@@ -387,9 +403,25 @@ func (puo *PerspectiveUpdateOne) SetStartTime(s string) *PerspectiveUpdateOne {
 	return puo
 }
 
+// SetNillableStartTime sets the "start_time" field if the given value is not nil.
+func (puo *PerspectiveUpdateOne) SetNillableStartTime(s *string) *PerspectiveUpdateOne {
+	if s != nil {
+		puo.SetStartTime(*s)
+	}
+	return puo
+}
+
 // SetEndTime sets the "end_time" field.
 func (puo *PerspectiveUpdateOne) SetEndTime(s string) *PerspectiveUpdateOne {
 	puo.mutation.SetEndTime(s)
+	return puo
+}
+
+// SetNillableEndTime sets the "end_time" field if the given value is not nil.
+func (puo *PerspectiveUpdateOne) SetNillableEndTime(s *string) *PerspectiveUpdateOne {
+	if s != nil {
+		puo.SetEndTime(*s)
+	}
 	return puo
 }
 

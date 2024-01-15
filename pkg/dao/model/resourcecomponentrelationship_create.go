@@ -680,6 +680,7 @@ func (u *ResourceComponentRelationshipUpsertOne) IDX(ctx context.Context) object
 // ResourceComponentRelationshipCreateBulk is the builder for creating many ResourceComponentRelationship entities in bulk.
 type ResourceComponentRelationshipCreateBulk struct {
 	config
+	err        error
 	builders   []*ResourceComponentRelationshipCreate
 	conflict   []sql.ConflictOption
 	objects    []*ResourceComponentRelationship
@@ -688,6 +689,9 @@ type ResourceComponentRelationshipCreateBulk struct {
 
 // Save creates the ResourceComponentRelationship entities in the database.
 func (rcrcb *ResourceComponentRelationshipCreateBulk) Save(ctx context.Context) ([]*ResourceComponentRelationship, error) {
+	if rcrcb.err != nil {
+		return nil, rcrcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(rcrcb.builders))
 	nodes := make([]*ResourceComponentRelationship, len(rcrcb.builders))
 	mutators := make([]Mutator, len(rcrcb.builders))
@@ -866,6 +870,9 @@ func (u *ResourceComponentRelationshipUpsertBulk) Update(set func(*ResourceCompo
 
 // Exec executes the query.
 func (u *ResourceComponentRelationshipUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the ResourceComponentRelationshipCreateBulk instead", i)

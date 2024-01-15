@@ -51,6 +51,14 @@ func (su *SettingUpdate) SetValue(c crypto.String) *SettingUpdate {
 	return su
 }
 
+// SetNillableValue sets the "value" field if the given value is not nil.
+func (su *SettingUpdate) SetNillableValue(c *crypto.String) *SettingUpdate {
+	if c != nil {
+		su.SetValue(*c)
+	}
+	return su
+}
+
 // SetHidden sets the "hidden" field.
 func (su *SettingUpdate) SetHidden(b bool) *SettingUpdate {
 	su.mutation.SetHidden(b)
@@ -315,6 +323,14 @@ func (suo *SettingUpdateOne) SetUpdateTime(t time.Time) *SettingUpdateOne {
 // SetValue sets the "value" field.
 func (suo *SettingUpdateOne) SetValue(c crypto.String) *SettingUpdateOne {
 	suo.mutation.SetValue(c)
+	return suo
+}
+
+// SetNillableValue sets the "value" field if the given value is not nil.
+func (suo *SettingUpdateOne) SetNillableValue(c *crypto.String) *SettingUpdateOne {
+	if c != nil {
+		suo.SetValue(*c)
+	}
 	return suo
 }
 

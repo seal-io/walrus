@@ -1008,6 +1008,7 @@ func (u *PerspectiveUpsertOne) IDX(ctx context.Context) object.ID {
 // PerspectiveCreateBulk is the builder for creating many Perspective entities in bulk.
 type PerspectiveCreateBulk struct {
 	config
+	err        error
 	builders   []*PerspectiveCreate
 	conflict   []sql.ConflictOption
 	objects    []*Perspective
@@ -1016,6 +1017,9 @@ type PerspectiveCreateBulk struct {
 
 // Save creates the Perspective entities in the database.
 func (pcb *PerspectiveCreateBulk) Save(ctx context.Context) ([]*Perspective, error) {
+	if pcb.err != nil {
+		return nil, pcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(pcb.builders))
 	nodes := make([]*Perspective, len(pcb.builders))
 	mutators := make([]Mutator, len(pcb.builders))
@@ -1321,6 +1325,9 @@ func (u *PerspectiveUpsertBulk) UpdateCostQueries() *PerspectiveUpsertBulk {
 
 // Exec executes the query.
 func (u *PerspectiveUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the PerspectiveCreateBulk instead", i)

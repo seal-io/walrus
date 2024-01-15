@@ -716,6 +716,7 @@ func (u *TokenUpsertOne) IDX(ctx context.Context) object.ID {
 // TokenCreateBulk is the builder for creating many Token entities in bulk.
 type TokenCreateBulk struct {
 	config
+	err        error
 	builders   []*TokenCreate
 	conflict   []sql.ConflictOption
 	objects    []*Token
@@ -724,6 +725,9 @@ type TokenCreateBulk struct {
 
 // Save creates the Token entities in the database.
 func (tcb *TokenCreateBulk) Save(ctx context.Context) ([]*Token, error) {
+	if tcb.err != nil {
+		return nil, tcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(tcb.builders))
 	nodes := make([]*Token, len(tcb.builders))
 	mutators := make([]Mutator, len(tcb.builders))
@@ -908,6 +912,9 @@ func (u *TokenUpsertBulk) Update(set func(*TokenUpsert)) *TokenUpsertBulk {
 
 // Exec executes the query.
 func (u *TokenUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the TokenCreateBulk instead", i)

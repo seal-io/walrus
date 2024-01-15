@@ -1763,6 +1763,7 @@ func (u *CostReportUpsertOne) IDX(ctx context.Context) int {
 // CostReportCreateBulk is the builder for creating many CostReport entities in bulk.
 type CostReportCreateBulk struct {
 	config
+	err        error
 	builders   []*CostReportCreate
 	conflict   []sql.ConflictOption
 	objects    []*CostReport
@@ -1771,6 +1772,9 @@ type CostReportCreateBulk struct {
 
 // Save creates the CostReport entities in the database.
 func (crcb *CostReportCreateBulk) Save(ctx context.Context) ([]*CostReport, error) {
+	if crcb.err != nil {
+		return nil, crcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(crcb.builders))
 	nodes := make([]*CostReport, len(crcb.builders))
 	mutators := make([]Mutator, len(crcb.builders))
@@ -2248,6 +2252,9 @@ func (u *CostReportUpsertBulk) UpdateRAMByteUsageMax() *CostReportUpsertBulk {
 
 // Exec executes the query.
 func (u *CostReportUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the CostReportCreateBulk instead", i)

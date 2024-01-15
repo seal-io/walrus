@@ -1339,6 +1339,7 @@ func (u *ProjectUpsertOne) IDX(ctx context.Context) object.ID {
 // ProjectCreateBulk is the builder for creating many Project entities in bulk.
 type ProjectCreateBulk struct {
 	config
+	err        error
 	builders   []*ProjectCreate
 	conflict   []sql.ConflictOption
 	objects    []*Project
@@ -1347,6 +1348,9 @@ type ProjectCreateBulk struct {
 
 // Save creates the Project entities in the database.
 func (pcb *ProjectCreateBulk) Save(ctx context.Context) ([]*Project, error) {
+	if pcb.err != nil {
+		return nil, pcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(pcb.builders))
 	nodes := make([]*Project, len(pcb.builders))
 	mutators := make([]Mutator, len(pcb.builders))
@@ -1596,6 +1600,9 @@ func (u *ProjectUpsertBulk) UpdateUpdateTime() *ProjectUpsertBulk {
 
 // Exec executes the query.
 func (u *ProjectUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the ProjectCreateBulk instead", i)

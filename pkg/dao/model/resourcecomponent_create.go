@@ -1188,6 +1188,7 @@ func (u *ResourceComponentUpsertOne) IDX(ctx context.Context) object.ID {
 // ResourceComponentCreateBulk is the builder for creating many ResourceComponent entities in bulk.
 type ResourceComponentCreateBulk struct {
 	config
+	err        error
 	builders   []*ResourceComponentCreate
 	conflict   []sql.ConflictOption
 	objects    []*ResourceComponent
@@ -1196,6 +1197,9 @@ type ResourceComponentCreateBulk struct {
 
 // Save creates the ResourceComponent entities in the database.
 func (rccb *ResourceComponentCreateBulk) Save(ctx context.Context) ([]*ResourceComponent, error) {
+	if rccb.err != nil {
+		return nil, rccb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(rccb.builders))
 	nodes := make([]*ResourceComponent, len(rccb.builders))
 	mutators := make([]Mutator, len(rccb.builders))
@@ -1433,6 +1437,9 @@ func (u *ResourceComponentUpsertBulk) ClearStatus() *ResourceComponentUpsertBulk
 
 // Exec executes the query.
 func (u *ResourceComponentUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the ResourceComponentCreateBulk instead", i)

@@ -119,6 +119,14 @@ func (weu *WorkflowExecutionUpdate) SetVersion(i int) *WorkflowExecutionUpdate {
 	return weu
 }
 
+// SetNillableVersion sets the "version" field if the given value is not nil.
+func (weu *WorkflowExecutionUpdate) SetNillableVersion(i *int) *WorkflowExecutionUpdate {
+	if i != nil {
+		weu.SetVersion(*i)
+	}
+	return weu
+}
+
 // AddVersion adds i to the "version" field.
 func (weu *WorkflowExecutionUpdate) AddVersion(i int) *WorkflowExecutionUpdate {
 	weu.mutation.AddVersion(i)
@@ -661,6 +669,14 @@ func (weuo *WorkflowExecutionUpdateOne) ClearStatus() *WorkflowExecutionUpdateOn
 func (weuo *WorkflowExecutionUpdateOne) SetVersion(i int) *WorkflowExecutionUpdateOne {
 	weuo.mutation.ResetVersion()
 	weuo.mutation.SetVersion(i)
+	return weuo
+}
+
+// SetNillableVersion sets the "version" field if the given value is not nil.
+func (weuo *WorkflowExecutionUpdateOne) SetNillableVersion(i *int) *WorkflowExecutionUpdateOne {
+	if i != nil {
+		weuo.SetVersion(*i)
+	}
 	return weuo
 }
 

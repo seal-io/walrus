@@ -68,6 +68,14 @@ func (rru *ResourceRevisionUpdate) SetTemplateVersion(s string) *ResourceRevisio
 	return rru
 }
 
+// SetNillableTemplateVersion sets the "template_version" field if the given value is not nil.
+func (rru *ResourceRevisionUpdate) SetNillableTemplateVersion(s *string) *ResourceRevisionUpdate {
+	if s != nil {
+		rru.SetTemplateVersion(*s)
+	}
+	return rru
+}
+
 // SetAttributes sets the "attributes" field.
 func (rru *ResourceRevisionUpdate) SetAttributes(pr property.Values) *ResourceRevisionUpdate {
 	rru.mutation.SetAttributes(pr)
@@ -104,9 +112,25 @@ func (rru *ResourceRevisionUpdate) SetInputPlan(s string) *ResourceRevisionUpdat
 	return rru
 }
 
+// SetNillableInputPlan sets the "input_plan" field if the given value is not nil.
+func (rru *ResourceRevisionUpdate) SetNillableInputPlan(s *string) *ResourceRevisionUpdate {
+	if s != nil {
+		rru.SetInputPlan(*s)
+	}
+	return rru
+}
+
 // SetOutput sets the "output" field.
 func (rru *ResourceRevisionUpdate) SetOutput(s string) *ResourceRevisionUpdate {
 	rru.mutation.SetOutput(s)
+	return rru
+}
+
+// SetNillableOutput sets the "output" field if the given value is not nil.
+func (rru *ResourceRevisionUpdate) SetNillableOutput(s *string) *ResourceRevisionUpdate {
+	if s != nil {
+		rru.SetOutput(*s)
+	}
 	return rru
 }
 
@@ -200,6 +224,14 @@ func (rru *ResourceRevisionUpdate) ClearChangeComment() *ResourceRevisionUpdate 
 // SetCreatedBy sets the "created_by" field.
 func (rru *ResourceRevisionUpdate) SetCreatedBy(s string) *ResourceRevisionUpdate {
 	rru.mutation.SetCreatedBy(s)
+	return rru
+}
+
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (rru *ResourceRevisionUpdate) SetNillableCreatedBy(s *string) *ResourceRevisionUpdate {
+	if s != nil {
+		rru.SetCreatedBy(*s)
+	}
 	return rru
 }
 
@@ -458,6 +490,14 @@ func (rruo *ResourceRevisionUpdateOne) SetTemplateVersion(s string) *ResourceRev
 	return rruo
 }
 
+// SetNillableTemplateVersion sets the "template_version" field if the given value is not nil.
+func (rruo *ResourceRevisionUpdateOne) SetNillableTemplateVersion(s *string) *ResourceRevisionUpdateOne {
+	if s != nil {
+		rruo.SetTemplateVersion(*s)
+	}
+	return rruo
+}
+
 // SetAttributes sets the "attributes" field.
 func (rruo *ResourceRevisionUpdateOne) SetAttributes(pr property.Values) *ResourceRevisionUpdateOne {
 	rruo.mutation.SetAttributes(pr)
@@ -494,9 +534,25 @@ func (rruo *ResourceRevisionUpdateOne) SetInputPlan(s string) *ResourceRevisionU
 	return rruo
 }
 
+// SetNillableInputPlan sets the "input_plan" field if the given value is not nil.
+func (rruo *ResourceRevisionUpdateOne) SetNillableInputPlan(s *string) *ResourceRevisionUpdateOne {
+	if s != nil {
+		rruo.SetInputPlan(*s)
+	}
+	return rruo
+}
+
 // SetOutput sets the "output" field.
 func (rruo *ResourceRevisionUpdateOne) SetOutput(s string) *ResourceRevisionUpdateOne {
 	rruo.mutation.SetOutput(s)
+	return rruo
+}
+
+// SetNillableOutput sets the "output" field if the given value is not nil.
+func (rruo *ResourceRevisionUpdateOne) SetNillableOutput(s *string) *ResourceRevisionUpdateOne {
+	if s != nil {
+		rruo.SetOutput(*s)
+	}
 	return rruo
 }
 
@@ -590,6 +646,14 @@ func (rruo *ResourceRevisionUpdateOne) ClearChangeComment() *ResourceRevisionUpd
 // SetCreatedBy sets the "created_by" field.
 func (rruo *ResourceRevisionUpdateOne) SetCreatedBy(s string) *ResourceRevisionUpdateOne {
 	rruo.mutation.SetCreatedBy(s)
+	return rruo
+}
+
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (rruo *ResourceRevisionUpdateOne) SetNillableCreatedBy(s *string) *ResourceRevisionUpdateOne {
+	if s != nil {
+		rruo.SetCreatedBy(*s)
+	}
 	return rruo
 }
 
