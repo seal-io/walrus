@@ -123,7 +123,7 @@ func getValidVersions(
 		}
 
 		uiSchema := schema.Expose(openapi.WalrusContextVariableName)
-		if fileSchema != nil {
+		if fileSchema != nil && !fileSchema.IsEmpty() {
 			uiSchema = fileSchema.Expose()
 		}
 

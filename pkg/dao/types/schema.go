@@ -55,10 +55,6 @@ func (s *Schema) Expose(skipProps ...string) UISchema {
 		return UISchema{}
 	}
 
-	for _, v := range skipProps {
-		delete(vs.Properties, v)
-	}
-
 	// In order to prevent the remove ext affect the original schema, serialize and deserialize to copy the schema.
 	b, err := json.Marshal(vs)
 	if err != nil {
@@ -72,6 +68,10 @@ func (s *Schema) Expose(skipProps ...string) UISchema {
 	if err != nil {
 		log.Warnf("error unmarshal variable schema while expost: %v", err)
 		return UISchema{}
+	}
+
+	for _, v := range skipProps {
+		delete(cps.Properties, v)
 	}
 
 	return UISchema{

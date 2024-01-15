@@ -94,15 +94,25 @@ func (l *TerraformLoader) loadSchema(
 		return nil, err
 	}
 
-	// Outputs.
-	ots, err := l.getOutputSchemaFromTerraform(mod)
-	if err != nil {
-		return nil, err
-	}
+	var ots *openapi3.Schema
 
-	// Empty schema.
-	if vs == nil && ots == nil {
-		return nil, nil
+	switch mode {
+	case ModeSchemaFile:
+		// Empty schema.
+		if vs == nil {
+			return nil, nil
+		}
+	default:
+		// Outputs.
+		ots, err = l.getOutputSchemaFromTerraform(mod)
+		if err != nil {
+			return nil, err
+		}
+
+		// Empty schema.
+		if vs == nil && ots == nil {
+			return nil, nil
+		}
 	}
 
 	// OpenAPI OpenAPISchema.
