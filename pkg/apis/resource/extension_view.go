@@ -96,6 +96,9 @@ func (r *RouteUpgradeRequest) Validate() error {
 	} else {
 		en := r.Model()
 
+		// Set environment ID since Model will not set the environment ID.
+		en.EnvironmentID = r.Environment.ID
+
 		computedAttr, err := genComputedAttributes(r.Context, en, r.Client)
 		if err != nil {
 			return err
