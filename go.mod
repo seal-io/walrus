@@ -6,7 +6,7 @@ replace (
 	github.com/seal-io/walrus/utils => ./staging/utils
 )
 
-go 1.19
+go 1.21
 
 require (
 	ariga.io/atlas v0.10.2-0.20230427182402-87a07dfb83bf

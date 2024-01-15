@@ -28,9 +28,9 @@ function lint() {
 
   seal::format::run "${path}" "${path_ignored}"
   if [[ ${#build_tags[@]} -gt 0 ]]; then
-    GOLANGCI_LINT_CACHE="$(go env GOCACHE)" seal::lint::run --build-tags="\"${build_tags[*]}\"" "${path}/..."
+    GOLANGCI_LINT_CACHE="$(go env GOCACHE)/golangci-lint" seal::lint::run --build-tags="\"${build_tags[*]}\"" "${path}/..."
   else
-    GOLANGCI_LINT_CACHE="$(go env GOCACHE)" seal::lint::run "${path}/..."
+    GOLANGCI_LINT_CACHE="$(go env GOCACHE)/golangci-lint" seal::lint::run "${path}/..."
   fi
 
   [[ "${path}" == "${ROOT_DIR}" ]] || popd >/dev/null 2>&1

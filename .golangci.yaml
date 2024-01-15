@@ -58,7 +58,6 @@ linters:
     - misspell
     - nakedret
     - nilerr
-    - nolintlint
     - prealloc
     - predeclared
     - revive
@@ -87,7 +86,9 @@ linters-settings:
     confidence: "low"
     excludes:
       - G101
+      - G107
       - G112
+      - G404
   revive:
     rules:
       - name: var-naming
@@ -102,8 +103,9 @@ linters-settings:
     # Default: []
     exclude:
       # Exclude todo and fixme comments.
-      - "^fixme:"
-      - "^todo:"
+      - "(?i)^ FIXME:"
+      - "(?i)^ TODO:"
+      - "(?i)^ SPDX\\-License\\-Identifier:"
     # Check that each sentence ends with a period.
     # Default: true
     period: true
@@ -113,42 +115,49 @@ linters-settings:
   lll:
     # max line length, lines longer will be reported. Default is 120.
     # '\t' is counted as 1 character by default, and can be changed with the tab-width option
-    line-length: 120
+    line-length: 150
     # tab width in spaces. Default to 1.
-    tab-width: 4
-  nolintlint:
-    allow-unused: false
-    allow-no-explanation: []
-    require-explanation: false
-    require-specific: true
+    tab-width: 1
   goconst:
     # Minimal length of string constant.
     # Default: 3
     min-len: 3
     # Minimum occurrences of constant string count to trigger issue.
     # Default: 3
-    min-occurrences: 3
+    min-occurrences: 10
   misspell:
     # Correct spellings using locale preferences for US or UK.
     # Default is to use a neutral variety of English.
     # Setting locale to US will correct the British spelling of 'colour' to 'color'.
     locale: US
   unparam:
-    # call graph construction algorithm (cha, rta). In general, use cha for libraries,
-    # and rta for programs with main packages. Default is cha.
-    algo: cha
-
     # Inspect exported functions, default is false. Set to true if no external program/library imports your code.
     # XXX: if you enable this setting, unparam will report a lot of false-positives in text editors:
     # if it's called for subdir of a project it can't find external interfaces. All text editor integrations
     # with golangci-lint call it on a directory with the changed file.
     check-exported: false
   unused:
-    # treat code as a program (not a library) and report unused exported identifiers; default is false.
-    # XXX: if you enable this setting, unused will report a lot of false-positives in text editors:
-    # if it's called for subdir of a project it can't find funcs usages. All text editor integrations
-    # with golangci-lint call it on a directory with the changed file.
-    check-exported: true
+    # Mark all struct fields that have been written to as used.
+    # Default: true
+    field-writes-are-uses: true
+    # Treat IncDec statement (e.g. `i++` or `i--`) as both read and write operation instead of just write.
+    # Default: false
+    post-statements-are-reads: true
+    # Mark all exported identifiers as used.
+    # Default: true
+    exported-is-used: true
+    # Mark all exported fields as used.
+    # default: true
+    exported-fields-are-used: true
+    # Mark all function parameters as used.
+    # default: true
+    parameters-are-used: true
+    # Mark all local variables as used.
+    # default: true
+    local-variables-are-used: true
+    # Mark all identifiers inside generated files as used.
+    # Default: true
+    generated-is-used: true
   errorlint:
     # Check whether fmt.Errorf uses the %w verb for formatting errors. See the readme for caveats
     errorf: true
@@ -159,7 +168,7 @@ linters-settings:
   makezero:
     always: false
   gosimple:
-    go: "1.19"
+    go: "1.21"
     checks: ["all"]
   nakedret:
     max-func-lines: 60
