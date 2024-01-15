@@ -12,6 +12,8 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/utils/gopool"
@@ -51,10 +53,14 @@ func NewManager(opts ManagerOptions) (*Manager, error) {
 	// Build options for creating controller manager.
 	options := ctrl.Options{
 		// General.
-		Scheme:     scheme.Scheme,
-		SyncPeriod: pointer.Duration(time.Hour),
-		Logger:     log.AsLogr(logger),
-		Namespace:  types.WalrusSystemNamespace,
+		Scheme: scheme.Scheme,
+		Cache: cache.Options{
+			SyncPeriod: pointer.Duration(time.Hour),
+			DefaultNamespaces: map[string]cache.Config{
+				types.WalrusSystemNamespace: {},
+			},
+		},
+		Logger: log.AsLogr(logger),
 
 		// Leader election.
 		LeaderElection:                opts.LeaderElection,
@@ -66,8 +72,11 @@ func NewManager(opts ManagerOptions) (*Manager, error) {
 		RetryPeriod:                   pointer.Duration(2 * time.Second),
 
 		// Disable unexposed services.
-		MetricsBindAddress:     "0", // Controller metrics expose by Walrus's server as well.
+		Metrics: metricsserver.Options{ // Controller metrics expose by Walrus's server as well.
+			BindAddress: "0",
+		},
 		HealthProbeBindAddress: "0",
+		PprofBindAddress:       "0",
 	}
 
 	return &Manager{

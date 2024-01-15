@@ -731,7 +731,7 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 	testCases := []struct {
 		name     string
 		given    Route
-		expected openapi3.Responses
+		expected *openapi3.Responses
 	}{
 		{
 			name: "get with generate struct response",
@@ -742,7 +742,7 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 				},
 				ResponseType: reflect.TypeOf(A{}),
 			},
-			expected: func() openapi3.Responses {
+			expected: func() *openapi3.Responses {
 				c := http.StatusOK
 
 				s := openapi3.NewObjectSchema()
@@ -780,17 +780,16 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 
 				s.Required = []string{"bytesValue", "int64Value"}
 
-				resps := openapi3.Responses{
-					strconv.Itoa(c): {
-						Value: openapi3.NewResponse().
-							WithDescription(http.StatusText(c)).
-							WithContent(map[string]*openapi3.MediaType{
-								binding.MIMEJSON: {
-									Schema: s.NewRef(),
-								},
-							}),
-					},
-				}
+				resps := newResponses(
+					strconv.Itoa(c),
+					openapi3.NewResponse().
+						WithDescription(http.StatusText(c)).
+						WithContent(map[string]*openapi3.MediaType{
+							binding.MIMEJSON: {
+								Schema: s.NewRef(),
+							},
+						}),
+				)
 
 				return referErrorResponses(resps)
 			}(),
@@ -804,7 +803,7 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 				},
 				ResponseType: reflect.TypeOf(B{}),
 			},
-			expected: func() openapi3.Responses {
+			expected: func() *openapi3.Responses {
 				c := http.StatusCreated
 
 				s := openapi3.NewObjectSchema()
@@ -842,17 +841,16 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 
 				s.Required = []string{"bytesValue", "int64Value"}
 
-				resps := openapi3.Responses{
-					strconv.Itoa(c): {
-						Value: openapi3.NewResponse().
-							WithDescription(http.StatusText(c)).
-							WithContent(map[string]*openapi3.MediaType{
-								binding.MIMEJSON: {
-									Schema: s.NewRef(),
-								},
-							}),
-					},
-				}
+				resps := newResponses(
+					strconv.Itoa(c),
+					openapi3.NewResponse().
+						WithDescription(http.StatusText(c)).
+						WithContent(map[string]*openapi3.MediaType{
+							binding.MIMEJSON: {
+								Schema: s.NewRef(),
+							},
+						}),
+				)
 
 				return referErrorResponses(resps)
 			}(),
@@ -866,7 +864,7 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 				},
 				ResponseType: reflect.TypeOf(C{}),
 			},
-			expected: func() openapi3.Responses {
+			expected: func() *openapi3.Responses {
 				c := http.StatusOK
 
 				s := openapi3.NewObjectSchema()
@@ -904,19 +902,17 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 
 				s.Required = []string{"bytesValue", "int64Value"}
 
-				resps := openapi3.Responses{
-					strconv.Itoa(c): {
-						Value: openapi3.NewResponse().
-							WithDescription(http.StatusText(c)).
-							WithContent(map[string]*openapi3.MediaType{
-								binding.MIMEJSON: {
-									Schema: openapi3.NewArraySchema().
-										WithItems(s).
-										NewRef(),
-								},
-							}),
-					},
-				}
+				resps := newResponses(
+					strconv.Itoa(c),
+					openapi3.NewResponse().
+						WithDescription(http.StatusText(c)).
+						WithContent(map[string]*openapi3.MediaType{
+							binding.MIMEJSON: {
+								Schema: openapi3.NewArraySchema().
+									WithItems(s).
+									NewRef(),
+							},
+						}))
 
 				return referErrorResponses(resps)
 			}(),
@@ -930,24 +926,23 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 				},
 				ResponseType: reflect.TypeOf(D{}),
 			},
-			expected: func() openapi3.Responses {
+			expected: func() *openapi3.Responses {
 				c := http.StatusOK
 
 				s := openapi3.NewObjectSchema()
 
 				s.WithAdditionalProperties(openapi3.NewIntegerSchema())
 
-				resps := openapi3.Responses{
-					strconv.Itoa(c): {
-						Value: openapi3.NewResponse().
-							WithDescription(http.StatusText(c)).
-							WithContent(map[string]*openapi3.MediaType{
-								binding.MIMEJSON: {
-									Schema: s.NewRef(),
-								},
-							}),
-					},
-				}
+				resps := newResponses(
+					strconv.Itoa(c),
+					openapi3.NewResponse().
+						WithDescription(http.StatusText(c)).
+						WithContent(map[string]*openapi3.MediaType{
+							binding.MIMEJSON: {
+								Schema: s.NewRef(),
+							},
+						}),
+				)
 
 				return referErrorResponses(resps)
 			}(),
@@ -962,7 +957,7 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 				ResponseType:       reflect.TypeOf(C{}),
 				ResponseAttributes: ResponseWithPage,
 			},
-			expected: func() openapi3.Responses {
+			expected: func() *openapi3.Responses {
 				c := http.StatusOK
 
 				s := openapi3.NewObjectSchema()
@@ -1000,29 +995,28 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 
 				s.Required = []string{"bytesValue", "int64Value"}
 
-				resps := openapi3.Responses{
-					strconv.Itoa(c): {
-						Value: openapi3.NewResponse().
-							WithDescription(http.StatusText(c)).
-							WithContent(map[string]*openapi3.MediaType{
-								binding.MIMEJSON: {
-									Schema: openapi3.NewObjectSchema().
-										WithProperty("type", openapi3.NewStringSchema()).
-										WithProperty("items", openapi3.NewArraySchema().
-											WithItems(s)).
-										WithProperty("pagination",
-											openapi3.NewObjectSchema().
-												WithProperty("page", openapi3.NewIntegerSchema()).
-												WithProperty("perPage", openapi3.NewIntegerSchema()).
-												WithProperty("total", openapi3.NewIntegerSchema()).
-												WithProperty("totalPage", openapi3.NewIntegerSchema()).
-												WithProperty("partial", openapi3.NewIntegerSchema()).
-												WithProperty("nextPage", openapi3.NewIntegerSchema())).
-										NewRef(),
-								},
-							}),
-					},
-				}
+				resps := newResponses(
+					strconv.Itoa(c),
+					openapi3.NewResponse().
+						WithDescription(http.StatusText(c)).
+						WithContent(map[string]*openapi3.MediaType{
+							binding.MIMEJSON: {
+								Schema: openapi3.NewObjectSchema().
+									WithProperty("type", openapi3.NewStringSchema()).
+									WithProperty("items", openapi3.NewArraySchema().
+										WithItems(s)).
+									WithProperty("pagination",
+										openapi3.NewObjectSchema().
+											WithProperty("page", openapi3.NewIntegerSchema()).
+											WithProperty("perPage", openapi3.NewIntegerSchema()).
+											WithProperty("total", openapi3.NewIntegerSchema()).
+											WithProperty("totalPage", openapi3.NewIntegerSchema()).
+											WithProperty("partial", openapi3.NewIntegerSchema()).
+											WithProperty("nextPage", openapi3.NewIntegerSchema())).
+									NewRef(),
+							},
+						}),
+				)
 
 				return referErrorResponses(resps)
 			}(),
@@ -1036,22 +1030,21 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 				},
 				ResponseType: reflect.TypeOf(&render.JSON{}),
 			},
-			expected: func() openapi3.Responses {
+			expected: func() *openapi3.Responses {
 				c := http.StatusOK
 
 				s := openapi3.NewStringSchema().WithFormat("binary")
 
-				resps := openapi3.Responses{
-					strconv.Itoa(c): {
-						Value: openapi3.NewResponse().
-							WithDescription(http.StatusText(c)).
-							WithContent(map[string]*openapi3.MediaType{
-								"application/octet-stream": {
-									Schema: s.NewRef(),
-								},
-							}),
-					},
-				}
+				resps := newResponses(
+					strconv.Itoa(c),
+					openapi3.NewResponse().
+						WithDescription(http.StatusText(c)).
+						WithContent(map[string]*openapi3.MediaType{
+							"application/octet-stream": {
+								Schema: s.NewRef(),
+							},
+						}),
+				)
 
 				return referErrorResponses(resps)
 			}(),
@@ -1065,22 +1058,21 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 				},
 				ResponseType: reflect.TypeOf([]byte{}),
 			},
-			expected: func() openapi3.Responses {
+			expected: func() *openapi3.Responses {
 				c := http.StatusOK
 
 				s := openapi3.NewBytesSchema()
 
-				resps := openapi3.Responses{
-					strconv.Itoa(c): {
-						Value: openapi3.NewResponse().
-							WithDescription(http.StatusText(c)).
-							WithContent(map[string]*openapi3.MediaType{
-								"application/octet-stream": {
-									Schema: s.NewRef(),
-								},
-							}),
-					},
-				}
+				resps := newResponses(
+					strconv.Itoa(c),
+					openapi3.NewResponse().
+						WithDescription(http.StatusText(c)).
+						WithContent(map[string]*openapi3.MediaType{
+							"application/octet-stream": {
+								Schema: s.NewRef(),
+							},
+						}),
+				)
 
 				return referErrorResponses(resps)
 			}(),
@@ -1094,26 +1086,25 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 				},
 				ResponseType: nil,
 			},
-			expected: func() openapi3.Responses {
+			expected: func() *openapi3.Responses {
 				c := http.StatusAccepted
 
-				resps := openapi3.Responses{
-					strconv.Itoa(c): {
-						Value: openapi3.NewResponse().
-							WithDescription(http.StatusText(c)).
-							WithContent(map[string]*openapi3.MediaType{
-								binding.MIMEJSON: {
-									Schema: openapi3.NewObjectSchema().
-										WithProperty("status", openapi3.NewIntegerSchema().
-											WithDefault(c)).
-										WithProperty("statusText", openapi3.NewStringSchema().
-											WithDefault(http.StatusText(c))).
-										WithProperty("message", openapi3.NewStringSchema()).
-										NewRef(),
-								},
-							}),
-					},
-				}
+				resps := newResponses(
+					strconv.Itoa(c),
+					openapi3.NewResponse().
+						WithDescription(http.StatusText(c)).
+						WithContent(map[string]*openapi3.MediaType{
+							binding.MIMEJSON: {
+								Schema: openapi3.NewObjectSchema().
+									WithProperty("status", openapi3.NewIntegerSchema().
+										WithDefault(c)).
+									WithProperty("statusText", openapi3.NewStringSchema().
+										WithDefault(http.StatusText(c))).
+									WithProperty("message", openapi3.NewStringSchema()).
+									NewRef(),
+							},
+						}),
+				)
 
 				return referErrorResponses(resps)
 			}(),
@@ -1127,26 +1118,25 @@ func Test_getOperationHTTPResponses(t *testing.T) {
 				},
 				ResponseType: nil,
 			},
-			expected: func() openapi3.Responses {
+			expected: func() *openapi3.Responses {
 				c := http.StatusAccepted
 
-				resps := openapi3.Responses{
-					strconv.Itoa(c): {
-						Value: openapi3.NewResponse().
-							WithDescription(http.StatusText(c)).
-							WithContent(map[string]*openapi3.MediaType{
-								binding.MIMEJSON: {
-									Schema: openapi3.NewObjectSchema().
-										WithProperty("status", openapi3.NewIntegerSchema().
-											WithDefault(c)).
-										WithProperty("statusText", openapi3.NewStringSchema().
-											WithDefault(http.StatusText(c))).
-										WithProperty("message", openapi3.NewStringSchema()).
-										NewRef(),
-								},
-							}),
-					},
-				}
+				resps := newResponses(
+					strconv.Itoa(c),
+					openapi3.NewResponse().
+						WithDescription(http.StatusText(c)).
+						WithContent(map[string]*openapi3.MediaType{
+							binding.MIMEJSON: {
+								Schema: openapi3.NewObjectSchema().
+									WithProperty("status", openapi3.NewIntegerSchema().
+										WithDefault(c)).
+									WithProperty("statusText", openapi3.NewStringSchema().
+										WithDefault(http.StatusText(c))).
+									WithProperty("message", openapi3.NewStringSchema()).
+									NewRef(),
+							},
+						}),
+				)
 
 				return referErrorResponses(resps)
 			}(),

@@ -6,7 +6,6 @@ import (
 	batch "k8s.io/api/batch/v1"
 	certificates "k8s.io/api/certificates/v1"
 	core "k8s.io/api/core/v1"
-	networking "k8s.io/api/networking/v1"
 	policy "k8s.io/api/policy/v1"
 	apiregistration "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1"
 
@@ -460,58 +459,6 @@ var csrStatusPaths = status.NewWalker(
 				return &status.Summary{
 					SummaryStatus: displaySigning,
 					Error:         st == status.ConditionStatusFalse,
-					Transitioning: st == status.ConditionStatusUnknown,
-				}
-			})
-	},
-)
-
-// networkPolicyStatusPaths makes the following decision.
-//
-//	| Condition Type |     Condition Status    | Human Readable Status | Human Sensible Status |
-//	| -------------- | ----------------------- | --------------------- | --------------------- |
-//	| PartialFailure | Unknown                 | Accepting             | Transitioning         |
-//	| PartialFailure | False                   | Accepting             |                       |
-//	| PartialFailure | True                    | PartialFailed         | Error                 |
-//	| Failure        | Unknown                 | Accepting             | Transitioning         |
-//	| Failure        | False                   | Accepting             |                       |
-//	| Failure        | True                    | Failed                | Error                 |
-//	| Accepted       | Unknown                 | Accepting             | Transitioning         |
-//	| Accepted       | False                   | NotAccepted           | Error                 |
-//	| Accepted       | True                    | Accepted              |                       |
-var networkPolicyStatusPaths = status.NewWalker(
-	[][]networking.NetworkPolicyConditionType{
-		{
-			networking.NetworkPolicyConditionStatusPartialFailure,
-			networking.NetworkPolicyConditionStatusFailure,
-			networking.NetworkPolicyConditionStatusAccepted,
-		},
-	},
-	func(d status.Decision[networking.NetworkPolicyConditionType]) {
-		d.Make(networking.NetworkPolicyConditionStatusPartialFailure,
-			func(st status.ConditionStatus, reason string) *status.Summary {
-				if st == status.ConditionStatusTrue {
-					return &status.Summary{
-						SummaryStatus: "PartialFailed",
-						Error:         true,
-					}
-				}
-				return &status.Summary{
-					SummaryStatus: "Accepting",
-					Transitioning: st == status.ConditionStatusUnknown,
-				}
-			})
-
-		d.Make(networking.NetworkPolicyConditionStatusFailure,
-			func(st status.ConditionStatus, reason string) *status.Summary {
-				if st == status.ConditionStatusTrue {
-					return &status.Summary{
-						SummaryStatus: displayFailed,
-						Error:         true,
-					}
-				}
-				return &status.Summary{
-					SummaryStatus: "Accepting",
 					Transitioning: st == status.ConditionStatusUnknown,
 				}
 			})

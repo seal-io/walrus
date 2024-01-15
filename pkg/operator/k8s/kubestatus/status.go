@@ -87,8 +87,6 @@ func Get(
 		return getCertificateSigningRequest(o)
 	case "Ingress":
 		return getIngress(o)
-	case "NetworkPolicy":
-		return getNetworkPolicy(o)
 	case "PodDisruptionBudget":
 		return getPodDisruptionBudget(o)
 	case "ValidatingWebhookConfiguration", "MutatingWebhookConfiguration":
@@ -457,20 +455,6 @@ func getIngress(o *unstructured.Unstructured) (*typestatus.Status, error) {
 
 	// Otherwise, not ready.
 	return &GeneralStatusReadyTransitioning, nil
-}
-
-// getNetworkPolicy returns the status of kubernetes network policy resource.
-func getNetworkPolicy(o *unstructured.Unstructured) (*typestatus.Status, error) {
-	statusConditions, exist, _ := unstructured.NestedSlice(o.Object, "status", "conditions")
-	if !exist {
-		return nil, errors.New("not found 'network policy' status conditions")
-	}
-
-	st := &typestatus.Status{}
-	st.SetConditions(toConditions(statusConditions))
-	st.SetSummary(networkPolicyStatusPaths.Walk(st))
-
-	return st, nil
 }
 
 // getPodDisruptionBudget returns the status of kubernetes pdb resource.
