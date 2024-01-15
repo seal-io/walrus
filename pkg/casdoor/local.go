@@ -23,7 +23,7 @@ const casdoorConfigPathEnvName = "BEEGO_CONFIG_PATH"
 
 const embeddedCasdoorEndpointAddress = "http://127.0.0.1:8000"
 
-//nolint:lll
+// nolint:lll
 const embeddedCasdoorConfigTmpl = `
 appname = casdoor
 httpport = 8000

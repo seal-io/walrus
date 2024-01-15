@@ -189,12 +189,12 @@ func (in *scheduler) Schedule(jobName string, cron Expr, task Task, taskArgs ...
 
 	ceParsed, err := ParseCronExpr(ce, false)
 	if err != nil {
-		return
+		return err
 	}
 
 	err = in.s.RemoveByTag(jobName)
 	if err != nil && !errors.Is(err, gocron.ErrJobNotFoundWithTag) {
-		return
+		return err
 	}
 
 	// Record scheduled job.
@@ -213,7 +213,7 @@ func (in *scheduler) Schedule(jobName string, cron Expr, task Task, taskArgs ...
 	}()
 
 	if ceParsed == nil {
-		return
+		return nil
 	}
 
 	const (

@@ -126,7 +126,7 @@ func Wrapf(err error, format string, args ...any) ErrorX {
 
 // ErrorX is an implementation of PublicError interface.
 //
-//nolint:errname
+// nolint:errname
 type ErrorX struct {
 	Cause   error
 	Message string

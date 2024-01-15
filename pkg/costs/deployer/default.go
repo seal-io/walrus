@@ -19,7 +19,7 @@ var imageOpencost = osx.Getenv("FINOPS_KUBECOST_COST_MODEL_IMAGE", "sealio/mirro
 
 // prometheus chart.
 const (
-	//nolint: lll
+	// nolint: lll
 	defaultPrometheusChartURL = "https://github.com/prometheus-community/helm-charts/releases/download/prometheus-24.0.0/prometheus-24.0.0.tgz"
 	defaultPrometheusChart    = "prometheus.tgz"
 )

@@ -49,7 +49,7 @@ type result struct {
 // PatchObjects send patches objects request.
 func PatchObjects(sc *config.Config, group string, objs ObjectByScope) (success, failed ObjectSet, err error) {
 	if len(objs) == 0 {
-		return
+		return success, failed, nil
 	}
 
 	patchOpt := api.OpenAPI.GetOperation(group, operationPatch)
@@ -200,7 +200,7 @@ func GetObjects(sc *config.Config, group string, objs ObjectByScope, detectChang
 	err error,
 ) {
 	if len(objs) == 0 {
-		return
+		return unchanged, notFound, changed, nil
 	}
 
 	getOpt := api.OpenAPI.GetOperation(group, operationGet)
