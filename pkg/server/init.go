@@ -53,6 +53,7 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		r.createBuiltinPerspectives,
 		r.createBuiltinProjects,
 		r.createLocalEnvironment,
+		r.initServeURLIfDockerMode,
 	)
 
 	for i := range inits {
