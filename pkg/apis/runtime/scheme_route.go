@@ -396,7 +396,7 @@ func getOperationRequestBody(r *Route) *openapi3.RequestBodyRef {
 	}
 }
 
-func getOperationHTTPResponses(r *Route) openapi3.Responses {
+func getOperationHTTPResponses(r *Route) *openapi3.Responses {
 	schemaRef := getSchemaOfGoType(r.Kinds, r.ResponseType, contentInJSON, nil)
 
 	contentType := binding.MIMEJSON
@@ -460,22 +460,21 @@ func getOperationHTTPResponses(r *Route) openapi3.Responses {
 		contentType = "application/octet-stream"
 	}
 
-	resps := openapi3.Responses{
-		strconv.Itoa(c): {
-			Value: openapi3.NewResponse().
-				WithDescription(http.StatusText(c)).
-				WithContent(map[string]*openapi3.MediaType{
-					contentType: {
-						Schema: schemaRef,
-					},
-				}),
-		},
-	}
+	resps := newResponses(
+		strconv.Itoa(c),
+		openapi3.NewResponse().
+			WithDescription(http.StatusText(c)).
+			WithContent(map[string]*openapi3.MediaType{
+				contentType: {
+					Schema: schemaRef,
+				},
+			}),
+	)
 
 	return referErrorResponses(resps)
 }
 
-func getOperationWebsocketResponses() openapi3.Responses {
+func getOperationWebsocketResponses() *openapi3.Responses {
 	_101 := openapi3.NewResponse().
 		WithDescription("Switching Protocols")
 	_101.Headers = openapi3.Headers{
@@ -490,9 +489,10 @@ func getOperationWebsocketResponses() openapi3.Responses {
 		},
 	}
 
-	resps := openapi3.Responses{
-		"101": {Value: _101},
-	}
+	resps := newResponses(
+		"101",
+		_101,
+	)
 
 	return referErrorResponses(resps)
 }
@@ -531,9 +531,18 @@ func getSecuritySchemes() openapi3.SecuritySchemes {
 	return schemes
 }
 
-func getErrorResponses() openapi3.Responses {
+func newResponses(key string, resp *openapi3.Response) *openapi3.Responses {
+	resps := openapi3.NewResponses()
+	resps.Set(key, &openapi3.ResponseRef{
+		Value: resp,
+	})
+
+	return resps
+}
+
+func getErrorResponses() openapi3.ResponseBodies {
 	httpc := getErrorResponseStatus()
-	resps := openapi3.Responses{}
+	resps := openapi3.ResponseBodies{}
 
 	for _, c := range httpc {
 		resps[strconv.Itoa(c)] = &openapi3.ResponseRef{
@@ -553,12 +562,12 @@ func getErrorResponses() openapi3.Responses {
 	return resps
 }
 
-func referErrorResponses(resps openapi3.Responses) openapi3.Responses {
+func referErrorResponses(resps *openapi3.Responses) *openapi3.Responses {
 	for _, s := range getErrorResponseStatus() {
 		k := strconv.Itoa(s)
-		resps[k] = &openapi3.ResponseRef{
+		resps.Set(k, &openapi3.ResponseRef{
 			Ref: "#/components/responses/" + k,
-		}
+		})
 	}
 
 	return resps

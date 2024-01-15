@@ -263,7 +263,7 @@ func (e *Ext) Export() map[string]any {
 }
 
 func GetExtOriginal(e map[string]any) ExtOriginal {
-	if e[ExtOriginalKey] == nil {
+	if e == nil || e[ExtOriginalKey] == nil {
 		return ExtOriginal{}
 	}
 
@@ -326,7 +326,7 @@ func IsSchemaRefEmpty(s *openapi3.SchemaRef) bool {
 
 func RemoveExt(key string, s *openapi3.Schema) *openapi3.Schema {
 	if s == nil || s.Extensions == nil {
-		return nil
+		return s
 	}
 
 	// Self.

@@ -102,7 +102,7 @@ func LoadOpenAPIFromSchema(t openapi3.T) (*API, error) {
 		return nil, err
 	}
 
-	for subPath, pathItem := range t.Paths {
+	for subPath, pathItem := range t.Paths.Map() {
 		if isIgnore(pathItem.Extensions) {
 			continue
 		}

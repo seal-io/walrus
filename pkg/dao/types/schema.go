@@ -29,7 +29,7 @@ func (s *Schema) Validate() error {
 	}
 
 	// workaround: inject paths and version since kin-openapi/openapi3 need it.
-	s.OpenAPISchema.Paths = openapi3.Paths{}
+	s.OpenAPISchema.Paths = &openapi3.Paths{}
 	if s.OpenAPISchema.Info != nil && s.OpenAPISchema.Info.Version == "" {
 		s.OpenAPISchema.Info.Version = "v0.0.0"
 	}

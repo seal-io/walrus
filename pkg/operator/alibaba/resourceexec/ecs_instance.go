@@ -13,7 +13,7 @@ import (
 	assistlog "github.com/aliyun/aliyun_assist_client/agent/log"
 	assistclient "github.com/aliyun/aliyun_assist_client/agent/session/plugin"
 	"github.com/aliyun/aliyun_assist_client/agent/session/plugin/message"
-	"github.com/sirupsen/logrus"
+	"github.com/aliyun/aliyun_assist_client/thirdparty/sirupsen/logrus"
 
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
 	"github.com/seal-io/walrus/utils/bytespool"
