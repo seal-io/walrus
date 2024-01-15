@@ -489,7 +489,7 @@ func getSchemas(rootDir, templateName string) (*types.TemplateVersionSchema, *ty
 	}
 
 	uiSchema := originSchema.Expose(openapi.WalrusContextVariableName)
-	if fileSchema != nil {
+	if fileSchema != nil && !fileSchema.IsEmpty() {
 		uiSchema = fileSchema.Expose()
 	}
 
