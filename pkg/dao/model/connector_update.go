@@ -121,6 +121,14 @@ func (cu *ConnectorUpdate) SetConfigVersion(s string) *ConnectorUpdate {
 	return cu
 }
 
+// SetNillableConfigVersion sets the "config_version" field if the given value is not nil.
+func (cu *ConnectorUpdate) SetNillableConfigVersion(s *string) *ConnectorUpdate {
+	if s != nil {
+		cu.SetConfigVersion(*s)
+	}
+	return cu
+}
+
 // SetConfigData sets the "config_data" field.
 func (cu *ConnectorUpdate) SetConfigData(c crypto.Properties) *ConnectorUpdate {
 	cu.mutation.SetConfigData(c)
@@ -136,6 +144,14 @@ func (cu *ConnectorUpdate) ClearConfigData() *ConnectorUpdate {
 // SetEnableFinOps sets the "enable_fin_ops" field.
 func (cu *ConnectorUpdate) SetEnableFinOps(b bool) *ConnectorUpdate {
 	cu.mutation.SetEnableFinOps(b)
+	return cu
+}
+
+// SetNillableEnableFinOps sets the "enable_fin_ops" field if the given value is not nil.
+func (cu *ConnectorUpdate) SetNillableEnableFinOps(b *bool) *ConnectorUpdate {
+	if b != nil {
+		cu.SetEnableFinOps(*b)
+	}
 	return cu
 }
 
@@ -691,6 +707,14 @@ func (cuo *ConnectorUpdateOne) SetConfigVersion(s string) *ConnectorUpdateOne {
 	return cuo
 }
 
+// SetNillableConfigVersion sets the "config_version" field if the given value is not nil.
+func (cuo *ConnectorUpdateOne) SetNillableConfigVersion(s *string) *ConnectorUpdateOne {
+	if s != nil {
+		cuo.SetConfigVersion(*s)
+	}
+	return cuo
+}
+
 // SetConfigData sets the "config_data" field.
 func (cuo *ConnectorUpdateOne) SetConfigData(c crypto.Properties) *ConnectorUpdateOne {
 	cuo.mutation.SetConfigData(c)
@@ -706,6 +730,14 @@ func (cuo *ConnectorUpdateOne) ClearConfigData() *ConnectorUpdateOne {
 // SetEnableFinOps sets the "enable_fin_ops" field.
 func (cuo *ConnectorUpdateOne) SetEnableFinOps(b bool) *ConnectorUpdateOne {
 	cuo.mutation.SetEnableFinOps(b)
+	return cuo
+}
+
+// SetNillableEnableFinOps sets the "enable_fin_ops" field if the given value is not nil.
+func (cuo *ConnectorUpdateOne) SetNillableEnableFinOps(b *bool) *ConnectorUpdateOne {
+	if b != nil {
+		cuo.SetEnableFinOps(*b)
+	}
 	return cuo
 }
 

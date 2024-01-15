@@ -51,6 +51,14 @@ func (vu *VariableUpdate) SetValue(c crypto.String) *VariableUpdate {
 	return vu
 }
 
+// SetNillableValue sets the "value" field if the given value is not nil.
+func (vu *VariableUpdate) SetNillableValue(c *crypto.String) *VariableUpdate {
+	if c != nil {
+		vu.SetValue(*c)
+	}
+	return vu
+}
+
 // SetSensitive sets the "sensitive" field.
 func (vu *VariableUpdate) SetSensitive(b bool) *VariableUpdate {
 	vu.mutation.SetSensitive(b)
@@ -261,6 +269,14 @@ func (vuo *VariableUpdateOne) SetUpdateTime(t time.Time) *VariableUpdateOne {
 // SetValue sets the "value" field.
 func (vuo *VariableUpdateOne) SetValue(c crypto.String) *VariableUpdateOne {
 	vuo.mutation.SetValue(c)
+	return vuo
+}
+
+// SetNillableValue sets the "value" field if the given value is not nil.
+func (vuo *VariableUpdateOne) SetNillableValue(c *crypto.String) *VariableUpdateOne {
+	if c != nil {
+		vuo.SetValue(*c)
+	}
 	return vuo
 }
 

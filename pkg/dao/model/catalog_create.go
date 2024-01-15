@@ -1086,6 +1086,7 @@ func (u *CatalogUpsertOne) IDX(ctx context.Context) object.ID {
 // CatalogCreateBulk is the builder for creating many Catalog entities in bulk.
 type CatalogCreateBulk struct {
 	config
+	err        error
 	builders   []*CatalogCreate
 	conflict   []sql.ConflictOption
 	objects    []*Catalog
@@ -1094,6 +1095,9 @@ type CatalogCreateBulk struct {
 
 // Save creates the Catalog entities in the database.
 func (ccb *CatalogCreateBulk) Save(ctx context.Context) ([]*Catalog, error) {
+	if ccb.err != nil {
+		return nil, ccb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(ccb.builders))
 	nodes := make([]*Catalog, len(ccb.builders))
 	mutators := make([]Mutator, len(ccb.builders))
@@ -1394,6 +1398,9 @@ func (u *CatalogUpsertBulk) ClearSync() *CatalogUpsertBulk {
 
 // Exec executes the query.
 func (u *CatalogUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the CatalogCreateBulk instead", i)

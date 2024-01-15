@@ -1262,6 +1262,7 @@ func (u *WorkflowUpsertOne) IDX(ctx context.Context) object.ID {
 // WorkflowCreateBulk is the builder for creating many Workflow entities in bulk.
 type WorkflowCreateBulk struct {
 	config
+	err        error
 	builders   []*WorkflowCreate
 	conflict   []sql.ConflictOption
 	objects    []*Workflow
@@ -1270,6 +1271,9 @@ type WorkflowCreateBulk struct {
 
 // Save creates the Workflow entities in the database.
 func (wcb *WorkflowCreateBulk) Save(ctx context.Context) ([]*Workflow, error) {
+	if wcb.err != nil {
+		return nil, wcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(wcb.builders))
 	nodes := make([]*Workflow, len(wcb.builders))
 	mutators := make([]Mutator, len(wcb.builders))
@@ -1612,6 +1616,9 @@ func (u *WorkflowUpsertBulk) ClearVariables() *WorkflowUpsertBulk {
 
 // Exec executes the query.
 func (u *WorkflowUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the WorkflowCreateBulk instead", i)

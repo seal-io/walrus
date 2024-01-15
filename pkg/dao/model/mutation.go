@@ -754,6 +754,7 @@ func (m *CatalogMutation) ResetTemplates() {
 // ClearProject clears the "project" edge to the Project entity.
 func (m *CatalogMutation) ClearProject() {
 	m.clearedproject = true
+	m.clearedFields[catalog.FieldProjectID] = struct{}{}
 }
 
 // ProjectCleared reports if the "project" edge to the Project entity was cleared.
@@ -1994,6 +1995,7 @@ func (m *ConnectorMutation) ResetFinOpsCustomPricing() {
 // ClearProject clears the "project" edge to the Project entity.
 func (m *ConnectorMutation) ClearProject() {
 	m.clearedproject = true
+	m.clearedFields[connector.FieldProjectID] = struct{}{}
 }
 
 // ProjectCleared reports if the "project" edge to the Project entity was cleared.
@@ -4412,6 +4414,7 @@ func (m *CostReportMutation) ResetRAMByteUsageMax() {
 // ClearConnector clears the "connector" edge to the Connector entity.
 func (m *CostReportMutation) ClearConnector() {
 	m.clearedconnector = true
+	m.clearedFields[costreport.FieldConnectorID] = struct{}{}
 }
 
 // ConnectorCleared reports if the "connector" edge to the Connector entity was cleared.
@@ -6271,6 +6274,7 @@ func (m *EnvironmentMutation) ResetType() {
 // ClearProject clears the "project" edge to the Project entity.
 func (m *EnvironmentMutation) ClearProject() {
 	m.clearedproject = true
+	m.clearedFields[environment.FieldProjectID] = struct{}{}
 }
 
 // ProjectCleared reports if the "project" edge to the Project entity was cleared.
@@ -7273,6 +7277,7 @@ func (m *EnvironmentConnectorRelationshipMutation) ResetConnectorID() {
 // ClearEnvironment clears the "environment" edge to the Environment entity.
 func (m *EnvironmentConnectorRelationshipMutation) ClearEnvironment() {
 	m.clearedenvironment = true
+	m.clearedFields[environmentconnectorrelationship.FieldEnvironmentID] = struct{}{}
 }
 
 // EnvironmentCleared reports if the "environment" edge to the Environment entity was cleared.
@@ -7299,6 +7304,7 @@ func (m *EnvironmentConnectorRelationshipMutation) ResetEnvironment() {
 // ClearConnector clears the "connector" edge to the Connector entity.
 func (m *EnvironmentConnectorRelationshipMutation) ClearConnector() {
 	m.clearedconnector = true
+	m.clearedFields[environmentconnectorrelationship.FieldConnectorID] = struct{}{}
 }
 
 // ConnectorCleared reports if the "connector" edge to the Connector entity was cleared.
@@ -11408,6 +11414,7 @@ func (m *ResourceMutation) ResetChangeComment() {
 // ClearProject clears the "project" edge to the Project entity.
 func (m *ResourceMutation) ClearProject() {
 	m.clearedproject = true
+	m.clearedFields[resource.FieldProjectID] = struct{}{}
 }
 
 // ProjectCleared reports if the "project" edge to the Project entity was cleared.
@@ -11434,6 +11441,7 @@ func (m *ResourceMutation) ResetProject() {
 // ClearEnvironment clears the "environment" edge to the Environment entity.
 func (m *ResourceMutation) ClearEnvironment() {
 	m.clearedenvironment = true
+	m.clearedFields[resource.FieldEnvironmentID] = struct{}{}
 }
 
 // EnvironmentCleared reports if the "environment" edge to the Environment entity was cleared.
@@ -11460,6 +11468,7 @@ func (m *ResourceMutation) ResetEnvironment() {
 // ClearTemplate clears the "template" edge to the TemplateVersion entity.
 func (m *ResourceMutation) ClearTemplate() {
 	m.clearedtemplate = true
+	m.clearedFields[resource.FieldTemplateID] = struct{}{}
 }
 
 // TemplateCleared reports if the "template" edge to the TemplateVersion entity was cleared.
@@ -11486,6 +11495,7 @@ func (m *ResourceMutation) ResetTemplate() {
 // ClearResourceDefinition clears the "resource_definition" edge to the ResourceDefinition entity.
 func (m *ResourceMutation) ClearResourceDefinition() {
 	m.clearedresource_definition = true
+	m.clearedFields[resource.FieldResourceDefinitionID] = struct{}{}
 }
 
 // ResourceDefinitionCleared reports if the "resource_definition" edge to the ResourceDefinition entity was cleared.
@@ -11512,6 +11522,7 @@ func (m *ResourceMutation) ResetResourceDefinition() {
 // ClearResourceDefinitionMatchingRule clears the "resource_definition_matching_rule" edge to the ResourceDefinitionMatchingRule entity.
 func (m *ResourceMutation) ClearResourceDefinitionMatchingRule() {
 	m.clearedresource_definition_matching_rule = true
+	m.clearedFields[resource.FieldResourceDefinitionMatchingRuleID] = struct{}{}
 }
 
 // ResourceDefinitionMatchingRuleCleared reports if the "resource_definition_matching_rule" edge to the ResourceDefinitionMatchingRule entity was cleared.
@@ -13092,6 +13103,7 @@ func (m *ResourceComponentMutation) ResetShape() {
 // ClearProject clears the "project" edge to the Project entity.
 func (m *ResourceComponentMutation) ClearProject() {
 	m.clearedproject = true
+	m.clearedFields[resourcecomponent.FieldProjectID] = struct{}{}
 }
 
 // ProjectCleared reports if the "project" edge to the Project entity was cleared.
@@ -13118,6 +13130,7 @@ func (m *ResourceComponentMutation) ResetProject() {
 // ClearEnvironment clears the "environment" edge to the Environment entity.
 func (m *ResourceComponentMutation) ClearEnvironment() {
 	m.clearedenvironment = true
+	m.clearedFields[resourcecomponent.FieldEnvironmentID] = struct{}{}
 }
 
 // EnvironmentCleared reports if the "environment" edge to the Environment entity was cleared.
@@ -13144,6 +13157,7 @@ func (m *ResourceComponentMutation) ResetEnvironment() {
 // ClearResource clears the "resource" edge to the Resource entity.
 func (m *ResourceComponentMutation) ClearResource() {
 	m.clearedresource = true
+	m.clearedFields[resourcecomponent.FieldResourceID] = struct{}{}
 }
 
 // ResourceCleared reports if the "resource" edge to the Resource entity was cleared.
@@ -13170,6 +13184,7 @@ func (m *ResourceComponentMutation) ResetResource() {
 // ClearConnector clears the "connector" edge to the Connector entity.
 func (m *ResourceComponentMutation) ClearConnector() {
 	m.clearedconnector = true
+	m.clearedFields[resourcecomponent.FieldConnectorID] = struct{}{}
 }
 
 // ConnectorCleared reports if the "connector" edge to the Connector entity was cleared.
@@ -13196,6 +13211,7 @@ func (m *ResourceComponentMutation) ResetConnector() {
 // ClearComposition clears the "composition" edge to the ResourceComponent entity.
 func (m *ResourceComponentMutation) ClearComposition() {
 	m.clearedcomposition = true
+	m.clearedFields[resourcecomponent.FieldCompositionID] = struct{}{}
 }
 
 // CompositionCleared reports if the "composition" edge to the ResourceComponent entity was cleared.
@@ -13276,6 +13292,7 @@ func (m *ResourceComponentMutation) ResetComponents() {
 // ClearClass clears the "class" edge to the ResourceComponent entity.
 func (m *ResourceComponentMutation) ClearClass() {
 	m.clearedclass = true
+	m.clearedFields[resourcecomponent.FieldClassID] = struct{}{}
 }
 
 // ClassCleared reports if the "class" edge to the ResourceComponent entity was cleared.
@@ -14293,6 +14310,7 @@ func (m *ResourceComponentRelationshipMutation) ResetType() {
 // ClearResourceComponent clears the "resource_component" edge to the ResourceComponent entity.
 func (m *ResourceComponentRelationshipMutation) ClearResourceComponent() {
 	m.clearedresource_component = true
+	m.clearedFields[resourcecomponentrelationship.FieldResourceComponentID] = struct{}{}
 }
 
 // ResourceComponentCleared reports if the "resource_component" edge to the ResourceComponent entity was cleared.
@@ -14319,6 +14337,7 @@ func (m *ResourceComponentRelationshipMutation) ResetResourceComponent() {
 // ClearDependency clears the "dependency" edge to the ResourceComponent entity.
 func (m *ResourceComponentRelationshipMutation) ClearDependency() {
 	m.cleareddependency = true
+	m.clearedFields[resourcecomponentrelationship.FieldDependencyID] = struct{}{}
 }
 
 // DependencyCleared reports if the "dependency" edge to the ResourceComponent entity was cleared.
@@ -16156,6 +16175,7 @@ func (m *ResourceDefinitionMatchingRuleMutation) ResetSchemaDefaultValue() {
 // ClearResourceDefinition clears the "resource_definition" edge to the ResourceDefinition entity.
 func (m *ResourceDefinitionMatchingRuleMutation) ClearResourceDefinition() {
 	m.clearedresource_definition = true
+	m.clearedFields[resourcedefinitionmatchingrule.FieldResourceDefinitionID] = struct{}{}
 }
 
 // ResourceDefinitionCleared reports if the "resource_definition" edge to the ResourceDefinition entity was cleared.
@@ -16182,6 +16202,7 @@ func (m *ResourceDefinitionMatchingRuleMutation) ResetResourceDefinition() {
 // ClearTemplate clears the "template" edge to the TemplateVersion entity.
 func (m *ResourceDefinitionMatchingRuleMutation) ClearTemplate() {
 	m.clearedtemplate = true
+	m.clearedFields[resourcedefinitionmatchingrule.FieldTemplateID] = struct{}{}
 }
 
 // TemplateCleared reports if the "template" edge to the TemplateVersion entity was cleared.
@@ -16981,6 +17002,7 @@ func (m *ResourceRelationshipMutation) ResetType() {
 // ClearResource clears the "resource" edge to the Resource entity.
 func (m *ResourceRelationshipMutation) ClearResource() {
 	m.clearedresource = true
+	m.clearedFields[resourcerelationship.FieldResourceID] = struct{}{}
 }
 
 // ResourceCleared reports if the "resource" edge to the Resource entity was cleared.
@@ -17007,6 +17029,7 @@ func (m *ResourceRelationshipMutation) ResetResource() {
 // ClearDependency clears the "dependency" edge to the Resource entity.
 func (m *ResourceRelationshipMutation) ClearDependency() {
 	m.cleareddependency = true
+	m.clearedFields[resourcerelationship.FieldDependencyID] = struct{}{}
 }
 
 // DependencyCleared reports if the "dependency" edge to the Resource entity was cleared.
@@ -18248,6 +18271,7 @@ func (m *ResourceRevisionMutation) ResetCreatedBy() {
 // ClearProject clears the "project" edge to the Project entity.
 func (m *ResourceRevisionMutation) ClearProject() {
 	m.clearedproject = true
+	m.clearedFields[resourcerevision.FieldProjectID] = struct{}{}
 }
 
 // ProjectCleared reports if the "project" edge to the Project entity was cleared.
@@ -18274,6 +18298,7 @@ func (m *ResourceRevisionMutation) ResetProject() {
 // ClearEnvironment clears the "environment" edge to the Environment entity.
 func (m *ResourceRevisionMutation) ClearEnvironment() {
 	m.clearedenvironment = true
+	m.clearedFields[resourcerevision.FieldEnvironmentID] = struct{}{}
 }
 
 // EnvironmentCleared reports if the "environment" edge to the Environment entity was cleared.
@@ -18300,6 +18325,7 @@ func (m *ResourceRevisionMutation) ResetEnvironment() {
 // ClearResource clears the "resource" edge to the Resource entity.
 func (m *ResourceRevisionMutation) ClearResource() {
 	m.clearedresource = true
+	m.clearedFields[resourcerevision.FieldResourceID] = struct{}{}
 }
 
 // ResourceCleared reports if the "resource" edge to the Resource entity was cleared.
@@ -21721,6 +21747,7 @@ func (m *SubjectRoleRelationshipMutation) ResetRoleID() {
 // ClearProject clears the "project" edge to the Project entity.
 func (m *SubjectRoleRelationshipMutation) ClearProject() {
 	m.clearedproject = true
+	m.clearedFields[subjectrolerelationship.FieldProjectID] = struct{}{}
 }
 
 // ProjectCleared reports if the "project" edge to the Project entity was cleared.
@@ -21747,6 +21774,7 @@ func (m *SubjectRoleRelationshipMutation) ResetProject() {
 // ClearSubject clears the "subject" edge to the Subject entity.
 func (m *SubjectRoleRelationshipMutation) ClearSubject() {
 	m.clearedsubject = true
+	m.clearedFields[subjectrolerelationship.FieldSubjectID] = struct{}{}
 }
 
 // SubjectCleared reports if the "subject" edge to the Subject entity was cleared.
@@ -21773,6 +21801,7 @@ func (m *SubjectRoleRelationshipMutation) ResetSubject() {
 // ClearRole clears the "role" edge to the Role entity.
 func (m *SubjectRoleRelationshipMutation) ClearRole() {
 	m.clearedrole = true
+	m.clearedFields[subjectrolerelationship.FieldRoleID] = struct{}{}
 }
 
 // RoleCleared reports if the "role" edge to the Role entity was cleared.
@@ -22723,6 +22752,7 @@ func (m *TemplateMutation) ResetVersions() {
 // ClearCatalog clears the "catalog" edge to the Catalog entity.
 func (m *TemplateMutation) ClearCatalog() {
 	m.clearedcatalog = true
+	m.clearedFields[template.FieldCatalogID] = struct{}{}
 }
 
 // CatalogCleared reports if the "catalog" edge to the Catalog entity was cleared.
@@ -22749,6 +22779,7 @@ func (m *TemplateMutation) ResetCatalog() {
 // ClearProject clears the "project" edge to the Project entity.
 func (m *TemplateMutation) ClearProject() {
 	m.clearedproject = true
+	m.clearedFields[template.FieldProjectID] = struct{}{}
 }
 
 // ProjectCleared reports if the "project" edge to the Project entity was cleared.
@@ -23738,6 +23769,7 @@ func (m *TemplateVersionMutation) ResetProjectID() {
 // ClearTemplate clears the "template" edge to the Template entity.
 func (m *TemplateVersionMutation) ClearTemplate() {
 	m.clearedtemplate = true
+	m.clearedFields[templateversion.FieldTemplateID] = struct{}{}
 }
 
 // TemplateCleared reports if the "template" edge to the Template entity was cleared.
@@ -23872,6 +23904,7 @@ func (m *TemplateVersionMutation) ResetResourceDefinitions() {
 // ClearProject clears the "project" edge to the Project entity.
 func (m *TemplateVersionMutation) ClearProject() {
 	m.clearedproject = true
+	m.clearedFields[templateversion.FieldProjectID] = struct{}{}
 }
 
 // ProjectCleared reports if the "project" edge to the Project entity was cleared.
@@ -24695,6 +24728,7 @@ func (m *TokenMutation) ResetValue() {
 // ClearSubject clears the "subject" edge to the Subject entity.
 func (m *TokenMutation) ClearSubject() {
 	m.clearedsubject = true
+	m.clearedFields[token.FieldSubjectID] = struct{}{}
 }
 
 // SubjectCleared reports if the "subject" edge to the Subject entity was cleared.
@@ -25473,6 +25507,7 @@ func (m *VariableMutation) ResetDescription() {
 // ClearProject clears the "project" edge to the Project entity.
 func (m *VariableMutation) ClearProject() {
 	m.clearedproject = true
+	m.clearedFields[variable.FieldProjectID] = struct{}{}
 }
 
 // ProjectCleared reports if the "project" edge to the Project entity was cleared.
@@ -25499,6 +25534,7 @@ func (m *VariableMutation) ResetProject() {
 // ClearEnvironment clears the "environment" edge to the Environment entity.
 func (m *VariableMutation) ClearEnvironment() {
 	m.clearedenvironment = true
+	m.clearedFields[variable.FieldEnvironmentID] = struct{}{}
 }
 
 // EnvironmentCleared reports if the "environment" edge to the Environment entity was cleared.
@@ -26637,6 +26673,7 @@ func (m *WorkflowMutation) ResetVariables() {
 // ClearProject clears the "project" edge to the Project entity.
 func (m *WorkflowMutation) ClearProject() {
 	m.clearedproject = true
+	m.clearedFields[workflow.FieldProjectID] = struct{}{}
 }
 
 // ProjectCleared reports if the "project" edge to the Project entity was cleared.
@@ -28263,6 +28300,7 @@ func (m *WorkflowExecutionMutation) ResetTrigger() {
 // ClearProject clears the "project" edge to the Project entity.
 func (m *WorkflowExecutionMutation) ClearProject() {
 	m.clearedproject = true
+	m.clearedFields[workflowexecution.FieldProjectID] = struct{}{}
 }
 
 // ProjectCleared reports if the "project" edge to the Project entity was cleared.
@@ -28343,6 +28381,7 @@ func (m *WorkflowExecutionMutation) ResetStages() {
 // ClearWorkflow clears the "workflow" edge to the Workflow entity.
 func (m *WorkflowExecutionMutation) ClearWorkflow() {
 	m.clearedworkflow = true
+	m.clearedFields[workflowexecution.FieldWorkflowID] = struct{}{}
 }
 
 // WorkflowCleared reports if the "workflow" edge to the Workflow entity was cleared.
@@ -29572,6 +29611,7 @@ func (m *WorkflowStageMutation) ResetOrder() {
 // ClearProject clears the "project" edge to the Project entity.
 func (m *WorkflowStageMutation) ClearProject() {
 	m.clearedproject = true
+	m.clearedFields[workflowstage.FieldProjectID] = struct{}{}
 }
 
 // ProjectCleared reports if the "project" edge to the Project entity was cleared.
@@ -29652,6 +29692,7 @@ func (m *WorkflowStageMutation) ResetSteps() {
 // ClearWorkflow clears the "workflow" edge to the Workflow entity.
 func (m *WorkflowStageMutation) ClearWorkflow() {
 	m.clearedworkflow = true
+	m.clearedFields[workflowstage.FieldWorkflowID] = struct{}{}
 }
 
 // WorkflowCleared reports if the "workflow" edge to the Workflow entity was cleared.
@@ -30864,6 +30905,7 @@ func (m *WorkflowStageExecutionMutation) ResetOrder() {
 // ClearProject clears the "project" edge to the Project entity.
 func (m *WorkflowStageExecutionMutation) ClearProject() {
 	m.clearedproject = true
+	m.clearedFields[workflowstageexecution.FieldProjectID] = struct{}{}
 }
 
 // ProjectCleared reports if the "project" edge to the Project entity was cleared.
@@ -30944,6 +30986,7 @@ func (m *WorkflowStageExecutionMutation) ResetSteps() {
 // ClearWorkflowExecution clears the "workflow_execution" edge to the WorkflowExecution entity.
 func (m *WorkflowStageExecutionMutation) ClearWorkflowExecution() {
 	m.clearedworkflow_execution = true
+	m.clearedFields[workflowstageexecution.FieldWorkflowExecutionID] = struct{}{}
 }
 
 // WorkflowExecutionCleared reports if the "workflow_execution" edge to the WorkflowExecution entity was cleared.
@@ -32398,6 +32441,7 @@ func (m *WorkflowStepMutation) ResetTimeout() {
 // ClearProject clears the "project" edge to the Project entity.
 func (m *WorkflowStepMutation) ClearProject() {
 	m.clearedproject = true
+	m.clearedFields[workflowstep.FieldProjectID] = struct{}{}
 }
 
 // ProjectCleared reports if the "project" edge to the Project entity was cleared.
@@ -32429,6 +32473,7 @@ func (m *WorkflowStepMutation) SetStageID(id object.ID) {
 // ClearStage clears the "stage" edge to the WorkflowStage entity.
 func (m *WorkflowStepMutation) ClearStage() {
 	m.clearedstage = true
+	m.clearedFields[workflowstep.FieldWorkflowStageID] = struct{}{}
 }
 
 // StageCleared reports if the "stage" edge to the WorkflowStage entity was cleared.
@@ -34100,6 +34145,7 @@ func (m *WorkflowStepExecutionMutation) ResetRecord() {
 // ClearProject clears the "project" edge to the Project entity.
 func (m *WorkflowStepExecutionMutation) ClearProject() {
 	m.clearedproject = true
+	m.clearedFields[workflowstepexecution.FieldProjectID] = struct{}{}
 }
 
 // ProjectCleared reports if the "project" edge to the Project entity was cleared.
@@ -34131,6 +34177,7 @@ func (m *WorkflowStepExecutionMutation) SetStageExecutionID(id object.ID) {
 // ClearStageExecution clears the "stage_execution" edge to the WorkflowStageExecution entity.
 func (m *WorkflowStepExecutionMutation) ClearStageExecution() {
 	m.clearedstage_execution = true
+	m.clearedFields[workflowstepexecution.FieldWorkflowStageExecutionID] = struct{}{}
 }
 
 // StageExecutionCleared reports if the "stage_execution" edge to the WorkflowStageExecution entity was cleared.

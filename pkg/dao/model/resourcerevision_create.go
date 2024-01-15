@@ -1446,6 +1446,7 @@ func (u *ResourceRevisionUpsertOne) IDX(ctx context.Context) object.ID {
 // ResourceRevisionCreateBulk is the builder for creating many ResourceRevision entities in bulk.
 type ResourceRevisionCreateBulk struct {
 	config
+	err        error
 	builders   []*ResourceRevisionCreate
 	conflict   []sql.ConflictOption
 	objects    []*ResourceRevision
@@ -1454,6 +1455,9 @@ type ResourceRevisionCreateBulk struct {
 
 // Save creates the ResourceRevision entities in the database.
 func (rrcb *ResourceRevisionCreateBulk) Save(ctx context.Context) ([]*ResourceRevision, error) {
+	if rrcb.err != nil {
+		return nil, rrcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(rrcb.builders))
 	nodes := make([]*ResourceRevision, len(rrcb.builders))
 	mutators := make([]Mutator, len(rrcb.builders))
@@ -1862,6 +1866,9 @@ func (u *ResourceRevisionUpsertBulk) UpdateCreatedBy() *ResourceRevisionUpsertBu
 
 // Exec executes the query.
 func (u *ResourceRevisionUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the ResourceRevisionCreateBulk instead", i)

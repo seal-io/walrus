@@ -571,6 +571,7 @@ func (u *DistributeLockUpsertOne) IDX(ctx context.Context) string {
 // DistributeLockCreateBulk is the builder for creating many DistributeLock entities in bulk.
 type DistributeLockCreateBulk struct {
 	config
+	err        error
 	builders   []*DistributeLockCreate
 	conflict   []sql.ConflictOption
 	objects    []*DistributeLock
@@ -579,6 +580,9 @@ type DistributeLockCreateBulk struct {
 
 // Save creates the DistributeLock entities in the database.
 func (dlcb *DistributeLockCreateBulk) Save(ctx context.Context) ([]*DistributeLock, error) {
+	if dlcb.err != nil {
+		return nil, dlcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(dlcb.builders))
 	nodes := make([]*DistributeLock, len(dlcb.builders))
 	mutators := make([]Mutator, len(dlcb.builders))
@@ -768,6 +772,9 @@ func (u *DistributeLockUpsertBulk) UpdateExpireAt() *DistributeLockUpsertBulk {
 
 // Exec executes the query.
 func (u *DistributeLockUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the DistributeLockCreateBulk instead", i)

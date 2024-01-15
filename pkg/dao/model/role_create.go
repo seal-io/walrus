@@ -875,6 +875,7 @@ func (u *RoleUpsertOne) IDX(ctx context.Context) string {
 // RoleCreateBulk is the builder for creating many Role entities in bulk.
 type RoleCreateBulk struct {
 	config
+	err        error
 	builders   []*RoleCreate
 	conflict   []sql.ConflictOption
 	objects    []*Role
@@ -883,6 +884,9 @@ type RoleCreateBulk struct {
 
 // Save creates the Role entities in the database.
 func (rcb *RoleCreateBulk) Save(ctx context.Context) ([]*Role, error) {
+	if rcb.err != nil {
+		return nil, rcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(rcb.builders))
 	nodes := make([]*Role, len(rcb.builders))
 	mutators := make([]Mutator, len(rcb.builders))
@@ -1131,6 +1135,9 @@ func (u *RoleUpsertBulk) ClearApplicableEnvironmentTypes() *RoleUpsertBulk {
 
 // Exec executes the query.
 func (u *RoleUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the RoleCreateBulk instead", i)

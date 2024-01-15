@@ -622,32 +622,15 @@ func HasEnvironmentWith(preds ...predicate.Environment) predicate.Variable {
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Variable) predicate.Variable {
-	return predicate.Variable(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.Variable(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.Variable) predicate.Variable {
-	return predicate.Variable(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.Variable(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.Variable) predicate.Variable {
-	return predicate.Variable(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.Variable(sql.NotPredicates(p))
 }

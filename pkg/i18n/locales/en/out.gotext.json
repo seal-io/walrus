@@ -2,77 +2,110 @@
     "language": "en",
     "messages": [
         {
-            "id": "Create a Kubernetes deployment",
+            "id": [
+                "ExampleKubernetesName",
+                "Create a Kubernetes deployment"
+            ],
             "message": "Create a Kubernetes deployment",
             "translation": "Create a Kubernetes deployment",
             "translatorComment": "Copied from source.",
             "fuzzy": true
         },
         {
-            "id": "# Create a Kubernetes deployment. Provide common variables.",
+            "id": [
+                "ExampleKubernetesPrompt",
+                "# Create a Kubernetes deployment. Provide common variables."
+            ],
             "message": "# Create a Kubernetes deployment. Provide common variables.",
             "translation": "# Create a Kubernetes deployment. Provide common variables.",
             "translatorComment": "Copied from source.",
             "fuzzy": true
         },
         {
-            "id": "Create an alibaba cloud virtual machine",
+            "id": [
+                "ExampleAlibabaCloudName",
+                "Create an alibaba cloud virtual machine"
+            ],
             "message": "Create an alibaba cloud virtual machine",
             "translation": "Create an alibaba cloud virtual machine",
             "translatorComment": "Copied from source.",
             "fuzzy": true
         },
         {
-            "id": "# Create a resource group, virtual network, subnet and virtual machine on alibaba cloud.",
+            "id": [
+                "ExampleAlibabaCloudPrompt",
+                "# Create a resource group, virtual network, subnet and virtual machine on alibaba cloud."
+            ],
             "message": "# Create a resource group, virtual network, subnet and virtual machine on alibaba cloud.",
             "translation": "# Create a resource group, virtual network, subnet and virtual machine on alibaba cloud.",
             "translatorComment": "Copied from source.",
             "fuzzy": true
         },
         {
-            "id": "Deploy an ELK stack",
+            "id": [
+                "ExampleELKName",
+                "Deploy an ELK stack"
+            ],
             "message": "Deploy an ELK stack",
             "translation": "Deploy an ELK stack",
             "translatorComment": "Copied from source.",
             "fuzzy": true
         },
         {
-            "id": "# Deploy an ELK stack using helm chart.",
+            "id": [
+                "ExampleELKPrompt",
+                "# Deploy an ELK stack using helm chart."
+            ],
             "message": "# Deploy an ELK stack using helm chart.",
             "translation": "# Deploy an ELK stack using helm chart.",
             "translatorComment": "Copied from source.",
             "fuzzy": true
         },
         {
-            "id": "You are translating natural language to a Terraform module. Please do not explain, just write pure terraform HCL code. Please do not explain, just write pure terraform HCL code. Please do not explain, just write pure terraform HCL code.",
+            "id": [
+                "TerraformModuleGenerateSystemMessage",
+                "You are translating natural language to a Terraform module. Please do not explain, just write pure terraform HCL code. Please do not explain, just write pure terraform HCL code. Please do not explain, just write pure terraform HCL code."
+            ],
             "message": "You are translating natural language to a Terraform module. Please do not explain, just write pure terraform HCL code. Please do not explain, just write pure terraform HCL code. Please do not explain, just write pure terraform HCL code.",
             "translation": "You are translating natural language to a Terraform module. Please do not explain, just write pure terraform HCL code. Please do not explain, just write pure terraform HCL code. Please do not explain, just write pure terraform HCL code.",
             "translatorComment": "Copied from source.",
             "fuzzy": true
         },
         {
-            "id": "Please explain the given terraform module.",
+            "id": [
+                "TerraformModuleExplainSystemMessage",
+                "Please explain the given terraform module."
+            ],
             "message": "Please explain the given terraform module.",
             "translation": "Please explain the given terraform module.",
             "translatorComment": "Copied from source.",
             "fuzzy": true
         },
         {
-            "id": "Please Check and fix the given terraform module if there's any mistake.\nStrictly respond a valid JSON in the following format:",
+            "id": [
+                "TerraformModuleCorrectSystemMessageDesc",
+                "Please Check and fix the given terraform module if there's any mistake.\nStrictly respond a valid JSON in the following format:"
+            ],
             "message": "Please Check and fix the given terraform module if there's any mistake.\nStrictly respond a valid JSON in the following format:",
             "translation": "Please Check and fix the given terraform module if there's any mistake.\nStrictly respond a valid JSON in the following format:",
             "translatorComment": "Copied from source.",
             "fuzzy": true
         },
         {
-            "id": "Terraform code that is fixed. Please do not explain, just write terraform HCL code.",
+            "id": [
+                "TerraformModuleCorrectSystemMessageCorrectedDesc",
+                "Terraform code that is fixed. Please do not explain, just write terraform HCL code."
+            ],
             "message": "Terraform code that is fixed. Please do not explain, just write terraform HCL code.",
             "translation": "Terraform code that is fixed. Please do not explain, just write terraform HCL code.",
             "translatorComment": "Copied from source.",
             "fuzzy": true
         },
         {
-            "id": "Explanation of the fixes.",
+            "id": [
+                "TerraformModuleCorrectSystemMessageExplanationDesc",
+                "Explanation of the fixes."
+            ],
             "message": "Explanation of the fixes.",
             "translation": "Explanation of the fixes.",
             "translatorComment": "Copied from source.",

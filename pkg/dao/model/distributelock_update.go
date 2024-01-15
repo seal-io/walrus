@@ -43,6 +43,14 @@ func (dlu *DistributeLockUpdate) SetExpireAt(i int64) *DistributeLockUpdate {
 	return dlu
 }
 
+// SetNillableExpireAt sets the "expireAt" field if the given value is not nil.
+func (dlu *DistributeLockUpdate) SetNillableExpireAt(i *int64) *DistributeLockUpdate {
+	if i != nil {
+		dlu.SetExpireAt(*i)
+	}
+	return dlu
+}
+
 // AddExpireAt adds i to the "expireAt" field.
 func (dlu *DistributeLockUpdate) AddExpireAt(i int64) *DistributeLockUpdate {
 	dlu.mutation.AddExpireAt(i)
@@ -174,6 +182,14 @@ type DistributeLockUpdateOne struct {
 func (dluo *DistributeLockUpdateOne) SetExpireAt(i int64) *DistributeLockUpdateOne {
 	dluo.mutation.ResetExpireAt()
 	dluo.mutation.SetExpireAt(i)
+	return dluo
+}
+
+// SetNillableExpireAt sets the "expireAt" field if the given value is not nil.
+func (dluo *DistributeLockUpdateOne) SetNillableExpireAt(i *int64) *DistributeLockUpdateOne {
+	if i != nil {
+		dluo.SetExpireAt(*i)
+	}
 	return dluo
 }
 

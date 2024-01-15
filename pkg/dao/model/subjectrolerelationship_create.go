@@ -711,6 +711,7 @@ func (u *SubjectRoleRelationshipUpsertOne) IDX(ctx context.Context) object.ID {
 // SubjectRoleRelationshipCreateBulk is the builder for creating many SubjectRoleRelationship entities in bulk.
 type SubjectRoleRelationshipCreateBulk struct {
 	config
+	err        error
 	builders   []*SubjectRoleRelationshipCreate
 	conflict   []sql.ConflictOption
 	objects    []*SubjectRoleRelationship
@@ -719,6 +720,9 @@ type SubjectRoleRelationshipCreateBulk struct {
 
 // Save creates the SubjectRoleRelationship entities in the database.
 func (srrcb *SubjectRoleRelationshipCreateBulk) Save(ctx context.Context) ([]*SubjectRoleRelationship, error) {
+	if srrcb.err != nil {
+		return nil, srrcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(srrcb.builders))
 	nodes := make([]*SubjectRoleRelationship, len(srrcb.builders))
 	mutators := make([]Mutator, len(srrcb.builders))
@@ -897,6 +901,9 @@ func (u *SubjectRoleRelationshipUpsertBulk) Update(set func(*SubjectRoleRelation
 
 // Exec executes the query.
 func (u *SubjectRoleRelationshipUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the SubjectRoleRelationshipCreateBulk instead", i)

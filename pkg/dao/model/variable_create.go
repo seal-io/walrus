@@ -922,6 +922,7 @@ func (u *VariableUpsertOne) IDX(ctx context.Context) object.ID {
 // VariableCreateBulk is the builder for creating many Variable entities in bulk.
 type VariableCreateBulk struct {
 	config
+	err        error
 	builders   []*VariableCreate
 	conflict   []sql.ConflictOption
 	objects    []*Variable
@@ -930,6 +931,9 @@ type VariableCreateBulk struct {
 
 // Save creates the Variable entities in the database.
 func (vcb *VariableCreateBulk) Save(ctx context.Context) ([]*Variable, error) {
+	if vcb.err != nil {
+		return nil, vcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(vcb.builders))
 	nodes := make([]*Variable, len(vcb.builders))
 	mutators := make([]Mutator, len(vcb.builders))
@@ -1171,6 +1175,9 @@ func (u *VariableUpsertBulk) ClearDescription() *VariableUpsertBulk {
 
 // Exec executes the query.
 func (u *VariableUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the VariableCreateBulk instead", i)

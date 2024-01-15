@@ -11,7 +11,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/types"
-	"github.com/seal-io/walrus/pkg/i18n/text"
+	"github.com/seal-io/walrus/pkg/i18n"
 	"github.com/seal-io/walrus/pkg/openai"
 	"github.com/seal-io/walrus/pkg/templates"
 	"github.com/seal-io/walrus/pkg/vcs"
@@ -23,16 +23,16 @@ import (
 
 var builtinExamples = []PromptExample{
 	{
-		Name:   text.ExampleKubernetesName,
-		Prompt: text.ExampleKubernetesPrompt,
+		Name:   i18n.ExampleKubernetesName,
+		Prompt: i18n.ExampleKubernetesPrompt,
 	},
 	{
-		Name:   text.ExampleAlibabaCloudName,
-		Prompt: text.ExampleAlibabaCloudPrompt,
+		Name:   i18n.ExampleAlibabaCloudName,
+		Prompt: i18n.ExampleAlibabaCloudPrompt,
 	},
 	{
-		Name:   text.ExampleELKName,
-		Prompt: text.ExampleELKPrompt,
+		Name:   i18n.ExampleELKName,
+		Prompt: i18n.ExampleELKPrompt,
 	},
 }
 
@@ -52,7 +52,7 @@ func (h Handler) CollectionRouteGetExamples(
 }
 
 func (h Handler) CollectionRouteGenerate(req CollectionRouteGenerateRequest) (*CollectionRouteGenerateResponse, error) {
-	prompt := runtime.Translate(req.Context, text.TerraformModuleGenerateSystemMessage)
+	prompt := runtime.Translate(req.Context, i18n.TerraformModuleGenerateSystemMessage)
 
 	result, err := openai.CreateCompletion(req.Context, h.modelClient, prompt, req.Text)
 	if err != nil {
@@ -65,7 +65,7 @@ func (h Handler) CollectionRouteGenerate(req CollectionRouteGenerateRequest) (*C
 }
 
 func (h Handler) CollectionRouteExplain(req CollectionRouteExplainRequest) (*CollectionRouteExplainResponse, error) {
-	prompt := runtime.Translate(req.Context, text.TerraformModuleExplainSystemMessage)
+	prompt := runtime.Translate(req.Context, i18n.TerraformModuleExplainSystemMessage)
 
 	result, err := openai.CreateCompletion(req.Context, h.modelClient, prompt, req.Text)
 	if err != nil {
@@ -80,9 +80,9 @@ func (h Handler) CollectionRouteExplain(req CollectionRouteExplainRequest) (*Col
 func (h Handler) CollectionRouteCorrect(req CollectionRouteCorrectRequest) (*CollectionRouteCorrectResponse, error) {
 	// gotext cannot handle brackets in messages, see https://github.com/golang/go/issues/27849.
 	// we need to split the text as a workaround.
-	desc := runtime.Translate(req.Context, text.TerraformModuleCorrectSystemMessageDesc)
-	correctedDesc := runtime.Translate(req.Context, text.TerraformModuleCorrectSystemMessageCorrectedDesc)
-	explanationDesc := runtime.Translate(req.Context, text.TerraformModuleCorrectSystemMessageExplanationDesc)
+	desc := runtime.Translate(req.Context, i18n.TerraformModuleCorrectSystemMessageDesc)
+	correctedDesc := runtime.Translate(req.Context, i18n.TerraformModuleCorrectSystemMessageCorrectedDesc)
+	explanationDesc := runtime.Translate(req.Context, i18n.TerraformModuleCorrectSystemMessageExplanationDesc)
 	prompt := fmt.Sprintf(`%s\n{\n"corrected": "%s", "explanation": "%s"\n}\n`, desc, correctedDesc, explanationDesc)
 
 	result, err := openai.CreateCompletion(req.Context, h.modelClient, prompt, req.Text)

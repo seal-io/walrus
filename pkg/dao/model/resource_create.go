@@ -1613,6 +1613,7 @@ func (u *ResourceUpsertOne) IDX(ctx context.Context) object.ID {
 // ResourceCreateBulk is the builder for creating many Resource entities in bulk.
 type ResourceCreateBulk struct {
 	config
+	err        error
 	builders   []*ResourceCreate
 	conflict   []sql.ConflictOption
 	objects    []*Resource
@@ -1621,6 +1622,9 @@ type ResourceCreateBulk struct {
 
 // Save creates the Resource entities in the database.
 func (rcb *ResourceCreateBulk) Save(ctx context.Context) ([]*Resource, error) {
+	if rcb.err != nil {
+		return nil, rcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(rcb.builders))
 	nodes := make([]*Resource, len(rcb.builders))
 	mutators := make([]Mutator, len(rcb.builders))
@@ -2047,6 +2051,9 @@ func (u *ResourceUpsertBulk) ClearChangeComment() *ResourceUpsertBulk {
 
 // Exec executes the query.
 func (u *ResourceUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the ResourceCreateBulk instead", i)

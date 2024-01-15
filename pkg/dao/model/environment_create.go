@@ -1057,6 +1057,7 @@ func (u *EnvironmentUpsertOne) IDX(ctx context.Context) object.ID {
 // EnvironmentCreateBulk is the builder for creating many Environment entities in bulk.
 type EnvironmentCreateBulk struct {
 	config
+	err        error
 	builders   []*EnvironmentCreate
 	conflict   []sql.ConflictOption
 	objects    []*Environment
@@ -1065,6 +1066,9 @@ type EnvironmentCreateBulk struct {
 
 // Save creates the Environment entities in the database.
 func (ecb *EnvironmentCreateBulk) Save(ctx context.Context) ([]*Environment, error) {
+	if ecb.err != nil {
+		return nil, ecb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(ecb.builders))
 	nodes := make([]*Environment, len(ecb.builders))
 	mutators := make([]Mutator, len(ecb.builders))
@@ -1320,6 +1324,9 @@ func (u *EnvironmentUpsertBulk) UpdateUpdateTime() *EnvironmentUpsertBulk {
 
 // Exec executes the query.
 func (u *EnvironmentUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the EnvironmentCreateBulk instead", i)

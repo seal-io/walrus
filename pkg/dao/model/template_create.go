@@ -1059,6 +1059,7 @@ func (u *TemplateUpsertOne) IDX(ctx context.Context) object.ID {
 // TemplateCreateBulk is the builder for creating many Template entities in bulk.
 type TemplateCreateBulk struct {
 	config
+	err        error
 	builders   []*TemplateCreate
 	conflict   []sql.ConflictOption
 	objects    []*Template
@@ -1067,6 +1068,9 @@ type TemplateCreateBulk struct {
 
 // Save creates the Template entities in the database.
 func (tcb *TemplateCreateBulk) Save(ctx context.Context) ([]*Template, error) {
+	if tcb.err != nil {
+		return nil, tcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(tcb.builders))
 	nodes := make([]*Template, len(tcb.builders))
 	mutators := make([]Mutator, len(tcb.builders))
@@ -1346,6 +1350,9 @@ func (u *TemplateUpsertBulk) ClearIcon() *TemplateUpsertBulk {
 
 // Exec executes the query.
 func (u *TemplateUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the TemplateCreateBulk instead", i)

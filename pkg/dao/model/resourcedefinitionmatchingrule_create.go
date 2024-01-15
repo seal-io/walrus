@@ -934,6 +934,7 @@ func (u *ResourceDefinitionMatchingRuleUpsertOne) IDX(ctx context.Context) objec
 // ResourceDefinitionMatchingRuleCreateBulk is the builder for creating many ResourceDefinitionMatchingRule entities in bulk.
 type ResourceDefinitionMatchingRuleCreateBulk struct {
 	config
+	err        error
 	builders   []*ResourceDefinitionMatchingRuleCreate
 	conflict   []sql.ConflictOption
 	objects    []*ResourceDefinitionMatchingRule
@@ -942,6 +943,9 @@ type ResourceDefinitionMatchingRuleCreateBulk struct {
 
 // Save creates the ResourceDefinitionMatchingRule entities in the database.
 func (rdmrcb *ResourceDefinitionMatchingRuleCreateBulk) Save(ctx context.Context) ([]*ResourceDefinitionMatchingRule, error) {
+	if rdmrcb.err != nil {
+		return nil, rdmrcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(rdmrcb.builders))
 	nodes := make([]*ResourceDefinitionMatchingRule, len(rdmrcb.builders))
 	mutators := make([]Mutator, len(rdmrcb.builders))
@@ -1208,6 +1212,9 @@ func (u *ResourceDefinitionMatchingRuleUpsertBulk) ClearSchemaDefaultValue() *Re
 
 // Exec executes the query.
 func (u *ResourceDefinitionMatchingRuleUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the ResourceDefinitionMatchingRuleCreateBulk instead", i)

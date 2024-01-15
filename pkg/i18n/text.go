@@ -1,4 +1,10 @@
-package text
+package i18n
+
+import (
+	"io"
+
+	"golang.org/x/text/message"
+)
 
 // Note: The internationalization may not be simply translations because the English prompt may work better
 // even with user messages in other languages.
@@ -28,3 +34,20 @@ const (
 		" Please do not explain, just write terraform HCL code."
 	TerraformModuleCorrectSystemMessageExplanationDesc = "Explanation of the fixes."
 )
+
+// Fprintf is a helper function to print all the messages to the given writer.
+//
+// Fprintf also displays all i18n text for gotext extraction.
+func Fprintf(p *message.Printer, w io.Writer) {
+	_, _ = p.Fprintf(w, ExampleKubernetesName)
+	_, _ = p.Fprintf(w, ExampleKubernetesPrompt)
+	_, _ = p.Fprintf(w, ExampleAlibabaCloudName)
+	_, _ = p.Fprintf(w, ExampleAlibabaCloudPrompt)
+	_, _ = p.Fprintf(w, ExampleELKName)
+	_, _ = p.Fprintf(w, ExampleELKPrompt)
+	_, _ = p.Fprintf(w, TerraformModuleGenerateSystemMessage)
+	_, _ = p.Fprintf(w, TerraformModuleExplainSystemMessage)
+	_, _ = p.Fprintf(w, TerraformModuleCorrectSystemMessageDesc)
+	_, _ = p.Fprintf(w, TerraformModuleCorrectSystemMessageCorrectedDesc)
+	_, _ = p.Fprintf(w, TerraformModuleCorrectSystemMessageExplanationDesc)
+}
