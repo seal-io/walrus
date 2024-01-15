@@ -1,6 +1,6 @@
 module github.com/seal-io/walrus/utils
 
-go 1.19
+go 1.21
 
 require (
 	github.com/akerl/go-indefinite-article v0.0.2-0.20221219154354-6280c92263d6

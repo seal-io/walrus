@@ -9,8 +9,13 @@ source "${ROOT_DIR}/hack/lib/init.sh"
 
 function mod() {
   local path="$1"
+  shift 1
 
   [[ "${path}" == "${ROOT_DIR}" ]] || pushd "${path}" >/dev/null 2>&1
+
+  if [[ -n "$*" ]] && [[ "$*" =~ update$ ]]; then
+    go get -u ./...
+  fi
 
   go mod tidy
   go mod download
@@ -24,15 +29,15 @@ function dispatch() {
 
   shift 2
   local specified_targets="$*"
-  if [[ -n ${specified_targets} ]] && [[ ! ${specified_targets} =~ ${target} ]]; then
+  if [[ -n ${specified_targets} ]] && [[ ${specified_targets} != "update" ]] && [[ ! ${specified_targets} =~ ${target} ]]; then
     return
   fi
 
   seal::log::debug "modding ${target}"
   if [[ "${PARALLELIZE:-true}" == "false" ]]; then
-    mod "${path}"
+    mod "${path}" "$@"
   else
-    mod "${path}" &
+    mod "${path}" "$@" &
   fi
 }
 

@@ -4,11 +4,11 @@
 # Lint variables helpers. These functions need the
 # following variables:
 #
-#    GOLANGCI_LINT_VERSION  -  The Golangci-lint version, default is v1.50.1.
-#        COMMITSAR_VERSION  -  The Commitsar version, default is v0.20.1.
+#    GOLANGCI_LINT_VERSION  -  The Golangci-lint version, default is v1.55.2.
+#        COMMITSAR_VERSION  -  The Commitsar version, default is v0.20.2.
 
-golangci_lint_version=${GOLANGCI_LINT_VERSION:-"v1.50.1"}
-commitsar_version=${COMMITSAR_VERSION:-"v0.20.1"}
+golangci_lint_version=${GOLANGCI_LINT_VERSION:-"v1.55.2"}
+commitsar_version=${COMMITSAR_VERSION:-"v0.20.2"}
 
 function seal::lint::golangci_lint::install() {
   curl --retry 3 --retry-all-errors --retry-delay 3 -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "${ROOT_DIR}/.sbin" "${golangci_lint_version}"
@@ -61,7 +61,7 @@ function seal::lint::run() {
     return 0
   fi
 
-  seal::log::debug "golangci-lint $*"
+  seal::log::debug "golangci-lint run --fix $*"
   $(seal::lint::golangci_lint::bin) run --fix "$@"
 }
 
@@ -282,7 +282,7 @@ function seal::commit::commitsar::install() {
     --directory "${ROOT_DIR}/.sbin" \
     --no-same-owner \
     --exclude ./LICENSE \
-    --exclude ./*.md
+    --exclude ./README.md
   chmod a+x "${ROOT_DIR}/.sbin/commitsar"
 }
 
