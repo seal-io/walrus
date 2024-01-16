@@ -251,7 +251,7 @@ components:
                 order: 2
             email:
               default:
-                address: null
+                address: nest
                 domain: nest.com
               properties:
                 address:
@@ -295,7 +295,7 @@ components:
                 order: 2
             email:
               default:
-                address: null
+                address: nest
                 domain: nest.com
               properties:
                 address:

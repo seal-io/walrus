@@ -89,6 +89,7 @@ variable "object_with_default_and_nest_object3" {
         domain  = string
       }),
       {
+        "address"= "nest"
         domain  = "nest.com"
       })
   })
@@ -111,6 +112,7 @@ variable "object_with_empty_default_and_nest_object_default" {
         domain  = string
       }),
       {
+        address = "nest"
         domain  = "nest.com"
       })
   })

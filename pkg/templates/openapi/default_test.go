@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTraverse(t *testing.T) {
+func TestGenSchemaDefaultPatch(t *testing.T) {
 	testCases := []struct {
 		name          string
 		input         string
@@ -68,7 +68,7 @@ func TestTraverse(t *testing.T) {
 			err = json.Compact(&eb, fb)
 			assert.NoError(t, err)
 
-			assert.Equal(t, eb.Bytes(), m)
+			assert.Equal(t, eb.String(), string(m))
 		})
 	}
 }
