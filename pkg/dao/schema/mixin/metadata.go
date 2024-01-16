@@ -64,7 +64,8 @@ func (i metadata) Fields() []ent.Field {
 		fs = append(fs,
 			field.JSON("labels", map[string]string{}).
 				Optional().
-				Default(map[string]string{}),
+				Default(map[string]string{}).
+				Annotations(entx.SkipClearingOptionalField()), // Do not clear the labels field when it is not provided.
 		)
 	}
 
