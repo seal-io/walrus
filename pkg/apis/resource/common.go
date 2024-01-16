@@ -78,21 +78,16 @@ func DeleteResources(req CollectionDeleteRequest, mc model.ClientSet, kubeConfig
 }
 
 func UpgradeResources(req CollectionRouteUpgradeRequest, mc model.ClientSet, kubeConfig *rest.Config) error {
-	var (
-		resources []*model.Resource
-		err       error
-	)
-
 	// Make sure the resources are upgraded in topological order.
-	resources, err = pkgresource.TopologicalSortResources(resources)
+	entities, err := pkgresource.TopologicalSortResources(req.Model())
 	if err != nil {
 		return err
 	}
 
-	for _, entity := range resources {
+	for _, entity := range entities {
 		entity.ChangeComment = req.ChangeComment
 
-		if err := upgrade(req.Context, kubeConfig, mc, entity, req.Draft); err != nil {
+		if err = upgrade(req.Context, kubeConfig, mc, entity, req.Draft); err != nil {
 			return err
 		}
 	}
