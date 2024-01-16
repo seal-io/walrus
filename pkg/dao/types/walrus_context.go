@@ -1,4 +1,4 @@
-package terraform
+package types
 
 import (
 	"github.com/seal-io/walrus/pkg/dao/types/object"

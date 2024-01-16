@@ -271,7 +271,7 @@ func getVariables(
 
 	missingSet := requiredSet.
 		Difference(foundSet).
-		Difference(sets.NewString(WalrusContextVariableName))
+		Difference(sets.NewString(types.WalrusContextVariableName))
 	if missingSet.Len() > 0 {
 		return nil, fmt.Errorf("missing variables: %s", missingSet.List())
 	}
