@@ -171,7 +171,8 @@ func createInputsItemToResource(
 ) *model.Resource {
 	return toResource(
 		nil, input.Name, input.Type, input.Attributes, input.Labels,
-		input.Template, input.ResourceDefinition,
+		input.Template,
+		input.ResourceDefinition, input.ResourceDefinitionMatchingRule,
 		p, e)
 }
 
@@ -183,13 +184,15 @@ func updateInputsItemToResource(
 ) *model.Resource {
 	return toResource(
 		nil, input.Name, typ, input.Attributes, input.Labels,
-		input.Template, input.ResourceDefinition,
+		input.Template,
+		input.ResourceDefinition, input.ResourceDefinitionMatchingRule,
 		p, e)
 }
 
 func toResource(
 	id *object.ID, name, typ string, attr property.Values, labels map[string]string,
-	tmpl *model.TemplateVersionQueryInput, rd *model.ResourceDefinitionQueryInput,
+	tmpl *model.TemplateVersionQueryInput,
+	rd *model.ResourceDefinitionQueryInput, rdr *model.ResourceDefinitionMatchingRuleQueryInput,
 	p *model.ProjectQueryInput, e *model.EnvironmentQueryInput,
 ) *model.Resource {
 	r := &model.Resource{
@@ -209,6 +212,10 @@ func toResource(
 
 	if rd != nil {
 		r.ResourceDefinitionID = &rd.ID
+	}
+
+	if rdr != nil {
+		r.ResourceDefinitionMatchingRuleID = &rdr.ID
 	}
 
 	if p != nil {
