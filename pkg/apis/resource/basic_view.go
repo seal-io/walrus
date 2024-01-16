@@ -221,7 +221,7 @@ func (r *PatchRequest) Validate() error {
 	}
 
 	// Set computedAttributes.
-	patched.ComputedAttributes, err = genComputedAttributes(r.Context, patched, r.Client)
+	patched.ComputedAttributes, err = pkgresource.GenComputedAttributes(r.Context, r.Client, patched)
 	if err != nil {
 		return err
 	}
@@ -383,7 +383,7 @@ func (r *CollectionCreateRequest) Validate() error {
 		var err error
 		en := createInputsItemToResource(res, r.Project, r.Environment)
 
-		res.ComputedAttributes, err = genComputedAttributes(r.Context, en, r.Client)
+		res.ComputedAttributes, err = pkgresource.GenComputedAttributes(r.Context, r.Client, en)
 		if err != nil {
 			return err
 		}
@@ -647,7 +647,7 @@ func ValidateCreateInput(rci *model.ResourceCreateInput) error {
 	// Set computedAttributes.
 	en := rci.Model()
 
-	rci.ComputedAttributes, err = genComputedAttributes(rci.Context, en, rci.Client)
+	rci.ComputedAttributes, err = pkgresource.GenComputedAttributes(rci.Context, rci.Client, en)
 	if err != nil {
 		return err
 	}
