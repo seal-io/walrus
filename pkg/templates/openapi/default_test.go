@@ -1,7 +1,9 @@
 package openapi
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -54,15 +56,19 @@ func TestTraverse(t *testing.T) {
 			m, err := GenSchemaDefaultPatch(context.Background(), s.Value)
 			assert.NoError(t, err)
 
-			eb, err := os.ReadFile(filepath.Join(tc.input, "expected.json"))
+			fb, err := os.ReadFile(filepath.Join(tc.input, "expected.json"))
 			assert.NoError(t, err)
 
-			if len(eb) == 0 {
+			if len(fb) == 0 {
 				assert.Empty(t, m)
 				return
 			}
 
-			assert.Equal(t, eb, m)
+			var eb bytes.Buffer
+			err = json.Compact(&eb, fb)
+			assert.NoError(t, err)
+
+			assert.Equal(t, eb.Bytes(), m)
 		})
 	}
 }
