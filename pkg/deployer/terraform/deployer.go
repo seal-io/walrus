@@ -221,7 +221,7 @@ func (d Deployer) createK8sJob(ctx context.Context, mc model.ClientSet, opts cre
 		Connectors:       connectors,
 		SubjectID:        subjectID,
 		// Walrus Context.
-		Context: *NewContext().
+		Context: *types.NewContext().
 			SetProject(proj.ID, proj.Name).
 			SetEnvironment(env.ID, env.Name, pkgenv.GetManagedNamespaceName(env)).
 			SetResource(res.ID, res.Name),
@@ -329,7 +329,7 @@ type createK8sSecretsOptions struct {
 	Connectors       model.Connectors
 	SubjectID        object.ID
 	// Walrus Context.
-	Context Context
+	Context types.Context
 }
 
 // createK8sSecrets creates the k8s secrets for deployment.
@@ -931,7 +931,7 @@ func getModuleConfig(
 				sensitiveVariables.Insert(fmt.Sprintf(`var\.%s`, n))
 			}
 
-			if n == WalrusContextVariableName {
+			if n == types.WalrusContextVariableName {
 				mc.Attributes[n] = opts.Context
 			}
 		}
