@@ -26,6 +26,24 @@ var workflowExecutionStatusPaths = NewWalker(
 			WorkflowExecutionStatusCanceled,
 		},
 	},
+	func(d Decision[ConditionType]) {
+		d.Make(WorkflowExecutionStatusCanceled,
+			func(st ConditionStatus, reason string) *Summary {
+				switch st {
+				case ConditionStatusUnknown:
+					return &Summary{
+						SummaryStatus: "Canceling",
+						Transitioning: true,
+					}
+				case ConditionStatusFalse:
+					return &Summary{
+						SummaryStatus: "CancelFailed",
+						Error:         true,
+					}
+				}
+				return &Summary{SummaryStatus: "Canceled", Inactive: true}
+			})
+	},
 )
 
 func WalkWorkflowExecution(st *Status) *Summary {
@@ -58,6 +76,24 @@ var workflowStageExecutionStatusPaths = NewWalker(
 			WorkflowStageExecutionStatusCanceled,
 		},
 	},
+	func(d Decision[ConditionType]) {
+		d.Make(WorkflowStageExecutionStatusCanceled,
+			func(st ConditionStatus, reason string) *Summary {
+				switch st {
+				case ConditionStatusUnknown:
+					return &Summary{
+						SummaryStatus: "Canceling",
+						Transitioning: true,
+					}
+				case ConditionStatusFalse:
+					return &Summary{
+						SummaryStatus: "CancelFailed",
+						Error:         true,
+					}
+				}
+				return &Summary{SummaryStatus: "Canceled", Inactive: true}
+			})
+	},
 )
 
 func WalkWorkflowStageExecution(st *Status) *Summary {
@@ -89,6 +125,24 @@ var workflowStepExecutionStatusPaths = NewWalker(
 			WorkflowStepExecutionStatusRunning,
 			WorkflowStepExecutionStatusCanceled,
 		},
+	},
+	func(d Decision[ConditionType]) {
+		d.Make(WorkflowStepExecutionStatusCanceled,
+			func(st ConditionStatus, reason string) *Summary {
+				switch st {
+				case ConditionStatusUnknown:
+					return &Summary{
+						SummaryStatus: "Canceling",
+						Transitioning: true,
+					}
+				case ConditionStatusFalse:
+					return &Summary{
+						SummaryStatus: "CancelFailed",
+						Error:         true,
+					}
+				}
+				return &Summary{SummaryStatus: "Canceled", Inactive: true}
+			})
 	},
 )
 
