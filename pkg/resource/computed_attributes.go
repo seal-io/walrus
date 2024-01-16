@@ -26,9 +26,9 @@ func GenComputedAttributes(
 ) (property.Values, error) {
 	// Check.
 	if (entity.TemplateID == nil || !entity.TemplateID.Valid()) &&
-		(entity.ResourceDefinitionID == nil || !entity.ResourceDefinitionMatchingRuleID.Valid()) {
+		(entity.ResourceDefinitionMatchingRuleID == nil || !entity.ResourceDefinitionMatchingRuleID.Valid()) {
 		return nil, fmt.Errorf("failed to generate computed attributes, " +
-			"both template and resource definition machine rule id are empty")
+			"both template and resource definition matching rule id are empty")
 	}
 
 	if !entity.EnvironmentID.Valid() {
