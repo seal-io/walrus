@@ -430,7 +430,6 @@ components:
             - 5
           type: number
           title: Replication Readonly Replicas
-          default: 1
           nullable: true
           description: 'Specify the number of read-only replicas under the replication
             deployment.
