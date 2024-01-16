@@ -50,13 +50,6 @@ func (r *RouteUpgradeRequest) Validate() error {
 
 	entity, err := r.Client.Resources().Query().
 		Where(resource.ID(r.ID)).
-		Select(
-			resource.FieldTemplateID,
-			resource.FieldResourceDefinitionID,
-			resource.FieldStatus,
-			resource.FieldType,
-			resource.FieldAttributes,
-		).
 		WithTemplate(func(tvq *model.TemplateVersionQuery) {
 			tvq.Select(
 				templateversion.FieldName,
@@ -505,16 +498,6 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 
 	entities, err := r.Client.Resources().Query().
 		Where(resource.IDIn(r.IDs()...)).
-		Select(
-			resource.FieldTemplateID,
-			resource.FieldResourceDefinitionID,
-			resource.FieldStatus,
-			resource.FieldAttributes,
-			resource.FieldType,
-			resource.FieldLabels,
-			resource.FieldEnvironmentID,
-			resource.FieldProjectID,
-		).
 		WithTemplate(func(tvq *model.TemplateVersionQuery) {
 			tvq.Select(
 				templateversion.FieldName,
