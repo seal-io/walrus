@@ -768,8 +768,6 @@ func (pu *ProjectUpdate) Set(obj *Project) *ProjectUpdate {
 	}
 	if !reflect.ValueOf(obj.Labels).IsZero() {
 		pu.SetLabels(obj.Labels)
-	} else {
-		pu.ClearLabels()
 	}
 	if !reflect.ValueOf(obj.Annotations).IsZero() {
 		pu.SetAnnotations(obj.Annotations)
@@ -2355,8 +2353,6 @@ func (puo *ProjectUpdateOne) Set(obj *Project) *ProjectUpdateOne {
 				if !reflect.DeepEqual(db.Labels, obj.Labels) {
 					puo.SetLabels(obj.Labels)
 				}
-			} else {
-				puo.ClearLabels()
 			}
 			if !reflect.ValueOf(obj.Annotations).IsZero() {
 				if !reflect.DeepEqual(db.Annotations, obj.Annotations) {

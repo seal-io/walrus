@@ -370,8 +370,6 @@ func (wseu *WorkflowStepExecutionUpdate) Set(obj *WorkflowStepExecution) *Workfl
 	}
 	if !reflect.ValueOf(obj.Labels).IsZero() {
 		wseu.SetLabels(obj.Labels)
-	} else {
-		wseu.ClearLabels()
 	}
 	if !reflect.ValueOf(obj.Annotations).IsZero() {
 		wseu.SetAnnotations(obj.Annotations)
@@ -881,8 +879,6 @@ func (wseuo *WorkflowStepExecutionUpdateOne) Set(obj *WorkflowStepExecution) *Wo
 				if !reflect.DeepEqual(db.Labels, obj.Labels) {
 					wseuo.SetLabels(obj.Labels)
 				}
-			} else {
-				wseuo.ClearLabels()
 			}
 			if !reflect.ValueOf(obj.Annotations).IsZero() {
 				if !reflect.DeepEqual(db.Annotations, obj.Annotations) {

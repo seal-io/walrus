@@ -480,8 +480,6 @@ func (ru *ResourceUpdate) Set(obj *Resource) *ResourceUpdate {
 	}
 	if !reflect.ValueOf(obj.Labels).IsZero() {
 		ru.SetLabels(obj.Labels)
-	} else {
-		ru.ClearLabels()
 	}
 	if !reflect.ValueOf(obj.Annotations).IsZero() {
 		ru.SetAnnotations(obj.Annotations)
@@ -1329,8 +1327,6 @@ func (ruo *ResourceUpdateOne) Set(obj *Resource) *ResourceUpdateOne {
 				if !reflect.DeepEqual(db.Labels, obj.Labels) {
 					ruo.SetLabels(obj.Labels)
 				}
-			} else {
-				ruo.ClearLabels()
 			}
 			if !reflect.ValueOf(obj.Annotations).IsZero() {
 				if !reflect.DeepEqual(db.Annotations, obj.Annotations) {

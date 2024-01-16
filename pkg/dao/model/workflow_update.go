@@ -361,8 +361,6 @@ func (wu *WorkflowUpdate) Set(obj *Workflow) *WorkflowUpdate {
 	}
 	if !reflect.ValueOf(obj.Labels).IsZero() {
 		wu.SetLabels(obj.Labels)
-	} else {
-		wu.ClearLabels()
 	}
 	if !reflect.ValueOf(obj.Annotations).IsZero() {
 		wu.SetAnnotations(obj.Annotations)
@@ -924,8 +922,6 @@ func (wuo *WorkflowUpdateOne) Set(obj *Workflow) *WorkflowUpdateOne {
 				if !reflect.DeepEqual(db.Labels, obj.Labels) {
 					wuo.SetLabels(obj.Labels)
 				}
-			} else {
-				wuo.ClearLabels()
 			}
 			if !reflect.ValueOf(obj.Annotations).IsZero() {
 				if !reflect.DeepEqual(db.Annotations, obj.Annotations) {

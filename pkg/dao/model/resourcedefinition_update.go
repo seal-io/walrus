@@ -277,8 +277,6 @@ func (rdu *ResourceDefinitionUpdate) Set(obj *ResourceDefinition) *ResourceDefin
 	}
 	if !reflect.ValueOf(obj.Labels).IsZero() {
 		rdu.SetLabels(obj.Labels)
-	} else {
-		rdu.ClearLabels()
 	}
 	if !reflect.ValueOf(obj.Annotations).IsZero() {
 		rdu.SetAnnotations(obj.Annotations)
@@ -727,8 +725,6 @@ func (rduo *ResourceDefinitionUpdateOne) Set(obj *ResourceDefinition) *ResourceD
 				if !reflect.DeepEqual(db.Labels, obj.Labels) {
 					rduo.SetLabels(obj.Labels)
 				}
-			} else {
-				rduo.ClearLabels()
 			}
 			if !reflect.ValueOf(obj.Annotations).IsZero() {
 				if !reflect.DeepEqual(db.Annotations, obj.Annotations) {

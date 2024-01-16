@@ -242,8 +242,6 @@ func (tu *TemplateUpdate) Set(obj *Template) *TemplateUpdate {
 	}
 	if !reflect.ValueOf(obj.Labels).IsZero() {
 		tu.SetLabels(obj.Labels)
-	} else {
-		tu.ClearLabels()
 	}
 	if !reflect.ValueOf(obj.Status).IsZero() {
 		tu.SetStatus(obj.Status)
@@ -606,8 +604,6 @@ func (tuo *TemplateUpdateOne) Set(obj *Template) *TemplateUpdateOne {
 				if !reflect.DeepEqual(db.Labels, obj.Labels) {
 					tuo.SetLabels(obj.Labels)
 				}
-			} else {
-				tuo.ClearLabels()
 			}
 			if !reflect.ValueOf(obj.Status).IsZero() {
 				if !db.Status.Equal(obj.Status) {
