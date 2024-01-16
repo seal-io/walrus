@@ -252,7 +252,7 @@ func UpdateStatusWithSyncErr(ctx context.Context, mc model.ClientSet, c *model.C
 		status.CatalogStatusReady.True(c, "")
 
 		// Notify builtin catalog to update builtin resource definitions.
-		if c.Name == "builtin" && settings.EnableBuiltinResourceDefinition.ShouldValueBool(ctx, mc) {
+		if c.Name == "builtin" && settings.EnableBuiltinCatalog.ShouldValueBool(ctx, mc) {
 			err := builtin.Notify(ctx, mc, c)
 			if err != nil {
 				logger.Errorf("failed to notify builtin catalog: %v", err)
