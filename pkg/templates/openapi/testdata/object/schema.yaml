@@ -7,7 +7,8 @@ components:
       type: object
       required:
       - object_with_attr_default
-      - object_with_nest_object
+      - object_with_nest_attr_default
+      - object_with_nest_object_default
       properties:
         object_with_default:
           title: Object With Default
@@ -31,6 +32,7 @@ components:
                 order: 1
           x-walrus-ui:
             colSpan: 12
+            group: Basic
             order: 1
         object_with_attr_default:
           title: Object With Attr Default
@@ -50,9 +52,10 @@ components:
                 order: 1
           x-walrus-ui:
             colSpan: 12
+            group: Basic
             order: 2
-        object_with_nest_object:
-          title: Object With Nest Object
+        object_with_nest_attr_default:
+          title: Object With Nest Attr Default
           type: object
           required:
           - age
@@ -90,7 +93,52 @@ components:
                 order: 1
           x-walrus-ui:
             colSpan: 12
+            group: Basic
             order: 3
+        object_with_nest_object_default:
+          title: Object With Nest Object Default
+          type: object
+          required:
+          - age
+          - name
+          properties:
+            age:
+              title: Age
+              type: number
+              x-walrus-ui:
+                order: 2
+            email:
+              default:
+                address: bob
+                domain: test.com
+              properties:
+                address:
+                  title: Address
+                  type: string
+                  x-walrus-ui:
+                    order: 1
+                domain:
+                  title: Domain
+                  type: string
+                  x-walrus-ui:
+                    order: 2
+              required:
+              - address
+              - domain
+              title: Email
+              type: object
+              x-walrus-ui:
+                colSpan: 12
+                order: 3
+            name:
+              title: Name
+              type: string
+              x-walrus-ui:
+                order: 1
+          x-walrus-ui:
+            colSpan: 12
+            group: Basic
+            order: 4
         object_with_default_and_nest_object:
           title: Object With Default And Nest Object
           type: object
@@ -136,7 +184,8 @@ components:
                 order: 1
           x-walrus-ui:
             colSpan: 12
-            order: 4
+            group: Basic
+            order: 5
         object_with_default_and_nest_object2:
           title: Object With Default And Nest Object2
           type: object
@@ -181,7 +230,8 @@ components:
                 order: 1
           x-walrus-ui:
             colSpan: 12
-            order: 5
+            group: Basic
+            order: 6
         object_with_default_and_nest_object3:
           title: Object With Default And Nest Object3
           type: object
@@ -189,7 +239,6 @@ components:
             age: 23
             email:
               address: bob
-              domain: example.com
             name: Bob
           required:
           - age
@@ -202,7 +251,7 @@ components:
                 order: 2
             email:
               default:
-                address: bob_nest
+                address: null
                 domain: nest.com
               properties:
                 address:
@@ -211,13 +260,12 @@ components:
                   x-walrus-ui:
                     order: 1
                 domain:
-                  default: attr.com
                   title: Domain
                   type: string
                   x-walrus-ui:
                     order: 2
               required:
-              - address
+              - domain
               title: Email
               type: object
               x-walrus-ui:
@@ -230,4 +278,93 @@ components:
                 order: 1
           x-walrus-ui:
             colSpan: 12
-            order: 6
+            group: Basic
+            order: 7
+        object_with_empty_default_and_nest_object_default:
+          title: Object With Empty Default And Nest Object Default
+          type: object
+          default: {}
+          required:
+          - age
+          - name
+          properties:
+            age:
+              title: Age
+              type: number
+              x-walrus-ui:
+                order: 2
+            email:
+              default:
+                address: null
+                domain: nest.com
+              properties:
+                address:
+                  title: Address
+                  type: string
+                  x-walrus-ui:
+                    order: 1
+                domain:
+                  title: Domain
+                  type: string
+                  x-walrus-ui:
+                    order: 2
+              required:
+              - domain
+              title: Email
+              type: object
+              x-walrus-ui:
+                colSpan: 12
+                order: 3
+            name:
+              title: Name
+              type: string
+              x-walrus-ui:
+                order: 1
+          x-walrus-ui:
+            colSpan: 12
+            group: Basic
+            order: 8
+        object_with_empty_default_and_nest_object:
+          title: Object With Empty Default And Nest Object
+          type: object
+          default: {}
+          required:
+          - age
+          - email
+          - name
+          properties:
+            age:
+              title: Age
+              type: number
+              x-walrus-ui:
+                order: 2
+            email:
+              properties:
+                address:
+                  title: Address
+                  type: string
+                  x-walrus-ui:
+                    order: 1
+                domain:
+                  default: attr.com
+                  title: Domain
+                  type: string
+                  x-walrus-ui:
+                    order: 2
+              title: Email
+              type: object
+              x-walrus-ui:
+                colSpan: 12
+                order: 3
+            name:
+              title: Name
+              type: string
+              x-walrus-ui:
+                order: 1
+          x-walrus-ui:
+            colSpan: 12
+            group: Basic
+            order: 9
+      x-walrus-ui:
+        groupOrder:
+        - Basic

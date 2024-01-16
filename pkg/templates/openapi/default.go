@@ -7,6 +7,8 @@ import (
 
 	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 
 	"github.com/seal-io/walrus/utils/gopool"
 )
@@ -17,20 +19,24 @@ type patchResult struct {
 	group string
 }
 
-// GenSchemaDefaultPatch generates the default patch for the schema.
+// GenSchemaDefaultPatch generates the default patch for the variable schema.
+// The input root schema type should be object.
 func GenSchemaDefaultPatch(ctx context.Context, schema *openapi3.Schema) ([]byte, error) {
 	if schema == nil || schema.IsEmpty() {
 		return nil, nil
 	}
 
+	// 1. Sort the nodes under the schema in a pre-order traversal.
 	sortedNodes := PreorderTraversal(&DefaultPatchNode{
 		Schema: schema,
 	})
 
-	// Group nodes by the first part of the id to speed up.
+	// 2. Group nodes by the first part of the id to speed up,
+	// after grouped, each group include the nodes from root to sub nodes in sequence.
 	gns := groupNodes(sortedNodes)
 	resultChan := make(chan patchResult, len(gns))
 
+	// 3. Use goroutine to speed up apply patches from root to sub nodes.
 	for gn, v := range gns {
 		nodes := v
 		name := gn
@@ -38,12 +44,14 @@ func GenSchemaDefaultPatch(ctx context.Context, schema *openapi3.Schema) ([]byte
 		gopool.Go(func() {
 			switch {
 			default:
+				// 3.1 No node found.
 				resultChan <- patchResult{
 					group: name,
 				}
 			case len(nodes) == 1:
-				np := nodes[0].GetPatch()
-				if len(np) == 0 {
+				// 3.1 Root node without sub nodes will set default and return.
+				def := nodes[0].GetDefault()
+				if def == nil {
 					resultChan <- patchResult{
 						group: name,
 					}
@@ -51,32 +59,76 @@ func GenSchemaDefaultPatch(ctx context.Context, schema *openapi3.Schema) ([]byte
 					return
 				}
 
+				// 3.2 Generate patch for the node.
+				p, err := sjson.SetBytes([]byte{}, nodes[0].GetID(), def)
+				if err != nil {
+					resultChan <- patchResult{
+						group: name,
+						err:   fmt.Errorf("set patch node error for %s %s: %w", nodes[0].GetID(), string(p), err),
+					}
+
+					return
+				}
+
 				resultChan <- patchResult{
 					group: name,
-					patch: nodes[0].GetPatch(),
+					patch: p,
 				}
 			case len(nodes) > 1:
-				var (
-					p   = nodes[0].GetPatch()
-					err error
-				)
+				// 3.1 Root node with sub nodes will apply patch in priority root > sub nodes.
+				if nodes[0].GetDefault() == nil {
+					resultChan <- patchResult{
+						group: name,
+						patch: nil,
+					}
 
-				for i := len(nodes) - 1; i >= 0; i-- {
-					np := nodes[i].GetPatch()
-					if len(np) == 0 {
+					return
+				}
+
+				// 3.2 Generate root patch.
+				p, err := sjson.SetBytes([]byte{}, nodes[0].GetID(), nodes[0].GetDefault())
+				if err != nil {
+					resultChan <- patchResult{
+						group: name,
+						err:   fmt.Errorf("set patch node error for %s %s: %w", nodes[0].GetID(), string(p), err),
+					}
+
+					return
+				}
+
+				// 3.3 Generate patch from sub nodes and merge the root into the sub nodes.
+				for i := 0; i < len(nodes); i++ {
+					np := nodes[i]
+					if np.GetDefault() == nil {
 						continue
 					}
 
-					if len(p) == 0 {
-						p = np
-						continue
-					}
-
-					p, err = jsonpatch.MergePatch(p, np)
+					// Generate sub node patch.
+					npb, err := sjson.SetBytes([]byte{}, nodes[i].GetID(), nodes[i].GetDefault())
 					if err != nil {
 						resultChan <- patchResult{
 							group: name,
-							err:   fmt.Errorf("merge patch error for %s %s: %w", nodes[i].GetID(), string(p), err),
+							err:   fmt.Errorf("set patch node error for %s %s: %w", nodes[0].GetID(), string(p), err),
+						}
+
+						return
+					}
+
+					var (
+						pid = np.GetParentID()
+						pr  = gjson.ParseBytes(p)
+					)
+
+					// 3.4 Only merge sub node's patch while ancestor already initialize it parent.
+					if pe := pr.Get(pid); pe.Exists() {
+						p, err = jsonpatch.MergePatch(npb, p)
+						if err != nil {
+							resultChan <- patchResult{
+								group: name,
+								err:   fmt.Errorf("merge patch error for %s %s: %w", nodes[i].GetID(), string(p), err),
+							}
+
+							return
 						}
 					}
 				}
@@ -88,6 +140,7 @@ func GenSchemaDefaultPatch(ctx context.Context, schema *openapi3.Schema) ([]byte
 		})
 	}
 
+	// 4. Merge all variables into dv.
 	var (
 		dv    []byte
 		count int

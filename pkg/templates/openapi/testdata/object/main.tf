@@ -16,7 +16,7 @@ variable "object_with_attr_default" {
   })
 }
 
-variable "object_with_nest_object" {
+variable "object_with_nest_attr_default" {
   type = object({
     name = string
     age  = number
@@ -24,6 +24,21 @@ variable "object_with_nest_object" {
       address = string
       domain  = optional(string, "test.com")
     }))
+  })
+}
+
+variable "object_with_nest_object_default" {
+  type = object({
+    name = string
+    age  = number
+    email = optional(object({
+      address = string
+      domain  = string
+    }),
+      {
+        address = "bob"
+        domain = "test.com"
+    })
   })
 }
 
@@ -70,11 +85,10 @@ variable "object_with_default_and_nest_object3" {
     age  = number
     email = optional(
       object({
-        address = string
-        domain  = optional(string, "attr.com")
+        address = optional(string)
+        domain  = string
       }),
       {
-        address = "bob_nest",
         domain  = "nest.com"
       })
   })
@@ -83,7 +97,34 @@ variable "object_with_default_and_nest_object3" {
     age  = 23
     email = {
       address = "bob"
-      domain  = "example.com"
     }
   }
+}
+
+variable "object_with_empty_default_and_nest_object_default" {
+  type = object({
+    name = string
+    age  = number
+    email = optional(
+      object({
+        address = optional(string)
+        domain  = string
+      }),
+      {
+        domain  = "nest.com"
+      })
+  })
+  default = {}
+}
+
+variable "object_with_empty_default_and_nest_object" {
+  type = object({
+    name = string
+    age  = number
+    email = object({
+        address = optional(string)
+        domain  = optional(string, "attr.com")
+      })
+  })
+  default = {}
 }

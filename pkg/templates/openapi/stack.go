@@ -1,10 +1,9 @@
 package openapi
 
 import (
-	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/tidwall/sjson"
+	"strings"
 
-	"github.com/seal-io/walrus/utils/log"
+	"github.com/getkin/kin-openapi/openapi3"
 )
 
 // Stack is a stack of nodes.
@@ -37,16 +36,17 @@ func (s *Stack) Len() int {
 // Node is a node in the tree.
 type Node interface {
 	GetID() string
+	GetParentID() string
 	Children() []Node
-	GetPatch() []byte
+	GetDefault() any
 }
 
 // DefaultPatchNode is a implement of Node to generate default value tree.
 type DefaultPatchNode struct {
 	*openapi3.Schema
 
-	id    string
-	patch []byte
+	id  string
+	def any
 }
 
 // GetID returns the id of the node.
@@ -54,67 +54,53 @@ func (n *DefaultPatchNode) GetID() string {
 	return n.id
 }
 
+// GetParentID returns the id of the ancestor nodes.
+func (n *DefaultPatchNode) GetParentID() string {
+	arr := strings.Split(n.id, ".")
+	if len(arr) < 2 {
+		return ""
+	}
+
+	return strings.Join(arr[:len(arr)-1], ".")
+}
+
 // Children returns the children of the node.
 func (n *DefaultPatchNode) Children() []Node {
-	var children []Node
-
 	switch n.Schema.Type {
 	case openapi3.TypeObject:
+		children := make([]Node, 0, len(n.Schema.Properties))
+
 		for pn, prop := range n.Schema.Properties {
-			var (
-				p   = getID(n.GetID(), pn)
-				sdn = &DefaultPatchNode{
-					Schema: prop.Value,
-					id:     p,
-				}
-			)
-
-			if prop.Value.Default != nil {
-				var b []byte
-
-				patch, err := sjson.SetBytes(b, p, prop.Value.Default)
-				if err != nil {
-					log.Errorf("failed to set default value for %s: %v", p, err)
-				} else {
-					sdn.patch = patch
-				}
-			}
-
-			children = append(
-				children,
-				sdn,
-			)
-		}
-	case openapi3.TypeArray:
-		if n.Default != nil {
-			var (
-				p   = n.GetID() + ".0"
-				sdn = &DefaultPatchNode{
-					Schema: n.Schema.Items.Value,
-
-					id: p,
-				}
-			)
-
-			var b []byte
-
-			patch, err := sjson.SetBytes(b, p, n.Default)
-			if err != nil {
-				log.Errorf("failed to set default value for %s: %v", p, err)
-			} else {
-				sdn.patch = patch
+			sdn := &DefaultPatchNode{
+				Schema: prop.Value,
+				id:     getID(n.GetID(), pn),
+				def:    prop.Value.Default,
 			}
 
 			children = append(children, sdn)
 		}
+
+		return children
+	case openapi3.TypeArray:
+		if n.Default == nil {
+			return nil
+		}
+
+		return []Node{
+			&DefaultPatchNode{
+				Schema: n.Schema.Items.Value,
+				id:     n.GetID() + ".0",
+				def:    n.Default,
+			},
+		}
 	}
 
-	return children
+	return nil
 }
 
-// GetPatch returns the patch of the node.
-func (n *DefaultPatchNode) GetPatch() []byte {
-	return n.patch
+// GetDefault returns the default value of the node.
+func (n *DefaultPatchNode) GetDefault() any {
+	return n.def
 }
 
 func getID(pid, cid string) string {

@@ -1,1 +1,12 @@
-{"list_object_with_default_and_nest_object":[{"age":23,"email":{"address":"bob","domain":"example.com"},"name":"Bob"}]}
+{
+  "list_object_with_default_and_nest_object": [
+    {
+      "age": 23,
+      "email": {
+        "address": "bob",
+        "domain": "example.com"
+      },
+      "name": "Bob"
+    }
+  ]
+}

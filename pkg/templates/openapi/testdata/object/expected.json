@@ -1,1 +1,36 @@
-{"object_with_attr_default":{"age":23,"name":"Bob"},"object_with_default":{"age":23,"name":"Bob"},"object_with_default_and_nest_object":{"age":23,"email":{"address":"bob","domain":"example.com"},"name":"Bob"},"object_with_default_and_nest_object2":{"age":23,"email":{"address":"bob","domain":"test.com"},"name":"Bob"},"object_with_default_and_nest_object3":{"age":23,"email":{"address":"bob","domain":"example.com"},"name":"Bob"},"object_with_nest_object":{"email":{"domain":"test.com"}}}
+{
+  "object_with_default": {
+    "age": 23,
+    "name": "Bob"
+  },
+  "object_with_default_and_nest_object": {
+    "age": 23,
+    "email": {
+      "address": "bob",
+      "domain": "example.com"
+    },
+    "name": "Bob"
+  },
+  "object_with_default_and_nest_object2": {
+    "age": 23,
+    "email": {
+      "address": "bob",
+      "domain": "test.com"
+    },
+    "name": "Bob"
+  },
+  "object_with_default_and_nest_object3": {
+    "age": 23,
+    "email": {
+      "address": "bob",
+      "domain": "nest.com"
+    },
+    "name": "Bob"
+  },
+  "object_with_empty_default_and_nest_object": {},
+  "object_with_empty_default_and_nest_object_default": {
+    "email": {
+      "domain": "nest.com"
+    }
+  }
+}
