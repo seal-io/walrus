@@ -269,6 +269,30 @@ func SetSubjectID(ctx context.Context, resources ...*model.Resource) error {
 	return nil
 }
 
+// UpdateResourceSubjectID updates the subject ID of the resources.
+func UpdateResourceSubjectID(ctx context.Context, mc model.ClientSet, resources ...*model.Resource) error {
+	if len(resources) == 0 {
+		return nil
+	}
+
+	if err := SetSubjectID(ctx, resources...); err != nil {
+		return err
+	}
+
+	for i := range resources {
+		res := resources[i]
+
+		err := mc.Resources().UpdateOne(res).
+			SetAnnotations(res.Annotations).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // SetResourceStatusScheduled sets the status of the resources to scheduled.
 func SetResourceStatusScheduled(
 	ctx context.Context,

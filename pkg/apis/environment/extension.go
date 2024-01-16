@@ -330,7 +330,7 @@ func (h Handler) RouteStart(req RouteStartRequest) error {
 	}
 
 	err = h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
-		if err := pkgresource.SetSubjectID(req.Context, toStartResources...); err != nil {
+		if err := pkgresource.UpdateResourceSubjectID(req.Context, tx, toStartResources...); err != nil {
 			return err
 		}
 
@@ -362,6 +362,10 @@ func (h Handler) RouteStop(req RouteStopRequest) error {
 		for _, s := range req.stoppableResources {
 			if !pkgresource.CanBeStopped(s) {
 				continue
+			}
+
+			if err = pkgresource.UpdateResourceSubjectID(req.Context, tx, s); err != nil {
+				return err
 			}
 
 			err = pkgresource.Stop(req.Context, tx, s, destroyOpts)
