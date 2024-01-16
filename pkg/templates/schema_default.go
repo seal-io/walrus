@@ -30,11 +30,6 @@ func SetResourceDefinitionSchemaDefault(
 			}
 		}
 
-		rdSchemaDefault, err = openapi.GenSchemaDefaultPatch(ctx, rd.Schema.VariableSchema())
-		if err != nil {
-			return err
-		}
-
 		if rd.UiSchema != nil {
 			rdUISchemaDefault, err = openapi.GenSchemaDefaultPatch(ctx, rd.UiSchema.VariableSchema())
 			if err != nil {

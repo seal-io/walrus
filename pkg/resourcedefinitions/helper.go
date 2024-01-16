@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"golang.org/x/exp/maps"
@@ -77,7 +78,10 @@ func GenSchema(ctx context.Context, mc model.ClientSet, df *model.ResourceDefini
 
 	// Align schemas.
 	var (
-		nb  = make(map[string]any)
+		nb = map[string]any{
+			variablesSchemaKey: map[string]any{},
+			outputsSchemaKey:   map[string]any{},
+		}
 		scs = alignSchemas(nb, scss)
 	)
 	// Return directly if no schemas.
@@ -88,7 +92,7 @@ func GenSchema(ctx context.Context, mc model.ClientSet, df *model.ResourceDefini
 	// Refill default value to variable schema.
 	defs := maps.Values(defMap)
 	if sr, ok := scs[variablesSchemaKey]; ok {
-		refillVariableSchemaRef(nb, "", sr, defs)
+		refillVariableSchemaRef(nb[variablesSchemaKey].(map[string]any), "", sr, defs)
 	}
 
 	df.Schema = types.Schema{
@@ -297,6 +301,10 @@ func alignSchemaRef(nb map[string]any, key string, lsr, rsr *openapi3.SchemaRef)
 				// Clean enum.
 				lv.Enum = nil
 				nb[mefEnum] = &mutuallyExclusive
+
+				// Lock default.
+				lv.Default = nil
+				nb[mefDefault] = &mutuallyExclusive
 			} else {
 				es := make([]any, 0, is.Len())
 				for _, e := range is.List() {
@@ -481,7 +489,13 @@ func refillVariableSchemaRef(nb map[string]any, key string, sr *openapi3.SchemaR
 		switch {
 		case v.Properties != nil:
 			if isDefaultableSchemaRef(nb) {
-				v.Default = getDefaultValue(key, defs)
+				def, ok := alignDefaultValue(key, defs)
+				if !ok {
+					// Return directly if not found.
+					return
+				}
+
+				v.Default = def
 			}
 
 			for k := range v.Properties {
@@ -494,14 +508,24 @@ func refillVariableSchemaRef(nb map[string]any, key string, sr *openapi3.SchemaR
 					refillVariableSchemaRef(nb, nkey, v.Properties[k], defs)
 				}
 			}
-		case isDefaultableSchemaRef(nb):
-			v.AdditionalProperties.Schema.Value.Default = getDefaultValue(key, defs)
+		case isDefaultableSchemaRef(nb) &&
+			v.AdditionalProperties.Schema != nil && v.AdditionalProperties.Schema.Value != nil:
+			def, ok := alignDefaultValue(key, defs)
+			if ok {
+				v.AdditionalProperties.Schema.Value.Default = def
+			}
 		}
 
 		return
 	case openapi3.TypeArray:
 		nkey := getKey(key, "@this")
-		v.Default = getDefaultValue(nkey, defs)
+
+		def, ok := alignDefaultValue(nkey, defs)
+		if !ok {
+			// Return directly if not found.
+			return
+		}
+		v.Default = def
 
 		nkey = getKey(nkey, "0")
 		if nb[nkey] == nil {
@@ -516,7 +540,10 @@ func refillVariableSchemaRef(nb map[string]any, key string, sr *openapi3.SchemaR
 	}
 
 	if isDefaultableSchemaRef(nb) {
-		v.Default = getDefaultValue(key, defs)
+		def, ok := alignDefaultValue(key, defs)
+		if ok {
+			v.Default = def
+		}
 	}
 }
 
@@ -535,17 +562,39 @@ func getKey(prefix, key string) string {
 	return prefix + "." + key
 }
 
-// getDefaultValue returns the default value of the key,
-// if all value of the given default value slice are not the same, it returns nil.
-func getDefaultValue(key string, defs [][]byte) json.RawMessage {
+// alignDefaultValue compares the given key's value between all items of the given default value slice,
+// if the value be same between all items, returns (default value, true),
+// otherwise, returns (nil, true).
+//
+// This function skips the value if the key's prefix is not found in all items.
+// For example, if any value of `a.b` from the given default value slice is not found,
+// any key starts with `a.b` will be skipped, and returns (nil, false).
+func alignDefaultValue(key string, defs [][]byte) (json.RawMessage, bool) {
+	prefix := key
+	if i := strings.LastIndex(key, "."); i > 0 {
+		prefix = key[:i]
+	}
+
+	if prefix != "" {
+		var found bool
+
+		for _, d := range defs {
+			jq := json.Get(d, prefix)
+			if jq.Exists() {
+				found = true
+				break
+			}
+		}
+
+		// Return directly if parent is not found.
+		if !found {
+			return nil, false
+		}
+	}
+
 	var def []byte
 
 	for _, d := range defs {
-		if d == nil {
-			def = nil
-			break
-		}
-
 		jq := json.Get(d, key)
 		if !jq.Exists() {
 			break
@@ -562,9 +611,5 @@ func getDefaultValue(key string, defs [][]byte) json.RawMessage {
 		}
 	}
 
-	if def == nil {
-		return nil
-	}
-
-	return def
+	return def, true
 }
