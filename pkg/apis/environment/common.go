@@ -55,8 +55,14 @@ func createEnvironment(
 			if res == nil {
 				return errors.New("invalid input: nil resource")
 			}
+
 			res.ProjectID = entity.ProjectID
 			res.EnvironmentID = entity.ID
+
+			res.ComputedAttributes, err = pkgresource.GenComputedAttributes(ctx, tx, res)
+			if err != nil {
+				return err
+			}
 
 			err = pkgresource.SetEnvResourceDefaultLabels(entity, res)
 			if err != nil {

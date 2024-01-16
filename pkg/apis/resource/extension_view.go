@@ -86,7 +86,7 @@ func (r *RouteUpgradeRequest) Validate() error {
 		// Set environment ID since Model will not set the environment ID.
 		en.EnvironmentID = r.Environment.ID
 
-		computedAttr, err := genComputedAttributes(r.Context, en, r.Client)
+		computedAttr, err := pkgresource.GenComputedAttributes(r.Context, r.Client, en)
 		if err != nil {
 			return err
 		}
@@ -539,7 +539,7 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 		} else {
 			en := updateInputsItemToResource(entity.Type, input, r.Project, r.Environment)
 
-			input.ComputedAttributes, err = genComputedAttributes(r.Context, en, r.Client)
+			input.ComputedAttributes, err = pkgresource.GenComputedAttributes(r.Context, r.Client, en)
 			if err != nil {
 				return err
 			}
