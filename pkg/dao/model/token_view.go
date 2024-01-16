@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/token"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -172,8 +173,10 @@ type TokenDeleteInput struct {
 
 // TokenDeleteInputs holds the deletion input item of the Token entities.
 type TokenDeleteInputsItem struct {
-	// ID of the Token entity.
-	ID object.ID `path:"-" query:"-" json:"id"`
+	// ID of the Token entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Token entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
 // TokenDeleteInputs holds the deletion input of the Token entities,
@@ -241,6 +244,8 @@ func (tdi *TokenDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, ca
 	q := cs.Tokens().Query()
 
 	ids := make([]object.ID, 0, len(tdi.Items))
+	ors := make([]predicate.Token, 0, len(tdi.Items))
+	indexers := make(map[any][]int)
 
 	for i := range tdi.Items {
 		if tdi.Items[i] == nil {
@@ -249,23 +254,48 @@ func (tdi *TokenDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, ca
 
 		if tdi.Items[i].ID != "" {
 			ids = append(ids, tdi.Items[i].ID)
+			ors = append(ors, token.ID(tdi.Items[i].ID))
+			indexers[tdi.Items[i].ID] = append(indexers[tdi.Items[i].ID], i)
+		} else if tdi.Items[i].Name != "" {
+			ors = append(ors, token.And(
+				token.Name(tdi.Items[i].Name)))
+			indexerKey := fmt.Sprint("/", tdi.Items[i].Name)
+			indexers[indexerKey] = append(indexers[indexerKey], i)
 		} else {
 			return errors.New("found item hasn't identify")
 		}
 	}
 
+	p := token.IDIn(ids...)
 	if len(ids) != cap(ids) {
-		return errors.New("found unrecognized item")
+		p = token.Or(ors...)
 	}
 
-	idsCnt, err := q.Where(token.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			token.FieldID,
+			token.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != cap(ids) {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		indexer := indexers[es[i].ID]
+		if indexer == nil {
+			indexerKey := fmt.Sprint("/", es[i].Name)
+			indexer = indexers[indexerKey]
+		}
+		for _, j := range indexer {
+			tdi.Items[j].ID = es[i].ID
+			tdi.Items[j].Name = es[i].Name
+		}
 	}
 
 	return nil
@@ -314,12 +344,18 @@ func (tpi *TokenPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cach
 		if tpi.Refer.IsID() {
 			q.Where(
 				token.ID(tpi.Refer.ID()))
+		} else if refers := tpi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				token.Name(refers[0].String()))
 		} else {
 			return errors.New("invalid identify refer of token")
 		}
 	} else if tpi.ID != "" {
 		q.Where(
 			token.ID(tpi.ID))
+	} else if tpi.Name != "" {
+		q.Where(
+			token.Name(tpi.Name))
 	} else {
 		return errors.New("invalid identify of token")
 	}
@@ -367,8 +403,10 @@ type TokenQueryInput struct {
 
 	// Refer holds the route path reference of the Token entity.
 	Refer *object.Refer `path:"token,default=" query:"-" json:"-"`
-	// ID of the Token entity.
-	ID object.ID `path:"-" query:"-" json:"id"`
+	// ID of the Token entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Token entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
 // Model returns the Token entity for querying,
@@ -379,7 +417,8 @@ func (tqi *TokenQueryInput) Model() *Token {
 	}
 
 	return &Token{
-		ID: tqi.ID,
+		ID:   tqi.ID,
+		Name: tqi.Name,
 	}
 }
 
@@ -412,18 +451,25 @@ func (tqi *TokenQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cach
 		if tqi.Refer.IsID() {
 			q.Where(
 				token.ID(tqi.Refer.ID()))
+		} else if refers := tqi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				token.Name(refers[0].String()))
 		} else {
 			return errors.New("invalid identify refer of token")
 		}
 	} else if tqi.ID != "" {
 		q.Where(
 			token.ID(tqi.ID))
+	} else if tqi.Name != "" {
+		q.Where(
+			token.Name(tqi.Name))
 	} else {
 		return errors.New("invalid identify of token")
 	}
 
 	q.Select(
 		token.FieldID,
+		token.FieldName,
 	)
 
 	var e *Token
@@ -446,6 +492,7 @@ func (tqi *TokenQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cach
 	}
 
 	tqi.ID = e.ID
+	tqi.Name = e.Name
 	return nil
 }
 
@@ -491,7 +538,8 @@ func (tui *TokenUpdateInput) Model() *Token {
 	}
 
 	_t := &Token{
-		ID: tui.ID,
+		ID:   tui.ID,
+		Name: tui.Name,
 	}
 
 	return _t
@@ -521,8 +569,10 @@ func (tui *TokenUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, cac
 
 // TokenUpdateInputs holds the modification input item of the Token entities.
 type TokenUpdateInputsItem struct {
-	// ID of the Token entity.
-	ID object.ID `path:"-" query:"-" json:"id"`
+	// ID of the Token entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Token entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
 // ValidateWith checks the TokenUpdateInputsItem entity with the given context and client set.
@@ -558,7 +608,8 @@ func (tui *TokenUpdateInputs) Model() []*Token {
 
 	for i := range tui.Items {
 		_t := &Token{
-			ID: tui.Items[i].ID,
+			ID:   tui.Items[i].ID,
+			Name: tui.Items[i].Name,
 		}
 
 		_ts[i] = _t
@@ -607,6 +658,8 @@ func (tui *TokenUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, ca
 	q := cs.Tokens().Query()
 
 	ids := make([]object.ID, 0, len(tui.Items))
+	ors := make([]predicate.Token, 0, len(tui.Items))
+	indexers := make(map[any][]int)
 
 	for i := range tui.Items {
 		if tui.Items[i] == nil {
@@ -615,23 +668,48 @@ func (tui *TokenUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, ca
 
 		if tui.Items[i].ID != "" {
 			ids = append(ids, tui.Items[i].ID)
+			ors = append(ors, token.ID(tui.Items[i].ID))
+			indexers[tui.Items[i].ID] = append(indexers[tui.Items[i].ID], i)
+		} else if tui.Items[i].Name != "" {
+			ors = append(ors, token.And(
+				token.Name(tui.Items[i].Name)))
+			indexerKey := fmt.Sprint("/", tui.Items[i].Name)
+			indexers[indexerKey] = append(indexers[indexerKey], i)
 		} else {
 			return errors.New("found item hasn't identify")
 		}
 	}
 
+	p := token.IDIn(ids...)
 	if len(ids) != cap(ids) {
-		return errors.New("found unrecognized item")
+		p = token.Or(ors...)
 	}
 
-	idsCnt, err := q.Where(token.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			token.FieldID,
+			token.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != cap(ids) {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		indexer := indexers[es[i].ID]
+		if indexer == nil {
+			indexerKey := fmt.Sprint("/", es[i].Name)
+			indexer = indexers[indexerKey]
+		}
+		for _, j := range indexer {
+			tui.Items[j].ID = es[i].ID
+			tui.Items[j].Name = es[i].Name
+		}
 	}
 
 	for i := range tui.Items {

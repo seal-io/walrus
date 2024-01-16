@@ -333,6 +333,17 @@ func (tc *TokenCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Contex
 	}
 
 	mc := tc.getClientSet()
+	if tc.fromUpsert {
+		q := mc.Tokens().Query().
+			Where(
+				token.SubjectID(obj.SubjectID),
+				token.Name(obj.Name),
+			)
+		obj.ID, err = q.OnlyID(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("model: failed to query id of Token entity: %w", err)
+		}
+	}
 
 	if x := tc.object; x != nil {
 		if _, set := tc.mutation.Field(token.FieldSubjectID); set {
@@ -443,6 +454,20 @@ func (tcb *TokenCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx context.C
 	}
 
 	mc := tcb.getClientSet()
+	if tcb.fromUpsert {
+		for i := range objs {
+			obj := objs[i]
+			q := mc.Tokens().Query().
+				Where(
+					token.SubjectID(obj.SubjectID),
+					token.Name(obj.Name),
+				)
+			objs[i].ID, err = q.OnlyID(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("model: failed to query id of Token entity: %w", err)
+			}
+		}
+	}
 
 	if x := tcb.objects; x != nil {
 		for i := range x {
