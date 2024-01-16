@@ -247,8 +247,6 @@ func (cu *CatalogUpdate) Set(obj *Catalog) *CatalogUpdate {
 	}
 	if !reflect.ValueOf(obj.Labels).IsZero() {
 		cu.SetLabels(obj.Labels)
-	} else {
-		cu.ClearLabels()
 	}
 	if !reflect.ValueOf(obj.Annotations).IsZero() {
 		cu.SetAnnotations(obj.Annotations)
@@ -624,8 +622,6 @@ func (cuo *CatalogUpdateOne) Set(obj *Catalog) *CatalogUpdateOne {
 				if !reflect.DeepEqual(db.Labels, obj.Labels) {
 					cuo.SetLabels(obj.Labels)
 				}
-			} else {
-				cuo.ClearLabels()
 			}
 			if !reflect.ValueOf(obj.Annotations).IsZero() {
 				if !reflect.DeepEqual(db.Annotations, obj.Annotations) {

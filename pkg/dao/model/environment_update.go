@@ -369,8 +369,6 @@ func (eu *EnvironmentUpdate) Set(obj *Environment) *EnvironmentUpdate {
 	}
 	if !reflect.ValueOf(obj.Labels).IsZero() {
 		eu.SetLabels(obj.Labels)
-	} else {
-		eu.ClearLabels()
 	}
 	if !reflect.ValueOf(obj.Annotations).IsZero() {
 		eu.SetAnnotations(obj.Annotations)
@@ -1043,8 +1041,6 @@ func (euo *EnvironmentUpdateOne) Set(obj *Environment) *EnvironmentUpdateOne {
 				if !reflect.DeepEqual(db.Labels, obj.Labels) {
 					euo.SetLabels(obj.Labels)
 				}
-			} else {
-				euo.ClearLabels()
 			}
 			if !reflect.ValueOf(obj.Annotations).IsZero() {
 				if !reflect.DeepEqual(db.Annotations, obj.Annotations) {
