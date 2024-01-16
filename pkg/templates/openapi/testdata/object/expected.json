@@ -30,6 +30,7 @@
   "object_with_empty_default_and_nest_object": {},
   "object_with_empty_default_and_nest_object_default": {
     "email": {
+      "address": "nest",
       "domain": "nest.com"
     }
   }
