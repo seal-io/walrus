@@ -76,20 +76,20 @@ type WrapComponents struct {
 
 // FormattedOpenAPI generates formatted openapi yaml.
 func FormattedOpenAPI(originSchema, fileSchema *types.TemplateVersionSchema) ([]byte, error) {
-	// Get variables sequence.
+	// 1. Get variables sequence from original schema.
 	vs := originSchema.VariableSchema()
 	oseq := openapi.GetExtOriginal(vs.Extensions).VariablesSequence
 
-	// Expose Variables.
-	es := originSchema.Expose(openapi.WalrusContextVariableName)
-	if es.IsEmpty() {
-		return nil, nil
-	}
-
+	// 2. Get merged schema.
 	var (
 		merged *openapi3.Schema
 		err    error
 	)
+
+	es := originSchema.Expose(openapi.WalrusContextVariableName)
+	if es.IsEmpty() {
+		return nil, nil
+	}
 
 	if fileSchema == nil || fileSchema.IsEmpty() {
 		merged = es.VariableSchema()
@@ -102,6 +102,7 @@ func FormattedOpenAPI(originSchema, fileSchema *types.TemplateVersionSchema) ([]
 		}
 	}
 
+	// 3. Generate merged sequence.
 	seq := make([]string, 0)
 
 	for _, v := range oseq {
@@ -119,15 +120,15 @@ func FormattedOpenAPI(originSchema, fileSchema *types.TemplateVersionSchema) ([]
 		}
 	}
 
-	// Sorted Variables to the same sequence original defined, since the properties is a map,
+	// 4. Sorted Variables to the same sequence original defined, since the properties is a map,
 	// so need to generate sorted map.
-	// 1. First convert to the json.
+	// 4.1 First convert to the json.
 	propsJsonByte, err := json.Marshal(merged.Properties)
 	if err != nil {
 		return nil, err
 	}
 
-	// 2. Then properties convert to yaml.
+	// 4.2 Then properties convert to yaml.
 	propMap := make(map[string]map[string]any)
 
 	err = yaml.Unmarshal(propsJsonByte, &propMap)
@@ -135,7 +136,7 @@ func FormattedOpenAPI(originSchema, fileSchema *types.TemplateVersionSchema) ([]
 		return nil, err
 	}
 
-	// 3. Generate key sorted properties.
+	// 4.3 Generate key sorted properties.
 	sortedProps := make(yaml.MapSlice, len(propMap))
 
 	for i, v := range seq {
@@ -146,9 +147,7 @@ func FormattedOpenAPI(originSchema, fileSchema *types.TemplateVersionSchema) ([]
 		}
 	}
 
-	// 4. Generate key sorted variables.
-	esv := *es.OpenAPISchema.Components.Schemas[types.VariableSchemaKey].Value
-
+	// 5. Generate final schema.
 	w := WrapOpenAPI{
 		OpenAPI: es.OpenAPISchema.OpenAPI,
 		Info: WrapInfo{
@@ -157,11 +156,12 @@ func FormattedOpenAPI(originSchema, fileSchema *types.TemplateVersionSchema) ([]
 		},
 		Components: WrapComponents{
 			Schemas: map[string]any{
-				types.VariableSchemaKey: genVariable(esv, sortedProps),
+				types.VariableSchemaKey: genVariable(*merged, sortedProps),
 			},
 		},
 	}
 
+	// 6. Convert to yaml.
 	var buf bytes.Buffer
 	enc := yaml.NewEncoder(&buf)
 

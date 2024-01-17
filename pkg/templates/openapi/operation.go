@@ -83,7 +83,7 @@ func UnionSchema(s1, s2 *openapi3.Schema) (*openapi3.Schema, error) {
 	}
 
 	// Merge patch.
-	combined, err := jsonpatch.MergeMergePatches(s1Byte, s2Byte)
+	combined, err := jsonpatch.MergePatch(s1Byte, s2Byte)
 	if err != nil {
 		return nil, err
 	}
