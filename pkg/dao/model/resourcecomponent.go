@@ -50,7 +50,7 @@ type ResourceComponent struct {
 	// Mode that manages the generated component, it is the management way of the deployer to the component, which provides by deployer.
 	Mode string `json:"mode,omitempty"`
 	// Type of the generated component, it is the type of the resource which the deployer observes, which provides by deployer.
-	Type string `json:"type,omitempty"`
+	Type string `json:"type,omitempty,cli-table-column"`
 	// Name of the generated component, it is the real identifier of the component, which provides by deployer.
 	Name string `json:"name,omitempty"`
 	// Type of deployer.

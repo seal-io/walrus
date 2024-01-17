@@ -24,7 +24,7 @@ type RoleCreateInput struct {
 	inputConfig `path:"-" query:"-" json:"-"`
 
 	// The kind of the role.
-	Kind string `path:"-" query:"-" json:"kind,omitempty"`
+	Kind string `path:"-" query:"-" json:"kind,cli-table-column,omitempty"`
 	// The detail of the role.
 	Description string `path:"-" query:"-" json:"description,omitempty"`
 	// The policy list of the role.
@@ -75,7 +75,7 @@ func (rci *RoleCreateInput) ValidateWith(ctx context.Context, cs ClientSet, cach
 // RoleCreateInputs holds the creation input item of the Role entities.
 type RoleCreateInputsItem struct {
 	// The kind of the role.
-	Kind string `path:"-" query:"-" json:"kind,omitempty"`
+	Kind string `path:"-" query:"-" json:"kind,cli-table-column,omitempty"`
 	// The detail of the role.
 	Description string `path:"-" query:"-" json:"description,omitempty"`
 	// The policy list of the role.
@@ -724,11 +724,11 @@ type RoleOutput struct {
 	ID                         string             `json:"id,omitempty"`
 	CreateTime                 *time.Time         `json:"createTime,omitempty"`
 	UpdateTime                 *time.Time         `json:"updateTime,omitempty"`
-	Kind                       string             `json:"kind,omitempty"`
+	Kind                       string             `json:"kind,cli-table-column,omitempty"`
 	Description                string             `json:"description,omitempty"`
 	Policies                   types.RolePolicies `json:"policies,omitempty"`
 	ApplicableEnvironmentTypes []string           `json:"applicableEnvironmentTypes,omitempty"`
-	Builtin                    bool               `json:"builtin,omitempty"`
+	Builtin                    bool               `json:"builtin,cli-table-column,omitempty"`
 }
 
 // View returns the output of Role entity.

@@ -37,13 +37,13 @@ type ResourceDefinition struct {
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime *time.Time `json:"update_time,omitempty"`
 	// Type of the resources generated from the resource definition.
-	Type string `json:"type,omitempty"`
+	Type string `json:"type,omitempty,cli-table-column"`
 	// Generated schema of the resource definition.
 	Schema types.Schema `json:"schema,omitempty"`
 	// UI schema of the resource definition.
 	UiSchema *types.UISchema `json:"uiSchema,omitempty"`
 	// Indicate whether the resource definition is builtin, decided when creating.
-	Builtin bool `json:"builtin,omitempty"`
+	Builtin bool `json:"builtin,omitempty,cli-table-column"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ResourceDefinitionQuery when eager-loading is set.
 	Edges        ResourceDefinitionEdges `json:"edges,omitempty"`

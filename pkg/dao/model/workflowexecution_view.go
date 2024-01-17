@@ -957,7 +957,7 @@ type WorkflowExecutionOutput struct {
 	CreateTime  *time.Time                     `json:"createTime,omitempty"`
 	UpdateTime  *time.Time                     `json:"updateTime,omitempty"`
 	Status      status.Status                  `json:"status,omitempty"`
-	Version     int                            `json:"version,omitempty"`
+	Version     int                            `json:"version,cli-table-column,omitempty"`
 	Type        string                         `json:"type,omitempty"`
 	SubjectID   object.ID                      `json:"subjectID,omitempty"`
 	ExecuteTime time.Time                      `json:"executeTime,omitempty"`

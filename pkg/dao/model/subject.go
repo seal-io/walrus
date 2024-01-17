@@ -27,7 +27,7 @@ type Subject struct {
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime *time.Time `json:"update_time,omitempty"`
 	// The kind of the subject.
-	Kind string `json:"kind,omitempty"`
+	Kind string `json:"kind,omitempty,cli-table-column"`
 	// The domain of the subject.
 	Domain string `json:"domain,omitempty"`
 	// The name of the subject.

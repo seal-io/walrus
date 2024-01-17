@@ -39,7 +39,7 @@ type Environment struct {
 	// ID of the project to belong.
 	ProjectID object.ID `json:"project_id,omitempty"`
 	// Type of the environment.
-	Type string `json:"type,omitempty"`
+	Type string `json:"type,omitempty,cli-table-column"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EnvironmentQuery when eager-loading is set.
 	Edges        EnvironmentEdges `json:"edges,omitempty"`

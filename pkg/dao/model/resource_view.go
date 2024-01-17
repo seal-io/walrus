@@ -45,7 +45,7 @@ type ResourceCreateInput struct {
 	// Computed attributes generated from attributes and schemas.
 	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
 	// Endpoints of the resource.
-	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,omitempty"`
+	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,cli-table-column,omitempty"`
 	// Change comment of the resource.
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 
@@ -174,7 +174,7 @@ type ResourceCreateInputsItem struct {
 	// Computed attributes generated from attributes and schemas.
 	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
 	// Endpoints of the resource.
-	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,omitempty"`
+	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,cli-table-column,omitempty"`
 	// Change comment of the resource.
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 
@@ -1039,7 +1039,7 @@ type ResourceUpdateInputsItem struct {
 	// Computed attributes generated from attributes and schemas.
 	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
 	// Endpoints of the resource.
-	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,omitempty"`
+	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,cli-table-column,omitempty"`
 	// Change comment of the resource.
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 
@@ -1281,7 +1281,7 @@ type ResourceOutput struct {
 	Type               string                  `json:"type,omitempty"`
 	Attributes         property.Values         `json:"attributes,omitempty"`
 	ComputedAttributes property.Values         `json:"computedAttributes,omitempty"`
-	Endpoints          types.ResourceEndpoints `json:"endpoints,omitempty"`
+	Endpoints          types.ResourceEndpoints `json:"endpoints,cli-table-column,omitempty"`
 
 	Project                        *ProjectOutput                        `json:"project,omitempty"`
 	Environment                    *EnvironmentOutput                    `json:"environment,omitempty"`

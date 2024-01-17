@@ -39,7 +39,7 @@ type ResourceComponentCreateInput struct {
 	// Name of the generated component, it is the real identifier of the component, which provides by deployer.
 	Name string `path:"-" query:"-" json:"name"`
 	// Type of the generated component, it is the type of the resource which the deployer observes, which provides by deployer.
-	Type string `path:"-" query:"-" json:"type"`
+	Type string `path:"-" query:"-" json:"type,cli-table-column"`
 	// Mode that manages the generated component, it is the management way of the deployer to the component, which provides by deployer.
 	Mode string `path:"-" query:"-" json:"mode"`
 
@@ -204,7 +204,7 @@ type ResourceComponentCreateInputsItem struct {
 	// Name of the generated component, it is the real identifier of the component, which provides by deployer.
 	Name string `path:"-" query:"-" json:"name"`
 	// Type of the generated component, it is the type of the resource which the deployer observes, which provides by deployer.
-	Type string `path:"-" query:"-" json:"type"`
+	Type string `path:"-" query:"-" json:"type,cli-table-column"`
 	// Mode that manages the generated component, it is the management way of the deployer to the component, which provides by deployer.
 	Mode string `path:"-" query:"-" json:"mode"`
 
@@ -1401,7 +1401,7 @@ type ResourceComponentOutput struct {
 	UpdateTime   *time.Time                            `json:"updateTime,omitempty"`
 	Status       status.Status                         `json:"status,omitempty"`
 	Mode         string                                `json:"mode,omitempty"`
-	Type         string                                `json:"type,omitempty"`
+	Type         string                                `json:"type,cli-table-column,omitempty"`
 	Name         string                                `json:"name,omitempty"`
 	DeployerType string                                `json:"deployerType,omitempty"`
 	Shape        string                                `json:"shape,omitempty"`

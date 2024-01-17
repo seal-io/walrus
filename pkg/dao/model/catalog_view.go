@@ -32,7 +32,7 @@ type CatalogCreateInput struct {
 	// Source of the catalog.
 	Source string `path:"-" query:"-" json:"source"`
 	// Type of the catalog.
-	Type string `path:"-" query:"-" json:"type"`
+	Type string `path:"-" query:"-" json:"type,cli-table-column"`
 	// Name holds the value of the "name" field.
 	Name string `path:"-" query:"-" json:"name"`
 	// Description holds the value of the "description" field.
@@ -101,7 +101,7 @@ type CatalogCreateInputsItem struct {
 	// Source of the catalog.
 	Source string `path:"-" query:"-" json:"source"`
 	// Type of the catalog.
-	Type string `path:"-" query:"-" json:"type"`
+	Type string `path:"-" query:"-" json:"type,cli-table-column"`
 	// Name holds the value of the "name" field.
 	Name string `path:"-" query:"-" json:"name"`
 	// Description holds the value of the "description" field.
@@ -958,7 +958,7 @@ type CatalogOutput struct {
 	CreateTime  *time.Time         `json:"createTime,omitempty"`
 	UpdateTime  *time.Time         `json:"updateTime,omitempty"`
 	Status      status.Status      `json:"status,omitempty"`
-	Type        string             `json:"type,omitempty"`
+	Type        string             `json:"type,cli-table-column,omitempty"`
 	Source      string             `json:"source,omitempty"`
 	Sync        *types.CatalogSync `json:"sync,omitempty"`
 

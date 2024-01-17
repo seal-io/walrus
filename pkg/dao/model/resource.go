@@ -62,7 +62,7 @@ type Resource struct {
 	// Computed attributes generated from attributes and schemas.
 	ComputedAttributes property.Values `json:"computed_attributes,omitempty"`
 	// Endpoints of the resource.
-	Endpoints types.ResourceEndpoints `json:"endpoints,omitempty"`
+	Endpoints types.ResourceEndpoints `json:"endpoints,omitempty,cli-table-column"`
 	// Change comment of the resource.
 	ChangeComment string `json:"change_comment,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.

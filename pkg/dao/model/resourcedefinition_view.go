@@ -25,7 +25,7 @@ type ResourceDefinitionCreateInput struct {
 	inputConfig `path:"-" query:"-" json:"-"`
 
 	// Type of the resources generated from the resource definition.
-	Type string `path:"-" query:"-" json:"type"`
+	Type string `path:"-" query:"-" json:"type,cli-table-column"`
 	// Name holds the value of the "name" field.
 	Name string `path:"-" query:"-" json:"name"`
 	// Description holds the value of the "description" field.
@@ -107,7 +107,7 @@ func (rdci *ResourceDefinitionCreateInput) ValidateWith(ctx context.Context, cs 
 // ResourceDefinitionCreateInputs holds the creation input item of the ResourceDefinition entities.
 type ResourceDefinitionCreateInputsItem struct {
 	// Type of the resources generated from the resource definition.
-	Type string `path:"-" query:"-" json:"type"`
+	Type string `path:"-" query:"-" json:"type,cli-table-column"`
 	// Name holds the value of the "name" field.
 	Name string `path:"-" query:"-" json:"name"`
 	// Description holds the value of the "description" field.
@@ -960,10 +960,10 @@ type ResourceDefinitionOutput struct {
 	Labels      map[string]string `json:"labels,omitempty"`
 	CreateTime  *time.Time        `json:"createTime,omitempty"`
 	UpdateTime  *time.Time        `json:"updateTime,omitempty"`
-	Type        string            `json:"type,omitempty"`
+	Type        string            `json:"type,cli-table-column,omitempty"`
 	Schema      types.Schema      `json:"schema,omitempty"`
 	UiSchema    *types.UISchema   `json:"uiSchema,omitempty"`
-	Builtin     bool              `json:"builtin,omitempty"`
+	Builtin     bool              `json:"builtin,cli-table-column,omitempty"`
 
 	MatchingRules []*ResourceDefinitionMatchingRuleOutput `json:"matchingRules,omitempty"`
 }
