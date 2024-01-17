@@ -72,7 +72,7 @@ type ExtUI struct {
 	Immutable bool `json:"immutable,omitempty" yaml:"immutable,omitempty"`
 	// Widget is a string, for customizing the UI widget.
 	// Use pointer and omitempty here,
-	// since for any type we support both generate widget:YamlEditor and widget: "" to skip the YamlEditor
+	// since for any type we support both generate widget:YamlEditor and widget: "" to skip the YamlEditor.
 	Widget *string `json:"widget,omitempty" yaml:"widget,omitempty"`
 	// Order is a number, for ordering the properties in the UI.
 	Order int `json:"order,omitempty" yaml:"order,omitempty"`
