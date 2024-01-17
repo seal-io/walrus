@@ -141,11 +141,6 @@ func (r *PatchRequest) Validate() error {
 	case entity.Type != "":
 		env, err := r.Client.Environments().Query().
 			Where(environment.ID(r.Environment.ID)).
-			Select(
-				environment.FieldID,
-				environment.FieldName,
-				environment.FieldLabels,
-			).
 			WithProject(func(pq *model.ProjectQuery) {
 				pq.Select(project.FieldName, project.FieldLabels)
 			}).
@@ -248,11 +243,6 @@ func (r *CollectionCreateRequest) Validate() error {
 
 	env, err := r.Client.Environments().Query().
 		Where(environment.ID(r.Environment.ID)).
-		Select(
-			environment.FieldID,
-			environment.FieldName,
-			environment.FieldLabels,
-		).
 		WithConnectors(func(rq *model.EnvironmentConnectorRelationshipQuery) {
 			// Includes connectors.
 			rq.WithConnector()
@@ -546,11 +536,6 @@ func ValidateCreateInput(rci *model.ResourceCreateInput) error {
 	// Get environment.
 	env, err := rci.Client.Environments().Query().
 		Where(environment.ID(rci.Environment.ID)).
-		Select(
-			environment.FieldID,
-			environment.FieldName,
-			environment.FieldLabels,
-		).
 		WithConnectors(func(rq *model.EnvironmentConnectorRelationshipQuery) {
 			// Includes connectors.
 			rq.WithConnector()

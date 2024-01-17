@@ -118,12 +118,6 @@ func (r *RouteUpgradeRequest) Validate() error {
 	case entity.Type != "":
 		env, err := r.Client.Environments().Query().
 			Where(environment.ID(r.Environment.ID)).
-			Select(
-				environment.FieldID,
-				environment.FieldName,
-				environment.FieldType,
-				environment.FieldLabels,
-			).
 			WithProject(func(pq *model.ProjectQuery) {
 				pq.Select(project.FieldName, project.FieldLabels)
 			}).
@@ -561,12 +555,6 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 
 		env, err := r.Client.Environments().Query().
 			Where(environment.ID(environmentID)).
-			Select(
-				environment.FieldID,
-				environment.FieldName,
-				environment.FieldType,
-				environment.FieldLabels,
-			).
 			WithProject(func(pq *model.ProjectQuery) {
 				pq.Select(project.FieldName, project.FieldLabels)
 			}).
