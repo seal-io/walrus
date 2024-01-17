@@ -71,7 +71,9 @@ type ExtUI struct {
 	// Immutable is a boolean, for making the property immutable.
 	Immutable bool `json:"immutable,omitempty" yaml:"immutable,omitempty"`
 	// Widget is a string, for customizing the UI widget.
-	Widget string `json:"widget,omitempty" yaml:"widget,omitempty"`
+	// Use pointer and omitempty here,
+	// since for any type we support both generate widget:YamlEditor and widget: "" to skip the YamlEditor
+	Widget *string `json:"widget,omitempty" yaml:"widget,omitempty"`
 	// Order is a number, for ordering the properties in the UI.
 	Order int `json:"order,omitempty" yaml:"order,omitempty"`
 	// ColSpan is a number between 1 and 12, for typical 12-column grid systems.
@@ -84,7 +86,7 @@ func (e ExtUI) IsEmpty() bool {
 		e.ShowIf == "" &&
 		!e.Hidden &&
 		!e.Immutable &&
-		e.Widget == "" &&
+		e.Widget == nil &&
 		e.Order <= 0 &&
 		e.ColSpan <= 0 &&
 		len(e.GroupOrder) == 0
@@ -223,7 +225,7 @@ func (e *Ext) WithUIImmutable() *Ext {
 }
 
 func (e *Ext) WithUIWidget(widget string) *Ext {
-	e.Widget = widget
+	e.Widget = &widget
 	return e
 }
 
