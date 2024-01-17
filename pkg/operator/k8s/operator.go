@@ -3,7 +3,6 @@ package k8s
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"time"
 
 	batch "k8s.io/api/batch/v1"
@@ -24,7 +23,6 @@ import (
 	"github.com/seal-io/walrus/pkg/k8s"
 	"github.com/seal-io/walrus/pkg/operator/k8s/polymorphic"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
-	"github.com/seal-io/walrus/pkg/settings"
 	"github.com/seal-io/walrus/utils/hash"
 	"github.com/seal-io/walrus/utils/log"
 )
@@ -67,16 +65,6 @@ func New(ctx context.Context, opts optypes.CreateOptions) (optypes.Operator, err
 		return nil, err
 	}
 
-	serveURL, err := settings.ServeUrl.Value(ctx, opts.ModelClient)
-	if err != nil {
-		return nil, err
-	}
-
-	u, err := url.Parse(serveURL)
-	if err != nil {
-		return nil, err
-	}
-
 	op := Operator{
 		Logger:        log.WithName("operator").WithName("k8s"),
 		Identifier:    hash.SumStrings("k8s:", restConfig.Host, restConfig.APIPath),
@@ -86,9 +74,6 @@ func New(ctx context.Context, opts optypes.CreateOptions) (optypes.Operator, err
 		BatchCli:      batchCli,
 		NetworkingCli: networkingCli,
 		DynamicCli:    dynamicCli,
-
-		IsEmbedded:    opts.Connector.Labels[types.LabelEmbeddedKubernetes] == "true",
-		ServeHostname: u.Hostname(),
 	}
 
 	return op, nil
@@ -103,9 +88,6 @@ type Operator struct {
 	BatchCli      *batchclient.BatchV1Client
 	NetworkingCli *networkingclient.NetworkingV1Client
 	DynamicCli    *dynamicclient.DynamicClient
-
-	IsEmbedded    bool
-	ServeHostname string
 }
 
 // Type implements operator.Operator.
