@@ -5,19 +5,28 @@ import (
 )
 
 // Format generate formatted result for response.
-func Format(format string, resp *http.Response) ([]byte, error) {
+func Format(resp *http.Response, opts Options) ([]byte, error) {
 	var f Formatter
 
-	switch format {
+	switch opts.Format {
 	case "json":
 		f = &JsonFormatter{}
 	case "yaml":
 		f = &YamlFormatter{}
 	default:
-		f = &TableFormatter{}
+		f = &TableFormatter{
+			Columns: opts.Columns,
+			Group:   opts.Group,
+		}
 	}
 
 	return f.Format(resp)
+}
+
+type Options struct {
+	Format  string
+	Columns []string
+	Group   string
 }
 
 // Formatter generate formatted result for response.

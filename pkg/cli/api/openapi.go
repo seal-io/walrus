@@ -315,6 +315,8 @@ func toOperation(
 		cmdIgnore = true
 	}
 
+	columns := getTableColumns(op.Responses, comps)
+
 	return Operation{
 		Name:          name,
 		Group:         tag,
@@ -330,6 +332,7 @@ func toOperation(
 		Deprecated:    dep,
 		Formats:       formats,
 		CmdIgnore:     cmdIgnore,
+		TableColumns:  columns,
 	}
 }
 
@@ -533,6 +536,11 @@ func isCmdIgnore(ext map[string]any) bool {
 	return getExt(ext, openapi.ExtCliCmdIgnore, false)
 }
 
+// isTableColumn check whether it is the column should show in table format.
+func isTableColumn(ext map[string]any) bool {
+	return getExt(ext, openapi.ExtCliTableColumn, false)
+}
+
 // getExt get extension by key.
 func getExt[T any](v map[string]any, key string, def T) T {
 	if v != nil {
@@ -555,4 +563,64 @@ func deGroupedName(group, name string) string {
 	name = strings.ToLower(name)
 
 	return name
+}
+
+// getTableColumns get the columns show in table format.
+func getTableColumns(body openapi3.Responses, comps *openapi3.Components) []string {
+	if body == nil {
+		return nil
+	}
+
+	bodyRef := body.Get(http.StatusOK)
+	if bodyRef == nil ||
+		bodyRef.Value == nil ||
+		bodyRef.Value.Content.Get(JsonMediaType) == nil ||
+		bodyRef.Value.Content.Get(JsonMediaType).Schema == nil ||
+		bodyRef.Value.Content.Get(JsonMediaType).Schema.Value == nil {
+		return nil
+	}
+
+	s := bodyRef.Value.Content.Get(JsonMediaType).Schema.Value
+
+	return getPropColumns(s, comps)
+}
+
+// getPropColumns support get column from response with below response cases:
+// case1: { "items": [{"column": ""}]}
+// case2: [{"column": ""}]
+func getPropColumns(sm *openapi3.Schema, comps *openapi3.Components) []string {
+	var columns []string
+
+	switch {
+	case sm.Type == openapi3.TypeArray:
+		if sm.Items != nil && sm.Items.Value != nil {
+			return getPropColumns(sm.Items.Value, comps)
+		}
+	case sm.Type == openapi3.TypeObject:
+		for n := range sm.Properties {
+			if sm.Properties[n] == nil || sm.Properties[n].Value == nil {
+				continue
+			}
+
+			ps := propSchema(sm.Properties[n], comps)
+			if ps == nil {
+				continue
+			}
+
+			if isIgnore(ps.Extensions) {
+				continue
+			}
+
+			if n == "items" && ps.Items != nil && ps.Items.Value != nil {
+				return getPropColumns(ps.Items.Value, comps)
+			}
+
+			if isTableColumn(ps.Extensions) {
+				columns = append(columns, n)
+				continue
+			}
+		}
+	}
+
+	return columns
 }
