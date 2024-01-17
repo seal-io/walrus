@@ -451,6 +451,10 @@ func syncTemplateVersion(ctx context.Context, mc model.ClientSet, tv *model.Temp
 		return err
 	}
 
+	if err = vcs.HardResetGitRepo(r, repo.Reference); err != nil {
+		return err
+	}
+
 	w, err := r.Worktree()
 	if err != nil {
 		return err
