@@ -7,6 +7,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -146,4 +147,34 @@ func GetResourceNamesByIDs(
 		Scan(ctx, &names)
 
 	return names, err
+}
+
+// GetResourceDependencyResources returns the resources that the given resource depends on.
+func GetResourceDependencyResources(
+	ctx context.Context,
+	mc model.ClientSet,
+	resourceID object.ID,
+) (model.Resources, error) {
+	return mc.ResourceRelationships().Query().
+		Where(
+			resourcerelationship.ResourceID(resourceID),
+			resourcerelationship.DependencyIDNEQ(resourceID),
+			resourcerelationship.TypeEQ(types.ResourceRelationshipTypeImplicit),
+		).QueryResource().
+		All(ctx)
+}
+
+// GetResourceDependantResource returns the resources that depend on the given resource.
+func GetResourceDependantResource(
+	ctx context.Context,
+	mc model.ClientSet,
+	resourceID object.ID,
+) (model.Resources, error) {
+	return mc.ResourceRelationships().Query().
+		Where(
+			resourcerelationship.DependencyID(resourceID),
+			resourcerelationship.ResourceIDNEQ(resourceID),
+			resourcerelationship.TypeEQ(types.ResourceRelationshipTypeImplicit),
+		).QueryResource().
+		All(ctx)
 }
