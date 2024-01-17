@@ -20,6 +20,8 @@ var (
 		"Dashboard",
 		"TemplateCompletion",
 		"Cost",
+		"WorkflowStepExecution",
+		"Perspective",
 	}
 	// CliIgnorePaths is a list of paths to ignore when generating CLI commands.
 	cliIgnorePaths = []string{
