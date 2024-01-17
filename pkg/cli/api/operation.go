@@ -36,6 +36,7 @@ type Operation struct {
 	Hidden        bool        `json:"hidden,omitempty"`
 	Deprecated    string      `json:"deprecated,omitempty"`
 	Formats       []string    `json:"formats,omitempty"`
+	TableColumns  []string    `json:"tableColumns,omitempty"`
 
 	// CmdIgnore is used to ignore the operation when generating CLI commands.
 	CmdIgnore bool `json:"cmdIgnore,omitempty"`
@@ -118,7 +119,11 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 				os.Exit(1)
 			}
 
-			b, err := formatter.Format(o.format(*format), resp)
+			b, err := formatter.Format(resp, formatter.Options{
+				Format:  o.format(*format),
+				Columns: o.TableColumns,
+				Group:   o.Group,
+			})
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)

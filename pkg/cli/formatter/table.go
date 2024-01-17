@@ -1,25 +1,51 @@
 package formatter
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"reflect"
-	"sort"
+	"strings"
 
 	"github.com/alexeyco/simpletable"
+	"github.com/tidwall/gjson"
+	"golang.org/x/exp/slices"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/walrus/pkg/cli/common"
 	"github.com/seal-io/walrus/utils/json"
 )
 
-// watchFields represent the common headers for list response.
-var watchFields = []string{"id", "name", "createTime"}
+const (
+	fieldID          = "id"
+	fieldName        = "name"
+	fieldProject     = "project.name"
+	fieldEnvironment = "environment.name"
+	fieldStatus      = "status.summaryStatus"
+	fieldCreateTime  = "createTime"
+)
+
+// builtinDisplayFields represent the common headers for list response.
+var builtinDisplayFields = []string{
+	fieldID,
+	fieldName,
+	fieldProject,
+	fieldEnvironment,
+	fieldStatus,
+	fieldCreateTime,
+}
+
+var fieldAlias = map[string]string{
+	fieldStatus:      "STATUS",
+	fieldCreateTime:  "CREATED",
+	fieldProject:     "PROJECT",
+	fieldEnvironment: "ENVIRONMENT",
+}
 
 // TableFormatter use to convert response to table format.
-type TableFormatter struct{}
+type TableFormatter struct {
+	Columns []string
+	Group   string
+}
 
 func (f *TableFormatter) Format(resp *http.Response) ([]byte, error) {
 	body, err := io.ReadAll(resp.Body)
@@ -50,242 +76,206 @@ func (f *TableFormatter) Format(resp *http.Response) ([]byte, error) {
 		return nil, nil
 	}
 
-	var data any
+	var (
+		r         = gjson.ParseBytes(body)
+		formatted string
+	)
 
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		return nil, err
+	switch {
+	case r.IsObject():
+		result := gjson.GetBytes(body, "items")
+		if result.Exists() {
+			formatted = f.resourceItems([]byte(result.Raw))
+		} else {
+			formatted = f.resourceItem(body)
+		}
+
+	case r.IsArray():
+		formatted = f.resourceItems(body)
 	}
 
-	switch reflect.TypeOf(data).Kind() {
-	case reflect.Map:
-		m, ok := data.(map[string]any)
-		if !ok {
-			return nil, errors.New("can't decode response in table, use json or yaml format instead")
-		}
-
-		if len(m) == 0 {
-			return []byte{}, nil
-		}
-
-		its, ok := m["items"]
-		if ok {
-			if its == nil {
-				return []byte{}, nil
-			}
-
-			items, ok := its.([]any)
-			if ok {
-				formatted := f.resourceItems(items)
-				return []byte(formatted), nil
-			}
-		}
-
-		return []byte(f.resourceItem(m)), nil
-	case reflect.Slice, reflect.Array:
-		m, ok := data.([]any)
-		if !ok {
-			return nil, errors.New("can't decode response in table, use json or yaml format instead")
-		}
-
-		if len(m) == 0 {
-			return []byte{}, nil
-		}
-
-		return []byte(f.generalItems(m)), nil
-	}
-
-	return nil, nil
+	return []byte(formatted), nil
 }
 
-func (f *TableFormatter) generalItems(data []any) string {
+func (f *TableFormatter) resourceItems(body []byte) string {
+	data := gjson.ParseBytes(body).Array()
 	if len(data) == 0 {
 		return ""
 	}
 
-	table := simpletable.New()
-	table.SetStyle(simpletable.StyleCompactLite)
-
 	var (
-		headers []string
-		item    = data[0]
+		totalColumns = append(builtinDisplayFields, f.Columns...)
+		columnSet    = sets.NewString(totalColumns...)
+		existColumns = sets.NewString()
 	)
 
-	switch reflect.TypeOf(item).Kind() {
-	case reflect.Map:
-		it, ok := item.(map[string]any)
-		if !ok {
-			return ""
+	for _, arr := range data {
+		for _, k := range columnSet.UnsortedList() {
+			if arr.Get(k).Exists() {
+				existColumns.Insert(k)
+			}
 		}
 
-		for h := range it {
-			headers = append(headers, h)
-		}
-
-		sort.SliceStable(headers, func(i, j int) bool {
-			if headers[i] == "id" {
-				return true
-			}
-
-			if headers[j] == "id" {
-				return false
-			}
-
-			if headers[i] == "name" {
-				return true
-			}
-
-			if headers[j] == "name" {
-				return false
-			}
-
-			return headers[i] < headers[j]
-		})
-
-		for _, v := range headers {
-			table.Header.Cells = append(table.Header.Cells, &simpletable.Cell{
-				Align: simpletable.AlignRight,
-				Text:  v,
-			})
-		}
-
-	case reflect.Array:
-		table.Header.Cells = []*simpletable.Cell{
-			{
-				Align: simpletable.AlignRight,
-				Text:  "value",
-			},
+		if existColumns.HasAll(columnSet.UnsortedList()...) {
+			break
 		}
 	}
 
-	for _, it := range data {
-		switch reflect.TypeOf(it).Kind() {
-		case reflect.Map:
-			itm, ok := it.(map[string]any)
-			if !ok {
-				continue
-			}
+	columns := make([]fieldRender, 0)
 
-			var r []*simpletable.Cell
+	for _, v := range totalColumns {
+		if existColumns.Has(v) {
+			columns = append(columns, fieldRender{
+				name:       v,
+				renderFunc: defaultRenderFunc,
+			})
+		}
+	}
 
-			for _, v := range headers {
-				d, ok := itm[v]
-				if !ok {
-					continue
+	columns = append(columns, customColumnRender[f.Group]...)
+
+	return f.renderColumns(columns, data)
+}
+
+func (f *TableFormatter) resourceItem(body []byte) string {
+	data := gjson.ParseBytes(body)
+	if !data.Exists() {
+		return ""
+	}
+
+	columns := make([]fieldRender, 0)
+
+	for _, v := range builtinDisplayFields {
+		if data.Get(v).Exists() {
+			columns = append(columns, fieldRender{
+				name:       v,
+				renderFunc: defaultRenderFunc,
+			})
+		}
+	}
+
+	for _, v := range f.Columns {
+		if data.Get(v).Exists() {
+			columns = append(columns, fieldRender{
+				name:       v,
+				renderFunc: defaultRenderFunc,
+			})
+		}
+	}
+
+	columns = append(columns, customColumnRender[f.Group]...)
+
+	return f.renderColumns(columns, []gjson.Result{data})
+}
+
+func (f *TableFormatter) renderColumns(columns []fieldRender, data []gjson.Result) string {
+	var (
+		header        = make([]*simpletable.Cell, 0, len(columns))
+		rows          = make([][]*simpletable.Cell, 0, len(data))
+		sortedColumns = customSort(columns)
+	)
+
+	for _, v := range sortedColumns {
+		header = append(header,
+			&simpletable.Cell{
+				Align: simpletable.AlignLeft,
+				Text:  columnDisplayName(v.name),
+			})
+	}
+
+	for _, arr := range data {
+		var row []*simpletable.Cell
+
+		for _, v := range sortedColumns {
+			row = append(row, &simpletable.Cell{
+				Align: simpletable.AlignLeft,
+				Text:  v.renderFunc(v.name, arr),
+			})
+		}
+
+		rows = append(rows, row)
+	}
+
+	table := simpletable.New()
+	table.SetStyle(simpletable.StyleCompactLite)
+	table.Header.Cells = header
+	table.Body.Cells = rows
+
+	return table.String()
+}
+
+type fieldRender struct {
+	name       string
+	renderFunc func(name string, r gjson.Result) string
+}
+
+var defaultRenderFunc = func(name string, r gjson.Result) string {
+	return r.Get(name).String()
+}
+
+var customColumnRender = map[string][]fieldRender{
+	"Resources": {
+		{
+			name: "type",
+			renderFunc: func(_ string, r gjson.Result) string {
+				rtyp := r.Get("type")
+				if rtyp.Exists() {
+					return rtyp.String()
 				}
 
-				r = append(r, &simpletable.Cell{
-					Align: simpletable.AlignRight,
-					Text:  fmt.Sprintf("%v", d),
-				})
-			}
+				rt := r.Get("template")
+				if rt.Exists() {
+					rn := rt.Get("name")
+					rv := rt.Get("version")
+					proj := rt.Get("project")
 
-			table.Body.Cells = append(table.Body.Cells, r)
-		case reflect.Array:
-			items, ok := it.([]any)
-			if !ok {
-				continue
-			}
+					if proj.Exists() {
+						return fmt.Sprintf("%s@%s", rn.String(), rv.String())
+					} else {
+						return fmt.Sprintf("%s@%s(Global)", rn.String(), rv.String())
+					}
+				}
 
-			for _, v := range items {
-				table.Body.Cells = append(table.Body.Cells, []*simpletable.Cell{
-					{
-						Align: simpletable.AlignRight,
-						Text:  fmt.Sprintf("%v", v),
-					},
-				})
-			}
-		}
-	}
-
-	return table.String()
+				return ""
+			},
+		},
+	},
 }
 
-func (f *TableFormatter) resourceItems(data []any) string {
-	table := simpletable.New()
-	table.SetStyle(simpletable.StyleCompactLite)
-
-	exitedFields := sets.Set[string]{}
-
-	for _, it := range data {
-		item, ok := it.(map[string]any)
-		if !ok {
-			continue
-		}
-
-		var r []*simpletable.Cell
-
-		for _, v := range watchFields {
-			d, ok := item[v]
-			if !ok {
-				continue
-			}
-
-			r = append(r, &simpletable.Cell{
-				Align: simpletable.AlignRight,
-				Text:  fmt.Sprintf("%v", d),
-			})
-
-			exitedFields.Insert(v)
-		}
-
-		table.Body.Cells = append(table.Body.Cells, r)
+func columnDisplayName(n string) string {
+	an := fieldAlias[n]
+	if an != "" {
+		return an
 	}
 
-	for _, v := range watchFields {
-		if exitedFields.Has(v) {
-			table.Header.Cells = append(
-				table.Header.Cells,
-				&simpletable.Cell{
-					Align: simpletable.AlignRight,
-					Text:  v,
-				})
-		}
-	}
-
-	return table.String()
+	return strings.ToUpper(n)
 }
 
-func (f *TableFormatter) resourceItem(data map[string]any) string {
-	table := simpletable.New()
-	table.SetStyle(simpletable.StyleCompactLite)
+func customSort(fields []fieldRender) []fieldRender {
+	frontFields := []string{fieldID, fieldName, fieldProject, fieldEnvironment}
+	endFields := []string{fieldStatus, fieldCreateTime}
 
 	var (
-		bodyCells = make([]*simpletable.Cell, 0)
-		headCells = make([]*simpletable.Cell, 0)
+		existFrontFields = make([]fieldRender, 0)
+		existEndFields   = make([]fieldRender, 0)
+		unknownFields    = make([]fieldRender, 0)
 	)
 
-	for _, v := range watchFields {
-		d, ok := data[v]
-		if !ok {
-			continue
+	for _, field := range fields {
+		switch {
+		case slices.Contains(frontFields, field.name):
+			existFrontFields = append(existFrontFields, field)
+		case slices.Contains(endFields, field.name):
+			existEndFields = append(existEndFields, field)
+		default:
+			unknownFields = append(unknownFields, field)
 		}
-
-		headCells = append(headCells,
-			&simpletable.Cell{
-				Align: simpletable.AlignLeft,
-				Text:  v,
-			})
-
-		bodyCells = append(bodyCells,
-			&simpletable.Cell{
-				Align: simpletable.AlignLeft,
-				Text:  fmt.Sprintf("%v", d),
-			})
 	}
 
-	if len(headCells) == 0 {
-		return "Table format isn't supported for current command"
-	}
+	sortedFields := make([]fieldRender, 0, len(existFrontFields)+len(existEndFields)+len(unknownFields))
+	sortedFields = append(sortedFields, existFrontFields...)
+	sortedFields = append(sortedFields, unknownFields...)
+	sortedFields = append(sortedFields, existEndFields...)
 
-	table.Header = &simpletable.Header{
-		Cells: headCells,
-	}
-	table.Body = &simpletable.Body{
-		Cells: [][]*simpletable.Cell{
-			bodyCells,
-		},
-	}
-
-	return table.String()
+	return sortedFields
 }

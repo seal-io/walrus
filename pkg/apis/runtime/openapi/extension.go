@@ -19,4 +19,7 @@ const (
 
 	// ExtVersionGitCommit define the git commit hash version for openapi.
 	ExtVersionGitCommit = "x-version-git-commit"
+
+	// ExtCliTableColumn define the extension key to use in table format.
+	ExtCliTableColumn = "x-cli-table-column"
 )
