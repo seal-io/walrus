@@ -52,7 +52,8 @@ func (TemplateVersion) Fields() []ent.Field {
 		field.String("version").
 			Comment("Version of the template.").
 			NotEmpty().
-			Immutable(),
+			Immutable().
+			StructTag(`json:"version,omitempty,cli-table-column"`),
 		// This is the normalized terraform module source that can be directly applied to terraform configuration.
 		// For example, when we store multiple versions of a module in a mono repo,
 		//   Template.Source = "github.com/foo/bar"

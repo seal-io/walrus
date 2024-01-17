@@ -75,7 +75,8 @@ func (Resource) Fields() []ent.Field {
 			Optional(),
 		field.JSON("endpoints", types.ResourceEndpoints{}).
 			Comment("Endpoints of the resource.").
-			Optional(),
+			Optional().
+			StructTag(`json:"endpoints,omitempty,cli-table-column"`),
 		field.String("change_comment").
 			Comment("Change comment of the resource.").
 			Optional().
