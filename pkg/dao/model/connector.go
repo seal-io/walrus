@@ -44,9 +44,9 @@ type Connector struct {
 	// ID of the project to belong, empty means for all projects.
 	ProjectID object.ID `json:"project_id,omitempty"`
 	// Category of the connector.
-	Category string `json:"category,omitempty"`
+	Category string `json:"category,omitempty,cli-table-column"`
 	// Type of the connector.
-	Type string `json:"type,omitempty"`
+	Type string `json:"type,omitempty,cli-table-column"`
 	// Environment type of the connector to apply.
 	ApplicableEnvironmentType string `json:"applicable_environment_type,omitempty"`
 	// Connector config version.

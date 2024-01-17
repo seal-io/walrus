@@ -37,9 +37,9 @@ type ConnectorCreateInput struct {
 	// Environment type of the connector to apply.
 	ApplicableEnvironmentType string `path:"-" query:"-" json:"applicableEnvironmentType"`
 	// Type of the connector.
-	Type string `path:"-" query:"-" json:"type"`
+	Type string `path:"-" query:"-" json:"type,cli-table-column"`
 	// Category of the connector.
-	Category string `path:"-" query:"-" json:"category"`
+	Category string `path:"-" query:"-" json:"category,cli-table-column"`
 	// Name holds the value of the "name" field.
 	Name string `path:"-" query:"-" json:"name"`
 	// Description holds the value of the "description" field.
@@ -121,9 +121,9 @@ type ConnectorCreateInputsItem struct {
 	// Environment type of the connector to apply.
 	ApplicableEnvironmentType string `path:"-" query:"-" json:"applicableEnvironmentType"`
 	// Type of the connector.
-	Type string `path:"-" query:"-" json:"type"`
+	Type string `path:"-" query:"-" json:"type,cli-table-column"`
 	// Category of the connector.
-	Category string `path:"-" query:"-" json:"category"`
+	Category string `path:"-" query:"-" json:"category,cli-table-column"`
 	// Name holds the value of the "name" field.
 	Name string `path:"-" query:"-" json:"name"`
 	// Description holds the value of the "description" field.
@@ -847,9 +847,9 @@ type ConnectorUpdateInputsItem struct {
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Category of the connector.
-	Category string `path:"-" query:"-" json:"category"`
+	Category string `path:"-" query:"-" json:"category,cli-table-column"`
 	// Type of the connector.
-	Type string `path:"-" query:"-" json:"type"`
+	Type string `path:"-" query:"-" json:"type,cli-table-column"`
 	// Connector config version.
 	ConfigVersion string `path:"-" query:"-" json:"configVersion"`
 	// Connector config data.
@@ -1046,8 +1046,8 @@ type ConnectorOutput struct {
 	CreateTime                *time.Time                 `json:"createTime,omitempty"`
 	UpdateTime                *time.Time                 `json:"updateTime,omitempty"`
 	Status                    status.Status              `json:"status,omitempty"`
-	Category                  string                     `json:"category,omitempty"`
-	Type                      string                     `json:"type,omitempty"`
+	Category                  string                     `json:"category,cli-table-column,omitempty"`
+	Type                      string                     `json:"type,cli-table-column,omitempty"`
 	ApplicableEnvironmentType string                     `json:"applicableEnvironmentType,omitempty"`
 	ConfigVersion             string                     `json:"configVersion,omitempty"`
 	ConfigData                crypto.Properties          `json:"configData,omitempty"`

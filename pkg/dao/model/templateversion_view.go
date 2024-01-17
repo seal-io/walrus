@@ -31,7 +31,7 @@ type TemplateVersionCreateInput struct {
 	// Source of the template.
 	Source string `path:"-" query:"-" json:"source"`
 	// Version of the template.
-	Version string `path:"-" query:"-" json:"version"`
+	Version string `path:"-" query:"-" json:"version,cli-table-column"`
 	// Name of the template.
 	Name string `path:"-" query:"-" json:"name"`
 	// Generated schema and data of the template.
@@ -100,7 +100,7 @@ type TemplateVersionCreateInputsItem struct {
 	// Source of the template.
 	Source string `path:"-" query:"-" json:"source"`
 	// Version of the template.
-	Version string `path:"-" query:"-" json:"version"`
+	Version string `path:"-" query:"-" json:"version,cli-table-column"`
 	// Name of the template.
 	Name string `path:"-" query:"-" json:"name"`
 	// Generated schema and data of the template.
@@ -967,7 +967,7 @@ type TemplateVersionOutput struct {
 	CreateTime *time.Time                  `json:"createTime,omitempty"`
 	UpdateTime *time.Time                  `json:"updateTime,omitempty"`
 	Name       string                      `json:"name,omitempty"`
-	Version    string                      `json:"version,omitempty"`
+	Version    string                      `json:"version,cli-table-column,omitempty"`
 	Source     string                      `json:"source,omitempty"`
 	Schema     types.TemplateVersionSchema `json:"schema,omitempty"`
 	UiSchema   types.UISchema              `json:"uiSchema,omitempty"`

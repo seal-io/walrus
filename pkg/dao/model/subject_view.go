@@ -26,7 +26,7 @@ type SubjectCreateInput struct {
 	// The name of the subject.
 	Name string `path:"-" query:"-" json:"name"`
 	// The kind of the subject.
-	Kind string `path:"-" query:"-" json:"kind,omitempty"`
+	Kind string `path:"-" query:"-" json:"kind,cli-table-column,omitempty"`
 	// The domain of the subject.
 	Domain string `path:"-" query:"-" json:"domain,omitempty"`
 	// The detail of the subject.
@@ -108,7 +108,7 @@ type SubjectCreateInputsItem struct {
 	// The name of the subject.
 	Name string `path:"-" query:"-" json:"name"`
 	// The kind of the subject.
-	Kind string `path:"-" query:"-" json:"kind,omitempty"`
+	Kind string `path:"-" query:"-" json:"kind,cli-table-column,omitempty"`
 	// The domain of the subject.
 	Domain string `path:"-" query:"-" json:"domain,omitempty"`
 	// The detail of the subject.
@@ -983,7 +983,7 @@ type SubjectOutput struct {
 	ID          object.ID  `json:"id,omitempty"`
 	CreateTime  *time.Time `json:"createTime,omitempty"`
 	UpdateTime  *time.Time `json:"updateTime,omitempty"`
-	Kind        string     `json:"kind,omitempty"`
+	Kind        string     `json:"kind,cli-table-column,omitempty"`
 	Domain      string     `json:"domain,omitempty"`
 	Name        string     `json:"name,omitempty"`
 	Description string     `json:"description,omitempty"`

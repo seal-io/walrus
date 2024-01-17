@@ -28,7 +28,7 @@ type EnvironmentCreateInput struct {
 	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
 
 	// Type of the environment.
-	Type string `path:"-" query:"-" json:"type"`
+	Type string `path:"-" query:"-" json:"type,cli-table-column"`
 	// Name holds the value of the "name" field.
 	Name string `path:"-" query:"-" json:"name"`
 	// Description holds the value of the "description" field.
@@ -172,7 +172,7 @@ func (eci *EnvironmentCreateInput) ValidateWith(ctx context.Context, cs ClientSe
 // EnvironmentCreateInputs holds the creation input item of the Environment entities.
 type EnvironmentCreateInputsItem struct {
 	// Type of the environment.
-	Type string `path:"-" query:"-" json:"type"`
+	Type string `path:"-" query:"-" json:"type,cli-table-column"`
 	// Name holds the value of the "name" field.
 	Name string `path:"-" query:"-" json:"name"`
 	// Description holds the value of the "description" field.
@@ -1141,7 +1141,7 @@ type EnvironmentOutput struct {
 	Labels      map[string]string `json:"labels,omitempty"`
 	CreateTime  *time.Time        `json:"createTime,omitempty"`
 	UpdateTime  *time.Time        `json:"updateTime,omitempty"`
-	Type        string            `json:"type,omitempty"`
+	Type        string            `json:"type,cli-table-column,omitempty"`
 
 	Project    *ProjectOutput                            `json:"project,omitempty"`
 	Connectors []*EnvironmentConnectorRelationshipOutput `json:"connectors,omitempty"`

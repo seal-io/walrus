@@ -44,7 +44,7 @@ type WorkflowExecution struct {
 	// ID of the project to belong.
 	ProjectID object.ID `json:"project_id,omitempty"`
 	// Version of the workflow execution.
-	Version int `json:"version,omitempty"`
+	Version int `json:"version,omitempty,cli-table-column"`
 	// Type of the workflow execution.
 	Type string `json:"type,omitempty"`
 	// ID of the workflow that this workflow execution belongs to.

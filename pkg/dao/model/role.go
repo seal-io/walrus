@@ -29,7 +29,7 @@ type Role struct {
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime *time.Time `json:"update_time,omitempty"`
 	// The kind of the role.
-	Kind string `json:"kind,omitempty"`
+	Kind string `json:"kind,omitempty,cli-table-column"`
 	// The detail of the role.
 	Description string `json:"description,omitempty"`
 	// The policy list of the role.
@@ -39,7 +39,7 @@ type Role struct {
 	// Indicate whether the role is session level, decide when creating.
 	Session bool `json:"session,omitempty"`
 	// Indicate whether the role is builtin, decide when creating.
-	Builtin bool `json:"builtin,omitempty"`
+	Builtin bool `json:"builtin,omitempty,cli-table-column"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the RoleQuery when eager-loading is set.
 	Edges        RoleEdges `json:"edges,omitempty"`

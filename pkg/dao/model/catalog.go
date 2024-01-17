@@ -41,7 +41,7 @@ type Catalog struct {
 	// Status holds the value of the "status" field.
 	Status status.Status `json:"status,omitempty"`
 	// Type of the catalog.
-	Type string `json:"type,omitempty"`
+	Type string `json:"type,omitempty,cli-table-column"`
 	// Source of the catalog.
 	Source string `json:"source,omitempty"`
 	// Sync information of the catalog.

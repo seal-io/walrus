@@ -35,7 +35,7 @@ type TemplateVersion struct {
 	// Name of the template.
 	Name string `json:"name,omitempty"`
 	// Version of the template.
-	Version string `json:"version,omitempty"`
+	Version string `json:"version,omitempty,cli-table-column"`
 	// Source of the template.
 	Source string `json:"source,omitempty"`
 	// Generated schema and data of the template.
