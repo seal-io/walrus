@@ -22,3 +22,14 @@ func GetManagedNamespaceName(e *model.Environment) string {
 
 	return fmt.Sprintf("%s-%s", e.Edges.Project.Name, e.Name)
 }
+
+// ShortenEnvironmentNameIfNeeded shortens environment name if the combined length with project name is greater than 63.
+// For maximum length of a namespace name is 63 characters.
+func ShortenEnvironmentNameIfNeeded(name, projectName string) string {
+	namespace := fmt.Sprintf("%s-%s", projectName, name)
+	if len(namespace) <= 63 {
+		return name
+	}
+
+	return name[:63-len(projectName)-1]
+}

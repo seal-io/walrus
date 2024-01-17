@@ -59,7 +59,7 @@ type (
 )
 
 func (r *RouteCloneEnvironmentRequest) Validate() error {
-	return validateEnvironmentCreateInput(r.EnvironmentCreateInput)
+	return validateEnvironmentCreateInput(&r.EnvironmentCreateInput)
 }
 
 type (

@@ -19,6 +19,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
+	"github.com/seal-io/walrus/pkg/environment"
 	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	"github.com/seal-io/walrus/pkg/resourcedefinitions"
 	"github.com/seal-io/walrus/utils/errorx"
@@ -98,7 +99,7 @@ func createEnvironment(
 	return model.ExposeEnvironment(entity), nil
 }
 
-func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
+func validateEnvironmentCreateInput(r *model.EnvironmentCreateInput) error {
 	var err error
 	if err = r.Validate(); err != nil {
 		return err
@@ -114,6 +115,8 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 	if err := validation.IsDNSLabel(r.Name); err != nil {
 		return fmt.Errorf("invalid name: %w", err)
 	}
+
+	r.Name = environment.ShortenEnvironmentNameIfNeeded(r.Name, project.Name)
 
 	if !types.IsEnvironmentType(r.Type) {
 		return fmt.Errorf("invalid type: %s", r.Type)
