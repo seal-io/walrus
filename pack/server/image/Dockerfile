@@ -150,6 +150,7 @@ COPY --from=sealio/casdoor:v1.344.0-seal.1 \
     /usr/bin/
 
 # get finops tools
+## NB: Please update walrus-images.txt if change the following images.
 ENV FINOPS_KUBECOST_COST_MODEL_IMAGE="sealio/mirrored-kubecost-cost-model:v1.105.2" \
     FINOPS_PROMETHEUS_IMAGE="sealio/mirrored-prometheus:v2.46.0" \
     FINOPS_PROMETHEUS_CONFIG_RELOADER_IMAGE="sealio/mirrored-prometheus-config-reloader:v0.67.0" \
@@ -164,6 +165,7 @@ RUN set -exo pipefail; \
 ADD https://github.com/prometheus-community/helm-charts/releases/download/prometheus-24.0.0/prometheus-24.0.0.tgz ${CHARTS_DIR}/prometheus.tgz
 
 # get workflow tools
+## NB: Please update walrus-images.txt if change the following images.
 ENV WORKFLOW_CONTROLLER_IMAGE="sealio/mirrored-workflow-controller:v3.5.0" \
     WORKFLOW_EXECUTOR_IMAGE="sealio/mirrored-argoexec:v3.5.0" \
     WORKFLOW_STEP_IMAGE="sealio/curl-jq:v0.0.1"
@@ -175,10 +177,13 @@ ENV WORKFLOW_ARGO_WORKFLOWS_CHART_PATH="${CHARTS_DIR}/argo-workflows.tgz"
 ADD https://github.com/argoproj/argo-helm/releases/download/argo-workflows-0.36.1/argo-workflows-0.36.1.tgz ${WORKFLOW_ARGO_WORKFLOWS_CHART_PATH}
 
 # get deployer tools
+## NB: Please update walrus-images.txt if change the following images.
 ENV DEPLOYER_TERRAFORM_IMAGE="sealio/terraform-deployer:v1.5.7-seal.1" \
+    DEPLOYER_OPENTOFU_IMAGE="sealio/opentofu-deployer:v1.6.0-seal.1" \
     DEPLOYER_TERRAFORM_NETWORK_MIRROR_IMAGE="sealio/hermitcrab:v0.1.3"
 RUN set -exo pipefail; \
     crane pull --platform=${TARGETPLATFORM} ${DEPLOYER_TERRAFORM_IMAGE} ${K3S_DATA_DIR}/agent/images/deployer-terraform.tar; \
+    crane pull --platform=${TARGETPLATFORM} ${DEPLOYER_OPENTOFU_IMAGE} ${K3S_DATA_DIR}/agent/images/deployer-opentofu.tar; \
     crane pull --platform=${TARGETPLATFORM} ${DEPLOYER_TERRAFORM_NETWORK_MIRROR_IMAGE} ${K3S_DATA_DIR}/agent/images/deployer-terraform-network-mirror.tar
 ENV DEPLOYER_TERRAFORM_HERMITCRAB_CHART_PATH="${CHARTS_DIR}/hermitcrab.tgz"
 ADD https://github.com/seal-io/helm-charts/releases/download/hermitcrab-0.1.3/hermitcrab-0.1.3.tgz ${DEPLOYER_TERRAFORM_HERMITCRAB_CHART_PATH}
