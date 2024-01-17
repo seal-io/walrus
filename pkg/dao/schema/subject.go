@@ -36,6 +36,7 @@ func (Subject) Fields() []ent.Field {
 			Comment("The kind of the subject.").
 			Default(types.SubjectKindUser).
 			Immutable().
+			StructTag(`json:"kind,omitempty,cli-table-column"`).
 			Annotations(
 				entx.Input(entx.WithUpdate())),
 		field.String("domain").

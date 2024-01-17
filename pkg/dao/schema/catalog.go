@@ -43,7 +43,8 @@ func (Catalog) Fields() []ent.Field {
 		field.String("type").
 			Comment("Type of the catalog.").
 			NotEmpty().
-			Immutable(),
+			Immutable().
+			StructTag(`json:"type,omitempty,cli-table-column"`),
 		field.String("source").
 			Comment("Source of the catalog.").
 			NotEmpty().

@@ -55,12 +55,14 @@ func (Connector) Fields() []ent.Field {
 			Comment("Category of the connector.").
 			NotEmpty().
 			Immutable().
+			StructTag(`json:"category,omitempty,cli-table-column"`).
 			Annotations(
 				entx.Input()),
 		field.String("type").
 			Comment("Type of the connector.").
 			NotEmpty().
 			Immutable().
+			StructTag(`json:"type,omitempty,cli-table-column"`).
 			Annotations(
 				entx.Input()),
 		field.String("applicable_environment_type").

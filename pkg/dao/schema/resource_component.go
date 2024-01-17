@@ -62,7 +62,8 @@ func (ResourceComponent) Fields() []ent.Field {
 				"it is the type of the resource which the deployer observes, " +
 				"which provides by deployer.").
 			NotEmpty().
-			Immutable(),
+			Immutable().
+			StructTag(`json:"type,omitempty,cli-table-column"`),
 		field.String("name").
 			Comment("Name of the generated component, " +
 				"it is the real identifier of the component, " +

@@ -34,7 +34,8 @@ func (ResourceDefinition) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("type").
 			Comment("Type of the resources generated from the resource definition.").
-			Immutable(),
+			Immutable().
+			StructTag(`json:"type,omitempty,cli-table-column"`),
 		field.JSON("schema", types.Schema{}).
 			Comment("Generated schema of the resource definition.").
 			Default(types.Schema{}).
@@ -52,7 +53,8 @@ func (ResourceDefinition) Fields() []ent.Field {
 			Comment("Indicate whether the resource definition is builtin, decided when creating.").
 			Default(false).
 			Immutable().
-			Annotations(entx.SkipInput()),
+			Annotations(entx.SkipInput()).
+			StructTag(`json:"builtin,omitempty,cli-table-column"`),
 	}
 }
 

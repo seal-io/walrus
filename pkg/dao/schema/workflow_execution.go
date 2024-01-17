@@ -33,6 +33,7 @@ func (WorkflowExecution) Fields() []ent.Field {
 		field.Int("version").
 			Comment("Version of the workflow execution.").
 			NonNegative().
+			StructTag(`json:"version,omitempty,cli-table-column"`).
 			Annotations(
 				entx.SkipInput()),
 		field.String("type").

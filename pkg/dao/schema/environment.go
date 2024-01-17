@@ -39,7 +39,8 @@ func (Environment) Fields() []ent.Field {
 		field.String("type").
 			Comment("Type of the environment.").
 			NotEmpty().
-			Immutable(),
+			Immutable().
+			StructTag(`json:"type,omitempty,cli-table-column"`),
 	}
 }
 

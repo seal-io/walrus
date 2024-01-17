@@ -15,7 +15,7 @@ type (
 		// Name indicates the name of endpoint.
 		Name string `json:"name"`
 		// URL indicates the URL of endpoint, must be a valid URL.
-		URL string `json:"url"`
+		URL string `json:"url,cli-table-column"`
 	}
 
 	// ResourceEndpoints holds a list of the endpoints definitions of resource.

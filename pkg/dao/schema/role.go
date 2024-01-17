@@ -33,7 +33,8 @@ func (Role) Fields() []ent.Field {
 		field.String("kind").
 			Comment("The kind of the role.").
 			Default(types.RoleKindSystem).
-			Immutable(),
+			Immutable().
+			StructTag(`json:"kind,omitempty,cli-table-column"`),
 		field.String("description").
 			Comment("The detail of the role.").
 			Optional(),
@@ -54,6 +55,7 @@ func (Role) Fields() []ent.Field {
 			Comment("Indicate whether the role is builtin, decide when creating.").
 			Default(false).
 			Immutable().
+			StructTag(`json:"builtin,omitempty,cli-table-column"`).
 			Annotations(
 				entx.SkipInput()),
 	}
