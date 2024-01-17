@@ -272,6 +272,11 @@ func (h Handler) RouteGetResourceDefinitions(
 	definitionsByType := make(map[string][]*model.ResourceDefinition)
 
 	for _, rd := range definitions {
+		// Strip resource level selectors when matching at environment level.
+		for _, rule := range rd.Edges.MatchingRules {
+			rule.Selector.ResourceLabels = nil
+		}
+
 		definitionsByType[rd.Type] = append(definitionsByType[rd.Type], rd)
 	}
 
