@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
+	"net/url"
 	"time"
 
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -27,6 +29,8 @@ import (
 	"github.com/seal-io/walrus/pkg/operator"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
 	"github.com/seal-io/walrus/pkg/resourcecomponents"
+	"github.com/seal-io/walrus/pkg/servervars"
+	"github.com/seal-io/walrus/pkg/settings"
 	tfparser "github.com/seal-io/walrus/pkg/terraform/parser"
 	"github.com/seal-io/walrus/utils/gopool"
 	"github.com/seal-io/walrus/utils/json"
@@ -236,6 +240,26 @@ func manageResourceComponentsAndEndpoints(
 			if v, ok := mappedOutputs[l]; ok {
 				if err := json.Unmarshal(v.Value, &m); err == nil {
 					break
+				}
+			}
+		}
+
+		// NB(thxCode): in order to access some endpoints pointed to local IP,
+		// we can parse one-by-one to replace the local IP with the server's host,
+		// especially be useful for deploying on the embedded Kubernetes cluster.
+		if ips := servervars.NonLoopBackIPs.Get(); len(m) != 0 && ips.Len() != 0 {
+			su := settings.ServeUrl.ShouldValueURL(ctx, tx)
+			if su != nil {
+				h := su.Hostname()
+				// Replace the endpoint's url host with the server's host,
+				// if the endpoint's url host is a local IP.
+				for k, v := range m {
+					u, _ := url.Parse(v)
+					if u == nil || !ips.Has(u.Hostname()) {
+						continue
+					}
+					u.Host = net.JoinHostPort(h, u.Port())
+					m[k] = u.String()
 				}
 			}
 		}

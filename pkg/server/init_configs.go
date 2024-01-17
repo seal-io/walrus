@@ -6,16 +6,19 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net"
 	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/walrus/pkg/auths"
 	"github.com/seal-io/walrus/pkg/cache"
 	"github.com/seal-io/walrus/pkg/caches"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
+	"github.com/seal-io/walrus/pkg/servervars"
 	"github.com/seal-io/walrus/pkg/settings"
 	cacheutil "github.com/seal-io/walrus/utils/cache"
 	"github.com/seal-io/walrus/utils/cryptox"
@@ -40,6 +43,8 @@ func (r *Server) initConfigs(ctx context.Context, opts initOptions) (err error) 
 	if err != nil {
 		return
 	}
+
+	err = configureVars()
 
 	return
 }
@@ -169,6 +174,42 @@ func configureAuths(ctx context.Context, mc model.ClientSet, maxIdle time.Durati
 		}
 	}
 	auths.EncryptorConfig.Set(enc)
+
+	return nil
+}
+
+// configureVars configures the server variables.
+func configureVars() error {
+	// Configure non loopback local IPs.
+	nonLoopBackIPs := sets.New[string]()
+	{
+		ifaces, _ := net.Interfaces()
+		for _, _if := range ifaces {
+			if _if.Flags&net.FlagUp == 0 || _if.Flags&net.FlagLoopback != 0 {
+				// Skip down or loopback interfaces.
+				continue
+			}
+
+			addrs, err := _if.Addrs()
+			if err != nil {
+				return fmt.Errorf("error querying addresses from interface %s(%d): %w",
+					_if.Name, _if.Index, err)
+			}
+
+			for _, addr := range addrs {
+				if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+					if v4 := ipnet.IP.To4(); v4 != nil {
+						nonLoopBackIPs.Insert(v4.String())
+					}
+
+					if v6 := ipnet.IP.To16(); v6 != nil {
+						nonLoopBackIPs.Insert(v6.String())
+					}
+				}
+			}
+		}
+	}
+	servervars.NonLoopBackIPs.Set(nonLoopBackIPs)
 
 	return nil
 }

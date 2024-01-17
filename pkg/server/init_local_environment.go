@@ -138,13 +138,6 @@ func (r *Server) applyKubernetesConnector(
 			},
 		}
 
-		if os.Getenv("KUBERNETES_SERVICE_HOST") == "" && os.Getenv("_RUNNING_INSIDE_CONTAINER_") != "" {
-			// Set label for embedded k3s.
-			conn.Labels = map[string]string{
-				types.LabelEmbeddedKubernetes: "true",
-			}
-		}
-
 		conn, err = mc.Connectors().Create().
 			Set(conn).
 			Save(ctx)
