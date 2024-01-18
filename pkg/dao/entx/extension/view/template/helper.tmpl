@@ -1,0 +1,20 @@
+{{/* gotype: entgo.io/ent/entc/gen.Type */}}
+
+{{- define "helper/is-not-equal" }}
+    {{- $fn := $.StructField }}
+    {{- if $.NillableValue }}
+        !reflect.DeepEqual(e.{{ $fn }}, _obj.{{ $fn }})
+    {{- else if $.IsBool }}
+        e.{{ $fn }} != _obj.{{ $fn }}
+    {{- else if $.IsTime }}
+        !e.{{ $fn }}.Equal(_obj.{{ $fn }})
+    {{- else if $.IsBytes }}
+        !bytes.Equal(e.{{ $fn }}, _obj.{{ $fn }})
+    {{- else if or $.IsString $.IsEnum }}
+        e.{{ $fn }} != _obj.{{ $fn }}
+    {{- else if and $.Type (ge $.Type.Type 9) }} {{- /* Numeric */}}
+        e.{{ $fn }} != _obj.{{ $fn }}
+	{{- else }}
+        !reflect.DeepEqual(e.{{ $fn }}, _obj.{{ $fn }})
+    {{- end }}
+{{- end }}

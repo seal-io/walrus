@@ -125,6 +125,7 @@ type InputRef struct {
 	PrerequisiteEdges  []*gen.Edge
 	PrerequisiteFields []*gen.Field
 	IndexFields        []*gen.Field
+	ImmutableFields    []*gen.Field
 	Fields             []*gen.Field
 	AdditionalEdges    []*gen.Edge
 }
@@ -214,7 +215,7 @@ func getInput(v any, typ string) (r InputRef, err error) {
 				continue
 			case typ == inputTypeUpdate && (e.Immutable && !ea.Input.Update || ea.SkipInput.Update):
 				continue
-			case typ == inputTypePatch:
+			case typ == inputTypePatch && (ea.SkipInput.Create || ea.SkipInput.Update):
 				continue
 			default:
 			}
@@ -228,7 +229,7 @@ func getInput(v any, typ string) (r InputRef, err error) {
 				continue
 			case typ == inputTypeUpdate && ea.Input.Update:
 				continue
-			case typ == inputTypePatch:
+			case typ == inputTypePatch && (ea.Input.Create || ea.Input.Update):
 				continue
 			}
 
@@ -239,6 +240,10 @@ func getInput(v any, typ string) (r InputRef, err error) {
 
 		if typ == inputTypeQuery && !fa.Input.Query {
 			continue
+		}
+
+		if f.Immutable {
+			r.ImmutableFields = append(r.ImmutableFields, f)
 		}
 
 		r.Fields = append(r.Fields, f)
@@ -308,7 +313,7 @@ func getInput(v any, typ string) (r InputRef, err error) {
 				continue
 			case typ == inputTypeUpdate && (e.Immutable && !ea.Input.Update || ea.SkipInput.Update):
 				continue
-			case typ == inputTypePatch:
+			case typ == inputTypePatch && (ea.SkipInput.Create || ea.SkipInput.Update):
 				continue
 			case e.Type.EdgeSchema.To != nil && e.Type.EdgeSchema.To.Through != nil:
 				continue
@@ -326,6 +331,8 @@ func getInput(v any, typ string) (r InputRef, err error) {
 			case typ == inputTypeCreate && ea.Input.Create:
 				r.AdditionalEdges = append(r.AdditionalEdges, e)
 			case typ == inputTypeUpdate && ea.Input.Update:
+				r.AdditionalEdges = append(r.AdditionalEdges, e)
+			case typ == inputTypePatch && (ea.Input.Create || ea.Input.Update):
 				r.AdditionalEdges = append(r.AdditionalEdges, e)
 			}
 		}
