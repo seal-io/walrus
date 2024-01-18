@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/perspective"
@@ -322,9 +323,52 @@ func (pdi *PerspectiveDeleteInputs) ValidateWith(ctx context.Context, cs ClientS
 // PerspectivePatchInput holds the patch input of the Perspective entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type PerspectivePatchInput struct {
-	PerspectiveUpdateInput `path:",inline" query:"-" json:",inline"`
+	PerspectiveQueryInput `path:",inline" query:"-" json:"-"`
+
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Annotations holds the value of the "annotations" field.
+	Annotations map[string]string `path:"-" query:"-" json:"annotations,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime *time.Time `path:"-" query:"-" json:"updateTime,omitempty"`
+	// Start time for the perspective.
+	StartTime string `path:"-" query:"-" json:"startTime,omitempty"`
+	// End time for the perspective.
+	EndTime string `path:"-" query:"-" json:"endTime,omitempty"`
+	// Is builtin perspective.
+	Builtin bool `path:"-" query:"-" json:"builtin,omitempty"`
+	// Indicated the perspective included cost queries, record the used query condition.
+	CostQueries []types.QueryCondition `path:"-" query:"-" json:"costQueries,omitempty"`
 
 	patchedEntity *Perspective `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the Perspective partition entity for patching.
+func (ppi *PerspectivePatchInput) PatchModel() *Perspective {
+	if ppi == nil {
+		return nil
+	}
+
+	_p := &Perspective{
+		Name:        ppi.Name,
+		Description: ppi.Description,
+		Labels:      ppi.Labels,
+		Annotations: ppi.Annotations,
+		CreateTime:  ppi.CreateTime,
+		UpdateTime:  ppi.UpdateTime,
+		StartTime:   ppi.StartTime,
+		EndTime:     ppi.EndTime,
+		Builtin:     ppi.Builtin,
+		CostQueries: ppi.CostQueries,
+	}
+
+	return _p
 }
 
 // Model returns the Perspective patched entity,
@@ -352,7 +396,7 @@ func (ppi *PerspectivePatchInput) ValidateWith(ctx context.Context, cs ClientSet
 		cache = map[string]any{}
 	}
 
-	if err := ppi.PerspectiveUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := ppi.PerspectiveQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -405,14 +449,23 @@ func (ppi *PerspectivePatchInput) ValidateWith(ctx context.Context, cs ClientSet
 		}
 	}
 
-	_p := ppi.PerspectiveUpdateInput.Model()
+	_pm := ppi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _p)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	ppi.patchedEntity = _obj.(*Perspective)
+	_obj := _po.(*Perspective)
+
+	if e.Name != _obj.Name {
+		return errors.New("field name is immutable")
+	}
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+
+	ppi.patchedEntity = _obj
 	return nil
 }
 

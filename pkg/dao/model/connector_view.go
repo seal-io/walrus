@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/connector"
@@ -402,9 +403,68 @@ func (cdi *ConnectorDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet
 // ConnectorPatchInput holds the patch input of the Connector entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type ConnectorPatchInput struct {
-	ConnectorUpdateInput `path:",inline" query:"-" json:",inline"`
+	ConnectorQueryInput `path:",inline" query:"-" json:"-"`
+
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Annotations holds the value of the "annotations" field.
+	Annotations map[string]string `path:"-" query:"-" json:"annotations,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime *time.Time `path:"-" query:"-" json:"updateTime,omitempty"`
+	// Status holds the value of the "status" field.
+	Status status.Status `path:"-" query:"-" json:"status,omitempty"`
+	// Category of the connector.
+	Category string `path:"-" query:"-" json:"category,omitempty"`
+	// Type of the connector.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
+	// Environment type of the connector to apply.
+	ApplicableEnvironmentType string `path:"-" query:"-" json:"applicableEnvironmentType,omitempty"`
+	// Connector config version.
+	ConfigVersion string `path:"-" query:"-" json:"configVersion,omitempty"`
+	// Connector config data.
+	ConfigData crypto.Properties `path:"-" query:"-" json:"configData,omitempty"`
+	// Config whether enable finOps, will install prometheus and opencost while enable.
+	EnableFinOps bool `path:"-" query:"-" json:"enableFinOps,omitempty"`
+	// Custom pricing user defined.
+	FinOpsCustomPricing *types.FinOpsCustomPricing `path:"-" query:"-" json:"finOpsCustomPricing,omitempty"`
 
 	patchedEntity *Connector `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the Connector partition entity for patching.
+func (cpi *ConnectorPatchInput) PatchModel() *Connector {
+	if cpi == nil {
+		return nil
+	}
+
+	_c := &Connector{
+		Name:                      cpi.Name,
+		Description:               cpi.Description,
+		Labels:                    cpi.Labels,
+		Annotations:               cpi.Annotations,
+		CreateTime:                cpi.CreateTime,
+		UpdateTime:                cpi.UpdateTime,
+		Status:                    cpi.Status,
+		Category:                  cpi.Category,
+		Type:                      cpi.Type,
+		ApplicableEnvironmentType: cpi.ApplicableEnvironmentType,
+		ConfigVersion:             cpi.ConfigVersion,
+		ConfigData:                cpi.ConfigData,
+		EnableFinOps:              cpi.EnableFinOps,
+		FinOpsCustomPricing:       cpi.FinOpsCustomPricing,
+	}
+
+	if cpi.Project != nil {
+		_c.ProjectID = cpi.Project.ID
+	}
+
+	return _c
 }
 
 // Model returns the Connector patched entity,
@@ -432,7 +492,7 @@ func (cpi *ConnectorPatchInput) ValidateWith(ctx context.Context, cs ClientSet, 
 		cache = map[string]any{}
 	}
 
-	if err := cpi.ConnectorUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := cpi.ConnectorQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -506,14 +566,32 @@ func (cpi *ConnectorPatchInput) ValidateWith(ctx context.Context, cs ClientSet, 
 		}
 	}
 
-	_c := cpi.ConnectorUpdateInput.Model()
+	_pm := cpi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _c)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	cpi.patchedEntity = _obj.(*Connector)
+	_obj := _po.(*Connector)
+
+	if e.Name != _obj.Name {
+		return errors.New("field name is immutable")
+	}
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.Category != _obj.Category {
+		return errors.New("field category is immutable")
+	}
+	if e.Type != _obj.Type {
+		return errors.New("field type is immutable")
+	}
+	if e.ApplicableEnvironmentType != _obj.ApplicableEnvironmentType {
+		return errors.New("field applicableEnvironmentType is immutable")
+	}
+
+	cpi.patchedEntity = _obj
 	return nil
 }
 

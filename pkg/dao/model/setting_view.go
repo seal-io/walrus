@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
@@ -286,9 +287,49 @@ func (sdi *SettingDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 // SettingPatchInput holds the patch input of the Setting entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type SettingPatchInput struct {
-	SettingUpdateInput `path:",inline" query:"-" json:",inline"`
+	SettingQueryInput `path:",inline" query:"-" json:"-"`
+
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime *time.Time `path:"-" query:"-" json:"updateTime,omitempty"`
+	// The name of system setting.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// The value of system setting, store in string.
+	Value crypto.String `path:"-" query:"-" json:"value,omitempty"`
+	// Indicate the system setting should be hidden or not, default is visible.
+	Hidden *bool `path:"-" query:"-" json:"hidden,omitempty"`
+	// Indicate the system setting should be edited or not, default is readonly.
+	Editable *bool `path:"-" query:"-" json:"editable,omitempty"`
+	// Indicate the system setting should be sanitized or not before exposing, default is not.
+	Sensitive *bool `path:"-" query:"-" json:"sensitive,omitempty"`
+	// Indicate the system setting should be exposed or not, default is exposed.
+	Private *bool `path:"-" query:"-" json:"private,omitempty"`
+	// Configured indicates the setting whether to be configured.
+	Configured bool `path:"-" query:"-" json:"configured,omitempty"`
 
 	patchedEntity *Setting `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the Setting partition entity for patching.
+func (spi *SettingPatchInput) PatchModel() *Setting {
+	if spi == nil {
+		return nil
+	}
+
+	_s := &Setting{
+		CreateTime: spi.CreateTime,
+		UpdateTime: spi.UpdateTime,
+		Name:       spi.Name,
+		Value:      spi.Value,
+		Hidden:     spi.Hidden,
+		Editable:   spi.Editable,
+		Sensitive:  spi.Sensitive,
+		Private:    spi.Private,
+		Configured: spi.Configured,
+	}
+
+	return _s
 }
 
 // Model returns the Setting patched entity,
@@ -316,7 +357,7 @@ func (spi *SettingPatchInput) ValidateWith(ctx context.Context, cs ClientSet, ca
 		cache = map[string]any{}
 	}
 
-	if err := spi.SettingUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := spi.SettingQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -373,14 +414,23 @@ func (spi *SettingPatchInput) ValidateWith(ctx context.Context, cs ClientSet, ca
 		}
 	}
 
-	_s := spi.SettingUpdateInput.Model()
+	_pm := spi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _s)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	spi.patchedEntity = _obj.(*Setting)
+	_obj := _po.(*Setting)
+
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.Name != _obj.Name {
+		return errors.New("field name is immutable")
+	}
+
+	spi.patchedEntity = _obj
 	return nil
 }
 

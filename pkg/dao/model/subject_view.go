@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
@@ -376,9 +377,57 @@ func (sdi *SubjectDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 // SubjectPatchInput holds the patch input of the Subject entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type SubjectPatchInput struct {
-	SubjectUpdateInput `path:",inline" query:"-" json:",inline"`
+	SubjectQueryInput `path:",inline" query:"-" json:"-"`
+
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime *time.Time `path:"-" query:"-" json:"updateTime,omitempty"`
+	// The kind of the subject.
+	Kind string `path:"-" query:"-" json:"kind,omitempty"`
+	// The domain of the subject.
+	Domain string `path:"-" query:"-" json:"domain,omitempty"`
+	// The name of the subject.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// The detail of the subject.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Indicate whether the subject is builtin, decide when creating.
+	Builtin bool `path:"-" query:"-" json:"builtin,omitempty"`
+
+	// Roles indicates replacing the stale SubjectRoleRelationship entities.
+	Roles []*SubjectRoleRelationshipCreateInput `uri:"-" query:"-" json:"roles,omitempty"`
 
 	patchedEntity *Subject `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the Subject partition entity for patching.
+func (spi *SubjectPatchInput) PatchModel() *Subject {
+	if spi == nil {
+		return nil
+	}
+
+	_s := &Subject{
+		CreateTime:  spi.CreateTime,
+		UpdateTime:  spi.UpdateTime,
+		Kind:        spi.Kind,
+		Domain:      spi.Domain,
+		Name:        spi.Name,
+		Description: spi.Description,
+		Builtin:     spi.Builtin,
+	}
+
+	if spi.Roles != nil {
+		// Empty slice is used for clearing the edge.
+		_s.Edges.Roles = make([]*SubjectRoleRelationship, 0, len(spi.Roles))
+	}
+	for j := range spi.Roles {
+		if spi.Roles[j] == nil {
+			continue
+		}
+		_s.Edges.Roles = append(_s.Edges.Roles,
+			spi.Roles[j].Model())
+	}
+	return _s
 }
 
 // Model returns the Subject patched entity,
@@ -406,11 +455,25 @@ func (spi *SubjectPatchInput) ValidateWith(ctx context.Context, cs ClientSet, ca
 		cache = map[string]any{}
 	}
 
-	if err := spi.SubjectUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := spi.SubjectQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
 	q := cs.Subjects().Query()
+
+	for i := range spi.Roles {
+		if spi.Roles[i] == nil {
+			continue
+		}
+
+		if err := spi.Roles[i].ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				spi.Roles[i] = nil
+			}
+		}
+	}
 
 	if spi.Refer != nil {
 		if spi.Refer.IsID() {
@@ -462,14 +525,32 @@ func (spi *SubjectPatchInput) ValidateWith(ctx context.Context, cs ClientSet, ca
 		}
 	}
 
-	_s := spi.SubjectUpdateInput.Model()
+	_pm := spi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _s)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	spi.patchedEntity = _obj.(*Subject)
+	_obj := _po.(*Subject)
+
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.Kind != _obj.Kind {
+		return errors.New("field kind is immutable")
+	}
+	if e.Domain != _obj.Domain {
+		return errors.New("field domain is immutable")
+	}
+	if e.Name != _obj.Name {
+		return errors.New("field name is immutable")
+	}
+	if e.Builtin != _obj.Builtin {
+		return errors.New("field builtin is immutable")
+	}
+
+	spi.patchedEntity = _obj
 	return nil
 }
 

@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
@@ -454,9 +455,80 @@ func (rrdi *ResourceRevisionDeleteInputs) ValidateWith(ctx context.Context, cs C
 // ResourceRevisionPatchInput holds the patch input of the ResourceRevision entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type ResourceRevisionPatchInput struct {
-	ResourceRevisionUpdateInput `path:",inline" query:"-" json:",inline"`
+	ResourceRevisionQueryInput `path:",inline" query:"-" json:"-"`
+
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// Status holds the value of the "status" field.
+	Status status.Status `path:"-" query:"-" json:"status,omitempty"`
+	// Name of the template.
+	TemplateName string `path:"-" query:"-" json:"templateName,omitempty"`
+	// Version of the template.
+	TemplateVersion string `path:"-" query:"-" json:"templateVersion,omitempty"`
+	// ID of the template.
+	TemplateID object.ID `path:"-" query:"-" json:"templateID,omitempty"`
+	// Attributes to configure the template.
+	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Computed attributes generated from attributes and schemas.
+	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
+	// Variables of the revision.
+	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables,omitempty"`
+	// Input plan of the revision.
+	InputPlan string `path:"-" query:"-" json:"inputPlan,omitempty"`
+	// Output of the revision.
+	Output string `path:"-" query:"-" json:"output,omitempty"`
+	// Type of deployer.
+	DeployerType string `path:"-" query:"-" json:"deployerType,omitempty"`
+	// Duration in seconds of the revision deploying.
+	Duration int `path:"-" query:"-" json:"duration,omitempty"`
+	// Previous provider requirement of the revision.
+	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
+	// Record of the revision.
+	Record string `path:"-" query:"-" json:"record,omitempty"`
+	// Change comment of the revision.
+	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
+	// User who created the revision.
+	CreatedBy string `path:"-" query:"-" json:"createdBy,omitempty"`
 
 	patchedEntity *ResourceRevision `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the ResourceRevision partition entity for patching.
+func (rrpi *ResourceRevisionPatchInput) PatchModel() *ResourceRevision {
+	if rrpi == nil {
+		return nil
+	}
+
+	_rr := &ResourceRevision{
+		CreateTime:                rrpi.CreateTime,
+		Status:                    rrpi.Status,
+		TemplateName:              rrpi.TemplateName,
+		TemplateVersion:           rrpi.TemplateVersion,
+		TemplateID:                rrpi.TemplateID,
+		Attributes:                rrpi.Attributes,
+		ComputedAttributes:        rrpi.ComputedAttributes,
+		Variables:                 rrpi.Variables,
+		InputPlan:                 rrpi.InputPlan,
+		Output:                    rrpi.Output,
+		DeployerType:              rrpi.DeployerType,
+		Duration:                  rrpi.Duration,
+		PreviousRequiredProviders: rrpi.PreviousRequiredProviders,
+		Record:                    rrpi.Record,
+		ChangeComment:             rrpi.ChangeComment,
+		CreatedBy:                 rrpi.CreatedBy,
+	}
+
+	if rrpi.Project != nil {
+		_rr.ProjectID = rrpi.Project.ID
+	}
+	if rrpi.Environment != nil {
+		_rr.EnvironmentID = rrpi.Environment.ID
+	}
+	if rrpi.Resource != nil {
+		_rr.ResourceID = rrpi.Resource.ID
+	}
+
+	return _rr
 }
 
 // Model returns the ResourceRevision patched entity,
@@ -484,7 +556,7 @@ func (rrpi *ResourceRevisionPatchInput) ValidateWith(ctx context.Context, cs Cli
 		cache = map[string]any{}
 	}
 
-	if err := rrpi.ResourceRevisionUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := rrpi.ResourceRevisionQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -562,14 +634,26 @@ func (rrpi *ResourceRevisionPatchInput) ValidateWith(ctx context.Context, cs Cli
 		}
 	}
 
-	_rr := rrpi.ResourceRevisionUpdateInput.Model()
+	_pm := rrpi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _rr)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	rrpi.patchedEntity = _obj.(*ResourceRevision)
+	_obj := _po.(*ResourceRevision)
+
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.TemplateName != _obj.TemplateName {
+		return errors.New("field templateName is immutable")
+	}
+	if e.TemplateID != _obj.TemplateID {
+		return errors.New("field templateID is immutable")
+	}
+
+	rrpi.patchedEntity = _obj
 	return nil
 }
 

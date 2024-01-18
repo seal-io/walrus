@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
@@ -515,9 +516,61 @@ func (edi *EnvironmentDeleteInputs) ValidateWith(ctx context.Context, cs ClientS
 // EnvironmentPatchInput holds the patch input of the Environment entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type EnvironmentPatchInput struct {
-	EnvironmentUpdateInput `path:",inline" query:"-" json:",inline"`
+	EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
+
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Annotations holds the value of the "annotations" field.
+	Annotations map[string]string `path:"-" query:"-" json:"annotations,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime *time.Time `path:"-" query:"-" json:"updateTime,omitempty"`
+	// Type of the environment.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
+
+	// Connectors indicates replacing the stale EnvironmentConnectorRelationship entities.
+	Connectors []*EnvironmentConnectorRelationshipCreateInput `uri:"-" query:"-" json:"connectors,omitempty"`
 
 	patchedEntity *Environment `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the Environment partition entity for patching.
+func (epi *EnvironmentPatchInput) PatchModel() *Environment {
+	if epi == nil {
+		return nil
+	}
+
+	_e := &Environment{
+		Name:        epi.Name,
+		Description: epi.Description,
+		Labels:      epi.Labels,
+		Annotations: epi.Annotations,
+		CreateTime:  epi.CreateTime,
+		UpdateTime:  epi.UpdateTime,
+		Type:        epi.Type,
+	}
+
+	if epi.Project != nil {
+		_e.ProjectID = epi.Project.ID
+	}
+
+	if epi.Connectors != nil {
+		// Empty slice is used for clearing the edge.
+		_e.Edges.Connectors = make([]*EnvironmentConnectorRelationship, 0, len(epi.Connectors))
+	}
+	for j := range epi.Connectors {
+		if epi.Connectors[j] == nil {
+			continue
+		}
+		_e.Edges.Connectors = append(_e.Edges.Connectors,
+			epi.Connectors[j].Model())
+	}
+	return _e
 }
 
 // Model returns the Environment patched entity,
@@ -545,7 +598,7 @@ func (epi *EnvironmentPatchInput) ValidateWith(ctx context.Context, cs ClientSet
 		cache = map[string]any{}
 	}
 
-	if err := epi.EnvironmentUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := epi.EnvironmentQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -559,6 +612,20 @@ func (epi *EnvironmentPatchInput) ValidateWith(ctx context.Context, cs ClientSet
 			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
 			q.Where(
 				environment.ProjectID(epi.Project.ID))
+		}
+	}
+
+	for i := range epi.Connectors {
+		if epi.Connectors[i] == nil {
+			continue
+		}
+
+		if err := epi.Connectors[i].ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				epi.Connectors[i] = nil
+			}
 		}
 	}
 
@@ -609,14 +676,26 @@ func (epi *EnvironmentPatchInput) ValidateWith(ctx context.Context, cs ClientSet
 		}
 	}
 
-	_e := epi.EnvironmentUpdateInput.Model()
+	_pm := epi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _e)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	epi.patchedEntity = _obj.(*Environment)
+	_obj := _po.(*Environment)
+
+	if e.Name != _obj.Name {
+		return errors.New("field name is immutable")
+	}
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.Type != _obj.Type {
+		return errors.New("field type is immutable")
+	}
+
+	epi.patchedEntity = _obj
 	return nil
 }
 

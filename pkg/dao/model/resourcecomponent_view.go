@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
@@ -569,9 +570,99 @@ func (rcdi *ResourceComponentDeleteInputs) ValidateWith(ctx context.Context, cs 
 // ResourceComponentPatchInput holds the patch input of the ResourceComponent entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type ResourceComponentPatchInput struct {
-	ResourceComponentUpdateInput `path:",inline" query:"-" json:",inline"`
+	ResourceComponentQueryInput `path:",inline" query:"-" json:"-"`
+
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime *time.Time `path:"-" query:"-" json:"updateTime,omitempty"`
+	// Status holds the value of the "status" field.
+	Status status.Status `path:"-" query:"-" json:"status,omitempty"`
+	// Mode that manages the generated component, it is the management way of the deployer to the component, which provides by deployer.
+	Mode string `path:"-" query:"-" json:"mode,omitempty"`
+	// Type of the generated component, it is the type of the resource which the deployer observes, which provides by deployer.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
+	// Name of the generated component, it is the real identifier of the component, which provides by deployer.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// Type of deployer.
+	DeployerType string `path:"-" query:"-" json:"deployerType,omitempty"`
+	// Shape of the component, it can be class or instance shape.
+	Shape string `path:"-" query:"-" json:"shape,omitempty"`
+	// Keys of the component.
+	Keys *types.ResourceComponentOperationKeys `path:"-" query:"-" json:"keys,omitempty"`
+
+	// Components indicates replacing the stale ResourceComponent entities.
+	Components []*ResourceComponentCreateInput `uri:"-" query:"-" json:"components,omitempty"`
+	// Instances indicates replacing the stale ResourceComponent entities.
+	Instances []*ResourceComponentCreateInput `uri:"-" query:"-" json:"instances,omitempty"`
+	// Dependencies indicates replacing the stale ResourceComponentRelationship entities.
+	Dependencies []*ResourceComponentRelationshipCreateInput `uri:"-" query:"-" json:"dependencies,omitempty"`
 
 	patchedEntity *ResourceComponent `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the ResourceComponent partition entity for patching.
+func (rcpi *ResourceComponentPatchInput) PatchModel() *ResourceComponent {
+	if rcpi == nil {
+		return nil
+	}
+
+	_rc := &ResourceComponent{
+		CreateTime:   rcpi.CreateTime,
+		UpdateTime:   rcpi.UpdateTime,
+		Status:       rcpi.Status,
+		Mode:         rcpi.Mode,
+		Type:         rcpi.Type,
+		Name:         rcpi.Name,
+		DeployerType: rcpi.DeployerType,
+		Shape:        rcpi.Shape,
+		Keys:         rcpi.Keys,
+	}
+
+	if rcpi.Project != nil {
+		_rc.ProjectID = rcpi.Project.ID
+	}
+	if rcpi.Environment != nil {
+		_rc.EnvironmentID = rcpi.Environment.ID
+	}
+	if rcpi.Resource != nil {
+		_rc.ResourceID = rcpi.Resource.ID
+	}
+
+	if rcpi.Components != nil {
+		// Empty slice is used for clearing the edge.
+		_rc.Edges.Components = make([]*ResourceComponent, 0, len(rcpi.Components))
+	}
+	for j := range rcpi.Components {
+		if rcpi.Components[j] == nil {
+			continue
+		}
+		_rc.Edges.Components = append(_rc.Edges.Components,
+			rcpi.Components[j].Model())
+	}
+	if rcpi.Instances != nil {
+		// Empty slice is used for clearing the edge.
+		_rc.Edges.Instances = make([]*ResourceComponent, 0, len(rcpi.Instances))
+	}
+	for j := range rcpi.Instances {
+		if rcpi.Instances[j] == nil {
+			continue
+		}
+		_rc.Edges.Instances = append(_rc.Edges.Instances,
+			rcpi.Instances[j].Model())
+	}
+	if rcpi.Dependencies != nil {
+		// Empty slice is used for clearing the edge.
+		_rc.Edges.Dependencies = make([]*ResourceComponentRelationship, 0, len(rcpi.Dependencies))
+	}
+	for j := range rcpi.Dependencies {
+		if rcpi.Dependencies[j] == nil {
+			continue
+		}
+		_rc.Edges.Dependencies = append(_rc.Edges.Dependencies,
+			rcpi.Dependencies[j].Model())
+	}
+	return _rc
 }
 
 // Model returns the ResourceComponent patched entity,
@@ -599,7 +690,7 @@ func (rcpi *ResourceComponentPatchInput) ValidateWith(ctx context.Context, cs Cl
 		cache = map[string]any{}
 	}
 
-	if err := rcpi.ResourceComponentUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := rcpi.ResourceComponentQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -633,6 +724,48 @@ func (rcpi *ResourceComponentPatchInput) ValidateWith(ctx context.Context, cs Cl
 		} else {
 			q.Where(
 				resourcecomponent.ResourceID(rcpi.Resource.ID))
+		}
+	}
+
+	for i := range rcpi.Components {
+		if rcpi.Components[i] == nil {
+			continue
+		}
+
+		if err := rcpi.Components[i].ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rcpi.Components[i] = nil
+			}
+		}
+	}
+
+	for i := range rcpi.Instances {
+		if rcpi.Instances[i] == nil {
+			continue
+		}
+
+		if err := rcpi.Instances[i].ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rcpi.Instances[i] = nil
+			}
+		}
+	}
+
+	for i := range rcpi.Dependencies {
+		if rcpi.Dependencies[i] == nil {
+			continue
+		}
+
+		if err := rcpi.Dependencies[i].ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rcpi.Dependencies[i] = nil
+			}
 		}
 	}
 
@@ -677,14 +810,35 @@ func (rcpi *ResourceComponentPatchInput) ValidateWith(ctx context.Context, cs Cl
 		}
 	}
 
-	_rc := rcpi.ResourceComponentUpdateInput.Model()
+	_pm := rcpi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _rc)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	rcpi.patchedEntity = _obj.(*ResourceComponent)
+	_obj := _po.(*ResourceComponent)
+
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.Mode != _obj.Mode {
+		return errors.New("field mode is immutable")
+	}
+	if e.Type != _obj.Type {
+		return errors.New("field type is immutable")
+	}
+	if e.Name != _obj.Name {
+		return errors.New("field name is immutable")
+	}
+	if e.DeployerType != _obj.DeployerType {
+		return errors.New("field deployerType is immutable")
+	}
+	if e.Shape != _obj.Shape {
+		return errors.New("field shape is immutable")
+	}
+
+	rcpi.patchedEntity = _obj
 	return nil
 }
 

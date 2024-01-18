@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
@@ -508,9 +509,81 @@ func (rdi *ResourceDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet,
 // ResourcePatchInput holds the patch input of the Resource entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type ResourcePatchInput struct {
-	ResourceUpdateInput `path:",inline" query:"-" json:",inline"`
+	ResourceQueryInput `path:",inline" query:"-" json:"-"`
+
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Annotations holds the value of the "annotations" field.
+	Annotations map[string]string `path:"-" query:"-" json:"annotations,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime *time.Time `path:"-" query:"-" json:"updateTime,omitempty"`
+	// Status holds the value of the "status" field.
+	Status status.Status `path:"-" query:"-" json:"status,omitempty"`
+	// Type of the resource referring to a resource definition type.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
+	// Attributes to configure the template.
+	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Computed attributes generated from attributes and schemas.
+	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
+	// Endpoints of the resource.
+	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,omitempty"`
+	// Change comment of the resource.
+	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
+
+	// Template indicates replacing the stale TemplateVersion entity.
+	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template,omitempty"`
+	// ResourceDefinition indicates replacing the stale ResourceDefinition entity.
+	ResourceDefinition *ResourceDefinitionQueryInput `uri:"-" query:"-" json:"-"`
+	// ResourceDefinitionMatchingRule indicates replacing the stale ResourceDefinitionMatchingRule entity.
+	ResourceDefinitionMatchingRule *ResourceDefinitionMatchingRuleQueryInput `uri:"-" query:"-" json:"resourceDefinitionMatchingRule,omitempty"`
 
 	patchedEntity *Resource `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the Resource partition entity for patching.
+func (rpi *ResourcePatchInput) PatchModel() *Resource {
+	if rpi == nil {
+		return nil
+	}
+
+	_r := &Resource{
+		Name:               rpi.Name,
+		Description:        rpi.Description,
+		Labels:             rpi.Labels,
+		Annotations:        rpi.Annotations,
+		CreateTime:         rpi.CreateTime,
+		UpdateTime:         rpi.UpdateTime,
+		Status:             rpi.Status,
+		Type:               rpi.Type,
+		Attributes:         rpi.Attributes,
+		ComputedAttributes: rpi.ComputedAttributes,
+		Endpoints:          rpi.Endpoints,
+		ChangeComment:      rpi.ChangeComment,
+	}
+
+	if rpi.Project != nil {
+		_r.ProjectID = rpi.Project.ID
+	}
+	if rpi.Environment != nil {
+		_r.EnvironmentID = rpi.Environment.ID
+	}
+
+	if rpi.Template != nil {
+		_r.TemplateID = &rpi.Template.ID
+	}
+	if rpi.ResourceDefinition != nil {
+		_r.ResourceDefinitionID = &rpi.ResourceDefinition.ID
+	}
+	if rpi.ResourceDefinitionMatchingRule != nil {
+		_r.ResourceDefinitionMatchingRuleID = &rpi.ResourceDefinitionMatchingRule.ID
+	}
+	return _r
 }
 
 // Model returns the Resource patched entity,
@@ -538,7 +611,7 @@ func (rpi *ResourcePatchInput) ValidateWith(ctx context.Context, cs ClientSet, c
 		cache = map[string]any{}
 	}
 
-	if err := rpi.ResourceUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := rpi.ResourceQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -562,6 +635,36 @@ func (rpi *ResourcePatchInput) ValidateWith(ctx context.Context, cs ClientSet, c
 		} else {
 			q.Where(
 				resource.EnvironmentID(rpi.Environment.ID))
+		}
+	}
+
+	if rpi.Template != nil {
+		if err := rpi.Template.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rpi.Template = nil
+			}
+		}
+	}
+
+	if rpi.ResourceDefinition != nil {
+		if err := rpi.ResourceDefinition.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rpi.ResourceDefinition = nil
+			}
+		}
+	}
+
+	if rpi.ResourceDefinitionMatchingRule != nil {
+		if err := rpi.ResourceDefinitionMatchingRule.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rpi.ResourceDefinitionMatchingRule = nil
+			}
 		}
 	}
 
@@ -613,14 +716,26 @@ func (rpi *ResourcePatchInput) ValidateWith(ctx context.Context, cs ClientSet, c
 		}
 	}
 
-	_r := rpi.ResourceUpdateInput.Model()
+	_pm := rpi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _r)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	rpi.patchedEntity = _obj.(*Resource)
+	_obj := _po.(*Resource)
+
+	if e.Name != _obj.Name {
+		return errors.New("field name is immutable")
+	}
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.Type != _obj.Type {
+		return errors.New("field type is immutable")
+	}
+
+	rpi.patchedEntity = _obj
 	return nil
 }
 

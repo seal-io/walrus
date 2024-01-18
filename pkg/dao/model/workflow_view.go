@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
@@ -432,9 +433,76 @@ func (wdi *WorkflowDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet,
 // WorkflowPatchInput holds the patch input of the Workflow entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type WorkflowPatchInput struct {
-	WorkflowUpdateInput `path:",inline" query:"-" json:",inline"`
+	WorkflowQueryInput `path:",inline" query:"-" json:"-"`
+
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Annotations holds the value of the "annotations" field.
+	Annotations map[string]string `path:"-" query:"-" json:"annotations,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime *time.Time `path:"-" query:"-" json:"updateTime,omitempty"`
+	// ID of the environment that this workflow belongs to.
+	EnvironmentID object.ID `path:"-" query:"-" json:"environmentID,omitempty"`
+	// Type of the workflow.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
+	// Number of task pods that can be executed in parallel of workflow.
+	Parallelism int `path:"-" query:"-" json:"parallelism,omitempty"`
+	// Timeout seconds of the workflow.
+	Timeout int `path:"-" query:"-" json:"timeout,omitempty"`
+	// Execution version of the workflow.
+	Version int `path:"-" query:"-" json:"version,omitempty"`
+	// Configs of workflow variables.
+	Variables types.WorkflowVariables `path:"-" query:"-" json:"variables,omitempty"`
+
+	// Stages indicates replacing the stale WorkflowStage entities.
+	Stages []*WorkflowStageCreateInput `uri:"-" query:"-" json:"stages,omitempty"`
 
 	patchedEntity *Workflow `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the Workflow partition entity for patching.
+func (wpi *WorkflowPatchInput) PatchModel() *Workflow {
+	if wpi == nil {
+		return nil
+	}
+
+	_w := &Workflow{
+		Name:          wpi.Name,
+		Description:   wpi.Description,
+		Labels:        wpi.Labels,
+		Annotations:   wpi.Annotations,
+		CreateTime:    wpi.CreateTime,
+		UpdateTime:    wpi.UpdateTime,
+		EnvironmentID: wpi.EnvironmentID,
+		Type:          wpi.Type,
+		Parallelism:   wpi.Parallelism,
+		Timeout:       wpi.Timeout,
+		Version:       wpi.Version,
+		Variables:     wpi.Variables,
+	}
+
+	if wpi.Project != nil {
+		_w.ProjectID = wpi.Project.ID
+	}
+
+	if wpi.Stages != nil {
+		// Empty slice is used for clearing the edge.
+		_w.Edges.Stages = make([]*WorkflowStage, 0, len(wpi.Stages))
+	}
+	for j := range wpi.Stages {
+		if wpi.Stages[j] == nil {
+			continue
+		}
+		_w.Edges.Stages = append(_w.Edges.Stages,
+			wpi.Stages[j].Model())
+	}
+	return _w
 }
 
 // Model returns the Workflow patched entity,
@@ -462,7 +530,7 @@ func (wpi *WorkflowPatchInput) ValidateWith(ctx context.Context, cs ClientSet, c
 		cache = map[string]any{}
 	}
 
-	if err := wpi.WorkflowUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := wpi.WorkflowQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -476,6 +544,20 @@ func (wpi *WorkflowPatchInput) ValidateWith(ctx context.Context, cs ClientSet, c
 			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
 			q.Where(
 				workflow.ProjectID(wpi.Project.ID))
+		}
+	}
+
+	for i := range wpi.Stages {
+		if wpi.Stages[i] == nil {
+			continue
+		}
+
+		if err := wpi.Stages[i].ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				wpi.Stages[i] = nil
+			}
 		}
 	}
 
@@ -527,14 +609,29 @@ func (wpi *WorkflowPatchInput) ValidateWith(ctx context.Context, cs ClientSet, c
 		}
 	}
 
-	_w := wpi.WorkflowUpdateInput.Model()
+	_pm := wpi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _w)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	wpi.patchedEntity = _obj.(*Workflow)
+	_obj := _po.(*Workflow)
+
+	if e.Name != _obj.Name {
+		return errors.New("field name is immutable")
+	}
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.EnvironmentID != _obj.EnvironmentID {
+		return errors.New("field environmentID is immutable")
+	}
+	if e.Type != _obj.Type {
+		return errors.New("field type is immutable")
+	}
+
+	wpi.patchedEntity = _obj
 	return nil
 }
 

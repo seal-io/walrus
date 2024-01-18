@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
@@ -364,9 +365,50 @@ func (tdi *TemplateDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet,
 // TemplatePatchInput holds the patch input of the Template entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type TemplatePatchInput struct {
-	TemplateUpdateInput `path:",inline" query:"-" json:",inline"`
+	TemplateQueryInput `path:",inline" query:"-" json:"-"`
+
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime *time.Time `path:"-" query:"-" json:"updateTime,omitempty"`
+	// Status holds the value of the "status" field.
+	Status status.Status `path:"-" query:"-" json:"status,omitempty"`
+	// A URL to an SVG or PNG image to be used as an icon.
+	Icon string `path:"-" query:"-" json:"icon,omitempty"`
+	// Source of the template.
+	Source string `path:"-" query:"-" json:"source,omitempty"`
 
 	patchedEntity *Template `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the Template partition entity for patching.
+func (tpi *TemplatePatchInput) PatchModel() *Template {
+	if tpi == nil {
+		return nil
+	}
+
+	_t := &Template{
+		Name:        tpi.Name,
+		Description: tpi.Description,
+		Labels:      tpi.Labels,
+		CreateTime:  tpi.CreateTime,
+		UpdateTime:  tpi.UpdateTime,
+		Status:      tpi.Status,
+		Icon:        tpi.Icon,
+		Source:      tpi.Source,
+	}
+
+	if tpi.Project != nil {
+		_t.ProjectID = tpi.Project.ID
+	}
+
+	return _t
 }
 
 // Model returns the Template patched entity,
@@ -394,7 +436,7 @@ func (tpi *TemplatePatchInput) ValidateWith(ctx context.Context, cs ClientSet, c
 		cache = map[string]any{}
 	}
 
-	if err := tpi.TemplateUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := tpi.TemplateQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -468,14 +510,26 @@ func (tpi *TemplatePatchInput) ValidateWith(ctx context.Context, cs ClientSet, c
 		}
 	}
 
-	_t := tpi.TemplateUpdateInput.Model()
+	_pm := tpi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _t)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	tpi.patchedEntity = _obj.(*Template)
+	_obj := _po.(*Template)
+
+	if e.Name != _obj.Name {
+		return errors.New("field name is immutable")
+	}
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.Source != _obj.Source {
+		return errors.New("field source is immutable")
+	}
+
+	tpi.patchedEntity = _obj
 	return nil
 }
 

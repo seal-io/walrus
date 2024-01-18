@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/workflowstep"
@@ -401,9 +402,74 @@ func (wsdi *WorkflowStepDeleteInputs) ValidateWith(ctx context.Context, cs Clien
 // WorkflowStepPatchInput holds the patch input of the WorkflowStep entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type WorkflowStepPatchInput struct {
-	WorkflowStepUpdateInput `path:",inline" query:"-" json:",inline"`
+	WorkflowStepQueryInput `path:",inline" query:"-" json:"-"`
+
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Annotations holds the value of the "annotations" field.
+	Annotations map[string]string `path:"-" query:"-" json:"annotations,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime *time.Time `path:"-" query:"-" json:"updateTime,omitempty"`
+	// Type of the workflow step.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
+	// ID of the workflow that this workflow step belongs to.
+	WorkflowID object.ID `path:"-" query:"-" json:"workflowID,omitempty"`
+	// Attributes of the workflow step.
+	Attributes map[string]any `path:"-" query:"-" json:"attributes,omitempty"`
+	// Inputs of the workflow step.
+	Inputs map[string]any `path:"-" query:"-" json:"inputs,omitempty"`
+	// Outputs of the workflow step.
+	Outputs map[string]any `path:"-" query:"-" json:"outputs,omitempty"`
+	// Order of the workflow step.
+	Order int `path:"-" query:"-" json:"order,omitempty"`
+	// ID list of the workflow steps that this workflow step depends on.
+	Dependencies []object.ID `path:"-" query:"-" json:"dependencies,omitempty"`
+	// Retry policy of the workflow step.
+	RetryStrategy *types.RetryStrategy `path:"-" query:"-" json:"retryStrategy,omitempty"`
+	// Timeout seconds of the workflow step, 0 means no timeout.
+	Timeout int `path:"-" query:"-" json:"timeout,omitempty"`
 
 	patchedEntity *WorkflowStep `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the WorkflowStep partition entity for patching.
+func (wspi *WorkflowStepPatchInput) PatchModel() *WorkflowStep {
+	if wspi == nil {
+		return nil
+	}
+
+	_ws := &WorkflowStep{
+		Name:          wspi.Name,
+		Description:   wspi.Description,
+		Labels:        wspi.Labels,
+		Annotations:   wspi.Annotations,
+		CreateTime:    wspi.CreateTime,
+		UpdateTime:    wspi.UpdateTime,
+		Type:          wspi.Type,
+		WorkflowID:    wspi.WorkflowID,
+		Attributes:    wspi.Attributes,
+		Inputs:        wspi.Inputs,
+		Outputs:       wspi.Outputs,
+		Order:         wspi.Order,
+		Dependencies:  wspi.Dependencies,
+		RetryStrategy: wspi.RetryStrategy,
+		Timeout:       wspi.Timeout,
+	}
+
+	if wspi.Project != nil {
+		_ws.ProjectID = wspi.Project.ID
+	}
+	if wspi.Stage != nil {
+		_ws.WorkflowStageID = wspi.Stage.ID
+	}
+
+	return _ws
 }
 
 // Model returns the WorkflowStep patched entity,
@@ -431,7 +497,7 @@ func (wspi *WorkflowStepPatchInput) ValidateWith(ctx context.Context, cs ClientS
 		cache = map[string]any{}
 	}
 
-	if err := wspi.WorkflowStepUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := wspi.WorkflowStepQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -500,14 +566,29 @@ func (wspi *WorkflowStepPatchInput) ValidateWith(ctx context.Context, cs ClientS
 		}
 	}
 
-	_ws := wspi.WorkflowStepUpdateInput.Model()
+	_pm := wspi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _ws)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	wspi.patchedEntity = _obj.(*WorkflowStep)
+	_obj := _po.(*WorkflowStep)
+
+	if e.Name != _obj.Name {
+		return errors.New("field name is immutable")
+	}
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.Type != _obj.Type {
+		return errors.New("field type is immutable")
+	}
+	if e.WorkflowID != _obj.WorkflowID {
+		return errors.New("field workflowID is immutable")
+	}
+
+	wspi.patchedEntity = _obj
 	return nil
 }
 

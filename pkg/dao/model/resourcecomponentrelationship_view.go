@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
@@ -318,9 +319,34 @@ func (rcrdi *ResourceComponentRelationshipDeleteInputs) ValidateWith(ctx context
 // ResourceComponentRelationshipPatchInput holds the patch input of the ResourceComponentRelationship entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type ResourceComponentRelationshipPatchInput struct {
-	ResourceComponentRelationshipUpdateInput `path:",inline" query:"-" json:",inline"`
+	ResourceComponentRelationshipQueryInput `path:",inline" query:"-" json:"-"`
+
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// Type of the relationship.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
+
+	// Dependency indicates replacing the stale ResourceComponent entity.
+	Dependency *ResourceComponentQueryInput `uri:"-" query:"-" json:"dependency"`
 
 	patchedEntity *ResourceComponentRelationship `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the ResourceComponentRelationship partition entity for patching.
+func (rcrpi *ResourceComponentRelationshipPatchInput) PatchModel() *ResourceComponentRelationship {
+	if rcrpi == nil {
+		return nil
+	}
+
+	_rcr := &ResourceComponentRelationship{
+		CreateTime: rcrpi.CreateTime,
+		Type:       rcrpi.Type,
+	}
+
+	if rcrpi.Dependency != nil {
+		_rcr.DependencyID = rcrpi.Dependency.ID
+	}
+	return _rcr
 }
 
 // Model returns the ResourceComponentRelationship patched entity,
@@ -348,11 +374,21 @@ func (rcrpi *ResourceComponentRelationshipPatchInput) ValidateWith(ctx context.C
 		cache = map[string]any{}
 	}
 
-	if err := rcrpi.ResourceComponentRelationshipUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := rcrpi.ResourceComponentRelationshipQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
 	q := cs.ResourceComponentRelationships().Query()
+
+	if rcrpi.Dependency != nil {
+		if err := rcrpi.Dependency.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rcrpi.Dependency = nil
+			}
+		}
+	}
 
 	if rcrpi.Refer != nil {
 		if rcrpi.Refer.IsID() {
@@ -399,14 +435,23 @@ func (rcrpi *ResourceComponentRelationshipPatchInput) ValidateWith(ctx context.C
 		}
 	}
 
-	_rcr := rcrpi.ResourceComponentRelationshipUpdateInput.Model()
+	_pm := rcrpi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _rcr)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	rcrpi.patchedEntity = _obj.(*ResourceComponentRelationship)
+	_obj := _po.(*ResourceComponentRelationship)
+
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.Type != _obj.Type {
+		return errors.New("field type is immutable")
+	}
+
+	rcrpi.patchedEntity = _obj
 	return nil
 }
 

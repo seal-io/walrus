@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/workflowexecution"
@@ -364,9 +365,70 @@ func (wedi *WorkflowExecutionDeleteInputs) ValidateWith(ctx context.Context, cs 
 // WorkflowExecutionPatchInput holds the patch input of the WorkflowExecution entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type WorkflowExecutionPatchInput struct {
-	WorkflowExecutionUpdateInput `path:",inline" query:"-" json:",inline"`
+	WorkflowExecutionQueryInput `path:",inline" query:"-" json:"-"`
+
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Annotations holds the value of the "annotations" field.
+	Annotations map[string]string `path:"-" query:"-" json:"annotations,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime *time.Time `path:"-" query:"-" json:"updateTime,omitempty"`
+	// Status holds the value of the "status" field.
+	Status status.Status `path:"-" query:"-" json:"status,omitempty"`
+	// Version of the workflow execution.
+	Version int `path:"-" query:"-" json:"version,omitempty"`
+	// Type of the workflow execution.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
+	// ID of the subject that create workflow execution.
+	SubjectID object.ID `path:"-" query:"-" json:"subjectID,omitempty"`
+	// Time of the workflow execution started.
+	ExecuteTime time.Time `path:"-" query:"-" json:"executeTime,omitempty"`
+	// Number of times that this workflow execution has been executed.
+	Times int `path:"-" query:"-" json:"times,omitempty"`
+	// Duration seconds of the workflow execution.
+	Duration int `path:"-" query:"-" json:"duration,omitempty"`
+	// Number of task pods that can be executed in parallel of workflow.
+	Parallelism int `path:"-" query:"-" json:"parallelism,omitempty"`
+	// Timeout of the workflow execution.
+	Timeout int `path:"-" query:"-" json:"timeout,omitempty"`
+	// Trigger of the workflow execution.
+	Trigger types.WorkflowExecutionTrigger `path:"-" query:"-" json:"trigger,omitempty"`
 
 	patchedEntity *WorkflowExecution `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the WorkflowExecution partition entity for patching.
+func (wepi *WorkflowExecutionPatchInput) PatchModel() *WorkflowExecution {
+	if wepi == nil {
+		return nil
+	}
+
+	_we := &WorkflowExecution{
+		Name:        wepi.Name,
+		Description: wepi.Description,
+		Labels:      wepi.Labels,
+		Annotations: wepi.Annotations,
+		CreateTime:  wepi.CreateTime,
+		UpdateTime:  wepi.UpdateTime,
+		Status:      wepi.Status,
+		Version:     wepi.Version,
+		Type:        wepi.Type,
+		SubjectID:   wepi.SubjectID,
+		ExecuteTime: wepi.ExecuteTime,
+		Times:       wepi.Times,
+		Duration:    wepi.Duration,
+		Parallelism: wepi.Parallelism,
+		Timeout:     wepi.Timeout,
+		Trigger:     wepi.Trigger,
+	}
+
+	return _we
 }
 
 // Model returns the WorkflowExecution patched entity,
@@ -394,7 +456,7 @@ func (wepi *WorkflowExecutionPatchInput) ValidateWith(ctx context.Context, cs Cl
 		cache = map[string]any{}
 	}
 
-	if err := wepi.WorkflowExecutionUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := wepi.WorkflowExecutionQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -468,14 +530,29 @@ func (wepi *WorkflowExecutionPatchInput) ValidateWith(ctx context.Context, cs Cl
 		}
 	}
 
-	_we := wepi.WorkflowExecutionUpdateInput.Model()
+	_pm := wepi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _we)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	wepi.patchedEntity = _obj.(*WorkflowExecution)
+	_obj := _po.(*WorkflowExecution)
+
+	if e.Name != _obj.Name {
+		return errors.New("field name is immutable")
+	}
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.Type != _obj.Type {
+		return errors.New("field type is immutable")
+	}
+	if e.SubjectID != _obj.SubjectID {
+		return errors.New("field subjectID is immutable")
+	}
+
+	wepi.patchedEntity = _obj
 	return nil
 }
 

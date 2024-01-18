@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
@@ -304,9 +305,40 @@ func (tdi *TokenDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, ca
 // TokenPatchInput holds the patch input of the Token entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type TokenPatchInput struct {
-	TokenUpdateInput `path:",inline" query:"-" json:",inline"`
+	TokenQueryInput `path:",inline" query:"-" json:"-"`
+
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// The kind of token.
+	Kind string `path:"-" query:"-" json:"kind,omitempty"`
+	// The name of token.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// The time of expiration, empty means forever.
+	Expiration *time.Time `path:"-" query:"-" json:"expiration,omitempty"`
+	// The value of token, store in string.
+	Value crypto.String `path:"-" query:"-" json:"value,omitempty"`
+	// AccessToken is the token used for authentication.
+	AccessToken string `path:"-" query:"-" json:"accessToken,omitempty"`
 
 	patchedEntity *Token `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the Token partition entity for patching.
+func (tpi *TokenPatchInput) PatchModel() *Token {
+	if tpi == nil {
+		return nil
+	}
+
+	_t := &Token{
+		CreateTime:  tpi.CreateTime,
+		Kind:        tpi.Kind,
+		Name:        tpi.Name,
+		Expiration:  tpi.Expiration,
+		Value:       tpi.Value,
+		AccessToken: tpi.AccessToken,
+	}
+
+	return _t
 }
 
 // Model returns the Token patched entity,
@@ -334,7 +366,7 @@ func (tpi *TokenPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cach
 		cache = map[string]any{}
 	}
 
-	if err := tpi.TokenUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := tpi.TokenQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -385,14 +417,32 @@ func (tpi *TokenPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cach
 		}
 	}
 
-	_t := tpi.TokenUpdateInput.Model()
+	_pm := tpi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _t)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	tpi.patchedEntity = _obj.(*Token)
+	_obj := _po.(*Token)
+
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.Kind != _obj.Kind {
+		return errors.New("field kind is immutable")
+	}
+	if e.Name != _obj.Name {
+		return errors.New("field name is immutable")
+	}
+	if !reflect.DeepEqual(e.Expiration, _obj.Expiration) {
+		return errors.New("field expiration is immutable")
+	}
+	if e.Value != _obj.Value {
+		return errors.New("field value is immutable")
+	}
+
+	tpi.patchedEntity = _obj
 	return nil
 }
 

@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
@@ -375,9 +376,50 @@ func (tvdi *TemplateVersionDeleteInputs) ValidateWith(ctx context.Context, cs Cl
 // TemplateVersionPatchInput holds the patch input of the TemplateVersion entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type TemplateVersionPatchInput struct {
-	TemplateVersionUpdateInput `path:",inline" query:"-" json:",inline"`
+	TemplateVersionQueryInput `path:",inline" query:"-" json:"-"`
+
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime *time.Time `path:"-" query:"-" json:"updateTime,omitempty"`
+	// Name of the template.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// Version of the template.
+	Version string `path:"-" query:"-" json:"version,omitempty"`
+	// Source of the template.
+	Source string `path:"-" query:"-" json:"source,omitempty"`
+	// Generated schema and data of the template.
+	Schema types.TemplateVersionSchema `path:"-" query:"-" json:"schema,omitempty"`
+	// ui schema of the template.
+	UiSchema types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
+	// Default value generated from schema and ui schema
+	SchemaDefaultValue []byte `path:"-" query:"-" json:"schemaDefaultValue,omitempty"`
 
 	patchedEntity *TemplateVersion `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the TemplateVersion partition entity for patching.
+func (tvpi *TemplateVersionPatchInput) PatchModel() *TemplateVersion {
+	if tvpi == nil {
+		return nil
+	}
+
+	_tv := &TemplateVersion{
+		CreateTime:         tvpi.CreateTime,
+		UpdateTime:         tvpi.UpdateTime,
+		Name:               tvpi.Name,
+		Version:            tvpi.Version,
+		Source:             tvpi.Source,
+		Schema:             tvpi.Schema,
+		UiSchema:           tvpi.UiSchema,
+		SchemaDefaultValue: tvpi.SchemaDefaultValue,
+	}
+
+	if tvpi.Project != nil {
+		_tv.ProjectID = tvpi.Project.ID
+	}
+
+	return _tv
 }
 
 // Model returns the TemplateVersion patched entity,
@@ -405,7 +447,7 @@ func (tvpi *TemplateVersionPatchInput) ValidateWith(ctx context.Context, cs Clie
 		cache = map[string]any{}
 	}
 
-	if err := tvpi.TemplateVersionUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := tvpi.TemplateVersionQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -480,14 +522,29 @@ func (tvpi *TemplateVersionPatchInput) ValidateWith(ctx context.Context, cs Clie
 		}
 	}
 
-	_tv := tvpi.TemplateVersionUpdateInput.Model()
+	_pm := tvpi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _tv)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	tvpi.patchedEntity = _obj.(*TemplateVersion)
+	_obj := _po.(*TemplateVersion)
+
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.Name != _obj.Name {
+		return errors.New("field name is immutable")
+	}
+	if e.Version != _obj.Version {
+		return errors.New("field version is immutable")
+	}
+	if e.Source != _obj.Source {
+		return errors.New("field source is immutable")
+	}
+
+	tvpi.patchedEntity = _obj
 	return nil
 }
 
