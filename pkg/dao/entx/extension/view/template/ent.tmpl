@@ -1449,9 +1449,74 @@ func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs Clien
 // {{ $singular }} holds the patch input of the {{ $.Name }} entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type {{ $singular }} struct {
-    {{ printf "%sUpdateInput" $.Name }} `path:",inline" query:"-" json:",inline"`
+    {{ printf "%sQueryInput" $.Name }} `path:",inline" query:"-" json:"-"`
+
+    {{ range $f := $input.Fields }}
+        {{- $fn := $f.StructField }}
+        {{- template "comment" $f }}
+        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `path:"-" query:"-" json:"{{ camel $fn }},omitempty"`
+    {{- end }}
+
+	{{ range $e := $input.AdditionalEdges }}
+        {{- $en := $e.StructField }}
+        // {{ $en }} indicates replacing the stale {{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }} {{ if not $e.Unique }}entities{{ else }}entity{{ end }}.
+        {{ $en }} {{ if not $e.Unique }}[]{{ end }}*{{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }}{{ if or $e.M2M $e.O2M }}CreateInput{{ else }}QueryInput{{ end }} `uri:"-" query:"-" {{ getStructTag $e "json" "Update" }}`
+    {{- end }}
 
     patchedEntity *{{ $.Name }} `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the {{ $.Name }} partition entity for patching.
+func ({{ $receiver }} *{{ $singular }}) PatchModel() *{{ $.Name }} {
+    if {{ $receiver }} == nil {
+        return nil
+    }
+
+    {{ $modelReceiver := printf "_%s" $.Receiver -}}
+
+    {{ $modelReceiver }} := &{{ $.Name }}{
+        {{- range $f := $input.Fields }}
+            {{- $fn := $f.StructField }}
+            {{ $fn }}: {{ $receiver }}.{{ $fn }},
+        {{- end }}
+    }
+
+    {{ range $f := $input.PrerequisiteFields }}
+        {{- $fn := $f.StructField }}
+        {{- $e := $f.Edge }}
+        {{- $ef := $e.Field }}
+        {{- $en := pascal (singular $e.Name) }}
+        if {{ $receiver }}.{{ $en }} != nil {
+            {{ $modelReceiver }}.{{ $fn }} = {{ if and $ef $ef.NillableValue }}&{{ end }}{{ $receiver }}.{{ $en }}.ID
+        }
+    {{- end }}
+
+    {{ range $e := $input.AdditionalEdges }}
+        {{- $en := $e.StructField }}
+        {{- if not $e.Unique }}
+            if {{ $receiver }}.{{ $en }} != nil {
+                // Empty slice is used for clearing the edge.
+                {{ $modelReceiver }}.Edges.{{ $en }} = make([]*{{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }}, 0 , len({{ $receiver }}.{{ $en }}))
+            }
+            for j := range {{ $receiver }}.{{ $en }} {
+                if {{ $receiver }}.{{ $en }}[j] == nil {
+                    continue
+                }
+                {{ $modelReceiver }}.Edges.{{ $en }} = append({{ $modelReceiver }}.Edges.{{ $en }},
+                    {{ $receiver }}.{{ $en }}[j].Model())
+            }
+        {{- else }}
+            {{- $ef := $e.Field }}
+            if {{ $receiver }}.{{ $en }} != nil {
+            {{- if $ef }}
+                {{ $modelReceiver }}.{{ $ef.StructField }} = {{ if $ef.NillableValue }}&{{ end }}{{ $receiver }}.{{ $en }}.ID
+            {{- else }}
+                {{ $modelReceiver }}.Edges.{{ $en }} = {{ $receiver }}.{{ $en }}.Model()
+            {{- end }}
+            }
+        {{- end }}
+    {{- end }}
+    return {{ $modelReceiver }}
 }
 
 // Model returns the {{ $.Name }} patched entity,
@@ -1479,7 +1544,7 @@ func ({{ $receiver }} *{{ $singular }}) ValidateWith(ctx context.Context, cs Cli
         cache = map[string]any{}
     }
 
-    if err := {{ $receiver }}.{{ printf "%sUpdateInput" $.Name }}.ValidateWith(ctx, cs, cache); err != nil {
+    if err := {{ $receiver }}.{{ printf "%sQueryInput" $.Name }}.ValidateWith(ctx, cs, cache); err != nil {
         return err
     }
 
@@ -1538,6 +1603,35 @@ func ({{ $receiver }} *{{ $singular }}) ValidateWith(ctx context.Context, cs Cli
         {{- end }}
         }
     {{ end }}
+
+    {{ range $e := $input.AdditionalEdges }}
+        {{ $en := $e.StructField }}
+        {{- if not $e.Unique }}
+            for i := range {{ $receiver }}.{{ $en }} {
+                if {{ $receiver }}.{{ $en }}[i] == nil {
+                    continue
+                }
+                
+                if err := {{ $receiver }}.{{ $en }}[i].ValidateWith(ctx, cs, cache); err != nil {
+                    if !IsBlankResourceReferError(err) {
+                        return err
+                    } else {
+                        {{ $receiver }}.{{ $en }}[i] = nil
+                    }
+                }
+            }
+        {{- else }}
+            if {{ $receiver }}.{{ $en }} != nil {
+                if err := {{ $receiver }}.{{ $en }}.ValidateWith(ctx, cs, cache); err != nil {
+                    if !IsBlankResourceReferError(err) {
+                        return err
+                    } else {
+                        {{ $receiver }}.{{ $en }} = nil
+                    }
+                }
+            }
+        {{- end }}
+    {{- end }}
 
     if {{ $receiver }}.Refer != nil {
     {{- if or $.ID.IsInt $.ID.IsInt64 }}
@@ -1643,16 +1737,23 @@ func ({{ $receiver }} *{{ $singular }}) ValidateWith(ctx context.Context, cs Cli
         }
     }
 
-    {{ $modelReceiver := printf "_%s" $.Receiver -}}
+    _pm := {{ $receiver }}.PatchModel()
 
-    {{ $modelReceiver }} := {{ $receiver }}.{{ printf "%sUpdateInput" $.Name }}.Model()
-
-    _obj, err := json.PatchObject(e, {{ $modelReceiver }})
+    _po, err := json.PatchObject(*e, *_pm)
     if err != nil {
       return err
     }
 
-    {{ $receiver }}.patchedEntity = _obj.(*{{ $.Name }})    
+    _obj := _po.(*{{ $.Name }})
+
+    {{ range $f := $input.ImmutableFields -}}
+    {{- $fn := $f.StructField -}}
+    if {{ xtemplate "helper/is-not-equal" $f }} {
+        return errors.New("field {{ camel $fn }} is immutable")
+    }
+    {{ end }}
+
+    {{ $receiver }}.patchedEntity = _obj
     return nil
 }
 {{ end }}
