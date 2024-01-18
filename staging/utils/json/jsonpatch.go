@@ -1,10 +1,14 @@
 package json
 
 import (
+	"reflect"
+
 	jsonpatch "github.com/evanphx/json-patch"
 )
 
 func PatchObject(obj, patchObject any) (any, error) {
+	oc := reflect.New(reflect.TypeOf(obj)).Interface()
+
 	ob, err := Marshal(obj)
 	if err != nil {
 		return nil, err
@@ -20,12 +24,12 @@ func PatchObject(obj, patchObject any) (any, error) {
 		return nil, err
 	}
 
-	err = Unmarshal(patched, obj)
+	err = Unmarshal(patched, oc)
 	if err != nil {
 		return nil, err
 	}
 
-	return obj, nil
+	return oc, nil
 }
 
 func ApplyPatches(doc []byte, patches ...[]byte) ([]byte, error) {
