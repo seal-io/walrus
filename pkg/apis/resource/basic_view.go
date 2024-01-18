@@ -130,15 +130,15 @@ func (r *PatchRequest) Validate() error {
 
 	switch {
 	case patched.TemplateID != nil:
-		if patched.TemplateID.String() != entity.TemplateID.String() {
-			return errors.New("invalid template: immutable")
+		if r.Template.Name != patched.Edges.Template.Name {
+			return errors.New("invalid template name: immutable")
 		}
 
 		err = validateAttributesWithTemplate(r.Attributes, patched.Edges.Template)
 		if err != nil {
 			return err
 		}
-	case entity.Type != "":
+	case patched.Type != "":
 		env, err := r.Client.Environments().Query().
 			Where(environment.ID(r.Environment.ID)).
 			WithProject(func(pq *model.ProjectQuery) {
