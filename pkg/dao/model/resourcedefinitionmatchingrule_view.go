@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
@@ -332,9 +333,46 @@ func (rdmrdi *ResourceDefinitionMatchingRuleDeleteInputs) ValidateWith(ctx conte
 // ResourceDefinitionMatchingRulePatchInput holds the patch input of the ResourceDefinitionMatchingRule entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type ResourceDefinitionMatchingRulePatchInput struct {
-	ResourceDefinitionMatchingRuleUpdateInput `path:",inline" query:"-" json:",inline"`
+	ResourceDefinitionMatchingRuleQueryInput `path:",inline" query:"-" json:"-"`
+
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// Name of the matching rule.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// Resource selector.
+	Selector types.Selector `path:"-" query:"-" json:"selector,omitempty"`
+	// Attributes to configure the template.
+	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Order of the matching rule.
+	Order int `path:"-" query:"-" json:"order,omitempty"`
+	// Default value generated from resource definition's schema, ui schema and attributes
+	SchemaDefaultValue []byte `path:"-" query:"-" json:"schemaDefaultValue,omitempty"`
+
+	// Template indicates replacing the stale TemplateVersion entity.
+	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template"`
 
 	patchedEntity *ResourceDefinitionMatchingRule `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the ResourceDefinitionMatchingRule partition entity for patching.
+func (rdmrpi *ResourceDefinitionMatchingRulePatchInput) PatchModel() *ResourceDefinitionMatchingRule {
+	if rdmrpi == nil {
+		return nil
+	}
+
+	_rdmr := &ResourceDefinitionMatchingRule{
+		CreateTime:         rdmrpi.CreateTime,
+		Name:               rdmrpi.Name,
+		Selector:           rdmrpi.Selector,
+		Attributes:         rdmrpi.Attributes,
+		Order:              rdmrpi.Order,
+		SchemaDefaultValue: rdmrpi.SchemaDefaultValue,
+	}
+
+	if rdmrpi.Template != nil {
+		_rdmr.TemplateID = rdmrpi.Template.ID
+	}
+	return _rdmr
 }
 
 // Model returns the ResourceDefinitionMatchingRule patched entity,
@@ -362,11 +400,21 @@ func (rdmrpi *ResourceDefinitionMatchingRulePatchInput) ValidateWith(ctx context
 		cache = map[string]any{}
 	}
 
-	if err := rdmrpi.ResourceDefinitionMatchingRuleUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := rdmrpi.ResourceDefinitionMatchingRuleQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
 	q := cs.ResourceDefinitionMatchingRules().Query()
+
+	if rdmrpi.Template != nil {
+		if err := rdmrpi.Template.ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rdmrpi.Template = nil
+			}
+		}
+	}
 
 	if rdmrpi.Refer != nil {
 		if rdmrpi.Refer.IsID() {
@@ -415,14 +463,23 @@ func (rdmrpi *ResourceDefinitionMatchingRulePatchInput) ValidateWith(ctx context
 		}
 	}
 
-	_rdmr := rdmrpi.ResourceDefinitionMatchingRuleUpdateInput.Model()
+	_pm := rdmrpi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _rdmr)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	rdmrpi.patchedEntity = _obj.(*ResourceDefinitionMatchingRule)
+	_obj := _po.(*ResourceDefinitionMatchingRule)
+
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.Name != _obj.Name {
+		return errors.New("field name is immutable")
+	}
+
+	rdmrpi.patchedEntity = _obj
 	return nil
 }
 

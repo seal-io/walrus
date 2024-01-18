@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/catalog"
@@ -371,9 +372,56 @@ func (cdi *CatalogDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 // CatalogPatchInput holds the patch input of the Catalog entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type CatalogPatchInput struct {
-	CatalogUpdateInput `path:",inline" query:"-" json:",inline"`
+	CatalogQueryInput `path:",inline" query:"-" json:"-"`
+
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Annotations holds the value of the "annotations" field.
+	Annotations map[string]string `path:"-" query:"-" json:"annotations,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime *time.Time `path:"-" query:"-" json:"updateTime,omitempty"`
+	// Status holds the value of the "status" field.
+	Status status.Status `path:"-" query:"-" json:"status,omitempty"`
+	// Type of the catalog.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
+	// Source of the catalog.
+	Source string `path:"-" query:"-" json:"source,omitempty"`
+	// Sync information of the catalog.
+	Sync *types.CatalogSync `path:"-" query:"-" json:"sync,omitempty"`
 
 	patchedEntity *Catalog `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the Catalog partition entity for patching.
+func (cpi *CatalogPatchInput) PatchModel() *Catalog {
+	if cpi == nil {
+		return nil
+	}
+
+	_c := &Catalog{
+		Name:        cpi.Name,
+		Description: cpi.Description,
+		Labels:      cpi.Labels,
+		Annotations: cpi.Annotations,
+		CreateTime:  cpi.CreateTime,
+		UpdateTime:  cpi.UpdateTime,
+		Status:      cpi.Status,
+		Type:        cpi.Type,
+		Source:      cpi.Source,
+		Sync:        cpi.Sync,
+	}
+
+	if cpi.Project != nil {
+		_c.ProjectID = cpi.Project.ID
+	}
+
+	return _c
 }
 
 // Model returns the Catalog patched entity,
@@ -401,7 +449,7 @@ func (cpi *CatalogPatchInput) ValidateWith(ctx context.Context, cs ClientSet, ca
 		cache = map[string]any{}
 	}
 
-	if err := cpi.CatalogUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := cpi.CatalogQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -476,14 +524,29 @@ func (cpi *CatalogPatchInput) ValidateWith(ctx context.Context, cs ClientSet, ca
 		}
 	}
 
-	_c := cpi.CatalogUpdateInput.Model()
+	_pm := cpi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _c)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	cpi.patchedEntity = _obj.(*Catalog)
+	_obj := _po.(*Catalog)
+
+	if e.Name != _obj.Name {
+		return errors.New("field name is immutable")
+	}
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.Type != _obj.Type {
+		return errors.New("field type is immutable")
+	}
+	if e.Source != _obj.Source {
+		return errors.New("field source is immutable")
+	}
+
+	cpi.patchedEntity = _obj
 	return nil
 }
 

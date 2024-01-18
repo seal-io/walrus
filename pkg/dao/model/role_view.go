@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/role"
@@ -274,9 +275,46 @@ func (rdi *RoleDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cac
 // RolePatchInput holds the patch input of the Role entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type RolePatchInput struct {
-	RoleUpdateInput `path:",inline" query:"-" json:",inline"`
+	RoleQueryInput `path:",inline" query:"-" json:"-"`
+
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime *time.Time `path:"-" query:"-" json:"updateTime,omitempty"`
+	// The kind of the role.
+	Kind string `path:"-" query:"-" json:"kind,omitempty"`
+	// The detail of the role.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// The policy list of the role.
+	Policies types.RolePolicies `path:"-" query:"-" json:"policies,omitempty"`
+	// The environment type list of the role to apply, only for system kind role.
+	ApplicableEnvironmentTypes []string `path:"-" query:"-" json:"applicableEnvironmentTypes,omitempty"`
+	// Indicate whether the role is session level, decide when creating.
+	Session bool `path:"-" query:"-" json:"session,omitempty"`
+	// Indicate whether the role is builtin, decide when creating.
+	Builtin bool `path:"-" query:"-" json:"builtin,omitempty"`
 
 	patchedEntity *Role `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the Role partition entity for patching.
+func (rpi *RolePatchInput) PatchModel() *Role {
+	if rpi == nil {
+		return nil
+	}
+
+	_r := &Role{
+		CreateTime:                 rpi.CreateTime,
+		UpdateTime:                 rpi.UpdateTime,
+		Kind:                       rpi.Kind,
+		Description:                rpi.Description,
+		Policies:                   rpi.Policies,
+		ApplicableEnvironmentTypes: rpi.ApplicableEnvironmentTypes,
+		Session:                    rpi.Session,
+		Builtin:                    rpi.Builtin,
+	}
+
+	return _r
 }
 
 // Model returns the Role patched entity,
@@ -304,7 +342,7 @@ func (rpi *RolePatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache
 		cache = map[string]any{}
 	}
 
-	if err := rpi.RoleUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := rpi.RoleQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -352,14 +390,29 @@ func (rpi *RolePatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache
 		}
 	}
 
-	_r := rpi.RoleUpdateInput.Model()
+	_pm := rpi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _r)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	rpi.patchedEntity = _obj.(*Role)
+	_obj := _po.(*Role)
+
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.Kind != _obj.Kind {
+		return errors.New("field kind is immutable")
+	}
+	if e.Session != _obj.Session {
+		return errors.New("field session is immutable")
+	}
+	if e.Builtin != _obj.Builtin {
+		return errors.New("field builtin is immutable")
+	}
+
+	rpi.patchedEntity = _obj
 	return nil
 }
 

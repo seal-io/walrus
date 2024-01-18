@@ -260,9 +260,28 @@ func (dldi *DistributeLockDeleteInputs) ValidateWith(ctx context.Context, cs Cli
 // DistributeLockPatchInput holds the patch input of the DistributeLock entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type DistributeLockPatchInput struct {
-	DistributeLockUpdateInput `path:",inline" query:"-" json:",inline"`
+	DistributeLockQueryInput `path:",inline" query:"-" json:"-"`
+
+	// Expiration timestamp to prevent the lock be occupied for long time.
+	ExpireAt int64 `path:"-" query:"-" json:"expireAt,omitempty"`
+	// Holder is the id for current key owner
+	Holder string `path:"-" query:"-" json:"holder,omitempty"`
 
 	patchedEntity *DistributeLock `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the DistributeLock partition entity for patching.
+func (dlpi *DistributeLockPatchInput) PatchModel() *DistributeLock {
+	if dlpi == nil {
+		return nil
+	}
+
+	_dl := &DistributeLock{
+		ExpireAt: dlpi.ExpireAt,
+		Holder:   dlpi.Holder,
+	}
+
+	return _dl
 }
 
 // Model returns the DistributeLock patched entity,
@@ -290,7 +309,7 @@ func (dlpi *DistributeLockPatchInput) ValidateWith(ctx context.Context, cs Clien
 		cache = map[string]any{}
 	}
 
-	if err := dlpi.DistributeLockUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := dlpi.DistributeLockQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -333,14 +352,20 @@ func (dlpi *DistributeLockPatchInput) ValidateWith(ctx context.Context, cs Clien
 		}
 	}
 
-	_dl := dlpi.DistributeLockUpdateInput.Model()
+	_pm := dlpi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _dl)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	dlpi.patchedEntity = _obj.(*DistributeLock)
+	_obj := _po.(*DistributeLock)
+
+	if e.Holder != _obj.Holder {
+		return errors.New("field holder is immutable")
+	}
+
+	dlpi.patchedEntity = _obj
 	return nil
 }
 

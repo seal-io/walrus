@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
@@ -367,9 +368,66 @@ func (rddi *ResourceDefinitionDeleteInputs) ValidateWith(ctx context.Context, cs
 // ResourceDefinitionPatchInput holds the patch input of the ResourceDefinition entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type ResourceDefinitionPatchInput struct {
-	ResourceDefinitionUpdateInput `path:",inline" query:"-" json:",inline"`
+	ResourceDefinitionQueryInput `path:",inline" query:"-" json:"-"`
+
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Annotations holds the value of the "annotations" field.
+	Annotations map[string]string `path:"-" query:"-" json:"annotations,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime *time.Time `path:"-" query:"-" json:"updateTime,omitempty"`
+	// Type of the resources generated from the resource definition.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
+	// Generated schema of the resource definition.
+	Schema types.Schema `path:"-" query:"-" json:"schema,omitempty"`
+	// UI schema of the resource definition.
+	UiSchema *types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
+	// Indicate whether the resource definition is builtin, decided when creating.
+	Builtin bool `path:"-" query:"-" json:"builtin,omitempty"`
+
+	// MatchingRules indicates replacing the stale ResourceDefinitionMatchingRule entities.
+	MatchingRules []*ResourceDefinitionMatchingRuleCreateInput `uri:"-" query:"-" json:"matchingRules,omitempty"`
 
 	patchedEntity *ResourceDefinition `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the ResourceDefinition partition entity for patching.
+func (rdpi *ResourceDefinitionPatchInput) PatchModel() *ResourceDefinition {
+	if rdpi == nil {
+		return nil
+	}
+
+	_rd := &ResourceDefinition{
+		Name:        rdpi.Name,
+		Description: rdpi.Description,
+		Labels:      rdpi.Labels,
+		Annotations: rdpi.Annotations,
+		CreateTime:  rdpi.CreateTime,
+		UpdateTime:  rdpi.UpdateTime,
+		Type:        rdpi.Type,
+		Schema:      rdpi.Schema,
+		UiSchema:    rdpi.UiSchema,
+		Builtin:     rdpi.Builtin,
+	}
+
+	if rdpi.MatchingRules != nil {
+		// Empty slice is used for clearing the edge.
+		_rd.Edges.MatchingRules = make([]*ResourceDefinitionMatchingRule, 0, len(rdpi.MatchingRules))
+	}
+	for j := range rdpi.MatchingRules {
+		if rdpi.MatchingRules[j] == nil {
+			continue
+		}
+		_rd.Edges.MatchingRules = append(_rd.Edges.MatchingRules,
+			rdpi.MatchingRules[j].Model())
+	}
+	return _rd
 }
 
 // Model returns the ResourceDefinition patched entity,
@@ -397,11 +455,25 @@ func (rdpi *ResourceDefinitionPatchInput) ValidateWith(ctx context.Context, cs C
 		cache = map[string]any{}
 	}
 
-	if err := rdpi.ResourceDefinitionUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := rdpi.ResourceDefinitionQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
 	q := cs.ResourceDefinitions().Query()
+
+	for i := range rdpi.MatchingRules {
+		if rdpi.MatchingRules[i] == nil {
+			continue
+		}
+
+		if err := rdpi.MatchingRules[i].ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				rdpi.MatchingRules[i] = nil
+			}
+		}
+	}
 
 	if rdpi.Refer != nil {
 		if rdpi.Refer.IsID() {
@@ -452,14 +524,29 @@ func (rdpi *ResourceDefinitionPatchInput) ValidateWith(ctx context.Context, cs C
 		}
 	}
 
-	_rd := rdpi.ResourceDefinitionUpdateInput.Model()
+	_pm := rdpi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _rd)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	rdpi.patchedEntity = _obj.(*ResourceDefinition)
+	_obj := _po.(*ResourceDefinition)
+
+	if e.Name != _obj.Name {
+		return errors.New("field name is immutable")
+	}
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.Type != _obj.Type {
+		return errors.New("field type is immutable")
+	}
+	if e.Builtin != _obj.Builtin {
+		return errors.New("field builtin is immutable")
+	}
+
+	rdpi.patchedEntity = _obj
 	return nil
 }
 

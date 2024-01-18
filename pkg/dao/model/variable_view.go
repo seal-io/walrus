@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
@@ -415,9 +416,47 @@ func (vdi *VariableDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet,
 // VariablePatchInput holds the patch input of the Variable entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type VariablePatchInput struct {
-	VariableUpdateInput `path:",inline" query:"-" json:",inline"`
+	VariableQueryInput `path:",inline" query:"-" json:"-"`
+
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime *time.Time `path:"-" query:"-" json:"updateTime,omitempty"`
+	// The name of variable.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// The value of variable, store in string.
+	Value crypto.String `path:"-" query:"-" json:"value,omitempty"`
+	// The value is sensitive or not.
+	Sensitive bool `path:"-" query:"-" json:"sensitive,omitempty"`
+	// Description of the variable.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
 
 	patchedEntity *Variable `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the Variable partition entity for patching.
+func (vpi *VariablePatchInput) PatchModel() *Variable {
+	if vpi == nil {
+		return nil
+	}
+
+	_v := &Variable{
+		CreateTime:  vpi.CreateTime,
+		UpdateTime:  vpi.UpdateTime,
+		Name:        vpi.Name,
+		Value:       vpi.Value,
+		Sensitive:   vpi.Sensitive,
+		Description: vpi.Description,
+	}
+
+	if vpi.Project != nil {
+		_v.ProjectID = vpi.Project.ID
+	}
+	if vpi.Environment != nil {
+		_v.EnvironmentID = vpi.Environment.ID
+	}
+
+	return _v
 }
 
 // Model returns the Variable patched entity,
@@ -445,7 +484,7 @@ func (vpi *VariablePatchInput) ValidateWith(ctx context.Context, cs ClientSet, c
 		cache = map[string]any{}
 	}
 
-	if err := vpi.VariableUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := vpi.VariableQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -536,14 +575,23 @@ func (vpi *VariablePatchInput) ValidateWith(ctx context.Context, cs ClientSet, c
 		}
 	}
 
-	_v := vpi.VariableUpdateInput.Model()
+	_pm := vpi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _v)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	vpi.patchedEntity = _obj.(*Variable)
+	_obj := _po.(*Variable)
+
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.Name != _obj.Name {
+		return errors.New("field name is immutable")
+	}
+
+	vpi.patchedEntity = _obj
 	return nil
 }
 

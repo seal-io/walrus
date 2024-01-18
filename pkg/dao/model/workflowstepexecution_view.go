@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/workflowstepexecution"
@@ -396,9 +397,83 @@ func (wsedi *WorkflowStepExecutionDeleteInputs) ValidateWith(ctx context.Context
 // WorkflowStepExecutionPatchInput holds the patch input of the WorkflowStepExecution entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type WorkflowStepExecutionPatchInput struct {
-	WorkflowStepExecutionUpdateInput `path:",inline" query:"-" json:",inline"`
+	WorkflowStepExecutionQueryInput `path:",inline" query:"-" json:"-"`
+
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Annotations holds the value of the "annotations" field.
+	Annotations map[string]string `path:"-" query:"-" json:"annotations,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime *time.Time `path:"-" query:"-" json:"updateTime,omitempty"`
+	// Status holds the value of the "status" field.
+	Status status.Status `path:"-" query:"-" json:"status,omitempty"`
+	// ID of the workflow step that this workflow step execution belongs to.
+	WorkflowStepID object.ID `path:"-" query:"-" json:"workflowStepID,omitempty"`
+	// ID of the workflow execution that this workflow step execution belongs to.
+	WorkflowExecutionID object.ID `path:"-" query:"-" json:"workflowExecutionID,omitempty"`
+	// ID of the workflow that this workflow step execution belongs to.
+	WorkflowID object.ID `path:"-" query:"-" json:"workflowID,omitempty"`
+	// Type of the workflow step execution.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
+	// Attributes of the workflow step execution.
+	Attributes map[string]any `path:"-" query:"-" json:"attributes,omitempty"`
+	// Number of times that this workflow step execution has been executed.
+	Times int `path:"-" query:"-" json:"times,omitempty"`
+	// Time of the step execution started.
+	ExecuteTime time.Time `path:"-" query:"-" json:"executeTime,omitempty"`
+	// Execution duration seconds of the workflow step.
+	Duration int `path:"-" query:"-" json:"duration,omitempty"`
+	// Retry policy of the workflow step.
+	RetryStrategy *types.RetryStrategy `path:"-" query:"-" json:"retryStrategy,omitempty"`
+	// Timeout of the workflow step execution.
+	Timeout int `path:"-" query:"-" json:"timeout,omitempty"`
+	// Order of the workflow step execution.
+	Order int `path:"-" query:"-" json:"order,omitempty"`
+	// Log record of the workflow step execution.
+	Record string `path:"-" query:"-" json:"record,omitempty"`
 
 	patchedEntity *WorkflowStepExecution `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the WorkflowStepExecution partition entity for patching.
+func (wsepi *WorkflowStepExecutionPatchInput) PatchModel() *WorkflowStepExecution {
+	if wsepi == nil {
+		return nil
+	}
+
+	_wse := &WorkflowStepExecution{
+		Name:                wsepi.Name,
+		Description:         wsepi.Description,
+		Labels:              wsepi.Labels,
+		Annotations:         wsepi.Annotations,
+		CreateTime:          wsepi.CreateTime,
+		UpdateTime:          wsepi.UpdateTime,
+		Status:              wsepi.Status,
+		WorkflowStepID:      wsepi.WorkflowStepID,
+		WorkflowExecutionID: wsepi.WorkflowExecutionID,
+		WorkflowID:          wsepi.WorkflowID,
+		Type:                wsepi.Type,
+		Attributes:          wsepi.Attributes,
+		Times:               wsepi.Times,
+		ExecuteTime:         wsepi.ExecuteTime,
+		Duration:            wsepi.Duration,
+		RetryStrategy:       wsepi.RetryStrategy,
+		Timeout:             wsepi.Timeout,
+		Order:               wsepi.Order,
+		Record:              wsepi.Record,
+	}
+
+	if wsepi.Project != nil {
+		_wse.ProjectID = wsepi.Project.ID
+	}
+
+	return _wse
 }
 
 // Model returns the WorkflowStepExecution patched entity,
@@ -426,7 +501,7 @@ func (wsepi *WorkflowStepExecutionPatchInput) ValidateWith(ctx context.Context, 
 		cache = map[string]any{}
 	}
 
-	if err := wsepi.WorkflowStepExecutionUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := wsepi.WorkflowStepExecutionQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -499,14 +574,35 @@ func (wsepi *WorkflowStepExecutionPatchInput) ValidateWith(ctx context.Context, 
 		}
 	}
 
-	_wse := wsepi.WorkflowStepExecutionUpdateInput.Model()
+	_pm := wsepi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _wse)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	wsepi.patchedEntity = _obj.(*WorkflowStepExecution)
+	_obj := _po.(*WorkflowStepExecution)
+
+	if e.Name != _obj.Name {
+		return errors.New("field name is immutable")
+	}
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+	if e.WorkflowStepID != _obj.WorkflowStepID {
+		return errors.New("field workflowStepID is immutable")
+	}
+	if e.WorkflowExecutionID != _obj.WorkflowExecutionID {
+		return errors.New("field workflowExecutionID is immutable")
+	}
+	if e.WorkflowID != _obj.WorkflowID {
+		return errors.New("field workflowID is immutable")
+	}
+	if e.Type != _obj.Type {
+		return errors.New("field type is immutable")
+	}
+
+	wsepi.patchedEntity = _obj
 	return nil
 }
 

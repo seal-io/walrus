@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/seal-io/walrus/pkg/dao/model/workflowstage"
@@ -415,9 +416,67 @@ func (wsdi *WorkflowStageDeleteInputs) ValidateWith(ctx context.Context, cs Clie
 // WorkflowStagePatchInput holds the patch input of the WorkflowStage entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
 type WorkflowStagePatchInput struct {
-	WorkflowStageUpdateInput `path:",inline" query:"-" json:",inline"`
+	WorkflowStageQueryInput `path:",inline" query:"-" json:"-"`
+
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Annotations holds the value of the "annotations" field.
+	Annotations map[string]string `path:"-" query:"-" json:"annotations,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime *time.Time `path:"-" query:"-" json:"updateTime,omitempty"`
+	// ID list of the workflow stages that this workflow stage depends on.
+	Dependencies []object.ID `path:"-" query:"-" json:"dependencies,omitempty"`
+	// Order of the workflow stage.
+	Order int `path:"-" query:"-" json:"order,omitempty"`
+
+	// Steps indicates replacing the stale WorkflowStep entities.
+	Steps []*WorkflowStepCreateInput `uri:"-" query:"-" json:"steps,omitempty"`
 
 	patchedEntity *WorkflowStage `path:"-" query:"-" json:"-"`
+}
+
+// PatchModel returns the WorkflowStage partition entity for patching.
+func (wspi *WorkflowStagePatchInput) PatchModel() *WorkflowStage {
+	if wspi == nil {
+		return nil
+	}
+
+	_ws := &WorkflowStage{
+		Name:         wspi.Name,
+		Description:  wspi.Description,
+		Labels:       wspi.Labels,
+		Annotations:  wspi.Annotations,
+		CreateTime:   wspi.CreateTime,
+		UpdateTime:   wspi.UpdateTime,
+		Dependencies: wspi.Dependencies,
+		Order:        wspi.Order,
+	}
+
+	if wspi.Project != nil {
+		_ws.ProjectID = wspi.Project.ID
+	}
+	if wspi.Workflow != nil {
+		_ws.WorkflowID = wspi.Workflow.ID
+	}
+
+	if wspi.Steps != nil {
+		// Empty slice is used for clearing the edge.
+		_ws.Edges.Steps = make([]*WorkflowStep, 0, len(wspi.Steps))
+	}
+	for j := range wspi.Steps {
+		if wspi.Steps[j] == nil {
+			continue
+		}
+		_ws.Edges.Steps = append(_ws.Edges.Steps,
+			wspi.Steps[j].Model())
+	}
+	return _ws
 }
 
 // Model returns the WorkflowStage patched entity,
@@ -445,7 +504,7 @@ func (wspi *WorkflowStagePatchInput) ValidateWith(ctx context.Context, cs Client
 		cache = map[string]any{}
 	}
 
-	if err := wspi.WorkflowStageUpdateInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := wspi.WorkflowStageQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
@@ -469,6 +528,20 @@ func (wspi *WorkflowStagePatchInput) ValidateWith(ctx context.Context, cs Client
 		} else {
 			q.Where(
 				workflowstage.WorkflowID(wspi.Workflow.ID))
+		}
+	}
+
+	for i := range wspi.Steps {
+		if wspi.Steps[i] == nil {
+			continue
+		}
+
+		if err := wspi.Steps[i].ValidateWith(ctx, cs, cache); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				wspi.Steps[i] = nil
+			}
 		}
 	}
 
@@ -514,14 +587,23 @@ func (wspi *WorkflowStagePatchInput) ValidateWith(ctx context.Context, cs Client
 		}
 	}
 
-	_ws := wspi.WorkflowStageUpdateInput.Model()
+	_pm := wspi.PatchModel()
 
-	_obj, err := json.PatchObject(e, _ws)
+	_po, err := json.PatchObject(*e, *_pm)
 	if err != nil {
 		return err
 	}
 
-	wspi.patchedEntity = _obj.(*WorkflowStage)
+	_obj := _po.(*WorkflowStage)
+
+	if e.Name != _obj.Name {
+		return errors.New("field name is immutable")
+	}
+	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
+		return errors.New("field createTime is immutable")
+	}
+
+	wspi.patchedEntity = _obj
 	return nil
 }
 
