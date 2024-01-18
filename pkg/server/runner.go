@@ -19,6 +19,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"k8s.io/apimachinery/pkg/runtime"
+	utilnet "k8s.io/apimachinery/pkg/util/net"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/client-go/rest"
@@ -36,6 +38,7 @@ import (
 	"github.com/seal-io/walrus/pkg/database"
 	"github.com/seal-io/walrus/pkg/datalisten"
 	"github.com/seal-io/walrus/pkg/k8s"
+	"github.com/seal-io/walrus/pkg/servervars"
 	"github.com/seal-io/walrus/utils/clis"
 	"github.com/seal-io/walrus/utils/cryptox"
 	"github.com/seal-io/walrus/utils/files"
@@ -729,6 +732,49 @@ func (r *Server) configure(_ context.Context) error {
 		}
 
 		crypto.EncryptorConfig.Set(enc)
+	}
+
+	// Configure IPv4 addresses and subnet CIDR.
+	{
+		var (
+			host, _        = utilnet.ChooseHostInterface()
+			ifaces, _      = net.Interfaces()
+			nonLoopBackIPs = sets.NewString()
+			subnet         string
+		)
+
+		for _, _if := range ifaces {
+			if _if.Flags&net.FlagUp == 0 || _if.Flags&net.FlagLoopback != 0 {
+				// Skip down or loopback interfaces.
+				continue
+			}
+
+			addrs, err := _if.Addrs()
+			if err != nil {
+				return fmt.Errorf("error querying addresses from interface %s(%d): %w",
+					_if.Name, _if.Index, err)
+			}
+
+			for _, addr := range addrs {
+				if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+					// NB(thxCode): There is no NAT for IPv6,
+					// so we only need to consider IPv4.
+					v4 := ipnet.IP.To4()
+					if v4 == nil || nonLoopBackIPs.Has(v4.String()) {
+						continue
+					}
+
+					nonLoopBackIPs.Insert(v4.String())
+
+					if host != nil && host.Equal(v4) {
+						subnet = ipnet.String()
+					}
+				}
+			}
+		}
+
+		servervars.NonLoopBackIPs.Set(nonLoopBackIPs)
+		servervars.Subnet.Set(subnet)
 	}
 
 	return nil
