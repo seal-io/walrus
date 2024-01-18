@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
-	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 	"k8s.io/apimachinery/pkg/util/sets"
 
@@ -37,19 +36,16 @@ const (
 //  2. Refill the same default value to the variable schema if allowed.
 //     The default value comes from the SchemaDefaultValue of the matching rule.
 func GenSchema(ctx context.Context, mc model.ClientSet, df *model.ResourceDefinition) error {
-	// Map default values.
-	defMap := make(map[object.ID][]byte, len(df.Edges.MatchingRules))
-	{
-		for _, mr := range df.Edges.MatchingRules {
-			defMap[mr.TemplateID] = mr.SchemaDefaultValue
-		}
-	}
-
 	// Fetch schemas.
 	scss := make([]openapi3.Schemas, 0, len(df.Edges.MatchingRules))
 	{
+		tvIDs := sets.New[object.ID]()
+		for _, mr := range df.Edges.MatchingRules {
+			tvIDs.Insert(mr.TemplateID)
+		}
+
 		tvs, err := mc.TemplateVersions().Query().
-			Where(templateversion.IDIn(sets.KeySet(defMap).UnsortedList()...)).
+			Where(templateversion.IDIn(tvIDs.UnsortedList()...)).
 			All(ctx)
 		if err != nil {
 			return err
@@ -90,8 +86,12 @@ func GenSchema(ctx context.Context, mc model.ClientSet, df *model.ResourceDefini
 	}
 
 	// Refill default value to variable schema.
-	defs := maps.Values(defMap)
 	if sr, ok := scs[variablesSchemaKey]; ok {
+		defs := make([][]byte, 0, len(df.Edges.MatchingRules))
+		for _, mr := range df.Edges.MatchingRules {
+			defs = append(defs, mr.SchemaDefaultValue)
+		}
+
 		refillVariableSchemaRef(nb[variablesSchemaKey].(map[string]any), "", sr, defs)
 	}
 
