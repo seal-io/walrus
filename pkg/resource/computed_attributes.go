@@ -110,16 +110,22 @@ func computedAttributeWithTemplate(
 	attrs property.Values,
 	template *model.TemplateVersion,
 ) (property.Values, error) {
-	wctxByte, err := json.Marshal(map[string]any{
-		"context": wctx,
-	})
+	var (
+		err       error
+		wctxByte  []byte
+		attrsByte []byte
+	)
+
+	wctxByte, err = json.Marshal(map[string]any{"context": wctx})
 	if err != nil {
 		return nil, err
 	}
 
-	attrsByte, err := json.Marshal(attrs)
-	if err != nil {
-		return nil, err
+	if len(attrs) != 0 {
+		attrsByte, err = json.Marshal(attrs)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	merged, err := json.ApplyPatches(wctxByte, template.SchemaDefaultValue, attrsByte)
@@ -149,26 +155,31 @@ func computedAttributeWithResourceDefinition(
 		return nil, fmt.Errorf("edge template is empty")
 	}
 
-	tvSchemaDefault := rule.Edges.Template.SchemaDefaultValue
-	rdSchemaDefault := rule.SchemaDefaultValue
+	var (
+		err             error
+		wctxByte        []byte
+		attrsByte       []byte
+		rdSchemaDefault = rule.SchemaDefaultValue
+		tvSchemaDefault = rule.Edges.Template.SchemaDefaultValue
+	)
 
-	wctxByte, err := json.Marshal(map[string]any{
-		"context": wctx,
-	})
+	wctxByte, err = json.Marshal(map[string]any{"context": wctx})
 	if err != nil {
 		return nil, err
 	}
 
-	attrsBytes, err := json.Marshal(attrs)
-	if err != nil {
-		return nil, err
+	if len(attrs) != 0 {
+		attrsByte, err = json.Marshal(attrs)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	merged, err := json.ApplyPatches(
 		wctxByte,
 		tvSchemaDefault,
 		rdSchemaDefault,
-		attrsBytes)
+		attrsByte)
 	if err != nil {
 		return nil, err
 	}
