@@ -4,7 +4,6 @@ services:
   casdoor:
     image: "sealio/casdoor:v1.344.0-seal.1"
     restart: always
-    privileged: true
     container_name: casdoor
     ports:
       # internal postgres db of casdoor(user/password: casdoor/casdoor),
@@ -15,7 +14,6 @@ services:
   postgres:
     image: "postgres:14.8"
     restart: always
-    privileged: true
     container_name: postgres
     ports:
       # external postgres db of Walrus(user/password: root:Root123),

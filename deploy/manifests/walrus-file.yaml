@@ -1,0 +1,50 @@
+resources:
+  - name: walrus-db
+    type: postgresql
+    attributes:
+      username: root
+      database: walrus
+      engine_version: "14"
+  - name: walrus-redis
+    type: redis
+    attributes: {}
+  - name: walrus-casdoor
+    type: containerservice
+    attributes:
+      containers:
+        - image: sealio/casdoor:v1.344.0-seal.1
+          ports:
+            - internal: 8000
+              external: 8000
+  - name: walrus
+    type: containerservice
+    attributes:
+      containers:
+        - image: sealio/walrus:main
+          ports:
+            - internal: 80
+              external: 80
+            - internal: 443
+              external: 443
+          execute:
+            privileged: true
+            command:
+              - "walrus"
+              - "--log-debug"
+              - "--log-verbosity=4"
+              - "--data-source-address=postgres://${res.walrus-db.username}:${res.walrus-db.password}@${res.walrus-db.connection}/${res.walrus-db.database}?sslmode=disable"
+              - "--cache-source-address=redis://:${res.walrus-redis.password}@${res.walrus-redis.connection}"
+              - "--casdoor-server=http://${res.walrus-casdoor.connection}"
+          mounts:
+            - name: walrus-data
+              path: /var/run/walrus
+          checks:
+            - type: https
+              teardown: true
+              interval: 10
+              timeout: 5
+              retries: 10
+              https:
+                port: 443
+                path: /livez
+
