@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"path"
@@ -18,10 +19,11 @@ import (
 )
 
 const (
-	timeout     = 15 * time.Second
-	openAPIPath = "/openapi"
-	apiVersion  = "v1"
-	versionPath = "/debug/version"
+	timeout         = 15 * time.Second
+	openAPIPath     = "/openapi"
+	apiVersion      = "v1"
+	versionPath     = "/debug/version"
+	accountInfoPath = "/account/info"
 )
 
 // CommonConfig indicate the common CLI command config.
@@ -41,8 +43,8 @@ type Version struct {
 	Commit  string `json:"commit" yaml:"commit"`
 }
 
-// DoRequest send request to server.
-func (c *Config) DoRequest(req *http.Request) (*http.Response, error) {
+// DoRequestWithTimeout send request to server with timeout.
+func (c *Config) DoRequestWithTimeout(req *http.Request, timeout time.Duration) (*http.Response, error) {
 	if req.URL.Host == "" {
 		ep, err := url.Parse(c.Server)
 		if err != nil {
@@ -55,12 +57,17 @@ func (c *Config) DoRequest(req *http.Request) (*http.Response, error) {
 
 	c.SetHeaders(req)
 
-	resp, err := c.HttpClient().Do(req)
+	resp, err := c.HttpClient(timeout).Do(req)
 	if err != nil {
 		return nil, err
 	}
 
 	return resp, nil
+}
+
+// DoRequest send request to server.
+func (c *Config) DoRequest(req *http.Request) (*http.Response, error) {
+	return c.DoRequestWithTimeout(req, timeout)
 }
 
 // ValidateAndSetup validate and setup the context.
@@ -71,12 +78,21 @@ func (c *Config) ValidateAndSetup() error {
 		return fmt.Errorf(msg, "server address is empty")
 	}
 
-	err := c.validateProject()
-	if err != nil {
-		return fmt.Errorf(msg, err.Error())
+	if c.Token == "" {
+		return fmt.Errorf(msg, "token is empty")
 	}
 
-	err = c.validateEnvironment()
+	var err error
+
+	switch {
+	case c.Project != "" && c.Environment != "":
+		err = c.validateEnvironment()
+	case c.Project != "":
+		err = c.validateProject()
+	default:
+		err = c.validateToken()
+	}
+
 	if err != nil {
 		return fmt.Errorf(msg, err.Error())
 	}
@@ -85,7 +101,7 @@ func (c *Config) ValidateAndSetup() error {
 }
 
 // HttpClient generate http client base on context config.
-func (c *Config) HttpClient() *http.Client {
+func (c *Config) HttpClient(timeout time.Duration) *http.Client {
 	tlsConfig := &tls.Config{
 		MinVersion: tls.VersionTLS12,
 	}
@@ -96,6 +112,10 @@ func (c *Config) HttpClient() *http.Client {
 	var tp http.RoundTripper = &http.Transport{
 		Proxy:           http.ProxyFromEnvironment,
 		TLSClientConfig: tlsConfig,
+		DialContext: (&net.Dialer{
+			Timeout: 3 * time.Second,
+		}).DialContext,
+		TLSHandshakeTimeout: 10 * time.Second,
 	}
 
 	if c.Debug {
@@ -182,12 +202,27 @@ func (c *Config) validateResourceItem(resource, name, address string) error {
 		return err
 	}
 
-	resp, err := c.DoRequest(req)
+	resp, err := c.DoRequestWithTimeout(req, timeout)
 	if err != nil {
 		return err
 	}
 
 	return common.CheckResponseStatus(resp, fmt.Sprintf("%s %s", strs.Singularize(resource), name))
+}
+
+// validateToken send get account info request to server.
+func (c *Config) validateToken() error {
+	req, err := http.NewRequest(http.MethodGet, accountInfoPath, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.DoRequestWithTimeout(req, timeout)
+	if err != nil {
+		return fmt.Errorf("access %s failed", c.Server)
+	}
+
+	return common.CheckResponseStatus(resp, "")
 }
 
 func (c *Config) ServerVersion() (*Version, error) {
@@ -196,9 +231,9 @@ func (c *Config) ServerVersion() (*Version, error) {
 		return nil, err
 	}
 
-	resp, err := c.DoRequest(req)
+	resp, err := c.DoRequestWithTimeout(req, timeout)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("access %s failed", c.Server)
 	}
 
 	err = common.CheckResponseStatus(resp, "")

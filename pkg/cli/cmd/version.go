@@ -15,7 +15,7 @@ import (
 func Version(sc *config.Config) *cobra.Command {
 	return &cobra.Command{
 		Use:     "version",
-		Short:   "Print the CLI version",
+		Short:   "Print the CLI and server version information",
 		GroupID: common.GroupOther.ID,
 		Run: func(cmd *cobra.Command, args []string) {
 			info, err := api.GetVersion(sc)

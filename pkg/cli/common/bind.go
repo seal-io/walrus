@@ -31,7 +31,7 @@ func InputByFlags(cmd *cobra.Command) bool {
 	var change bool
 
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
-		if f.Changed {
+		if f.Changed && f.Name != HelpFlag && f.Name != DebugFlag {
 			change = true
 		}
 	})
