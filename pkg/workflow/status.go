@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	wfv1 "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -100,12 +101,17 @@ func (m *StatusSyncer) SyncWorkflowExecutionStatus(ctx context.Context, wf *wfv1
 		return nil
 	}
 
+	// Error or canceled status is final status, no need to update.
+	if isWorkflowExecutionStatusError(we) || isWorkflowExecutionStatusCanceled(we) {
+		return nil
+	}
+
 	update := m.ModelClient.WorkflowExecutions().UpdateOne(we)
 
 	switch wf.Status.Phase {
 	case wfv1.WorkflowRunning:
 		// If the workflow is running, no need to update status.
-		if status.WorkflowExecutionStatusRunning.IsUnknown(we) {
+		if isWorkflowExecutionStatusRunning(we) {
 			return nil
 		}
 
@@ -320,6 +326,21 @@ func (m *StatusSyncer) SyncStepExecutionStatus(
 			status.WorkflowStepExecutionStatusPending.True(wse, "")
 			status.WorkflowStepExecutionStatusRunning.False(wse, message)
 			m.Logger.Debugf("step %s is failed", wse.ID.String())
+
+			// Argo workflow need time to mark the workflow as failed.
+			// Set the workflow execution status to failed immediately for better user experience.
+			if status.WorkflowExecutionStatusRunning.IsUnknown(we) {
+				status.WorkflowExecutionStatusRunning.False(we, fmt.Sprintf("step %s is failed", wse.Name))
+				we.Status.SetSummary(status.WalkWorkflowExecution(&we.Status))
+
+				we, err = m.ModelClient.WorkflowExecutions().UpdateOne(we).
+					SetStatus(we.Status).
+					SetDuration(int(time.Since(we.ExecuteTime).Seconds())).
+					Save(ctx)
+				if err != nil {
+					return err
+				}
+			}
 		}
 
 	default:
@@ -393,4 +414,18 @@ func (m *StatusSyncer) IsCanceled(ctx context.Context, wf *wfv1.Workflow) (bool,
 	}
 
 	return status.WorkflowExecutionStatusCanceled.IsTrue(we), nil
+}
+
+func isWorkflowExecutionStatusRunning(we *model.WorkflowExecution) bool {
+	return status.WorkflowExecutionStatusRunning.IsUnknown(we)
+}
+
+func isWorkflowExecutionStatusCanceled(we *model.WorkflowExecution) bool {
+	return status.WorkflowExecutionStatusCanceled.IsTrue(we)
+}
+
+func isWorkflowExecutionStatusError(we *model.WorkflowExecution) bool {
+	return status.WorkflowExecutionStatusPending.IsFalse(we) ||
+		status.WorkflowExecutionStatusRunning.IsFalse(we) ||
+		status.WorkflowExecutionStatusCanceled.IsFalse(we)
 }
