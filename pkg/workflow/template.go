@@ -74,6 +74,11 @@ var (
 			MaxDuration: "1m",
 		},
 	}
+
+	// The default active deadline seconds of workflow.
+	// If the workflow execution is not finished in the deadline, the workflow will be terminated.
+	// User can set the timeout of workflow according to their needs.
+	defaultActiveDeadlineSeconds = pointer.Int64(int64(86400))
 )
 
 // TemplateManager is the manager of workflow templates.
@@ -163,6 +168,8 @@ func (t *TemplateManager) ToArgoWorkflow(
 
 	if workflowExecution.Timeout > 0 {
 		wf.Spec.ActiveDeadlineSeconds = pointer.Int64(int64(workflowExecution.Timeout))
+	} else {
+		wf.Spec.ActiveDeadlineSeconds = defaultActiveDeadlineSeconds
 	}
 
 	if workflowExecution.Parallelism > 0 {
@@ -192,6 +199,7 @@ func (t *TemplateManager) GetWorkflowExecutionTemplates(
 		DAG: &wfv1.DAGTemplate{
 			Tasks: tasks,
 		},
+		FailFast: pointer.Bool(true),
 	}
 	workflowTemplates = append(workflowTemplates, entrypoint)
 
@@ -288,8 +296,9 @@ func (t *TemplateManager) GetStageExecutionTemplates(
 	stageExecution *model.WorkflowStageExecution,
 ) (stageTemplate *wfv1.Template, subTemplates []*wfv1.Template, err error) {
 	stageTemplate = &wfv1.Template{
-		Name: statusTemplateName(stageExecution.ID, templateTypeStage, templateStageMain),
-		DAG:  &wfv1.DAGTemplate{},
+		Name:     statusTemplateName(stageExecution.ID, templateTypeStage, templateStageMain),
+		DAG:      &wfv1.DAGTemplate{},
+		FailFast: pointer.Bool(true),
 	}
 
 	tasks := make([]wfv1.DAGTask, 0, len(stageExecution.Edges.Steps))
@@ -455,6 +464,7 @@ func (t *TemplateManager) GetStepExecutionExtendTemplates(
 				},
 			},
 		},
+		FailFast: pointer.Bool(true),
 	}
 
 	return extendTemplate, stepTemplates, nil
