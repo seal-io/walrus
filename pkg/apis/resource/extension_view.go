@@ -80,6 +80,10 @@ func (r *RouteUpgradeRequest) Validate() error {
 	if r.ReuseAttributes {
 		r.Attributes = entity.Attributes
 		r.ComputedAttributes = entity.ComputedAttributes
+
+		if r.Labels == nil {
+			r.Labels = entity.Labels
+		}
 	} else {
 		en := r.Model()
 
@@ -530,6 +534,10 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 		if r.ReuseAttributes {
 			input.Attributes = entity.Attributes
 			input.ComputedAttributes = entity.ComputedAttributes
+
+			if input.Labels == nil {
+				input.Labels = entity.Labels
+			}
 		} else {
 			en := updateInputsItemToResource(entity.Type, input, r.Project, r.Environment)
 
