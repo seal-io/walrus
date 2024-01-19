@@ -8,6 +8,7 @@ import (
 	"golang.org/x/exp/slices"
 
 	"github.com/seal-io/walrus/pkg/bus/builtin"
+	"github.com/seal-io/walrus/pkg/catalog"
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
@@ -137,7 +138,7 @@ func newMatchingRule(
 	resourceType string,
 	connectorType string,
 ) (*model.ResourceDefinitionMatchingRule, error) {
-	name := fmt.Sprintf("%s-%s", connectorType, resourceType)
+	name := fmt.Sprintf("%s/%s-%s", catalog.BuiltinCatalog().Name, connectorType, resourceType)
 
 	version, err := mc.TemplateVersions().Query().
 		Where(templateversion.Name(name)).
