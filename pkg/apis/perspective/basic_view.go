@@ -26,7 +26,7 @@ func (r *CreateRequest) Validate() error {
 		return err
 	}
 
-	if err := utilvalidation.IsDNSLabel(r.Name); err != nil {
+	if err := utilvalidation.IsValidName(r.Name); err != nil {
 		return fmt.Errorf("invalid name: %w", err)
 	}
 
@@ -59,7 +59,7 @@ func (r *UpdateRequest) Validate() error {
 		return err
 	}
 
-	if err := utilvalidation.IsDNSLabel(r.Name); err != nil {
+	if err := utilvalidation.IsValidName(r.Name); err != nil {
 		return fmt.Errorf("invalid name: %w", err)
 	}
 

@@ -43,7 +43,7 @@ func (r *UpdateRequest) Validate() error {
 		return err
 	}
 
-	if err := validation.IsDNSLabel(r.Name); err != nil {
+	if err := validation.IsValidName(r.Name); err != nil {
 		return fmt.Errorf("invalid name: %w", err)
 	}
 

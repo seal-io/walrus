@@ -313,7 +313,7 @@ func (r *CollectionCreateRequest) Validate() error {
 			return errors.New("empty resource")
 		}
 
-		if err := validation.IsDNSLabel(r.Items[i].Name); err != nil {
+		if err := validation.IsValidName(r.Items[i].Name); err != nil {
 			return fmt.Errorf("invalid resource name: %w", err)
 		}
 	}
@@ -529,7 +529,7 @@ func ValidateCreateInput(rci *model.ResourceCreateInput) error {
 		return err
 	}
 
-	if err := validation.IsDNSLabel(rci.Name); err != nil {
+	if err := validation.IsValidName(rci.Name); err != nil {
 		return fmt.Errorf("invalid name: %w", err)
 	}
 

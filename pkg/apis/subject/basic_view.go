@@ -2,12 +2,14 @@ package subject
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/subject"
 	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/utils/validation"
 )
 
 // Basic APIs.
@@ -31,8 +33,8 @@ func (r *CreateRequest) Validate() error {
 		return errors.New("invalid kind: unknown")
 	}
 
-	if r.Name == "" {
-		return errors.New("invalid name: blank")
+	if err := validation.IsValidName(r.Name); err != nil {
+		return fmt.Errorf("invalid name: %w", err)
 	}
 
 	if r.Password == "" {

@@ -2,6 +2,7 @@ package auths
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/token"
+	"github.com/seal-io/walrus/utils/validation"
 )
 
 type (
@@ -112,8 +114,8 @@ func (r *CreateTokenRequest) SetGinContext(ctx *gin.Context) {
 }
 
 func (r *CreateTokenRequest) Validate() error {
-	if r.Name == "" {
-		return errors.New("invalid name: blank")
+	if err := validation.IsValidName(r.Name); err != nil {
+		return fmt.Errorf("invalid name: %w", err)
 	}
 
 	if r.ExpirationSeconds != nil && *r.ExpirationSeconds < 0 {
