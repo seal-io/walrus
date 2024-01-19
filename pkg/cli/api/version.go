@@ -103,8 +103,9 @@ func CompareVersion(sc *config.Config) (shouldUpdate bool, err error) {
 
 	case v.ClientVersion.IsDevVersion && !v.ServerVersion.IsDevVersion:
 		// Client is release version, server is dev version.
-		log.Warnf("cli is running the version %s, while the server is on a development version",
-			v.ClientVersion.Version)
+		log.Warnf("cli (%s) is running the development version, whereas the server (%s) is using a release version",
+			v.ClientVersion.Version,
+			v.ServerVersion.Version)
 	}
 
 	return v.ServerVersion.GitCommit != v.OpenAPIVersion.GitCommit, nil
