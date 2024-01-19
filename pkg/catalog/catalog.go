@@ -22,6 +22,7 @@ import (
 	"github.com/seal-io/walrus/pkg/vcs/options"
 	"github.com/seal-io/walrus/utils/gopool"
 	"github.com/seal-io/walrus/utils/log"
+	"github.com/seal-io/walrus/utils/strs"
 	"github.com/seal-io/walrus/utils/version"
 )
 
@@ -150,7 +151,7 @@ func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) er
 				repo.Driver = c.Type
 
 				t := &model.Template{
-					Name:        normalizeTemplateName(repo.Name),
+					Name:        normalizeTemplateName(c, repo.Name),
 					Description: repo.Description,
 					Source:      repo.Link,
 					CatalogID:   c.ID,
@@ -184,8 +185,8 @@ func SyncTemplates(ctx context.Context, mc model.ClientSet, c *model.Catalog) er
 	return wg.Wait()
 }
 
-func normalizeTemplateName(name string) string {
-	return strings.TrimPrefix(name, "terraform-")
+func normalizeTemplateName(c *model.Catalog, name string) string {
+	return strs.Join("/", c.Name, strings.TrimPrefix(name, "terraform-"))
 }
 
 func createWalrusBuiltinLabels(topics []string) map[string]string {
