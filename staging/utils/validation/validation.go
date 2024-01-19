@@ -18,6 +18,15 @@ const (
 	maxDurationPerDecade = maxDurationPerYear * carbon.YearsPerDecade
 )
 
+// IsValidName checks if the name is valid. Name must be no more than 30 characters and conform to DNS Label Names.
+func IsValidName(name string) error {
+	if len(name) > 30 {
+		return errorx.New("name must be no more than 30 characters")
+	}
+
+	return IsDNSLabel(name)
+}
+
 func IsDNSLabel(name string) error {
 	if len(name) == 0 {
 		return errorx.New("name must be non-empty")

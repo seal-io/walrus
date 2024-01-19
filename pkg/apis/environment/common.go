@@ -111,7 +111,7 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 		return fmt.Errorf("failed to get project: %w", err)
 	}
 
-	if err := validation.IsDNSLabel(r.Name); err != nil {
+	if err := validation.IsValidName(r.Name); err != nil {
 		return fmt.Errorf("invalid name: %w", err)
 	}
 
@@ -163,7 +163,7 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 			return errors.New("empty resource")
 		}
 
-		if err := validation.IsDNSLabel(res.Name); err != nil {
+		if err := validation.IsValidName(res.Name); err != nil {
 			return fmt.Errorf("invalid resource name: %w", err)
 		}
 
@@ -238,7 +238,7 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 			return errors.New("empty variable")
 		}
 
-		if err := validation.IsDNSLabel(r.Variables[i].Name); err != nil {
+		if err := validation.IsValidName(r.Variables[i].Name); err != nil {
 			return fmt.Errorf("invalid variable name: %w", err)
 		}
 	}

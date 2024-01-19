@@ -9,6 +9,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/catalog"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/utils/validation"
 )
 
 type (
@@ -22,6 +23,10 @@ type (
 func (r *CreateRequest) Validate() error {
 	if err := r.CatalogCreateInput.Validate(); err != nil {
 		return err
+	}
+
+	if err := validation.IsValidName(r.Name); err != nil {
+		return fmt.Errorf("invalid name: %w", err)
 	}
 
 	_, err := url.Parse(r.Source)
