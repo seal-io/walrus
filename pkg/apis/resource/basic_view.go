@@ -134,8 +134,8 @@ func (r *PatchRequest) Validate() error {
 			return errors.New("invalid template name: immutable")
 		}
 
-		err = validateAttributesWithTemplate(r.Attributes, patched.Edges.Template)
-		if err != nil {
+		if err = validateAttributesWithTemplate(
+			r.Context, r.Client, r.Project.ID, r.Environment.ID, r.Attributes, patched.Edges.Template); err != nil {
 			return err
 		}
 	case patched.Type != "":
@@ -193,7 +193,8 @@ func (r *PatchRequest) Validate() error {
 			ID: rule.ID,
 		}
 
-		if err = validateAttributesWithResourceDefinition(r.Attributes, def); err != nil {
+		if err = validateAttributesWithResourceDefinition(
+			r.Context, r.Client, r.Project.ID, r.Environment.ID, r.Attributes, def); err != nil {
 			return err
 		}
 	default:
@@ -357,8 +358,8 @@ func (r *CollectionCreateRequest) Validate() error {
 
 	for _, res := range r.Items {
 		if res.Template != nil {
-			err = validateAttributesWithTemplate(res.Attributes, tvm[res.Template.ID])
-			if err != nil {
+			if err = validateAttributesWithTemplate(
+				r.Context, r.Client, r.Project.ID, r.Environment.ID, res.Attributes, tvm[res.Template.ID]); err != nil {
 				return err
 			}
 		}
@@ -568,8 +569,8 @@ func ValidateCreateInput(rci *model.ResourceCreateInput) error {
 			return err
 		}
 
-		err = validateAttributesWithTemplate(rci.Attributes, tv)
-		if err != nil {
+		if err = validateAttributesWithTemplate(
+			rci.Context, rci.Client, rci.Project.ID, rci.Environment.ID, rci.Attributes, tv); err != nil {
 			return err
 		}
 
@@ -608,7 +609,8 @@ func ValidateCreateInput(rci *model.ResourceCreateInput) error {
 			return errors.New("find no matching resource definition")
 		}
 
-		if err = validateAttributesWithResourceDefinition(rci.Attributes, def); err != nil {
+		if err = validateAttributesWithResourceDefinition(
+			rci.Context, rci.Client, rci.Project.ID, rci.Environment.ID, rci.Attributes, def); err != nil {
 			return err
 		}
 
@@ -640,9 +642,20 @@ func ValidateCreateInput(rci *model.ResourceCreateInput) error {
 	return nil
 }
 
-func validateAttributesWithTemplate(attrs property.Values, tv *model.TemplateVersion) error {
+func validateAttributesWithTemplate(
+	ctx context.Context,
+	client model.ClientSet,
+	projectID, environmentID object.ID,
+	attrs property.Values,
+	tv *model.TemplateVersion,
+) error {
 	if s := tv.UiSchema; !s.IsEmpty() {
-		err := attrs.ValidateWith(s.VariableSchema())
+		injectedAttrs, err := injectAttributes(ctx, client, projectID, environmentID, attrs)
+		if err != nil {
+			return fmt.Errorf("failed to inject attributes before valiate: %w", err)
+		}
+
+		err = injectedAttrs.ValidateWith(s.VariableSchema())
 		if err != nil {
 			return fmt.Errorf("invalid variables: violate ui schema: %w", err)
 		}
@@ -651,10 +664,21 @@ func validateAttributesWithTemplate(attrs property.Values, tv *model.TemplateVer
 	return nil
 }
 
-func validateAttributesWithResourceDefinition(attrs property.Values, rd *model.ResourceDefinition) error {
+func validateAttributesWithResourceDefinition(
+	ctx context.Context,
+	client model.ClientSet,
+	projectID, environmentID object.ID,
+	attrs property.Values,
+	rd *model.ResourceDefinition,
+) error {
 	rdo := dao.ExposeResourceDefinition(rd)
 	if s := rdo.UiSchema; !s.IsEmpty() {
-		err := attrs.ValidateWith(s.VariableSchema())
+		injectedAttrs, err := injectAttributes(ctx, client, projectID, environmentID, attrs)
+		if err != nil {
+			return fmt.Errorf("failed to inject attributes before valiate: %w", err)
+		}
+
+		err = injectedAttrs.ValidateWith(s.VariableSchema())
 		if err != nil {
 			return fmt.Errorf("invalid variables: violate ui schema: %w", err)
 		}

@@ -89,54 +89,55 @@ func (i Values) ValidateWith(schema *openapi3.Schema) error {
 			}
 		)
 
+		var (
+			val any
+			ok  bool
+			err error
+		)
+
 		switch s.Type {
-		case openapi3.TypeString:
-			val, ok, err := GetString(v)
-			if !ok || err != nil {
-				return errTypeFunc(n, ok, err, s.Type, v)
-			}
-
-			return validateSchemaFunc(n, val)
-		case openapi3.TypeBoolean:
-			val, ok, err := GetBool(v)
-			if !ok || err != nil {
-				return errTypeFunc(n, ok, err, s.Type, v)
-			}
-
-			return validateSchemaFunc(n, val)
-		case openapi3.TypeInteger:
-			val, ok, err := GetInt(v)
-			if !ok || err != nil {
-				return errTypeFunc(n, ok, err, s.Type, v)
-			}
-
-			return validateSchemaFunc(n, val)
-		case openapi3.TypeNumber:
-			val, ok, err := GetNumber(v)
-			if !ok || err != nil {
-				return errTypeFunc(n, ok, err, s.Type, v)
-			}
-
-			return validateSchemaFunc(n, val)
-		case openapi3.TypeArray:
-			val, ok, err := GetSlice[any](v)
-			if !ok || err != nil {
-				return errTypeFunc(n, ok, err, s.Type, v)
-			}
-
-			return validateSchemaFunc(n, val)
-		case openapi3.TypeObject:
-			val, ok, err := GetMap[any](v)
-			if !ok || err != nil {
-				return errTypeFunc(n, ok, err, s.Type, v)
-			}
-
-			return validateSchemaFunc(n, val)
 		default:
 			_, ok, err := GetAny[any](v)
 			if !ok || err != nil {
 				return errTypeFunc(n, ok, err, s.Type, v)
 			}
+
+			continue
+		case openapi3.TypeString:
+			val, ok, err = GetString(v)
+			if !ok || err != nil {
+				return errTypeFunc(n, ok, err, s.Type, v)
+			}
+		case openapi3.TypeBoolean:
+			val, ok, err = GetBool(v)
+			if !ok || err != nil {
+				return errTypeFunc(n, ok, err, s.Type, v)
+			}
+		case openapi3.TypeInteger:
+			val, ok, err = GetInt(v)
+			if !ok || err != nil {
+				return errTypeFunc(n, ok, err, s.Type, v)
+			}
+		case openapi3.TypeNumber:
+			val, ok, err = GetNumber(v)
+			if !ok || err != nil {
+				return errTypeFunc(n, ok, err, s.Type, v)
+			}
+		case openapi3.TypeArray:
+			val, ok, err = GetSlice[any](v)
+			if !ok || err != nil {
+				return errTypeFunc(n, ok, err, s.Type, v)
+			}
+		case openapi3.TypeObject:
+			val, ok, err = GetMap[any](v)
+			if !ok || err != nil {
+				return errTypeFunc(n, ok, err, s.Type, v)
+			}
+		}
+
+		err = validateSchemaFunc(n, val)
+		if err != nil {
+			return err
 		}
 	}
 
