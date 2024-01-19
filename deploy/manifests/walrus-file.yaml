@@ -13,6 +13,7 @@ resources:
     attributes:
       containers:
         - image: sealio/casdoor:v1.344.0-seal.1
+          profile: run
           ports:
             - internal: 8000
               external: 8000
@@ -21,6 +22,7 @@ resources:
     attributes:
       containers:
         - image: sealio/walrus:main
+          profile: run
           ports:
             - internal: 80
               external: 80
