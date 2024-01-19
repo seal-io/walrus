@@ -105,8 +105,8 @@ func NewVersionCmd() *cobra.Command {
 // define global flags.
 func globalFlags() *pflag.FlagSet {
 	gf := &pflag.FlagSet{}
-	gf.BoolVarP(&globalConfig.Debug, "debug", "d", false, "Enable debug log")
-	gf.BoolP("help", "h", false, "Help for this command")
+	gf.BoolVarP(&globalConfig.Debug, common.DebugFlag, "d", false, "Enable debug log")
+	gf.BoolP(common.HelpFlag, "h", false, "Help for this command")
 
 	return gf
 }

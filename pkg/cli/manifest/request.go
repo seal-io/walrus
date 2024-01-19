@@ -460,8 +460,7 @@ func WatchObjects(
 						errChan <- err
 					}
 
-					httpClient := sc.HttpClient()
-					httpClient.Timeout = 0
+					httpClient := sc.HttpClient(0)
 
 					resp, err := httpClient.Do(req)
 					if err != nil {
