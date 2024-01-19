@@ -63,19 +63,13 @@ const (
 	_resourcePrefix = "_walrus_res_"
 )
 
-var (
-	// _variableReg the regexp to match the variable.
-	_variableReg = regexp.MustCompile(`\${var\.([a-zA-Z0-9_-]+)}`)
-	// _resourceReg the regexp to match the resource output.
-	_resourceReg = regexp.MustCompile(`\${res\.([^.}]+)\.([^.}]+)}`)
-	// _interpolationReg is the regular expression for matching non-reference or non-variable expressions.
-	// Reference: https://developer.hashicorp.com/terraform/language/expressions/strings#escape-sequences-1
-	// To handle escape sequences, ${xxx} is converted to $${xxx}.
-	// If there are more than two consecutive $ symbols, like $${xxx}, they are further converted to $$${xxx}.
-	// During Terraform processing, $${} is ultimately transformed back to ${},
-	// this interpolation is used to ensuring a WYSIWYG user experience.
-	_interpolationReg = regexp.MustCompile(`\$\{((var\.)?([^.}]+)(?:\.([^.}]+))?)[^\}]*\}`)
-)
+// _interpolationReg is the regular expression for matching non-reference or non-variable expressions.
+// Reference: https://developer.hashicorp.com/terraform/language/expressions/strings#escape-sequences-1
+// To handle escape sequences, ${xxx} is converted to $${xxx}.
+// If there are more than two consecutive $ symbols, like $${xxx}, they are further converted to $$${xxx}.
+// During Terraform processing, $${} is ultimately transformed back to ${},
+// this interpolation is used to ensuring a WYSIWYG user experience.
+var _interpolationReg = regexp.MustCompile(`\$\{((var\.)?([^.}]+)(?:\.([^.}]+))?)[^\}]*\}`)
 
 // Deployer terraform deployer to deploy the resource.
 type Deployer struct {

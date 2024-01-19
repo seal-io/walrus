@@ -98,8 +98,8 @@ func (r *RouteUpgradeRequest) Validate() error {
 			return fmt.Errorf("failed to get template version: %w", err)
 		}
 
-		err = validateAttributesWithTemplate(r.Attributes, tv)
-		if err != nil {
+		if err = validateAttributesWithTemplate(
+			r.Context, r.Client, r.Project.ID, r.Environment.ID, r.Attributes, tv); err != nil {
 			return err
 		}
 	case entity.Type != "":
@@ -148,7 +148,8 @@ func (r *RouteUpgradeRequest) Validate() error {
 			return errors.New("find no matching resource definition")
 		}
 
-		if err = validateAttributesWithResourceDefinition(r.Attributes, def); err != nil {
+		if err = validateAttributesWithResourceDefinition(
+			r.Context, r.Client, r.Project.ID, r.Environment.ID, r.Attributes, def); err != nil {
 			return err
 		}
 
@@ -577,8 +578,8 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 				return fmt.Errorf("failed to get template version: %w", err)
 			}
 
-			err = validateAttributesWithTemplate(input.Attributes, tv)
-			if err != nil {
+			if err = validateAttributesWithTemplate(
+				r.Context, r.Client, r.Project.ID, r.Environment.ID, input.Attributes, tv); err != nil {
 				return err
 			}
 		case entity.Type != "":
@@ -620,7 +621,8 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 				return fmt.Errorf("find no mathcing resource definition for resource %s", input.Name)
 			}
 
-			if err = validateAttributesWithResourceDefinition(input.Attributes, def); err != nil {
+			if err = validateAttributesWithResourceDefinition(
+				r.Context, r.Client, r.Project.ID, r.Environment.ID, input.Attributes, def); err != nil {
 				return err
 			}
 
