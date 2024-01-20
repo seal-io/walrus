@@ -230,6 +230,10 @@ func alignSchemaRef(nb map[string]any, key string, lsr, rsr *openapi3.SchemaRef)
 		lv.WriteOnly = rv.WriteOnly
 	}
 
+	if !lv.ReadOnly && rv.ReadOnly {
+		lv.ReadOnly = rv.ReadOnly
+	}
+
 	// Find the most complete sentence.
 	// If not found, it cleans up the description.
 	if nb[mefDescription] == nil {
