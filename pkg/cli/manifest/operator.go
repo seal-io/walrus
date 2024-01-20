@@ -159,17 +159,17 @@ func (o *ApplyOperator) apply(set ObjectSet) (r OperateResult, err error) {
 func (o *ApplyOperator) PrintResult(r OperateResult) {
 	var (
 		failed    = "apply failed"
-		notFound  = "is not found"
-		unchanged = "is unchanged"
+		notFound  = "not found"
+		unchanged = "unchanged"
 
 		success = map[ObjectStatus]string{
-			statusNotFound: "is created",
-			statusChanged:  "is patched",
+			statusNotFound: "created",
+			statusChanged:  "patched",
 		}
 
 		wait = map[ObjectStatus]string{
-			statusNotFound: "is creating",
-			statusChanged:  "is patching",
+			statusNotFound: "creating",
+			statusChanged:  "patching",
 		}
 	)
 
@@ -291,13 +291,13 @@ func (o *DeleteOperator) delete(set ObjectSet) (r OperateResult, err error) {
 // PrintResult prints the result of an operation.
 func (o *DeleteOperator) PrintResult(r OperateResult) {
 	var (
-		waiting  = "is deleting"
+		waiting  = "deleting"
 		failed   = "delete failed"
-		notFound = "is not found"
+		notFound = "not found"
 	)
 
 	for _, os := range r.Success.All() {
-		success := "is deleted"
+		success := "deleted"
 		if o.wait {
 			success = waiting
 		}
