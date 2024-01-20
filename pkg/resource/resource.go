@@ -601,6 +601,8 @@ func SetEnvResourceDefaultLabels(env *model.Environment, r *model.Resource) erro
 	// Dev and staging environments resources are stoppable by default.
 	case types.EnvironmentDevelopment, types.EnvironmentStaging:
 		r.Labels[types.LabelResourceStoppable] = "true"
+	case types.EnvironmentProduction:
+		r.Labels[types.LabelResourceStoppable] = "false"
 	default:
 	}
 
