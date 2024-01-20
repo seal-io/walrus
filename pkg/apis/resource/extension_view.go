@@ -77,26 +77,9 @@ func (r *RouteUpgradeRequest) Validate() error {
 		}
 	}
 
-	if r.ReuseAttributes {
-		r.Attributes = entity.Attributes
-		r.ComputedAttributes = entity.ComputedAttributes
-
-		if r.Labels == nil {
-			r.Labels = entity.Labels
-		}
-	} else {
-		en := r.Model()
-
-		// Set environment ID since Model will not set the environment ID.
-		en.EnvironmentID = r.Environment.ID
-
-		computedAttr, err := pkgresource.GenComputedAttributes(r.Context, r.Client, en)
-		if err != nil {
-			return err
-		}
-
-		r.ComputedAttributes = computedAttr
-	}
+	en := r.Model()
+	// Set environment ID since Model will not set the environment ID.
+	en.EnvironmentID = r.Environment.ID
 
 	switch {
 	case r.Template != nil:
@@ -176,8 +159,26 @@ func (r *RouteUpgradeRequest) Validate() error {
 		r.ResourceDefinitionMatchingRule = &model.ResourceDefinitionMatchingRuleQueryInput{
 			ID: rule.ID,
 		}
+
+		en.ResourceDefinitionMatchingRuleID = &rule.ID
 	default:
 		return errors.New("template or resource definition is required")
+	}
+
+	if r.ReuseAttributes {
+		r.Attributes = entity.Attributes
+		r.ComputedAttributes = entity.ComputedAttributes
+
+		if r.Labels == nil {
+			r.Labels = entity.Labels
+		}
+	} else {
+		computedAttr, err := pkgresource.GenComputedAttributes(r.Context, r.Client, en)
+		if err != nil {
+			return err
+		}
+
+		r.ComputedAttributes = computedAttr
 	}
 
 	// Verify that variables in attributes are valid.
@@ -531,21 +532,7 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 			}
 		}
 
-		if r.ReuseAttributes {
-			input.Attributes = entity.Attributes
-			input.ComputedAttributes = entity.ComputedAttributes
-
-			if input.Labels == nil {
-				input.Labels = entity.Labels
-			}
-		} else {
-			en := updateInputsItemToResource(entity.Type, input, r.Project, r.Environment)
-
-			input.ComputedAttributes, err = pkgresource.GenComputedAttributes(r.Context, r.Client, en)
-			if err != nil {
-				return err
-			}
-		}
+		en := updateInputsItemToResource(entity.Type, input, r.Project, r.Environment)
 
 		var projectID, environmentID object.ID
 
@@ -646,8 +633,25 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 			input.ResourceDefinitionMatchingRule = &model.ResourceDefinitionMatchingRuleQueryInput{
 				ID: rule.ID,
 			}
+			en.ResourceDefinitionMatchingRuleID = &rule.ID
 		default:
 			return errors.New("template or resource definition is required")
+		}
+
+		if r.ReuseAttributes {
+			input.Attributes = entity.Attributes
+			input.ComputedAttributes = entity.ComputedAttributes
+
+			if input.Labels == nil {
+				input.Labels = entity.Labels
+			}
+		} else {
+			computedAttr, err := pkgresource.GenComputedAttributes(r.Context, r.Client, en)
+			if err != nil {
+				return err
+			}
+
+			input.ComputedAttributes = computedAttr
 		}
 
 		// Verify that variables in attributes are valid.
