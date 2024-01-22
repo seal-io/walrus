@@ -187,7 +187,7 @@ func (r *RouteUpgradeRequest) Validate() error {
 		return err
 	}
 
-	if err = ValidateRevisionsStatus(r.Context, r.Client, r.ID); err != nil {
+	if err = validateRevisionsStatus(r.Context, r.Client, r.ID); err != nil {
 		return err
 	}
 
@@ -496,73 +496,102 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 		return err
 	}
 
-	entities, err := r.Client.Resources().Query().
-		Where(resource.IDIn(r.IDs()...)).
-		WithTemplate(func(tvq *model.TemplateVersionQuery) {
-			tvq.Select(
-				templateversion.FieldName,
-				templateversion.FieldVersion)
-		}).
-		All(r.Context)
-	if err != nil {
-		return fmt.Errorf("failed to get resources: %w", err)
-	}
+	var err error
 
-	entityMap := make(map[object.ID]*model.Resource)
-	for i := range entities {
-		entityMap[entities[i].ID] = entities[i]
-
-		if r.Draft && !pkgresource.IsInactive(entities[i]) {
-			return errorx.HttpErrorf(http.StatusBadRequest,
-				"cannot update resource draft in %q status", entities[i].Status.SummaryStatus)
+	// Fetch database entities to refill input items.
+	var (
+		entities    []*model.Resource
+		entitiesMap = make(map[object.ID]*model.Resource)
+	)
+	{
+		entities, err = r.Client.Resources().Query().
+			Where(resource.IDIn(r.IDs()...)).
+			WithProject(func(pq *model.ProjectQuery) {
+				pq.Select(
+					project.FieldID,
+					project.FieldName,
+					project.FieldLabels)
+			}).
+			WithEnvironment(func(eq *model.EnvironmentQuery) {
+				eq.Select(
+					environment.FieldID,
+					environment.FieldName,
+					environment.FieldLabels,
+					environment.FieldType)
+			}).
+			WithTemplate(func(tvq *model.TemplateVersionQuery) {
+				tvq.Select(
+					templateversion.FieldID,
+					templateversion.FieldName,
+					templateversion.FieldVersion)
+			}).
+			Select(
+				resource.WithoutFields(
+					resource.FieldUpdateTime,
+					resource.FieldCreateTime,
+					resource.FieldComputedAttributes)...).
+			All(r.Context)
+		if err != nil {
+			return fmt.Errorf("failed to get resources: %w", err)
 		}
-	}
 
-	for i := range r.Items {
-		entity, ok := entityMap[r.Items[i].ID]
-		if !ok {
-			return fmt.Errorf("resource %s not found", r.Items[i].Name)
-		}
+		for i := range entities {
+			entitiesMap[entities[i].ID] = entities[i]
 
-		input := r.Items[i]
-
-		if r.ReuseAttributes && entity.TemplateID != nil {
-			input.Template = &model.TemplateVersionQueryInput{
-				ID:   *entity.TemplateID,
-				Name: entity.Edges.Template.Name,
+			if r.Draft && !pkgresource.IsInactive(entities[i]) {
+				return errorx.HttpErrorf(http.StatusBadRequest,
+					"cannot update resource draft in %q status", entities[i].Status.SummaryStatus)
 			}
 		}
+	}
 
-		en := updateInputsItemToResource(entity.Type, input, r.Project, r.Environment)
+	// Refill input items if reusing.
+	if r.ReuseAttributes {
+		for i := range r.Items {
+			input := r.Items[i]
 
-		var projectID, environmentID object.ID
+			entity, ok := entitiesMap[input.ID]
+			if !ok {
+				return fmt.Errorf("resource %s not found", input.Name)
+			}
 
-		if r.Project != nil {
-			projectID = r.Project.ID
-		} else {
-			projectID = entity.ProjectID
+			// Refill attributes.
+			input.Attributes = entity.Attributes
+
+			// Reuse template if exists.
+			if entity.TemplateID != nil {
+				input.Template = &model.TemplateVersionQueryInput{
+					ID:   *entity.TemplateID,
+					Name: entity.Edges.Template.Name,
+				}
+
+				continue
+			}
+
+			// Otherwise, reuse resource definition type.
+			input.Type = entity.Type
+
+			// NB(thxCode): Refill labels for resource definition matching.
+			input.Labels = entity.Labels
 		}
+	}
 
-		if r.Environment != nil {
-			environmentID = r.Environment.ID
-		} else {
-			environmentID = entity.EnvironmentID
+	// Validate input items.
+	defsCache := make(map[string][]*model.ResourceDefinition)
+
+	for i := range r.Items {
+		input := r.Items[i]
+
+		entity, ok := entitiesMap[input.ID]
+		if !ok {
+			return fmt.Errorf("resource %s not found", input.Name)
 		}
-
-		env, err := r.Client.Environments().Query().
-			Where(environment.ID(environmentID)).
-			WithProject(func(pq *model.ProjectQuery) {
-				pq.Select(project.FieldName, project.FieldLabels)
-			}).
-			Only(r.Context)
-		if err != nil {
-			return fmt.Errorf("failed to get environment: %w", err)
-		}
-
-		cache := make(map[string][]*model.ResourceDefinition)
 
 		switch {
+		default:
+			return errors.New("template or resource definition is required")
 		case input.Template != nil:
+			// Validate if the template has changed.
 			if input.Template.Name != entity.Edges.Template.Name {
 				return errors.New("invalid template name: immutable")
 			}
@@ -571,22 +600,26 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 				Where(templateversion.ID(input.Template.ID)).
 				Select(
 					templateversion.FieldSchema,
-					templateversion.FieldUiSchema,
-				).
+					templateversion.FieldUiSchema).
 				Only(r.Context)
 			if err != nil {
 				return fmt.Errorf("failed to get template version: %w", err)
 			}
 
-			if err = validateAttributesWithTemplate(
-				r.Context, r.Client, r.Project.ID, r.Environment.ID, input.Attributes, tv); err != nil {
+			// Validate attributes with template schema.
+			err = validateAttributesWithTemplate(
+				r.Context, r.Client,
+				entity.ProjectID, entity.EnvironmentID,
+				input.Attributes, tv)
+			if err != nil {
 				return err
 			}
-		case entity.Type != "":
-			definitions, ok := cache[entity.Type]
+		case input.Type != "":
+			// Get resource definitions by type.
+			rfs, ok := defsCache[input.Type]
 			if !ok {
-				definitions, err = r.Client.ResourceDefinitions().Query().
-					Where(resourcedefinition.Type(entity.Type)).
+				rfs, err = r.Client.ResourceDefinitions().Query().
+					Where(resourcedefinition.Type(input.Type)).
 					Select(
 						resourcedefinition.FieldID,
 						resourcedefinition.FieldName,
@@ -598,73 +631,81 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 						rq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
 							Select(
 								resourcedefinitionmatchingrule.FieldName,
-								resourcedefinitionmatchingrule.FieldSelector,
-							)
+								resourcedefinitionmatchingrule.FieldSelector)
 					}).
 					All(r.Context)
 				if err != nil {
 					return fmt.Errorf("failed to get resource definitions: %w", err)
 				}
-				cache[entity.Type] = definitions
+				defsCache[input.Type] = rfs // Reuse.
 			}
 
-			def, rule := resourcedefinitions.MatchResourceDefinition(definitions, types.MatchResourceMetadata{
-				ProjectName:       env.Edges.Project.Name,
-				EnvironmentName:   env.Name,
-				EnvironmentType:   env.Type,
-				ProjectLabels:     env.Edges.Project.Labels,
-				EnvironmentLabels: env.Labels,
-				ResourceLabels:    input.Labels,
-			})
-
-			if def == nil {
+			// Pick rules.
+			rf, rule := resourcedefinitions.MatchResourceDefinition(
+				rfs,
+				types.MatchResourceMetadata{
+					ProjectName:       entity.Edges.Project.Name,
+					EnvironmentName:   entity.Edges.Environment.Name,
+					EnvironmentType:   entity.Edges.Environment.Type,
+					ProjectLabels:     entity.Edges.Project.Labels,
+					EnvironmentLabels: entity.Edges.Environment.Labels,
+					ResourceLabels:    input.Labels,
+				})
+			if rf == nil {
 				return fmt.Errorf("find no mathcing resource definition for resource %s", input.Name)
 			}
 
-			if err = validateAttributesWithResourceDefinition(
-				r.Context, r.Client, r.Project.ID, r.Environment.ID, input.Attributes, def); err != nil {
-				return err
-			}
-
-			// Mutate definition/rule edge according to matching resource definition.
-			// The matching definition/rule may change on update.
-			input.ResourceDefinition = &model.ResourceDefinitionQueryInput{
-				ID: def.ID,
-			}
-
-			input.ResourceDefinitionMatchingRule = &model.ResourceDefinitionMatchingRuleQueryInput{
-				ID: rule.ID,
-			}
-			en.ResourceDefinitionMatchingRuleID = &rule.ID
-		default:
-			return errors.New("template or resource definition is required")
-		}
-
-		if r.ReuseAttributes {
-			input.Attributes = entity.Attributes
-			input.ComputedAttributes = entity.ComputedAttributes
-
-			if input.Labels == nil {
-				input.Labels = entity.Labels
-			}
-		} else {
-			computedAttr, err := pkgresource.GenComputedAttributes(r.Context, r.Client, en)
+			// Validate attributes with resource definition schema.
+			err = validateAttributesWithResourceDefinition(
+				r.Context, r.Client,
+				entity.ProjectID, entity.EnvironmentID,
+				input.Attributes, rf)
 			if err != nil {
 				return err
 			}
 
-			input.ComputedAttributes = computedAttr
+			// Get matched result for calculating computed attributes.
+			input.ResourceDefinitionMatchingRule = &model.ResourceDefinitionMatchingRuleQueryInput{
+				ID: rule.ID,
+			}
 		}
 
-		// Verify that variables in attributes are valid.
-		if err := validateVariable(r.Context, r.Client,
-			input.Attributes, input.Name, projectID, environmentID); err != nil {
+		// Validate referring variables.
+		err = validateVariable(
+			r.Context, r.Client,
+			input.Attributes, input.Name,
+			entity.ProjectID, entity.EnvironmentID)
+		if err != nil {
 			return err
 		}
 
-		if err := ValidateRevisionsStatus(r.Context, r.Client, input.ID); err != nil {
+		// Validate whether the resource is deploying.
+		err = validateRevisionsStatus(
+			r.Context, r.Client,
+			input.ID)
+		if err != nil {
 			return err
 		}
+	}
+
+	// Get computed attributes for deploying.
+	for i := range r.Items {
+		input := r.Items[i]
+		entity := entitiesMap[input.ID] // Guaranteed to exist.
+
+		switch {
+		case input.Template != nil:
+			entity.TemplateID = &input.Template.ID
+		case input.Type != "":
+			entity.ResourceDefinitionMatchingRuleID = &input.ResourceDefinitionMatchingRule.ID
+		}
+
+		attrs, err := pkgresource.GenComputedAttributes(r.Context, r.Client, entity)
+		if err != nil {
+			return err
+		}
+
+		input.ComputedAttributes = attrs
 	}
 
 	return nil

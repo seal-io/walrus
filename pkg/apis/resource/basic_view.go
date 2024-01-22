@@ -81,7 +81,7 @@ func (r *DeleteRequest) Validate() error {
 	}
 
 	if !r.WithoutCleanup {
-		if err = ValidateRevisionsStatus(r.Context, r.Client, r.ID); err != nil {
+		if err = validateRevisionsStatus(r.Context, r.Client, r.ID); err != nil {
 			return err
 		}
 	}
@@ -212,7 +212,7 @@ func (r *PatchRequest) Validate() error {
 		return err
 	}
 
-	if err = ValidateRevisionsStatus(r.Context, r.Client, patched.ID); err != nil {
+	if err = validateRevisionsStatus(r.Context, r.Client, patched.ID); err != nil {
 		return err
 	}
 
@@ -438,7 +438,7 @@ func (r *CollectionDeleteRequest) Validate() error {
 	}
 
 	if r.WithoutCleanup {
-		if err = ValidateRevisionsStatus(r.Context, r.Client, ids...); err != nil {
+		if err = validateRevisionsStatus(r.Context, r.Client, ids...); err != nil {
 			return err
 		}
 	}
@@ -472,8 +472,8 @@ func validateEnvironment(tv *model.TemplateVersion, env *model.Environment) erro
 	return err
 }
 
-// ValidateRevisionsStatus validates revision status of given resource IDs.
-func ValidateRevisionsStatus(ctx context.Context, mc model.ClientSet, ids ...object.ID) error {
+// validateRevisionsStatus validates revision status of given resource IDs.
+func validateRevisionsStatus(ctx context.Context, mc model.ClientSet, ids ...object.ID) error {
 	revisions, err := dao.GetLatestRevisions(ctx, mc, ids...)
 	if err != nil {
 		return fmt.Errorf("failed to get resource revisions: %w", err)
