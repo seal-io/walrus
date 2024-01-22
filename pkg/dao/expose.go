@@ -10,7 +10,8 @@ func ExposeResourceDefinition(_rd *model.ResourceDefinition) *model.ResourceDefi
 		return nil
 	}
 
-	if _rd.UiSchema != nil && _rd.UiSchema.IsEmpty() {
+	// Will generate UI schema while it isn't exist, the UI schema without variables consider as exist.
+	if _rd.UiSchema != nil && _rd.UiSchema.OpenAPISchema == nil {
 		uiSchema := _rd.Schema.Expose()
 		_rd.UiSchema = &uiSchema
 	}
@@ -30,31 +31,4 @@ func ExposeResourceDefinitions(_rds []*model.ResourceDefinition) []*model.Resour
 	}
 
 	return rdos
-}
-
-// ExposeTemplateVersion converts the TemplateVersion to TemplateVersionOutput.
-func ExposeTemplateVersion(_tv *model.TemplateVersion) *model.TemplateVersionOutput {
-	if _tv == nil {
-		return nil
-	}
-
-	if _tv.UiSchema.IsEmpty() {
-		_tv.UiSchema = _tv.Schema.Expose()
-	}
-
-	return model.ExposeTemplateVersion(_tv)
-}
-
-// ExposeTemplateVersions converts the TemplateVersion slice to TemplateVersionOutput pointer slice.
-func ExposeTemplateVersions(_tvs []*model.TemplateVersion) []*model.TemplateVersionOutput {
-	if len(_tvs) == 0 {
-		return nil
-	}
-
-	tvos := make([]*model.TemplateVersionOutput, len(_tvs))
-	for i := range _tvs {
-		tvos[i] = ExposeTemplateVersion(_tvs[i])
-	}
-
-	return tvos
 }

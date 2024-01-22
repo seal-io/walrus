@@ -78,5 +78,5 @@ func (h Handler) RouteGetVersions(
 	}
 
 	// Set expose schema.
-	return dao.ExposeTemplateVersions(entities), cnt, nil
+	return model.ExposeTemplateVersions(entities), cnt, nil
 }
