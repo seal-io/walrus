@@ -464,7 +464,6 @@ func (t *TemplateManager) GetStepExecutionExtendTemplates(
 				},
 			},
 		},
-		FailFast: pointer.Bool(true),
 	}
 
 	return extendTemplate, stepTemplates, nil
