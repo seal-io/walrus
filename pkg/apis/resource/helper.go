@@ -189,19 +189,6 @@ func createInputsItemToResource(
 		p, e)
 }
 
-func updateInputsItemToResource(
-	typ string,
-	input *model.ResourceUpdateInputsItem,
-	p *model.ProjectQueryInput,
-	e *model.EnvironmentQueryInput,
-) *model.Resource {
-	return toResource(
-		nil, input.Name, typ, input.Attributes, input.Labels,
-		input.Template,
-		input.ResourceDefinition, input.ResourceDefinitionMatchingRule,
-		p, e)
-}
-
 func toResource(
 	id *object.ID, name, typ string, attr property.Values, labels map[string]string,
 	tmpl *model.TemplateVersionQueryInput,
