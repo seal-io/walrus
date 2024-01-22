@@ -18,7 +18,6 @@ func SetResourceDefinitionSchemaDefault(
 		rule := rd.Edges.MatchingRules[i]
 
 		var (
-			rdSchemaDefault   []byte
 			rdUISchemaDefault []byte
 			ruleAttrs         []byte
 		)
@@ -30,7 +29,7 @@ func SetResourceDefinitionSchemaDefault(
 			}
 		}
 
-		if rd.UiSchema != nil {
+		if rd.UiSchema != nil && !rd.UiSchema.IsEmpty() {
 			rdUISchemaDefault, err = openapi.GenSchemaDefaultPatch(ctx, rd.UiSchema.VariableSchema())
 			if err != nil {
 				return err
@@ -38,7 +37,6 @@ func SetResourceDefinitionSchemaDefault(
 		}
 
 		merged, err := json.ApplyPatches(
-			rdSchemaDefault,
 			ruleAttrs,
 			rdUISchemaDefault)
 		if err != nil {
