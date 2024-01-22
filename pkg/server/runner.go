@@ -777,6 +777,13 @@ func (r *Server) configure(_ context.Context) error {
 		servervars.Subnet.Set(subnet)
 	}
 
+	// Configure EnableTls and TlsCertified.
+	servervars.EnableTls.Set(r.EnableTls)
+
+	if len(r.TlsAutoCertDomains) != 0 {
+		servervars.TlsCertified.Set(true)
+	}
+
 	return nil
 }
 

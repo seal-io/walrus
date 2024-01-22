@@ -12,7 +12,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 
-	apiconfig "github.com/seal-io/walrus/pkg/apis/config"
 	"github.com/seal-io/walrus/pkg/auths"
 	"github.com/seal-io/walrus/pkg/auths/session"
 	revisionbus "github.com/seal-io/walrus/pkg/bus/resourcerevision"
@@ -37,6 +36,7 @@ import (
 	pkgenv "github.com/seal-io/walrus/pkg/environment"
 	opk8s "github.com/seal-io/walrus/pkg/operator/k8s"
 	pkgresource "github.com/seal-io/walrus/pkg/resource"
+	"github.com/seal-io/walrus/pkg/servervars"
 	"github.com/seal-io/walrus/pkg/settings"
 	"github.com/seal-io/walrus/pkg/templates/openapi"
 	"github.com/seal-io/walrus/pkg/templates/translator"
@@ -669,7 +669,7 @@ func (d Deployer) loadConfigsBytes(
 			TerraformOptions: &config.TerraformOptions{
 				Token:                at.AccessToken,
 				Address:              address,
-				SkipTLSVerify:        !apiconfig.TlsCertified.Get(),
+				SkipTLSVerify:        !servervars.TlsCertified.Get(),
 				ProviderRequirements: requiredProviders,
 			},
 			ProviderOptions: &config.ProviderOptions{

@@ -16,6 +16,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	pkgresource "github.com/seal-io/walrus/pkg/resource"
+	"github.com/seal-io/walrus/pkg/servervars"
 	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/strs"
 )
@@ -175,13 +176,18 @@ func (r *RouteApplyRequest) Validate() error {
 }
 
 func serverContext(project, env, token string) *config.Config {
+	scheme := "http"
+	if servervars.EnableTls.Get() {
+		scheme = "https"
+	}
+
 	return &config.Config{
 		ServerContext: config.ServerContext{
 			ScopeContext: config.ScopeContext{
 				Project:     project,
 				Environment: env,
 			},
-			Server:   "https://localhost",
+			Server:   fmt.Sprintf("%s://localhost", scheme),
 			Insecure: true,
 			Token:    token,
 		},

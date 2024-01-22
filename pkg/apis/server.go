@@ -14,7 +14,6 @@ import (
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
 
-	"github.com/seal-io/walrus/pkg/apis/config"
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/cli/api"
 	"github.com/seal-io/walrus/pkg/dao/types"
@@ -66,8 +65,6 @@ const (
 
 func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 	s.logger.Info("starting")
-
-	config.TlsCertified.Set(opts.TlsCertified)
 
 	handler, err := s.Setup(c, opts.SetupOptions)
 	if err != nil {
