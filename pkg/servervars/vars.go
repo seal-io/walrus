@@ -12,4 +12,10 @@ var (
 
 	// Subnet is the subnet of the host where the server is located.
 	Subnet = vars.SetOnce[string]{}
+
+	// EnableTls tells whether tls is enabled.
+	EnableTls = vars.SetOnce[bool]{}
+
+	// TlsCertified indicates whether the server is TLS certified.
+	TlsCertified = vars.SetOnce[bool]{}
 )

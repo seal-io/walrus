@@ -40,9 +40,8 @@ type SetupOptions struct {
 	ConnBurst             int
 	WebsocketConnMaxPerIP int
 	// Derived from configuration.
-	K8sConfig    *rest.Config
-	ModelClient  *model.Client
-	TlsCertified bool
+	K8sConfig   *rest.Config
+	ModelClient *model.Client
 }
 
 func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, error) {

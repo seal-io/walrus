@@ -12,10 +12,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	apiconfig "github.com/seal-io/walrus/pkg/apis/config"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/servervars"
 	"github.com/seal-io/walrus/pkg/settings"
 	"github.com/seal-io/walrus/pkg/workflow/step"
 	steptypes "github.com/seal-io/walrus/pkg/workflow/step/types"
@@ -146,7 +146,7 @@ func (t *TemplateManager) ToArgoWorkflow(
 					},
 					{
 						Name:  "tlsVerify",
-						Value: wfv1.AnyStringPtr(apiconfig.TlsCertified.Get()),
+						Value: wfv1.AnyStringPtr(servervars.TlsCertified.Get()),
 					},
 					{
 						Name:  "token",
@@ -271,7 +271,7 @@ func (t *TemplateManager) GetWorkflowExecutionStatusTemplate(
 				},
 			},
 			TimeoutSeconds:     pointer.Int64(5),
-			InsecureSkipVerify: !apiconfig.TlsCertified.Get(),
+			InsecureSkipVerify: !servervars.TlsCertified.Get(),
 			SuccessCondition:   "response.statusCode >= 200 && response.statusCode < 300",
 			Body:               statusRequestBody,
 		},
@@ -363,7 +363,7 @@ func (t *TemplateManager) GetStageExecutionStatusTemplate(
 			TimeoutSeconds:     pointer.Int64(5),
 			Body:               statusRequestBody,
 			SuccessCondition:   "response.statusCode >= 200 && response.statusCode < 300",
-			InsecureSkipVerify: !apiconfig.TlsCertified.Get(),
+			InsecureSkipVerify: !servervars.TlsCertified.Get(),
 		},
 		RetryStrategy: statusUpdateRetryStrategy,
 	}
@@ -546,7 +546,7 @@ func (t *TemplateManager) GetStepExecutionStatusTemplate(
 			TimeoutSeconds:     pointer.Int64(5),
 			Body:               statusRequestBody,
 			SuccessCondition:   "response.statusCode >= 200 && response.statusCode < 300",
-			InsecureSkipVerify: !apiconfig.TlsCertified.Get(),
+			InsecureSkipVerify: !servervars.TlsCertified.Get(),
 		},
 		RetryStrategy: statusUpdateRetryStrategy,
 	}
