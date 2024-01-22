@@ -924,6 +924,8 @@ type ResourceUpdateInput struct {
 	Description string `path:"-" query:"-" json:"description,omitempty"`
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Type of the resource referring to a resource definition type.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
 	// Computed attributes generated from attributes and schemas.
@@ -953,6 +955,7 @@ func (rui *ResourceUpdateInput) Model() *Resource {
 		Name:               rui.Name,
 		Description:        rui.Description,
 		Labels:             rui.Labels,
+		Type:               rui.Type,
 		Attributes:         rui.Attributes,
 		ComputedAttributes: rui.ComputedAttributes,
 		Endpoints:          rui.Endpoints,
@@ -1034,6 +1037,8 @@ type ResourceUpdateInputsItem struct {
 	Description string `path:"-" query:"-" json:"description,omitempty"`
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Type of the resource referring to a resource definition type.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
 	// Computed attributes generated from attributes and schemas.
@@ -1123,6 +1128,7 @@ func (rui *ResourceUpdateInputs) Model() []*Resource {
 			Name:               rui.Items[i].Name,
 			Description:        rui.Items[i].Description,
 			Labels:             rui.Items[i].Labels,
+			Type:               rui.Items[i].Type,
 			Attributes:         rui.Items[i].Attributes,
 			ComputedAttributes: rui.Items[i].ComputedAttributes,
 			Endpoints:          rui.Items[i].Endpoints,
