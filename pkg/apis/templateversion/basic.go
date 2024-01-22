@@ -1,7 +1,7 @@
 package templateversion
 
 import (
-	"github.com/seal-io/walrus/pkg/dao"
+	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/templates"
 )
 
@@ -12,7 +12,7 @@ func (h Handler) Get(req GetRequest) (GetResponse, error) {
 		return nil, err
 	}
 
-	return dao.ExposeTemplateVersion(entity), nil
+	return model.ExposeTemplateVersion(entity), nil
 }
 
 func (h Handler) Update(req UpdateRequest) error {
