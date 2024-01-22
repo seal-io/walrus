@@ -27,6 +27,8 @@ const (
 	outputsSchemaKey   = types.OutputSchemaKey
 
 	originalExtensionKey = openapi.ExtOriginalKey
+
+	immutableExtensionKey = "immutable"
 )
 
 // GenSchema generates the schema for the resource definition.
@@ -234,6 +236,13 @@ func alignSchemaRef(nb map[string]any, key string, lsr, rsr *openapi3.SchemaRef)
 		lv.ReadOnly = rv.ReadOnly
 	}
 
+	if len(lv.Extensions) != 0 && len(rv.Extensions) != 0 &&
+		!isImmutable(lv.Extensions) && isImmutable(rv.Extensions) {
+		if extensions, ok := lv.Extensions[openapi.ExtUIKey].(map[string]any); ok {
+			extensions[immutableExtensionKey] = true
+		}
+	}
+
 	// Find the most complete sentence.
 	// If not found, it cleans up the description.
 	if nb[mefDescription] == nil {
@@ -439,6 +448,23 @@ var basicTypes = []string{
 	openapi3.TypeInteger,
 	openapi3.TypeNumber,
 	openapi3.TypeBoolean,
+}
+
+// isImmutable checks whether the schema is immutable in the UI extension.
+func isImmutable(extensions map[string]any) bool {
+	ui, ok := extensions[openapi.ExtUIKey]
+
+	if !ok {
+		return false
+	}
+
+	e, ok := ui.(map[string]any)
+
+	if !ok {
+		return false
+	}
+
+	return e[immutableExtensionKey] == true
 }
 
 // isSchemaRefTypeEqual compares the type of the schema ref.
