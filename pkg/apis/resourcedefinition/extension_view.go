@@ -27,6 +27,10 @@ type (
 	RouteGetResourcesResponse = []*model.ResourceOutput
 )
 
+func (r *RouteGetResourcesRequest) SetStream(stream runtime.RequestUnidiStream) {
+	r.Stream = &stream
+}
+
 type (
 	RouteDeleteResourcesRequest struct {
 		_ struct{} `route:"DELETE=/resources"`
