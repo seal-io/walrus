@@ -107,14 +107,7 @@ func setup(sc config.ServerContext, serverConfig *config.Config, flags *pflag.Fl
 
 // sync define the function for config sync command.
 func sync(serverConfig *config.Config, root *cobra.Command) error {
-	err := serverConfig.ValidateAndSetup()
-	if err != nil {
-		return err
-	}
-
-	err = Load(serverConfig, root, true)
-
-	return err
+	return Load(serverConfig, root, true)
 }
 
 // Load OpenAPI from cache or remote and setup command.
