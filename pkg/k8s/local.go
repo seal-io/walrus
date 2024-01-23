@@ -130,7 +130,7 @@ func (Embedded) Run(ctx context.Context) error {
 		return fmt.Errorf("error link server data: %w", err)
 	}
 
-	// Reset server data.
+	// Reset server database.
 	if files.Exists(filepath.Join(k3sServerDataDir, "db", "etcd")) {
 		_ = os.Remove(filepath.Join(k3sServerDataDir, "db", "reset-flag")) // Clean reset flag.
 
@@ -172,6 +172,21 @@ func (Embedded) Run(ctx context.Context) error {
 		cmdArgs = append(cmdArgs,
 			"--cluster-cidr="+cls.String(),
 			"--service-cidr="+svc.String())
+
+		// NB(thxCode): At present, it's impossible to reset the PodCIDR of a joined Kubernetes Node,
+		// even the `--cluster-reset` introduced by k3s.
+		// Embedded Kubernetes cluster is for demonstration purpose,
+		// we never guarantee it for production using.
+		// In order to restart from the mutable networking env,
+		// we compare with the previous cluster CIDR here to determine erasing the data directory or not.
+		clsFp := filepath.Join(k3sServerDataDir, "cluster.cidr")
+		if files.ExistsFile(clsFp) {
+			bs, _ := os.ReadFile(clsFp)
+			if string(bs) != cls.String() {
+				_ = os.RemoveAll(filepath.Join(k3sServerDataDir, "db", "etcd"))
+			}
+		}
+		_ = os.WriteFile(clsFp, []byte(cls.String()), 0o600)
 	}
 
 	return runK3sWith(ctx, cmdArgs)
