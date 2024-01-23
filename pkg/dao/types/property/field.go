@@ -95,7 +95,7 @@ func (i Values) ValidateWith(schema *openapi3.Schema) error {
 			err error
 		)
 
-		switch s.Type {
+		switch {
 		default:
 			_, ok, err := GetAny[any](v)
 			if !ok || err != nil {
@@ -103,32 +103,35 @@ func (i Values) ValidateWith(schema *openapi3.Schema) error {
 			}
 
 			continue
-		case openapi3.TypeString:
+		case s.Type == openapi3.TypeString:
 			val, ok, err = GetString(v)
 			if !ok || err != nil {
 				return errTypeFunc(n, ok, err, s.Type, v)
 			}
-		case openapi3.TypeBoolean:
+		case s.Type == openapi3.TypeBoolean:
 			val, ok, err = GetBool(v)
 			if !ok || err != nil {
 				return errTypeFunc(n, ok, err, s.Type, v)
 			}
-		case openapi3.TypeInteger:
+		case s.Type == openapi3.TypeInteger:
 			val, ok, err = GetInt(v)
 			if !ok || err != nil {
 				return errTypeFunc(n, ok, err, s.Type, v)
 			}
-		case openapi3.TypeNumber:
+		case s.Type == openapi3.TypeNumber:
 			val, ok, err = GetNumber(v)
 			if !ok || err != nil {
 				return errTypeFunc(n, ok, err, s.Type, v)
 			}
-		case openapi3.TypeArray:
+		case HasAnyTypes(s):
+			// Skip validate for any type.
+			continue
+		case s.Type == openapi3.TypeArray:
 			val, ok, err = GetSlice[any](v)
 			if !ok || err != nil {
 				return errTypeFunc(n, ok, err, s.Type, v)
 			}
-		case openapi3.TypeObject:
+		case s.Type == openapi3.TypeObject:
 			val, ok, err = GetMap[any](v)
 			if !ok || err != nil {
 				return errTypeFunc(n, ok, err, s.Type, v)
@@ -142,4 +145,34 @@ func (i Values) ValidateWith(schema *openapi3.Schema) error {
 	}
 
 	return nil
+}
+
+// HasAnyTypes check whether the schema include any type.
+// Object without properties and additional properties will be considered as any type.
+func HasAnyTypes(s *openapi3.Schema) bool {
+	switch s.Type {
+	case openapi3.TypeObject:
+		if len(s.Properties) == 0 && s.AdditionalProperties.Schema == nil {
+			return true
+		}
+
+		for _, at := range s.Properties {
+			if at != nil && HasAnyTypes(at.Value) {
+				return true
+			}
+		}
+
+		if s.AdditionalProperties.Schema != nil &&
+			s.AdditionalProperties.Schema.Value != nil &&
+			HasAnyTypes(s.AdditionalProperties.Schema.Value) {
+			return true
+		}
+
+	case openapi3.TypeArray:
+		if s.Items != nil && s.Items.Value != nil && HasAnyTypes(s.Items.Value) {
+			return true
+		}
+	}
+
+	return false
 }
