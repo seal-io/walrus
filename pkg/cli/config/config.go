@@ -70,19 +70,56 @@ func (c *Config) DoRequest(req *http.Request) (*http.Response, error) {
 	return c.DoRequestWithTimeout(req, timeout)
 }
 
-// ValidateAndSetup validate and setup the context.
-func (c *Config) ValidateAndSetup() error {
-	msg := `cli configuration is invalid: %s. You can configure cli by running "walrus login"`
-
-	if c.Server == "" {
-		return fmt.Errorf(msg, "server address is empty")
+func (c *Config) CheckReachable() (err error) {
+	u, err := url.Parse(c.Server)
+	if err != nil {
+		return err
 	}
 
-	if c.Token == "" {
+	if u.Port() == "" {
+		if u.Scheme == "http" {
+			u.Host += ":80"
+		} else if u.Scheme == "https" {
+			u.Host += ":443"
+		}
+	}
+
+	var conn net.Conn
+
+	conn, err = net.DialTimeout("tcp", u.Host, 3*time.Second)
+	if err != nil {
+		return fmt.Errorf("access %s failed %w", c.Server, err)
+	}
+
+	defer conn.Close()
+
+	return nil
+}
+
+// ValidateAndSetup validate and setup the context.
+func (c *Config) ValidateAndSetup() (err error) {
+	// Reachable set.
+	c.Reachable = true
+
+	defer func() {
+		if err != nil {
+			c.Reachable = false
+		}
+	}()
+
+	msg := `cli configuration is invalid: %v. You can configure cli by running "walrus login"`
+
+	switch {
+	case c.Server == "":
+		return fmt.Errorf(msg, "server address is empty")
+	case c.Token == "":
 		return fmt.Errorf(msg, "token is empty")
 	}
 
-	var err error
+	err = c.CheckReachable()
+	if err != nil {
+		return err
+	}
 
 	switch {
 	case c.Project != "" && c.Environment != "":
@@ -94,7 +131,7 @@ func (c *Config) ValidateAndSetup() error {
 	}
 
 	if err != nil {
-		return fmt.Errorf(msg, err.Error())
+		return fmt.Errorf(msg, err)
 	}
 
 	return nil

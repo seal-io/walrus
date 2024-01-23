@@ -44,6 +44,11 @@ func InitOpenAPI(sc *config.Config, skipCache bool) error {
 		}
 	}
 
+	// Reachable check before load.
+	if !sc.Reachable {
+		return fmt.Errorf(`remote server is unreachable. You can configure cli by running "walrus login"`)
+	}
+
 	// Load from remote.
 	log.Debug("Load from remote")
 

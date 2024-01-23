@@ -27,12 +27,6 @@ func Context(serverConfig *config.Config) *cobra.Command {
 			viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 			viper.AutomaticEnv()
 			common.BindFlags(cmd)
-
-			// Validate and init.
-			err := validateAndInitOpenAPI(serverConfig)
-			if err != nil {
-				panic(err)
-			}
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			isInputByFlags := common.InputByFlags(cmd)

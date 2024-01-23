@@ -26,6 +26,9 @@ type ServerContext struct {
 	Server   string `json:"server" survey:"server"`
 	Token    string `json:"token" survey:"token"`
 	Insecure bool   `json:"insecure" survey:"insecure"`
+
+	// Reachable.
+	Reachable bool
 }
 
 func (c *ServerContext) AddFlags(cmd *cobra.Command) {

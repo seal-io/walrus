@@ -22,17 +22,16 @@ func InitConfig() (*ServerContext, error) {
 	// Config dir.
 	configDir := GetConfigDir()
 
-	err := os.MkdirAll(configDir, 0o700)
-	if err != nil {
-		return nil, err
-	}
-
 	// Config file.
 	filename := path.Join(configDir, configFileName)
 
-	_, err = os.Stat(filename)
+	_, err := os.Stat(filename)
 	if err != nil {
 		if os.IsNotExist(err) {
+			if err = os.MkdirAll(configDir, 0o700); err != nil {
+				return nil, err
+			}
+
 			return &ServerContext{}, os.WriteFile(filename, []byte("{}"), 0o600)
 		}
 
