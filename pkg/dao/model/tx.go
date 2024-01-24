@@ -45,8 +45,8 @@ type Tx struct {
 	ResourceDefinitionMatchingRule *ResourceDefinitionMatchingRuleClient
 	// ResourceRelationship is the client for interacting with the ResourceRelationship builders.
 	ResourceRelationship *ResourceRelationshipClient
-	// ResourceRevision is the client for interacting with the ResourceRevision builders.
-	ResourceRevision *ResourceRevisionClient
+	// ResourceRun is the client for interacting with the ResourceRun builders.
+	ResourceRun *ResourceRunClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// Setting is the client for interacting with the Setting builders.
@@ -220,7 +220,7 @@ func (tx *Tx) init() {
 	tx.ResourceDefinition = NewResourceDefinitionClient(tx.config)
 	tx.ResourceDefinitionMatchingRule = NewResourceDefinitionMatchingRuleClient(tx.config)
 	tx.ResourceRelationship = NewResourceRelationshipClient(tx.config)
-	tx.ResourceRevision = NewResourceRevisionClient(tx.config)
+	tx.ResourceRun = NewResourceRunClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.Setting = NewSettingClient(tx.config)
 	tx.Subject = NewSubjectClient(tx.config)
@@ -368,9 +368,9 @@ func (tx *Tx) ResourceRelationships() *ResourceRelationshipClient {
 	return tx.ResourceRelationship
 }
 
-// ResourceRevisions implements the ClientSet.
-func (tx *Tx) ResourceRevisions() *ResourceRevisionClient {
-	return tx.ResourceRevision
+// ResourceRuns implements the ClientSet.
+func (tx *Tx) ResourceRuns() *ResourceRunClient {
+	return tx.ResourceRun
 }
 
 // Roles implements the ClientSet.
@@ -464,7 +464,7 @@ func (tx *Tx) Intercept(interceptors ...Interceptor) {
 	tx.ResourceDefinition.Intercept(interceptors...)
 	tx.ResourceDefinitionMatchingRule.Intercept(interceptors...)
 	tx.ResourceRelationship.Intercept(interceptors...)
-	tx.ResourceRevision.Intercept(interceptors...)
+	tx.ResourceRun.Intercept(interceptors...)
 	tx.Role.Intercept(interceptors...)
 	tx.Setting.Intercept(interceptors...)
 	tx.Subject.Intercept(interceptors...)
@@ -521,7 +521,7 @@ func (tx *Tx) Use(hooks ...Hook) {
 	tx.ResourceDefinition.Use(hooks...)
 	tx.ResourceDefinitionMatchingRule.Use(hooks...)
 	tx.ResourceRelationship.Use(hooks...)
-	tx.ResourceRevision.Use(hooks...)
+	tx.ResourceRun.Use(hooks...)
 	tx.Role.Use(hooks...)
 	tx.Setting.Use(hooks...)
 	tx.Subject.Use(hooks...)

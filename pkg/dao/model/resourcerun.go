@@ -16,7 +16,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -25,8 +25,8 @@ import (
 	"github.com/seal-io/walrus/utils/json"
 )
 
-// ResourceRevision is the model entity for the ResourceRevision schema.
-type ResourceRevision struct {
+// ResourceRun is the model entity for the ResourceRun schema.
+type ResourceRun struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID object.ID `json:"id,omitempty"`
@@ -36,9 +36,9 @@ type ResourceRevision struct {
 	Status status.Status `json:"status,omitempty"`
 	// ID of the project to belong.
 	ProjectID object.ID `json:"project_id,omitempty"`
-	// ID of the environment to which the revision belongs.
+	// ID of the environment to which the run belongs.
 	EnvironmentID object.ID `json:"environment_id,omitempty"`
-	// ID of the resource to which the revision belongs.
+	// ID of the resource to which the run belongs.
 	ResourceID object.ID `json:"resource_id,omitempty"`
 	// Name of the template.
 	TemplateName string `json:"template_name,omitempty"`
@@ -50,37 +50,37 @@ type ResourceRevision struct {
 	Attributes property.Values `json:"attributes,omitempty"`
 	// Computed attributes generated from attributes and schemas.
 	ComputedAttributes property.Values `json:"computed_attributes,omitempty"`
-	// Variables of the revision.
+	// Variables of the run.
 	Variables crypto.Map[string, string] `json:"variables,omitempty"`
-	// Input plan of the revision.
+	// Input plan of the run.
 	InputPlan string `json:"-"`
-	// Output of the revision.
+	// Output of the run.
 	Output string `json:"-"`
 	// Type of deployer.
 	DeployerType string `json:"deployer_type,omitempty"`
-	// Duration in seconds of the revision deploying.
+	// Duration in seconds of the run deploying.
 	Duration int `json:"duration,omitempty"`
-	// Previous provider requirement of the revision.
+	// Previous provider requirement of the run.
 	PreviousRequiredProviders []types.ProviderRequirement `json:"previous_required_providers,omitempty"`
-	// Record of the revision.
+	// Record of the run.
 	Record string `json:"record,omitempty"`
-	// Change comment of the revision.
+	// Change comment of the run.
 	ChangeComment string `json:"change_comment,omitempty"`
-	// User who created the revision.
+	// User who created the run.
 	CreatedBy string `json:"created_by,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the ResourceRevisionQuery when eager-loading is set.
-	Edges        ResourceRevisionEdges `json:"edges,omitempty"`
+	// The values are being populated by the ResourceRunQuery when eager-loading is set.
+	Edges        ResourceRunEdges `json:"edges,omitempty"`
 	selectValues sql.SelectValues
 }
 
-// ResourceRevisionEdges holds the relations/edges for other nodes in the graph.
-type ResourceRevisionEdges struct {
-	// Project to which the revision belongs.
+// ResourceRunEdges holds the relations/edges for other nodes in the graph.
+type ResourceRunEdges struct {
+	// Project to which the run belongs.
 	Project *Project `json:"project,omitempty"`
-	// Environment to which the revision deploys.
+	// Environment to which the run deploys.
 	Environment *Environment `json:"environment,omitempty"`
-	// Resource to which the revision belongs.
+	// Resource to which the run belongs.
 	Resource *Resource `json:"resource,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
@@ -89,7 +89,7 @@ type ResourceRevisionEdges struct {
 
 // ProjectOrErr returns the Project value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e ResourceRevisionEdges) ProjectOrErr() (*Project, error) {
+func (e ResourceRunEdges) ProjectOrErr() (*Project, error) {
 	if e.loadedTypes[0] {
 		if e.Project == nil {
 			// Edge was loaded but was not found.
@@ -102,7 +102,7 @@ func (e ResourceRevisionEdges) ProjectOrErr() (*Project, error) {
 
 // EnvironmentOrErr returns the Environment value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e ResourceRevisionEdges) EnvironmentOrErr() (*Environment, error) {
+func (e ResourceRunEdges) EnvironmentOrErr() (*Environment, error) {
 	if e.loadedTypes[1] {
 		if e.Environment == nil {
 			// Edge was loaded but was not found.
@@ -115,7 +115,7 @@ func (e ResourceRevisionEdges) EnvironmentOrErr() (*Environment, error) {
 
 // ResourceOrErr returns the Resource value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e ResourceRevisionEdges) ResourceOrErr() (*Resource, error) {
+func (e ResourceRunEdges) ResourceOrErr() (*Resource, error) {
 	if e.loadedTypes[2] {
 		if e.Resource == nil {
 			// Edge was loaded but was not found.
@@ -127,23 +127,23 @@ func (e ResourceRevisionEdges) ResourceOrErr() (*Resource, error) {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*ResourceRevision) scanValues(columns []string) ([]any, error) {
+func (*ResourceRun) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case resourcerevision.FieldStatus, resourcerevision.FieldPreviousRequiredProviders:
+		case resourcerun.FieldStatus, resourcerun.FieldPreviousRequiredProviders:
 			values[i] = new([]byte)
-		case resourcerevision.FieldVariables:
+		case resourcerun.FieldVariables:
 			values[i] = new(crypto.Map[string, string])
-		case resourcerevision.FieldID, resourcerevision.FieldProjectID, resourcerevision.FieldEnvironmentID, resourcerevision.FieldResourceID, resourcerevision.FieldTemplateID:
+		case resourcerun.FieldID, resourcerun.FieldProjectID, resourcerun.FieldEnvironmentID, resourcerun.FieldResourceID, resourcerun.FieldTemplateID:
 			values[i] = new(object.ID)
-		case resourcerevision.FieldAttributes, resourcerevision.FieldComputedAttributes:
+		case resourcerun.FieldAttributes, resourcerun.FieldComputedAttributes:
 			values[i] = new(property.Values)
-		case resourcerevision.FieldDuration:
+		case resourcerun.FieldDuration:
 			values[i] = new(sql.NullInt64)
-		case resourcerevision.FieldTemplateName, resourcerevision.FieldTemplateVersion, resourcerevision.FieldInputPlan, resourcerevision.FieldOutput, resourcerevision.FieldDeployerType, resourcerevision.FieldRecord, resourcerevision.FieldChangeComment, resourcerevision.FieldCreatedBy:
+		case resourcerun.FieldTemplateName, resourcerun.FieldTemplateVersion, resourcerun.FieldInputPlan, resourcerun.FieldOutput, resourcerun.FieldDeployerType, resourcerun.FieldRecord, resourcerun.FieldChangeComment, resourcerun.FieldCreatedBy:
 			values[i] = new(sql.NullString)
-		case resourcerevision.FieldCreateTime:
+		case resourcerun.FieldCreateTime:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -153,27 +153,27 @@ func (*ResourceRevision) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the ResourceRevision fields.
-func (rr *ResourceRevision) assignValues(columns []string, values []any) error {
+// to the ResourceRun fields.
+func (rr *ResourceRun) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case resourcerevision.FieldID:
+		case resourcerun.FieldID:
 			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				rr.ID = *value
 			}
-		case resourcerevision.FieldCreateTime:
+		case resourcerun.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field create_time", values[i])
 			} else if value.Valid {
 				rr.CreateTime = new(time.Time)
 				*rr.CreateTime = value.Time
 			}
-		case resourcerevision.FieldStatus:
+		case resourcerun.FieldStatus:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value != nil && len(*value) > 0 {
@@ -181,85 +181,85 @@ func (rr *ResourceRevision) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field status: %w", err)
 				}
 			}
-		case resourcerevision.FieldProjectID:
+		case resourcerun.FieldProjectID:
 			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field project_id", values[i])
 			} else if value != nil {
 				rr.ProjectID = *value
 			}
-		case resourcerevision.FieldEnvironmentID:
+		case resourcerun.FieldEnvironmentID:
 			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field environment_id", values[i])
 			} else if value != nil {
 				rr.EnvironmentID = *value
 			}
-		case resourcerevision.FieldResourceID:
+		case resourcerun.FieldResourceID:
 			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field resource_id", values[i])
 			} else if value != nil {
 				rr.ResourceID = *value
 			}
-		case resourcerevision.FieldTemplateName:
+		case resourcerun.FieldTemplateName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field template_name", values[i])
 			} else if value.Valid {
 				rr.TemplateName = value.String
 			}
-		case resourcerevision.FieldTemplateVersion:
+		case resourcerun.FieldTemplateVersion:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field template_version", values[i])
 			} else if value.Valid {
 				rr.TemplateVersion = value.String
 			}
-		case resourcerevision.FieldTemplateID:
+		case resourcerun.FieldTemplateID:
 			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field template_id", values[i])
 			} else if value != nil {
 				rr.TemplateID = *value
 			}
-		case resourcerevision.FieldAttributes:
+		case resourcerun.FieldAttributes:
 			if value, ok := values[i].(*property.Values); !ok {
 				return fmt.Errorf("unexpected type %T for field attributes", values[i])
 			} else if value != nil {
 				rr.Attributes = *value
 			}
-		case resourcerevision.FieldComputedAttributes:
+		case resourcerun.FieldComputedAttributes:
 			if value, ok := values[i].(*property.Values); !ok {
 				return fmt.Errorf("unexpected type %T for field computed_attributes", values[i])
 			} else if value != nil {
 				rr.ComputedAttributes = *value
 			}
-		case resourcerevision.FieldVariables:
+		case resourcerun.FieldVariables:
 			if value, ok := values[i].(*crypto.Map[string, string]); !ok {
 				return fmt.Errorf("unexpected type %T for field variables", values[i])
 			} else if value != nil {
 				rr.Variables = *value
 			}
-		case resourcerevision.FieldInputPlan:
+		case resourcerun.FieldInputPlan:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field input_plan", values[i])
 			} else if value.Valid {
 				rr.InputPlan = value.String
 			}
-		case resourcerevision.FieldOutput:
+		case resourcerun.FieldOutput:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field output", values[i])
 			} else if value.Valid {
 				rr.Output = value.String
 			}
-		case resourcerevision.FieldDeployerType:
+		case resourcerun.FieldDeployerType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field deployer_type", values[i])
 			} else if value.Valid {
 				rr.DeployerType = value.String
 			}
-		case resourcerevision.FieldDuration:
+		case resourcerun.FieldDuration:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field duration", values[i])
 			} else if value.Valid {
 				rr.Duration = int(value.Int64)
 			}
-		case resourcerevision.FieldPreviousRequiredProviders:
+		case resourcerun.FieldPreviousRequiredProviders:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field previous_required_providers", values[i])
 			} else if value != nil && len(*value) > 0 {
@@ -267,19 +267,19 @@ func (rr *ResourceRevision) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field previous_required_providers: %w", err)
 				}
 			}
-		case resourcerevision.FieldRecord:
+		case resourcerun.FieldRecord:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field record", values[i])
 			} else if value.Valid {
 				rr.Record = value.String
 			}
-		case resourcerevision.FieldChangeComment:
+		case resourcerun.FieldChangeComment:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field change_comment", values[i])
 			} else if value.Valid {
 				rr.ChangeComment = value.String
 			}
-		case resourcerevision.FieldCreatedBy:
+		case resourcerun.FieldCreatedBy:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field created_by", values[i])
 			} else if value.Valid {
@@ -292,49 +292,49 @@ func (rr *ResourceRevision) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the ResourceRevision.
+// Value returns the ent.Value that was dynamically selected and assigned to the ResourceRun.
 // This includes values selected through modifiers, order, etc.
-func (rr *ResourceRevision) Value(name string) (ent.Value, error) {
+func (rr *ResourceRun) Value(name string) (ent.Value, error) {
 	return rr.selectValues.Get(name)
 }
 
-// QueryProject queries the "project" edge of the ResourceRevision entity.
-func (rr *ResourceRevision) QueryProject() *ProjectQuery {
-	return NewResourceRevisionClient(rr.config).QueryProject(rr)
+// QueryProject queries the "project" edge of the ResourceRun entity.
+func (rr *ResourceRun) QueryProject() *ProjectQuery {
+	return NewResourceRunClient(rr.config).QueryProject(rr)
 }
 
-// QueryEnvironment queries the "environment" edge of the ResourceRevision entity.
-func (rr *ResourceRevision) QueryEnvironment() *EnvironmentQuery {
-	return NewResourceRevisionClient(rr.config).QueryEnvironment(rr)
+// QueryEnvironment queries the "environment" edge of the ResourceRun entity.
+func (rr *ResourceRun) QueryEnvironment() *EnvironmentQuery {
+	return NewResourceRunClient(rr.config).QueryEnvironment(rr)
 }
 
-// QueryResource queries the "resource" edge of the ResourceRevision entity.
-func (rr *ResourceRevision) QueryResource() *ResourceQuery {
-	return NewResourceRevisionClient(rr.config).QueryResource(rr)
+// QueryResource queries the "resource" edge of the ResourceRun entity.
+func (rr *ResourceRun) QueryResource() *ResourceQuery {
+	return NewResourceRunClient(rr.config).QueryResource(rr)
 }
 
-// Update returns a builder for updating this ResourceRevision.
-// Note that you need to call ResourceRevision.Unwrap() before calling this method if this ResourceRevision
+// Update returns a builder for updating this ResourceRun.
+// Note that you need to call ResourceRun.Unwrap() before calling this method if this ResourceRun
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (rr *ResourceRevision) Update() *ResourceRevisionUpdateOne {
-	return NewResourceRevisionClient(rr.config).UpdateOne(rr)
+func (rr *ResourceRun) Update() *ResourceRunUpdateOne {
+	return NewResourceRunClient(rr.config).UpdateOne(rr)
 }
 
-// Unwrap unwraps the ResourceRevision entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the ResourceRun entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (rr *ResourceRevision) Unwrap() *ResourceRevision {
+func (rr *ResourceRun) Unwrap() *ResourceRun {
 	_tx, ok := rr.config.driver.(*txDriver)
 	if !ok {
-		panic("model: ResourceRevision is not a transactional entity")
+		panic("model: ResourceRun is not a transactional entity")
 	}
 	rr.config.driver = _tx.drv
 	return rr
 }
 
 // String implements the fmt.Stringer.
-func (rr *ResourceRevision) String() string {
+func (rr *ResourceRun) String() string {
 	var builder strings.Builder
-	builder.WriteString("ResourceRevision(")
+	builder.WriteString("ResourceRun(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", rr.ID))
 	if v := rr.CreateTime; v != nil {
 		builder.WriteString("create_time=")
@@ -396,5 +396,5 @@ func (rr *ResourceRevision) String() string {
 	return builder.String()
 }
 
-// ResourceRevisions is a parsable slice of ResourceRevision.
-type ResourceRevisions []*ResourceRevision
+// ResourceRuns is a parsable slice of ResourceRun.
+type ResourceRuns []*ResourceRun

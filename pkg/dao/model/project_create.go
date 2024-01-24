@@ -23,7 +23,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
@@ -188,19 +188,19 @@ func (pc *ProjectCreate) AddResourceComponents(r ...*ResourceComponent) *Project
 	return pc.AddResourceComponentIDs(ids...)
 }
 
-// AddResourceRevisionIDs adds the "resource_revisions" edge to the ResourceRevision entity by IDs.
-func (pc *ProjectCreate) AddResourceRevisionIDs(ids ...object.ID) *ProjectCreate {
-	pc.mutation.AddResourceRevisionIDs(ids...)
+// AddResourceRunIDs adds the "resource_runs" edge to the ResourceRun entity by IDs.
+func (pc *ProjectCreate) AddResourceRunIDs(ids ...object.ID) *ProjectCreate {
+	pc.mutation.AddResourceRunIDs(ids...)
 	return pc
 }
 
-// AddResourceRevisions adds the "resource_revisions" edges to the ResourceRevision entity.
-func (pc *ProjectCreate) AddResourceRevisions(r ...*ResourceRevision) *ProjectCreate {
+// AddResourceRuns adds the "resource_runs" edges to the ResourceRun entity.
+func (pc *ProjectCreate) AddResourceRuns(r ...*ResourceRun) *ProjectCreate {
 	ids := make([]object.ID, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return pc.AddResourceRevisionIDs(ids...)
+	return pc.AddResourceRunIDs(ids...)
 }
 
 // AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
@@ -577,18 +577,18 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.mutation.ResourceRevisionsIDs(); len(nodes) > 0 {
+	if nodes := pc.mutation.ResourceRunsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ResourceRevisionsTable,
-			Columns: []string{project.ResourceRevisionsColumn},
+			Table:   project.ResourceRunsTable,
+			Columns: []string{project.ResourceRunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = pc.schemaConfig.ResourceRevision
+		edge.Schema = pc.schemaConfig.ResourceRun
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

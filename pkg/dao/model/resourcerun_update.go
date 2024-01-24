@@ -20,36 +20,36 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model/internal"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
-// ResourceRevisionUpdate is the builder for updating ResourceRevision entities.
-type ResourceRevisionUpdate struct {
+// ResourceRunUpdate is the builder for updating ResourceRun entities.
+type ResourceRunUpdate struct {
 	config
 	hooks     []Hook
-	mutation  *ResourceRevisionMutation
+	mutation  *ResourceRunMutation
 	modifiers []func(*sql.UpdateBuilder)
-	object    *ResourceRevision
+	object    *ResourceRun
 }
 
-// Where appends a list predicates to the ResourceRevisionUpdate builder.
-func (rru *ResourceRevisionUpdate) Where(ps ...predicate.ResourceRevision) *ResourceRevisionUpdate {
+// Where appends a list predicates to the ResourceRunUpdate builder.
+func (rru *ResourceRunUpdate) Where(ps ...predicate.ResourceRun) *ResourceRunUpdate {
 	rru.mutation.Where(ps...)
 	return rru
 }
 
 // SetStatus sets the "status" field.
-func (rru *ResourceRevisionUpdate) SetStatus(s status.Status) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetStatus(s status.Status) *ResourceRunUpdate {
 	rru.mutation.SetStatus(s)
 	return rru
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (rru *ResourceRevisionUpdate) SetNillableStatus(s *status.Status) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetNillableStatus(s *status.Status) *ResourceRunUpdate {
 	if s != nil {
 		rru.SetStatus(*s)
 	}
@@ -57,19 +57,19 @@ func (rru *ResourceRevisionUpdate) SetNillableStatus(s *status.Status) *Resource
 }
 
 // ClearStatus clears the value of the "status" field.
-func (rru *ResourceRevisionUpdate) ClearStatus() *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) ClearStatus() *ResourceRunUpdate {
 	rru.mutation.ClearStatus()
 	return rru
 }
 
 // SetTemplateVersion sets the "template_version" field.
-func (rru *ResourceRevisionUpdate) SetTemplateVersion(s string) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetTemplateVersion(s string) *ResourceRunUpdate {
 	rru.mutation.SetTemplateVersion(s)
 	return rru
 }
 
 // SetNillableTemplateVersion sets the "template_version" field if the given value is not nil.
-func (rru *ResourceRevisionUpdate) SetNillableTemplateVersion(s *string) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetNillableTemplateVersion(s *string) *ResourceRunUpdate {
 	if s != nil {
 		rru.SetTemplateVersion(*s)
 	}
@@ -77,43 +77,43 @@ func (rru *ResourceRevisionUpdate) SetNillableTemplateVersion(s *string) *Resour
 }
 
 // SetAttributes sets the "attributes" field.
-func (rru *ResourceRevisionUpdate) SetAttributes(pr property.Values) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetAttributes(pr property.Values) *ResourceRunUpdate {
 	rru.mutation.SetAttributes(pr)
 	return rru
 }
 
 // ClearAttributes clears the value of the "attributes" field.
-func (rru *ResourceRevisionUpdate) ClearAttributes() *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) ClearAttributes() *ResourceRunUpdate {
 	rru.mutation.ClearAttributes()
 	return rru
 }
 
 // SetComputedAttributes sets the "computed_attributes" field.
-func (rru *ResourceRevisionUpdate) SetComputedAttributes(pr property.Values) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetComputedAttributes(pr property.Values) *ResourceRunUpdate {
 	rru.mutation.SetComputedAttributes(pr)
 	return rru
 }
 
 // ClearComputedAttributes clears the value of the "computed_attributes" field.
-func (rru *ResourceRevisionUpdate) ClearComputedAttributes() *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) ClearComputedAttributes() *ResourceRunUpdate {
 	rru.mutation.ClearComputedAttributes()
 	return rru
 }
 
 // SetVariables sets the "variables" field.
-func (rru *ResourceRevisionUpdate) SetVariables(c crypto.Map[string, string]) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetVariables(c crypto.Map[string, string]) *ResourceRunUpdate {
 	rru.mutation.SetVariables(c)
 	return rru
 }
 
 // SetInputPlan sets the "input_plan" field.
-func (rru *ResourceRevisionUpdate) SetInputPlan(s string) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetInputPlan(s string) *ResourceRunUpdate {
 	rru.mutation.SetInputPlan(s)
 	return rru
 }
 
 // SetNillableInputPlan sets the "input_plan" field if the given value is not nil.
-func (rru *ResourceRevisionUpdate) SetNillableInputPlan(s *string) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetNillableInputPlan(s *string) *ResourceRunUpdate {
 	if s != nil {
 		rru.SetInputPlan(*s)
 	}
@@ -121,13 +121,13 @@ func (rru *ResourceRevisionUpdate) SetNillableInputPlan(s *string) *ResourceRevi
 }
 
 // SetOutput sets the "output" field.
-func (rru *ResourceRevisionUpdate) SetOutput(s string) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetOutput(s string) *ResourceRunUpdate {
 	rru.mutation.SetOutput(s)
 	return rru
 }
 
 // SetNillableOutput sets the "output" field if the given value is not nil.
-func (rru *ResourceRevisionUpdate) SetNillableOutput(s *string) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetNillableOutput(s *string) *ResourceRunUpdate {
 	if s != nil {
 		rru.SetOutput(*s)
 	}
@@ -135,13 +135,13 @@ func (rru *ResourceRevisionUpdate) SetNillableOutput(s *string) *ResourceRevisio
 }
 
 // SetDeployerType sets the "deployer_type" field.
-func (rru *ResourceRevisionUpdate) SetDeployerType(s string) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetDeployerType(s string) *ResourceRunUpdate {
 	rru.mutation.SetDeployerType(s)
 	return rru
 }
 
 // SetNillableDeployerType sets the "deployer_type" field if the given value is not nil.
-func (rru *ResourceRevisionUpdate) SetNillableDeployerType(s *string) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetNillableDeployerType(s *string) *ResourceRunUpdate {
 	if s != nil {
 		rru.SetDeployerType(*s)
 	}
@@ -149,14 +149,14 @@ func (rru *ResourceRevisionUpdate) SetNillableDeployerType(s *string) *ResourceR
 }
 
 // SetDuration sets the "duration" field.
-func (rru *ResourceRevisionUpdate) SetDuration(i int) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetDuration(i int) *ResourceRunUpdate {
 	rru.mutation.ResetDuration()
 	rru.mutation.SetDuration(i)
 	return rru
 }
 
 // SetNillableDuration sets the "duration" field if the given value is not nil.
-func (rru *ResourceRevisionUpdate) SetNillableDuration(i *int) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetNillableDuration(i *int) *ResourceRunUpdate {
 	if i != nil {
 		rru.SetDuration(*i)
 	}
@@ -164,31 +164,31 @@ func (rru *ResourceRevisionUpdate) SetNillableDuration(i *int) *ResourceRevision
 }
 
 // AddDuration adds i to the "duration" field.
-func (rru *ResourceRevisionUpdate) AddDuration(i int) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) AddDuration(i int) *ResourceRunUpdate {
 	rru.mutation.AddDuration(i)
 	return rru
 }
 
 // SetPreviousRequiredProviders sets the "previous_required_providers" field.
-func (rru *ResourceRevisionUpdate) SetPreviousRequiredProviders(tr []types.ProviderRequirement) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetPreviousRequiredProviders(tr []types.ProviderRequirement) *ResourceRunUpdate {
 	rru.mutation.SetPreviousRequiredProviders(tr)
 	return rru
 }
 
 // AppendPreviousRequiredProviders appends tr to the "previous_required_providers" field.
-func (rru *ResourceRevisionUpdate) AppendPreviousRequiredProviders(tr []types.ProviderRequirement) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) AppendPreviousRequiredProviders(tr []types.ProviderRequirement) *ResourceRunUpdate {
 	rru.mutation.AppendPreviousRequiredProviders(tr)
 	return rru
 }
 
 // SetRecord sets the "record" field.
-func (rru *ResourceRevisionUpdate) SetRecord(s string) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetRecord(s string) *ResourceRunUpdate {
 	rru.mutation.SetRecord(s)
 	return rru
 }
 
 // SetNillableRecord sets the "record" field if the given value is not nil.
-func (rru *ResourceRevisionUpdate) SetNillableRecord(s *string) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetNillableRecord(s *string) *ResourceRunUpdate {
 	if s != nil {
 		rru.SetRecord(*s)
 	}
@@ -196,19 +196,19 @@ func (rru *ResourceRevisionUpdate) SetNillableRecord(s *string) *ResourceRevisio
 }
 
 // ClearRecord clears the value of the "record" field.
-func (rru *ResourceRevisionUpdate) ClearRecord() *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) ClearRecord() *ResourceRunUpdate {
 	rru.mutation.ClearRecord()
 	return rru
 }
 
 // SetChangeComment sets the "change_comment" field.
-func (rru *ResourceRevisionUpdate) SetChangeComment(s string) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetChangeComment(s string) *ResourceRunUpdate {
 	rru.mutation.SetChangeComment(s)
 	return rru
 }
 
 // SetNillableChangeComment sets the "change_comment" field if the given value is not nil.
-func (rru *ResourceRevisionUpdate) SetNillableChangeComment(s *string) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetNillableChangeComment(s *string) *ResourceRunUpdate {
 	if s != nil {
 		rru.SetChangeComment(*s)
 	}
@@ -216,37 +216,37 @@ func (rru *ResourceRevisionUpdate) SetNillableChangeComment(s *string) *Resource
 }
 
 // ClearChangeComment clears the value of the "change_comment" field.
-func (rru *ResourceRevisionUpdate) ClearChangeComment() *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) ClearChangeComment() *ResourceRunUpdate {
 	rru.mutation.ClearChangeComment()
 	return rru
 }
 
 // SetCreatedBy sets the "created_by" field.
-func (rru *ResourceRevisionUpdate) SetCreatedBy(s string) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetCreatedBy(s string) *ResourceRunUpdate {
 	rru.mutation.SetCreatedBy(s)
 	return rru
 }
 
 // SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
-func (rru *ResourceRevisionUpdate) SetNillableCreatedBy(s *string) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) SetNillableCreatedBy(s *string) *ResourceRunUpdate {
 	if s != nil {
 		rru.SetCreatedBy(*s)
 	}
 	return rru
 }
 
-// Mutation returns the ResourceRevisionMutation object of the builder.
-func (rru *ResourceRevisionUpdate) Mutation() *ResourceRevisionMutation {
+// Mutation returns the ResourceRunMutation object of the builder.
+func (rru *ResourceRunUpdate) Mutation() *ResourceRunMutation {
 	return rru.mutation
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (rru *ResourceRevisionUpdate) Save(ctx context.Context) (int, error) {
+func (rru *ResourceRunUpdate) Save(ctx context.Context) (int, error) {
 	return withHooks(ctx, rru.sqlSave, rru.mutation, rru.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rru *ResourceRevisionUpdate) SaveX(ctx context.Context) int {
+func (rru *ResourceRunUpdate) SaveX(ctx context.Context) int {
 	affected, err := rru.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -255,33 +255,33 @@ func (rru *ResourceRevisionUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (rru *ResourceRevisionUpdate) Exec(ctx context.Context) error {
+func (rru *ResourceRunUpdate) Exec(ctx context.Context) error {
 	_, err := rru.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rru *ResourceRevisionUpdate) ExecX(ctx context.Context) {
+func (rru *ResourceRunUpdate) ExecX(ctx context.Context) {
 	if err := rru.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rru *ResourceRevisionUpdate) check() error {
+func (rru *ResourceRunUpdate) check() error {
 	if v, ok := rru.mutation.TemplateVersion(); ok {
-		if err := resourcerevision.TemplateVersionValidator(v); err != nil {
-			return &ValidationError{Name: "template_version", err: fmt.Errorf(`model: validator failed for field "ResourceRevision.template_version": %w`, err)}
+		if err := resourcerun.TemplateVersionValidator(v); err != nil {
+			return &ValidationError{Name: "template_version", err: fmt.Errorf(`model: validator failed for field "ResourceRun.template_version": %w`, err)}
 		}
 	}
 	if _, ok := rru.mutation.ProjectID(); rru.mutation.ProjectCleared() && !ok {
-		return errors.New(`model: clearing a required unique edge "ResourceRevision.project"`)
+		return errors.New(`model: clearing a required unique edge "ResourceRun.project"`)
 	}
 	if _, ok := rru.mutation.EnvironmentID(); rru.mutation.EnvironmentCleared() && !ok {
-		return errors.New(`model: clearing a required unique edge "ResourceRevision.environment"`)
+		return errors.New(`model: clearing a required unique edge "ResourceRun.environment"`)
 	}
 	if _, ok := rru.mutation.ResourceID(); rru.mutation.ResourceCleared() && !ok {
-		return errors.New(`model: clearing a required unique edge "ResourceRevision.resource"`)
+		return errors.New(`model: clearing a required unique edge "ResourceRun.resource"`)
 	}
 	return nil
 }
@@ -317,7 +317,7 @@ func (rru *ResourceRevisionUpdate) check() error {
 //	if _is_zero_value_(obj.X) {
 //	   db.SetX(obj.X)
 //	}
-func (rru *ResourceRevisionUpdate) Set(obj *ResourceRevision) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) Set(obj *ResourceRun) *ResourceRunUpdate {
 	// Without Default.
 	if !reflect.ValueOf(obj.Status).IsZero() {
 		rru.SetStatus(obj.Status)
@@ -360,16 +360,16 @@ func (rru *ResourceRevisionUpdate) Set(obj *ResourceRevision) *ResourceRevisionU
 }
 
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
-func (rru *ResourceRevisionUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ResourceRevisionUpdate {
+func (rru *ResourceRunUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ResourceRunUpdate {
 	rru.modifiers = append(rru.modifiers, modifiers...)
 	return rru
 }
 
-func (rru *ResourceRevisionUpdate) sqlSave(ctx context.Context) (n int, err error) {
+func (rru *ResourceRunUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := rru.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(resourcerevision.Table, resourcerevision.Columns, sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString))
+	_spec := sqlgraph.NewUpdateSpec(resourcerun.Table, resourcerun.Columns, sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString))
 	if ps := rru.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -378,73 +378,73 @@ func (rru *ResourceRevisionUpdate) sqlSave(ctx context.Context) (n int, err erro
 		}
 	}
 	if value, ok := rru.mutation.Status(); ok {
-		_spec.SetField(resourcerevision.FieldStatus, field.TypeJSON, value)
+		_spec.SetField(resourcerun.FieldStatus, field.TypeJSON, value)
 	}
 	if rru.mutation.StatusCleared() {
-		_spec.ClearField(resourcerevision.FieldStatus, field.TypeJSON)
+		_spec.ClearField(resourcerun.FieldStatus, field.TypeJSON)
 	}
 	if value, ok := rru.mutation.TemplateVersion(); ok {
-		_spec.SetField(resourcerevision.FieldTemplateVersion, field.TypeString, value)
+		_spec.SetField(resourcerun.FieldTemplateVersion, field.TypeString, value)
 	}
 	if value, ok := rru.mutation.Attributes(); ok {
-		_spec.SetField(resourcerevision.FieldAttributes, field.TypeOther, value)
+		_spec.SetField(resourcerun.FieldAttributes, field.TypeOther, value)
 	}
 	if rru.mutation.AttributesCleared() {
-		_spec.ClearField(resourcerevision.FieldAttributes, field.TypeOther)
+		_spec.ClearField(resourcerun.FieldAttributes, field.TypeOther)
 	}
 	if value, ok := rru.mutation.ComputedAttributes(); ok {
-		_spec.SetField(resourcerevision.FieldComputedAttributes, field.TypeOther, value)
+		_spec.SetField(resourcerun.FieldComputedAttributes, field.TypeOther, value)
 	}
 	if rru.mutation.ComputedAttributesCleared() {
-		_spec.ClearField(resourcerevision.FieldComputedAttributes, field.TypeOther)
+		_spec.ClearField(resourcerun.FieldComputedAttributes, field.TypeOther)
 	}
 	if value, ok := rru.mutation.Variables(); ok {
-		_spec.SetField(resourcerevision.FieldVariables, field.TypeOther, value)
+		_spec.SetField(resourcerun.FieldVariables, field.TypeOther, value)
 	}
 	if value, ok := rru.mutation.InputPlan(); ok {
-		_spec.SetField(resourcerevision.FieldInputPlan, field.TypeString, value)
+		_spec.SetField(resourcerun.FieldInputPlan, field.TypeString, value)
 	}
 	if value, ok := rru.mutation.Output(); ok {
-		_spec.SetField(resourcerevision.FieldOutput, field.TypeString, value)
+		_spec.SetField(resourcerun.FieldOutput, field.TypeString, value)
 	}
 	if value, ok := rru.mutation.DeployerType(); ok {
-		_spec.SetField(resourcerevision.FieldDeployerType, field.TypeString, value)
+		_spec.SetField(resourcerun.FieldDeployerType, field.TypeString, value)
 	}
 	if value, ok := rru.mutation.Duration(); ok {
-		_spec.SetField(resourcerevision.FieldDuration, field.TypeInt, value)
+		_spec.SetField(resourcerun.FieldDuration, field.TypeInt, value)
 	}
 	if value, ok := rru.mutation.AddedDuration(); ok {
-		_spec.AddField(resourcerevision.FieldDuration, field.TypeInt, value)
+		_spec.AddField(resourcerun.FieldDuration, field.TypeInt, value)
 	}
 	if value, ok := rru.mutation.PreviousRequiredProviders(); ok {
-		_spec.SetField(resourcerevision.FieldPreviousRequiredProviders, field.TypeJSON, value)
+		_spec.SetField(resourcerun.FieldPreviousRequiredProviders, field.TypeJSON, value)
 	}
 	if value, ok := rru.mutation.AppendedPreviousRequiredProviders(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, resourcerevision.FieldPreviousRequiredProviders, value)
+			sqljson.Append(u, resourcerun.FieldPreviousRequiredProviders, value)
 		})
 	}
 	if value, ok := rru.mutation.Record(); ok {
-		_spec.SetField(resourcerevision.FieldRecord, field.TypeString, value)
+		_spec.SetField(resourcerun.FieldRecord, field.TypeString, value)
 	}
 	if rru.mutation.RecordCleared() {
-		_spec.ClearField(resourcerevision.FieldRecord, field.TypeString)
+		_spec.ClearField(resourcerun.FieldRecord, field.TypeString)
 	}
 	if value, ok := rru.mutation.ChangeComment(); ok {
-		_spec.SetField(resourcerevision.FieldChangeComment, field.TypeString, value)
+		_spec.SetField(resourcerun.FieldChangeComment, field.TypeString, value)
 	}
 	if rru.mutation.ChangeCommentCleared() {
-		_spec.ClearField(resourcerevision.FieldChangeComment, field.TypeString)
+		_spec.ClearField(resourcerun.FieldChangeComment, field.TypeString)
 	}
 	if value, ok := rru.mutation.CreatedBy(); ok {
-		_spec.SetField(resourcerevision.FieldCreatedBy, field.TypeString, value)
+		_spec.SetField(resourcerun.FieldCreatedBy, field.TypeString, value)
 	}
-	_spec.Node.Schema = rru.schemaConfig.ResourceRevision
+	_spec.Node.Schema = rru.schemaConfig.ResourceRun
 	ctx = internal.NewSchemaConfigContext(ctx, rru.schemaConfig)
 	_spec.AddModifiers(rru.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, rru.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{resourcerevision.Label}
+			err = &NotFoundError{resourcerun.Label}
 		} else if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -454,24 +454,24 @@ func (rru *ResourceRevisionUpdate) sqlSave(ctx context.Context) (n int, err erro
 	return n, nil
 }
 
-// ResourceRevisionUpdateOne is the builder for updating a single ResourceRevision entity.
-type ResourceRevisionUpdateOne struct {
+// ResourceRunUpdateOne is the builder for updating a single ResourceRun entity.
+type ResourceRunUpdateOne struct {
 	config
 	fields    []string
 	hooks     []Hook
-	mutation  *ResourceRevisionMutation
+	mutation  *ResourceRunMutation
 	modifiers []func(*sql.UpdateBuilder)
-	object    *ResourceRevision
+	object    *ResourceRun
 }
 
 // SetStatus sets the "status" field.
-func (rruo *ResourceRevisionUpdateOne) SetStatus(s status.Status) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetStatus(s status.Status) *ResourceRunUpdateOne {
 	rruo.mutation.SetStatus(s)
 	return rruo
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (rruo *ResourceRevisionUpdateOne) SetNillableStatus(s *status.Status) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetNillableStatus(s *status.Status) *ResourceRunUpdateOne {
 	if s != nil {
 		rruo.SetStatus(*s)
 	}
@@ -479,19 +479,19 @@ func (rruo *ResourceRevisionUpdateOne) SetNillableStatus(s *status.Status) *Reso
 }
 
 // ClearStatus clears the value of the "status" field.
-func (rruo *ResourceRevisionUpdateOne) ClearStatus() *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) ClearStatus() *ResourceRunUpdateOne {
 	rruo.mutation.ClearStatus()
 	return rruo
 }
 
 // SetTemplateVersion sets the "template_version" field.
-func (rruo *ResourceRevisionUpdateOne) SetTemplateVersion(s string) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetTemplateVersion(s string) *ResourceRunUpdateOne {
 	rruo.mutation.SetTemplateVersion(s)
 	return rruo
 }
 
 // SetNillableTemplateVersion sets the "template_version" field if the given value is not nil.
-func (rruo *ResourceRevisionUpdateOne) SetNillableTemplateVersion(s *string) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetNillableTemplateVersion(s *string) *ResourceRunUpdateOne {
 	if s != nil {
 		rruo.SetTemplateVersion(*s)
 	}
@@ -499,43 +499,43 @@ func (rruo *ResourceRevisionUpdateOne) SetNillableTemplateVersion(s *string) *Re
 }
 
 // SetAttributes sets the "attributes" field.
-func (rruo *ResourceRevisionUpdateOne) SetAttributes(pr property.Values) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetAttributes(pr property.Values) *ResourceRunUpdateOne {
 	rruo.mutation.SetAttributes(pr)
 	return rruo
 }
 
 // ClearAttributes clears the value of the "attributes" field.
-func (rruo *ResourceRevisionUpdateOne) ClearAttributes() *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) ClearAttributes() *ResourceRunUpdateOne {
 	rruo.mutation.ClearAttributes()
 	return rruo
 }
 
 // SetComputedAttributes sets the "computed_attributes" field.
-func (rruo *ResourceRevisionUpdateOne) SetComputedAttributes(pr property.Values) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetComputedAttributes(pr property.Values) *ResourceRunUpdateOne {
 	rruo.mutation.SetComputedAttributes(pr)
 	return rruo
 }
 
 // ClearComputedAttributes clears the value of the "computed_attributes" field.
-func (rruo *ResourceRevisionUpdateOne) ClearComputedAttributes() *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) ClearComputedAttributes() *ResourceRunUpdateOne {
 	rruo.mutation.ClearComputedAttributes()
 	return rruo
 }
 
 // SetVariables sets the "variables" field.
-func (rruo *ResourceRevisionUpdateOne) SetVariables(c crypto.Map[string, string]) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetVariables(c crypto.Map[string, string]) *ResourceRunUpdateOne {
 	rruo.mutation.SetVariables(c)
 	return rruo
 }
 
 // SetInputPlan sets the "input_plan" field.
-func (rruo *ResourceRevisionUpdateOne) SetInputPlan(s string) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetInputPlan(s string) *ResourceRunUpdateOne {
 	rruo.mutation.SetInputPlan(s)
 	return rruo
 }
 
 // SetNillableInputPlan sets the "input_plan" field if the given value is not nil.
-func (rruo *ResourceRevisionUpdateOne) SetNillableInputPlan(s *string) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetNillableInputPlan(s *string) *ResourceRunUpdateOne {
 	if s != nil {
 		rruo.SetInputPlan(*s)
 	}
@@ -543,13 +543,13 @@ func (rruo *ResourceRevisionUpdateOne) SetNillableInputPlan(s *string) *Resource
 }
 
 // SetOutput sets the "output" field.
-func (rruo *ResourceRevisionUpdateOne) SetOutput(s string) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetOutput(s string) *ResourceRunUpdateOne {
 	rruo.mutation.SetOutput(s)
 	return rruo
 }
 
 // SetNillableOutput sets the "output" field if the given value is not nil.
-func (rruo *ResourceRevisionUpdateOne) SetNillableOutput(s *string) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetNillableOutput(s *string) *ResourceRunUpdateOne {
 	if s != nil {
 		rruo.SetOutput(*s)
 	}
@@ -557,13 +557,13 @@ func (rruo *ResourceRevisionUpdateOne) SetNillableOutput(s *string) *ResourceRev
 }
 
 // SetDeployerType sets the "deployer_type" field.
-func (rruo *ResourceRevisionUpdateOne) SetDeployerType(s string) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetDeployerType(s string) *ResourceRunUpdateOne {
 	rruo.mutation.SetDeployerType(s)
 	return rruo
 }
 
 // SetNillableDeployerType sets the "deployer_type" field if the given value is not nil.
-func (rruo *ResourceRevisionUpdateOne) SetNillableDeployerType(s *string) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetNillableDeployerType(s *string) *ResourceRunUpdateOne {
 	if s != nil {
 		rruo.SetDeployerType(*s)
 	}
@@ -571,14 +571,14 @@ func (rruo *ResourceRevisionUpdateOne) SetNillableDeployerType(s *string) *Resou
 }
 
 // SetDuration sets the "duration" field.
-func (rruo *ResourceRevisionUpdateOne) SetDuration(i int) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetDuration(i int) *ResourceRunUpdateOne {
 	rruo.mutation.ResetDuration()
 	rruo.mutation.SetDuration(i)
 	return rruo
 }
 
 // SetNillableDuration sets the "duration" field if the given value is not nil.
-func (rruo *ResourceRevisionUpdateOne) SetNillableDuration(i *int) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetNillableDuration(i *int) *ResourceRunUpdateOne {
 	if i != nil {
 		rruo.SetDuration(*i)
 	}
@@ -586,31 +586,31 @@ func (rruo *ResourceRevisionUpdateOne) SetNillableDuration(i *int) *ResourceRevi
 }
 
 // AddDuration adds i to the "duration" field.
-func (rruo *ResourceRevisionUpdateOne) AddDuration(i int) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) AddDuration(i int) *ResourceRunUpdateOne {
 	rruo.mutation.AddDuration(i)
 	return rruo
 }
 
 // SetPreviousRequiredProviders sets the "previous_required_providers" field.
-func (rruo *ResourceRevisionUpdateOne) SetPreviousRequiredProviders(tr []types.ProviderRequirement) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetPreviousRequiredProviders(tr []types.ProviderRequirement) *ResourceRunUpdateOne {
 	rruo.mutation.SetPreviousRequiredProviders(tr)
 	return rruo
 }
 
 // AppendPreviousRequiredProviders appends tr to the "previous_required_providers" field.
-func (rruo *ResourceRevisionUpdateOne) AppendPreviousRequiredProviders(tr []types.ProviderRequirement) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) AppendPreviousRequiredProviders(tr []types.ProviderRequirement) *ResourceRunUpdateOne {
 	rruo.mutation.AppendPreviousRequiredProviders(tr)
 	return rruo
 }
 
 // SetRecord sets the "record" field.
-func (rruo *ResourceRevisionUpdateOne) SetRecord(s string) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetRecord(s string) *ResourceRunUpdateOne {
 	rruo.mutation.SetRecord(s)
 	return rruo
 }
 
 // SetNillableRecord sets the "record" field if the given value is not nil.
-func (rruo *ResourceRevisionUpdateOne) SetNillableRecord(s *string) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetNillableRecord(s *string) *ResourceRunUpdateOne {
 	if s != nil {
 		rruo.SetRecord(*s)
 	}
@@ -618,19 +618,19 @@ func (rruo *ResourceRevisionUpdateOne) SetNillableRecord(s *string) *ResourceRev
 }
 
 // ClearRecord clears the value of the "record" field.
-func (rruo *ResourceRevisionUpdateOne) ClearRecord() *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) ClearRecord() *ResourceRunUpdateOne {
 	rruo.mutation.ClearRecord()
 	return rruo
 }
 
 // SetChangeComment sets the "change_comment" field.
-func (rruo *ResourceRevisionUpdateOne) SetChangeComment(s string) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetChangeComment(s string) *ResourceRunUpdateOne {
 	rruo.mutation.SetChangeComment(s)
 	return rruo
 }
 
 // SetNillableChangeComment sets the "change_comment" field if the given value is not nil.
-func (rruo *ResourceRevisionUpdateOne) SetNillableChangeComment(s *string) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetNillableChangeComment(s *string) *ResourceRunUpdateOne {
 	if s != nil {
 		rruo.SetChangeComment(*s)
 	}
@@ -638,50 +638,50 @@ func (rruo *ResourceRevisionUpdateOne) SetNillableChangeComment(s *string) *Reso
 }
 
 // ClearChangeComment clears the value of the "change_comment" field.
-func (rruo *ResourceRevisionUpdateOne) ClearChangeComment() *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) ClearChangeComment() *ResourceRunUpdateOne {
 	rruo.mutation.ClearChangeComment()
 	return rruo
 }
 
 // SetCreatedBy sets the "created_by" field.
-func (rruo *ResourceRevisionUpdateOne) SetCreatedBy(s string) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetCreatedBy(s string) *ResourceRunUpdateOne {
 	rruo.mutation.SetCreatedBy(s)
 	return rruo
 }
 
 // SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
-func (rruo *ResourceRevisionUpdateOne) SetNillableCreatedBy(s *string) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) SetNillableCreatedBy(s *string) *ResourceRunUpdateOne {
 	if s != nil {
 		rruo.SetCreatedBy(*s)
 	}
 	return rruo
 }
 
-// Mutation returns the ResourceRevisionMutation object of the builder.
-func (rruo *ResourceRevisionUpdateOne) Mutation() *ResourceRevisionMutation {
+// Mutation returns the ResourceRunMutation object of the builder.
+func (rruo *ResourceRunUpdateOne) Mutation() *ResourceRunMutation {
 	return rruo.mutation
 }
 
-// Where appends a list predicates to the ResourceRevisionUpdate builder.
-func (rruo *ResourceRevisionUpdateOne) Where(ps ...predicate.ResourceRevision) *ResourceRevisionUpdateOne {
+// Where appends a list predicates to the ResourceRunUpdate builder.
+func (rruo *ResourceRunUpdateOne) Where(ps ...predicate.ResourceRun) *ResourceRunUpdateOne {
 	rruo.mutation.Where(ps...)
 	return rruo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (rruo *ResourceRevisionUpdateOne) Select(field string, fields ...string) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) Select(field string, fields ...string) *ResourceRunUpdateOne {
 	rruo.fields = append([]string{field}, fields...)
 	return rruo
 }
 
-// Save executes the query and returns the updated ResourceRevision entity.
-func (rruo *ResourceRevisionUpdateOne) Save(ctx context.Context) (*ResourceRevision, error) {
+// Save executes the query and returns the updated ResourceRun entity.
+func (rruo *ResourceRunUpdateOne) Save(ctx context.Context) (*ResourceRun, error) {
 	return withHooks(ctx, rruo.sqlSave, rruo.mutation, rruo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rruo *ResourceRevisionUpdateOne) SaveX(ctx context.Context) *ResourceRevision {
+func (rruo *ResourceRunUpdateOne) SaveX(ctx context.Context) *ResourceRun {
 	node, err := rruo.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -690,33 +690,33 @@ func (rruo *ResourceRevisionUpdateOne) SaveX(ctx context.Context) *ResourceRevis
 }
 
 // Exec executes the query on the entity.
-func (rruo *ResourceRevisionUpdateOne) Exec(ctx context.Context) error {
+func (rruo *ResourceRunUpdateOne) Exec(ctx context.Context) error {
 	_, err := rruo.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rruo *ResourceRevisionUpdateOne) ExecX(ctx context.Context) {
+func (rruo *ResourceRunUpdateOne) ExecX(ctx context.Context) {
 	if err := rruo.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rruo *ResourceRevisionUpdateOne) check() error {
+func (rruo *ResourceRunUpdateOne) check() error {
 	if v, ok := rruo.mutation.TemplateVersion(); ok {
-		if err := resourcerevision.TemplateVersionValidator(v); err != nil {
-			return &ValidationError{Name: "template_version", err: fmt.Errorf(`model: validator failed for field "ResourceRevision.template_version": %w`, err)}
+		if err := resourcerun.TemplateVersionValidator(v); err != nil {
+			return &ValidationError{Name: "template_version", err: fmt.Errorf(`model: validator failed for field "ResourceRun.template_version": %w`, err)}
 		}
 	}
 	if _, ok := rruo.mutation.ProjectID(); rruo.mutation.ProjectCleared() && !ok {
-		return errors.New(`model: clearing a required unique edge "ResourceRevision.project"`)
+		return errors.New(`model: clearing a required unique edge "ResourceRun.project"`)
 	}
 	if _, ok := rruo.mutation.EnvironmentID(); rruo.mutation.EnvironmentCleared() && !ok {
-		return errors.New(`model: clearing a required unique edge "ResourceRevision.environment"`)
+		return errors.New(`model: clearing a required unique edge "ResourceRun.environment"`)
 	}
 	if _, ok := rruo.mutation.ResourceID(); rruo.mutation.ResourceCleared() && !ok {
-		return errors.New(`model: clearing a required unique edge "ResourceRevision.resource"`)
+		return errors.New(`model: clearing a required unique edge "ResourceRun.resource"`)
 	}
 	return nil
 }
@@ -754,13 +754,13 @@ func (rruo *ResourceRevisionUpdateOne) check() error {
 //	if _is_zero_value_(obj.X) && _is_not_equal_(db.X, obj.X) {
 //	   db.SetX(obj.X)
 //	}
-func (rruo *ResourceRevisionUpdateOne) Set(obj *ResourceRevision) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) Set(obj *ResourceRun) *ResourceRunUpdateOne {
 	h := func(n ent.Mutator) ent.Mutator {
 		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-			mt := m.(*ResourceRevisionMutation)
-			db, err := mt.Client().ResourceRevision.Get(ctx, *mt.id)
+			mt := m.(*ResourceRunMutation)
+			db, err := mt.Client().ResourceRun.Get(ctx, *mt.id)
 			if err != nil {
-				return nil, fmt.Errorf("failed getting ResourceRevision with id: %v", *mt.id)
+				return nil, fmt.Errorf("failed getting ResourceRun with id: %v", *mt.id)
 			}
 
 			// Without Default.
@@ -837,7 +837,7 @@ func (rruo *ResourceRevisionUpdateOne) Set(obj *ResourceRevision) *ResourceRevis
 }
 
 // getClientSet returns the ClientSet for the given builder.
-func (rruo *ResourceRevisionUpdateOne) getClientSet() (mc ClientSet) {
+func (rruo *ResourceRunUpdateOne) getClientSet() (mc ClientSet) {
 	if _, ok := rruo.config.driver.(*txDriver); ok {
 		tx := &Tx{config: rruo.config}
 		tx.init()
@@ -850,9 +850,9 @@ func (rruo *ResourceRevisionUpdateOne) getClientSet() (mc ClientSet) {
 	return mc
 }
 
-// SaveE calls the given function after updated the ResourceRevision entity,
+// SaveE calls the given function after updated the ResourceRun entity,
 // which is always good for cascading update operations.
-func (rruo *ResourceRevisionUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, updated *ResourceRevision) error) (*ResourceRevision, error) {
+func (rruo *ResourceRunUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, updated *ResourceRun) error) (*ResourceRun, error) {
 	obj, err := rruo.Save(ctx)
 	if err != nil &&
 		(rruo.object == nil || !errors.Is(err, stdsql.ErrNoRows)) {
@@ -868,43 +868,43 @@ func (rruo *ResourceRevisionUpdateOne) SaveE(ctx context.Context, cbs ...func(ct
 	if obj == nil {
 		obj = rruo.object
 	} else if x := rruo.object; x != nil {
-		if _, set := rruo.mutation.Field(resourcerevision.FieldStatus); set {
+		if _, set := rruo.mutation.Field(resourcerun.FieldStatus); set {
 			obj.Status = x.Status
 		}
-		if _, set := rruo.mutation.Field(resourcerevision.FieldTemplateVersion); set {
+		if _, set := rruo.mutation.Field(resourcerun.FieldTemplateVersion); set {
 			obj.TemplateVersion = x.TemplateVersion
 		}
-		if _, set := rruo.mutation.Field(resourcerevision.FieldAttributes); set {
+		if _, set := rruo.mutation.Field(resourcerun.FieldAttributes); set {
 			obj.Attributes = x.Attributes
 		}
-		if _, set := rruo.mutation.Field(resourcerevision.FieldComputedAttributes); set {
+		if _, set := rruo.mutation.Field(resourcerun.FieldComputedAttributes); set {
 			obj.ComputedAttributes = x.ComputedAttributes
 		}
-		if _, set := rruo.mutation.Field(resourcerevision.FieldVariables); set {
+		if _, set := rruo.mutation.Field(resourcerun.FieldVariables); set {
 			obj.Variables = x.Variables
 		}
-		if _, set := rruo.mutation.Field(resourcerevision.FieldInputPlan); set {
+		if _, set := rruo.mutation.Field(resourcerun.FieldInputPlan); set {
 			obj.InputPlan = x.InputPlan
 		}
-		if _, set := rruo.mutation.Field(resourcerevision.FieldOutput); set {
+		if _, set := rruo.mutation.Field(resourcerun.FieldOutput); set {
 			obj.Output = x.Output
 		}
-		if _, set := rruo.mutation.Field(resourcerevision.FieldDeployerType); set {
+		if _, set := rruo.mutation.Field(resourcerun.FieldDeployerType); set {
 			obj.DeployerType = x.DeployerType
 		}
-		if _, set := rruo.mutation.Field(resourcerevision.FieldDuration); set {
+		if _, set := rruo.mutation.Field(resourcerun.FieldDuration); set {
 			obj.Duration = x.Duration
 		}
-		if _, set := rruo.mutation.Field(resourcerevision.FieldPreviousRequiredProviders); set {
+		if _, set := rruo.mutation.Field(resourcerun.FieldPreviousRequiredProviders); set {
 			obj.PreviousRequiredProviders = x.PreviousRequiredProviders
 		}
-		if _, set := rruo.mutation.Field(resourcerevision.FieldRecord); set {
+		if _, set := rruo.mutation.Field(resourcerun.FieldRecord); set {
 			obj.Record = x.Record
 		}
-		if _, set := rruo.mutation.Field(resourcerevision.FieldChangeComment); set {
+		if _, set := rruo.mutation.Field(resourcerun.FieldChangeComment); set {
 			obj.ChangeComment = x.ChangeComment
 		}
-		if _, set := rruo.mutation.Field(resourcerevision.FieldCreatedBy); set {
+		if _, set := rruo.mutation.Field(resourcerun.FieldCreatedBy); set {
 			obj.CreatedBy = x.CreatedBy
 		}
 		obj.Edges = x.Edges
@@ -920,7 +920,7 @@ func (rruo *ResourceRevisionUpdateOne) SaveE(ctx context.Context, cbs ...func(ct
 }
 
 // SaveEX is like SaveE, but panics if an error occurs.
-func (rruo *ResourceRevisionUpdateOne) SaveEX(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, updated *ResourceRevision) error) *ResourceRevision {
+func (rruo *ResourceRunUpdateOne) SaveEX(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, updated *ResourceRun) error) *ResourceRun {
 	obj, err := rruo.SaveE(ctx, cbs...)
 	if err != nil {
 		panic(err)
@@ -930,42 +930,42 @@ func (rruo *ResourceRevisionUpdateOne) SaveEX(ctx context.Context, cbs ...func(c
 
 // ExecE calls the given function after executed the query,
 // which is always good for cascading update operations.
-func (rruo *ResourceRevisionUpdateOne) ExecE(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, updated *ResourceRevision) error) error {
+func (rruo *ResourceRunUpdateOne) ExecE(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, updated *ResourceRun) error) error {
 	_, err := rruo.SaveE(ctx, cbs...)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rruo *ResourceRevisionUpdateOne) ExecEX(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, updated *ResourceRevision) error) {
+func (rruo *ResourceRunUpdateOne) ExecEX(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, updated *ResourceRun) error) {
 	if err := rruo.ExecE(ctx, cbs...); err != nil {
 		panic(err)
 	}
 }
 
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
-func (rruo *ResourceRevisionUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ResourceRevisionUpdateOne {
+func (rruo *ResourceRunUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ResourceRunUpdateOne {
 	rruo.modifiers = append(rruo.modifiers, modifiers...)
 	return rruo
 }
 
-func (rruo *ResourceRevisionUpdateOne) sqlSave(ctx context.Context) (_node *ResourceRevision, err error) {
+func (rruo *ResourceRunUpdateOne) sqlSave(ctx context.Context) (_node *ResourceRun, err error) {
 	if err := rruo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(resourcerevision.Table, resourcerevision.Columns, sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString))
+	_spec := sqlgraph.NewUpdateSpec(resourcerun.Table, resourcerun.Columns, sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString))
 	id, ok := rruo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "id", err: errors.New(`model: missing "ResourceRevision.id" for update`)}
+		return nil, &ValidationError{Name: "id", err: errors.New(`model: missing "ResourceRun.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := rruo.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, resourcerevision.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, resourcerun.FieldID)
 		for _, f := range fields {
-			if !resourcerevision.ValidColumn(f) {
+			if !resourcerun.ValidColumn(f) {
 				return nil, &ValidationError{Name: f, err: fmt.Errorf("model: invalid field %q for query", f)}
 			}
-			if f != resourcerevision.FieldID {
+			if f != resourcerun.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, f)
 			}
 		}
@@ -978,76 +978,76 @@ func (rruo *ResourceRevisionUpdateOne) sqlSave(ctx context.Context) (_node *Reso
 		}
 	}
 	if value, ok := rruo.mutation.Status(); ok {
-		_spec.SetField(resourcerevision.FieldStatus, field.TypeJSON, value)
+		_spec.SetField(resourcerun.FieldStatus, field.TypeJSON, value)
 	}
 	if rruo.mutation.StatusCleared() {
-		_spec.ClearField(resourcerevision.FieldStatus, field.TypeJSON)
+		_spec.ClearField(resourcerun.FieldStatus, field.TypeJSON)
 	}
 	if value, ok := rruo.mutation.TemplateVersion(); ok {
-		_spec.SetField(resourcerevision.FieldTemplateVersion, field.TypeString, value)
+		_spec.SetField(resourcerun.FieldTemplateVersion, field.TypeString, value)
 	}
 	if value, ok := rruo.mutation.Attributes(); ok {
-		_spec.SetField(resourcerevision.FieldAttributes, field.TypeOther, value)
+		_spec.SetField(resourcerun.FieldAttributes, field.TypeOther, value)
 	}
 	if rruo.mutation.AttributesCleared() {
-		_spec.ClearField(resourcerevision.FieldAttributes, field.TypeOther)
+		_spec.ClearField(resourcerun.FieldAttributes, field.TypeOther)
 	}
 	if value, ok := rruo.mutation.ComputedAttributes(); ok {
-		_spec.SetField(resourcerevision.FieldComputedAttributes, field.TypeOther, value)
+		_spec.SetField(resourcerun.FieldComputedAttributes, field.TypeOther, value)
 	}
 	if rruo.mutation.ComputedAttributesCleared() {
-		_spec.ClearField(resourcerevision.FieldComputedAttributes, field.TypeOther)
+		_spec.ClearField(resourcerun.FieldComputedAttributes, field.TypeOther)
 	}
 	if value, ok := rruo.mutation.Variables(); ok {
-		_spec.SetField(resourcerevision.FieldVariables, field.TypeOther, value)
+		_spec.SetField(resourcerun.FieldVariables, field.TypeOther, value)
 	}
 	if value, ok := rruo.mutation.InputPlan(); ok {
-		_spec.SetField(resourcerevision.FieldInputPlan, field.TypeString, value)
+		_spec.SetField(resourcerun.FieldInputPlan, field.TypeString, value)
 	}
 	if value, ok := rruo.mutation.Output(); ok {
-		_spec.SetField(resourcerevision.FieldOutput, field.TypeString, value)
+		_spec.SetField(resourcerun.FieldOutput, field.TypeString, value)
 	}
 	if value, ok := rruo.mutation.DeployerType(); ok {
-		_spec.SetField(resourcerevision.FieldDeployerType, field.TypeString, value)
+		_spec.SetField(resourcerun.FieldDeployerType, field.TypeString, value)
 	}
 	if value, ok := rruo.mutation.Duration(); ok {
-		_spec.SetField(resourcerevision.FieldDuration, field.TypeInt, value)
+		_spec.SetField(resourcerun.FieldDuration, field.TypeInt, value)
 	}
 	if value, ok := rruo.mutation.AddedDuration(); ok {
-		_spec.AddField(resourcerevision.FieldDuration, field.TypeInt, value)
+		_spec.AddField(resourcerun.FieldDuration, field.TypeInt, value)
 	}
 	if value, ok := rruo.mutation.PreviousRequiredProviders(); ok {
-		_spec.SetField(resourcerevision.FieldPreviousRequiredProviders, field.TypeJSON, value)
+		_spec.SetField(resourcerun.FieldPreviousRequiredProviders, field.TypeJSON, value)
 	}
 	if value, ok := rruo.mutation.AppendedPreviousRequiredProviders(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, resourcerevision.FieldPreviousRequiredProviders, value)
+			sqljson.Append(u, resourcerun.FieldPreviousRequiredProviders, value)
 		})
 	}
 	if value, ok := rruo.mutation.Record(); ok {
-		_spec.SetField(resourcerevision.FieldRecord, field.TypeString, value)
+		_spec.SetField(resourcerun.FieldRecord, field.TypeString, value)
 	}
 	if rruo.mutation.RecordCleared() {
-		_spec.ClearField(resourcerevision.FieldRecord, field.TypeString)
+		_spec.ClearField(resourcerun.FieldRecord, field.TypeString)
 	}
 	if value, ok := rruo.mutation.ChangeComment(); ok {
-		_spec.SetField(resourcerevision.FieldChangeComment, field.TypeString, value)
+		_spec.SetField(resourcerun.FieldChangeComment, field.TypeString, value)
 	}
 	if rruo.mutation.ChangeCommentCleared() {
-		_spec.ClearField(resourcerevision.FieldChangeComment, field.TypeString)
+		_spec.ClearField(resourcerun.FieldChangeComment, field.TypeString)
 	}
 	if value, ok := rruo.mutation.CreatedBy(); ok {
-		_spec.SetField(resourcerevision.FieldCreatedBy, field.TypeString, value)
+		_spec.SetField(resourcerun.FieldCreatedBy, field.TypeString, value)
 	}
-	_spec.Node.Schema = rruo.schemaConfig.ResourceRevision
+	_spec.Node.Schema = rruo.schemaConfig.ResourceRun
 	ctx = internal.NewSchemaConfigContext(ctx, rruo.schemaConfig)
 	_spec.AddModifiers(rruo.modifiers...)
-	_node = &ResourceRevision{config: rruo.config}
+	_node = &ResourceRun{config: rruo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
 	if err = sqlgraph.UpdateNode(ctx, rruo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{resourcerevision.Label}
+			err = &NotFoundError{resourcerun.Label}
 		} else if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}

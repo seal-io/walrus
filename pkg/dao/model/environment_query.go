@@ -23,7 +23,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/model/variable"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
@@ -38,7 +38,7 @@ type EnvironmentQuery struct {
 	withProject            *ProjectQuery
 	withConnectors         *EnvironmentConnectorRelationshipQuery
 	withResources          *ResourceQuery
-	withResourceRevisions  *ResourceRevisionQuery
+	withResourceRuns       *ResourceRunQuery
 	withResourceComponents *ResourceComponentQuery
 	withVariables          *VariableQuery
 	modifiers              []func(*sql.Selector)
@@ -153,9 +153,9 @@ func (eq *EnvironmentQuery) QueryResources() *ResourceQuery {
 	return query
 }
 
-// QueryResourceRevisions chains the current query on the "resource_revisions" edge.
-func (eq *EnvironmentQuery) QueryResourceRevisions() *ResourceRevisionQuery {
-	query := (&ResourceRevisionClient{config: eq.config}).Query()
+// QueryResourceRuns chains the current query on the "resource_runs" edge.
+func (eq *EnvironmentQuery) QueryResourceRuns() *ResourceRunQuery {
+	query := (&ResourceRunClient{config: eq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := eq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -166,12 +166,12 @@ func (eq *EnvironmentQuery) QueryResourceRevisions() *ResourceRevisionQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(environment.Table, environment.FieldID, selector),
-			sqlgraph.To(resourcerevision.Table, resourcerevision.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, environment.ResourceRevisionsTable, environment.ResourceRevisionsColumn),
+			sqlgraph.To(resourcerun.Table, resourcerun.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, environment.ResourceRunsTable, environment.ResourceRunsColumn),
 		)
 		schemaConfig := eq.schemaConfig
-		step.To.Schema = schemaConfig.ResourceRevision
-		step.Edge.Schema = schemaConfig.ResourceRevision
+		step.To.Schema = schemaConfig.ResourceRun
+		step.Edge.Schema = schemaConfig.ResourceRun
 		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -423,7 +423,7 @@ func (eq *EnvironmentQuery) Clone() *EnvironmentQuery {
 		withProject:            eq.withProject.Clone(),
 		withConnectors:         eq.withConnectors.Clone(),
 		withResources:          eq.withResources.Clone(),
-		withResourceRevisions:  eq.withResourceRevisions.Clone(),
+		withResourceRuns:       eq.withResourceRuns.Clone(),
 		withResourceComponents: eq.withResourceComponents.Clone(),
 		withVariables:          eq.withVariables.Clone(),
 		// clone intermediate query.
@@ -465,14 +465,14 @@ func (eq *EnvironmentQuery) WithResources(opts ...func(*ResourceQuery)) *Environ
 	return eq
 }
 
-// WithResourceRevisions tells the query-builder to eager-load the nodes that are connected to
-// the "resource_revisions" edge. The optional arguments are used to configure the query builder of the edge.
-func (eq *EnvironmentQuery) WithResourceRevisions(opts ...func(*ResourceRevisionQuery)) *EnvironmentQuery {
-	query := (&ResourceRevisionClient{config: eq.config}).Query()
+// WithResourceRuns tells the query-builder to eager-load the nodes that are connected to
+// the "resource_runs" edge. The optional arguments are used to configure the query builder of the edge.
+func (eq *EnvironmentQuery) WithResourceRuns(opts ...func(*ResourceRunQuery)) *EnvironmentQuery {
+	query := (&ResourceRunClient{config: eq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	eq.withResourceRevisions = query
+	eq.withResourceRuns = query
 	return eq
 }
 
@@ -580,7 +580,7 @@ func (eq *EnvironmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			eq.withProject != nil,
 			eq.withConnectors != nil,
 			eq.withResources != nil,
-			eq.withResourceRevisions != nil,
+			eq.withResourceRuns != nil,
 			eq.withResourceComponents != nil,
 			eq.withVariables != nil,
 		}
@@ -630,12 +630,10 @@ func (eq *EnvironmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			return nil, err
 		}
 	}
-	if query := eq.withResourceRevisions; query != nil {
-		if err := eq.loadResourceRevisions(ctx, query, nodes,
-			func(n *Environment) { n.Edges.ResourceRevisions = []*ResourceRevision{} },
-			func(n *Environment, e *ResourceRevision) {
-				n.Edges.ResourceRevisions = append(n.Edges.ResourceRevisions, e)
-			}); err != nil {
+	if query := eq.withResourceRuns; query != nil {
+		if err := eq.loadResourceRuns(ctx, query, nodes,
+			func(n *Environment) { n.Edges.ResourceRuns = []*ResourceRun{} },
+			func(n *Environment, e *ResourceRun) { n.Edges.ResourceRuns = append(n.Edges.ResourceRuns, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -747,7 +745,7 @@ func (eq *EnvironmentQuery) loadResources(ctx context.Context, query *ResourceQu
 	}
 	return nil
 }
-func (eq *EnvironmentQuery) loadResourceRevisions(ctx context.Context, query *ResourceRevisionQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *ResourceRevision)) error {
+func (eq *EnvironmentQuery) loadResourceRuns(ctx context.Context, query *ResourceRunQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *ResourceRun)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[object.ID]*Environment)
 	for i := range nodes {
@@ -758,10 +756,10 @@ func (eq *EnvironmentQuery) loadResourceRevisions(ctx context.Context, query *Re
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(resourcerevision.FieldEnvironmentID)
+		query.ctx.AppendFieldOnce(resourcerun.FieldEnvironmentID)
 	}
-	query.Where(predicate.ResourceRevision(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(environment.ResourceRevisionsColumn), fks...))
+	query.Where(predicate.ResourceRun(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(environment.ResourceRunsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

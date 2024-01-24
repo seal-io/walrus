@@ -22,7 +22,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/model/role"
 	"github.com/seal-io/walrus/pkg/dao/model/setting"
 	"github.com/seal-io/walrus/pkg/dao/model/subject"
@@ -572,61 +572,61 @@ func init() {
 	resourcerelationshipDescType := resourcerelationshipFields[3].Descriptor()
 	// resourcerelationship.TypeValidator is a validator for the "type" field. It is called by the builders before save.
 	resourcerelationship.TypeValidator = resourcerelationshipDescType.Validators[0].(func(string) error)
-	resourcerevisionMixin := schema.ResourceRevision{}.Mixin()
-	resourcerevisionMixinHooks0 := resourcerevisionMixin[0].Hooks()
-	resourcerevisionHooks := schema.ResourceRevision{}.Hooks()
-	resourcerevision.Hooks[0] = resourcerevisionMixinHooks0[0]
-	resourcerevision.Hooks[1] = resourcerevisionHooks[0]
-	resourcerevisionInters := schema.ResourceRevision{}.Interceptors()
-	resourcerevision.Interceptors[0] = resourcerevisionInters[0]
-	resourcerevisionMixinFields1 := resourcerevisionMixin[1].Fields()
-	_ = resourcerevisionMixinFields1
-	resourcerevisionFields := schema.ResourceRevision{}.Fields()
-	_ = resourcerevisionFields
-	// resourcerevisionDescCreateTime is the schema descriptor for create_time field.
-	resourcerevisionDescCreateTime := resourcerevisionMixinFields1[0].Descriptor()
-	// resourcerevision.DefaultCreateTime holds the default value on creation for the create_time field.
-	resourcerevision.DefaultCreateTime = resourcerevisionDescCreateTime.Default.(func() time.Time)
-	// resourcerevisionDescProjectID is the schema descriptor for project_id field.
-	resourcerevisionDescProjectID := resourcerevisionFields[0].Descriptor()
-	// resourcerevision.ProjectIDValidator is a validator for the "project_id" field. It is called by the builders before save.
-	resourcerevision.ProjectIDValidator = resourcerevisionDescProjectID.Validators[0].(func(string) error)
-	// resourcerevisionDescEnvironmentID is the schema descriptor for environment_id field.
-	resourcerevisionDescEnvironmentID := resourcerevisionFields[1].Descriptor()
-	// resourcerevision.EnvironmentIDValidator is a validator for the "environment_id" field. It is called by the builders before save.
-	resourcerevision.EnvironmentIDValidator = resourcerevisionDescEnvironmentID.Validators[0].(func(string) error)
-	// resourcerevisionDescResourceID is the schema descriptor for resource_id field.
-	resourcerevisionDescResourceID := resourcerevisionFields[2].Descriptor()
-	// resourcerevision.ResourceIDValidator is a validator for the "resource_id" field. It is called by the builders before save.
-	resourcerevision.ResourceIDValidator = resourcerevisionDescResourceID.Validators[0].(func(string) error)
-	// resourcerevisionDescTemplateName is the schema descriptor for template_name field.
-	resourcerevisionDescTemplateName := resourcerevisionFields[3].Descriptor()
-	// resourcerevision.TemplateNameValidator is a validator for the "template_name" field. It is called by the builders before save.
-	resourcerevision.TemplateNameValidator = resourcerevisionDescTemplateName.Validators[0].(func(string) error)
-	// resourcerevisionDescTemplateVersion is the schema descriptor for template_version field.
-	resourcerevisionDescTemplateVersion := resourcerevisionFields[4].Descriptor()
-	// resourcerevision.TemplateVersionValidator is a validator for the "template_version" field. It is called by the builders before save.
-	resourcerevision.TemplateVersionValidator = resourcerevisionDescTemplateVersion.Validators[0].(func(string) error)
-	// resourcerevisionDescTemplateID is the schema descriptor for template_id field.
-	resourcerevisionDescTemplateID := resourcerevisionFields[5].Descriptor()
-	// resourcerevision.TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
-	resourcerevision.TemplateIDValidator = resourcerevisionDescTemplateID.Validators[0].(func(string) error)
-	// resourcerevisionDescVariables is the schema descriptor for variables field.
-	resourcerevisionDescVariables := resourcerevisionFields[8].Descriptor()
-	// resourcerevision.DefaultVariables holds the default value on creation for the variables field.
-	resourcerevision.DefaultVariables = resourcerevisionDescVariables.Default.(crypto.Map[string, string])
-	// resourcerevisionDescDeployerType is the schema descriptor for deployer_type field.
-	resourcerevisionDescDeployerType := resourcerevisionFields[11].Descriptor()
-	// resourcerevision.DefaultDeployerType holds the default value on creation for the deployer_type field.
-	resourcerevision.DefaultDeployerType = resourcerevisionDescDeployerType.Default.(string)
-	// resourcerevisionDescDuration is the schema descriptor for duration field.
-	resourcerevisionDescDuration := resourcerevisionFields[12].Descriptor()
-	// resourcerevision.DefaultDuration holds the default value on creation for the duration field.
-	resourcerevision.DefaultDuration = resourcerevisionDescDuration.Default.(int)
-	// resourcerevisionDescPreviousRequiredProviders is the schema descriptor for previous_required_providers field.
-	resourcerevisionDescPreviousRequiredProviders := resourcerevisionFields[13].Descriptor()
-	// resourcerevision.DefaultPreviousRequiredProviders holds the default value on creation for the previous_required_providers field.
-	resourcerevision.DefaultPreviousRequiredProviders = resourcerevisionDescPreviousRequiredProviders.Default.([]types.ProviderRequirement)
+	resourcerunMixin := schema.ResourceRun{}.Mixin()
+	resourcerunMixinHooks0 := resourcerunMixin[0].Hooks()
+	resourcerunHooks := schema.ResourceRun{}.Hooks()
+	resourcerun.Hooks[0] = resourcerunMixinHooks0[0]
+	resourcerun.Hooks[1] = resourcerunHooks[0]
+	resourcerunInters := schema.ResourceRun{}.Interceptors()
+	resourcerun.Interceptors[0] = resourcerunInters[0]
+	resourcerunMixinFields1 := resourcerunMixin[1].Fields()
+	_ = resourcerunMixinFields1
+	resourcerunFields := schema.ResourceRun{}.Fields()
+	_ = resourcerunFields
+	// resourcerunDescCreateTime is the schema descriptor for create_time field.
+	resourcerunDescCreateTime := resourcerunMixinFields1[0].Descriptor()
+	// resourcerun.DefaultCreateTime holds the default value on creation for the create_time field.
+	resourcerun.DefaultCreateTime = resourcerunDescCreateTime.Default.(func() time.Time)
+	// resourcerunDescProjectID is the schema descriptor for project_id field.
+	resourcerunDescProjectID := resourcerunFields[0].Descriptor()
+	// resourcerun.ProjectIDValidator is a validator for the "project_id" field. It is called by the builders before save.
+	resourcerun.ProjectIDValidator = resourcerunDescProjectID.Validators[0].(func(string) error)
+	// resourcerunDescEnvironmentID is the schema descriptor for environment_id field.
+	resourcerunDescEnvironmentID := resourcerunFields[1].Descriptor()
+	// resourcerun.EnvironmentIDValidator is a validator for the "environment_id" field. It is called by the builders before save.
+	resourcerun.EnvironmentIDValidator = resourcerunDescEnvironmentID.Validators[0].(func(string) error)
+	// resourcerunDescResourceID is the schema descriptor for resource_id field.
+	resourcerunDescResourceID := resourcerunFields[2].Descriptor()
+	// resourcerun.ResourceIDValidator is a validator for the "resource_id" field. It is called by the builders before save.
+	resourcerun.ResourceIDValidator = resourcerunDescResourceID.Validators[0].(func(string) error)
+	// resourcerunDescTemplateName is the schema descriptor for template_name field.
+	resourcerunDescTemplateName := resourcerunFields[3].Descriptor()
+	// resourcerun.TemplateNameValidator is a validator for the "template_name" field. It is called by the builders before save.
+	resourcerun.TemplateNameValidator = resourcerunDescTemplateName.Validators[0].(func(string) error)
+	// resourcerunDescTemplateVersion is the schema descriptor for template_version field.
+	resourcerunDescTemplateVersion := resourcerunFields[4].Descriptor()
+	// resourcerun.TemplateVersionValidator is a validator for the "template_version" field. It is called by the builders before save.
+	resourcerun.TemplateVersionValidator = resourcerunDescTemplateVersion.Validators[0].(func(string) error)
+	// resourcerunDescTemplateID is the schema descriptor for template_id field.
+	resourcerunDescTemplateID := resourcerunFields[5].Descriptor()
+	// resourcerun.TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
+	resourcerun.TemplateIDValidator = resourcerunDescTemplateID.Validators[0].(func(string) error)
+	// resourcerunDescVariables is the schema descriptor for variables field.
+	resourcerunDescVariables := resourcerunFields[8].Descriptor()
+	// resourcerun.DefaultVariables holds the default value on creation for the variables field.
+	resourcerun.DefaultVariables = resourcerunDescVariables.Default.(crypto.Map[string, string])
+	// resourcerunDescDeployerType is the schema descriptor for deployer_type field.
+	resourcerunDescDeployerType := resourcerunFields[11].Descriptor()
+	// resourcerun.DefaultDeployerType holds the default value on creation for the deployer_type field.
+	resourcerun.DefaultDeployerType = resourcerunDescDeployerType.Default.(string)
+	// resourcerunDescDuration is the schema descriptor for duration field.
+	resourcerunDescDuration := resourcerunFields[12].Descriptor()
+	// resourcerun.DefaultDuration holds the default value on creation for the duration field.
+	resourcerun.DefaultDuration = resourcerunDescDuration.Default.(int)
+	// resourcerunDescPreviousRequiredProviders is the schema descriptor for previous_required_providers field.
+	resourcerunDescPreviousRequiredProviders := resourcerunFields[13].Descriptor()
+	// resourcerun.DefaultPreviousRequiredProviders holds the default value on creation for the previous_required_providers field.
+	resourcerun.DefaultPreviousRequiredProviders = resourcerunDescPreviousRequiredProviders.Default.([]types.ProviderRequirement)
 	roleMixin := schema.Role{}.Mixin()
 	roleHooks := schema.Role{}.Hooks()
 	role.Hooks[0] = roleHooks[0]

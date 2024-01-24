@@ -180,16 +180,16 @@ func (f ResourceRelationshipFunc) Mutate(ctx context.Context, m model.Mutation) 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ResourceRelationshipMutation", m)
 }
 
-// The ResourceRevisionFunc type is an adapter to allow the use of ordinary
-// function as ResourceRevision mutator.
-type ResourceRevisionFunc func(context.Context, *model.ResourceRevisionMutation) (model.Value, error)
+// The ResourceRunFunc type is an adapter to allow the use of ordinary
+// function as ResourceRun mutator.
+type ResourceRunFunc func(context.Context, *model.ResourceRunMutation) (model.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f ResourceRevisionFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
-	if mv, ok := m.(*model.ResourceRevisionMutation); ok {
+func (f ResourceRunFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.ResourceRunMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ResourceRevisionMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ResourceRunMutation", m)
 }
 
 // The RoleFunc type is an adapter to allow the use of ordinary

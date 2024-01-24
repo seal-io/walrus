@@ -65,8 +65,8 @@ const (
 	EdgeResourceDefinition = "resource_definition"
 	// EdgeResourceDefinitionMatchingRule holds the string denoting the resource_definition_matching_rule edge name in mutations.
 	EdgeResourceDefinitionMatchingRule = "resource_definition_matching_rule"
-	// EdgeRevisions holds the string denoting the revisions edge name in mutations.
-	EdgeRevisions = "revisions"
+	// EdgeRuns holds the string denoting the runs edge name in mutations.
+	EdgeRuns = "runs"
 	// EdgeComponents holds the string denoting the components edge name in mutations.
 	EdgeComponents = "components"
 	// EdgeDependencies holds the string denoting the dependencies edge name in mutations.
@@ -108,13 +108,13 @@ const (
 	ResourceDefinitionMatchingRuleInverseTable = "resource_definition_matching_rules"
 	// ResourceDefinitionMatchingRuleColumn is the table column denoting the resource_definition_matching_rule relation/edge.
 	ResourceDefinitionMatchingRuleColumn = "resource_definition_matching_rule_id"
-	// RevisionsTable is the table that holds the revisions relation/edge.
-	RevisionsTable = "resource_revisions"
-	// RevisionsInverseTable is the table name for the ResourceRevision entity.
-	// It exists in this package in order to avoid circular dependency with the "resourcerevision" package.
-	RevisionsInverseTable = "resource_revisions"
-	// RevisionsColumn is the table column denoting the revisions relation/edge.
-	RevisionsColumn = "resource_id"
+	// RunsTable is the table that holds the runs relation/edge.
+	RunsTable = "resource_runs"
+	// RunsInverseTable is the table name for the ResourceRun entity.
+	// It exists in this package in order to avoid circular dependency with the "resourcerun" package.
+	RunsInverseTable = "resource_runs"
+	// RunsColumn is the table column denoting the runs relation/edge.
+	RunsColumn = "resource_id"
 	// ComponentsTable is the table that holds the components relation/edge.
 	ComponentsTable = "resource_components"
 	// ComponentsInverseTable is the table name for the ResourceComponent entity.
@@ -301,17 +301,17 @@ func ByResourceDefinitionMatchingRuleField(field string, opts ...sql.OrderTermOp
 	}
 }
 
-// ByRevisionsCount orders the results by revisions count.
-func ByRevisionsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByRunsCount orders the results by runs count.
+func ByRunsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newRevisionsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newRunsStep(), opts...)
 	}
 }
 
-// ByRevisions orders the results by revisions terms.
-func ByRevisions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByRuns orders the results by runs terms.
+func ByRuns(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newRevisionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newRunsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -377,11 +377,11 @@ func newResourceDefinitionMatchingRuleStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, ResourceDefinitionMatchingRuleTable, ResourceDefinitionMatchingRuleColumn),
 	)
 }
-func newRevisionsStep() *sqlgraph.Step {
+func newRunsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(RevisionsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, RevisionsTable, RevisionsColumn),
+		sqlgraph.To(RunsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RunsTable, RunsColumn),
 	)
 }
 func newComponentsStep() *sqlgraph.Step {

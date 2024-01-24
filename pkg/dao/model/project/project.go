@@ -41,8 +41,8 @@ const (
 	EdgeResources = "resources"
 	// EdgeResourceComponents holds the string denoting the resource_components edge name in mutations.
 	EdgeResourceComponents = "resource_components"
-	// EdgeResourceRevisions holds the string denoting the resource_revisions edge name in mutations.
-	EdgeResourceRevisions = "resource_revisions"
+	// EdgeResourceRuns holds the string denoting the resource_runs edge name in mutations.
+	EdgeResourceRuns = "resource_runs"
 	// EdgeVariables holds the string denoting the variables edge name in mutations.
 	EdgeVariables = "variables"
 	// EdgeTemplates holds the string denoting the templates edge name in mutations.
@@ -100,13 +100,13 @@ const (
 	ResourceComponentsInverseTable = "resource_components"
 	// ResourceComponentsColumn is the table column denoting the resource_components relation/edge.
 	ResourceComponentsColumn = "project_id"
-	// ResourceRevisionsTable is the table that holds the resource_revisions relation/edge.
-	ResourceRevisionsTable = "resource_revisions"
-	// ResourceRevisionsInverseTable is the table name for the ResourceRevision entity.
-	// It exists in this package in order to avoid circular dependency with the "resourcerevision" package.
-	ResourceRevisionsInverseTable = "resource_revisions"
-	// ResourceRevisionsColumn is the table column denoting the resource_revisions relation/edge.
-	ResourceRevisionsColumn = "project_id"
+	// ResourceRunsTable is the table that holds the resource_runs relation/edge.
+	ResourceRunsTable = "resource_runs"
+	// ResourceRunsInverseTable is the table name for the ResourceRun entity.
+	// It exists in this package in order to avoid circular dependency with the "resourcerun" package.
+	ResourceRunsInverseTable = "resource_runs"
+	// ResourceRunsColumn is the table column denoting the resource_runs relation/edge.
+	ResourceRunsColumn = "project_id"
 	// VariablesTable is the table that holds the variables relation/edge.
 	VariablesTable = "variables"
 	// VariablesInverseTable is the table name for the Variable entity.
@@ -320,17 +320,17 @@ func ByResourceComponents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOptio
 	}
 }
 
-// ByResourceRevisionsCount orders the results by resource_revisions count.
-func ByResourceRevisionsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByResourceRunsCount orders the results by resource_runs count.
+func ByResourceRunsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newResourceRevisionsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newResourceRunsStep(), opts...)
 	}
 }
 
-// ByResourceRevisions orders the results by resource_revisions terms.
-func ByResourceRevisions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByResourceRuns orders the results by resource_runs terms.
+func ByResourceRuns(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newResourceRevisionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newResourceRunsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -508,11 +508,11 @@ func newResourceComponentsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, ResourceComponentsTable, ResourceComponentsColumn),
 	)
 }
-func newResourceRevisionsStep() *sqlgraph.Step {
+func newResourceRunsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ResourceRevisionsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ResourceRevisionsTable, ResourceRevisionsColumn),
+		sqlgraph.To(ResourceRunsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ResourceRunsTable, ResourceRunsColumn),
 	)
 }
 func newVariablesStep() *sqlgraph.Step {

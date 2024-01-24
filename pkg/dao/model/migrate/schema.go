@@ -596,8 +596,8 @@ var (
 			},
 		},
 	}
-	// ResourceRevisionsColumns holds the columns for the "resource_revisions" table.
-	ResourceRevisionsColumns = []*schema.Column{
+	// ResourceRunsColumns holds the columns for the "resource_runs" table.
+	ResourceRunsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "status", Type: field.TypeJSON, Nullable: true},
@@ -619,36 +619,36 @@ var (
 		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "resource_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
-	// ResourceRevisionsTable holds the schema information for the "resource_revisions" table.
-	ResourceRevisionsTable = &schema.Table{
-		Name:       "resource_revisions",
-		Columns:    ResourceRevisionsColumns,
-		PrimaryKey: []*schema.Column{ResourceRevisionsColumns[0]},
+	// ResourceRunsTable holds the schema information for the "resource_runs" table.
+	ResourceRunsTable = &schema.Table{
+		Name:       "resource_runs",
+		Columns:    ResourceRunsColumns,
+		PrimaryKey: []*schema.Column{ResourceRunsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "resource_revisions_environments_resource_revisions",
-				Columns:    []*schema.Column{ResourceRevisionsColumns[17]},
+				Symbol:     "resource_runs_environments_resource_runs",
+				Columns:    []*schema.Column{ResourceRunsColumns[17]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "resource_revisions_projects_resource_revisions",
-				Columns:    []*schema.Column{ResourceRevisionsColumns[18]},
+				Symbol:     "resource_runs_projects_resource_runs",
+				Columns:    []*schema.Column{ResourceRunsColumns[18]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "resource_revisions_resources_revisions",
-				Columns:    []*schema.Column{ResourceRevisionsColumns[19]},
+				Symbol:     "resource_runs_resources_runs",
+				Columns:    []*schema.Column{ResourceRunsColumns[19]},
 				RefColumns: []*schema.Column{ResourcesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "resourcerevision_create_time",
+				Name:    "resourcerun_create_time",
 				Unique:  false,
-				Columns: []*schema.Column{ResourceRevisionsColumns[1]},
+				Columns: []*schema.Column{ResourceRunsColumns[1]},
 			},
 		},
 	}
@@ -1255,7 +1255,7 @@ var (
 		ResourceDefinitionsTable,
 		ResourceDefinitionMatchingRulesTable,
 		ResourceRelationshipsTable,
-		ResourceRevisionsTable,
+		ResourceRunsTable,
 		RolesTable,
 		SettingsTable,
 		SubjectsTable,
@@ -1297,9 +1297,9 @@ func init() {
 	ResourceDefinitionMatchingRulesTable.ForeignKeys[1].RefTable = TemplateVersionsTable
 	ResourceRelationshipsTable.ForeignKeys[0].RefTable = ResourcesTable
 	ResourceRelationshipsTable.ForeignKeys[1].RefTable = ResourcesTable
-	ResourceRevisionsTable.ForeignKeys[0].RefTable = EnvironmentsTable
-	ResourceRevisionsTable.ForeignKeys[1].RefTable = ProjectsTable
-	ResourceRevisionsTable.ForeignKeys[2].RefTable = ResourcesTable
+	ResourceRunsTable.ForeignKeys[0].RefTable = EnvironmentsTable
+	ResourceRunsTable.ForeignKeys[1].RefTable = ProjectsTable
+	ResourceRunsTable.ForeignKeys[2].RefTable = ResourcesTable
 	SubjectRoleRelationshipsTable.ForeignKeys[0].RefTable = ProjectsTable
 	SubjectRoleRelationshipsTable.ForeignKeys[1].RefTable = SubjectsTable
 	SubjectRoleRelationshipsTable.ForeignKeys[2].RefTable = RolesTable

@@ -24,7 +24,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
@@ -50,7 +50,7 @@ type ProjectQuery struct {
 	withSubjectRoles            *SubjectRoleRelationshipQuery
 	withResources               *ResourceQuery
 	withResourceComponents      *ResourceComponentQuery
-	withResourceRevisions       *ResourceRevisionQuery
+	withResourceRuns            *ResourceRunQuery
 	withVariables               *VariableQuery
 	withTemplates               *TemplateQuery
 	withTemplateVersions        *TemplateVersionQuery
@@ -223,9 +223,9 @@ func (pq *ProjectQuery) QueryResourceComponents() *ResourceComponentQuery {
 	return query
 }
 
-// QueryResourceRevisions chains the current query on the "resource_revisions" edge.
-func (pq *ProjectQuery) QueryResourceRevisions() *ResourceRevisionQuery {
-	query := (&ResourceRevisionClient{config: pq.config}).Query()
+// QueryResourceRuns chains the current query on the "resource_runs" edge.
+func (pq *ProjectQuery) QueryResourceRuns() *ResourceRunQuery {
+	query := (&ResourceRunClient{config: pq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := pq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -236,12 +236,12 @@ func (pq *ProjectQuery) QueryResourceRevisions() *ResourceRevisionQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(project.Table, project.FieldID, selector),
-			sqlgraph.To(resourcerevision.Table, resourcerevision.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, project.ResourceRevisionsTable, project.ResourceRevisionsColumn),
+			sqlgraph.To(resourcerun.Table, resourcerun.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.ResourceRunsTable, project.ResourceRunsColumn),
 		)
 		schemaConfig := pq.schemaConfig
-		step.To.Schema = schemaConfig.ResourceRevision
-		step.Edge.Schema = schemaConfig.ResourceRevision
+		step.To.Schema = schemaConfig.ResourceRun
+		step.Edge.Schema = schemaConfig.ResourceRun
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -695,7 +695,7 @@ func (pq *ProjectQuery) Clone() *ProjectQuery {
 		withSubjectRoles:            pq.withSubjectRoles.Clone(),
 		withResources:               pq.withResources.Clone(),
 		withResourceComponents:      pq.withResourceComponents.Clone(),
-		withResourceRevisions:       pq.withResourceRevisions.Clone(),
+		withResourceRuns:            pq.withResourceRuns.Clone(),
 		withVariables:               pq.withVariables.Clone(),
 		withTemplates:               pq.withTemplates.Clone(),
 		withTemplateVersions:        pq.withTemplateVersions.Clone(),
@@ -767,14 +767,14 @@ func (pq *ProjectQuery) WithResourceComponents(opts ...func(*ResourceComponentQu
 	return pq
 }
 
-// WithResourceRevisions tells the query-builder to eager-load the nodes that are connected to
-// the "resource_revisions" edge. The optional arguments are used to configure the query builder of the edge.
-func (pq *ProjectQuery) WithResourceRevisions(opts ...func(*ResourceRevisionQuery)) *ProjectQuery {
-	query := (&ResourceRevisionClient{config: pq.config}).Query()
+// WithResourceRuns tells the query-builder to eager-load the nodes that are connected to
+// the "resource_runs" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithResourceRuns(opts ...func(*ResourceRunQuery)) *ProjectQuery {
+	query := (&ResourceRunClient{config: pq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	pq.withResourceRevisions = query
+	pq.withResourceRuns = query
 	return pq
 }
 
@@ -972,7 +972,7 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 			pq.withSubjectRoles != nil,
 			pq.withResources != nil,
 			pq.withResourceComponents != nil,
-			pq.withResourceRevisions != nil,
+			pq.withResourceRuns != nil,
 			pq.withVariables != nil,
 			pq.withTemplates != nil,
 			pq.withTemplateVersions != nil,
@@ -1045,12 +1045,10 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 			return nil, err
 		}
 	}
-	if query := pq.withResourceRevisions; query != nil {
-		if err := pq.loadResourceRevisions(ctx, query, nodes,
-			func(n *Project) { n.Edges.ResourceRevisions = []*ResourceRevision{} },
-			func(n *Project, e *ResourceRevision) {
-				n.Edges.ResourceRevisions = append(n.Edges.ResourceRevisions, e)
-			}); err != nil {
+	if query := pq.withResourceRuns; query != nil {
+		if err := pq.loadResourceRuns(ctx, query, nodes,
+			func(n *Project) { n.Edges.ResourceRuns = []*ResourceRun{} },
+			func(n *Project, e *ResourceRun) { n.Edges.ResourceRuns = append(n.Edges.ResourceRuns, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1283,7 +1281,7 @@ func (pq *ProjectQuery) loadResourceComponents(ctx context.Context, query *Resou
 	}
 	return nil
 }
-func (pq *ProjectQuery) loadResourceRevisions(ctx context.Context, query *ResourceRevisionQuery, nodes []*Project, init func(*Project), assign func(*Project, *ResourceRevision)) error {
+func (pq *ProjectQuery) loadResourceRuns(ctx context.Context, query *ResourceRunQuery, nodes []*Project, init func(*Project), assign func(*Project, *ResourceRun)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[object.ID]*Project)
 	for i := range nodes {
@@ -1294,10 +1292,10 @@ func (pq *ProjectQuery) loadResourceRevisions(ctx context.Context, query *Resour
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(resourcerevision.FieldProjectID)
+		query.ctx.AppendFieldOnce(resourcerun.FieldProjectID)
 	}
-	query.Where(predicate.ResourceRevision(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(project.ResourceRevisionsColumn), fks...))
+	query.Where(predicate.ResourceRun(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(project.ResourceRunsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

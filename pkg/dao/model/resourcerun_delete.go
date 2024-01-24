@@ -14,29 +14,29 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model/internal"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 )
 
-// ResourceRevisionDelete is the builder for deleting a ResourceRevision entity.
-type ResourceRevisionDelete struct {
+// ResourceRunDelete is the builder for deleting a ResourceRun entity.
+type ResourceRunDelete struct {
 	config
 	hooks    []Hook
-	mutation *ResourceRevisionMutation
+	mutation *ResourceRunMutation
 }
 
-// Where appends a list predicates to the ResourceRevisionDelete builder.
-func (rrd *ResourceRevisionDelete) Where(ps ...predicate.ResourceRevision) *ResourceRevisionDelete {
+// Where appends a list predicates to the ResourceRunDelete builder.
+func (rrd *ResourceRunDelete) Where(ps ...predicate.ResourceRun) *ResourceRunDelete {
 	rrd.mutation.Where(ps...)
 	return rrd
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (rrd *ResourceRevisionDelete) Exec(ctx context.Context) (int, error) {
+func (rrd *ResourceRunDelete) Exec(ctx context.Context) (int, error) {
 	return withHooks(ctx, rrd.sqlExec, rrd.mutation, rrd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rrd *ResourceRevisionDelete) ExecX(ctx context.Context) int {
+func (rrd *ResourceRunDelete) ExecX(ctx context.Context) int {
 	n, err := rrd.Exec(ctx)
 	if err != nil {
 		panic(err)
@@ -44,9 +44,9 @@ func (rrd *ResourceRevisionDelete) ExecX(ctx context.Context) int {
 	return n
 }
 
-func (rrd *ResourceRevisionDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(resourcerevision.Table, sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString))
-	_spec.Node.Schema = rrd.schemaConfig.ResourceRevision
+func (rrd *ResourceRunDelete) sqlExec(ctx context.Context) (int, error) {
+	_spec := sqlgraph.NewDeleteSpec(resourcerun.Table, sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString))
+	_spec.Node.Schema = rrd.schemaConfig.ResourceRun
 	ctx = internal.NewSchemaConfigContext(ctx, rrd.schemaConfig)
 	if ps := rrd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -63,32 +63,32 @@ func (rrd *ResourceRevisionDelete) sqlExec(ctx context.Context) (int, error) {
 	return affected, err
 }
 
-// ResourceRevisionDeleteOne is the builder for deleting a single ResourceRevision entity.
-type ResourceRevisionDeleteOne struct {
-	rrd *ResourceRevisionDelete
+// ResourceRunDeleteOne is the builder for deleting a single ResourceRun entity.
+type ResourceRunDeleteOne struct {
+	rrd *ResourceRunDelete
 }
 
-// Where appends a list predicates to the ResourceRevisionDelete builder.
-func (rrdo *ResourceRevisionDeleteOne) Where(ps ...predicate.ResourceRevision) *ResourceRevisionDeleteOne {
+// Where appends a list predicates to the ResourceRunDelete builder.
+func (rrdo *ResourceRunDeleteOne) Where(ps ...predicate.ResourceRun) *ResourceRunDeleteOne {
 	rrdo.rrd.mutation.Where(ps...)
 	return rrdo
 }
 
 // Exec executes the deletion query.
-func (rrdo *ResourceRevisionDeleteOne) Exec(ctx context.Context) error {
+func (rrdo *ResourceRunDeleteOne) Exec(ctx context.Context) error {
 	n, err := rrdo.rrd.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
 	case n == 0:
-		return &NotFoundError{resourcerevision.Label}
+		return &NotFoundError{resourcerun.Label}
 	default:
 		return nil
 	}
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rrdo *ResourceRevisionDeleteOne) ExecX(ctx context.Context) {
+func (rrdo *ResourceRunDeleteOne) ExecX(ctx context.Context) {
 	if err := rrdo.Exec(ctx); err != nil {
 		panic(err)
 	}
