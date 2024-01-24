@@ -53,8 +53,8 @@ type ProjectEdges struct {
 	Resources []*Resource `json:"resources,omitempty"`
 	// ResourceComponents that belong to the project.
 	ResourceComponents []*ResourceComponent `json:"resource_components,omitempty"`
-	// ResourceRevisions that belong to the project.
-	ResourceRevisions []*ResourceRevision `json:"resource_revisions,omitempty"`
+	// ResourceRuns that belong to the project.
+	ResourceRuns []*ResourceRun `json:"resource_runs,omitempty"`
 	// Variables that belong to the project.
 	Variables []*Variable `json:"variables,omitempty"`
 	// Templates that belong to the project.
@@ -125,13 +125,13 @@ func (e ProjectEdges) ResourceComponentsOrErr() ([]*ResourceComponent, error) {
 	return nil, &NotLoadedError{edge: "resource_components"}
 }
 
-// ResourceRevisionsOrErr returns the ResourceRevisions value or an error if the edge
+// ResourceRunsOrErr returns the ResourceRuns value or an error if the edge
 // was not loaded in eager-loading.
-func (e ProjectEdges) ResourceRevisionsOrErr() ([]*ResourceRevision, error) {
+func (e ProjectEdges) ResourceRunsOrErr() ([]*ResourceRun, error) {
 	if e.loadedTypes[5] {
-		return e.ResourceRevisions, nil
+		return e.ResourceRuns, nil
 	}
-	return nil, &NotLoadedError{edge: "resource_revisions"}
+	return nil, &NotLoadedError{edge: "resource_runs"}
 }
 
 // VariablesOrErr returns the Variables value or an error if the edge
@@ -338,9 +338,9 @@ func (pr *Project) QueryResourceComponents() *ResourceComponentQuery {
 	return NewProjectClient(pr.config).QueryResourceComponents(pr)
 }
 
-// QueryResourceRevisions queries the "resource_revisions" edge of the Project entity.
-func (pr *Project) QueryResourceRevisions() *ResourceRevisionQuery {
-	return NewProjectClient(pr.config).QueryResourceRevisions(pr)
+// QueryResourceRuns queries the "resource_runs" edge of the Project entity.
+func (pr *Project) QueryResourceRuns() *ResourceRunQuery {
+	return NewProjectClient(pr.config).QueryResourceRuns(pr)
 }
 
 // QueryVariables queries the "variables" edge of the Project entity.

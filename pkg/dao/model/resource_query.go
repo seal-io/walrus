@@ -25,7 +25,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
@@ -42,7 +42,7 @@ type ResourceQuery struct {
 	withTemplate                       *TemplateVersionQuery
 	withResourceDefinition             *ResourceDefinitionQuery
 	withResourceDefinitionMatchingRule *ResourceDefinitionMatchingRuleQuery
-	withRevisions                      *ResourceRevisionQuery
+	withRuns                           *ResourceRunQuery
 	withComponents                     *ResourceComponentQuery
 	withDependencies                   *ResourceRelationshipQuery
 	modifiers                          []func(*sql.Selector)
@@ -207,9 +207,9 @@ func (rq *ResourceQuery) QueryResourceDefinitionMatchingRule() *ResourceDefiniti
 	return query
 }
 
-// QueryRevisions chains the current query on the "revisions" edge.
-func (rq *ResourceQuery) QueryRevisions() *ResourceRevisionQuery {
-	query := (&ResourceRevisionClient{config: rq.config}).Query()
+// QueryRuns chains the current query on the "runs" edge.
+func (rq *ResourceQuery) QueryRuns() *ResourceRunQuery {
+	query := (&ResourceRunClient{config: rq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := rq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -220,12 +220,12 @@ func (rq *ResourceQuery) QueryRevisions() *ResourceRevisionQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(resource.Table, resource.FieldID, selector),
-			sqlgraph.To(resourcerevision.Table, resourcerevision.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, resource.RevisionsTable, resource.RevisionsColumn),
+			sqlgraph.To(resourcerun.Table, resourcerun.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, resource.RunsTable, resource.RunsColumn),
 		)
 		schemaConfig := rq.schemaConfig
-		step.To.Schema = schemaConfig.ResourceRevision
-		step.Edge.Schema = schemaConfig.ResourceRevision
+		step.To.Schema = schemaConfig.ResourceRun
+		step.Edge.Schema = schemaConfig.ResourceRun
 		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -479,7 +479,7 @@ func (rq *ResourceQuery) Clone() *ResourceQuery {
 		withTemplate:                       rq.withTemplate.Clone(),
 		withResourceDefinition:             rq.withResourceDefinition.Clone(),
 		withResourceDefinitionMatchingRule: rq.withResourceDefinitionMatchingRule.Clone(),
-		withRevisions:                      rq.withRevisions.Clone(),
+		withRuns:                           rq.withRuns.Clone(),
 		withComponents:                     rq.withComponents.Clone(),
 		withDependencies:                   rq.withDependencies.Clone(),
 		// clone intermediate query.
@@ -543,14 +543,14 @@ func (rq *ResourceQuery) WithResourceDefinitionMatchingRule(opts ...func(*Resour
 	return rq
 }
 
-// WithRevisions tells the query-builder to eager-load the nodes that are connected to
-// the "revisions" edge. The optional arguments are used to configure the query builder of the edge.
-func (rq *ResourceQuery) WithRevisions(opts ...func(*ResourceRevisionQuery)) *ResourceQuery {
-	query := (&ResourceRevisionClient{config: rq.config}).Query()
+// WithRuns tells the query-builder to eager-load the nodes that are connected to
+// the "runs" edge. The optional arguments are used to configure the query builder of the edge.
+func (rq *ResourceQuery) WithRuns(opts ...func(*ResourceRunQuery)) *ResourceQuery {
+	query := (&ResourceRunClient{config: rq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	rq.withRevisions = query
+	rq.withRuns = query
 	return rq
 }
 
@@ -660,7 +660,7 @@ func (rq *ResourceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Res
 			rq.withTemplate != nil,
 			rq.withResourceDefinition != nil,
 			rq.withResourceDefinitionMatchingRule != nil,
-			rq.withRevisions != nil,
+			rq.withRuns != nil,
 			rq.withComponents != nil,
 			rq.withDependencies != nil,
 		}
@@ -718,10 +718,10 @@ func (rq *ResourceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Res
 			return nil, err
 		}
 	}
-	if query := rq.withRevisions; query != nil {
-		if err := rq.loadRevisions(ctx, query, nodes,
-			func(n *Resource) { n.Edges.Revisions = []*ResourceRevision{} },
-			func(n *Resource, e *ResourceRevision) { n.Edges.Revisions = append(n.Edges.Revisions, e) }); err != nil {
+	if query := rq.withRuns; query != nil {
+		if err := rq.loadRuns(ctx, query, nodes,
+			func(n *Resource) { n.Edges.Runs = []*ResourceRun{} },
+			func(n *Resource, e *ResourceRun) { n.Edges.Runs = append(n.Edges.Runs, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -896,7 +896,7 @@ func (rq *ResourceQuery) loadResourceDefinitionMatchingRule(ctx context.Context,
 	}
 	return nil
 }
-func (rq *ResourceQuery) loadRevisions(ctx context.Context, query *ResourceRevisionQuery, nodes []*Resource, init func(*Resource), assign func(*Resource, *ResourceRevision)) error {
+func (rq *ResourceQuery) loadRuns(ctx context.Context, query *ResourceRunQuery, nodes []*Resource, init func(*Resource), assign func(*Resource, *ResourceRun)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[object.ID]*Resource)
 	for i := range nodes {
@@ -907,10 +907,10 @@ func (rq *ResourceQuery) loadRevisions(ctx context.Context, query *ResourceRevis
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(resourcerevision.FieldResourceID)
+		query.ctx.AppendFieldOnce(resourcerun.FieldResourceID)
 	}
-	query.Where(predicate.ResourceRevision(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(resource.RevisionsColumn), fks...))
+	query.Where(predicate.ResourceRun(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(resource.RunsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

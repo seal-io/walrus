@@ -34,7 +34,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/model/role"
 	"github.com/seal-io/walrus/pkg/dao/model/setting"
 	"github.com/seal-io/walrus/pkg/dao/model/subject"
@@ -88,8 +88,8 @@ type Client struct {
 	ResourceDefinitionMatchingRule *ResourceDefinitionMatchingRuleClient
 	// ResourceRelationship is the client for interacting with the ResourceRelationship builders.
 	ResourceRelationship *ResourceRelationshipClient
-	// ResourceRevision is the client for interacting with the ResourceRevision builders.
-	ResourceRevision *ResourceRevisionClient
+	// ResourceRun is the client for interacting with the ResourceRun builders.
+	ResourceRun *ResourceRunClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// Setting is the client for interacting with the Setting builders.
@@ -143,7 +143,7 @@ func (c *Client) init() {
 	c.ResourceDefinition = NewResourceDefinitionClient(c.config)
 	c.ResourceDefinitionMatchingRule = NewResourceDefinitionMatchingRuleClient(c.config)
 	c.ResourceRelationship = NewResourceRelationshipClient(c.config)
-	c.ResourceRevision = NewResourceRevisionClient(c.config)
+	c.ResourceRun = NewResourceRunClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.Setting = NewSettingClient(c.config)
 	c.Subject = NewSubjectClient(c.config)
@@ -266,7 +266,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ResourceDefinition:               NewResourceDefinitionClient(cfg),
 		ResourceDefinitionMatchingRule:   NewResourceDefinitionMatchingRuleClient(cfg),
 		ResourceRelationship:             NewResourceRelationshipClient(cfg),
-		ResourceRevision:                 NewResourceRevisionClient(cfg),
+		ResourceRun:                      NewResourceRunClient(cfg),
 		Role:                             NewRoleClient(cfg),
 		Setting:                          NewSettingClient(cfg),
 		Subject:                          NewSubjectClient(cfg),
@@ -314,7 +314,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ResourceDefinition:               NewResourceDefinitionClient(cfg),
 		ResourceDefinitionMatchingRule:   NewResourceDefinitionMatchingRuleClient(cfg),
 		ResourceRelationship:             NewResourceRelationshipClient(cfg),
-		ResourceRevision:                 NewResourceRevisionClient(cfg),
+		ResourceRun:                      NewResourceRunClient(cfg),
 		Role:                             NewRoleClient(cfg),
 		Setting:                          NewSettingClient(cfg),
 		Subject:                          NewSubjectClient(cfg),
@@ -361,7 +361,7 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Catalog, c.Connector, c.CostReport, c.DistributeLock, c.Environment,
 		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Resource,
 		c.ResourceComponent, c.ResourceComponentRelationship, c.ResourceDefinition,
-		c.ResourceDefinitionMatchingRule, c.ResourceRelationship, c.ResourceRevision,
+		c.ResourceDefinitionMatchingRule, c.ResourceRelationship, c.ResourceRun,
 		c.Role, c.Setting, c.Subject, c.SubjectRoleRelationship, c.Template,
 		c.TemplateVersion, c.Token, c.Variable, c.Workflow, c.WorkflowExecution,
 		c.WorkflowStage, c.WorkflowStageExecution, c.WorkflowStep,
@@ -378,7 +378,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Catalog, c.Connector, c.CostReport, c.DistributeLock, c.Environment,
 		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Resource,
 		c.ResourceComponent, c.ResourceComponentRelationship, c.ResourceDefinition,
-		c.ResourceDefinitionMatchingRule, c.ResourceRelationship, c.ResourceRevision,
+		c.ResourceDefinitionMatchingRule, c.ResourceRelationship, c.ResourceRun,
 		c.Role, c.Setting, c.Subject, c.SubjectRoleRelationship, c.Template,
 		c.TemplateVersion, c.Token, c.Variable, c.Workflow, c.WorkflowExecution,
 		c.WorkflowStage, c.WorkflowStageExecution, c.WorkflowStep,
@@ -458,9 +458,9 @@ func (c *Client) ResourceRelationships() *ResourceRelationshipClient {
 	return c.ResourceRelationship
 }
 
-// ResourceRevisions implements the ClientSet.
-func (c *Client) ResourceRevisions() *ResourceRevisionClient {
-	return c.ResourceRevision
+// ResourceRuns implements the ClientSet.
+func (c *Client) ResourceRuns() *ResourceRunClient {
+	return c.ResourceRun
 }
 
 // Roles implements the ClientSet.
@@ -607,8 +607,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ResourceDefinitionMatchingRule.mutate(ctx, m)
 	case *ResourceRelationshipMutation:
 		return c.ResourceRelationship.mutate(ctx, m)
-	case *ResourceRevisionMutation:
-		return c.ResourceRevision.mutate(ctx, m)
+	case *ResourceRunMutation:
+		return c.ResourceRun.mutate(ctx, m)
 	case *RoleMutation:
 		return c.Role.mutate(ctx, m)
 	case *SettingMutation:
@@ -1477,19 +1477,19 @@ func (c *EnvironmentClient) QueryResources(e *Environment) *ResourceQuery {
 	return query
 }
 
-// QueryResourceRevisions queries the resource_revisions edge of a Environment.
-func (c *EnvironmentClient) QueryResourceRevisions(e *Environment) *ResourceRevisionQuery {
-	query := (&ResourceRevisionClient{config: c.config}).Query()
+// QueryResourceRuns queries the resource_runs edge of a Environment.
+func (c *EnvironmentClient) QueryResourceRuns(e *Environment) *ResourceRunQuery {
+	query := (&ResourceRunClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := e.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(environment.Table, environment.FieldID, id),
-			sqlgraph.To(resourcerevision.Table, resourcerevision.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, environment.ResourceRevisionsTable, environment.ResourceRevisionsColumn),
+			sqlgraph.To(resourcerun.Table, resourcerun.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, environment.ResourceRunsTable, environment.ResourceRunsColumn),
 		)
 		schemaConfig := e.schemaConfig
-		step.To.Schema = schemaConfig.ResourceRevision
-		step.Edge.Schema = schemaConfig.ResourceRevision
+		step.To.Schema = schemaConfig.ResourceRun
+		step.Edge.Schema = schemaConfig.ResourceRun
 		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -2070,19 +2070,19 @@ func (c *ProjectClient) QueryResourceComponents(pr *Project) *ResourceComponentQ
 	return query
 }
 
-// QueryResourceRevisions queries the resource_revisions edge of a Project.
-func (c *ProjectClient) QueryResourceRevisions(pr *Project) *ResourceRevisionQuery {
-	query := (&ResourceRevisionClient{config: c.config}).Query()
+// QueryResourceRuns queries the resource_runs edge of a Project.
+func (c *ProjectClient) QueryResourceRuns(pr *Project) *ResourceRunQuery {
+	query := (&ResourceRunClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := pr.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(project.Table, project.FieldID, id),
-			sqlgraph.To(resourcerevision.Table, resourcerevision.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, project.ResourceRevisionsTable, project.ResourceRevisionsColumn),
+			sqlgraph.To(resourcerun.Table, resourcerun.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.ResourceRunsTable, project.ResourceRunsColumn),
 		)
 		schemaConfig := pr.schemaConfig
-		step.To.Schema = schemaConfig.ResourceRevision
-		step.Edge.Schema = schemaConfig.ResourceRevision
+		step.To.Schema = schemaConfig.ResourceRun
+		step.Edge.Schema = schemaConfig.ResourceRun
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -2509,19 +2509,19 @@ func (c *ResourceClient) QueryResourceDefinitionMatchingRule(r *Resource) *Resou
 	return query
 }
 
-// QueryRevisions queries the revisions edge of a Resource.
-func (c *ResourceClient) QueryRevisions(r *Resource) *ResourceRevisionQuery {
-	query := (&ResourceRevisionClient{config: c.config}).Query()
+// QueryRuns queries the runs edge of a Resource.
+func (c *ResourceClient) QueryRuns(r *Resource) *ResourceRunQuery {
+	query := (&ResourceRunClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := r.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(resource.Table, resource.FieldID, id),
-			sqlgraph.To(resourcerevision.Table, resourcerevision.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, resource.RevisionsTable, resource.RevisionsColumn),
+			sqlgraph.To(resourcerun.Table, resourcerun.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, resource.RunsTable, resource.RunsColumn),
 		)
 		schemaConfig := r.schemaConfig
-		step.To.Schema = schemaConfig.ResourceRevision
-		step.Edge.Schema = schemaConfig.ResourceRevision
+		step.To.Schema = schemaConfig.ResourceRun
+		step.Edge.Schema = schemaConfig.ResourceRun
 		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -3606,107 +3606,107 @@ func (c *ResourceRelationshipClient) mutate(ctx context.Context, m *ResourceRela
 	}
 }
 
-// ResourceRevisionClient is a client for the ResourceRevision schema.
-type ResourceRevisionClient struct {
+// ResourceRunClient is a client for the ResourceRun schema.
+type ResourceRunClient struct {
 	config
 }
 
-// NewResourceRevisionClient returns a client for the ResourceRevision from the given config.
-func NewResourceRevisionClient(c config) *ResourceRevisionClient {
-	return &ResourceRevisionClient{config: c}
+// NewResourceRunClient returns a client for the ResourceRun from the given config.
+func NewResourceRunClient(c config) *ResourceRunClient {
+	return &ResourceRunClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `resourcerevision.Hooks(f(g(h())))`.
-func (c *ResourceRevisionClient) Use(hooks ...Hook) {
-	c.hooks.ResourceRevision = append(c.hooks.ResourceRevision, hooks...)
+// A call to `Use(f, g, h)` equals to `resourcerun.Hooks(f(g(h())))`.
+func (c *ResourceRunClient) Use(hooks ...Hook) {
+	c.hooks.ResourceRun = append(c.hooks.ResourceRun, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `resourcerevision.Intercept(f(g(h())))`.
-func (c *ResourceRevisionClient) Intercept(interceptors ...Interceptor) {
-	c.inters.ResourceRevision = append(c.inters.ResourceRevision, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `resourcerun.Intercept(f(g(h())))`.
+func (c *ResourceRunClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ResourceRun = append(c.inters.ResourceRun, interceptors...)
 }
 
-// Create returns a builder for creating a ResourceRevision entity.
-func (c *ResourceRevisionClient) Create() *ResourceRevisionCreate {
-	mutation := newResourceRevisionMutation(c.config, OpCreate)
-	return &ResourceRevisionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a ResourceRun entity.
+func (c *ResourceRunClient) Create() *ResourceRunCreate {
+	mutation := newResourceRunMutation(c.config, OpCreate)
+	return &ResourceRunCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of ResourceRevision entities.
-func (c *ResourceRevisionClient) CreateBulk(builders ...*ResourceRevisionCreate) *ResourceRevisionCreateBulk {
-	return &ResourceRevisionCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of ResourceRun entities.
+func (c *ResourceRunClient) CreateBulk(builders ...*ResourceRunCreate) *ResourceRunCreateBulk {
+	return &ResourceRunCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *ResourceRevisionClient) MapCreateBulk(slice any, setFunc func(*ResourceRevisionCreate, int)) *ResourceRevisionCreateBulk {
+func (c *ResourceRunClient) MapCreateBulk(slice any, setFunc func(*ResourceRunCreate, int)) *ResourceRunCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &ResourceRevisionCreateBulk{err: fmt.Errorf("calling to ResourceRevisionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &ResourceRunCreateBulk{err: fmt.Errorf("calling to ResourceRunClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*ResourceRevisionCreate, rv.Len())
+	builders := make([]*ResourceRunCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &ResourceRevisionCreateBulk{config: c.config, builders: builders}
+	return &ResourceRunCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for ResourceRevision.
-func (c *ResourceRevisionClient) Update() *ResourceRevisionUpdate {
-	mutation := newResourceRevisionMutation(c.config, OpUpdate)
-	return &ResourceRevisionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for ResourceRun.
+func (c *ResourceRunClient) Update() *ResourceRunUpdate {
+	mutation := newResourceRunMutation(c.config, OpUpdate)
+	return &ResourceRunUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *ResourceRevisionClient) UpdateOne(rr *ResourceRevision) *ResourceRevisionUpdateOne {
-	mutation := newResourceRevisionMutation(c.config, OpUpdateOne, withResourceRevision(rr))
-	return &ResourceRevisionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *ResourceRunClient) UpdateOne(rr *ResourceRun) *ResourceRunUpdateOne {
+	mutation := newResourceRunMutation(c.config, OpUpdateOne, withResourceRun(rr))
+	return &ResourceRunUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *ResourceRevisionClient) UpdateOneID(id object.ID) *ResourceRevisionUpdateOne {
-	mutation := newResourceRevisionMutation(c.config, OpUpdateOne, withResourceRevisionID(id))
-	return &ResourceRevisionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *ResourceRunClient) UpdateOneID(id object.ID) *ResourceRunUpdateOne {
+	mutation := newResourceRunMutation(c.config, OpUpdateOne, withResourceRunID(id))
+	return &ResourceRunUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for ResourceRevision.
-func (c *ResourceRevisionClient) Delete() *ResourceRevisionDelete {
-	mutation := newResourceRevisionMutation(c.config, OpDelete)
-	return &ResourceRevisionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for ResourceRun.
+func (c *ResourceRunClient) Delete() *ResourceRunDelete {
+	mutation := newResourceRunMutation(c.config, OpDelete)
+	return &ResourceRunDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *ResourceRevisionClient) DeleteOne(rr *ResourceRevision) *ResourceRevisionDeleteOne {
+func (c *ResourceRunClient) DeleteOne(rr *ResourceRun) *ResourceRunDeleteOne {
 	return c.DeleteOneID(rr.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ResourceRevisionClient) DeleteOneID(id object.ID) *ResourceRevisionDeleteOne {
-	builder := c.Delete().Where(resourcerevision.ID(id))
+func (c *ResourceRunClient) DeleteOneID(id object.ID) *ResourceRunDeleteOne {
+	builder := c.Delete().Where(resourcerun.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &ResourceRevisionDeleteOne{builder}
+	return &ResourceRunDeleteOne{builder}
 }
 
-// Query returns a query builder for ResourceRevision.
-func (c *ResourceRevisionClient) Query() *ResourceRevisionQuery {
-	return &ResourceRevisionQuery{
+// Query returns a query builder for ResourceRun.
+func (c *ResourceRunClient) Query() *ResourceRunQuery {
+	return &ResourceRunQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeResourceRevision},
+		ctx:    &QueryContext{Type: TypeResourceRun},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a ResourceRevision entity by its id.
-func (c *ResourceRevisionClient) Get(ctx context.Context, id object.ID) (*ResourceRevision, error) {
-	return c.Query().Where(resourcerevision.ID(id)).Only(ctx)
+// Get returns a ResourceRun entity by its id.
+func (c *ResourceRunClient) Get(ctx context.Context, id object.ID) (*ResourceRun, error) {
+	return c.Query().Where(resourcerun.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *ResourceRevisionClient) GetX(ctx context.Context, id object.ID) *ResourceRevision {
+func (c *ResourceRunClient) GetX(ctx context.Context, id object.ID) *ResourceRun {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -3714,57 +3714,57 @@ func (c *ResourceRevisionClient) GetX(ctx context.Context, id object.ID) *Resour
 	return obj
 }
 
-// QueryProject queries the project edge of a ResourceRevision.
-func (c *ResourceRevisionClient) QueryProject(rr *ResourceRevision) *ProjectQuery {
+// QueryProject queries the project edge of a ResourceRun.
+func (c *ResourceRunClient) QueryProject(rr *ResourceRun) *ProjectQuery {
 	query := (&ProjectClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := rr.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(resourcerevision.Table, resourcerevision.FieldID, id),
+			sqlgraph.From(resourcerun.Table, resourcerun.FieldID, id),
 			sqlgraph.To(project.Table, project.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, resourcerevision.ProjectTable, resourcerevision.ProjectColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, resourcerun.ProjectTable, resourcerun.ProjectColumn),
 		)
 		schemaConfig := rr.schemaConfig
 		step.To.Schema = schemaConfig.Project
-		step.Edge.Schema = schemaConfig.ResourceRevision
+		step.Edge.Schema = schemaConfig.ResourceRun
 		fromV = sqlgraph.Neighbors(rr.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
-// QueryEnvironment queries the environment edge of a ResourceRevision.
-func (c *ResourceRevisionClient) QueryEnvironment(rr *ResourceRevision) *EnvironmentQuery {
+// QueryEnvironment queries the environment edge of a ResourceRun.
+func (c *ResourceRunClient) QueryEnvironment(rr *ResourceRun) *EnvironmentQuery {
 	query := (&EnvironmentClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := rr.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(resourcerevision.Table, resourcerevision.FieldID, id),
+			sqlgraph.From(resourcerun.Table, resourcerun.FieldID, id),
 			sqlgraph.To(environment.Table, environment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, resourcerevision.EnvironmentTable, resourcerevision.EnvironmentColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, resourcerun.EnvironmentTable, resourcerun.EnvironmentColumn),
 		)
 		schemaConfig := rr.schemaConfig
 		step.To.Schema = schemaConfig.Environment
-		step.Edge.Schema = schemaConfig.ResourceRevision
+		step.Edge.Schema = schemaConfig.ResourceRun
 		fromV = sqlgraph.Neighbors(rr.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
-// QueryResource queries the resource edge of a ResourceRevision.
-func (c *ResourceRevisionClient) QueryResource(rr *ResourceRevision) *ResourceQuery {
+// QueryResource queries the resource edge of a ResourceRun.
+func (c *ResourceRunClient) QueryResource(rr *ResourceRun) *ResourceQuery {
 	query := (&ResourceClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := rr.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(resourcerevision.Table, resourcerevision.FieldID, id),
+			sqlgraph.From(resourcerun.Table, resourcerun.FieldID, id),
 			sqlgraph.To(resource.Table, resource.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, resourcerevision.ResourceTable, resourcerevision.ResourceColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, resourcerun.ResourceTable, resourcerun.ResourceColumn),
 		)
 		schemaConfig := rr.schemaConfig
 		step.To.Schema = schemaConfig.Resource
-		step.Edge.Schema = schemaConfig.ResourceRevision
+		step.Edge.Schema = schemaConfig.ResourceRun
 		fromV = sqlgraph.Neighbors(rr.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -3772,29 +3772,29 @@ func (c *ResourceRevisionClient) QueryResource(rr *ResourceRevision) *ResourceQu
 }
 
 // Hooks returns the client hooks.
-func (c *ResourceRevisionClient) Hooks() []Hook {
-	hooks := c.hooks.ResourceRevision
-	return append(hooks[:len(hooks):len(hooks)], resourcerevision.Hooks[:]...)
+func (c *ResourceRunClient) Hooks() []Hook {
+	hooks := c.hooks.ResourceRun
+	return append(hooks[:len(hooks):len(hooks)], resourcerun.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
-func (c *ResourceRevisionClient) Interceptors() []Interceptor {
-	inters := c.inters.ResourceRevision
-	return append(inters[:len(inters):len(inters)], resourcerevision.Interceptors[:]...)
+func (c *ResourceRunClient) Interceptors() []Interceptor {
+	inters := c.inters.ResourceRun
+	return append(inters[:len(inters):len(inters)], resourcerun.Interceptors[:]...)
 }
 
-func (c *ResourceRevisionClient) mutate(ctx context.Context, m *ResourceRevisionMutation) (Value, error) {
+func (c *ResourceRunClient) mutate(ctx context.Context, m *ResourceRunMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&ResourceRevisionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&ResourceRunCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&ResourceRevisionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&ResourceRunUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&ResourceRevisionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&ResourceRunUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&ResourceRevisionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&ResourceRunDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("model: unknown ResourceRevision mutation op: %q", m.Op())
+		return nil, fmt.Errorf("model: unknown ResourceRun mutation op: %q", m.Op())
 	}
 }
 
@@ -6299,7 +6299,7 @@ type (
 		Catalog, Connector, CostReport, DistributeLock, Environment,
 		EnvironmentConnectorRelationship, Perspective, Project, Resource,
 		ResourceComponent, ResourceComponentRelationship, ResourceDefinition,
-		ResourceDefinitionMatchingRule, ResourceRelationship, ResourceRevision, Role,
+		ResourceDefinitionMatchingRule, ResourceRelationship, ResourceRun, Role,
 		Setting, Subject, SubjectRoleRelationship, Template, TemplateVersion, Token,
 		Variable, Workflow, WorkflowExecution, WorkflowStage, WorkflowStageExecution,
 		WorkflowStep, WorkflowStepExecution []ent.Hook
@@ -6308,7 +6308,7 @@ type (
 		Catalog, Connector, CostReport, DistributeLock, Environment,
 		EnvironmentConnectorRelationship, Perspective, Project, Resource,
 		ResourceComponent, ResourceComponentRelationship, ResourceDefinition,
-		ResourceDefinitionMatchingRule, ResourceRelationship, ResourceRevision, Role,
+		ResourceDefinitionMatchingRule, ResourceRelationship, ResourceRun, Role,
 		Setting, Subject, SubjectRoleRelationship, Template, TemplateVersion, Token,
 		Variable, Workflow, WorkflowExecution, WorkflowStage, WorkflowStageExecution,
 		WorkflowStep, WorkflowStepExecution []ent.Interceptor

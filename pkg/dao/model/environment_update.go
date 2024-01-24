@@ -24,7 +24,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/model/variable"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
@@ -124,19 +124,19 @@ func (eu *EnvironmentUpdate) AddResources(r ...*Resource) *EnvironmentUpdate {
 	return eu.AddResourceIDs(ids...)
 }
 
-// AddResourceRevisionIDs adds the "resource_revisions" edge to the ResourceRevision entity by IDs.
-func (eu *EnvironmentUpdate) AddResourceRevisionIDs(ids ...object.ID) *EnvironmentUpdate {
-	eu.mutation.AddResourceRevisionIDs(ids...)
+// AddResourceRunIDs adds the "resource_runs" edge to the ResourceRun entity by IDs.
+func (eu *EnvironmentUpdate) AddResourceRunIDs(ids ...object.ID) *EnvironmentUpdate {
+	eu.mutation.AddResourceRunIDs(ids...)
 	return eu
 }
 
-// AddResourceRevisions adds the "resource_revisions" edges to the ResourceRevision entity.
-func (eu *EnvironmentUpdate) AddResourceRevisions(r ...*ResourceRevision) *EnvironmentUpdate {
+// AddResourceRuns adds the "resource_runs" edges to the ResourceRun entity.
+func (eu *EnvironmentUpdate) AddResourceRuns(r ...*ResourceRun) *EnvironmentUpdate {
 	ids := make([]object.ID, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return eu.AddResourceRevisionIDs(ids...)
+	return eu.AddResourceRunIDs(ids...)
 }
 
 // AddResourceComponentIDs adds the "resource_components" edge to the ResourceComponent entity by IDs.
@@ -216,25 +216,25 @@ func (eu *EnvironmentUpdate) RemoveResources(r ...*Resource) *EnvironmentUpdate 
 	return eu.RemoveResourceIDs(ids...)
 }
 
-// ClearResourceRevisions clears all "resource_revisions" edges to the ResourceRevision entity.
-func (eu *EnvironmentUpdate) ClearResourceRevisions() *EnvironmentUpdate {
-	eu.mutation.ClearResourceRevisions()
+// ClearResourceRuns clears all "resource_runs" edges to the ResourceRun entity.
+func (eu *EnvironmentUpdate) ClearResourceRuns() *EnvironmentUpdate {
+	eu.mutation.ClearResourceRuns()
 	return eu
 }
 
-// RemoveResourceRevisionIDs removes the "resource_revisions" edge to ResourceRevision entities by IDs.
-func (eu *EnvironmentUpdate) RemoveResourceRevisionIDs(ids ...object.ID) *EnvironmentUpdate {
-	eu.mutation.RemoveResourceRevisionIDs(ids...)
+// RemoveResourceRunIDs removes the "resource_runs" edge to ResourceRun entities by IDs.
+func (eu *EnvironmentUpdate) RemoveResourceRunIDs(ids ...object.ID) *EnvironmentUpdate {
+	eu.mutation.RemoveResourceRunIDs(ids...)
 	return eu
 }
 
-// RemoveResourceRevisions removes "resource_revisions" edges to ResourceRevision entities.
-func (eu *EnvironmentUpdate) RemoveResourceRevisions(r ...*ResourceRevision) *EnvironmentUpdate {
+// RemoveResourceRuns removes "resource_runs" edges to ResourceRun entities.
+func (eu *EnvironmentUpdate) RemoveResourceRuns(r ...*ResourceRun) *EnvironmentUpdate {
 	ids := make([]object.ID, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return eu.RemoveResourceRevisionIDs(ids...)
+	return eu.RemoveResourceRunIDs(ids...)
 }
 
 // ClearResourceComponents clears all "resource_components" edges to the ResourceComponent entity.
@@ -520,49 +520,49 @@ func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if eu.mutation.ResourceRevisionsCleared() {
+	if eu.mutation.ResourceRunsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.ResourceRevisionsTable,
-			Columns: []string{environment.ResourceRevisionsColumn},
+			Table:   environment.ResourceRunsTable,
+			Columns: []string{environment.ResourceRunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = eu.schemaConfig.ResourceRevision
+		edge.Schema = eu.schemaConfig.ResourceRun
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eu.mutation.RemovedResourceRevisionsIDs(); len(nodes) > 0 && !eu.mutation.ResourceRevisionsCleared() {
+	if nodes := eu.mutation.RemovedResourceRunsIDs(); len(nodes) > 0 && !eu.mutation.ResourceRunsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.ResourceRevisionsTable,
-			Columns: []string{environment.ResourceRevisionsColumn},
+			Table:   environment.ResourceRunsTable,
+			Columns: []string{environment.ResourceRunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = eu.schemaConfig.ResourceRevision
+		edge.Schema = eu.schemaConfig.ResourceRun
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eu.mutation.ResourceRevisionsIDs(); len(nodes) > 0 {
+	if nodes := eu.mutation.ResourceRunsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.ResourceRevisionsTable,
-			Columns: []string{environment.ResourceRevisionsColumn},
+			Table:   environment.ResourceRunsTable,
+			Columns: []string{environment.ResourceRunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = eu.schemaConfig.ResourceRevision
+		edge.Schema = eu.schemaConfig.ResourceRun
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -769,19 +769,19 @@ func (euo *EnvironmentUpdateOne) AddResources(r ...*Resource) *EnvironmentUpdate
 	return euo.AddResourceIDs(ids...)
 }
 
-// AddResourceRevisionIDs adds the "resource_revisions" edge to the ResourceRevision entity by IDs.
-func (euo *EnvironmentUpdateOne) AddResourceRevisionIDs(ids ...object.ID) *EnvironmentUpdateOne {
-	euo.mutation.AddResourceRevisionIDs(ids...)
+// AddResourceRunIDs adds the "resource_runs" edge to the ResourceRun entity by IDs.
+func (euo *EnvironmentUpdateOne) AddResourceRunIDs(ids ...object.ID) *EnvironmentUpdateOne {
+	euo.mutation.AddResourceRunIDs(ids...)
 	return euo
 }
 
-// AddResourceRevisions adds the "resource_revisions" edges to the ResourceRevision entity.
-func (euo *EnvironmentUpdateOne) AddResourceRevisions(r ...*ResourceRevision) *EnvironmentUpdateOne {
+// AddResourceRuns adds the "resource_runs" edges to the ResourceRun entity.
+func (euo *EnvironmentUpdateOne) AddResourceRuns(r ...*ResourceRun) *EnvironmentUpdateOne {
 	ids := make([]object.ID, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return euo.AddResourceRevisionIDs(ids...)
+	return euo.AddResourceRunIDs(ids...)
 }
 
 // AddResourceComponentIDs adds the "resource_components" edge to the ResourceComponent entity by IDs.
@@ -861,25 +861,25 @@ func (euo *EnvironmentUpdateOne) RemoveResources(r ...*Resource) *EnvironmentUpd
 	return euo.RemoveResourceIDs(ids...)
 }
 
-// ClearResourceRevisions clears all "resource_revisions" edges to the ResourceRevision entity.
-func (euo *EnvironmentUpdateOne) ClearResourceRevisions() *EnvironmentUpdateOne {
-	euo.mutation.ClearResourceRevisions()
+// ClearResourceRuns clears all "resource_runs" edges to the ResourceRun entity.
+func (euo *EnvironmentUpdateOne) ClearResourceRuns() *EnvironmentUpdateOne {
+	euo.mutation.ClearResourceRuns()
 	return euo
 }
 
-// RemoveResourceRevisionIDs removes the "resource_revisions" edge to ResourceRevision entities by IDs.
-func (euo *EnvironmentUpdateOne) RemoveResourceRevisionIDs(ids ...object.ID) *EnvironmentUpdateOne {
-	euo.mutation.RemoveResourceRevisionIDs(ids...)
+// RemoveResourceRunIDs removes the "resource_runs" edge to ResourceRun entities by IDs.
+func (euo *EnvironmentUpdateOne) RemoveResourceRunIDs(ids ...object.ID) *EnvironmentUpdateOne {
+	euo.mutation.RemoveResourceRunIDs(ids...)
 	return euo
 }
 
-// RemoveResourceRevisions removes "resource_revisions" edges to ResourceRevision entities.
-func (euo *EnvironmentUpdateOne) RemoveResourceRevisions(r ...*ResourceRevision) *EnvironmentUpdateOne {
+// RemoveResourceRuns removes "resource_runs" edges to ResourceRun entities.
+func (euo *EnvironmentUpdateOne) RemoveResourceRuns(r ...*ResourceRun) *EnvironmentUpdateOne {
 	ids := make([]object.ID, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return euo.RemoveResourceRevisionIDs(ids...)
+	return euo.RemoveResourceRunIDs(ids...)
 }
 
 // ClearResourceComponents clears all "resource_components" edges to the ResourceComponent entity.
@@ -1293,49 +1293,49 @@ func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environmen
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if euo.mutation.ResourceRevisionsCleared() {
+	if euo.mutation.ResourceRunsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.ResourceRevisionsTable,
-			Columns: []string{environment.ResourceRevisionsColumn},
+			Table:   environment.ResourceRunsTable,
+			Columns: []string{environment.ResourceRunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = euo.schemaConfig.ResourceRevision
+		edge.Schema = euo.schemaConfig.ResourceRun
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := euo.mutation.RemovedResourceRevisionsIDs(); len(nodes) > 0 && !euo.mutation.ResourceRevisionsCleared() {
+	if nodes := euo.mutation.RemovedResourceRunsIDs(); len(nodes) > 0 && !euo.mutation.ResourceRunsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.ResourceRevisionsTable,
-			Columns: []string{environment.ResourceRevisionsColumn},
+			Table:   environment.ResourceRunsTable,
+			Columns: []string{environment.ResourceRunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = euo.schemaConfig.ResourceRevision
+		edge.Schema = euo.schemaConfig.ResourceRun
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := euo.mutation.ResourceRevisionsIDs(); len(nodes) > 0 {
+	if nodes := euo.mutation.ResourceRunsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.ResourceRevisionsTable,
-			Columns: []string{environment.ResourceRevisionsColumn},
+			Table:   environment.ResourceRunsTable,
+			Columns: []string{environment.ResourceRunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = euo.schemaConfig.ResourceRevision
+		edge.Schema = euo.schemaConfig.ResourceRun
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

@@ -51,8 +51,8 @@ type ResourceDefinitionMatchingRule func(*sql.Selector)
 // ResourceRelationship is the predicate function for resourcerelationship builders.
 type ResourceRelationship func(*sql.Selector)
 
-// ResourceRevision is the predicate function for resourcerevision builders.
-type ResourceRevision func(*sql.Selector)
+// ResourceRun is the predicate function for resourcerun builders.
+type ResourceRun func(*sql.Selector)
 
 // Role is the predicate function for role builders.
 type Role func(*sql.Selector)

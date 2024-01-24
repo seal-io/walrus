@@ -27,7 +27,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/model/role"
 	"github.com/seal-io/walrus/pkg/dao/model/setting"
 	"github.com/seal-io/walrus/pkg/dao/model/subject"
@@ -478,31 +478,31 @@ func (f TraverseResourceRelationship) Traverse(ctx context.Context, q model.Quer
 	return fmt.Errorf("unexpected query type %T. expect *model.ResourceRelationshipQuery", q)
 }
 
-// The ResourceRevisionFunc type is an adapter to allow the use of ordinary function as a Querier.
-type ResourceRevisionFunc func(context.Context, *model.ResourceRevisionQuery) (model.Value, error)
+// The ResourceRunFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ResourceRunFunc func(context.Context, *model.ResourceRunQuery) (model.Value, error)
 
 // Query calls f(ctx, q).
-func (f ResourceRevisionFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
-	if q, ok := q.(*model.ResourceRevisionQuery); ok {
+func (f ResourceRunFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.ResourceRunQuery); ok {
 		return f(ctx, q)
 	}
-	return nil, fmt.Errorf("unexpected query type %T. expect *model.ResourceRevisionQuery", q)
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.ResourceRunQuery", q)
 }
 
-// The TraverseResourceRevision type is an adapter to allow the use of ordinary function as Traverser.
-type TraverseResourceRevision func(context.Context, *model.ResourceRevisionQuery) error
+// The TraverseResourceRun type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseResourceRun func(context.Context, *model.ResourceRunQuery) error
 
 // Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
-func (f TraverseResourceRevision) Intercept(next model.Querier) model.Querier {
+func (f TraverseResourceRun) Intercept(next model.Querier) model.Querier {
 	return next
 }
 
 // Traverse calls f(ctx, q).
-func (f TraverseResourceRevision) Traverse(ctx context.Context, q model.Query) error {
-	if q, ok := q.(*model.ResourceRevisionQuery); ok {
+func (f TraverseResourceRun) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ResourceRunQuery); ok {
 		return f(ctx, q)
 	}
-	return fmt.Errorf("unexpected query type %T. expect *model.ResourceRevisionQuery", q)
+	return fmt.Errorf("unexpected query type %T. expect *model.ResourceRunQuery", q)
 }
 
 // The RoleFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -914,8 +914,8 @@ func NewQuery(q model.Query) (Query, error) {
 		return &query[*model.ResourceDefinitionMatchingRuleQuery, predicate.ResourceDefinitionMatchingRule, resourcedefinitionmatchingrule.OrderOption]{typ: model.TypeResourceDefinitionMatchingRule, tq: q}, nil
 	case *model.ResourceRelationshipQuery:
 		return &query[*model.ResourceRelationshipQuery, predicate.ResourceRelationship, resourcerelationship.OrderOption]{typ: model.TypeResourceRelationship, tq: q}, nil
-	case *model.ResourceRevisionQuery:
-		return &query[*model.ResourceRevisionQuery, predicate.ResourceRevision, resourcerevision.OrderOption]{typ: model.TypeResourceRevision, tq: q}, nil
+	case *model.ResourceRunQuery:
+		return &query[*model.ResourceRunQuery, predicate.ResourceRun, resourcerun.OrderOption]{typ: model.TypeResourceRun, tq: q}, nil
 	case *model.RoleQuery:
 		return &query[*model.RoleQuery, predicate.Role, role.OrderOption]{typ: model.TypeRole, tq: q}, nil
 	case *model.SettingQuery:

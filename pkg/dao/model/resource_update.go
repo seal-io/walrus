@@ -26,7 +26,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -256,19 +256,19 @@ func (ru *ResourceUpdate) SetResourceDefinitionMatchingRule(r *ResourceDefinitio
 	return ru.SetResourceDefinitionMatchingRuleID(r.ID)
 }
 
-// AddRevisionIDs adds the "revisions" edge to the ResourceRevision entity by IDs.
-func (ru *ResourceUpdate) AddRevisionIDs(ids ...object.ID) *ResourceUpdate {
-	ru.mutation.AddRevisionIDs(ids...)
+// AddRunIDs adds the "runs" edge to the ResourceRun entity by IDs.
+func (ru *ResourceUpdate) AddRunIDs(ids ...object.ID) *ResourceUpdate {
+	ru.mutation.AddRunIDs(ids...)
 	return ru
 }
 
-// AddRevisions adds the "revisions" edges to the ResourceRevision entity.
-func (ru *ResourceUpdate) AddRevisions(r ...*ResourceRevision) *ResourceUpdate {
+// AddRuns adds the "runs" edges to the ResourceRun entity.
+func (ru *ResourceUpdate) AddRuns(r ...*ResourceRun) *ResourceUpdate {
 	ids := make([]object.ID, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return ru.AddRevisionIDs(ids...)
+	return ru.AddRunIDs(ids...)
 }
 
 // AddComponentIDs adds the "components" edge to the ResourceComponent entity by IDs.
@@ -324,25 +324,25 @@ func (ru *ResourceUpdate) ClearResourceDefinitionMatchingRule() *ResourceUpdate 
 	return ru
 }
 
-// ClearRevisions clears all "revisions" edges to the ResourceRevision entity.
-func (ru *ResourceUpdate) ClearRevisions() *ResourceUpdate {
-	ru.mutation.ClearRevisions()
+// ClearRuns clears all "runs" edges to the ResourceRun entity.
+func (ru *ResourceUpdate) ClearRuns() *ResourceUpdate {
+	ru.mutation.ClearRuns()
 	return ru
 }
 
-// RemoveRevisionIDs removes the "revisions" edge to ResourceRevision entities by IDs.
-func (ru *ResourceUpdate) RemoveRevisionIDs(ids ...object.ID) *ResourceUpdate {
-	ru.mutation.RemoveRevisionIDs(ids...)
+// RemoveRunIDs removes the "runs" edge to ResourceRun entities by IDs.
+func (ru *ResourceUpdate) RemoveRunIDs(ids ...object.ID) *ResourceUpdate {
+	ru.mutation.RemoveRunIDs(ids...)
 	return ru
 }
 
-// RemoveRevisions removes "revisions" edges to ResourceRevision entities.
-func (ru *ResourceUpdate) RemoveRevisions(r ...*ResourceRevision) *ResourceUpdate {
+// RemoveRuns removes "runs" edges to ResourceRun entities.
+func (ru *ResourceUpdate) RemoveRuns(r ...*ResourceRun) *ResourceUpdate {
 	ids := make([]object.ID, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return ru.RemoveRevisionIDs(ids...)
+	return ru.RemoveRunIDs(ids...)
 }
 
 // ClearComponents clears all "components" edges to the ResourceComponent entity.
@@ -696,49 +696,49 @@ func (ru *ResourceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if ru.mutation.RevisionsCleared() {
+	if ru.mutation.RunsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   resource.RevisionsTable,
-			Columns: []string{resource.RevisionsColumn},
+			Table:   resource.RunsTable,
+			Columns: []string{resource.RunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = ru.schemaConfig.ResourceRevision
+		edge.Schema = ru.schemaConfig.ResourceRun
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ru.mutation.RemovedRevisionsIDs(); len(nodes) > 0 && !ru.mutation.RevisionsCleared() {
+	if nodes := ru.mutation.RemovedRunsIDs(); len(nodes) > 0 && !ru.mutation.RunsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   resource.RevisionsTable,
-			Columns: []string{resource.RevisionsColumn},
+			Table:   resource.RunsTable,
+			Columns: []string{resource.RunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = ru.schemaConfig.ResourceRevision
+		edge.Schema = ru.schemaConfig.ResourceRun
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ru.mutation.RevisionsIDs(); len(nodes) > 0 {
+	if nodes := ru.mutation.RunsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   resource.RevisionsTable,
-			Columns: []string{resource.RevisionsColumn},
+			Table:   resource.RunsTable,
+			Columns: []string{resource.RunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = ru.schemaConfig.ResourceRevision
+		edge.Schema = ru.schemaConfig.ResourceRun
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -1072,19 +1072,19 @@ func (ruo *ResourceUpdateOne) SetResourceDefinitionMatchingRule(r *ResourceDefin
 	return ruo.SetResourceDefinitionMatchingRuleID(r.ID)
 }
 
-// AddRevisionIDs adds the "revisions" edge to the ResourceRevision entity by IDs.
-func (ruo *ResourceUpdateOne) AddRevisionIDs(ids ...object.ID) *ResourceUpdateOne {
-	ruo.mutation.AddRevisionIDs(ids...)
+// AddRunIDs adds the "runs" edge to the ResourceRun entity by IDs.
+func (ruo *ResourceUpdateOne) AddRunIDs(ids ...object.ID) *ResourceUpdateOne {
+	ruo.mutation.AddRunIDs(ids...)
 	return ruo
 }
 
-// AddRevisions adds the "revisions" edges to the ResourceRevision entity.
-func (ruo *ResourceUpdateOne) AddRevisions(r ...*ResourceRevision) *ResourceUpdateOne {
+// AddRuns adds the "runs" edges to the ResourceRun entity.
+func (ruo *ResourceUpdateOne) AddRuns(r ...*ResourceRun) *ResourceUpdateOne {
 	ids := make([]object.ID, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return ruo.AddRevisionIDs(ids...)
+	return ruo.AddRunIDs(ids...)
 }
 
 // AddComponentIDs adds the "components" edge to the ResourceComponent entity by IDs.
@@ -1140,25 +1140,25 @@ func (ruo *ResourceUpdateOne) ClearResourceDefinitionMatchingRule() *ResourceUpd
 	return ruo
 }
 
-// ClearRevisions clears all "revisions" edges to the ResourceRevision entity.
-func (ruo *ResourceUpdateOne) ClearRevisions() *ResourceUpdateOne {
-	ruo.mutation.ClearRevisions()
+// ClearRuns clears all "runs" edges to the ResourceRun entity.
+func (ruo *ResourceUpdateOne) ClearRuns() *ResourceUpdateOne {
+	ruo.mutation.ClearRuns()
 	return ruo
 }
 
-// RemoveRevisionIDs removes the "revisions" edge to ResourceRevision entities by IDs.
-func (ruo *ResourceUpdateOne) RemoveRevisionIDs(ids ...object.ID) *ResourceUpdateOne {
-	ruo.mutation.RemoveRevisionIDs(ids...)
+// RemoveRunIDs removes the "runs" edge to ResourceRun entities by IDs.
+func (ruo *ResourceUpdateOne) RemoveRunIDs(ids ...object.ID) *ResourceUpdateOne {
+	ruo.mutation.RemoveRunIDs(ids...)
 	return ruo
 }
 
-// RemoveRevisions removes "revisions" edges to ResourceRevision entities.
-func (ruo *ResourceUpdateOne) RemoveRevisions(r ...*ResourceRevision) *ResourceUpdateOne {
+// RemoveRuns removes "runs" edges to ResourceRun entities.
+func (ruo *ResourceUpdateOne) RemoveRuns(r ...*ResourceRun) *ResourceUpdateOne {
 	ids := make([]object.ID, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return ruo.RemoveRevisionIDs(ids...)
+	return ruo.RemoveRunIDs(ids...)
 }
 
 // ClearComponents clears all "components" edges to the ResourceComponent entity.
@@ -1680,49 +1680,49 @@ func (ruo *ResourceUpdateOne) sqlSave(ctx context.Context) (_node *Resource, err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if ruo.mutation.RevisionsCleared() {
+	if ruo.mutation.RunsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   resource.RevisionsTable,
-			Columns: []string{resource.RevisionsColumn},
+			Table:   resource.RunsTable,
+			Columns: []string{resource.RunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = ruo.schemaConfig.ResourceRevision
+		edge.Schema = ruo.schemaConfig.ResourceRun
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ruo.mutation.RemovedRevisionsIDs(); len(nodes) > 0 && !ruo.mutation.RevisionsCleared() {
+	if nodes := ruo.mutation.RemovedRunsIDs(); len(nodes) > 0 && !ruo.mutation.RunsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   resource.RevisionsTable,
-			Columns: []string{resource.RevisionsColumn},
+			Table:   resource.RunsTable,
+			Columns: []string{resource.RunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = ruo.schemaConfig.ResourceRevision
+		edge.Schema = ruo.schemaConfig.ResourceRun
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ruo.mutation.RevisionsIDs(); len(nodes) > 0 {
+	if nodes := ruo.mutation.RunsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   resource.RevisionsTable,
-			Columns: []string{resource.RevisionsColumn},
+			Table:   resource.RunsTable,
+			Columns: []string{resource.RunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = ruo.schemaConfig.ResourceRevision
+		edge.Schema = ruo.schemaConfig.ResourceRun
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

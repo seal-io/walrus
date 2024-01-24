@@ -20,17 +20,17 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
-// ResourceRevisionQuery is the builder for querying ResourceRevision entities.
-type ResourceRevisionQuery struct {
+// ResourceRunQuery is the builder for querying ResourceRun entities.
+type ResourceRunQuery struct {
 	config
 	ctx             *QueryContext
-	order           []resourcerevision.OrderOption
+	order           []resourcerun.OrderOption
 	inters          []Interceptor
-	predicates      []predicate.ResourceRevision
+	predicates      []predicate.ResourceRun
 	withProject     *ProjectQuery
 	withEnvironment *EnvironmentQuery
 	withResource    *ResourceQuery
@@ -40,39 +40,39 @@ type ResourceRevisionQuery struct {
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the ResourceRevisionQuery builder.
-func (rrq *ResourceRevisionQuery) Where(ps ...predicate.ResourceRevision) *ResourceRevisionQuery {
+// Where adds a new predicate for the ResourceRunQuery builder.
+func (rrq *ResourceRunQuery) Where(ps ...predicate.ResourceRun) *ResourceRunQuery {
 	rrq.predicates = append(rrq.predicates, ps...)
 	return rrq
 }
 
 // Limit the number of records to be returned by this query.
-func (rrq *ResourceRevisionQuery) Limit(limit int) *ResourceRevisionQuery {
+func (rrq *ResourceRunQuery) Limit(limit int) *ResourceRunQuery {
 	rrq.ctx.Limit = &limit
 	return rrq
 }
 
 // Offset to start from.
-func (rrq *ResourceRevisionQuery) Offset(offset int) *ResourceRevisionQuery {
+func (rrq *ResourceRunQuery) Offset(offset int) *ResourceRunQuery {
 	rrq.ctx.Offset = &offset
 	return rrq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (rrq *ResourceRevisionQuery) Unique(unique bool) *ResourceRevisionQuery {
+func (rrq *ResourceRunQuery) Unique(unique bool) *ResourceRunQuery {
 	rrq.ctx.Unique = &unique
 	return rrq
 }
 
 // Order specifies how the records should be ordered.
-func (rrq *ResourceRevisionQuery) Order(o ...resourcerevision.OrderOption) *ResourceRevisionQuery {
+func (rrq *ResourceRunQuery) Order(o ...resourcerun.OrderOption) *ResourceRunQuery {
 	rrq.order = append(rrq.order, o...)
 	return rrq
 }
 
 // QueryProject chains the current query on the "project" edge.
-func (rrq *ResourceRevisionQuery) QueryProject() *ProjectQuery {
+func (rrq *ResourceRunQuery) QueryProject() *ProjectQuery {
 	query := (&ProjectClient{config: rrq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := rrq.prepareQuery(ctx); err != nil {
@@ -83,13 +83,13 @@ func (rrq *ResourceRevisionQuery) QueryProject() *ProjectQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(resourcerevision.Table, resourcerevision.FieldID, selector),
+			sqlgraph.From(resourcerun.Table, resourcerun.FieldID, selector),
 			sqlgraph.To(project.Table, project.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, resourcerevision.ProjectTable, resourcerevision.ProjectColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, resourcerun.ProjectTable, resourcerun.ProjectColumn),
 		)
 		schemaConfig := rrq.schemaConfig
 		step.To.Schema = schemaConfig.Project
-		step.Edge.Schema = schemaConfig.ResourceRevision
+		step.Edge.Schema = schemaConfig.ResourceRun
 		fromU = sqlgraph.SetNeighbors(rrq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -97,7 +97,7 @@ func (rrq *ResourceRevisionQuery) QueryProject() *ProjectQuery {
 }
 
 // QueryEnvironment chains the current query on the "environment" edge.
-func (rrq *ResourceRevisionQuery) QueryEnvironment() *EnvironmentQuery {
+func (rrq *ResourceRunQuery) QueryEnvironment() *EnvironmentQuery {
 	query := (&EnvironmentClient{config: rrq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := rrq.prepareQuery(ctx); err != nil {
@@ -108,13 +108,13 @@ func (rrq *ResourceRevisionQuery) QueryEnvironment() *EnvironmentQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(resourcerevision.Table, resourcerevision.FieldID, selector),
+			sqlgraph.From(resourcerun.Table, resourcerun.FieldID, selector),
 			sqlgraph.To(environment.Table, environment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, resourcerevision.EnvironmentTable, resourcerevision.EnvironmentColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, resourcerun.EnvironmentTable, resourcerun.EnvironmentColumn),
 		)
 		schemaConfig := rrq.schemaConfig
 		step.To.Schema = schemaConfig.Environment
-		step.Edge.Schema = schemaConfig.ResourceRevision
+		step.Edge.Schema = schemaConfig.ResourceRun
 		fromU = sqlgraph.SetNeighbors(rrq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -122,7 +122,7 @@ func (rrq *ResourceRevisionQuery) QueryEnvironment() *EnvironmentQuery {
 }
 
 // QueryResource chains the current query on the "resource" edge.
-func (rrq *ResourceRevisionQuery) QueryResource() *ResourceQuery {
+func (rrq *ResourceRunQuery) QueryResource() *ResourceQuery {
 	query := (&ResourceClient{config: rrq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := rrq.prepareQuery(ctx); err != nil {
@@ -133,34 +133,34 @@ func (rrq *ResourceRevisionQuery) QueryResource() *ResourceQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(resourcerevision.Table, resourcerevision.FieldID, selector),
+			sqlgraph.From(resourcerun.Table, resourcerun.FieldID, selector),
 			sqlgraph.To(resource.Table, resource.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, resourcerevision.ResourceTable, resourcerevision.ResourceColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, resourcerun.ResourceTable, resourcerun.ResourceColumn),
 		)
 		schemaConfig := rrq.schemaConfig
 		step.To.Schema = schemaConfig.Resource
-		step.Edge.Schema = schemaConfig.ResourceRevision
+		step.Edge.Schema = schemaConfig.ResourceRun
 		fromU = sqlgraph.SetNeighbors(rrq.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
-// First returns the first ResourceRevision entity from the query.
-// Returns a *NotFoundError when no ResourceRevision was found.
-func (rrq *ResourceRevisionQuery) First(ctx context.Context) (*ResourceRevision, error) {
+// First returns the first ResourceRun entity from the query.
+// Returns a *NotFoundError when no ResourceRun was found.
+func (rrq *ResourceRunQuery) First(ctx context.Context) (*ResourceRun, error) {
 	nodes, err := rrq.Limit(1).All(setContextOp(ctx, rrq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{resourcerevision.Label}
+		return nil, &NotFoundError{resourcerun.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (rrq *ResourceRevisionQuery) FirstX(ctx context.Context) *ResourceRevision {
+func (rrq *ResourceRunQuery) FirstX(ctx context.Context) *ResourceRun {
 	node, err := rrq.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -168,22 +168,22 @@ func (rrq *ResourceRevisionQuery) FirstX(ctx context.Context) *ResourceRevision 
 	return node
 }
 
-// FirstID returns the first ResourceRevision ID from the query.
-// Returns a *NotFoundError when no ResourceRevision ID was found.
-func (rrq *ResourceRevisionQuery) FirstID(ctx context.Context) (id object.ID, err error) {
+// FirstID returns the first ResourceRun ID from the query.
+// Returns a *NotFoundError when no ResourceRun ID was found.
+func (rrq *ResourceRunQuery) FirstID(ctx context.Context) (id object.ID, err error) {
 	var ids []object.ID
 	if ids, err = rrq.Limit(1).IDs(setContextOp(ctx, rrq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{resourcerevision.Label}
+		err = &NotFoundError{resourcerun.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (rrq *ResourceRevisionQuery) FirstIDX(ctx context.Context) object.ID {
+func (rrq *ResourceRunQuery) FirstIDX(ctx context.Context) object.ID {
 	id, err := rrq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -191,10 +191,10 @@ func (rrq *ResourceRevisionQuery) FirstIDX(ctx context.Context) object.ID {
 	return id
 }
 
-// Only returns a single ResourceRevision entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one ResourceRevision entity is found.
-// Returns a *NotFoundError when no ResourceRevision entities are found.
-func (rrq *ResourceRevisionQuery) Only(ctx context.Context) (*ResourceRevision, error) {
+// Only returns a single ResourceRun entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one ResourceRun entity is found.
+// Returns a *NotFoundError when no ResourceRun entities are found.
+func (rrq *ResourceRunQuery) Only(ctx context.Context) (*ResourceRun, error) {
 	nodes, err := rrq.Limit(2).All(setContextOp(ctx, rrq.ctx, "Only"))
 	if err != nil {
 		return nil, err
@@ -203,14 +203,14 @@ func (rrq *ResourceRevisionQuery) Only(ctx context.Context) (*ResourceRevision, 
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{resourcerevision.Label}
+		return nil, &NotFoundError{resourcerun.Label}
 	default:
-		return nil, &NotSingularError{resourcerevision.Label}
+		return nil, &NotSingularError{resourcerun.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (rrq *ResourceRevisionQuery) OnlyX(ctx context.Context) *ResourceRevision {
+func (rrq *ResourceRunQuery) OnlyX(ctx context.Context) *ResourceRun {
 	node, err := rrq.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -218,10 +218,10 @@ func (rrq *ResourceRevisionQuery) OnlyX(ctx context.Context) *ResourceRevision {
 	return node
 }
 
-// OnlyID is like Only, but returns the only ResourceRevision ID in the query.
-// Returns a *NotSingularError when more than one ResourceRevision ID is found.
+// OnlyID is like Only, but returns the only ResourceRun ID in the query.
+// Returns a *NotSingularError when more than one ResourceRun ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (rrq *ResourceRevisionQuery) OnlyID(ctx context.Context) (id object.ID, err error) {
+func (rrq *ResourceRunQuery) OnlyID(ctx context.Context) (id object.ID, err error) {
 	var ids []object.ID
 	if ids, err = rrq.Limit(2).IDs(setContextOp(ctx, rrq.ctx, "OnlyID")); err != nil {
 		return
@@ -230,15 +230,15 @@ func (rrq *ResourceRevisionQuery) OnlyID(ctx context.Context) (id object.ID, err
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{resourcerevision.Label}
+		err = &NotFoundError{resourcerun.Label}
 	default:
-		err = &NotSingularError{resourcerevision.Label}
+		err = &NotSingularError{resourcerun.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (rrq *ResourceRevisionQuery) OnlyIDX(ctx context.Context) object.ID {
+func (rrq *ResourceRunQuery) OnlyIDX(ctx context.Context) object.ID {
 	id, err := rrq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -246,18 +246,18 @@ func (rrq *ResourceRevisionQuery) OnlyIDX(ctx context.Context) object.ID {
 	return id
 }
 
-// All executes the query and returns a list of ResourceRevisions.
-func (rrq *ResourceRevisionQuery) All(ctx context.Context) ([]*ResourceRevision, error) {
+// All executes the query and returns a list of ResourceRuns.
+func (rrq *ResourceRunQuery) All(ctx context.Context) ([]*ResourceRun, error) {
 	ctx = setContextOp(ctx, rrq.ctx, "All")
 	if err := rrq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*ResourceRevision, *ResourceRevisionQuery]()
-	return withInterceptors[[]*ResourceRevision](ctx, rrq, qr, rrq.inters)
+	qr := querierAll[[]*ResourceRun, *ResourceRunQuery]()
+	return withInterceptors[[]*ResourceRun](ctx, rrq, qr, rrq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (rrq *ResourceRevisionQuery) AllX(ctx context.Context) []*ResourceRevision {
+func (rrq *ResourceRunQuery) AllX(ctx context.Context) []*ResourceRun {
 	nodes, err := rrq.All(ctx)
 	if err != nil {
 		panic(err)
@@ -265,20 +265,20 @@ func (rrq *ResourceRevisionQuery) AllX(ctx context.Context) []*ResourceRevision 
 	return nodes
 }
 
-// IDs executes the query and returns a list of ResourceRevision IDs.
-func (rrq *ResourceRevisionQuery) IDs(ctx context.Context) (ids []object.ID, err error) {
+// IDs executes the query and returns a list of ResourceRun IDs.
+func (rrq *ResourceRunQuery) IDs(ctx context.Context) (ids []object.ID, err error) {
 	if rrq.ctx.Unique == nil && rrq.path != nil {
 		rrq.Unique(true)
 	}
 	ctx = setContextOp(ctx, rrq.ctx, "IDs")
-	if err = rrq.Select(resourcerevision.FieldID).Scan(ctx, &ids); err != nil {
+	if err = rrq.Select(resourcerun.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (rrq *ResourceRevisionQuery) IDsX(ctx context.Context) []object.ID {
+func (rrq *ResourceRunQuery) IDsX(ctx context.Context) []object.ID {
 	ids, err := rrq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -287,16 +287,16 @@ func (rrq *ResourceRevisionQuery) IDsX(ctx context.Context) []object.ID {
 }
 
 // Count returns the count of the given query.
-func (rrq *ResourceRevisionQuery) Count(ctx context.Context) (int, error) {
+func (rrq *ResourceRunQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, rrq.ctx, "Count")
 	if err := rrq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, rrq, querierCount[*ResourceRevisionQuery](), rrq.inters)
+	return withInterceptors[int](ctx, rrq, querierCount[*ResourceRunQuery](), rrq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (rrq *ResourceRevisionQuery) CountX(ctx context.Context) int {
+func (rrq *ResourceRunQuery) CountX(ctx context.Context) int {
 	count, err := rrq.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -305,7 +305,7 @@ func (rrq *ResourceRevisionQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (rrq *ResourceRevisionQuery) Exist(ctx context.Context) (bool, error) {
+func (rrq *ResourceRunQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, rrq.ctx, "Exist")
 	switch _, err := rrq.FirstID(ctx); {
 	case IsNotFound(err):
@@ -318,7 +318,7 @@ func (rrq *ResourceRevisionQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (rrq *ResourceRevisionQuery) ExistX(ctx context.Context) bool {
+func (rrq *ResourceRunQuery) ExistX(ctx context.Context) bool {
 	exist, err := rrq.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -326,18 +326,18 @@ func (rrq *ResourceRevisionQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the ResourceRevisionQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the ResourceRunQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (rrq *ResourceRevisionQuery) Clone() *ResourceRevisionQuery {
+func (rrq *ResourceRunQuery) Clone() *ResourceRunQuery {
 	if rrq == nil {
 		return nil
 	}
-	return &ResourceRevisionQuery{
+	return &ResourceRunQuery{
 		config:          rrq.config,
 		ctx:             rrq.ctx.Clone(),
-		order:           append([]resourcerevision.OrderOption{}, rrq.order...),
+		order:           append([]resourcerun.OrderOption{}, rrq.order...),
 		inters:          append([]Interceptor{}, rrq.inters...),
-		predicates:      append([]predicate.ResourceRevision{}, rrq.predicates...),
+		predicates:      append([]predicate.ResourceRun{}, rrq.predicates...),
 		withProject:     rrq.withProject.Clone(),
 		withEnvironment: rrq.withEnvironment.Clone(),
 		withResource:    rrq.withResource.Clone(),
@@ -349,7 +349,7 @@ func (rrq *ResourceRevisionQuery) Clone() *ResourceRevisionQuery {
 
 // WithProject tells the query-builder to eager-load the nodes that are connected to
 // the "project" edge. The optional arguments are used to configure the query builder of the edge.
-func (rrq *ResourceRevisionQuery) WithProject(opts ...func(*ProjectQuery)) *ResourceRevisionQuery {
+func (rrq *ResourceRunQuery) WithProject(opts ...func(*ProjectQuery)) *ResourceRunQuery {
 	query := (&ProjectClient{config: rrq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
@@ -360,7 +360,7 @@ func (rrq *ResourceRevisionQuery) WithProject(opts ...func(*ProjectQuery)) *Reso
 
 // WithEnvironment tells the query-builder to eager-load the nodes that are connected to
 // the "environment" edge. The optional arguments are used to configure the query builder of the edge.
-func (rrq *ResourceRevisionQuery) WithEnvironment(opts ...func(*EnvironmentQuery)) *ResourceRevisionQuery {
+func (rrq *ResourceRunQuery) WithEnvironment(opts ...func(*EnvironmentQuery)) *ResourceRunQuery {
 	query := (&EnvironmentClient{config: rrq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
@@ -371,7 +371,7 @@ func (rrq *ResourceRevisionQuery) WithEnvironment(opts ...func(*EnvironmentQuery
 
 // WithResource tells the query-builder to eager-load the nodes that are connected to
 // the "resource" edge. The optional arguments are used to configure the query builder of the edge.
-func (rrq *ResourceRevisionQuery) WithResource(opts ...func(*ResourceQuery)) *ResourceRevisionQuery {
+func (rrq *ResourceRunQuery) WithResource(opts ...func(*ResourceQuery)) *ResourceRunQuery {
 	query := (&ResourceClient{config: rrq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
@@ -390,15 +390,15 @@ func (rrq *ResourceRevisionQuery) WithResource(opts ...func(*ResourceQuery)) *Re
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.ResourceRevision.Query().
-//		GroupBy(resourcerevision.FieldCreateTime).
+//	client.ResourceRun.Query().
+//		GroupBy(resourcerun.FieldCreateTime).
 //		Aggregate(model.Count()).
 //		Scan(ctx, &v)
-func (rrq *ResourceRevisionQuery) GroupBy(field string, fields ...string) *ResourceRevisionGroupBy {
+func (rrq *ResourceRunQuery) GroupBy(field string, fields ...string) *ResourceRunGroupBy {
 	rrq.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &ResourceRevisionGroupBy{build: rrq}
+	grbuild := &ResourceRunGroupBy{build: rrq}
 	grbuild.flds = &rrq.ctx.Fields
-	grbuild.label = resourcerevision.Label
+	grbuild.label = resourcerun.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -412,23 +412,23 @@ func (rrq *ResourceRevisionQuery) GroupBy(field string, fields ...string) *Resou
 //		CreateTime time.Time `json:"create_time,omitempty"`
 //	}
 //
-//	client.ResourceRevision.Query().
-//		Select(resourcerevision.FieldCreateTime).
+//	client.ResourceRun.Query().
+//		Select(resourcerun.FieldCreateTime).
 //		Scan(ctx, &v)
-func (rrq *ResourceRevisionQuery) Select(fields ...string) *ResourceRevisionSelect {
+func (rrq *ResourceRunQuery) Select(fields ...string) *ResourceRunSelect {
 	rrq.ctx.Fields = append(rrq.ctx.Fields, fields...)
-	sbuild := &ResourceRevisionSelect{ResourceRevisionQuery: rrq}
-	sbuild.label = resourcerevision.Label
+	sbuild := &ResourceRunSelect{ResourceRunQuery: rrq}
+	sbuild.label = resourcerun.Label
 	sbuild.flds, sbuild.scan = &rrq.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a ResourceRevisionSelect configured with the given aggregations.
-func (rrq *ResourceRevisionQuery) Aggregate(fns ...AggregateFunc) *ResourceRevisionSelect {
+// Aggregate returns a ResourceRunSelect configured with the given aggregations.
+func (rrq *ResourceRunQuery) Aggregate(fns ...AggregateFunc) *ResourceRunSelect {
 	return rrq.Select().Aggregate(fns...)
 }
 
-func (rrq *ResourceRevisionQuery) prepareQuery(ctx context.Context) error {
+func (rrq *ResourceRunQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range rrq.inters {
 		if inter == nil {
 			return fmt.Errorf("model: uninitialized interceptor (forgotten import model/runtime?)")
@@ -440,7 +440,7 @@ func (rrq *ResourceRevisionQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range rrq.ctx.Fields {
-		if !resourcerevision.ValidColumn(f) {
+		if !resourcerun.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("model: invalid field %q for query", f)}
 		}
 	}
@@ -454,9 +454,9 @@ func (rrq *ResourceRevisionQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (rrq *ResourceRevisionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ResourceRevision, error) {
+func (rrq *ResourceRunQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ResourceRun, error) {
 	var (
-		nodes       = []*ResourceRevision{}
+		nodes       = []*ResourceRun{}
 		_spec       = rrq.querySpec()
 		loadedTypes = [3]bool{
 			rrq.withProject != nil,
@@ -465,15 +465,15 @@ func (rrq *ResourceRevisionQuery) sqlAll(ctx context.Context, hooks ...queryHook
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*ResourceRevision).scanValues(nil, columns)
+		return (*ResourceRun).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &ResourceRevision{config: rrq.config}
+		node := &ResourceRun{config: rrq.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
-	_spec.Node.Schema = rrq.schemaConfig.ResourceRevision
+	_spec.Node.Schema = rrq.schemaConfig.ResourceRun
 	ctx = internal.NewSchemaConfigContext(ctx, rrq.schemaConfig)
 	if len(rrq.modifiers) > 0 {
 		_spec.Modifiers = rrq.modifiers
@@ -489,28 +489,28 @@ func (rrq *ResourceRevisionQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	}
 	if query := rrq.withProject; query != nil {
 		if err := rrq.loadProject(ctx, query, nodes, nil,
-			func(n *ResourceRevision, e *Project) { n.Edges.Project = e }); err != nil {
+			func(n *ResourceRun, e *Project) { n.Edges.Project = e }); err != nil {
 			return nil, err
 		}
 	}
 	if query := rrq.withEnvironment; query != nil {
 		if err := rrq.loadEnvironment(ctx, query, nodes, nil,
-			func(n *ResourceRevision, e *Environment) { n.Edges.Environment = e }); err != nil {
+			func(n *ResourceRun, e *Environment) { n.Edges.Environment = e }); err != nil {
 			return nil, err
 		}
 	}
 	if query := rrq.withResource; query != nil {
 		if err := rrq.loadResource(ctx, query, nodes, nil,
-			func(n *ResourceRevision, e *Resource) { n.Edges.Resource = e }); err != nil {
+			func(n *ResourceRun, e *Resource) { n.Edges.Resource = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (rrq *ResourceRevisionQuery) loadProject(ctx context.Context, query *ProjectQuery, nodes []*ResourceRevision, init func(*ResourceRevision), assign func(*ResourceRevision, *Project)) error {
+func (rrq *ResourceRunQuery) loadProject(ctx context.Context, query *ProjectQuery, nodes []*ResourceRun, init func(*ResourceRun), assign func(*ResourceRun, *Project)) error {
 	ids := make([]object.ID, 0, len(nodes))
-	nodeids := make(map[object.ID][]*ResourceRevision)
+	nodeids := make(map[object.ID][]*ResourceRun)
 	for i := range nodes {
 		fk := nodes[i].ProjectID
 		if _, ok := nodeids[fk]; !ok {
@@ -537,9 +537,9 @@ func (rrq *ResourceRevisionQuery) loadProject(ctx context.Context, query *Projec
 	}
 	return nil
 }
-func (rrq *ResourceRevisionQuery) loadEnvironment(ctx context.Context, query *EnvironmentQuery, nodes []*ResourceRevision, init func(*ResourceRevision), assign func(*ResourceRevision, *Environment)) error {
+func (rrq *ResourceRunQuery) loadEnvironment(ctx context.Context, query *EnvironmentQuery, nodes []*ResourceRun, init func(*ResourceRun), assign func(*ResourceRun, *Environment)) error {
 	ids := make([]object.ID, 0, len(nodes))
-	nodeids := make(map[object.ID][]*ResourceRevision)
+	nodeids := make(map[object.ID][]*ResourceRun)
 	for i := range nodes {
 		fk := nodes[i].EnvironmentID
 		if _, ok := nodeids[fk]; !ok {
@@ -566,9 +566,9 @@ func (rrq *ResourceRevisionQuery) loadEnvironment(ctx context.Context, query *En
 	}
 	return nil
 }
-func (rrq *ResourceRevisionQuery) loadResource(ctx context.Context, query *ResourceQuery, nodes []*ResourceRevision, init func(*ResourceRevision), assign func(*ResourceRevision, *Resource)) error {
+func (rrq *ResourceRunQuery) loadResource(ctx context.Context, query *ResourceQuery, nodes []*ResourceRun, init func(*ResourceRun), assign func(*ResourceRun, *Resource)) error {
 	ids := make([]object.ID, 0, len(nodes))
-	nodeids := make(map[object.ID][]*ResourceRevision)
+	nodeids := make(map[object.ID][]*ResourceRun)
 	for i := range nodes {
 		fk := nodes[i].ResourceID
 		if _, ok := nodeids[fk]; !ok {
@@ -596,9 +596,9 @@ func (rrq *ResourceRevisionQuery) loadResource(ctx context.Context, query *Resou
 	return nil
 }
 
-func (rrq *ResourceRevisionQuery) sqlCount(ctx context.Context) (int, error) {
+func (rrq *ResourceRunQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := rrq.querySpec()
-	_spec.Node.Schema = rrq.schemaConfig.ResourceRevision
+	_spec.Node.Schema = rrq.schemaConfig.ResourceRun
 	ctx = internal.NewSchemaConfigContext(ctx, rrq.schemaConfig)
 	if len(rrq.modifiers) > 0 {
 		_spec.Modifiers = rrq.modifiers
@@ -610,8 +610,8 @@ func (rrq *ResourceRevisionQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, rrq.driver, _spec)
 }
 
-func (rrq *ResourceRevisionQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(resourcerevision.Table, resourcerevision.Columns, sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString))
+func (rrq *ResourceRunQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(resourcerun.Table, resourcerun.Columns, sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString))
 	_spec.From = rrq.sql
 	if unique := rrq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -620,20 +620,20 @@ func (rrq *ResourceRevisionQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := rrq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, resourcerevision.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, resourcerun.FieldID)
 		for i := range fields {
-			if fields[i] != resourcerevision.FieldID {
+			if fields[i] != resourcerun.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
 		if rrq.withProject != nil {
-			_spec.Node.AddColumnOnce(resourcerevision.FieldProjectID)
+			_spec.Node.AddColumnOnce(resourcerun.FieldProjectID)
 		}
 		if rrq.withEnvironment != nil {
-			_spec.Node.AddColumnOnce(resourcerevision.FieldEnvironmentID)
+			_spec.Node.AddColumnOnce(resourcerun.FieldEnvironmentID)
 		}
 		if rrq.withResource != nil {
-			_spec.Node.AddColumnOnce(resourcerevision.FieldResourceID)
+			_spec.Node.AddColumnOnce(resourcerun.FieldResourceID)
 		}
 	}
 	if ps := rrq.predicates; len(ps) > 0 {
@@ -659,12 +659,12 @@ func (rrq *ResourceRevisionQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (rrq *ResourceRevisionQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (rrq *ResourceRunQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(rrq.driver.Dialect())
-	t1 := builder.Table(resourcerevision.Table)
+	t1 := builder.Table(resourcerun.Table)
 	columns := rrq.ctx.Fields
 	if len(columns) == 0 {
-		columns = resourcerevision.Columns
+		columns = resourcerun.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if rrq.sql != nil {
@@ -674,7 +674,7 @@ func (rrq *ResourceRevisionQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if rrq.ctx.Unique != nil && *rrq.ctx.Unique {
 		selector.Distinct()
 	}
-	t1.Schema(rrq.schemaConfig.ResourceRevision)
+	t1.Schema(rrq.schemaConfig.ResourceRun)
 	ctx = internal.NewSchemaConfigContext(ctx, rrq.schemaConfig)
 	selector.WithContext(ctx)
 	for _, m := range rrq.modifiers {
@@ -700,7 +700,7 @@ func (rrq *ResourceRevisionQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // ForUpdate locks the selected rows against concurrent updates, and prevent them from being
 // updated, deleted or "selected ... for update" by other sessions, until the transaction is
 // either committed or rolled-back.
-func (rrq *ResourceRevisionQuery) ForUpdate(opts ...sql.LockOption) *ResourceRevisionQuery {
+func (rrq *ResourceRunQuery) ForUpdate(opts ...sql.LockOption) *ResourceRunQuery {
 	if rrq.driver.Dialect() == dialect.Postgres {
 		rrq.Unique(false)
 	}
@@ -713,7 +713,7 @@ func (rrq *ResourceRevisionQuery) ForUpdate(opts ...sql.LockOption) *ResourceRev
 // ForShare behaves similarly to ForUpdate, except that it acquires a shared mode lock
 // on any rows that are read. Other sessions can read the rows, but cannot modify them
 // until your transaction commits.
-func (rrq *ResourceRevisionQuery) ForShare(opts ...sql.LockOption) *ResourceRevisionQuery {
+func (rrq *ResourceRunQuery) ForShare(opts ...sql.LockOption) *ResourceRunQuery {
 	if rrq.driver.Dialect() == dialect.Postgres {
 		rrq.Unique(false)
 	}
@@ -724,43 +724,43 @@ func (rrq *ResourceRevisionQuery) ForShare(opts ...sql.LockOption) *ResourceRevi
 }
 
 // Modify adds a query modifier for attaching custom logic to queries.
-func (rrq *ResourceRevisionQuery) Modify(modifiers ...func(s *sql.Selector)) *ResourceRevisionSelect {
+func (rrq *ResourceRunQuery) Modify(modifiers ...func(s *sql.Selector)) *ResourceRunSelect {
 	rrq.modifiers = append(rrq.modifiers, modifiers...)
 	return rrq.Select()
 }
 
-// WhereP appends storage-level predicates to the ResourceRevisionQuery builder. Using this method,
+// WhereP appends storage-level predicates to the ResourceRunQuery builder. Using this method,
 // users can use type-assertion to append predicates that do not depend on any generated package.
-func (rrq *ResourceRevisionQuery) WhereP(ps ...func(*sql.Selector)) {
-	var wps = make([]predicate.ResourceRevision, 0, len(ps))
+func (rrq *ResourceRunQuery) WhereP(ps ...func(*sql.Selector)) {
+	var wps = make([]predicate.ResourceRun, 0, len(ps))
 	for i := 0; i < len(ps); i++ {
-		wps = append(wps, predicate.ResourceRevision(ps[i]))
+		wps = append(wps, predicate.ResourceRun(ps[i]))
 	}
 	rrq.predicates = append(rrq.predicates, wps...)
 }
 
-// ResourceRevisionGroupBy is the group-by builder for ResourceRevision entities.
-type ResourceRevisionGroupBy struct {
+// ResourceRunGroupBy is the group-by builder for ResourceRun entities.
+type ResourceRunGroupBy struct {
 	selector
-	build *ResourceRevisionQuery
+	build *ResourceRunQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (rrgb *ResourceRevisionGroupBy) Aggregate(fns ...AggregateFunc) *ResourceRevisionGroupBy {
+func (rrgb *ResourceRunGroupBy) Aggregate(fns ...AggregateFunc) *ResourceRunGroupBy {
 	rrgb.fns = append(rrgb.fns, fns...)
 	return rrgb
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (rrgb *ResourceRevisionGroupBy) Scan(ctx context.Context, v any) error {
+func (rrgb *ResourceRunGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, rrgb.build.ctx, "GroupBy")
 	if err := rrgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*ResourceRevisionQuery, *ResourceRevisionGroupBy](ctx, rrgb.build, rrgb, rrgb.build.inters, v)
+	return scanWithInterceptors[*ResourceRunQuery, *ResourceRunGroupBy](ctx, rrgb.build, rrgb, rrgb.build.inters, v)
 }
 
-func (rrgb *ResourceRevisionGroupBy) sqlScan(ctx context.Context, root *ResourceRevisionQuery, v any) error {
+func (rrgb *ResourceRunGroupBy) sqlScan(ctx context.Context, root *ResourceRunQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(rrgb.fns))
 	for _, fn := range rrgb.fns {
@@ -787,28 +787,28 @@ func (rrgb *ResourceRevisionGroupBy) sqlScan(ctx context.Context, root *Resource
 	return sql.ScanSlice(rows, v)
 }
 
-// ResourceRevisionSelect is the builder for selecting fields of ResourceRevision entities.
-type ResourceRevisionSelect struct {
-	*ResourceRevisionQuery
+// ResourceRunSelect is the builder for selecting fields of ResourceRun entities.
+type ResourceRunSelect struct {
+	*ResourceRunQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (rrs *ResourceRevisionSelect) Aggregate(fns ...AggregateFunc) *ResourceRevisionSelect {
+func (rrs *ResourceRunSelect) Aggregate(fns ...AggregateFunc) *ResourceRunSelect {
 	rrs.fns = append(rrs.fns, fns...)
 	return rrs
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (rrs *ResourceRevisionSelect) Scan(ctx context.Context, v any) error {
+func (rrs *ResourceRunSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, rrs.ctx, "Select")
 	if err := rrs.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*ResourceRevisionQuery, *ResourceRevisionSelect](ctx, rrs.ResourceRevisionQuery, rrs, rrs.inters, v)
+	return scanWithInterceptors[*ResourceRunQuery, *ResourceRunSelect](ctx, rrs.ResourceRunQuery, rrs, rrs.inters, v)
 }
 
-func (rrs *ResourceRevisionSelect) sqlScan(ctx context.Context, root *ResourceRevisionQuery, v any) error {
+func (rrs *ResourceRunSelect) sqlScan(ctx context.Context, root *ResourceRunQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(rrs.fns))
 	for _, fn := range rrs.fns {
@@ -830,7 +830,7 @@ func (rrs *ResourceRevisionSelect) sqlScan(ctx context.Context, root *ResourceRe
 }
 
 // Modify adds a query modifier for attaching custom logic to queries.
-func (rrs *ResourceRevisionSelect) Modify(modifiers ...func(s *sql.Selector)) *ResourceRevisionSelect {
+func (rrs *ResourceRunSelect) Modify(modifiers ...func(s *sql.Selector)) *ResourceRunSelect {
 	rrs.modifiers = append(rrs.modifiers, modifiers...)
 	return rrs
 }

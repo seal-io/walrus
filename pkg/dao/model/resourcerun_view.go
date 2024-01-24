@@ -12,7 +12,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
@@ -22,21 +22,21 @@ import (
 	"github.com/seal-io/walrus/utils/json"
 )
 
-// ResourceRevisionCreateInput holds the creation input of the ResourceRevision entity,
+// ResourceRunCreateInput holds the creation input of the ResourceRun entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
-type ResourceRevisionCreateInput struct {
+type ResourceRunCreateInput struct {
 	inputConfig `path:"-" query:"-" json:"-"`
 
-	// Project indicates to create ResourceRevision entity MUST under the Project route.
+	// Project indicates to create ResourceRun entity MUST under the Project route.
 	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
-	// Environment indicates to create ResourceRevision entity MUST under the Environment route.
+	// Environment indicates to create ResourceRun entity MUST under the Environment route.
 	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
-	// Resource indicates to create ResourceRevision entity MUST under the Resource route.
+	// Resource indicates to create ResourceRun entity MUST under the Resource route.
 	Resource *ResourceQueryInput `path:",inline" query:"-" json:"-"`
 
-	// Output of the revision.
+	// Output of the run.
 	Output string `path:"-" query:"-" json:"output"`
-	// Input plan of the revision.
+	// Input plan of the run.
 	InputPlan string `path:"-" query:"-" json:"inputPlan"`
 	// ID of the template.
 	TemplateID object.ID `path:"-" query:"-" json:"templateID"`
@@ -48,28 +48,28 @@ type ResourceRevisionCreateInput struct {
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
 	// Computed attributes generated from attributes and schemas.
 	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
-	// Variables of the revision.
+	// Variables of the run.
 	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables,omitempty"`
 	// Type of deployer.
 	DeployerType string `path:"-" query:"-" json:"deployerType,omitempty"`
-	// Duration in seconds of the revision deploying.
+	// Duration in seconds of the run deploying.
 	Duration int `path:"-" query:"-" json:"duration,omitempty"`
-	// Previous provider requirement of the revision.
+	// Previous provider requirement of the run.
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
-	// Record of the revision.
+	// Record of the run.
 	Record string `path:"-" query:"-" json:"record,omitempty"`
-	// Change comment of the revision.
+	// Change comment of the run.
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 }
 
-// Model returns the ResourceRevision entity for creating,
+// Model returns the ResourceRun entity for creating,
 // after validating.
-func (rrci *ResourceRevisionCreateInput) Model() *ResourceRevision {
+func (rrci *ResourceRunCreateInput) Model() *ResourceRun {
 	if rrci == nil {
 		return nil
 	}
 
-	_rr := &ResourceRevision{
+	_rr := &ResourceRun{
 		Output:                    rrci.Output,
 		InputPlan:                 rrci.InputPlan,
 		TemplateID:                rrci.TemplateID,
@@ -98,8 +98,8 @@ func (rrci *ResourceRevisionCreateInput) Model() *ResourceRevision {
 	return _rr
 }
 
-// Validate checks the ResourceRevisionCreateInput entity.
-func (rrci *ResourceRevisionCreateInput) Validate() error {
+// Validate checks the ResourceRunCreateInput entity.
+func (rrci *ResourceRunCreateInput) Validate() error {
 	if rrci == nil {
 		return errors.New("nil receiver")
 	}
@@ -107,8 +107,8 @@ func (rrci *ResourceRevisionCreateInput) Validate() error {
 	return rrci.ValidateWith(rrci.inputConfig.Context, rrci.inputConfig.Client, nil)
 }
 
-// ValidateWith checks the ResourceRevisionCreateInput entity with the given context and client set.
-func (rrci *ResourceRevisionCreateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+// ValidateWith checks the ResourceRunCreateInput entity with the given context and client set.
+func (rrci *ResourceRunCreateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if rrci == nil {
 		return errors.New("nil receiver")
 	}
@@ -139,11 +139,11 @@ func (rrci *ResourceRevisionCreateInput) ValidateWith(ctx context.Context, cs Cl
 	return nil
 }
 
-// ResourceRevisionCreateInputs holds the creation input item of the ResourceRevision entities.
-type ResourceRevisionCreateInputsItem struct {
-	// Output of the revision.
+// ResourceRunCreateInputs holds the creation input item of the ResourceRun entities.
+type ResourceRunCreateInputsItem struct {
+	// Output of the run.
 	Output string `path:"-" query:"-" json:"output"`
-	// Input plan of the revision.
+	// Input plan of the run.
 	InputPlan string `path:"-" query:"-" json:"inputPlan"`
 	// ID of the template.
 	TemplateID object.ID `path:"-" query:"-" json:"templateID"`
@@ -155,22 +155,22 @@ type ResourceRevisionCreateInputsItem struct {
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
 	// Computed attributes generated from attributes and schemas.
 	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
-	// Variables of the revision.
+	// Variables of the run.
 	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables,omitempty"`
 	// Type of deployer.
 	DeployerType string `path:"-" query:"-" json:"deployerType,omitempty"`
-	// Duration in seconds of the revision deploying.
+	// Duration in seconds of the run deploying.
 	Duration int `path:"-" query:"-" json:"duration,omitempty"`
-	// Previous provider requirement of the revision.
+	// Previous provider requirement of the run.
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
-	// Record of the revision.
+	// Record of the run.
 	Record string `path:"-" query:"-" json:"record,omitempty"`
-	// Change comment of the revision.
+	// Change comment of the run.
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 }
 
-// ValidateWith checks the ResourceRevisionCreateInputsItem entity with the given context and client set.
-func (rrci *ResourceRevisionCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+// ValidateWith checks the ResourceRunCreateInputsItem entity with the given context and client set.
+func (rrci *ResourceRunCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if rrci == nil {
 		return errors.New("nil receiver")
 	}
@@ -182,33 +182,33 @@ func (rrci *ResourceRevisionCreateInputsItem) ValidateWith(ctx context.Context, 
 	return nil
 }
 
-// ResourceRevisionCreateInputs holds the creation input of the ResourceRevision entities,
+// ResourceRunCreateInputs holds the creation input of the ResourceRun entities,
 // please tags with `path:",inline" json:",inline"` if embedding.
-type ResourceRevisionCreateInputs struct {
+type ResourceRunCreateInputs struct {
 	inputConfig `path:"-" query:"-" json:"-"`
 
-	// Project indicates to create ResourceRevision entity MUST under the Project route.
+	// Project indicates to create ResourceRun entity MUST under the Project route.
 	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
-	// Environment indicates to create ResourceRevision entity MUST under the Environment route.
+	// Environment indicates to create ResourceRun entity MUST under the Environment route.
 	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
-	// Resource indicates to create ResourceRevision entity MUST under the Resource route.
+	// Resource indicates to create ResourceRun entity MUST under the Resource route.
 	Resource *ResourceQueryInput `path:",inline" query:"-" json:"-"`
 
 	// Items holds the entities to create, which MUST not be empty.
-	Items []*ResourceRevisionCreateInputsItem `path:"-" query:"-" json:"items"`
+	Items []*ResourceRunCreateInputsItem `path:"-" query:"-" json:"items"`
 }
 
-// Model returns the ResourceRevision entities for creating,
+// Model returns the ResourceRun entities for creating,
 // after validating.
-func (rrci *ResourceRevisionCreateInputs) Model() []*ResourceRevision {
+func (rrci *ResourceRunCreateInputs) Model() []*ResourceRun {
 	if rrci == nil || len(rrci.Items) == 0 {
 		return nil
 	}
 
-	_rrs := make([]*ResourceRevision, len(rrci.Items))
+	_rrs := make([]*ResourceRun, len(rrci.Items))
 
 	for i := range rrci.Items {
-		_rr := &ResourceRevision{
+		_rr := &ResourceRun{
 			Output:                    rrci.Items[i].Output,
 			InputPlan:                 rrci.Items[i].InputPlan,
 			TemplateID:                rrci.Items[i].TemplateID,
@@ -240,8 +240,8 @@ func (rrci *ResourceRevisionCreateInputs) Model() []*ResourceRevision {
 	return _rrs
 }
 
-// Validate checks the ResourceRevisionCreateInputs entity .
-func (rrci *ResourceRevisionCreateInputs) Validate() error {
+// Validate checks the ResourceRunCreateInputs entity .
+func (rrci *ResourceRunCreateInputs) Validate() error {
 	if rrci == nil {
 		return errors.New("nil receiver")
 	}
@@ -249,8 +249,8 @@ func (rrci *ResourceRevisionCreateInputs) Validate() error {
 	return rrci.ValidateWith(rrci.inputConfig.Context, rrci.inputConfig.Client, nil)
 }
 
-// ValidateWith checks the ResourceRevisionCreateInputs entity with the given context and client set.
-func (rrci *ResourceRevisionCreateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+// ValidateWith checks the ResourceRunCreateInputs entity with the given context and client set.
+func (rrci *ResourceRunCreateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if rrci == nil {
 		return errors.New("nil receiver")
 	}
@@ -307,53 +307,53 @@ func (rrci *ResourceRevisionCreateInputs) ValidateWith(ctx context.Context, cs C
 	return nil
 }
 
-// ResourceRevisionDeleteInput holds the deletion input of the ResourceRevision entity,
+// ResourceRunDeleteInput holds the deletion input of the ResourceRun entity,
 // please tags with `path:",inline"` if embedding.
-type ResourceRevisionDeleteInput struct {
-	ResourceRevisionQueryInput `path:",inline"`
+type ResourceRunDeleteInput struct {
+	ResourceRunQueryInput `path:",inline"`
 }
 
-// ResourceRevisionDeleteInputs holds the deletion input item of the ResourceRevision entities.
-type ResourceRevisionDeleteInputsItem struct {
-	// ID of the ResourceRevision entity.
+// ResourceRunDeleteInputs holds the deletion input item of the ResourceRun entities.
+type ResourceRunDeleteInputsItem struct {
+	// ID of the ResourceRun entity.
 	ID object.ID `path:"-" query:"-" json:"id"`
 }
 
-// ResourceRevisionDeleteInputs holds the deletion input of the ResourceRevision entities,
+// ResourceRunDeleteInputs holds the deletion input of the ResourceRun entities,
 // please tags with `path:",inline" json:",inline"` if embedding.
-type ResourceRevisionDeleteInputs struct {
+type ResourceRunDeleteInputs struct {
 	inputConfig `path:"-" query:"-" json:"-"`
 
-	// Project indicates to delete ResourceRevision entity MUST under the Project route.
+	// Project indicates to delete ResourceRun entity MUST under the Project route.
 	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
-	// Environment indicates to delete ResourceRevision entity MUST under the Environment route.
+	// Environment indicates to delete ResourceRun entity MUST under the Environment route.
 	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
-	// Resource indicates to delete ResourceRevision entity MUST under the Resource route.
+	// Resource indicates to delete ResourceRun entity MUST under the Resource route.
 	Resource *ResourceQueryInput `path:",inline" query:"-" json:"-"`
 
 	// Items holds the entities to create, which MUST not be empty.
-	Items []*ResourceRevisionDeleteInputsItem `path:"-" query:"-" json:"items"`
+	Items []*ResourceRunDeleteInputsItem `path:"-" query:"-" json:"items"`
 }
 
-// Model returns the ResourceRevision entities for deleting,
+// Model returns the ResourceRun entities for deleting,
 // after validating.
-func (rrdi *ResourceRevisionDeleteInputs) Model() []*ResourceRevision {
+func (rrdi *ResourceRunDeleteInputs) Model() []*ResourceRun {
 	if rrdi == nil || len(rrdi.Items) == 0 {
 		return nil
 	}
 
-	_rrs := make([]*ResourceRevision, len(rrdi.Items))
+	_rrs := make([]*ResourceRun, len(rrdi.Items))
 	for i := range rrdi.Items {
-		_rrs[i] = &ResourceRevision{
+		_rrs[i] = &ResourceRun{
 			ID: rrdi.Items[i].ID,
 		}
 	}
 	return _rrs
 }
 
-// IDs returns the ID list of the ResourceRevision entities for deleting,
+// IDs returns the ID list of the ResourceRun entities for deleting,
 // after validating.
-func (rrdi *ResourceRevisionDeleteInputs) IDs() []object.ID {
+func (rrdi *ResourceRunDeleteInputs) IDs() []object.ID {
 	if rrdi == nil || len(rrdi.Items) == 0 {
 		return nil
 	}
@@ -365,8 +365,8 @@ func (rrdi *ResourceRevisionDeleteInputs) IDs() []object.ID {
 	return ids
 }
 
-// Validate checks the ResourceRevisionDeleteInputs entity.
-func (rrdi *ResourceRevisionDeleteInputs) Validate() error {
+// Validate checks the ResourceRunDeleteInputs entity.
+func (rrdi *ResourceRunDeleteInputs) Validate() error {
 	if rrdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -374,8 +374,8 @@ func (rrdi *ResourceRevisionDeleteInputs) Validate() error {
 	return rrdi.ValidateWith(rrdi.inputConfig.Context, rrdi.inputConfig.Client, nil)
 }
 
-// ValidateWith checks the ResourceRevisionDeleteInputs entity with the given context and client set.
-func (rrdi *ResourceRevisionDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+// ValidateWith checks the ResourceRunDeleteInputs entity with the given context and client set.
+func (rrdi *ResourceRunDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if rrdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -388,7 +388,7 @@ func (rrdi *ResourceRevisionDeleteInputs) ValidateWith(ctx context.Context, cs C
 		cache = map[string]any{}
 	}
 
-	q := cs.ResourceRevisions().Query()
+	q := cs.ResourceRuns().Query()
 
 	// Validate when deleting under the Project route.
 	if rrdi.Project != nil {
@@ -397,7 +397,7 @@ func (rrdi *ResourceRevisionDeleteInputs) ValidateWith(ctx context.Context, cs C
 		} else {
 			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
 			q.Where(
-				resourcerevision.ProjectID(rrdi.Project.ID))
+				resourcerun.ProjectID(rrdi.Project.ID))
 		}
 	}
 
@@ -407,7 +407,7 @@ func (rrdi *ResourceRevisionDeleteInputs) ValidateWith(ctx context.Context, cs C
 			return err
 		} else {
 			q.Where(
-				resourcerevision.EnvironmentID(rrdi.Environment.ID))
+				resourcerun.EnvironmentID(rrdi.Environment.ID))
 		}
 	}
 
@@ -417,7 +417,7 @@ func (rrdi *ResourceRevisionDeleteInputs) ValidateWith(ctx context.Context, cs C
 			return err
 		} else {
 			q.Where(
-				resourcerevision.ResourceID(rrdi.Resource.ID))
+				resourcerun.ResourceID(rrdi.Resource.ID))
 		}
 	}
 
@@ -439,7 +439,7 @@ func (rrdi *ResourceRevisionDeleteInputs) ValidateWith(ctx context.Context, cs C
 		return errors.New("found unrecognized item")
 	}
 
-	idsCnt, err := q.Where(resourcerevision.IDIn(ids...)).
+	idsCnt, err := q.Where(resourcerun.IDIn(ids...)).
 		Count(ctx)
 	if err != nil {
 		return err
@@ -452,10 +452,10 @@ func (rrdi *ResourceRevisionDeleteInputs) ValidateWith(ctx context.Context, cs C
 	return nil
 }
 
-// ResourceRevisionPatchInput holds the patch input of the ResourceRevision entity,
+// ResourceRunPatchInput holds the patch input of the ResourceRun entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
-type ResourceRevisionPatchInput struct {
-	ResourceRevisionQueryInput `path:",inline" query:"-" json:"-"`
+type ResourceRunPatchInput struct {
+	ResourceRunQueryInput `path:",inline" query:"-" json:"-"`
 
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime *time.Time `path:"-" query:"-" json:"createTime,omitempty"`
@@ -471,35 +471,35 @@ type ResourceRevisionPatchInput struct {
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
 	// Computed attributes generated from attributes and schemas.
 	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
-	// Variables of the revision.
+	// Variables of the run.
 	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables,omitempty"`
-	// Input plan of the revision.
+	// Input plan of the run.
 	InputPlan string `path:"-" query:"-" json:"inputPlan,omitempty"`
-	// Output of the revision.
+	// Output of the run.
 	Output string `path:"-" query:"-" json:"output,omitempty"`
 	// Type of deployer.
 	DeployerType string `path:"-" query:"-" json:"deployerType,omitempty"`
-	// Duration in seconds of the revision deploying.
+	// Duration in seconds of the run deploying.
 	Duration int `path:"-" query:"-" json:"duration,omitempty"`
-	// Previous provider requirement of the revision.
+	// Previous provider requirement of the run.
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
-	// Record of the revision.
+	// Record of the run.
 	Record string `path:"-" query:"-" json:"record,omitempty"`
-	// Change comment of the revision.
+	// Change comment of the run.
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
-	// User who created the revision.
+	// User who created the run.
 	CreatedBy string `path:"-" query:"-" json:"createdBy,omitempty"`
 
-	patchedEntity *ResourceRevision `path:"-" query:"-" json:"-"`
+	patchedEntity *ResourceRun `path:"-" query:"-" json:"-"`
 }
 
-// PatchModel returns the ResourceRevision partition entity for patching.
-func (rrpi *ResourceRevisionPatchInput) PatchModel() *ResourceRevision {
+// PatchModel returns the ResourceRun partition entity for patching.
+func (rrpi *ResourceRunPatchInput) PatchModel() *ResourceRun {
 	if rrpi == nil {
 		return nil
 	}
 
-	_rr := &ResourceRevision{
+	_rr := &ResourceRun{
 		CreateTime:                rrpi.CreateTime,
 		Status:                    rrpi.Status,
 		TemplateName:              rrpi.TemplateName,
@@ -531,9 +531,9 @@ func (rrpi *ResourceRevisionPatchInput) PatchModel() *ResourceRevision {
 	return _rr
 }
 
-// Model returns the ResourceRevision patched entity,
+// Model returns the ResourceRun patched entity,
 // after validating.
-func (rrpi *ResourceRevisionPatchInput) Model() *ResourceRevision {
+func (rrpi *ResourceRunPatchInput) Model() *ResourceRun {
 	if rrpi == nil {
 		return nil
 	}
@@ -541,8 +541,8 @@ func (rrpi *ResourceRevisionPatchInput) Model() *ResourceRevision {
 	return rrpi.patchedEntity
 }
 
-// Validate checks the ResourceRevisionPatchInput entity.
-func (rrpi *ResourceRevisionPatchInput) Validate() error {
+// Validate checks the ResourceRunPatchInput entity.
+func (rrpi *ResourceRunPatchInput) Validate() error {
 	if rrpi == nil {
 		return errors.New("nil receiver")
 	}
@@ -550,17 +550,17 @@ func (rrpi *ResourceRevisionPatchInput) Validate() error {
 	return rrpi.ValidateWith(rrpi.inputConfig.Context, rrpi.inputConfig.Client, nil)
 }
 
-// ValidateWith checks the ResourceRevisionPatchInput entity with the given context and client set.
-func (rrpi *ResourceRevisionPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+// ValidateWith checks the ResourceRunPatchInput entity with the given context and client set.
+func (rrpi *ResourceRunPatchInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if cache == nil {
 		cache = map[string]any{}
 	}
 
-	if err := rrpi.ResourceRevisionQueryInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := rrpi.ResourceRunQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
-	q := cs.ResourceRevisions().Query()
+	q := cs.ResourceRuns().Query()
 
 	// Validate when querying under the Project route.
 	if rrpi.Project != nil {
@@ -569,7 +569,7 @@ func (rrpi *ResourceRevisionPatchInput) ValidateWith(ctx context.Context, cs Cli
 		} else {
 			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
 			q.Where(
-				resourcerevision.ProjectID(rrpi.Project.ID))
+				resourcerun.ProjectID(rrpi.Project.ID))
 		}
 	}
 
@@ -579,7 +579,7 @@ func (rrpi *ResourceRevisionPatchInput) ValidateWith(ctx context.Context, cs Cli
 			return err
 		} else {
 			q.Where(
-				resourcerevision.EnvironmentID(rrpi.Environment.ID))
+				resourcerun.EnvironmentID(rrpi.Environment.ID))
 		}
 	}
 
@@ -589,33 +589,33 @@ func (rrpi *ResourceRevisionPatchInput) ValidateWith(ctx context.Context, cs Cli
 			return err
 		} else {
 			q.Where(
-				resourcerevision.ResourceID(rrpi.Resource.ID))
+				resourcerun.ResourceID(rrpi.Resource.ID))
 		}
 	}
 
 	if rrpi.Refer != nil {
 		if rrpi.Refer.IsID() {
 			q.Where(
-				resourcerevision.ID(rrpi.Refer.ID()))
+				resourcerun.ID(rrpi.Refer.ID()))
 		} else {
-			return errors.New("invalid identify refer of resourcerevision")
+			return errors.New("invalid identify refer of resourcerun")
 		}
 	} else if rrpi.ID != "" {
 		q.Where(
-			resourcerevision.ID(rrpi.ID))
+			resourcerun.ID(rrpi.ID))
 	} else {
-		return errors.New("invalid identify of resourcerevision")
+		return errors.New("invalid identify of resourcerun")
 	}
 
 	q.Select(
-		resourcerevision.WithoutFields(
-			resourcerevision.FieldCreateTime,
-			resourcerevision.FieldStatus,
-			resourcerevision.FieldCreatedBy,
+		resourcerun.WithoutFields(
+			resourcerun.FieldCreateTime,
+			resourcerun.FieldStatus,
+			resourcerun.FieldCreatedBy,
 		)...,
 	)
 
-	var e *ResourceRevision
+	var e *ResourceRun
 	{
 		// Get cache from previous validation.
 		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
@@ -630,7 +630,7 @@ func (rrpi *ResourceRevisionPatchInput) ValidateWith(ctx context.Context, cs Cli
 			// Set cache for other validation.
 			cache[ck] = e
 		} else {
-			e = cv.(*ResourceRevision)
+			e = cv.(*ResourceRun)
 		}
 	}
 
@@ -641,7 +641,7 @@ func (rrpi *ResourceRevisionPatchInput) ValidateWith(ctx context.Context, cs Cli
 		return err
 	}
 
-	_obj := _po.(*ResourceRevision)
+	_obj := _po.(*ResourceRun)
 
 	if !reflect.DeepEqual(e.CreateTime, _obj.CreateTime) {
 		return errors.New("field createTime is immutable")
@@ -657,38 +657,38 @@ func (rrpi *ResourceRevisionPatchInput) ValidateWith(ctx context.Context, cs Cli
 	return nil
 }
 
-// ResourceRevisionQueryInput holds the query input of the ResourceRevision entity,
+// ResourceRunQueryInput holds the query input of the ResourceRun entity,
 // please tags with `path:",inline"` if embedding.
-type ResourceRevisionQueryInput struct {
+type ResourceRunQueryInput struct {
 	inputConfig `path:"-" query:"-" json:"-"`
 
-	// Project indicates to query ResourceRevision entity MUST under the Project route.
+	// Project indicates to query ResourceRun entity MUST under the Project route.
 	Project *ProjectQueryInput `path:",inline" query:"-" json:"project"`
-	// Environment indicates to query ResourceRevision entity MUST under the Environment route.
+	// Environment indicates to query ResourceRun entity MUST under the Environment route.
 	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"environment"`
-	// Resource indicates to query ResourceRevision entity MUST under the Resource route.
+	// Resource indicates to query ResourceRun entity MUST under the Resource route.
 	Resource *ResourceQueryInput `path:",inline" query:"-" json:"resource"`
 
-	// Refer holds the route path reference of the ResourceRevision entity.
-	Refer *object.Refer `path:"resourcerevision,default=" query:"-" json:"-"`
-	// ID of the ResourceRevision entity.
+	// Refer holds the route path reference of the ResourceRun entity.
+	Refer *object.Refer `path:"resourcerun,default=" query:"-" json:"-"`
+	// ID of the ResourceRun entity.
 	ID object.ID `path:"-" query:"-" json:"id"`
 }
 
-// Model returns the ResourceRevision entity for querying,
+// Model returns the ResourceRun entity for querying,
 // after validating.
-func (rrqi *ResourceRevisionQueryInput) Model() *ResourceRevision {
+func (rrqi *ResourceRunQueryInput) Model() *ResourceRun {
 	if rrqi == nil {
 		return nil
 	}
 
-	return &ResourceRevision{
+	return &ResourceRun{
 		ID: rrqi.ID,
 	}
 }
 
-// Validate checks the ResourceRevisionQueryInput entity.
-func (rrqi *ResourceRevisionQueryInput) Validate() error {
+// Validate checks the ResourceRunQueryInput entity.
+func (rrqi *ResourceRunQueryInput) Validate() error {
 	if rrqi == nil {
 		return errors.New("nil receiver")
 	}
@@ -696,21 +696,21 @@ func (rrqi *ResourceRevisionQueryInput) Validate() error {
 	return rrqi.ValidateWith(rrqi.inputConfig.Context, rrqi.inputConfig.Client, nil)
 }
 
-// ValidateWith checks the ResourceRevisionQueryInput entity with the given context and client set.
-func (rrqi *ResourceRevisionQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+// ValidateWith checks the ResourceRunQueryInput entity with the given context and client set.
+func (rrqi *ResourceRunQueryInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if rrqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if rrqi.Refer != nil && *rrqi.Refer == "" {
-		return fmt.Errorf("model: %s : %w", resourcerevision.Label, ErrBlankResourceRefer)
+		return fmt.Errorf("model: %s : %w", resourcerun.Label, ErrBlankResourceRefer)
 	}
 
 	if cache == nil {
 		cache = map[string]any{}
 	}
 
-	q := cs.ResourceRevisions().Query()
+	q := cs.ResourceRuns().Query()
 
 	// Validate when querying under the Project route.
 	if rrqi.Project != nil {
@@ -719,7 +719,7 @@ func (rrqi *ResourceRevisionQueryInput) ValidateWith(ctx context.Context, cs Cli
 		} else {
 			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
 			q.Where(
-				resourcerevision.ProjectID(rrqi.Project.ID))
+				resourcerun.ProjectID(rrqi.Project.ID))
 		}
 	}
 
@@ -729,7 +729,7 @@ func (rrqi *ResourceRevisionQueryInput) ValidateWith(ctx context.Context, cs Cli
 			return err
 		} else {
 			q.Where(
-				resourcerevision.EnvironmentID(rrqi.Environment.ID))
+				resourcerun.EnvironmentID(rrqi.Environment.ID))
 		}
 	}
 
@@ -739,29 +739,29 @@ func (rrqi *ResourceRevisionQueryInput) ValidateWith(ctx context.Context, cs Cli
 			return err
 		} else {
 			q.Where(
-				resourcerevision.ResourceID(rrqi.Resource.ID))
+				resourcerun.ResourceID(rrqi.Resource.ID))
 		}
 	}
 
 	if rrqi.Refer != nil {
 		if rrqi.Refer.IsID() {
 			q.Where(
-				resourcerevision.ID(rrqi.Refer.ID()))
+				resourcerun.ID(rrqi.Refer.ID()))
 		} else {
-			return errors.New("invalid identify refer of resourcerevision")
+			return errors.New("invalid identify refer of resourcerun")
 		}
 	} else if rrqi.ID != "" {
 		q.Where(
-			resourcerevision.ID(rrqi.ID))
+			resourcerun.ID(rrqi.ID))
 	} else {
-		return errors.New("invalid identify of resourcerevision")
+		return errors.New("invalid identify of resourcerun")
 	}
 
 	q.Select(
-		resourcerevision.FieldID,
+		resourcerun.FieldID,
 	)
 
-	var e *ResourceRevision
+	var e *ResourceRun
 	{
 		// Get cache from previous validation.
 		queryStmt, queryArgs := q.sqlQuery(setContextOp(ctx, q.ctx, "cache")).Query()
@@ -776,7 +776,7 @@ func (rrqi *ResourceRevisionQueryInput) ValidateWith(ctx context.Context, cs Cli
 			// Set cache for other validation.
 			cache[ck] = e
 		} else {
-			e = cv.(*ResourceRevision)
+			e = cv.(*ResourceRun)
 		}
 	}
 
@@ -784,21 +784,21 @@ func (rrqi *ResourceRevisionQueryInput) ValidateWith(ctx context.Context, cs Cli
 	return nil
 }
 
-// ResourceRevisionQueryInputs holds the query input of the ResourceRevision entities,
+// ResourceRunQueryInputs holds the query input of the ResourceRun entities,
 // please tags with `path:",inline" query:",inline"` if embedding.
-type ResourceRevisionQueryInputs struct {
+type ResourceRunQueryInputs struct {
 	inputConfig `path:"-" query:"-" json:"-"`
 
-	// Project indicates to query ResourceRevision entity MUST under the Project route.
+	// Project indicates to query ResourceRun entity MUST under the Project route.
 	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
-	// Environment indicates to query ResourceRevision entity MUST under the Environment route.
+	// Environment indicates to query ResourceRun entity MUST under the Environment route.
 	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
-	// Resource indicates to query ResourceRevision entity MUST under the Resource route.
+	// Resource indicates to query ResourceRun entity MUST under the Resource route.
 	Resource *ResourceQueryInput `path:",inline" query:"-" json:"-"`
 }
 
-// Validate checks the ResourceRevisionQueryInputs entity.
-func (rrqi *ResourceRevisionQueryInputs) Validate() error {
+// Validate checks the ResourceRunQueryInputs entity.
+func (rrqi *ResourceRunQueryInputs) Validate() error {
 	if rrqi == nil {
 		return errors.New("nil receiver")
 	}
@@ -806,8 +806,8 @@ func (rrqi *ResourceRevisionQueryInputs) Validate() error {
 	return rrqi.ValidateWith(rrqi.inputConfig.Context, rrqi.inputConfig.Client, nil)
 }
 
-// ValidateWith checks the ResourceRevisionQueryInputs entity with the given context and client set.
-func (rrqi *ResourceRevisionQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+// ValidateWith checks the ResourceRunQueryInputs entity with the given context and client set.
+func (rrqi *ResourceRunQueryInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if rrqi == nil {
 		return errors.New("nil receiver")
 	}
@@ -840,10 +840,10 @@ func (rrqi *ResourceRevisionQueryInputs) ValidateWith(ctx context.Context, cs Cl
 	return nil
 }
 
-// ResourceRevisionUpdateInput holds the modification input of the ResourceRevision entity,
+// ResourceRunUpdateInput holds the modification input of the ResourceRun entity,
 // please tags with `path:",inline" json:",inline"` if embedding.
-type ResourceRevisionUpdateInput struct {
-	ResourceRevisionQueryInput `path:",inline" query:"-" json:"-"`
+type ResourceRunUpdateInput struct {
+	ResourceRunQueryInput `path:",inline" query:"-" json:"-"`
 
 	// Version of the template.
 	TemplateVersion string `path:"-" query:"-" json:"templateVersion,omitempty"`
@@ -851,32 +851,32 @@ type ResourceRevisionUpdateInput struct {
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
 	// Computed attributes generated from attributes and schemas.
 	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
-	// Variables of the revision.
+	// Variables of the run.
 	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables,omitempty"`
-	// Input plan of the revision.
+	// Input plan of the run.
 	InputPlan string `path:"-" query:"-" json:"inputPlan,omitempty"`
-	// Output of the revision.
+	// Output of the run.
 	Output string `path:"-" query:"-" json:"output,omitempty"`
 	// Type of deployer.
 	DeployerType string `path:"-" query:"-" json:"deployerType,omitempty"`
-	// Duration in seconds of the revision deploying.
+	// Duration in seconds of the run deploying.
 	Duration int `path:"-" query:"-" json:"duration,omitempty"`
-	// Previous provider requirement of the revision.
+	// Previous provider requirement of the run.
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
-	// Record of the revision.
+	// Record of the run.
 	Record string `path:"-" query:"-" json:"record,omitempty"`
-	// Change comment of the revision.
+	// Change comment of the run.
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 }
 
-// Model returns the ResourceRevision entity for modifying,
+// Model returns the ResourceRun entity for modifying,
 // after validating.
-func (rrui *ResourceRevisionUpdateInput) Model() *ResourceRevision {
+func (rrui *ResourceRunUpdateInput) Model() *ResourceRun {
 	if rrui == nil {
 		return nil
 	}
 
-	_rr := &ResourceRevision{
+	_rr := &ResourceRun{
 		ID:                        rrui.ID,
 		TemplateVersion:           rrui.TemplateVersion,
 		Attributes:                rrui.Attributes,
@@ -894,8 +894,8 @@ func (rrui *ResourceRevisionUpdateInput) Model() *ResourceRevision {
 	return _rr
 }
 
-// Validate checks the ResourceRevisionUpdateInput entity.
-func (rrui *ResourceRevisionUpdateInput) Validate() error {
+// Validate checks the ResourceRunUpdateInput entity.
+func (rrui *ResourceRunUpdateInput) Validate() error {
 	if rrui == nil {
 		return errors.New("nil receiver")
 	}
@@ -903,22 +903,22 @@ func (rrui *ResourceRevisionUpdateInput) Validate() error {
 	return rrui.ValidateWith(rrui.inputConfig.Context, rrui.inputConfig.Client, nil)
 }
 
-// ValidateWith checks the ResourceRevisionUpdateInput entity with the given context and client set.
-func (rrui *ResourceRevisionUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+// ValidateWith checks the ResourceRunUpdateInput entity with the given context and client set.
+func (rrui *ResourceRunUpdateInput) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if cache == nil {
 		cache = map[string]any{}
 	}
 
-	if err := rrui.ResourceRevisionQueryInput.ValidateWith(ctx, cs, cache); err != nil {
+	if err := rrui.ResourceRunQueryInput.ValidateWith(ctx, cs, cache); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// ResourceRevisionUpdateInputs holds the modification input item of the ResourceRevision entities.
-type ResourceRevisionUpdateInputsItem struct {
-	// ID of the ResourceRevision entity.
+// ResourceRunUpdateInputs holds the modification input item of the ResourceRun entities.
+type ResourceRunUpdateInputsItem struct {
+	// ID of the ResourceRun entity.
 	ID object.ID `path:"-" query:"-" json:"id"`
 
 	// Version of the template.
@@ -927,26 +927,26 @@ type ResourceRevisionUpdateInputsItem struct {
 	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
 	// Computed attributes generated from attributes and schemas.
 	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
-	// Variables of the revision.
+	// Variables of the run.
 	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables"`
-	// Input plan of the revision.
+	// Input plan of the run.
 	InputPlan string `path:"-" query:"-" json:"inputPlan"`
-	// Output of the revision.
+	// Output of the run.
 	Output string `path:"-" query:"-" json:"output"`
 	// Type of deployer.
 	DeployerType string `path:"-" query:"-" json:"deployerType"`
-	// Duration in seconds of the revision deploying.
+	// Duration in seconds of the run deploying.
 	Duration int `path:"-" query:"-" json:"duration"`
-	// Previous provider requirement of the revision.
+	// Previous provider requirement of the run.
 	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders"`
-	// Record of the revision.
+	// Record of the run.
 	Record string `path:"-" query:"-" json:"record,omitempty"`
-	// Change comment of the revision.
+	// Change comment of the run.
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 }
 
-// ValidateWith checks the ResourceRevisionUpdateInputsItem entity with the given context and client set.
-func (rrui *ResourceRevisionUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+// ValidateWith checks the ResourceRunUpdateInputsItem entity with the given context and client set.
+func (rrui *ResourceRunUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if rrui == nil {
 		return errors.New("nil receiver")
 	}
@@ -958,33 +958,33 @@ func (rrui *ResourceRevisionUpdateInputsItem) ValidateWith(ctx context.Context, 
 	return nil
 }
 
-// ResourceRevisionUpdateInputs holds the modification input of the ResourceRevision entities,
+// ResourceRunUpdateInputs holds the modification input of the ResourceRun entities,
 // please tags with `path:",inline" json:",inline"` if embedding.
-type ResourceRevisionUpdateInputs struct {
+type ResourceRunUpdateInputs struct {
 	inputConfig `path:"-" query:"-" json:"-"`
 
-	// Project indicates to update ResourceRevision entity MUST under the Project route.
+	// Project indicates to update ResourceRun entity MUST under the Project route.
 	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
-	// Environment indicates to update ResourceRevision entity MUST under the Environment route.
+	// Environment indicates to update ResourceRun entity MUST under the Environment route.
 	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
-	// Resource indicates to update ResourceRevision entity MUST under the Resource route.
+	// Resource indicates to update ResourceRun entity MUST under the Resource route.
 	Resource *ResourceQueryInput `path:",inline" query:"-" json:"-"`
 
 	// Items holds the entities to create, which MUST not be empty.
-	Items []*ResourceRevisionUpdateInputsItem `path:"-" query:"-" json:"items"`
+	Items []*ResourceRunUpdateInputsItem `path:"-" query:"-" json:"items"`
 }
 
-// Model returns the ResourceRevision entities for modifying,
+// Model returns the ResourceRun entities for modifying,
 // after validating.
-func (rrui *ResourceRevisionUpdateInputs) Model() []*ResourceRevision {
+func (rrui *ResourceRunUpdateInputs) Model() []*ResourceRun {
 	if rrui == nil || len(rrui.Items) == 0 {
 		return nil
 	}
 
-	_rrs := make([]*ResourceRevision, len(rrui.Items))
+	_rrs := make([]*ResourceRun, len(rrui.Items))
 
 	for i := range rrui.Items {
-		_rr := &ResourceRevision{
+		_rr := &ResourceRun{
 			ID:                        rrui.Items[i].ID,
 			TemplateVersion:           rrui.Items[i].TemplateVersion,
 			Attributes:                rrui.Items[i].Attributes,
@@ -1005,9 +1005,9 @@ func (rrui *ResourceRevisionUpdateInputs) Model() []*ResourceRevision {
 	return _rrs
 }
 
-// IDs returns the ID list of the ResourceRevision entities for modifying,
+// IDs returns the ID list of the ResourceRun entities for modifying,
 // after validating.
-func (rrui *ResourceRevisionUpdateInputs) IDs() []object.ID {
+func (rrui *ResourceRunUpdateInputs) IDs() []object.ID {
 	if rrui == nil || len(rrui.Items) == 0 {
 		return nil
 	}
@@ -1019,8 +1019,8 @@ func (rrui *ResourceRevisionUpdateInputs) IDs() []object.ID {
 	return ids
 }
 
-// Validate checks the ResourceRevisionUpdateInputs entity.
-func (rrui *ResourceRevisionUpdateInputs) Validate() error {
+// Validate checks the ResourceRunUpdateInputs entity.
+func (rrui *ResourceRunUpdateInputs) Validate() error {
 	if rrui == nil {
 		return errors.New("nil receiver")
 	}
@@ -1028,8 +1028,8 @@ func (rrui *ResourceRevisionUpdateInputs) Validate() error {
 	return rrui.ValidateWith(rrui.inputConfig.Context, rrui.inputConfig.Client, nil)
 }
 
-// ValidateWith checks the ResourceRevisionUpdateInputs entity with the given context and client set.
-func (rrui *ResourceRevisionUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
+// ValidateWith checks the ResourceRunUpdateInputs entity with the given context and client set.
+func (rrui *ResourceRunUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, cache map[string]any) error {
 	if rrui == nil {
 		return errors.New("nil receiver")
 	}
@@ -1042,7 +1042,7 @@ func (rrui *ResourceRevisionUpdateInputs) ValidateWith(ctx context.Context, cs C
 		cache = map[string]any{}
 	}
 
-	q := cs.ResourceRevisions().Query()
+	q := cs.ResourceRuns().Query()
 
 	// Validate when updating under the Project route.
 	if rrui.Project != nil {
@@ -1051,7 +1051,7 @@ func (rrui *ResourceRevisionUpdateInputs) ValidateWith(ctx context.Context, cs C
 		} else {
 			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
 			q.Where(
-				resourcerevision.ProjectID(rrui.Project.ID))
+				resourcerun.ProjectID(rrui.Project.ID))
 		}
 	}
 
@@ -1061,7 +1061,7 @@ func (rrui *ResourceRevisionUpdateInputs) ValidateWith(ctx context.Context, cs C
 			return err
 		} else {
 			q.Where(
-				resourcerevision.EnvironmentID(rrui.Environment.ID))
+				resourcerun.EnvironmentID(rrui.Environment.ID))
 		}
 	}
 
@@ -1071,7 +1071,7 @@ func (rrui *ResourceRevisionUpdateInputs) ValidateWith(ctx context.Context, cs C
 			return err
 		} else {
 			q.Where(
-				resourcerevision.ResourceID(rrui.Resource.ID))
+				resourcerun.ResourceID(rrui.Resource.ID))
 		}
 	}
 
@@ -1093,7 +1093,7 @@ func (rrui *ResourceRevisionUpdateInputs) ValidateWith(ctx context.Context, cs C
 		return errors.New("found unrecognized item")
 	}
 
-	idsCnt, err := q.Where(resourcerevision.IDIn(ids...)).
+	idsCnt, err := q.Where(resourcerun.IDIn(ids...)).
 		Count(ctx)
 	if err != nil {
 		return err
@@ -1112,8 +1112,8 @@ func (rrui *ResourceRevisionUpdateInputs) ValidateWith(ctx context.Context, cs C
 	return nil
 }
 
-// ResourceRevisionOutput holds the output of the ResourceRevision entity.
-type ResourceRevisionOutput struct {
+// ResourceRunOutput holds the output of the ResourceRun entity.
+type ResourceRunOutput struct {
 	ID                        object.ID                   `json:"id,omitempty"`
 	CreateTime                *time.Time                  `json:"createTime,omitempty"`
 	Status                    status.Status               `json:"status,omitempty"`
@@ -1135,23 +1135,23 @@ type ResourceRevisionOutput struct {
 	Resource    *ResourceOutput    `json:"resource,omitempty"`
 }
 
-// View returns the output of ResourceRevision entity.
-func (_rr *ResourceRevision) View() *ResourceRevisionOutput {
-	return ExposeResourceRevision(_rr)
+// View returns the output of ResourceRun entity.
+func (_rr *ResourceRun) View() *ResourceRunOutput {
+	return ExposeResourceRun(_rr)
 }
 
-// View returns the output of ResourceRevision entities.
-func (_rrs ResourceRevisions) View() []*ResourceRevisionOutput {
-	return ExposeResourceRevisions(_rrs)
+// View returns the output of ResourceRun entities.
+func (_rrs ResourceRuns) View() []*ResourceRunOutput {
+	return ExposeResourceRuns(_rrs)
 }
 
-// ExposeResourceRevision converts the ResourceRevision to ResourceRevisionOutput.
-func ExposeResourceRevision(_rr *ResourceRevision) *ResourceRevisionOutput {
+// ExposeResourceRun converts the ResourceRun to ResourceRunOutput.
+func ExposeResourceRun(_rr *ResourceRun) *ResourceRunOutput {
 	if _rr == nil {
 		return nil
 	}
 
-	rro := &ResourceRevisionOutput{
+	rro := &ResourceRunOutput{
 		ID:                        _rr.ID,
 		CreateTime:                _rr.CreateTime,
 		Status:                    _rr.Status,
@@ -1193,15 +1193,15 @@ func ExposeResourceRevision(_rr *ResourceRevision) *ResourceRevisionOutput {
 	return rro
 }
 
-// ExposeResourceRevisions converts the ResourceRevision slice to ResourceRevisionOutput pointer slice.
-func ExposeResourceRevisions(_rrs []*ResourceRevision) []*ResourceRevisionOutput {
+// ExposeResourceRuns converts the ResourceRun slice to ResourceRunOutput pointer slice.
+func ExposeResourceRuns(_rrs []*ResourceRun) []*ResourceRunOutput {
 	if len(_rrs) == 0 {
 		return nil
 	}
 
-	rros := make([]*ResourceRevisionOutput, len(_rrs))
+	rros := make([]*ResourceRunOutput, len(_rrs))
 	for i := range _rrs {
-		rros[i] = ExposeResourceRevision(_rrs[i])
+		rros[i] = ExposeResourceRun(_rrs[i])
 	}
 	return rros
 }

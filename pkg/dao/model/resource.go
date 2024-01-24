@@ -83,8 +83,8 @@ type ResourceEdges struct {
 	ResourceDefinition *ResourceDefinition `json:"-"`
 	// Resource definition matching rule which the resource matches.
 	ResourceDefinitionMatchingRule *ResourceDefinitionMatchingRule `json:"resource_definition_matching_rule,omitempty"`
-	// Revisions that belong to the resource.
-	Revisions []*ResourceRevision `json:"revisions,omitempty"`
+	// Runs that belong to the resource.
+	Runs []*ResourceRun `json:"runs,omitempty"`
 	// Components that belong to the resource.
 	Components []*ResourceComponent `json:"components,omitempty"`
 	// Dependencies holds the value of the dependencies edge.
@@ -159,13 +159,13 @@ func (e ResourceEdges) ResourceDefinitionMatchingRuleOrErr() (*ResourceDefinitio
 	return nil, &NotLoadedError{edge: "resource_definition_matching_rule"}
 }
 
-// RevisionsOrErr returns the Revisions value or an error if the edge
+// RunsOrErr returns the Runs value or an error if the edge
 // was not loaded in eager-loading.
-func (e ResourceEdges) RevisionsOrErr() ([]*ResourceRevision, error) {
+func (e ResourceEdges) RunsOrErr() ([]*ResourceRun, error) {
 	if e.loadedTypes[5] {
-		return e.Revisions, nil
+		return e.Runs, nil
 	}
-	return nil, &NotLoadedError{edge: "revisions"}
+	return nil, &NotLoadedError{edge: "runs"}
 }
 
 // ComponentsOrErr returns the Components value or an error if the edge
@@ -377,9 +377,9 @@ func (r *Resource) QueryResourceDefinitionMatchingRule() *ResourceDefinitionMatc
 	return NewResourceClient(r.config).QueryResourceDefinitionMatchingRule(r)
 }
 
-// QueryRevisions queries the "revisions" edge of the Resource entity.
-func (r *Resource) QueryRevisions() *ResourceRevisionQuery {
-	return NewResourceClient(r.config).QueryRevisions(r)
+// QueryRuns queries the "runs" edge of the Resource entity.
+func (r *Resource) QueryRuns() *ResourceRunQuery {
+	return NewResourceClient(r.config).QueryRuns(r)
 }
 
 // QueryComponents queries the "components" edge of the Resource entity.

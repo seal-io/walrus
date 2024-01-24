@@ -24,7 +24,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -247,19 +247,19 @@ func (rc *ResourceCreate) SetResourceDefinitionMatchingRule(r *ResourceDefinitio
 	return rc.SetResourceDefinitionMatchingRuleID(r.ID)
 }
 
-// AddRevisionIDs adds the "revisions" edge to the ResourceRevision entity by IDs.
-func (rc *ResourceCreate) AddRevisionIDs(ids ...object.ID) *ResourceCreate {
-	rc.mutation.AddRevisionIDs(ids...)
+// AddRunIDs adds the "runs" edge to the ResourceRun entity by IDs.
+func (rc *ResourceCreate) AddRunIDs(ids ...object.ID) *ResourceCreate {
+	rc.mutation.AddRunIDs(ids...)
 	return rc
 }
 
-// AddRevisions adds the "revisions" edges to the ResourceRevision entity.
-func (rc *ResourceCreate) AddRevisions(r ...*ResourceRevision) *ResourceCreate {
+// AddRuns adds the "runs" edges to the ResourceRun entity.
+func (rc *ResourceCreate) AddRuns(r ...*ResourceRun) *ResourceCreate {
 	ids := make([]object.ID, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return rc.AddRevisionIDs(ids...)
+	return rc.AddRunIDs(ids...)
 }
 
 // AddComponentIDs adds the "components" edge to the ResourceComponent entity by IDs.
@@ -575,18 +575,18 @@ func (rc *ResourceCreate) createSpec() (*Resource, *sqlgraph.CreateSpec) {
 		_node.ResourceDefinitionMatchingRuleID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := rc.mutation.RevisionsIDs(); len(nodes) > 0 {
+	if nodes := rc.mutation.RunsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   resource.RevisionsTable,
-			Columns: []string{resource.RevisionsColumn},
+			Table:   resource.RunsTable,
+			Columns: []string{resource.RunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = rc.schemaConfig.ResourceRevision
+		edge.Schema = rc.schemaConfig.ResourceRun
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

@@ -26,7 +26,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
@@ -180,19 +180,19 @@ func (pu *ProjectUpdate) AddResourceComponents(r ...*ResourceComponent) *Project
 	return pu.AddResourceComponentIDs(ids...)
 }
 
-// AddResourceRevisionIDs adds the "resource_revisions" edge to the ResourceRevision entity by IDs.
-func (pu *ProjectUpdate) AddResourceRevisionIDs(ids ...object.ID) *ProjectUpdate {
-	pu.mutation.AddResourceRevisionIDs(ids...)
+// AddResourceRunIDs adds the "resource_runs" edge to the ResourceRun entity by IDs.
+func (pu *ProjectUpdate) AddResourceRunIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.AddResourceRunIDs(ids...)
 	return pu
 }
 
-// AddResourceRevisions adds the "resource_revisions" edges to the ResourceRevision entity.
-func (pu *ProjectUpdate) AddResourceRevisions(r ...*ResourceRevision) *ProjectUpdate {
+// AddResourceRuns adds the "resource_runs" edges to the ResourceRun entity.
+func (pu *ProjectUpdate) AddResourceRuns(r ...*ResourceRun) *ProjectUpdate {
 	ids := make([]object.ID, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return pu.AddResourceRevisionIDs(ids...)
+	return pu.AddResourceRunIDs(ids...)
 }
 
 // AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
@@ -455,25 +455,25 @@ func (pu *ProjectUpdate) RemoveResourceComponents(r ...*ResourceComponent) *Proj
 	return pu.RemoveResourceComponentIDs(ids...)
 }
 
-// ClearResourceRevisions clears all "resource_revisions" edges to the ResourceRevision entity.
-func (pu *ProjectUpdate) ClearResourceRevisions() *ProjectUpdate {
-	pu.mutation.ClearResourceRevisions()
+// ClearResourceRuns clears all "resource_runs" edges to the ResourceRun entity.
+func (pu *ProjectUpdate) ClearResourceRuns() *ProjectUpdate {
+	pu.mutation.ClearResourceRuns()
 	return pu
 }
 
-// RemoveResourceRevisionIDs removes the "resource_revisions" edge to ResourceRevision entities by IDs.
-func (pu *ProjectUpdate) RemoveResourceRevisionIDs(ids ...object.ID) *ProjectUpdate {
-	pu.mutation.RemoveResourceRevisionIDs(ids...)
+// RemoveResourceRunIDs removes the "resource_runs" edge to ResourceRun entities by IDs.
+func (pu *ProjectUpdate) RemoveResourceRunIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.RemoveResourceRunIDs(ids...)
 	return pu
 }
 
-// RemoveResourceRevisions removes "resource_revisions" edges to ResourceRevision entities.
-func (pu *ProjectUpdate) RemoveResourceRevisions(r ...*ResourceRevision) *ProjectUpdate {
+// RemoveResourceRuns removes "resource_runs" edges to ResourceRun entities.
+func (pu *ProjectUpdate) RemoveResourceRuns(r ...*ResourceRun) *ProjectUpdate {
 	ids := make([]object.ID, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return pu.RemoveResourceRevisionIDs(ids...)
+	return pu.RemoveResourceRunIDs(ids...)
 }
 
 // ClearVariables clears all "variables" edges to the Variable entity.
@@ -1060,49 +1060,49 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if pu.mutation.ResourceRevisionsCleared() {
+	if pu.mutation.ResourceRunsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ResourceRevisionsTable,
-			Columns: []string{project.ResourceRevisionsColumn},
+			Table:   project.ResourceRunsTable,
+			Columns: []string{project.ResourceRunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = pu.schemaConfig.ResourceRevision
+		edge.Schema = pu.schemaConfig.ResourceRun
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.mutation.RemovedResourceRevisionsIDs(); len(nodes) > 0 && !pu.mutation.ResourceRevisionsCleared() {
+	if nodes := pu.mutation.RemovedResourceRunsIDs(); len(nodes) > 0 && !pu.mutation.ResourceRunsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ResourceRevisionsTable,
-			Columns: []string{project.ResourceRevisionsColumn},
+			Table:   project.ResourceRunsTable,
+			Columns: []string{project.ResourceRunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = pu.schemaConfig.ResourceRevision
+		edge.Schema = pu.schemaConfig.ResourceRun
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.mutation.ResourceRevisionsIDs(); len(nodes) > 0 {
+	if nodes := pu.mutation.ResourceRunsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ResourceRevisionsTable,
-			Columns: []string{project.ResourceRevisionsColumn},
+			Table:   project.ResourceRunsTable,
+			Columns: []string{project.ResourceRunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = pu.schemaConfig.ResourceRevision
+		edge.Schema = pu.schemaConfig.ResourceRun
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -1738,19 +1738,19 @@ func (puo *ProjectUpdateOne) AddResourceComponents(r ...*ResourceComponent) *Pro
 	return puo.AddResourceComponentIDs(ids...)
 }
 
-// AddResourceRevisionIDs adds the "resource_revisions" edge to the ResourceRevision entity by IDs.
-func (puo *ProjectUpdateOne) AddResourceRevisionIDs(ids ...object.ID) *ProjectUpdateOne {
-	puo.mutation.AddResourceRevisionIDs(ids...)
+// AddResourceRunIDs adds the "resource_runs" edge to the ResourceRun entity by IDs.
+func (puo *ProjectUpdateOne) AddResourceRunIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.AddResourceRunIDs(ids...)
 	return puo
 }
 
-// AddResourceRevisions adds the "resource_revisions" edges to the ResourceRevision entity.
-func (puo *ProjectUpdateOne) AddResourceRevisions(r ...*ResourceRevision) *ProjectUpdateOne {
+// AddResourceRuns adds the "resource_runs" edges to the ResourceRun entity.
+func (puo *ProjectUpdateOne) AddResourceRuns(r ...*ResourceRun) *ProjectUpdateOne {
 	ids := make([]object.ID, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return puo.AddResourceRevisionIDs(ids...)
+	return puo.AddResourceRunIDs(ids...)
 }
 
 // AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
@@ -2013,25 +2013,25 @@ func (puo *ProjectUpdateOne) RemoveResourceComponents(r ...*ResourceComponent) *
 	return puo.RemoveResourceComponentIDs(ids...)
 }
 
-// ClearResourceRevisions clears all "resource_revisions" edges to the ResourceRevision entity.
-func (puo *ProjectUpdateOne) ClearResourceRevisions() *ProjectUpdateOne {
-	puo.mutation.ClearResourceRevisions()
+// ClearResourceRuns clears all "resource_runs" edges to the ResourceRun entity.
+func (puo *ProjectUpdateOne) ClearResourceRuns() *ProjectUpdateOne {
+	puo.mutation.ClearResourceRuns()
 	return puo
 }
 
-// RemoveResourceRevisionIDs removes the "resource_revisions" edge to ResourceRevision entities by IDs.
-func (puo *ProjectUpdateOne) RemoveResourceRevisionIDs(ids ...object.ID) *ProjectUpdateOne {
-	puo.mutation.RemoveResourceRevisionIDs(ids...)
+// RemoveResourceRunIDs removes the "resource_runs" edge to ResourceRun entities by IDs.
+func (puo *ProjectUpdateOne) RemoveResourceRunIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.RemoveResourceRunIDs(ids...)
 	return puo
 }
 
-// RemoveResourceRevisions removes "resource_revisions" edges to ResourceRevision entities.
-func (puo *ProjectUpdateOne) RemoveResourceRevisions(r ...*ResourceRevision) *ProjectUpdateOne {
+// RemoveResourceRuns removes "resource_runs" edges to ResourceRun entities.
+func (puo *ProjectUpdateOne) RemoveResourceRuns(r ...*ResourceRun) *ProjectUpdateOne {
 	ids := make([]object.ID, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return puo.RemoveResourceRevisionIDs(ids...)
+	return puo.RemoveResourceRunIDs(ids...)
 }
 
 // ClearVariables clears all "variables" edges to the Variable entity.
@@ -2746,49 +2746,49 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if puo.mutation.ResourceRevisionsCleared() {
+	if puo.mutation.ResourceRunsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ResourceRevisionsTable,
-			Columns: []string{project.ResourceRevisionsColumn},
+			Table:   project.ResourceRunsTable,
+			Columns: []string{project.ResourceRunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = puo.schemaConfig.ResourceRevision
+		edge.Schema = puo.schemaConfig.ResourceRun
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.mutation.RemovedResourceRevisionsIDs(); len(nodes) > 0 && !puo.mutation.ResourceRevisionsCleared() {
+	if nodes := puo.mutation.RemovedResourceRunsIDs(); len(nodes) > 0 && !puo.mutation.ResourceRunsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ResourceRevisionsTable,
-			Columns: []string{project.ResourceRevisionsColumn},
+			Table:   project.ResourceRunsTable,
+			Columns: []string{project.ResourceRunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = puo.schemaConfig.ResourceRevision
+		edge.Schema = puo.schemaConfig.ResourceRun
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.mutation.ResourceRevisionsIDs(); len(nodes) > 0 {
+	if nodes := puo.mutation.ResourceRunsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ResourceRevisionsTable,
-			Columns: []string{project.ResourceRevisionsColumn},
+			Table:   project.ResourceRunsTable,
+			Columns: []string{project.ResourceRunsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(resourcerevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(resourcerun.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = puo.schemaConfig.ResourceRevision
+		edge.Schema = puo.schemaConfig.ResourceRun
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

@@ -54,8 +54,8 @@ type EnvironmentEdges struct {
 	Connectors []*EnvironmentConnectorRelationship `json:"connectors,omitempty"`
 	// Resources that belong to the environment.
 	Resources []*Resource `json:"resources,omitempty,cli-ignore"`
-	// ResourceRevisions that belong to the environment.
-	ResourceRevisions []*ResourceRevision `json:"resource_revisions,omitempty"`
+	// ResourceRuns that belong to the environment.
+	ResourceRuns []*ResourceRun `json:"resource_runs,omitempty"`
 	// ResourceComponents that belong to the environment.
 	ResourceComponents []*ResourceComponent `json:"resource_components,omitempty"`
 	// Variables that belong to the environment.
@@ -96,13 +96,13 @@ func (e EnvironmentEdges) ResourcesOrErr() ([]*Resource, error) {
 	return nil, &NotLoadedError{edge: "resources"}
 }
 
-// ResourceRevisionsOrErr returns the ResourceRevisions value or an error if the edge
+// ResourceRunsOrErr returns the ResourceRuns value or an error if the edge
 // was not loaded in eager-loading.
-func (e EnvironmentEdges) ResourceRevisionsOrErr() ([]*ResourceRevision, error) {
+func (e EnvironmentEdges) ResourceRunsOrErr() ([]*ResourceRun, error) {
 	if e.loadedTypes[3] {
-		return e.ResourceRevisions, nil
+		return e.ResourceRuns, nil
 	}
-	return nil, &NotLoadedError{edge: "resource_revisions"}
+	return nil, &NotLoadedError{edge: "resource_runs"}
 }
 
 // ResourceComponentsOrErr returns the ResourceComponents value or an error if the edge
@@ -239,9 +239,9 @@ func (e *Environment) QueryResources() *ResourceQuery {
 	return NewEnvironmentClient(e.config).QueryResources(e)
 }
 
-// QueryResourceRevisions queries the "resource_revisions" edge of the Environment entity.
-func (e *Environment) QueryResourceRevisions() *ResourceRevisionQuery {
-	return NewEnvironmentClient(e.config).QueryResourceRevisions(e)
+// QueryResourceRuns queries the "resource_runs" edge of the Environment entity.
+func (e *Environment) QueryResourceRuns() *ResourceRunQuery {
+	return NewEnvironmentClient(e.config).QueryResourceRuns(e)
 }
 
 // QueryResourceComponents queries the "resource_components" edge of the Environment entity.

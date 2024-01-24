@@ -1162,27 +1162,27 @@ func HasResourceDefinitionMatchingRuleWith(preds ...predicate.ResourceDefinition
 	})
 }
 
-// HasRevisions applies the HasEdge predicate on the "revisions" edge.
-func HasRevisions() predicate.Resource {
+// HasRuns applies the HasEdge predicate on the "runs" edge.
+func HasRuns() predicate.Resource {
 	return predicate.Resource(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, RevisionsTable, RevisionsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, RunsTable, RunsColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.ResourceRevision
-		step.Edge.Schema = schemaConfig.ResourceRevision
+		step.To.Schema = schemaConfig.ResourceRun
+		step.Edge.Schema = schemaConfig.ResourceRun
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasRevisionsWith applies the HasEdge predicate on the "revisions" edge with a given conditions (other predicates).
-func HasRevisionsWith(preds ...predicate.ResourceRevision) predicate.Resource {
+// HasRunsWith applies the HasEdge predicate on the "runs" edge with a given conditions (other predicates).
+func HasRunsWith(preds ...predicate.ResourceRun) predicate.Resource {
 	return predicate.Resource(func(s *sql.Selector) {
-		step := newRevisionsStep()
+		step := newRunsStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.ResourceRevision
-		step.Edge.Schema = schemaConfig.ResourceRevision
+		step.To.Schema = schemaConfig.ResourceRun
+		step.Edge.Schema = schemaConfig.ResourceRun
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

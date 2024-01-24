@@ -51,8 +51,8 @@ type ClientSet interface {
 	// ResourceRelationships returns the client for interacting with the ResourceRelationship builders.
 	ResourceRelationships() *ResourceRelationshipClient
 
-	// ResourceRevisions returns the client for interacting with the ResourceRevision builders.
-	ResourceRevisions() *ResourceRevisionClient
+	// ResourceRuns returns the client for interacting with the ResourceRun builders.
+	ResourceRuns() *ResourceRunClient
 
 	// Roles returns the client for interacting with the Role builders.
 	Roles() *RoleClient
@@ -197,10 +197,10 @@ type ResourceRelationshipClientGetter interface {
 	ResourceRelationships() *ResourceRelationshipClient
 }
 
-// ResourceRevisionClientGetter is an interface that allows getting ResourceRevisionClient.
-type ResourceRevisionClientGetter interface {
-	// ResourceRevisions returns the client for interacting with the ResourceRevision builders.
-	ResourceRevisions() *ResourceRevisionClient
+// ResourceRunClientGetter is an interface that allows getting ResourceRunClient.
+type ResourceRunClientGetter interface {
+	// ResourceRuns returns the client for interacting with the ResourceRun builders.
+	ResourceRuns() *ResourceRunClient
 }
 
 // RoleClientGetter is an interface that allows getting RoleClient.
