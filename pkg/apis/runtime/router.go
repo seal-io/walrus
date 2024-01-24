@@ -147,6 +147,7 @@ func NewRouter(options ...RouterOption) IRouter {
 	e := gin.New()
 	e.NoMethod(noMethod)
 	e.NoRoute(noRoute)
+	e.UseRawPath = true
 
 	// Apply engine options.
 	opts = opts.Apply(func(o RouterOption) bool {
