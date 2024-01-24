@@ -119,7 +119,7 @@ func newResourceDefinition(
 		},
 	}
 
-	err := templates.SetResourceDefinitionSchemaDefault(ctx, rd)
+	err := templates.SetResourceDefinitionSchemaDefault(ctx, mc, rd)
 	if err != nil {
 		return nil, err
 	}

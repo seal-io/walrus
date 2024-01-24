@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/getkin/kin-openapi/openapi3"
-
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
@@ -132,10 +130,10 @@ func computedAttributeWithTemplate(
 		return nil, err
 	}
 
-	attrsByte, err = computeDefaultWithAttribute(
+	attrsByte, err = openapi.GenSchemaDefaultWithAttribute(
 		ctx,
-		attrs,
 		template.UiSchema.VariableSchema(),
+		attrs,
 		template.SchemaDefaultValue)
 	if err != nil {
 		return nil, err
@@ -175,7 +173,6 @@ func computedAttributeWithResourceDefinition(
 		attrsByte       []byte
 		merged          []byte
 		rdSchemaDefault = rule.SchemaDefaultValue
-		tvSchemaDefault = rule.Edges.Template.SchemaDefaultValue
 	)
 
 	wctxByte, err = json.Marshal(map[string]any{"context": wctx})
@@ -185,12 +182,11 @@ func computedAttributeWithResourceDefinition(
 
 	switch {
 	case rule.Edges.ResourceDefinition.UiSchema != nil && !rule.Edges.ResourceDefinition.UiSchema.IsEmpty():
-		attrsByte, err = computeDefaultWithAttribute(
+		attrsByte, err = openapi.GenSchemaDefaultWithAttribute(
 			ctx,
-			attrs,
 			rule.Edges.ResourceDefinition.UiSchema.VariableSchema(),
-			rdSchemaDefault,
-			tvSchemaDefault)
+			attrs,
+			rdSchemaDefault)
 		if err != nil {
 			return nil, err
 		}
@@ -203,11 +199,11 @@ func computedAttributeWithResourceDefinition(
 		}
 
 	default:
-		attrsByte, err = computeDefaultWithAttribute(
+		attrsByte, err = openapi.GenSchemaDefaultWithAttribute(
 			ctx,
-			attrs,
 			rule.Edges.Template.UiSchema.VariableSchema(),
-			tvSchemaDefault)
+			attrs,
+			rdSchemaDefault)
 		if err != nil {
 			return nil, err
 		}
@@ -228,57 +224,4 @@ func computedAttributeWithResourceDefinition(
 	}
 
 	return ca, nil
-}
-
-// computeDefaultWithAttribute compute default values with attributes and exist default values in sequence.
-func computeDefaultWithAttribute(
-	ctx context.Context, attrs property.Values, schema *openapi3.Schema, defaultValuesByte ...[]byte,
-) ([]byte, error) {
-	copySchema := openapi3.NewObjectSchema()
-
-	for n := range schema.Properties {
-		if v := attrs[n]; v != nil &&
-			schema.Properties[n] != nil &&
-			schema.Properties[n].Value != nil {
-			copyProp := *schema.Properties[n].Value
-			copyProp.Default = v
-
-			copySchema.Properties[n] = &openapi3.SchemaRef{
-				Value: &copyProp,
-			}
-		}
-	}
-
-	// Generate default with attributes.
-	dv, err := openapi.GenSchemaDefaultPatch(ctx, copySchema)
-	if err != nil {
-		return nil, err
-	}
-
-	// Merge the default from attributes and exist default.
-	genAttrs := make(property.Values)
-
-	if dv != nil {
-		err = json.Unmarshal(dv, &genAttrs)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	for i := range defaultValuesByte {
-		var defaultValues property.Values
-
-		err = json.Unmarshal(defaultValuesByte[i], &defaultValues)
-		if err != nil {
-			return nil, err
-		}
-
-		for k := range defaultValues {
-			if _, ok := genAttrs[k]; !ok {
-				genAttrs[k] = defaultValues[k]
-			}
-		}
-	}
-
-	return json.Marshal(genAttrs)
 }

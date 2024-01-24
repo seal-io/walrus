@@ -18,7 +18,7 @@ import (
 func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 	entity := req.Model()
 
-	err := templates.SetResourceDefinitionSchemaDefault(req.Context, entity)
+	err := templates.SetResourceDefinitionSchemaDefault(req.Context, req.Client, entity)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (h Handler) Get(req GetRequest) (GetResponse, error) {
 func (h Handler) Update(req UpdateRequest) error {
 	entity := req.Model()
 
-	err := templates.SetResourceDefinitionSchemaDefault(req.Context, entity)
+	err := templates.SetResourceDefinitionSchemaDefault(req.Context, req.Client, entity)
 	if err != nil {
 		return err
 	}
