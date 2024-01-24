@@ -10,7 +10,9 @@ import (
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 
+	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/utils/gopool"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 type patchResult struct {
@@ -172,6 +174,59 @@ func GenSchemaDefaultPatch(ctx context.Context, schema *openapi3.Schema) ([]byte
 			count++
 		}
 	}
+}
+
+// GenSchemaDefaultWithAttribute compute default values with attributes and exist default values in sequence.
+func GenSchemaDefaultWithAttribute(
+	ctx context.Context, schema *openapi3.Schema, attrs property.Values, defaultValuesByte ...[]byte,
+) ([]byte, error) {
+	copySchema := openapi3.NewObjectSchema()
+
+	for n := range schema.Properties {
+		if v := attrs[n]; v != nil &&
+			schema.Properties[n] != nil &&
+			schema.Properties[n].Value != nil {
+			copyProp := *schema.Properties[n].Value
+			copyProp.Default = v
+
+			copySchema.Properties[n] = &openapi3.SchemaRef{
+				Value: &copyProp,
+			}
+		}
+	}
+
+	// Generate default with attributes.
+	dv, err := GenSchemaDefaultPatch(ctx, copySchema)
+	if err != nil {
+		return nil, err
+	}
+
+	// Merge the default from attributes and exist default.
+	genAttrs := make(property.Values)
+
+	if dv != nil {
+		err = json.Unmarshal(dv, &genAttrs)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for i := range defaultValuesByte {
+		var defaultValues property.Values
+
+		err = json.Unmarshal(defaultValuesByte[i], &defaultValues)
+		if err != nil {
+			return nil, err
+		}
+
+		for k := range defaultValues {
+			if _, ok := genAttrs[k]; !ok {
+				genAttrs[k] = defaultValues[k]
+			}
+		}
+	}
+
+	return json.Marshal(genAttrs)
 }
 
 func groupNodes(nodes []Node) map[string][]Node {

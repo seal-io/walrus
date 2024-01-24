@@ -12,38 +12,25 @@ import (
 // Required rd.Edges.MatchingRules.
 func SetResourceDefinitionSchemaDefault(
 	ctx context.Context,
+	client model.ClientSet,
 	rd *model.ResourceDefinition,
 ) (err error) {
 	for i := range rd.Edges.MatchingRules {
 		rule := rd.Edges.MatchingRules[i]
 
-		var (
-			rdUISchemaDefault []byte
-			ruleAttrs         []byte
-		)
-
-		if len(rule.Attributes) != 0 {
-			ruleAttrs, err = json.Marshal(rule.Attributes)
-			if err != nil {
-				return err
-			}
-		}
-
-		if rd.UiSchema != nil && !rd.UiSchema.IsEmpty() {
-			rdUISchemaDefault, err = openapi.GenSchemaDefaultPatch(ctx, rd.UiSchema.VariableSchema())
-			if err != nil {
-				return err
-			}
-		}
-
-		merged, err := json.ApplyPatches(
-			ruleAttrs,
-			rdUISchemaDefault)
+		tv, err := client.TemplateVersions().Get(ctx, rule.TemplateID)
 		if err != nil {
 			return err
 		}
 
-		rd.Edges.MatchingRules[i].SchemaDefaultValue = merged
+		rd.Edges.MatchingRules[i].SchemaDefaultValue, err = openapi.GenSchemaDefaultWithAttribute(
+			ctx,
+			tv.UiSchema.VariableSchema(),
+			rule.Attributes,
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
