@@ -129,7 +129,7 @@ if [[ $help ]]; then
     exit 0
 fi
 
-#docker load --input ${images}
+docker load --input ${images}
 
 linux_images=()
 linux_err_images=()
