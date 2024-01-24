@@ -18,11 +18,11 @@ import (
 	"github.com/seal-io/walrus/utils/strs"
 )
 
-type ResourceRevision struct {
+type ResourceRun struct {
 	ent.Schema
 }
 
-func (ResourceRevision) Mixin() []ent.Mixin {
+func (ResourceRun) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID(),
 		mixin.Time().WithoutUpdateTime(),
@@ -30,18 +30,18 @@ func (ResourceRevision) Mixin() []ent.Mixin {
 	}
 }
 
-func (ResourceRevision) Fields() []ent.Field {
+func (ResourceRun) Fields() []ent.Field {
 	return []ent.Field{
 		object.IDField("project_id").
 			Comment("ID of the project to belong.").
 			NotEmpty().
 			Immutable(),
 		object.IDField("environment_id").
-			Comment("ID of the environment to which the revision belongs.").
+			Comment("ID of the environment to which the run belongs.").
 			NotEmpty().
 			Immutable(),
 		object.IDField("resource_id").
-			Comment("ID of the resource to which the revision belongs.").
+			Comment("ID of the resource to which the run belongs.").
 			NotEmpty().
 			Immutable(),
 		field.String("template_name").
@@ -62,73 +62,73 @@ func (ResourceRevision) Fields() []ent.Field {
 			Comment("Computed attributes generated from attributes and schemas.").
 			Optional(),
 		crypto.MapField[string, string]("variables").
-			Comment("Variables of the revision.").
+			Comment("Variables of the run.").
 			Default(crypto.Map[string, string]{}),
 		field.String("input_plan").
-			Comment("Input plan of the revision.").
+			Comment("Input plan of the run.").
 			Sensitive(),
 		field.String("output").
-			Comment("Output of the revision.").
+			Comment("Output of the run.").
 			Sensitive(),
 		field.String("deployer_type").
 			Comment("Type of deployer.").
 			Default(types.DeployerTypeTF),
 		field.Int("duration").
-			Comment("Duration in seconds of the revision deploying.").
+			Comment("Duration in seconds of the run deploying.").
 			Default(0),
 		field.JSON("previous_required_providers", []types.ProviderRequirement{}).
-			Comment("Previous provider requirement of the revision.").
+			Comment("Previous provider requirement of the run.").
 			Default([]types.ProviderRequirement{}),
 		field.Text("record").
-			Comment("Record of the revision.").
+			Comment("Record of the run.").
 			Optional(),
 		field.String("change_comment").
-			Comment("Change comment of the revision.").
+			Comment("Change comment of the run.").
 			Optional(),
 		field.String("created_by").
-			Comment("User who created the revision.").
+			Comment("User who created the run.").
 			Annotations(entx.SkipInput()),
 	}
 }
 
-func (ResourceRevision) Edges() []ent.Edge {
+func (ResourceRun) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Project 1-* ResourceRevisions.
+		// Project 1-* ResourceRuns.
 		edge.From("project", Project.Type).
-			Ref("resource_revisions").
+			Ref("resource_runs").
 			Field("project_id").
-			Comment("Project to which the revision belongs.").
+			Comment("Project to which the run belongs.").
 			Unique().
 			Required().
 			Immutable().
 			Annotations(
 				entx.ValidateContext(intercept.WithProjectInterceptor)),
-		// Environment 1-* ResourceRevisions.
+		// Environment 1-* ResourceRuns.
 		edge.From("environment", Environment.Type).
-			Ref("resource_revisions").
+			Ref("resource_runs").
 			Field("environment_id").
-			Comment("Environment to which the revision deploys.").
+			Comment("Environment to which the run deploys.").
 			Unique().
 			Required().
 			Immutable(),
-		// Resource 1-* ResourceRevisions.
+		// Resource 1-* ResourceRuns.
 		edge.From("resource", Resource.Type).
-			Ref("revisions").
+			Ref("runs").
 			Field("resource_id").
-			Comment("Resource to which the revision belongs.").
+			Comment("Resource to which the run belongs.").
 			Unique().
 			Required().
 			Immutable(),
 	}
 }
 
-func (ResourceRevision) Interceptors() []ent.Interceptor {
+func (ResourceRun) Interceptors() []ent.Interceptor {
 	return []ent.Interceptor{
 		intercept.ByProject("project_id"),
 	}
 }
 
-func (ResourceRevision) Hooks() []ent.Hook {
+func (ResourceRun) Hooks() []ent.Hook {
 	// Normalize special chars in status message.
 	normalizeStatusMessage := func(n ent.Mutator) ent.Mutator {
 		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
