@@ -15,8 +15,9 @@ func Format(resp *http.Response, opts Options) ([]byte, error) {
 		f = &YamlFormatter{}
 	default:
 		f = &TableFormatter{
-			Columns: opts.Columns,
-			Group:   opts.Group,
+			Columns:   opts.Columns,
+			Group:     opts.Group,
+			Operation: opts.Operation,
 		}
 	}
 
@@ -24,9 +25,10 @@ func Format(resp *http.Response, opts Options) ([]byte, error) {
 }
 
 type Options struct {
-	Format  string
-	Columns []string
-	Group   string
+	Format    string
+	Columns   []string
+	Group     string
+	Operation string
 }
 
 // Formatter generate formatted result for response.

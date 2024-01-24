@@ -120,9 +120,10 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 			}
 
 			b, err := formatter.Format(resp, formatter.Options{
-				Format:  o.format(*format),
-				Columns: o.TableColumns,
-				Group:   o.Group,
+				Format:    o.format(*format),
+				Columns:   o.TableColumns,
+				Group:     o.Group,
+				Operation: o.Name,
 			})
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
