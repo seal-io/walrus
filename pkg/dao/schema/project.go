@@ -61,9 +61,9 @@ func (Project) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.NoAction),
 				entx.SkipIO()),
-		// Project 1-* ResourceRevisions.
-		edge.To("resource_revisions", ResourceRevision.Type).
-			Comment("ResourceRevisions that belong to the project.").
+		// Project 1-* ResourceRuns.
+		edge.To("resource_runs", ResourceRun.Type).
+			Comment("ResourceRuns that belong to the project.").
 			Annotations(
 				entsql.OnDelete(entsql.NoAction),
 				entx.SkipIO()),

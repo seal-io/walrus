@@ -68,9 +68,9 @@ func (Environment) Edges() []ent.Edge {
 				entsql.OnDelete(entsql.Restrict),
 				entx.SkipInput(entx.WithUpdate(), entx.WithQuery()),
 				entx.SkipOutput()),
-		// Environment 1-* ResourceRevisions.
-		edge.To("resource_revisions", ResourceRevision.Type).
-			Comment("ResourceRevisions that belong to the environment.").
+		// Environment 1-* ResourceRuns.
+		edge.To("resource_runs", ResourceRun.Type).
+			Comment("ResourceRuns that belong to the environment.").
 			Annotations(
 				entsql.OnDelete(entsql.NoAction),
 				entx.SkipIO()),

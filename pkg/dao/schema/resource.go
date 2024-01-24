@@ -147,9 +147,9 @@ func (Resource) Edges() []ent.Edge {
 				entx.SkipInput(entx.WithQuery()),
 				entx.Input(entx.WithCreate(), entx.WithUpdate()),
 			),
-		// Resource 1-* ResourceRevisions.
-		edge.To("revisions", ResourceRevision.Type).
-			Comment("Revisions that belong to the resource.").
+		// Resource 1-* ResourceRuns.
+		edge.To("runs", ResourceRun.Type).
+			Comment("Runs that belong to the resource.").
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
 				entx.SkipIO()),
