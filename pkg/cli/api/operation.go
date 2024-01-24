@@ -204,7 +204,8 @@ func (o Operation) Request(
 
 			// Inject from arg.
 			if argCount < len(args) && strings.Contains(uriTemplate, paramPlaceholder) {
-				uriTemplate = strings.Replace(uriTemplate, paramPlaceholder, fmt.Sprintf("%v", args[argCount]), 1)
+				pa := url.PathEscape(args[argCount])
+				uriTemplate = strings.Replace(uriTemplate, paramPlaceholder, fmt.Sprintf("%v", pa), 1)
 				argCount += 1
 			}
 		case param.DataFrom == DataFromFlag:
@@ -214,9 +215,12 @@ func (o Operation) Request(
 			if len(se) == 0 {
 				continue
 			}
-			uriTemplate = strings.Replace(uriTemplate, paramPlaceholder, fmt.Sprintf("%v", se[0]), 1)
+
+			pa := url.PathEscape(se[0])
+			uriTemplate = strings.Replace(uriTemplate, paramPlaceholder, fmt.Sprintf("%v", pa), 1)
 		case param.DataFrom == DataFromArg:
-			uriTemplate = strings.Replace(uriTemplate, paramPlaceholder, fmt.Sprintf("%v", args[argCount]), 1)
+			pa := url.PathEscape(args[argCount])
+			uriTemplate = strings.Replace(uriTemplate, paramPlaceholder, fmt.Sprintf("%v", pa), 1)
 			argCount += 1
 		}
 	}
