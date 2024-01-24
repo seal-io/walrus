@@ -43,8 +43,9 @@ var fieldAlias = map[string]string{
 
 // TableFormatter use to convert response to table format.
 type TableFormatter struct {
-	Columns []string
-	Group   string
+	Columns   []string
+	Group     string
+	Operation string
 }
 
 func (f *TableFormatter) Format(resp *http.Response) ([]byte, error) {
@@ -132,7 +133,7 @@ func (f *TableFormatter) resourceItems(body []byte) string {
 		}
 	}
 
-	columns = append(columns, customColumnRender[f.Group]...)
+	columns = append(columns, getCustomColumnRender(f.Group, f.Operation)...)
 
 	return f.renderColumns(columns, data)
 }
@@ -163,7 +164,7 @@ func (f *TableFormatter) resourceItem(body []byte) string {
 		}
 	}
 
-	columns = append(columns, customColumnRender[f.Group]...)
+	columns = append(columns, getCustomColumnRender(f.Group, f.Operation)...)
 
 	return f.renderColumns(columns, []gjson.Result{data})
 }
@@ -211,35 +212,6 @@ type fieldRender struct {
 
 var defaultRenderFunc = func(name string, r gjson.Result) string {
 	return r.Get(name).String()
-}
-
-var customColumnRender = map[string][]fieldRender{
-	"Resources": {
-		{
-			name: "type",
-			renderFunc: func(_ string, r gjson.Result) string {
-				rtyp := r.Get("type")
-				if rtyp.Exists() {
-					return rtyp.String()
-				}
-
-				rt := r.Get("template")
-				if rt.Exists() {
-					rn := rt.Get("name")
-					rv := rt.Get("version")
-					proj := rt.Get("project")
-
-					if proj.Exists() {
-						return fmt.Sprintf("%s@%s", rn.String(), rv.String())
-					} else {
-						return fmt.Sprintf("%s@%s(Global)", rn.String(), rv.String())
-					}
-				}
-
-				return ""
-			},
-		},
-	},
 }
 
 func columnDisplayName(n string) string {
