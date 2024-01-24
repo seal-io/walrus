@@ -25,7 +25,7 @@ type SettingCreateInput struct {
 	inputConfig `path:"-" query:"-" json:"-"`
 
 	// The value of system setting, store in string.
-	Value crypto.String `path:"-" query:"-" json:"value"`
+	Value crypto.String `path:"-" query:"-" json:"value,cli-table-column"`
 }
 
 // Model returns the Setting entity for creating,
@@ -67,7 +67,7 @@ func (sci *SettingCreateInput) ValidateWith(ctx context.Context, cs ClientSet, c
 // SettingCreateInputs holds the creation input item of the Setting entities.
 type SettingCreateInputsItem struct {
 	// The value of system setting, store in string.
-	Value crypto.String `path:"-" query:"-" json:"value"`
+	Value crypto.String `path:"-" query:"-" json:"value,cli-table-column"`
 }
 
 // ValidateWith checks the SettingCreateInputsItem entity with the given context and client set.
@@ -617,7 +617,7 @@ type SettingUpdateInputsItem struct {
 	Name string `path:"-" query:"-" json:"name,omitempty"`
 
 	// The value of system setting, store in string.
-	Value crypto.String `path:"-" query:"-" json:"value"`
+	Value crypto.String `path:"-" query:"-" json:"value,cli-table-column"`
 }
 
 // ValidateWith checks the SettingUpdateInputsItem entity with the given context and client set.
@@ -773,7 +773,7 @@ type SettingOutput struct {
 	CreateTime *time.Time    `json:"createTime,omitempty"`
 	UpdateTime *time.Time    `json:"updateTime,omitempty"`
 	Name       string        `json:"name,omitempty"`
-	Value      crypto.String `json:"value,omitempty"`
+	Value      crypto.String `json:"value,cli-table-column,omitempty"`
 	Hidden     *bool         `json:"hidden,omitempty"`
 	Editable   *bool         `json:"editable,omitempty"`
 	Sensitive  *bool         `json:"sensitive,omitempty"`

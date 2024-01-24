@@ -30,7 +30,7 @@ type Setting struct {
 	// The name of system setting.
 	Name string `json:"name,omitempty"`
 	// The value of system setting, store in string.
-	Value crypto.String `json:"value,omitempty"`
+	Value crypto.String `json:"value,omitempty,cli-table-column"`
 	// Indicate the system setting should be hidden or not, default is visible.
 	Hidden *bool `json:"hidden,omitempty"`
 	// Indicate the system setting should be edited or not, default is readonly.
