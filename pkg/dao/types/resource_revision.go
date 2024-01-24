@@ -9,7 +9,7 @@ import (
 
 type OutputValue struct {
 	Name      string          `json:"name,omitempty"`
-	Value     property.Value  `json:"value,omitempty"`
+	Value     property.Value  `json:"value,omitempty,cli-table-column"`
 	Type      cty.Type        `json:"type,omitempty"`
 	Sensitive bool            `json:"sensitive,omitempty"`
 	Schema    openapi3.Schema `json:"schema,omitempty"`

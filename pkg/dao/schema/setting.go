@@ -40,7 +40,8 @@ func (Setting) Fields() []ent.Field {
 					entx.WithCreate(),
 					entx.WithUpdate())),
 		crypto.StringField("value").
-			Comment("The value of system setting, store in string."),
+			Comment("The value of system setting, store in string.").
+			StructTag(`json:"value,omitempty,cli-table-column"`),
 		field.Bool("hidden").
 			Comment("Indicate the system setting should be hidden or not, default is visible.").
 			Nillable().
