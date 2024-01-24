@@ -71,7 +71,18 @@ func (c *Config) DoRequest(req *http.Request) (*http.Response, error) {
 }
 
 func (c *Config) CheckReachable() (err error) {
-	u, err := url.Parse(c.Server)
+	// Reachable set.
+	c.Reachable = true
+
+	defer func() {
+		if err != nil {
+			c.Reachable = false
+		}
+	}()
+
+	var u *url.URL
+
+	u, err = url.Parse(c.Server)
 	if err != nil {
 		return err
 	}
@@ -109,11 +120,8 @@ func (c *Config) ValidateAndSetup() (err error) {
 
 	msg := `cli configuration is invalid: %v. You can configure cli by running "walrus login"`
 
-	switch {
-	case c.Server == "":
+	if c.Server == "" {
 		return fmt.Errorf(msg, "server address is empty")
-	case c.Token == "":
-		return fmt.Errorf(msg, "token is empty")
 	}
 
 	err = c.CheckReachable()
@@ -127,7 +135,7 @@ func (c *Config) ValidateAndSetup() (err error) {
 	case c.Project != "":
 		err = c.validateProject()
 	default:
-		err = c.validateToken()
+		err = c.validateAccountInfo()
 	}
 
 	if err != nil {
@@ -247,8 +255,8 @@ func (c *Config) validateResourceItem(resource, name, address string) error {
 	return common.CheckResponseStatus(resp, fmt.Sprintf("%s %s", strs.Singularize(resource), name))
 }
 
-// validateToken send get account info request to server.
-func (c *Config) validateToken() error {
+// validateAccountInfo send get account info request to server.
+func (c *Config) validateAccountInfo() error {
 	req, err := http.NewRequest(http.MethodGet, accountInfoPath, nil)
 	if err != nil {
 		return err
