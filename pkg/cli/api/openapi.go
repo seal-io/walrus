@@ -63,11 +63,11 @@ func InitOpenAPI(sc *config.Config, skipCache bool) error {
 	}
 
 	resp, err := sc.DoRequest(req)
-	defer func() { _ = resp.Body.Close() }()
-
 	if err != nil {
 		return err
 	}
+
+	defer func() { _ = resp.Body.Close() }()
 
 	api, err := LoadOpenAPIFromResp(resp)
 	if err != nil {
