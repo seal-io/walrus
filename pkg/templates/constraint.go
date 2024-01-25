@@ -144,8 +144,9 @@ func isConstraintSatisfied(schema *types.TemplateVersionSchema) (bool, error) {
 		return true, nil
 	}
 
+	// File schema.yaml may not exist, ignore constraint.
 	if schema == nil || schema.OpenAPISchema == nil || schema.OpenAPISchema.Info == nil {
-		return false, nil
+		return true, nil
 	}
 
 	semv, err := semver.NewVersion(strings.TrimPrefix(v, "v"))
