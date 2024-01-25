@@ -18,6 +18,7 @@ import (
 	_ "github.com/lib/pq" // Db = postgres.
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
+	"golang.org/x/exp/slices"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilnet "k8s.io/apimachinery/pkg/util/net"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -33,7 +34,6 @@ import (
 	"github.com/seal-io/walrus/pkg/cron"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	_ "github.com/seal-io/walrus/pkg/dao/model/runtime" // Default = ent.
-	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/database"
 	"github.com/seal-io/walrus/pkg/datalisten"
@@ -83,7 +83,7 @@ type Server struct {
 	CacheSourceAddress     string
 	CacheSourceConnMaxOpen int
 	CacheSourceConnMaxIdle int
-	CacheSourceMaxLife     time.Duration
+	CacheSourceConnMaxLife time.Duration
 
 	EnableAuthn            bool
 	AuthnSessionMaxIdle    time.Duration
@@ -112,7 +112,7 @@ func New() *Server {
 		EnableAuthn:            true,
 		AuthnSessionMaxIdle:    30 * time.Minute,
 		GopoolWorkerFactor:     100,
-		BuiltinCatalogProvider: types.GitDriverGithub,
+		BuiltinCatalogProvider: "github",
 	}
 }
 
@@ -143,18 +143,14 @@ func (r *Server) Flags(cmd *cli.Command) {
 			Value:       r.EnableTls,
 		},
 		&cli.StringFlag{
-			Name: "builtin-catalog-provider",
-			Usage: "Specify the provider type for creating builtin catalogs: 'github' or 'gitee'. " +
-				"This parameter is case-insensitive.",
+			Name:        "builtin-catalog-provider",
+			Usage:       "Specify the provider type for creating builtin catalogs, select from 'github' or 'gitee'.",
 			Destination: &r.BuiltinCatalogProvider,
 			Value:       r.BuiltinCatalogProvider,
 			Action: func(c *cli.Context, s string) error {
-				s = strs.Title(strings.ToLower(s))
-				switch s {
-				case types.GitDriverGithub, types.GitDriverGitee:
-					r.BuiltinCatalogProvider = s
-				default:
-					return errors.New("--builtin-catalog-provider: only support github or gitee")
+				ss := []string{"github", "gitee"}
+				if !slices.Contains(ss, s) {
+					return fmt.Errorf(`--builtin-catalog-provider: select from %v`, ss)
 				}
 				return nil
 			},
@@ -411,8 +407,8 @@ func (r *Server) Flags(cmd *cli.Command) {
 		&cli.DurationFlag{
 			Name:        "cache-source-conn-max-life",
 			Usage:       "The maximum lifetime for connecting cache source.",
-			Destination: &r.CacheSourceMaxLife,
-			Value:       r.CacheSourceMaxLife,
+			Destination: &r.CacheSourceConnMaxLife,
+			Value:       r.CacheSourceConnMaxLife,
 		},
 		&cli.BoolFlag{
 			Name:        "enable-authn",
