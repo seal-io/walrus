@@ -92,7 +92,7 @@ func InstallLocalWalrusDockerContainer() error {
 
 func getLocalWalrusTag() string {
 	if version.IsValid() {
-		return version.Get()
+		return version.Version
 	}
 
 	return "main"
