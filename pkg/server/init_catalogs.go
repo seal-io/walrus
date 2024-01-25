@@ -23,8 +23,10 @@ func (r *Server) createBuiltinCatalogs(ctx context.Context, opts initOptions) er
 	builtin := pkgcatalog.BuiltinCatalog()
 
 	switch opts.BuiltinCatalogProvider {
-	case types.GitDriverGitee, types.GitDriverGithub:
-		builtin.Type = opts.BuiltinCatalogProvider
+	case "github":
+		builtin.Type = types.GitDriverGithub
+	case "gitee":
+		builtin.Type = types.GitDriverGitee
 	default:
 		return fmt.Errorf("invalid builtin catalog provider: %s", opts.BuiltinCatalogProvider)
 	}
