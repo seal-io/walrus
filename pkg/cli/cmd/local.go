@@ -78,7 +78,7 @@ func install() error {
 		false,
 		func(ctx context.Context) (done bool, err error) {
 			// nolint:nilerr
-			if err = cfg.CheckReachable(); err != nil {
+			if err = cfg.ValidateAndSetup(); err != nil {
 				return false, nil
 			}
 
