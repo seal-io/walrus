@@ -180,32 +180,38 @@ func GenSchemaDefaultPatch(ctx context.Context, schema *openapi3.Schema) ([]byte
 func GenSchemaDefaultWithAttribute(
 	ctx context.Context, schema *openapi3.Schema, attrs property.Values, defaultValuesByte ...[]byte,
 ) ([]byte, error) {
-	copySchema := openapi3.NewObjectSchema()
+	var (
+		defaultWithAttrsByte []byte
+		err                  error
+	)
 
-	for n := range schema.Properties {
-		if v := attrs[n]; v != nil &&
-			schema.Properties[n] != nil &&
-			schema.Properties[n].Value != nil {
-			copyProp := *schema.Properties[n].Value
-			copyProp.Default = v
+	if schema != nil {
+		copySchema := openapi3.NewObjectSchema()
 
-			copySchema.Properties[n] = &openapi3.SchemaRef{
-				Value: &copyProp,
+		for n := range schema.Properties {
+			if v := attrs[n]; v != nil &&
+				schema.Properties[n] != nil &&
+				schema.Properties[n].Value != nil {
+				copyProp := *schema.Properties[n].Value
+				copyProp.Default = v
+
+				copySchema.Properties[n] = &openapi3.SchemaRef{
+					Value: &copyProp,
+				}
 			}
 		}
-	}
-
-	// Generate default with attributes.
-	dv, err := GenSchemaDefaultPatch(ctx, copySchema)
-	if err != nil {
-		return nil, err
+		// Generate default with attributes.
+		defaultWithAttrsByte, err = GenSchemaDefaultPatch(ctx, copySchema)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Merge the default from attributes and exist default.
 	genAttrs := make(property.Values)
 
-	if dv != nil {
-		err = json.Unmarshal(dv, &genAttrs)
+	if len(defaultWithAttrsByte) != 0 {
+		err = json.Unmarshal(defaultWithAttrsByte, &genAttrs)
 		if err != nil {
 			return nil, err
 		}
