@@ -8,6 +8,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/deployer"
 	deployertf "github.com/seal-io/walrus/pkg/deployer/terraform"
@@ -36,10 +37,7 @@ func DeleteResources(req CollectionDeleteRequest, mc model.ClientSet, kubeConfig
 			return err
 		}
 
-		resources, err = pkgresource.ReverseTopologicalSortResources(resources)
-		if err != nil {
-			return err
-		}
+		environmentIDToResources := resourcesGroupByEnvironment(resources)
 
 		deployerOpts := deptypes.CreateOptions{
 			Type:       deployertf.DeployerType,
@@ -55,21 +53,28 @@ func DeleteResources(req CollectionDeleteRequest, mc model.ClientSet, kubeConfig
 			Deployer: dp,
 		}
 
-		for _, s := range resources {
-			if err := pkgresource.SetSubjectID(req.Context, s); err != nil {
-				return err
-			}
-
-			s, err = tx.Resources().UpdateOne(s).
-				SetAnnotations(s.Annotations).
-				Save(req.Context)
+		for _, resourceGroup := range environmentIDToResources {
+			resourceGroup, err = pkgresource.ReverseTopologicalSortResources(resourceGroup)
 			if err != nil {
 				return err
 			}
 
-			err = pkgresource.Destroy(req.Context, tx, s, destroyOpts)
-			if err != nil {
-				return err
+			for _, s := range resourceGroup {
+				if err = pkgresource.SetSubjectID(req.Context, s); err != nil {
+					return err
+				}
+
+				s, err = tx.Resources().UpdateOne(s).
+					SetAnnotations(s.Annotations).
+					Save(req.Context)
+				if err != nil {
+					return err
+				}
+
+				err = pkgresource.Destroy(req.Context, tx, s, destroyOpts)
+				if err != nil {
+					return err
+				}
 			}
 		}
 
@@ -77,18 +82,49 @@ func DeleteResources(req CollectionDeleteRequest, mc model.ClientSet, kubeConfig
 	})
 }
 
+// resourcesGroupByEnvironment groups resources by environment ID.
+func resourcesGroupByEnvironment(resources model.Resources) map[object.ID][]*model.Resource {
+	environmentIDToResources := make(map[object.ID][]*model.Resource)
+	for _, r := range resources {
+		environmentIDToResources[r.EnvironmentID] = append(environmentIDToResources[r.EnvironmentID], r)
+	}
+
+	return environmentIDToResources
+}
+
 func UpgradeResources(req CollectionRouteUpgradeRequest, mc model.ClientSet, kubeConfig *rest.Config) error {
-	// Make sure the resources are upgraded in topological order.
-	entities, err := pkgresource.TopologicalSortResources(req.Model())
+	resources, err := mc.Resources().Query().
+		Where(resource.IDIn(req.IDs()...)).
+		All(req.Context)
 	if err != nil {
 		return err
 	}
 
-	for _, entity := range entities {
-		entity.ChangeComment = req.ChangeComment
+	resourceIDToEnvironmentID := make(map[object.ID]object.ID)
+	for _, r := range resources {
+		resourceIDToEnvironmentID[r.ID] = r.EnvironmentID
+	}
 
-		if err = upgrade(req.Context, kubeConfig, mc, entity, req.Draft); err != nil {
+	entities := req.Model()
+	for _, entity := range entities {
+		entity.EnvironmentID = resourceIDToEnvironmentID[entity.ID]
+	}
+
+	environmentIDToResources := resourcesGroupByEnvironment(entities)
+
+	for _, resourceGroup := range environmentIDToResources {
+		// Make sure the resources are upgraded in topological order.
+		resourceGroup, err = pkgresource.TopologicalSortResources(resourceGroup)
+		if err != nil {
 			return err
+		}
+
+		for _, r := range resourceGroup {
+			r.ChangeComment = req.ChangeComment
+
+			if err = upgrade(req.Context, kubeConfig, mc, r, req.Draft); err != nil {
+				return err
+			}
 		}
 	}
 
