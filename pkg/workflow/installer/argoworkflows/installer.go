@@ -26,6 +26,8 @@ crds:
   annotations:
     "{{ .ManagedLabel }}": "true"
 
+createAggregateRoles: false
+
 singleNamespace: true
 
 images:
