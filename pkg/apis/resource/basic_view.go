@@ -655,6 +655,10 @@ func validateAttributesWithTemplate(
 			return fmt.Errorf("failed to inject attributes before valiate: %w", err)
 		}
 
+		if len(injectedAttrs) == 0 {
+			return nil
+		}
+
 		err = injectedAttrs.ValidateWith(s.VariableSchema())
 		if err != nil {
 			return fmt.Errorf("invalid variables: violate ui schema: %w", err)
@@ -676,6 +680,10 @@ func validateAttributesWithResourceDefinition(
 		injectedAttrs, err := injectAttributes(ctx, client, projectID, environmentID, attrs)
 		if err != nil {
 			return fmt.Errorf("failed to inject attributes before valiate: %w", err)
+		}
+
+		if len(injectedAttrs) == 0 {
+			return nil
 		}
 
 		err = injectedAttrs.ValidateWith(s.VariableSchema())
