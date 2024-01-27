@@ -16,76 +16,86 @@ import (
 	"github.com/seal-io/walrus/utils/strs"
 )
 
-// ResourceComponentRelationshipUpdateWithDependencies updates the relationship with dependencies and resources.
+// ResourceComponentRelationshipUpdateWithDependencies updates the dependencies of resource components with dependencies.
+// Update relationships between resource components dependencies,
+// relationship like composition or realization will be ignored.
 func ResourceComponentRelationshipUpdateWithDependencies(
 	ctx context.Context,
 	mc model.ClientSet,
 	dependencies map[string][]string,
-	recordResources,
-	createResources model.ResourceComponents,
+	recordComponents,
+	createComponents model.ResourceComponents,
 ) error {
 	logger := log.WithName("dao").WithName("resource-component-relationship")
+	componentMap := ResourceComponentToMap(append(recordComponents, createComponents...))
 
-	resourceMap := ResourceComponentToMap(append(recordResources, createResources...))
-
-	recordResourceIDs := make([]object.ID, 0, len(recordResources))
-	for _, r := range recordResources {
-		recordResourceIDs = append(recordResourceIDs, r.ID)
+	recordComponentIDs := make([]object.ID, 0, len(recordComponents))
+	for _, r := range recordComponents {
+		recordComponentIDs = append(recordComponentIDs, r.ID)
 	}
 
-	recordResourceRelationships, err := mc.ResourceComponentRelationships().Query().
-		Where(resourcecomponentrelationship.ResourceComponentIDIn(recordResourceIDs...)).
+	recordComponentRelationships, err := mc.ResourceComponentRelationships().Query().
+		Where(resourcecomponentrelationship.ResourceComponentIDIn(recordComponentIDs...)).
 		All(ctx)
 	if err != nil {
 		return err
 	}
 
+	// RelationshipSets stores the relationship set.
 	relationshipSets := sets.NewString()
-	for _, r := range recordResourceRelationships {
+
+	for i := range recordComponentRelationships {
+		r := recordComponentRelationships[i]
+		// The type of relationship is only types.ResourceComponentRelationshipTypeDependency(Dependency) now.
 		relationshipSets.Insert(strs.Join("/", r.ResourceComponentID.String(), r.DependencyID.String(), r.Type))
 	}
 
 	// Create resource relationships with dependencies.
-	createResourceRelationships := make(model.ResourceComponentRelationships, 0, len(dependencies))
+	createComponentRelationships := make(model.ResourceComponentRelationships, 0)
 
 	for k, deps := range dependencies {
-		r, ok := resourceMap[k]
+		component, ok := componentMap[k]
 		if !ok {
-			logger.Warnf("resource not found, resource index: %s", k)
+			logger.Warnf("resource component not found,resource component index: %s", k)
 			continue
 		}
 
 		for _, k := range deps {
-			dr, ok := resourceMap[k]
+			dependencyComponent, ok := componentMap[k]
 			if !ok {
-				logger.Warnf("dependant resource not found, resource index: %s", k)
-				continue
-			}
-
-			// Skip if relationship already exists.
-			if relationshipSets.Has(strs.Join("/", r.ID.String(), dr.ID.String(), dr.Type)) {
+				logger.Warnf("dependant component not found, component index: %s", k)
 				continue
 			}
 
 			// Skip composition or realization relationship.
-			if dr.ID == r.CompositionID || dr.ID == r.ClassID {
+			if dependencyComponent.ID == component.CompositionID || dependencyComponent.ID == component.ClassID {
 				continue
 			}
 
-			createResourceRelationships = append(
-				createResourceRelationships,
+			// Skip if relationship already exists.
+			if relationshipSets.Has(
+				strs.Join(
+					"/",
+					component.ID.String(),
+					dependencyComponent.ID.String(),
+					types.ResourceComponentRelationshipTypeDependency)) {
+				continue
+			}
+
+			createComponentRelationships = append(
+				createComponentRelationships,
 				&model.ResourceComponentRelationship{
-					ResourceComponentID: r.ID,
-					DependencyID:        dr.ID,
+					ResourceComponentID: component.ID,
+					DependencyID:        dependencyComponent.ID,
 					Type:                types.ResourceComponentRelationshipTypeDependency,
 				})
 		}
 	}
 
-	if len(createResourceRelationships) > 0 {
+	if len(createComponentRelationships) > 0 {
 		// Create relationships.
 		err = mc.ResourceComponentRelationships().CreateBulk().
-			Set(createResourceRelationships...).
+			Set(createComponentRelationships...).
 			OnConflict(
 				sql.ConflictColumns(
 					resourcecomponentrelationship.FieldResourceComponentID,
