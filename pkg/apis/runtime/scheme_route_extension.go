@@ -43,8 +43,12 @@ var (
 		"/projects/:project/environments/:environment/resources/_/graph",
 		"/projects/:project/connectors/:connector/repositories",
 		"/projects/:project/connectors/:connector/repository-branches",
+		"/projects/:project/connectors/:connector/apply-cost-tools",
+		"/projects/:project/connectors/:connector/sync-cost-data",
 		"/connectors/:connector/repositories",
 		"/connectors/:connector/repository-branches",
+		"/connectors/:connector/apply-cost-tools",
+		"/connectors/:connector/sync-cost-data",
 		"/perspectives/_/field-values",
 		"/perspectives/_/fields",
 	}
