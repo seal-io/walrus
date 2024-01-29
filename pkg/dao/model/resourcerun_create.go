@@ -120,9 +120,9 @@ func (rrc *ResourceRunCreate) SetVariables(c crypto.Map[string, string]) *Resour
 	return rrc
 }
 
-// SetInputPlan sets the "input_plan" field.
-func (rrc *ResourceRunCreate) SetInputPlan(s string) *ResourceRunCreate {
-	rrc.mutation.SetInputPlan(s)
+// SetInputConfigs sets the "input_configs" field.
+func (rrc *ResourceRunCreate) SetInputConfigs(m map[string][]uint8) *ResourceRunCreate {
+	rrc.mutation.SetInputConfigs(m)
 	return rrc
 }
 
@@ -340,8 +340,8 @@ func (rrc *ResourceRunCreate) check() error {
 	if _, ok := rrc.mutation.Variables(); !ok {
 		return &ValidationError{Name: "variables", err: errors.New(`model: missing required field "ResourceRun.variables"`)}
 	}
-	if _, ok := rrc.mutation.InputPlan(); !ok {
-		return &ValidationError{Name: "input_plan", err: errors.New(`model: missing required field "ResourceRun.input_plan"`)}
+	if _, ok := rrc.mutation.InputConfigs(); !ok {
+		return &ValidationError{Name: "input_configs", err: errors.New(`model: missing required field "ResourceRun.input_configs"`)}
 	}
 	if _, ok := rrc.mutation.Output(); !ok {
 		return &ValidationError{Name: "output", err: errors.New(`model: missing required field "ResourceRun.output"`)}
@@ -436,9 +436,9 @@ func (rrc *ResourceRunCreate) createSpec() (*ResourceRun, *sqlgraph.CreateSpec) 
 		_spec.SetField(resourcerun.FieldVariables, field.TypeOther, value)
 		_node.Variables = value
 	}
-	if value, ok := rrc.mutation.InputPlan(); ok {
-		_spec.SetField(resourcerun.FieldInputPlan, field.TypeString, value)
-		_node.InputPlan = value
+	if value, ok := rrc.mutation.InputConfigs(); ok {
+		_spec.SetField(resourcerun.FieldInputConfigs, field.TypeJSON, value)
+		_node.InputConfigs = value
 	}
 	if value, ok := rrc.mutation.Output(); ok {
 		_spec.SetField(resourcerun.FieldOutput, field.TypeString, value)
@@ -552,7 +552,7 @@ func (rrc *ResourceRunCreate) Set(obj *ResourceRun) *ResourceRunCreate {
 	rrc.SetTemplateVersion(obj.TemplateVersion)
 	rrc.SetTemplateID(obj.TemplateID)
 	rrc.SetVariables(obj.Variables)
-	rrc.SetInputPlan(obj.InputPlan)
+	rrc.SetInputConfigs(obj.InputConfigs)
 	rrc.SetOutput(obj.Output)
 	rrc.SetDeployerType(obj.DeployerType)
 	rrc.SetDuration(obj.Duration)
@@ -641,8 +641,8 @@ func (rrc *ResourceRunCreate) SaveE(ctx context.Context, cbs ...func(ctx context
 		if _, set := rrc.mutation.Field(resourcerun.FieldComputedAttributes); set {
 			obj.ComputedAttributes = x.ComputedAttributes
 		}
-		if _, set := rrc.mutation.Field(resourcerun.FieldInputPlan); set {
-			obj.InputPlan = x.InputPlan
+		if _, set := rrc.mutation.Field(resourcerun.FieldInputConfigs); set {
+			obj.InputConfigs = x.InputConfigs
 		}
 		if _, set := rrc.mutation.Field(resourcerun.FieldOutput); set {
 			obj.Output = x.Output
@@ -782,8 +782,8 @@ func (rrcb *ResourceRunCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx co
 			if _, set := rrcb.builders[i].mutation.Field(resourcerun.FieldComputedAttributes); set {
 				objs[i].ComputedAttributes = x[i].ComputedAttributes
 			}
-			if _, set := rrcb.builders[i].mutation.Field(resourcerun.FieldInputPlan); set {
-				objs[i].InputPlan = x[i].InputPlan
+			if _, set := rrcb.builders[i].mutation.Field(resourcerun.FieldInputConfigs); set {
+				objs[i].InputConfigs = x[i].InputConfigs
 			}
 			if _, set := rrcb.builders[i].mutation.Field(resourcerun.FieldOutput); set {
 				objs[i].Output = x[i].Output
@@ -1001,15 +1001,15 @@ func (u *ResourceRunUpsert) UpdateVariables() *ResourceRunUpsert {
 	return u
 }
 
-// SetInputPlan sets the "input_plan" field.
-func (u *ResourceRunUpsert) SetInputPlan(v string) *ResourceRunUpsert {
-	u.Set(resourcerun.FieldInputPlan, v)
+// SetInputConfigs sets the "input_configs" field.
+func (u *ResourceRunUpsert) SetInputConfigs(v map[string][]uint8) *ResourceRunUpsert {
+	u.Set(resourcerun.FieldInputConfigs, v)
 	return u
 }
 
-// UpdateInputPlan sets the "input_plan" field to the value that was provided on create.
-func (u *ResourceRunUpsert) UpdateInputPlan() *ResourceRunUpsert {
-	u.SetExcluded(resourcerun.FieldInputPlan)
+// UpdateInputConfigs sets the "input_configs" field to the value that was provided on create.
+func (u *ResourceRunUpsert) UpdateInputConfigs() *ResourceRunUpsert {
+	u.SetExcluded(resourcerun.FieldInputConfigs)
 	return u
 }
 
@@ -1272,17 +1272,17 @@ func (u *ResourceRunUpsertOne) UpdateVariables() *ResourceRunUpsertOne {
 	})
 }
 
-// SetInputPlan sets the "input_plan" field.
-func (u *ResourceRunUpsertOne) SetInputPlan(v string) *ResourceRunUpsertOne {
+// SetInputConfigs sets the "input_configs" field.
+func (u *ResourceRunUpsertOne) SetInputConfigs(v map[string][]uint8) *ResourceRunUpsertOne {
 	return u.Update(func(s *ResourceRunUpsert) {
-		s.SetInputPlan(v)
+		s.SetInputConfigs(v)
 	})
 }
 
-// UpdateInputPlan sets the "input_plan" field to the value that was provided on create.
-func (u *ResourceRunUpsertOne) UpdateInputPlan() *ResourceRunUpsertOne {
+// UpdateInputConfigs sets the "input_configs" field to the value that was provided on create.
+func (u *ResourceRunUpsertOne) UpdateInputConfigs() *ResourceRunUpsertOne {
 	return u.Update(func(s *ResourceRunUpsert) {
-		s.UpdateInputPlan()
+		s.UpdateInputConfigs()
 	})
 }
 
@@ -1731,17 +1731,17 @@ func (u *ResourceRunUpsertBulk) UpdateVariables() *ResourceRunUpsertBulk {
 	})
 }
 
-// SetInputPlan sets the "input_plan" field.
-func (u *ResourceRunUpsertBulk) SetInputPlan(v string) *ResourceRunUpsertBulk {
+// SetInputConfigs sets the "input_configs" field.
+func (u *ResourceRunUpsertBulk) SetInputConfigs(v map[string][]uint8) *ResourceRunUpsertBulk {
 	return u.Update(func(s *ResourceRunUpsert) {
-		s.SetInputPlan(v)
+		s.SetInputConfigs(v)
 	})
 }
 
-// UpdateInputPlan sets the "input_plan" field to the value that was provided on create.
-func (u *ResourceRunUpsertBulk) UpdateInputPlan() *ResourceRunUpsertBulk {
+// UpdateInputConfigs sets the "input_configs" field to the value that was provided on create.
+func (u *ResourceRunUpsertBulk) UpdateInputConfigs() *ResourceRunUpsertBulk {
 	return u.Update(func(s *ResourceRunUpsert) {
-		s.UpdateInputPlan()
+		s.UpdateInputConfigs()
 	})
 }
 

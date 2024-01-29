@@ -113,11 +113,6 @@ func Variables(v crypto.Map[string, string]) predicate.ResourceRun {
 	return predicate.ResourceRun(sql.FieldEQ(FieldVariables, v))
 }
 
-// InputPlan applies equality check predicate on the "input_plan" field. It's identical to InputPlanEQ.
-func InputPlan(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldEQ(FieldInputPlan, v))
-}
-
 // Output applies equality check predicate on the "output" field. It's identical to OutputEQ.
 func Output(v string) predicate.ResourceRun {
 	return predicate.ResourceRun(sql.FieldEQ(FieldOutput, v))
@@ -746,71 +741,6 @@ func VariablesLT(v crypto.Map[string, string]) predicate.ResourceRun {
 // VariablesLTE applies the LTE predicate on the "variables" field.
 func VariablesLTE(v crypto.Map[string, string]) predicate.ResourceRun {
 	return predicate.ResourceRun(sql.FieldLTE(FieldVariables, v))
-}
-
-// InputPlanEQ applies the EQ predicate on the "input_plan" field.
-func InputPlanEQ(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldEQ(FieldInputPlan, v))
-}
-
-// InputPlanNEQ applies the NEQ predicate on the "input_plan" field.
-func InputPlanNEQ(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldNEQ(FieldInputPlan, v))
-}
-
-// InputPlanIn applies the In predicate on the "input_plan" field.
-func InputPlanIn(vs ...string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldIn(FieldInputPlan, vs...))
-}
-
-// InputPlanNotIn applies the NotIn predicate on the "input_plan" field.
-func InputPlanNotIn(vs ...string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldNotIn(FieldInputPlan, vs...))
-}
-
-// InputPlanGT applies the GT predicate on the "input_plan" field.
-func InputPlanGT(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldGT(FieldInputPlan, v))
-}
-
-// InputPlanGTE applies the GTE predicate on the "input_plan" field.
-func InputPlanGTE(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldGTE(FieldInputPlan, v))
-}
-
-// InputPlanLT applies the LT predicate on the "input_plan" field.
-func InputPlanLT(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldLT(FieldInputPlan, v))
-}
-
-// InputPlanLTE applies the LTE predicate on the "input_plan" field.
-func InputPlanLTE(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldLTE(FieldInputPlan, v))
-}
-
-// InputPlanContains applies the Contains predicate on the "input_plan" field.
-func InputPlanContains(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldContains(FieldInputPlan, v))
-}
-
-// InputPlanHasPrefix applies the HasPrefix predicate on the "input_plan" field.
-func InputPlanHasPrefix(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldHasPrefix(FieldInputPlan, v))
-}
-
-// InputPlanHasSuffix applies the HasSuffix predicate on the "input_plan" field.
-func InputPlanHasSuffix(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldHasSuffix(FieldInputPlan, v))
-}
-
-// InputPlanEqualFold applies the EqualFold predicate on the "input_plan" field.
-func InputPlanEqualFold(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldEqualFold(FieldInputPlan, v))
-}
-
-// InputPlanContainsFold applies the ContainsFold predicate on the "input_plan" field.
-func InputPlanContainsFold(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldContainsFold(FieldInputPlan, v))
 }
 
 // OutputEQ applies the EQ predicate on the "output" field.

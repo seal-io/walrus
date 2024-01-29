@@ -36,8 +36,8 @@ type ResourceRunCreateInput struct {
 
 	// Output of the run.
 	Output string `path:"-" query:"-" json:"output"`
-	// Input plan of the run.
-	InputPlan string `path:"-" query:"-" json:"inputPlan"`
+	// Input configs of the run.
+	InputConfigs map[string][]uint8 `path:"-" query:"-" json:"inputConfigs"`
 	// ID of the template.
 	TemplateID object.ID `path:"-" query:"-" json:"templateID"`
 	// Version of the template.
@@ -71,7 +71,7 @@ func (rrci *ResourceRunCreateInput) Model() *ResourceRun {
 
 	_rr := &ResourceRun{
 		Output:                    rrci.Output,
-		InputPlan:                 rrci.InputPlan,
+		InputConfigs:              rrci.InputConfigs,
 		TemplateID:                rrci.TemplateID,
 		TemplateVersion:           rrci.TemplateVersion,
 		TemplateName:              rrci.TemplateName,
@@ -143,8 +143,8 @@ func (rrci *ResourceRunCreateInput) ValidateWith(ctx context.Context, cs ClientS
 type ResourceRunCreateInputsItem struct {
 	// Output of the run.
 	Output string `path:"-" query:"-" json:"output"`
-	// Input plan of the run.
-	InputPlan string `path:"-" query:"-" json:"inputPlan"`
+	// Input configs of the run.
+	InputConfigs map[string][]uint8 `path:"-" query:"-" json:"inputConfigs"`
 	// ID of the template.
 	TemplateID object.ID `path:"-" query:"-" json:"templateID"`
 	// Version of the template.
@@ -210,7 +210,7 @@ func (rrci *ResourceRunCreateInputs) Model() []*ResourceRun {
 	for i := range rrci.Items {
 		_rr := &ResourceRun{
 			Output:                    rrci.Items[i].Output,
-			InputPlan:                 rrci.Items[i].InputPlan,
+			InputConfigs:              rrci.Items[i].InputConfigs,
 			TemplateID:                rrci.Items[i].TemplateID,
 			TemplateVersion:           rrci.Items[i].TemplateVersion,
 			TemplateName:              rrci.Items[i].TemplateName,
@@ -473,8 +473,8 @@ type ResourceRunPatchInput struct {
 	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
 	// Variables of the run.
 	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables,omitempty"`
-	// Input plan of the run.
-	InputPlan string `path:"-" query:"-" json:"inputPlan,omitempty"`
+	// Input configs of the run.
+	InputConfigs map[string][]uint8 `path:"-" query:"-" json:"inputConfigs,omitempty"`
 	// Output of the run.
 	Output string `path:"-" query:"-" json:"output,omitempty"`
 	// Type of deployer.
@@ -508,7 +508,7 @@ func (rrpi *ResourceRunPatchInput) PatchModel() *ResourceRun {
 		Attributes:                rrpi.Attributes,
 		ComputedAttributes:        rrpi.ComputedAttributes,
 		Variables:                 rrpi.Variables,
-		InputPlan:                 rrpi.InputPlan,
+		InputConfigs:              rrpi.InputConfigs,
 		Output:                    rrpi.Output,
 		DeployerType:              rrpi.DeployerType,
 		Duration:                  rrpi.Duration,
@@ -853,8 +853,8 @@ type ResourceRunUpdateInput struct {
 	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
 	// Variables of the run.
 	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables,omitempty"`
-	// Input plan of the run.
-	InputPlan string `path:"-" query:"-" json:"inputPlan,omitempty"`
+	// Input configs of the run.
+	InputConfigs map[string][]uint8 `path:"-" query:"-" json:"inputConfigs,omitempty"`
 	// Output of the run.
 	Output string `path:"-" query:"-" json:"output,omitempty"`
 	// Type of deployer.
@@ -882,7 +882,7 @@ func (rrui *ResourceRunUpdateInput) Model() *ResourceRun {
 		Attributes:                rrui.Attributes,
 		ComputedAttributes:        rrui.ComputedAttributes,
 		Variables:                 rrui.Variables,
-		InputPlan:                 rrui.InputPlan,
+		InputConfigs:              rrui.InputConfigs,
 		Output:                    rrui.Output,
 		DeployerType:              rrui.DeployerType,
 		Duration:                  rrui.Duration,
@@ -929,8 +929,8 @@ type ResourceRunUpdateInputsItem struct {
 	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
 	// Variables of the run.
 	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables"`
-	// Input plan of the run.
-	InputPlan string `path:"-" query:"-" json:"inputPlan"`
+	// Input configs of the run.
+	InputConfigs map[string][]uint8 `path:"-" query:"-" json:"inputConfigs"`
 	// Output of the run.
 	Output string `path:"-" query:"-" json:"output"`
 	// Type of deployer.
@@ -990,7 +990,7 @@ func (rrui *ResourceRunUpdateInputs) Model() []*ResourceRun {
 			Attributes:                rrui.Items[i].Attributes,
 			ComputedAttributes:        rrui.Items[i].ComputedAttributes,
 			Variables:                 rrui.Items[i].Variables,
-			InputPlan:                 rrui.Items[i].InputPlan,
+			InputConfigs:              rrui.Items[i].InputConfigs,
 			Output:                    rrui.Items[i].Output,
 			DeployerType:              rrui.Items[i].DeployerType,
 			Duration:                  rrui.Items[i].Duration,
