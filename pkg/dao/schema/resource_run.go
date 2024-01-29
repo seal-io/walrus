@@ -67,9 +67,6 @@ func (ResourceRun) Fields() []ent.Field {
 		field.JSON("input_configs", map[string]types.ResourceRunConfigData{}).
 			Comment("Input configs of the run.").
 			Sensitive(),
-		field.String("output").
-			Comment("Output of the run.").
-			Sensitive(),
 		field.String("deployer_type").
 			Comment("Type of deployer.").
 			Default(types.DeployerTypeTF),
