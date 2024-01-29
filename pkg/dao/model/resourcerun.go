@@ -52,8 +52,8 @@ type ResourceRun struct {
 	ComputedAttributes property.Values `json:"computed_attributes,omitempty"`
 	// Variables of the run.
 	Variables crypto.Map[string, string] `json:"variables,omitempty"`
-	// Input plan of the run.
-	InputPlan string `json:"-"`
+	// Input configs of the run.
+	InputConfigs map[string][]uint8 `json:"-"`
 	// Output of the run.
 	Output string `json:"-"`
 	// Type of deployer.
@@ -131,7 +131,7 @@ func (*ResourceRun) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case resourcerun.FieldStatus, resourcerun.FieldPreviousRequiredProviders:
+		case resourcerun.FieldStatus, resourcerun.FieldInputConfigs, resourcerun.FieldPreviousRequiredProviders:
 			values[i] = new([]byte)
 		case resourcerun.FieldVariables:
 			values[i] = new(crypto.Map[string, string])
@@ -141,7 +141,7 @@ func (*ResourceRun) scanValues(columns []string) ([]any, error) {
 			values[i] = new(property.Values)
 		case resourcerun.FieldDuration:
 			values[i] = new(sql.NullInt64)
-		case resourcerun.FieldTemplateName, resourcerun.FieldTemplateVersion, resourcerun.FieldInputPlan, resourcerun.FieldOutput, resourcerun.FieldDeployerType, resourcerun.FieldRecord, resourcerun.FieldChangeComment, resourcerun.FieldCreatedBy:
+		case resourcerun.FieldTemplateName, resourcerun.FieldTemplateVersion, resourcerun.FieldOutput, resourcerun.FieldDeployerType, resourcerun.FieldRecord, resourcerun.FieldChangeComment, resourcerun.FieldCreatedBy:
 			values[i] = new(sql.NullString)
 		case resourcerun.FieldCreateTime:
 			values[i] = new(sql.NullTime)
@@ -235,11 +235,13 @@ func (rr *ResourceRun) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				rr.Variables = *value
 			}
-		case resourcerun.FieldInputPlan:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field input_plan", values[i])
-			} else if value.Valid {
-				rr.InputPlan = value.String
+		case resourcerun.FieldInputConfigs:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field input_configs", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &rr.InputConfigs); err != nil {
+					return fmt.Errorf("unmarshal field input_configs: %w", err)
+				}
 			}
 		case resourcerun.FieldOutput:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -371,7 +373,7 @@ func (rr *ResourceRun) String() string {
 	builder.WriteString("variables=")
 	builder.WriteString(fmt.Sprintf("%v", rr.Variables))
 	builder.WriteString(", ")
-	builder.WriteString("input_plan=<sensitive>")
+	builder.WriteString("input_configs=<sensitive>")
 	builder.WriteString(", ")
 	builder.WriteString("output=<sensitive>")
 	builder.WriteString(", ")

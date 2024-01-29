@@ -17358,7 +17358,7 @@ type ResourceRunMutation struct {
 	attributes                        *property.Values
 	computed_attributes               *property.Values
 	variables                         *crypto.Map[string, string]
-	input_plan                        *string
+	input_configs                     *map[string][]uint8
 	output                            *string
 	deployer_type                     *string
 	duration                          *int
@@ -17919,40 +17919,40 @@ func (m *ResourceRunMutation) ResetVariables() {
 	m.variables = nil
 }
 
-// SetInputPlan sets the "input_plan" field.
-func (m *ResourceRunMutation) SetInputPlan(s string) {
-	m.input_plan = &s
+// SetInputConfigs sets the "input_configs" field.
+func (m *ResourceRunMutation) SetInputConfigs(value map[string][]uint8) {
+	m.input_configs = &value
 }
 
-// InputPlan returns the value of the "input_plan" field in the mutation.
-func (m *ResourceRunMutation) InputPlan() (r string, exists bool) {
-	v := m.input_plan
+// InputConfigs returns the value of the "input_configs" field in the mutation.
+func (m *ResourceRunMutation) InputConfigs() (r map[string][]uint8, exists bool) {
+	v := m.input_configs
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldInputPlan returns the old "input_plan" field's value of the ResourceRun entity.
+// OldInputConfigs returns the old "input_configs" field's value of the ResourceRun entity.
 // If the ResourceRun object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ResourceRunMutation) OldInputPlan(ctx context.Context) (v string, err error) {
+func (m *ResourceRunMutation) OldInputConfigs(ctx context.Context) (v map[string][]uint8, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldInputPlan is only allowed on UpdateOne operations")
+		return v, errors.New("OldInputConfigs is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldInputPlan requires an ID field in the mutation")
+		return v, errors.New("OldInputConfigs requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldInputPlan: %w", err)
+		return v, fmt.Errorf("querying old value for OldInputConfigs: %w", err)
 	}
-	return oldValue.InputPlan, nil
+	return oldValue.InputConfigs, nil
 }
 
-// ResetInputPlan resets all changes to the "input_plan" field.
-func (m *ResourceRunMutation) ResetInputPlan() {
-	m.input_plan = nil
+// ResetInputConfigs resets all changes to the "input_configs" field.
+func (m *ResourceRunMutation) ResetInputConfigs() {
+	m.input_configs = nil
 }
 
 // SetOutput sets the "output" field.
@@ -18417,8 +18417,8 @@ func (m *ResourceRunMutation) Fields() []string {
 	if m.variables != nil {
 		fields = append(fields, resourcerun.FieldVariables)
 	}
-	if m.input_plan != nil {
-		fields = append(fields, resourcerun.FieldInputPlan)
+	if m.input_configs != nil {
+		fields = append(fields, resourcerun.FieldInputConfigs)
 	}
 	if m.output != nil {
 		fields = append(fields, resourcerun.FieldOutput)
@@ -18471,8 +18471,8 @@ func (m *ResourceRunMutation) Field(name string) (ent.Value, bool) {
 		return m.ComputedAttributes()
 	case resourcerun.FieldVariables:
 		return m.Variables()
-	case resourcerun.FieldInputPlan:
-		return m.InputPlan()
+	case resourcerun.FieldInputConfigs:
+		return m.InputConfigs()
 	case resourcerun.FieldOutput:
 		return m.Output()
 	case resourcerun.FieldDeployerType:
@@ -18518,8 +18518,8 @@ func (m *ResourceRunMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldComputedAttributes(ctx)
 	case resourcerun.FieldVariables:
 		return m.OldVariables(ctx)
-	case resourcerun.FieldInputPlan:
-		return m.OldInputPlan(ctx)
+	case resourcerun.FieldInputConfigs:
+		return m.OldInputConfigs(ctx)
 	case resourcerun.FieldOutput:
 		return m.OldOutput(ctx)
 	case resourcerun.FieldDeployerType:
@@ -18620,12 +18620,12 @@ func (m *ResourceRunMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetVariables(v)
 		return nil
-	case resourcerun.FieldInputPlan:
-		v, ok := value.(string)
+	case resourcerun.FieldInputConfigs:
+		v, ok := value.(map[string][]uint8)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetInputPlan(v)
+		m.SetInputConfigs(v)
 		return nil
 	case resourcerun.FieldOutput:
 		v, ok := value.(string)
@@ -18806,8 +18806,8 @@ func (m *ResourceRunMutation) ResetField(name string) error {
 	case resourcerun.FieldVariables:
 		m.ResetVariables()
 		return nil
-	case resourcerun.FieldInputPlan:
-		m.ResetInputPlan()
+	case resourcerun.FieldInputConfigs:
+		m.ResetInputConfigs()
 		return nil
 	case resourcerun.FieldOutput:
 		m.ResetOutput()

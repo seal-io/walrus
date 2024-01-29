@@ -607,7 +607,7 @@ var (
 		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
 		{Name: "computed_attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
 		{Name: "variables", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
-		{Name: "input_plan", Type: field.TypeString},
+		{Name: "input_configs", Type: field.TypeJSON},
 		{Name: "output", Type: field.TypeString},
 		{Name: "deployer_type", Type: field.TypeString, Default: "Terraform"},
 		{Name: "duration", Type: field.TypeInt, Default: 0},

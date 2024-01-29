@@ -106,17 +106,9 @@ func (rru *ResourceRunUpdate) SetVariables(c crypto.Map[string, string]) *Resour
 	return rru
 }
 
-// SetInputPlan sets the "input_plan" field.
-func (rru *ResourceRunUpdate) SetInputPlan(s string) *ResourceRunUpdate {
-	rru.mutation.SetInputPlan(s)
-	return rru
-}
-
-// SetNillableInputPlan sets the "input_plan" field if the given value is not nil.
-func (rru *ResourceRunUpdate) SetNillableInputPlan(s *string) *ResourceRunUpdate {
-	if s != nil {
-		rru.SetInputPlan(*s)
-	}
+// SetInputConfigs sets the "input_configs" field.
+func (rru *ResourceRunUpdate) SetInputConfigs(m map[string][]uint8) *ResourceRunUpdate {
+	rru.mutation.SetInputConfigs(m)
 	return rru
 }
 
@@ -334,7 +326,7 @@ func (rru *ResourceRunUpdate) Set(obj *ResourceRun) *ResourceRunUpdate {
 		rru.ClearComputedAttributes()
 	}
 	rru.SetVariables(obj.Variables)
-	rru.SetInputPlan(obj.InputPlan)
+	rru.SetInputConfigs(obj.InputConfigs)
 	rru.SetOutput(obj.Output)
 	rru.SetDeployerType(obj.DeployerType)
 	rru.SetDuration(obj.Duration)
@@ -401,8 +393,8 @@ func (rru *ResourceRunUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := rru.mutation.Variables(); ok {
 		_spec.SetField(resourcerun.FieldVariables, field.TypeOther, value)
 	}
-	if value, ok := rru.mutation.InputPlan(); ok {
-		_spec.SetField(resourcerun.FieldInputPlan, field.TypeString, value)
+	if value, ok := rru.mutation.InputConfigs(); ok {
+		_spec.SetField(resourcerun.FieldInputConfigs, field.TypeJSON, value)
 	}
 	if value, ok := rru.mutation.Output(); ok {
 		_spec.SetField(resourcerun.FieldOutput, field.TypeString, value)
@@ -528,17 +520,9 @@ func (rruo *ResourceRunUpdateOne) SetVariables(c crypto.Map[string, string]) *Re
 	return rruo
 }
 
-// SetInputPlan sets the "input_plan" field.
-func (rruo *ResourceRunUpdateOne) SetInputPlan(s string) *ResourceRunUpdateOne {
-	rruo.mutation.SetInputPlan(s)
-	return rruo
-}
-
-// SetNillableInputPlan sets the "input_plan" field if the given value is not nil.
-func (rruo *ResourceRunUpdateOne) SetNillableInputPlan(s *string) *ResourceRunUpdateOne {
-	if s != nil {
-		rruo.SetInputPlan(*s)
-	}
+// SetInputConfigs sets the "input_configs" field.
+func (rruo *ResourceRunUpdateOne) SetInputConfigs(m map[string][]uint8) *ResourceRunUpdateOne {
+	rruo.mutation.SetInputConfigs(m)
 	return rruo
 }
 
@@ -789,8 +773,8 @@ func (rruo *ResourceRunUpdateOne) Set(obj *ResourceRun) *ResourceRunUpdateOne {
 			if !reflect.DeepEqual(db.Variables, obj.Variables) {
 				rruo.SetVariables(obj.Variables)
 			}
-			if db.InputPlan != obj.InputPlan {
-				rruo.SetInputPlan(obj.InputPlan)
+			if !reflect.DeepEqual(db.InputConfigs, obj.InputConfigs) {
+				rruo.SetInputConfigs(obj.InputConfigs)
 			}
 			if db.Output != obj.Output {
 				rruo.SetOutput(obj.Output)
@@ -883,8 +867,8 @@ func (rruo *ResourceRunUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx con
 		if _, set := rruo.mutation.Field(resourcerun.FieldVariables); set {
 			obj.Variables = x.Variables
 		}
-		if _, set := rruo.mutation.Field(resourcerun.FieldInputPlan); set {
-			obj.InputPlan = x.InputPlan
+		if _, set := rruo.mutation.Field(resourcerun.FieldInputConfigs); set {
+			obj.InputConfigs = x.InputConfigs
 		}
 		if _, set := rruo.mutation.Field(resourcerun.FieldOutput); set {
 			obj.Output = x.Output
@@ -1001,8 +985,8 @@ func (rruo *ResourceRunUpdateOne) sqlSave(ctx context.Context) (_node *ResourceR
 	if value, ok := rruo.mutation.Variables(); ok {
 		_spec.SetField(resourcerun.FieldVariables, field.TypeOther, value)
 	}
-	if value, ok := rruo.mutation.InputPlan(); ok {
-		_spec.SetField(resourcerun.FieldInputPlan, field.TypeString, value)
+	if value, ok := rruo.mutation.InputConfigs(); ok {
+		_spec.SetField(resourcerun.FieldInputConfigs, field.TypeJSON, value)
 	}
 	if value, ok := rruo.mutation.Output(); ok {
 		_spec.SetField(resourcerun.FieldOutput, field.TypeString, value)
