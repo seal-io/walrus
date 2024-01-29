@@ -5,7 +5,6 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
-	"github.com/seal-io/walrus/pkg/terraform/parser"
 )
 
 const (
@@ -78,7 +77,7 @@ type (
 		// Variables is map with name in key and sensitive flag in value.
 		Variables map[string]bool
 		// DependencyOutputs is the map of the variable name and value.
-		DependencyOutputs map[string]parser.OutputState
+		DependencyOutputs map[string]types.OutputValue
 	}
 
 	// OutputOptions is the options to create outputs blocks.

@@ -17,7 +17,6 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	pkgresource "github.com/seal-io/walrus/pkg/resource"
-	"github.com/seal-io/walrus/pkg/terraform/parser"
 	pkgvariable "github.com/seal-io/walrus/pkg/variable"
 	"github.com/seal-io/walrus/utils/json"
 )
@@ -54,7 +53,7 @@ func ParseModuleAttributes(
 	attributes map[string]any,
 	onlyValidated bool,
 	opts RunOpts,
-) (attrs map[string]any, variables model.Variables, outputs map[string]parser.OutputState, err error) {
+) (attrs map[string]any, variables model.Variables, outputs map[string]types.OutputValue, err error) {
 	var (
 		templateVariables         []string
 		dependencyResourceOutputs []string
@@ -199,7 +198,7 @@ func getResourceDependencyOutputsByID(
 	client model.ClientSet,
 	resourceID object.ID,
 	dependOutputs map[string]string,
-) (map[string]parser.OutputState, error) {
+) (map[string]types.OutputValue, error) {
 	entity, err := client.Resources().Query().
 		Where(resource.ID(resourceID)).
 		WithDependencies(func(sq *model.ResourceRelationshipQuery) {

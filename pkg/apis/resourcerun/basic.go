@@ -21,7 +21,6 @@ var (
 	getFields = resourcerun.WithoutFields(
 		resourcerun.FieldRecord,
 		resourcerun.FieldInputConfigs,
-		resourcerun.FieldOutput,
 		resourcerun.FieldTemplateName,
 		resourcerun.FieldTemplateVersion,
 		resourcerun.FieldAttributes,
