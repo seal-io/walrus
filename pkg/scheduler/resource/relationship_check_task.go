@@ -17,7 +17,6 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/deployer"
-	deployertf "github.com/seal-io/walrus/pkg/deployer/terraform"
 	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
 	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	"github.com/seal-io/walrus/utils/log"
@@ -44,7 +43,7 @@ func NewResourceRelationshipCheckTask(
 ) (in *RelationshipCheckTask, err error) {
 	// Create deployer.
 	opts := deptypes.CreateOptions{
-		Type:       deployertf.DeployerType,
+		Type:       types.DeployerTypeTF,
 		KubeConfig: kc,
 	}
 

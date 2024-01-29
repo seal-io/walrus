@@ -1,4 +1,4 @@
-package terraform
+package config
 
 import (
 	"fmt"

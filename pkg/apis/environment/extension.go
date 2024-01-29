@@ -22,7 +22,6 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/deployer"
-	deployertf "github.com/seal-io/walrus/pkg/deployer/terraform"
 	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
 	pkgresource "github.com/seal-io/walrus/pkg/resource"
@@ -351,7 +350,7 @@ func (h Handler) RouteStart(req RouteStartRequest) error {
 func (h Handler) RouteStop(req RouteStopRequest) error {
 	return h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
 		deployerOpts := deptypes.CreateOptions{
-			Type:       deployertf.DeployerType,
+			Type:       types.DeployerTypeTF,
 			KubeConfig: h.kubeConfig,
 		}
 

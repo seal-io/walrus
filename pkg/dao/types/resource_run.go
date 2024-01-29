@@ -14,3 +14,10 @@ type OutputValue struct {
 	Sensitive bool            `json:"sensitive,omitempty"`
 	Schema    openapi3.Schema `json:"schema,omitempty"`
 }
+
+const (
+	RunJobTypeApply   = "apply"
+	RunJobTypeDestroy = "destroy"
+)
+
+type ResourceRunConfigData = []byte

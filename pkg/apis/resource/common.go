@@ -8,10 +8,10 @@ import (
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/deployer"
-	deployertf "github.com/seal-io/walrus/pkg/deployer/terraform"
 	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
 	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	"github.com/seal-io/walrus/utils/errorx"
@@ -40,7 +40,7 @@ func DeleteResources(req CollectionDeleteRequest, mc model.ClientSet, kubeConfig
 		environmentIDToResources := resourcesGroupByEnvironment(resources)
 
 		deployerOpts := deptypes.CreateOptions{
-			Type:       deployertf.DeployerType,
+			Type:       types.DeployerTypeTF,
 			KubeConfig: kubeConfig,
 		}
 
@@ -197,7 +197,7 @@ func apply(ctx context.Context, mc model.ClientSet, kubeConfig *rest.Config, ent
 
 func getDeployer(ctx context.Context, kubeConfig *rest.Config) (deptypes.Deployer, error) {
 	dep, err := deployer.Get(ctx, deptypes.CreateOptions{
-		Type:       deployertf.DeployerType,
+		Type:       types.DeployerTypeTF,
 		KubeConfig: kubeConfig,
 	})
 	if err != nil {

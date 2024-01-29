@@ -29,11 +29,6 @@ import (
 	"github.com/seal-io/walrus/utils/pointer"
 )
 
-const (
-	JobTypeApply   = "apply"
-	JobTypeDestroy = "destroy"
-)
-
 type JobCreateOptions struct {
 	// Type is the deployment type of job, apply or destroy or other.
 	Type          string
@@ -278,9 +273,9 @@ func getPodTemplate(resourceRunID, configName string, opts JobCreateOptions) cor
 	)
 
 	switch opts.Type {
-	case JobTypeApply:
+	case types.RunJobTypeApply:
 		deployCommand += _applyCommands + varfile
-	case JobTypeDestroy:
+	case types.RunJobTypeDestroy:
 		deployCommand += _destroyCommands + varfile
 	}
 
