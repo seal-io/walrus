@@ -194,6 +194,7 @@ func manageResourceComponentsAndEndpoints(
 	// Diff by transactional session.
 	replacedRess := make([]*model.ResourceComponent, 0)
 
+	// TODO(alex): refactor the following codes, make it more readable.
 	err = modelClient.WithTx(ctx, func(tx *model.Tx) error {
 		// Update components with new items.
 		for _, r := range updatedRess {
@@ -203,6 +204,13 @@ func manageResourceComponentsAndEndpoints(
 			}
 
 			replacedRess = append(replacedRess, rp...)
+		}
+
+		// Some components may be removed when updating,
+		// make sure the components still exist.
+		recordRess, err = dao.GetCleanResourceComponents(ctx, tx, recordRess)
+		if err != nil {
+			return err
 		}
 
 		// Create new components.
