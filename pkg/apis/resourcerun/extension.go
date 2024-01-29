@@ -22,6 +22,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcestate"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
@@ -43,17 +44,21 @@ func (h Handler) RouteGetTerraformStates(
 ) (RouteGetTerraformStatesResponse, error) {
 	entity, err := h.modelClient.ResourceRuns().Query().
 		Where(resourcerun.ID(req.ID)).
-		Select(resourcerun.FieldOutput).
+		WithResource(func(rq *model.ResourceQuery) {
+			rq.WithState()
+		}).
 		Only(req.Context)
 	if err != nil {
 		return nil, err
 	}
 
-	if entity.Output == "" {
+	stateData := entity.Edges.Resource.Edges.State.Data
+
+	if stateData == "" {
 		return nil, nil
 	}
 
-	return RouteGetTerraformStatesResponse(entity.Output), nil
+	return RouteGetTerraformStatesResponse(stateData), nil
 }
 
 // RouteUpdateTerraformStates update the terraform states of the service run deployment.
@@ -91,10 +96,18 @@ func (h Handler) RouteUpdateTerraformStates(
 	if err != nil {
 		return err
 	}
-	entity.Output = string(req.RawMessage)
 
-	err = h.modelClient.ResourceRuns().UpdateOne(entity).
-		SetOutput(entity.Output).
+	state, err := h.modelClient.ResourceStates().Query().
+		Where(resourcestate.ResourceID(entity.ResourceID)).
+		Only(req.Context)
+	if err != nil {
+		return err
+	}
+
+	state.Data = string(req.RawMessage)
+
+	err = h.modelClient.ResourceStates().UpdateOne(state).
+		SetData(state.Data).
 		Exec(req.Context)
 	if err != nil {
 		return err
@@ -129,30 +142,31 @@ func (h Handler) RouteUpdateTerraformStates(
 		return err
 	}
 
-	return manageResourceComponentsAndEndpoints(req.Context, h.modelClient, entity)
+	return manageResourceComponentsAndEndpoints(req.Context, h.modelClient, entity, state.Data)
 }
 
 // manageResourceComponentsAndEndpoints parses and updates the resource components/endpoints,
 // and execute reconcileResourceComponents for the new created resource components.
 func manageResourceComponentsAndEndpoints(
 	ctx context.Context,
-	modelClient model.ClientSet,
+	mc model.ClientSet,
 	entity *model.ResourceRun,
+	stateData string,
 ) error {
-	var p tfparser.ResourceRunParser
+	var p tfparser.StateParser
 
-	mappedOutputs, err := p.GetOriginalOutputsMap(entity)
+	mappedOutputs, err := p.GetOriginalOutputsMap(stateData, entity.Edges.Resource.Name)
 	if err != nil {
 		return fmt.Errorf("error getting original outputs: %w", err)
 	}
 
-	observedRess, dependencies, err := p.GetResourcesAndDependencies(entity)
+	observedComponents, dependencies, err := p.GetComponentsAndExtractDependencies(ctx, mc, entity)
 	if err != nil {
 		return fmt.Errorf("error getting resources and dependencies: %w", err)
 	}
 
 	// Get record components from local.
-	recordRess, err := modelClient.ResourceComponents().Query().
+	recordComponents, err := mc.ResourceComponents().Query().
 		Where(resourcecomponent.ResourceID(entity.ResourceID)).
 		All(ctx)
 	if err != nil {
@@ -160,79 +174,86 @@ func manageResourceComponentsAndEndpoints(
 	}
 
 	// Calculate creating list, deleting list and updating list.
-	observedRessIndex := dao.ResourceComponentToMap(observedRess)
+	var (
+		deleteComponentIDs = make([]object.ID, 0, len(recordComponents))
+		updatedComponents  = make([]*model.ResourceComponent, 0, len(recordComponents))
 
-	deleteRessIDs := make([]object.ID, 0, len(recordRess))
+		observedComponentsIndex = dao.ResourceComponentToMap(observedComponents)
+	)
 
-	updatedRess := make([]*model.ResourceComponent, 0, len(recordRess))
-
-	for _, c := range recordRess {
+	for _, c := range recordComponents {
 		k := dao.ResourceComponentGetUniqueKey(c)
-		if observedRessIndex[k] != nil {
-			c.Edges.Instances = observedRessIndex[k].Edges.Instances
-			updatedRess = append(updatedRess, c)
+		if observedComponentsIndex[k] != nil {
+			c.Edges.Instances = observedComponentsIndex[k].Edges.Instances
+			updatedComponents = append(updatedComponents, c)
 
-			delete(observedRessIndex, k)
+			delete(observedComponentsIndex, k)
 
 			continue
 		}
 
-		deleteRessIDs = append(deleteRessIDs, c.ID)
+		deleteComponentIDs = append(deleteComponentIDs, c.ID)
 	}
 
-	createRess := make([]*model.ResourceComponent, 0, len(observedRessIndex))
+	createComponents := make([]*model.ResourceComponent, 0, len(observedComponentsIndex))
 
-	for k := range observedRessIndex {
-		// Resource instances will be created through edges.
-		if observedRessIndex[k].Shape != types.ResourceComponentShapeClass {
+	for k := range observedComponentsIndex {
+		// Component instances will be created through edges.
+		if observedComponentsIndex[k].Shape != types.ResourceComponentShapeClass {
 			continue
 		}
 
-		createRess = append(createRess, observedRessIndex[k])
+		createComponents = append(createComponents, observedComponentsIndex[k])
 	}
 
 	// Diff by transactional session.
-	replacedRess := make([]*model.ResourceComponent, 0)
+	replacedComponents := make([]*model.ResourceComponent, 0)
 
 	// TODO(alex): refactor the following codes, make it more readable.
-	err = modelClient.WithTx(ctx, func(tx *model.Tx) error {
+	err = mc.WithTx(ctx, func(tx *model.Tx) error {
 		// Update components with new items.
-		for _, r := range updatedRess {
+		for _, r := range updatedComponents {
 			rp, err := dao.ResourceComponentInstancesEdgeSaveWithResult(ctx, tx, r)
 			if err != nil {
 				return err
 			}
 
-			replacedRess = append(replacedRess, rp...)
+			replacedComponents = append(replacedComponents, rp...)
 		}
 
 		// Some components may be removed when updating,
 		// make sure the components still exist.
-		recordRess, err = dao.GetCleanResourceComponents(ctx, tx, recordRess)
+		recordComponents, err = dao.GetCleanResourceComponents(ctx, tx, recordComponents)
 		if err != nil {
 			return err
 		}
 
 		// Create new components.
-		if len(createRess) != 0 {
-			createRess, err = tx.ResourceComponents().CreateBulk().
-				Set(createRess...).
+		if len(createComponents) != 0 {
+			createComponents, err = tx.ResourceComponents().CreateBulk().
+				Set(createComponents...).
 				SaveE(ctx, dao.ResourceComponentInstancesEdgeSave)
 			if err != nil {
 				return err
 			}
 
 			// TODO(thxCode): move the following codes into DAO.
-			err = dao.ResourceComponentRelationshipUpdateWithDependencies(ctx, tx, dependencies, recordRess, createRess)
+			err = dao.ResourceComponentRelationshipUpdateWithDependencies(
+				ctx,
+				tx,
+				dependencies,
+				recordComponents,
+				createComponents,
+			)
 			if err != nil {
 				return err
 			}
 		}
 
 		// Delete stale components.
-		if len(deleteRessIDs) != 0 {
+		if len(deleteComponentIDs) != 0 {
 			_, err = tx.ResourceComponents().Delete().
-				Where(resourcecomponent.IDIn(deleteRessIDs...)).
+				Where(resourcecomponent.IDIn(deleteComponentIDs...)).
 				Exec(ctx)
 			if err != nil && !errors.Is(err, sql.ErrNoRows) {
 				return err
@@ -286,32 +307,34 @@ func manageResourceComponentsAndEndpoints(
 		return err
 	}
 
-	reconcileRess := createRess
-	reconcileRess = append(reconcileRess, updatedRess...)
-	reconcileRess = append(reconcileRess, replacedRess...)
+	reconcileComponents := createComponents
+	reconcileComponents = append(reconcileComponents, updatedComponents...)
+	reconcileComponents = append(reconcileComponents, replacedComponents...)
 
-	if len(reconcileRess) == 0 {
+	if len(reconcileComponents) == 0 {
 		return nil
 	}
 
 	// Update the resource component status.
-	reconcileRessIndex := dao.ResourceComponentToMap(reconcileRess)
+	reconcileComponentIndex := dao.ResourceComponentToMap(reconcileComponents)
 
-	// Group resources by connector ID,
-	// and decorate them with the project/environment/service for latter labeling.
-	connRess := make(map[object.ID][]*model.ResourceComponent)
+	// Group components by connector ID,
+	// and decorate them with the project/environment/component for latter labeling.
+	connComponents := make(map[object.ID][]*model.ResourceComponent)
 
-	for k := range reconcileRessIndex {
-		if reconcileRessIndex[k].Shape != types.ResourceComponentShapeInstance {
+	for k := range reconcileComponentIndex {
+		if reconcileComponentIndex[k].Shape != types.ResourceComponentShapeInstance {
 			continue
 		}
 
-		reconcileRessIndex[k].Edges.Project = entity.Edges.Project
-		reconcileRessIndex[k].Edges.Environment = entity.Edges.Environment
-		reconcileRessIndex[k].Edges.Resource = entity.Edges.Resource
+		reconcileComponentIndex[k].Edges.Project = entity.Edges.Project
+		reconcileComponentIndex[k].Edges.Environment = entity.Edges.Environment
+		reconcileComponentIndex[k].Edges.Resource = entity.Edges.Resource
 
-		connRess[reconcileRessIndex[k].ConnectorID] = append(connRess[reconcileRessIndex[k].ConnectorID],
-			reconcileRessIndex[k])
+		connComponents[reconcileComponentIndex[k].ConnectorID] = append(
+			connComponents[reconcileComponentIndex[k].ConnectorID],
+			reconcileComponentIndex[k],
+		)
 	}
 
 	gopool.Go(func() {
@@ -320,7 +343,7 @@ func manageResourceComponentsAndEndpoints(
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 		defer cancel()
 
-		if err = reconcileResourceComponents(ctx, modelClient, entity.ResourceID, connRess); err != nil {
+		if err = reconcileResourceComponents(ctx, mc, entity.ResourceID, connComponents); err != nil {
 			logger.Errorf("error reconciling resource components: %v", err)
 		}
 	})
@@ -334,7 +357,7 @@ func reconcileResourceComponents(
 	ctx context.Context,
 	modelClient model.ClientSet,
 	resourceID object.ID,
-	connRess map[object.ID][]*model.ResourceComponent,
+	connComponents map[object.ID][]*model.ResourceComponent,
 ) error {
 	logger := log.WithName("api").WithName("resource-run")
 
@@ -349,7 +372,7 @@ func reconcileResourceComponents(
 			connector.FieldCategory,
 			connector.FieldConfigVersion,
 			connector.FieldConfigData).
-		Where(connector.IDIn(sets.KeySet(connRess).UnsortedList()...)).
+		Where(connector.IDIn(sets.KeySet(connComponents).UnsortedList()...)).
 		All(ctx)
 	if err != nil {
 		return fmt.Errorf("cannot list connectors: %w", err)
@@ -379,7 +402,7 @@ func reconcileResourceComponents(
 
 	var sr resourcecomponents.StateResult
 
-	for cid, crs := range connRess {
+	for cid, crs := range connComponents {
 		op, exist := ops[cid]
 		if !exist {
 			// Ignore if not found operator.

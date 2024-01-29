@@ -86,6 +86,7 @@ func Create(ctx context.Context, mc model.ClientSet, opts CreateOptions) (*model
 					)
 				})
 		}).
+		WithState().
 		Only(ctx)
 	if err != nil {
 		return nil, err
@@ -159,23 +160,20 @@ func Create(ctx context.Context, mc model.ClientSet, opts CreateOptions) (*model
 	status.ResourceRunStatusReady.Unknown(entity, "")
 	entity.Status.SetSummary(status.WalkResourceRun(&entity.Status))
 
-	// Inherit the output of previous run to create a new one.
-	if prevEntity != nil {
-		entity.Output = prevEntity.Output
-	}
+	output := res.Edges.State.Data
 
 	switch {
-	case opts.JobType == types.RunJobTypeApply && entity.Output != "":
+	case opts.JobType == types.RunJobTypeApply && output != "":
 		// Get required providers from the previous output after first deployment.
-		requiredProviders, err := getRequiredProviders(ctx, mc, opts.ResourceID, entity.Output)
+		requiredProviders, err := getRequiredProviders(ctx, mc, opts.ResourceID, output)
 		if err != nil {
 			return nil, err
 		}
 		entity.PreviousRequiredProviders = requiredProviders
-	case opts.JobType == types.RunJobTypeDestroy && entity.Output != "":
+	case opts.JobType == types.RunJobTypeDestroy && output != "":
 		if status.ResourceRunStatusReady.IsFalse(prevEntity) {
 			// Get required providers from the previous output after first deployment.
-			requiredProviders, err := getRequiredProviders(ctx, mc, opts.ResourceID, entity.Output)
+			requiredProviders, err := getRequiredProviders(ctx, mc, opts.ResourceID, output)
 			if err != nil {
 				return nil, err
 			}

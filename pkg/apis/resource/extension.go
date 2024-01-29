@@ -12,7 +12,6 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
-	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	pkgresource "github.com/seal-io/walrus/pkg/resource"
@@ -235,8 +234,11 @@ func (h Handler) RouteGetEndpoints(req RouteGetEndpointsRequest) (RouteGetEndpoi
 }
 
 func (h Handler) RouteGetOutputs(req RouteGetOutputsRequest) (RouteGetOutputsResponse, error) {
+	query := h.modelClient.Resources().Query().
+		Where(resource.ID(req.ID))
+
 	if stream := req.Stream; stream != nil {
-		t, err := topic.Subscribe(modelchange.ResourceRun)
+		t, err := topic.Subscribe(modelchange.Resource)
 		if err != nil {
 			return nil, err
 		}
@@ -261,18 +263,18 @@ func (h Handler) RouteGetOutputs(req RouteGetOutputsRequest) (RouteGetOutputsRes
 			}
 
 			for _, id := range dm.IDs() {
-				ar, err := h.modelClient.ResourceRuns().Query().
-					Where(resourcerun.ID(id)).
+				if id != req.ID {
+					continue
+				}
+
+				res, err := query.Clone().
+					WithState().
 					Only(stream)
 				if err != nil {
 					return nil, err
 				}
 
-				if ar.ResourceID != req.ID {
-					continue
-				}
-
-				outs, err := h.getResourceOutputs(stream, ar.ResourceID, false)
+				outs, err := h.getResourceOutputs(res)
 				if err != nil {
 					return nil, err
 				}
@@ -281,22 +283,7 @@ func (h Handler) RouteGetOutputs(req RouteGetOutputsRequest) (RouteGetOutputsRes
 					continue
 				}
 
-				var resp *runtime.ResponseCollection
-
-				switch dm.Type {
-				case modelchange.EventTypeCreate:
-					// While create new resource run,
-					// the outputs of new run is the previous outputs.
-					resp = runtime.TypedResponse(modelchange.EventTypeDelete.String(), outs)
-				case modelchange.EventTypeUpdate:
-					// While the resource run status is succeeded,
-					// the outputs is updated to the current run.
-					if status.ResourceRunStatusReady.IsTrue(ar) {
-						continue
-					}
-
-					resp = runtime.TypedResponse(modelchange.EventTypeUpdate.String(), outs)
-				}
+				resp := runtime.TypedResponse(dm.Type.String(), outs)
 
 				if err = stream.SendJSON(resp); err != nil {
 					return nil, err
@@ -305,53 +292,25 @@ func (h Handler) RouteGetOutputs(req RouteGetOutputsRequest) (RouteGetOutputsRes
 		}
 	}
 
-	return h.getResourceOutputs(req.Context, req.ID, true)
-}
-
-func (h Handler) getResourceOutputs(ctx context.Context, id object.ID, onlySuccess bool) ([]types.OutputValue, error) {
-	sr, err := h.getLatestRun(ctx, id)
+	res, err := query.Clone().
+		WithState().
+		Only(req.Context)
 	if err != nil {
 		return nil, err
 	}
 
-	if sr == nil {
-		return nil, nil
-	}
+	return h.getResourceOutputs(res)
+}
 
-	if onlySuccess && !status.ResourceRunStatusReady.IsTrue(sr) {
-		return nil, nil
-	}
+func (h Handler) getResourceOutputs(resource *model.Resource) ([]types.OutputValue, error) {
+	var p tfparser.StateParser
 
-	var p tfparser.ResourceRunParser
-
-	o, err := p.GetOriginalOutputs(sr)
+	o, err := p.GetOriginalOutputs(resource.Edges.State.Data, resource.Name)
 	if err != nil {
 		return nil, fmt.Errorf("error get outputs: %w", err)
 	}
 
 	return o, nil
-}
-
-func (h Handler) getLatestRun(ctx context.Context, id object.ID) (*model.ResourceRun, error) {
-	sr, err := h.modelClient.ResourceRuns().Query().
-		Where(resourcerun.ResourceID(id)).
-		Select(
-			resourcerun.FieldOutput,
-			resourcerun.FieldTemplateName,
-			resourcerun.FieldTemplateVersion,
-			resourcerun.FieldAttributes,
-			resourcerun.FieldStatus,
-		).
-		WithResource(func(sq *model.ResourceQuery) {
-			sq.Select(resource.FieldName)
-		}).
-		Order(model.Desc(resourcerun.FieldCreateTime)).
-		First(ctx)
-	if err != nil && !model.IsNotFound(err) {
-		return nil, fmt.Errorf("error getting the latest resource run")
-	}
-
-	return sr, nil
 }
 
 func (h Handler) RouteGetGraph(req RouteGetGraphRequest) (*RouteGetGraphResponse, error) {

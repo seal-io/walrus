@@ -8,8 +8,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/terraform/config"
-	"github.com/seal-io/walrus/pkg/terraform/parser"
 	"github.com/seal-io/walrus/utils/json"
 )
 
@@ -89,7 +89,7 @@ func updateOutputWithVariables(variables model.Variables, moduleConfig *config.M
 
 func getVarConfigOptions(
 	variables model.Variables,
-	resourceOutputs map[string]parser.OutputState,
+	resourceOutputs map[string]types.OutputValue,
 ) config.CreateOptions {
 	varsConfigOpts := config.CreateOptions{
 		Attributes: map[string]any{},

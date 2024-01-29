@@ -3,11 +3,9 @@ package resource
 import (
 	"context"
 
-	"entgo.io/ent/dialect/sql"
-
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/terraform/parser"
 )
@@ -18,49 +16,21 @@ func GetDependencyOutputs(
 	client model.ClientSet,
 	dependencyResourceIDs []object.ID,
 	dependOutputs map[string]string,
-) (map[string]parser.OutputState, error) {
-	dependencyRuns, err := client.ResourceRuns().Query().
-		Select(
-			resourcerun.FieldID,
-			resourcerun.FieldAttributes,
-			resourcerun.FieldOutput,
-			resourcerun.FieldResourceID,
-			resourcerun.FieldProjectID,
-		).
-		Where(func(s *sql.Selector) {
-			sq := s.Clone().
-				AppendSelectExprAs(
-					sql.RowNumber().
-						PartitionBy(resourcerun.FieldResourceID).
-						OrderBy(sql.Desc(resourcerun.FieldCreateTime)),
-					"row_number",
-				).
-				Where(s.P()).
-				From(s.Table()).
-				As(resourcerun.Table)
-
-			// Query the latest run of the resource.
-			s.Where(sql.EQ(s.C("row_number"), 1)).
-				From(sq)
-		}).
-		Where(resourcerun.ResourceIDIn(dependencyResourceIDs...)).
-		WithResource(func(rq *model.ResourceQuery) {
-			rq.Select(
-				resource.FieldTemplateID,
-				resource.FieldResourceDefinitionID,
-			)
-		}).
+) (map[string]types.OutputValue, error) {
+	dependencyResources, err := client.Resources().Query().
+		Where(resource.IDIn(dependencyResourceIDs...)).
+		WithState().
 		All(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	outputs := make(map[string]parser.OutputState)
+	outputs := make(map[string]types.OutputValue)
 
-	var p parser.ResourceRunParser
+	var p parser.StateParser
 
-	for _, r := range dependencyRuns {
-		osm, err := p.GetOutputsMap(r)
+	for _, r := range dependencyResources {
+		osm, err := p.GetOutputMap(r.Edges.State.Data)
 		if err != nil {
 			return nil, err
 		}
@@ -70,8 +40,7 @@ func GetDependencyOutputs(
 				continue
 			}
 
-			// FIXME(thxCode): migrate parser.OutputState to types.OutputValue.
-			outputs[n] = parser.OutputState{
+			outputs[n] = types.OutputValue{
 				Value:     o.Value,
 				Type:      o.Type,
 				Sensitive: o.Sensitive,

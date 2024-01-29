@@ -22,10 +22,10 @@ import (
 var getResourceRunFields = resourcerun.WithoutFields(
 	resourcerun.FieldRecord,
 	resourcerun.FieldInputConfigs,
-	resourcerun.FieldOutput,
 	resourcerun.FieldTemplateName,
 	resourcerun.FieldTemplateVersion,
 	resourcerun.FieldAttributes,
+	resourcerun.FieldComputedAttributes,
 	resourcerun.FieldVariables,
 )
 

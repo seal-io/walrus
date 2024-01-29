@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcestate"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/templates/translator"
@@ -26,31 +28,42 @@ import (
 // ConnectorSeparator is used to separate the connector id and the instance name.
 const ConnectorSeparator = "connector--"
 
-type ResourceRunParser struct{}
+type StateParser struct{}
 
-// GetResourcesAndDependencies returns the resources and dependency resources after parsed the resource run output.
+// GetComponentsAndExtractDependencies returns the components and dependency components after parse the resource state.
 //
-// GetResourcesAndDependencies returns list must not be `nil` unless unexpected input or raising error,
+// GetComponentsAndExtractDependencies returns list must not be `nil` unless unexpected input or raising error,
 // it can be used to clean stale items safety if got an empty list.
-func (ResourceRunParser) GetResourcesAndDependencies(run *model.ResourceRun) (
-	resources model.ResourceComponents,
+func (StateParser) GetComponentsAndExtractDependencies(
+	ctx context.Context,
+	mc model.ClientSet,
+	run *model.ResourceRun,
+) (
+	components model.ResourceComponents,
 	dependencies map[string][]string,
 	err error,
 ) {
 	logger := log.WithName("deployer").WithName("tf").WithName("parser")
 	dependencies = make(map[string][]string)
 
+	s, err := mc.ResourceStates().Query().
+		Where(resourcestate.ResourceID(run.ResourceID)).
+		Only(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	var runState state
-	if err := json.Unmarshal([]byte(run.Output), &runState); err != nil {
+	if err := json.Unmarshal([]byte(s.Data), &runState); err != nil {
 		return nil, nil, err
 	}
 
 	var (
-		// ModuleDependencies maps resource unique index to its dependencies resource unique indexes.
-		resourceDependencies = make(map[string][]string)
-		// ModuleResourceMap maps terraform module key to resource.
-		moduleResourceMap = make(map[string]*model.ResourceComponent)
-		key               = dao.ResourceComponentGetUniqueKey
+		// Maps components unique index to its dependencies components unique indexes.
+		componentDependencies = make(map[string][]string)
+		// Maps terraform module key to resource.
+		moduleComponentMap = make(map[string]*model.ResourceComponent)
+		key                = dao.ResourceComponentGetUniqueKey
 	)
 
 	for _, rs := range runState.Resources {
@@ -91,7 +104,7 @@ func (ResourceRunParser) GetResourcesAndDependencies(run *model.ResourceRun) (
 		if rs.Mode == types.ResourceComponentModeData {
 			mk = strs.Join(".", rs.Module, rs.Mode, rs.Type, rs.Name)
 		}
-		moduleResourceMap[mk] = classResource
+		moduleComponentMap[mk] = classResource
 
 		for i, is := range rs.Instances {
 			instanceID, err := ParseInstanceID(is)
@@ -140,22 +153,22 @@ func (ResourceRunParser) GetResourcesAndDependencies(run *model.ResourceRun) (
 			}
 
 			// Assume that the first instance's dependencies are the dependencies of the class resource.
-			if _, ok := moduleResourceMap[key(classResource)]; !ok {
-				resourceDependencies[key(classResource)] = is.Dependencies
+			if _, ok := moduleComponentMap[key(classResource)]; !ok {
+				componentDependencies[key(classResource)] = is.Dependencies
 			}
 
 			dependencies[key(instanceResource)] = append(dependencies[key(instanceResource)], key(classResource))
 			classResource.Edges.Instances[i] = instanceResource
-			resourceDependencies[key(instanceResource)] = is.Dependencies
+			componentDependencies[key(instanceResource)] = is.Dependencies
 		}
 
-		resources = append(resources, classResource)
+		components = append(components, classResource)
 	}
 
 	// Get resource dependencies.
-	for k, v := range resourceDependencies {
+	for k, v := range componentDependencies {
 		for _, d := range v {
-			moduleResource, ok := moduleResourceMap[d]
+			moduleResource, ok := moduleComponentMap[d]
 			if !ok {
 				logger.Warnf("dependency resource not found, module key: %s", d)
 				continue
@@ -165,18 +178,18 @@ func (ResourceRunParser) GetResourcesAndDependencies(run *model.ResourceRun) (
 		}
 	}
 
-	return resources, dependencies, nil
+	return components, dependencies, nil
 }
 
-// GetOutputsMap returns the original outputs after parsed the resource run output(terraform state).
+// GetOutputMap returns the original outputs after parsed the resource run output(terraform state).
 //
 // Since we mutate the output names before executing a terraform deployment,
 // the output's name(hcl label) is not the same as the original one defined on the terraform template.
 //
 // This function is used for bridging the referring between multiple (walrus)resources.
 // Use GetOriginalOutputsMap if wanna the original outputs.
-func (ResourceRunParser) GetOutputsMap(run *model.ResourceRun) (map[string]types.OutputValue, error) {
-	if len(run.Output) == 0 {
+func (StateParser) GetOutputMap(stateData string) (map[string]types.OutputValue, error) {
+	if len(stateData) == 0 {
 		return nil, nil
 	}
 
@@ -184,7 +197,7 @@ func (ResourceRunParser) GetOutputsMap(run *model.ResourceRun) (map[string]types
 	// {
 	//   "outputs": {}
 	// }.
-	r := json.Get(strs.ToBytes(&run.Output), "outputs")
+	r := json.Get(strs.ToBytes(&stateData), "outputs")
 	if !r.Exists() || !r.IsObject() {
 		return map[string]types.OutputValue{}, nil
 	}
@@ -203,24 +216,20 @@ func (ResourceRunParser) GetOutputsMap(run *model.ResourceRun) (map[string]types
 //
 // This function returns the original outputs,
 // which means the output's name(hcl label) is the same as the original one defined on the terraform template.
-func (p ResourceRunParser) GetOriginalOutputs(run *model.ResourceRun) ([]types.OutputValue, error) {
-	if run.Edges.Resource == nil || run.Edges.Resource.Name == "" {
-		return nil, errors.New("resource name is empty")
-	}
-
-	osm, err := p.GetOutputsMap(run)
+func (p StateParser) GetOriginalOutputs(stateData, resourceName string) ([]types.OutputValue, error) {
+	osm, err := p.GetOutputMap(stateData)
 	if err != nil {
 		return nil, err
 	}
 
 	var (
-		prefix = run.Edges.Resource.Name + "_"
+		prefix = resourceName + "_"
 		oss    = make([]types.OutputValue, 0, len(osm))
 		count  int
 	)
 
 	for _, mn := range sets.StringKeySet(osm).List() {
-		// E.g. `n` is in form of `{resource name}_{output name}`.
+		// E.g. `n` is in the form of `{resource name}_{output name}`.
 		n := strings.TrimPrefix(mn, prefix)
 		if n == mn {
 			continue
@@ -255,10 +264,8 @@ func (p ResourceRunParser) GetOriginalOutputs(run *model.ResourceRun) ([]types.O
 
 // GetOriginalOutputsMap is similar to GetOriginalOutputs,
 // but returns the original outputs in map form.
-func (p ResourceRunParser) GetOriginalOutputsMap(
-	run *model.ResourceRun,
-) (map[string]types.OutputValue, error) {
-	oss, err := p.GetOriginalOutputs(run)
+func (p StateParser) GetOriginalOutputsMap(stateData, resourceName string) (map[string]types.OutputValue, error) {
+	oss, err := p.GetOriginalOutputs(stateData, resourceName)
 	if err != nil {
 		return nil, err
 	}

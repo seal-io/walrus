@@ -44,8 +44,14 @@ func Create(
 		entity, err = tx.Resources().Create().
 			Set(entity).
 			SaveE(ctx, dao.ResourceDependenciesEdgeSave)
+		if err != nil {
+			return err
+		}
 
-		return err
+		return tx.ResourceStates().Create().
+			SetResourceID(entity.ID).
+			SetData("").
+			Exec(ctx)
 	})
 	if err != nil {
 		return nil, err
