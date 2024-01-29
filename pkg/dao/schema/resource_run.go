@@ -64,8 +64,8 @@ func (ResourceRun) Fields() []ent.Field {
 		crypto.MapField[string, string]("variables").
 			Comment("Variables of the run.").
 			Default(crypto.Map[string, string]{}),
-		field.String("input_plan").
-			Comment("Input plan of the run.").
+		field.JSON("input_configs", map[string]types.ResourceRunConfigData{}).
+			Comment("Input configs of the run.").
 			Sensitive(),
 		field.String("output").
 			Comment("Output of the run.").
