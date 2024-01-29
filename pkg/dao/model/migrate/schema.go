@@ -608,7 +608,6 @@ var (
 		{Name: "computed_attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
 		{Name: "variables", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
 		{Name: "input_configs", Type: field.TypeJSON},
-		{Name: "output", Type: field.TypeString},
 		{Name: "deployer_type", Type: field.TypeString, Default: "Terraform"},
 		{Name: "duration", Type: field.TypeInt, Default: 0},
 		{Name: "previous_required_providers", Type: field.TypeJSON},
@@ -627,19 +626,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "resource_runs_environments_resource_runs",
-				Columns:    []*schema.Column{ResourceRunsColumns[17]},
+				Columns:    []*schema.Column{ResourceRunsColumns[16]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "resource_runs_projects_resource_runs",
-				Columns:    []*schema.Column{ResourceRunsColumns[18]},
+				Columns:    []*schema.Column{ResourceRunsColumns[17]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "resource_runs_resources_runs",
-				Columns:    []*schema.Column{ResourceRunsColumns[19]},
+				Columns:    []*schema.Column{ResourceRunsColumns[18]},
 				RefColumns: []*schema.Column{ResourcesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -649,6 +648,26 @@ var (
 				Name:    "resourcerun_create_time",
 				Unique:  false,
 				Columns: []*schema.Column{ResourceRunsColumns[1]},
+			},
+		},
+	}
+	// ResourceStatesColumns holds the columns for the "resource_states" table.
+	ResourceStatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "data", Type: field.TypeString, Default: ""},
+		{Name: "resource_id", Type: field.TypeString, Unique: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+	}
+	// ResourceStatesTable holds the schema information for the "resource_states" table.
+	ResourceStatesTable = &schema.Table{
+		Name:       "resource_states",
+		Columns:    ResourceStatesColumns,
+		PrimaryKey: []*schema.Column{ResourceStatesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "resource_states_resources_state",
+				Columns:    []*schema.Column{ResourceStatesColumns[2]},
+				RefColumns: []*schema.Column{ResourcesColumns[0]},
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -1256,6 +1275,7 @@ var (
 		ResourceDefinitionMatchingRulesTable,
 		ResourceRelationshipsTable,
 		ResourceRunsTable,
+		ResourceStatesTable,
 		RolesTable,
 		SettingsTable,
 		SubjectsTable,
@@ -1300,6 +1320,7 @@ func init() {
 	ResourceRunsTable.ForeignKeys[0].RefTable = EnvironmentsTable
 	ResourceRunsTable.ForeignKeys[1].RefTable = ProjectsTable
 	ResourceRunsTable.ForeignKeys[2].RefTable = ResourcesTable
+	ResourceStatesTable.ForeignKeys[0].RefTable = ResourcesTable
 	SubjectRoleRelationshipsTable.ForeignKeys[0].RefTable = ProjectsTable
 	SubjectRoleRelationshipsTable.ForeignKeys[1].RefTable = SubjectsTable
 	SubjectRoleRelationshipsTable.ForeignKeys[2].RefTable = RolesTable

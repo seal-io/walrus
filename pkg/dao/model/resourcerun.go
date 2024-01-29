@@ -54,8 +54,6 @@ type ResourceRun struct {
 	Variables crypto.Map[string, string] `json:"variables,omitempty"`
 	// Input configs of the run.
 	InputConfigs map[string][]uint8 `json:"-"`
-	// Output of the run.
-	Output string `json:"-"`
 	// Type of deployer.
 	DeployerType string `json:"deployer_type,omitempty"`
 	// Duration in seconds of the run deploying.
@@ -141,7 +139,7 @@ func (*ResourceRun) scanValues(columns []string) ([]any, error) {
 			values[i] = new(property.Values)
 		case resourcerun.FieldDuration:
 			values[i] = new(sql.NullInt64)
-		case resourcerun.FieldTemplateName, resourcerun.FieldTemplateVersion, resourcerun.FieldOutput, resourcerun.FieldDeployerType, resourcerun.FieldRecord, resourcerun.FieldChangeComment, resourcerun.FieldCreatedBy:
+		case resourcerun.FieldTemplateName, resourcerun.FieldTemplateVersion, resourcerun.FieldDeployerType, resourcerun.FieldRecord, resourcerun.FieldChangeComment, resourcerun.FieldCreatedBy:
 			values[i] = new(sql.NullString)
 		case resourcerun.FieldCreateTime:
 			values[i] = new(sql.NullTime)
@@ -242,12 +240,6 @@ func (rr *ResourceRun) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &rr.InputConfigs); err != nil {
 					return fmt.Errorf("unmarshal field input_configs: %w", err)
 				}
-			}
-		case resourcerun.FieldOutput:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field output", values[i])
-			} else if value.Valid {
-				rr.Output = value.String
 			}
 		case resourcerun.FieldDeployerType:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -374,8 +366,6 @@ func (rr *ResourceRun) String() string {
 	builder.WriteString(fmt.Sprintf("%v", rr.Variables))
 	builder.WriteString(", ")
 	builder.WriteString("input_configs=<sensitive>")
-	builder.WriteString(", ")
-	builder.WriteString("output=<sensitive>")
 	builder.WriteString(", ")
 	builder.WriteString("deployer_type=")
 	builder.WriteString(rr.DeployerType)

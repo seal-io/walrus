@@ -47,6 +47,8 @@ type Tx struct {
 	ResourceRelationship *ResourceRelationshipClient
 	// ResourceRun is the client for interacting with the ResourceRun builders.
 	ResourceRun *ResourceRunClient
+	// ResourceState is the client for interacting with the ResourceState builders.
+	ResourceState *ResourceStateClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// Setting is the client for interacting with the Setting builders.
@@ -221,6 +223,7 @@ func (tx *Tx) init() {
 	tx.ResourceDefinitionMatchingRule = NewResourceDefinitionMatchingRuleClient(tx.config)
 	tx.ResourceRelationship = NewResourceRelationshipClient(tx.config)
 	tx.ResourceRun = NewResourceRunClient(tx.config)
+	tx.ResourceState = NewResourceStateClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.Setting = NewSettingClient(tx.config)
 	tx.Subject = NewSubjectClient(tx.config)
@@ -373,6 +376,11 @@ func (tx *Tx) ResourceRuns() *ResourceRunClient {
 	return tx.ResourceRun
 }
 
+// ResourceStates implements the ClientSet.
+func (tx *Tx) ResourceStates() *ResourceStateClient {
+	return tx.ResourceState
+}
+
 // Roles implements the ClientSet.
 func (tx *Tx) Roles() *RoleClient {
 	return tx.Role
@@ -465,6 +473,7 @@ func (tx *Tx) Intercept(interceptors ...Interceptor) {
 	tx.ResourceDefinitionMatchingRule.Intercept(interceptors...)
 	tx.ResourceRelationship.Intercept(interceptors...)
 	tx.ResourceRun.Intercept(interceptors...)
+	tx.ResourceState.Intercept(interceptors...)
 	tx.Role.Intercept(interceptors...)
 	tx.Setting.Intercept(interceptors...)
 	tx.Subject.Intercept(interceptors...)
@@ -522,6 +531,7 @@ func (tx *Tx) Use(hooks ...Hook) {
 	tx.ResourceDefinitionMatchingRule.Use(hooks...)
 	tx.ResourceRelationship.Use(hooks...)
 	tx.ResourceRun.Use(hooks...)
+	tx.ResourceState.Use(hooks...)
 	tx.Role.Use(hooks...)
 	tx.Setting.Use(hooks...)
 	tx.Subject.Use(hooks...)

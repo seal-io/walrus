@@ -31,6 +31,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcestate"
 	"github.com/seal-io/walrus/pkg/dao/model/role"
 	"github.com/seal-io/walrus/pkg/dao/model/setting"
 	"github.com/seal-io/walrus/pkg/dao/model/subject"
@@ -120,6 +121,7 @@ func checkColumn(table, column string) error {
 			resourcedefinitionmatchingrule.Table:   resourcedefinitionmatchingrule.ValidColumn,
 			resourcerelationship.Table:             resourcerelationship.ValidColumn,
 			resourcerun.Table:                      resourcerun.ValidColumn,
+			resourcestate.Table:                    resourcestate.ValidColumn,
 			role.Table:                             role.ValidColumn,
 			setting.Table:                          setting.ValidColumn,
 			subject.Table:                          subject.ValidColumn,

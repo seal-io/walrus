@@ -28,6 +28,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcestate"
 	"github.com/seal-io/walrus/pkg/dao/model/role"
 	"github.com/seal-io/walrus/pkg/dao/model/setting"
 	"github.com/seal-io/walrus/pkg/dao/model/subject"
@@ -505,6 +506,33 @@ func (f TraverseResourceRun) Traverse(ctx context.Context, q model.Query) error 
 	return fmt.Errorf("unexpected query type %T. expect *model.ResourceRunQuery", q)
 }
 
+// The ResourceStateFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ResourceStateFunc func(context.Context, *model.ResourceStateQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f ResourceStateFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.ResourceStateQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.ResourceStateQuery", q)
+}
+
+// The TraverseResourceState type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseResourceState func(context.Context, *model.ResourceStateQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseResourceState) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseResourceState) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ResourceStateQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.ResourceStateQuery", q)
+}
+
 // The RoleFunc type is an adapter to allow the use of ordinary function as a Querier.
 type RoleFunc func(context.Context, *model.RoleQuery) (model.Value, error)
 
@@ -916,6 +944,8 @@ func NewQuery(q model.Query) (Query, error) {
 		return &query[*model.ResourceRelationshipQuery, predicate.ResourceRelationship, resourcerelationship.OrderOption]{typ: model.TypeResourceRelationship, tq: q}, nil
 	case *model.ResourceRunQuery:
 		return &query[*model.ResourceRunQuery, predicate.ResourceRun, resourcerun.OrderOption]{typ: model.TypeResourceRun, tq: q}, nil
+	case *model.ResourceStateQuery:
+		return &query[*model.ResourceStateQuery, predicate.ResourceState, resourcestate.OrderOption]{typ: model.TypeResourceState, tq: q}, nil
 	case *model.RoleQuery:
 		return &query[*model.RoleQuery, predicate.Role, role.OrderOption]{typ: model.TypeRole, tq: q}, nil
 	case *model.SettingQuery:

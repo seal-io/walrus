@@ -35,6 +35,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcestate"
 	"github.com/seal-io/walrus/pkg/dao/model/role"
 	"github.com/seal-io/walrus/pkg/dao/model/setting"
 	"github.com/seal-io/walrus/pkg/dao/model/subject"
@@ -90,6 +91,8 @@ type Client struct {
 	ResourceRelationship *ResourceRelationshipClient
 	// ResourceRun is the client for interacting with the ResourceRun builders.
 	ResourceRun *ResourceRunClient
+	// ResourceState is the client for interacting with the ResourceState builders.
+	ResourceState *ResourceStateClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// Setting is the client for interacting with the Setting builders.
@@ -144,6 +147,7 @@ func (c *Client) init() {
 	c.ResourceDefinitionMatchingRule = NewResourceDefinitionMatchingRuleClient(c.config)
 	c.ResourceRelationship = NewResourceRelationshipClient(c.config)
 	c.ResourceRun = NewResourceRunClient(c.config)
+	c.ResourceState = NewResourceStateClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.Setting = NewSettingClient(c.config)
 	c.Subject = NewSubjectClient(c.config)
@@ -267,6 +271,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ResourceDefinitionMatchingRule:   NewResourceDefinitionMatchingRuleClient(cfg),
 		ResourceRelationship:             NewResourceRelationshipClient(cfg),
 		ResourceRun:                      NewResourceRunClient(cfg),
+		ResourceState:                    NewResourceStateClient(cfg),
 		Role:                             NewRoleClient(cfg),
 		Setting:                          NewSettingClient(cfg),
 		Subject:                          NewSubjectClient(cfg),
@@ -315,6 +320,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ResourceDefinitionMatchingRule:   NewResourceDefinitionMatchingRuleClient(cfg),
 		ResourceRelationship:             NewResourceRelationshipClient(cfg),
 		ResourceRun:                      NewResourceRunClient(cfg),
+		ResourceState:                    NewResourceStateClient(cfg),
 		Role:                             NewRoleClient(cfg),
 		Setting:                          NewSettingClient(cfg),
 		Subject:                          NewSubjectClient(cfg),
@@ -362,9 +368,9 @@ func (c *Client) Use(hooks ...Hook) {
 		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Resource,
 		c.ResourceComponent, c.ResourceComponentRelationship, c.ResourceDefinition,
 		c.ResourceDefinitionMatchingRule, c.ResourceRelationship, c.ResourceRun,
-		c.Role, c.Setting, c.Subject, c.SubjectRoleRelationship, c.Template,
-		c.TemplateVersion, c.Token, c.Variable, c.Workflow, c.WorkflowExecution,
-		c.WorkflowStage, c.WorkflowStageExecution, c.WorkflowStep,
+		c.ResourceState, c.Role, c.Setting, c.Subject, c.SubjectRoleRelationship,
+		c.Template, c.TemplateVersion, c.Token, c.Variable, c.Workflow,
+		c.WorkflowExecution, c.WorkflowStage, c.WorkflowStageExecution, c.WorkflowStep,
 		c.WorkflowStepExecution,
 	} {
 		n.Use(hooks...)
@@ -379,9 +385,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Resource,
 		c.ResourceComponent, c.ResourceComponentRelationship, c.ResourceDefinition,
 		c.ResourceDefinitionMatchingRule, c.ResourceRelationship, c.ResourceRun,
-		c.Role, c.Setting, c.Subject, c.SubjectRoleRelationship, c.Template,
-		c.TemplateVersion, c.Token, c.Variable, c.Workflow, c.WorkflowExecution,
-		c.WorkflowStage, c.WorkflowStageExecution, c.WorkflowStep,
+		c.ResourceState, c.Role, c.Setting, c.Subject, c.SubjectRoleRelationship,
+		c.Template, c.TemplateVersion, c.Token, c.Variable, c.Workflow,
+		c.WorkflowExecution, c.WorkflowStage, c.WorkflowStageExecution, c.WorkflowStep,
 		c.WorkflowStepExecution,
 	} {
 		n.Intercept(interceptors...)
@@ -461,6 +467,11 @@ func (c *Client) ResourceRelationships() *ResourceRelationshipClient {
 // ResourceRuns implements the ClientSet.
 func (c *Client) ResourceRuns() *ResourceRunClient {
 	return c.ResourceRun
+}
+
+// ResourceStates implements the ClientSet.
+func (c *Client) ResourceStates() *ResourceStateClient {
+	return c.ResourceState
 }
 
 // Roles implements the ClientSet.
@@ -609,6 +620,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ResourceRelationship.mutate(ctx, m)
 	case *ResourceRunMutation:
 		return c.ResourceRun.mutate(ctx, m)
+	case *ResourceStateMutation:
+		return c.ResourceState.mutate(ctx, m)
 	case *RoleMutation:
 		return c.Role.mutate(ctx, m)
 	case *SettingMutation:
@@ -2566,6 +2579,25 @@ func (c *ResourceClient) QueryDependencies(r *Resource) *ResourceRelationshipQue
 	return query
 }
 
+// QueryState queries the state edge of a Resource.
+func (c *ResourceClient) QueryState(r *Resource) *ResourceStateQuery {
+	query := (&ResourceStateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resource.Table, resource.FieldID, id),
+			sqlgraph.To(resourcestate.Table, resourcestate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, resource.StateTable, resource.StateColumn),
+		)
+		schemaConfig := r.schemaConfig
+		step.To.Schema = schemaConfig.ResourceState
+		step.Edge.Schema = schemaConfig.ResourceState
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ResourceClient) Hooks() []Hook {
 	hooks := c.hooks.Resource
@@ -3795,6 +3827,159 @@ func (c *ResourceRunClient) mutate(ctx context.Context, m *ResourceRunMutation) 
 		return (&ResourceRunDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("model: unknown ResourceRun mutation op: %q", m.Op())
+	}
+}
+
+// ResourceStateClient is a client for the ResourceState schema.
+type ResourceStateClient struct {
+	config
+}
+
+// NewResourceStateClient returns a client for the ResourceState from the given config.
+func NewResourceStateClient(c config) *ResourceStateClient {
+	return &ResourceStateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `resourcestate.Hooks(f(g(h())))`.
+func (c *ResourceStateClient) Use(hooks ...Hook) {
+	c.hooks.ResourceState = append(c.hooks.ResourceState, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `resourcestate.Intercept(f(g(h())))`.
+func (c *ResourceStateClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ResourceState = append(c.inters.ResourceState, interceptors...)
+}
+
+// Create returns a builder for creating a ResourceState entity.
+func (c *ResourceStateClient) Create() *ResourceStateCreate {
+	mutation := newResourceStateMutation(c.config, OpCreate)
+	return &ResourceStateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ResourceState entities.
+func (c *ResourceStateClient) CreateBulk(builders ...*ResourceStateCreate) *ResourceStateCreateBulk {
+	return &ResourceStateCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ResourceStateClient) MapCreateBulk(slice any, setFunc func(*ResourceStateCreate, int)) *ResourceStateCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ResourceStateCreateBulk{err: fmt.Errorf("calling to ResourceStateClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ResourceStateCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ResourceStateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ResourceState.
+func (c *ResourceStateClient) Update() *ResourceStateUpdate {
+	mutation := newResourceStateMutation(c.config, OpUpdate)
+	return &ResourceStateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ResourceStateClient) UpdateOne(rs *ResourceState) *ResourceStateUpdateOne {
+	mutation := newResourceStateMutation(c.config, OpUpdateOne, withResourceState(rs))
+	return &ResourceStateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ResourceStateClient) UpdateOneID(id object.ID) *ResourceStateUpdateOne {
+	mutation := newResourceStateMutation(c.config, OpUpdateOne, withResourceStateID(id))
+	return &ResourceStateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ResourceState.
+func (c *ResourceStateClient) Delete() *ResourceStateDelete {
+	mutation := newResourceStateMutation(c.config, OpDelete)
+	return &ResourceStateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ResourceStateClient) DeleteOne(rs *ResourceState) *ResourceStateDeleteOne {
+	return c.DeleteOneID(rs.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ResourceStateClient) DeleteOneID(id object.ID) *ResourceStateDeleteOne {
+	builder := c.Delete().Where(resourcestate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ResourceStateDeleteOne{builder}
+}
+
+// Query returns a query builder for ResourceState.
+func (c *ResourceStateClient) Query() *ResourceStateQuery {
+	return &ResourceStateQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeResourceState},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ResourceState entity by its id.
+func (c *ResourceStateClient) Get(ctx context.Context, id object.ID) (*ResourceState, error) {
+	return c.Query().Where(resourcestate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ResourceStateClient) GetX(ctx context.Context, id object.ID) *ResourceState {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryResource queries the resource edge of a ResourceState.
+func (c *ResourceStateClient) QueryResource(rs *ResourceState) *ResourceQuery {
+	query := (&ResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rs.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resourcestate.Table, resourcestate.FieldID, id),
+			sqlgraph.To(resource.Table, resource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, resourcestate.ResourceTable, resourcestate.ResourceColumn),
+		)
+		schemaConfig := rs.schemaConfig
+		step.To.Schema = schemaConfig.Resource
+		step.Edge.Schema = schemaConfig.ResourceState
+		fromV = sqlgraph.Neighbors(rs.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ResourceStateClient) Hooks() []Hook {
+	hooks := c.hooks.ResourceState
+	return append(hooks[:len(hooks):len(hooks)], resourcestate.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *ResourceStateClient) Interceptors() []Interceptor {
+	return c.inters.ResourceState
+}
+
+func (c *ResourceStateClient) mutate(ctx context.Context, m *ResourceStateMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ResourceStateCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ResourceStateUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ResourceStateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ResourceStateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown ResourceState mutation op: %q", m.Op())
 	}
 }
 
@@ -6299,19 +6484,19 @@ type (
 		Catalog, Connector, CostReport, DistributeLock, Environment,
 		EnvironmentConnectorRelationship, Perspective, Project, Resource,
 		ResourceComponent, ResourceComponentRelationship, ResourceDefinition,
-		ResourceDefinitionMatchingRule, ResourceRelationship, ResourceRun, Role,
-		Setting, Subject, SubjectRoleRelationship, Template, TemplateVersion, Token,
-		Variable, Workflow, WorkflowExecution, WorkflowStage, WorkflowStageExecution,
-		WorkflowStep, WorkflowStepExecution []ent.Hook
+		ResourceDefinitionMatchingRule, ResourceRelationship, ResourceRun,
+		ResourceState, Role, Setting, Subject, SubjectRoleRelationship, Template,
+		TemplateVersion, Token, Variable, Workflow, WorkflowExecution, WorkflowStage,
+		WorkflowStageExecution, WorkflowStep, WorkflowStepExecution []ent.Hook
 	}
 	inters struct {
 		Catalog, Connector, CostReport, DistributeLock, Environment,
 		EnvironmentConnectorRelationship, Perspective, Project, Resource,
 		ResourceComponent, ResourceComponentRelationship, ResourceDefinition,
-		ResourceDefinitionMatchingRule, ResourceRelationship, ResourceRun, Role,
-		Setting, Subject, SubjectRoleRelationship, Template, TemplateVersion, Token,
-		Variable, Workflow, WorkflowExecution, WorkflowStage, WorkflowStageExecution,
-		WorkflowStep, WorkflowStepExecution []ent.Interceptor
+		ResourceDefinitionMatchingRule, ResourceRelationship, ResourceRun,
+		ResourceState, Role, Setting, Subject, SubjectRoleRelationship, Template,
+		TemplateVersion, Token, Variable, Workflow, WorkflowExecution, WorkflowStage,
+		WorkflowStageExecution, WorkflowStep, WorkflowStepExecution []ent.Interceptor
 	}
 )
 

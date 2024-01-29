@@ -192,6 +192,18 @@ func (f ResourceRunFunc) Mutate(ctx context.Context, m model.Mutation) (model.Va
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ResourceRunMutation", m)
 }
 
+// The ResourceStateFunc type is an adapter to allow the use of ordinary
+// function as ResourceState mutator.
+type ResourceStateFunc func(context.Context, *model.ResourceStateMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ResourceStateFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.ResourceStateMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ResourceStateMutation", m)
+}
+
 // The RoleFunc type is an adapter to allow the use of ordinary
 // function as Role mutator.
 type RoleFunc func(context.Context, *model.RoleMutation) (model.Value, error)

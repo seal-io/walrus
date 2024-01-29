@@ -112,20 +112,6 @@ func (rru *ResourceRunUpdate) SetInputConfigs(m map[string][]uint8) *ResourceRun
 	return rru
 }
 
-// SetOutput sets the "output" field.
-func (rru *ResourceRunUpdate) SetOutput(s string) *ResourceRunUpdate {
-	rru.mutation.SetOutput(s)
-	return rru
-}
-
-// SetNillableOutput sets the "output" field if the given value is not nil.
-func (rru *ResourceRunUpdate) SetNillableOutput(s *string) *ResourceRunUpdate {
-	if s != nil {
-		rru.SetOutput(*s)
-	}
-	return rru
-}
-
 // SetDeployerType sets the "deployer_type" field.
 func (rru *ResourceRunUpdate) SetDeployerType(s string) *ResourceRunUpdate {
 	rru.mutation.SetDeployerType(s)
@@ -327,7 +313,6 @@ func (rru *ResourceRunUpdate) Set(obj *ResourceRun) *ResourceRunUpdate {
 	}
 	rru.SetVariables(obj.Variables)
 	rru.SetInputConfigs(obj.InputConfigs)
-	rru.SetOutput(obj.Output)
 	rru.SetDeployerType(obj.DeployerType)
 	rru.SetDuration(obj.Duration)
 	rru.SetPreviousRequiredProviders(obj.PreviousRequiredProviders)
@@ -395,9 +380,6 @@ func (rru *ResourceRunUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := rru.mutation.InputConfigs(); ok {
 		_spec.SetField(resourcerun.FieldInputConfigs, field.TypeJSON, value)
-	}
-	if value, ok := rru.mutation.Output(); ok {
-		_spec.SetField(resourcerun.FieldOutput, field.TypeString, value)
 	}
 	if value, ok := rru.mutation.DeployerType(); ok {
 		_spec.SetField(resourcerun.FieldDeployerType, field.TypeString, value)
@@ -523,20 +505,6 @@ func (rruo *ResourceRunUpdateOne) SetVariables(c crypto.Map[string, string]) *Re
 // SetInputConfigs sets the "input_configs" field.
 func (rruo *ResourceRunUpdateOne) SetInputConfigs(m map[string][]uint8) *ResourceRunUpdateOne {
 	rruo.mutation.SetInputConfigs(m)
-	return rruo
-}
-
-// SetOutput sets the "output" field.
-func (rruo *ResourceRunUpdateOne) SetOutput(s string) *ResourceRunUpdateOne {
-	rruo.mutation.SetOutput(s)
-	return rruo
-}
-
-// SetNillableOutput sets the "output" field if the given value is not nil.
-func (rruo *ResourceRunUpdateOne) SetNillableOutput(s *string) *ResourceRunUpdateOne {
-	if s != nil {
-		rruo.SetOutput(*s)
-	}
 	return rruo
 }
 
@@ -776,9 +744,6 @@ func (rruo *ResourceRunUpdateOne) Set(obj *ResourceRun) *ResourceRunUpdateOne {
 			if !reflect.DeepEqual(db.InputConfigs, obj.InputConfigs) {
 				rruo.SetInputConfigs(obj.InputConfigs)
 			}
-			if db.Output != obj.Output {
-				rruo.SetOutput(obj.Output)
-			}
 			if db.DeployerType != obj.DeployerType {
 				rruo.SetDeployerType(obj.DeployerType)
 			}
@@ -869,9 +834,6 @@ func (rruo *ResourceRunUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx con
 		}
 		if _, set := rruo.mutation.Field(resourcerun.FieldInputConfigs); set {
 			obj.InputConfigs = x.InputConfigs
-		}
-		if _, set := rruo.mutation.Field(resourcerun.FieldOutput); set {
-			obj.Output = x.Output
 		}
 		if _, set := rruo.mutation.Field(resourcerun.FieldDeployerType); set {
 			obj.DeployerType = x.DeployerType
@@ -987,9 +949,6 @@ func (rruo *ResourceRunUpdateOne) sqlSave(ctx context.Context) (_node *ResourceR
 	}
 	if value, ok := rruo.mutation.InputConfigs(); ok {
 		_spec.SetField(resourcerun.FieldInputConfigs, field.TypeJSON, value)
-	}
-	if value, ok := rruo.mutation.Output(); ok {
-		_spec.SetField(resourcerun.FieldOutput, field.TypeString, value)
 	}
 	if value, ok := rruo.mutation.DeployerType(); ok {
 		_spec.SetField(resourcerun.FieldDeployerType, field.TypeString, value)

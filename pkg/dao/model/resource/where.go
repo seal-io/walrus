@@ -1249,6 +1249,35 @@ func HasDependenciesWith(preds ...predicate.ResourceRelationship) predicate.Reso
 	})
 }
 
+// HasState applies the HasEdge predicate on the "state" edge.
+func HasState() predicate.Resource {
+	return predicate.Resource(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, StateTable, StateColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ResourceState
+		step.Edge.Schema = schemaConfig.ResourceState
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasStateWith applies the HasEdge predicate on the "state" edge with a given conditions (other predicates).
+func HasStateWith(preds ...predicate.ResourceState) predicate.Resource {
+	return predicate.Resource(func(s *sql.Selector) {
+		step := newStateStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ResourceState
+		step.Edge.Schema = schemaConfig.ResourceState
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Resource) predicate.Resource {
 	return predicate.Resource(sql.AndPredicates(predicates...))

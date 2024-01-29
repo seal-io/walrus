@@ -54,6 +54,9 @@ type ResourceRelationship func(*sql.Selector)
 // ResourceRun is the predicate function for resourcerun builders.
 type ResourceRun func(*sql.Selector)
 
+// ResourceState is the predicate function for resourcestate builders.
+type ResourceState func(*sql.Selector)
+
 // Role is the predicate function for role builders.
 type Role func(*sql.Selector)
 

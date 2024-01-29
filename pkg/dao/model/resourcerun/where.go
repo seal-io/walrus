@@ -113,11 +113,6 @@ func Variables(v crypto.Map[string, string]) predicate.ResourceRun {
 	return predicate.ResourceRun(sql.FieldEQ(FieldVariables, v))
 }
 
-// Output applies equality check predicate on the "output" field. It's identical to OutputEQ.
-func Output(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldEQ(FieldOutput, v))
-}
-
 // DeployerType applies equality check predicate on the "deployer_type" field. It's identical to DeployerTypeEQ.
 func DeployerType(v string) predicate.ResourceRun {
 	return predicate.ResourceRun(sql.FieldEQ(FieldDeployerType, v))
@@ -741,71 +736,6 @@ func VariablesLT(v crypto.Map[string, string]) predicate.ResourceRun {
 // VariablesLTE applies the LTE predicate on the "variables" field.
 func VariablesLTE(v crypto.Map[string, string]) predicate.ResourceRun {
 	return predicate.ResourceRun(sql.FieldLTE(FieldVariables, v))
-}
-
-// OutputEQ applies the EQ predicate on the "output" field.
-func OutputEQ(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldEQ(FieldOutput, v))
-}
-
-// OutputNEQ applies the NEQ predicate on the "output" field.
-func OutputNEQ(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldNEQ(FieldOutput, v))
-}
-
-// OutputIn applies the In predicate on the "output" field.
-func OutputIn(vs ...string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldIn(FieldOutput, vs...))
-}
-
-// OutputNotIn applies the NotIn predicate on the "output" field.
-func OutputNotIn(vs ...string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldNotIn(FieldOutput, vs...))
-}
-
-// OutputGT applies the GT predicate on the "output" field.
-func OutputGT(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldGT(FieldOutput, v))
-}
-
-// OutputGTE applies the GTE predicate on the "output" field.
-func OutputGTE(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldGTE(FieldOutput, v))
-}
-
-// OutputLT applies the LT predicate on the "output" field.
-func OutputLT(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldLT(FieldOutput, v))
-}
-
-// OutputLTE applies the LTE predicate on the "output" field.
-func OutputLTE(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldLTE(FieldOutput, v))
-}
-
-// OutputContains applies the Contains predicate on the "output" field.
-func OutputContains(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldContains(FieldOutput, v))
-}
-
-// OutputHasPrefix applies the HasPrefix predicate on the "output" field.
-func OutputHasPrefix(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldHasPrefix(FieldOutput, v))
-}
-
-// OutputHasSuffix applies the HasSuffix predicate on the "output" field.
-func OutputHasSuffix(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldHasSuffix(FieldOutput, v))
-}
-
-// OutputEqualFold applies the EqualFold predicate on the "output" field.
-func OutputEqualFold(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldEqualFold(FieldOutput, v))
-}
-
-// OutputContainsFold applies the ContainsFold predicate on the "output" field.
-func OutputContainsFold(v string) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldContainsFold(FieldOutput, v))
 }
 
 // DeployerTypeEQ applies the EQ predicate on the "deployer_type" field.

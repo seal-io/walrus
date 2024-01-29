@@ -26,6 +26,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcestate"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
@@ -45,6 +46,7 @@ type ResourceQuery struct {
 	withRuns                           *ResourceRunQuery
 	withComponents                     *ResourceComponentQuery
 	withDependencies                   *ResourceRelationshipQuery
+	withState                          *ResourceStateQuery
 	modifiers                          []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -282,6 +284,31 @@ func (rq *ResourceQuery) QueryDependencies() *ResourceRelationshipQuery {
 	return query
 }
 
+// QueryState chains the current query on the "state" edge.
+func (rq *ResourceQuery) QueryState() *ResourceStateQuery {
+	query := (&ResourceStateClient{config: rq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(resource.Table, resource.FieldID, selector),
+			sqlgraph.To(resourcestate.Table, resourcestate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, resource.StateTable, resource.StateColumn),
+		)
+		schemaConfig := rq.schemaConfig
+		step.To.Schema = schemaConfig.ResourceState
+		step.Edge.Schema = schemaConfig.ResourceState
+		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Resource entity from the query.
 // Returns a *NotFoundError when no Resource was found.
 func (rq *ResourceQuery) First(ctx context.Context) (*Resource, error) {
@@ -482,6 +509,7 @@ func (rq *ResourceQuery) Clone() *ResourceQuery {
 		withRuns:                           rq.withRuns.Clone(),
 		withComponents:                     rq.withComponents.Clone(),
 		withDependencies:                   rq.withDependencies.Clone(),
+		withState:                          rq.withState.Clone(),
 		// clone intermediate query.
 		sql:  rq.sql.Clone(),
 		path: rq.path,
@@ -576,6 +604,17 @@ func (rq *ResourceQuery) WithDependencies(opts ...func(*ResourceRelationshipQuer
 	return rq
 }
 
+// WithState tells the query-builder to eager-load the nodes that are connected to
+// the "state" edge. The optional arguments are used to configure the query builder of the edge.
+func (rq *ResourceQuery) WithState(opts ...func(*ResourceStateQuery)) *ResourceQuery {
+	query := (&ResourceStateClient{config: rq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rq.withState = query
+	return rq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -654,7 +693,7 @@ func (rq *ResourceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Res
 	var (
 		nodes       = []*Resource{}
 		_spec       = rq.querySpec()
-		loadedTypes = [8]bool{
+		loadedTypes = [9]bool{
 			rq.withProject != nil,
 			rq.withEnvironment != nil,
 			rq.withTemplate != nil,
@@ -663,6 +702,7 @@ func (rq *ResourceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Res
 			rq.withRuns != nil,
 			rq.withComponents != nil,
 			rq.withDependencies != nil,
+			rq.withState != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -736,6 +776,12 @@ func (rq *ResourceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Res
 		if err := rq.loadDependencies(ctx, query, nodes,
 			func(n *Resource) { n.Edges.Dependencies = []*ResourceRelationship{} },
 			func(n *Resource, e *ResourceRelationship) { n.Edges.Dependencies = append(n.Edges.Dependencies, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := rq.withState; query != nil {
+		if err := rq.loadState(ctx, query, nodes, nil,
+			func(n *Resource, e *ResourceState) { n.Edges.State = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -971,6 +1017,33 @@ func (rq *ResourceQuery) loadDependencies(ctx context.Context, query *ResourceRe
 	}
 	query.Where(predicate.ResourceRelationship(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(resource.DependenciesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ResourceID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "resource_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (rq *ResourceQuery) loadState(ctx context.Context, query *ResourceStateQuery, nodes []*Resource, init func(*Resource), assign func(*Resource, *ResourceState)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[object.ID]*Resource)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(resourcestate.FieldResourceID)
+	}
+	query.Where(predicate.ResourceState(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(resource.StateColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
