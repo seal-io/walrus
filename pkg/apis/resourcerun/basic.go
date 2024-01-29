@@ -20,7 +20,7 @@ func (h Handler) Get(req GetRequest) (GetResponse, error) {
 var (
 	getFields = resourcerun.WithoutFields(
 		resourcerun.FieldRecord,
-		resourcerun.FieldInputPlan,
+		resourcerun.FieldInputConfigs,
 		resourcerun.FieldOutput,
 		resourcerun.FieldTemplateName,
 		resourcerun.FieldTemplateVersion,

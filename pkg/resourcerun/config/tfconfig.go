@@ -155,7 +155,7 @@ func (l *TerraformLoader) LoadAll(
 	}
 
 	// Save input plan to resource run.
-	opts.ResourceRun.InputPlan = string(inputConfigs[config.FileMain])
+	opts.ResourceRun.InputConfigs = inputConfigs
 	// If resource run does not inherit variables from cloned run,
 	// then save the parsed variables to resource run.
 	if len(opts.ResourceRun.Variables) == 0 {

@@ -189,7 +189,7 @@ func Create(ctx context.Context, mc model.ClientSet, opts CreateOptions) (*model
 			entity.TemplateVersion = prevEntity.TemplateVersion
 			entity.Attributes = prevEntity.Attributes
 			entity.ComputedAttributes = prevEntity.ComputedAttributes
-			entity.InputPlan = prevEntity.InputPlan
+			entity.InputConfigs = prevEntity.InputConfigs
 		}
 	}
 
