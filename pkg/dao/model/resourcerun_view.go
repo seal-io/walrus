@@ -34,8 +34,6 @@ type ResourceRunCreateInput struct {
 	// Resource indicates to create ResourceRun entity MUST under the Resource route.
 	Resource *ResourceQueryInput `path:",inline" query:"-" json:"-"`
 
-	// Output of the run.
-	Output string `path:"-" query:"-" json:"output"`
 	// Input configs of the run.
 	InputConfigs map[string][]uint8 `path:"-" query:"-" json:"inputConfigs"`
 	// ID of the template.
@@ -70,7 +68,6 @@ func (rrci *ResourceRunCreateInput) Model() *ResourceRun {
 	}
 
 	_rr := &ResourceRun{
-		Output:                    rrci.Output,
 		InputConfigs:              rrci.InputConfigs,
 		TemplateID:                rrci.TemplateID,
 		TemplateVersion:           rrci.TemplateVersion,
@@ -141,8 +138,6 @@ func (rrci *ResourceRunCreateInput) ValidateWith(ctx context.Context, cs ClientS
 
 // ResourceRunCreateInputs holds the creation input item of the ResourceRun entities.
 type ResourceRunCreateInputsItem struct {
-	// Output of the run.
-	Output string `path:"-" query:"-" json:"output"`
 	// Input configs of the run.
 	InputConfigs map[string][]uint8 `path:"-" query:"-" json:"inputConfigs"`
 	// ID of the template.
@@ -209,7 +204,6 @@ func (rrci *ResourceRunCreateInputs) Model() []*ResourceRun {
 
 	for i := range rrci.Items {
 		_rr := &ResourceRun{
-			Output:                    rrci.Items[i].Output,
 			InputConfigs:              rrci.Items[i].InputConfigs,
 			TemplateID:                rrci.Items[i].TemplateID,
 			TemplateVersion:           rrci.Items[i].TemplateVersion,
@@ -475,8 +469,6 @@ type ResourceRunPatchInput struct {
 	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables,omitempty"`
 	// Input configs of the run.
 	InputConfigs map[string][]uint8 `path:"-" query:"-" json:"inputConfigs,omitempty"`
-	// Output of the run.
-	Output string `path:"-" query:"-" json:"output,omitempty"`
 	// Type of deployer.
 	DeployerType string `path:"-" query:"-" json:"deployerType,omitempty"`
 	// Duration in seconds of the run deploying.
@@ -509,7 +501,6 @@ func (rrpi *ResourceRunPatchInput) PatchModel() *ResourceRun {
 		ComputedAttributes:        rrpi.ComputedAttributes,
 		Variables:                 rrpi.Variables,
 		InputConfigs:              rrpi.InputConfigs,
-		Output:                    rrpi.Output,
 		DeployerType:              rrpi.DeployerType,
 		Duration:                  rrpi.Duration,
 		PreviousRequiredProviders: rrpi.PreviousRequiredProviders,
@@ -855,8 +846,6 @@ type ResourceRunUpdateInput struct {
 	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables,omitempty"`
 	// Input configs of the run.
 	InputConfigs map[string][]uint8 `path:"-" query:"-" json:"inputConfigs,omitempty"`
-	// Output of the run.
-	Output string `path:"-" query:"-" json:"output,omitempty"`
 	// Type of deployer.
 	DeployerType string `path:"-" query:"-" json:"deployerType,omitempty"`
 	// Duration in seconds of the run deploying.
@@ -883,7 +872,6 @@ func (rrui *ResourceRunUpdateInput) Model() *ResourceRun {
 		ComputedAttributes:        rrui.ComputedAttributes,
 		Variables:                 rrui.Variables,
 		InputConfigs:              rrui.InputConfigs,
-		Output:                    rrui.Output,
 		DeployerType:              rrui.DeployerType,
 		Duration:                  rrui.Duration,
 		PreviousRequiredProviders: rrui.PreviousRequiredProviders,
@@ -931,8 +919,6 @@ type ResourceRunUpdateInputsItem struct {
 	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables"`
 	// Input configs of the run.
 	InputConfigs map[string][]uint8 `path:"-" query:"-" json:"inputConfigs"`
-	// Output of the run.
-	Output string `path:"-" query:"-" json:"output"`
 	// Type of deployer.
 	DeployerType string `path:"-" query:"-" json:"deployerType"`
 	// Duration in seconds of the run deploying.
@@ -991,7 +977,6 @@ func (rrui *ResourceRunUpdateInputs) Model() []*ResourceRun {
 			ComputedAttributes:        rrui.Items[i].ComputedAttributes,
 			Variables:                 rrui.Items[i].Variables,
 			InputConfigs:              rrui.Items[i].InputConfigs,
-			Output:                    rrui.Items[i].Output,
 			DeployerType:              rrui.Items[i].DeployerType,
 			Duration:                  rrui.Items[i].Duration,
 			PreviousRequiredProviders: rrui.Items[i].PreviousRequiredProviders,

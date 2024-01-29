@@ -23,6 +23,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcestate"
 	"github.com/seal-io/walrus/pkg/dao/model/role"
 	"github.com/seal-io/walrus/pkg/dao/model/setting"
 	"github.com/seal-io/walrus/pkg/dao/model/subject"
@@ -616,17 +617,30 @@ func init() {
 	// resourcerun.DefaultVariables holds the default value on creation for the variables field.
 	resourcerun.DefaultVariables = resourcerunDescVariables.Default.(crypto.Map[string, string])
 	// resourcerunDescDeployerType is the schema descriptor for deployer_type field.
-	resourcerunDescDeployerType := resourcerunFields[11].Descriptor()
+	resourcerunDescDeployerType := resourcerunFields[10].Descriptor()
 	// resourcerun.DefaultDeployerType holds the default value on creation for the deployer_type field.
 	resourcerun.DefaultDeployerType = resourcerunDescDeployerType.Default.(string)
 	// resourcerunDescDuration is the schema descriptor for duration field.
-	resourcerunDescDuration := resourcerunFields[12].Descriptor()
+	resourcerunDescDuration := resourcerunFields[11].Descriptor()
 	// resourcerun.DefaultDuration holds the default value on creation for the duration field.
 	resourcerun.DefaultDuration = resourcerunDescDuration.Default.(int)
 	// resourcerunDescPreviousRequiredProviders is the schema descriptor for previous_required_providers field.
-	resourcerunDescPreviousRequiredProviders := resourcerunFields[13].Descriptor()
+	resourcerunDescPreviousRequiredProviders := resourcerunFields[12].Descriptor()
 	// resourcerun.DefaultPreviousRequiredProviders holds the default value on creation for the previous_required_providers field.
 	resourcerun.DefaultPreviousRequiredProviders = resourcerunDescPreviousRequiredProviders.Default.([]types.ProviderRequirement)
+	resourcestateMixin := schema.ResourceState{}.Mixin()
+	resourcestateMixinHooks0 := resourcestateMixin[0].Hooks()
+	resourcestate.Hooks[0] = resourcestateMixinHooks0[0]
+	resourcestateFields := schema.ResourceState{}.Fields()
+	_ = resourcestateFields
+	// resourcestateDescData is the schema descriptor for data field.
+	resourcestateDescData := resourcestateFields[0].Descriptor()
+	// resourcestate.DefaultData holds the default value on creation for the data field.
+	resourcestate.DefaultData = resourcestateDescData.Default.(string)
+	// resourcestateDescResourceID is the schema descriptor for resource_id field.
+	resourcestateDescResourceID := resourcestateFields[1].Descriptor()
+	// resourcestate.ResourceIDValidator is a validator for the "resource_id" field. It is called by the builders before save.
+	resourcestate.ResourceIDValidator = resourcestateDescResourceID.Validators[0].(func(string) error)
 	roleMixin := schema.Role{}.Mixin()
 	roleHooks := schema.Role{}.Hooks()
 	role.Hooks[0] = roleHooks[0]

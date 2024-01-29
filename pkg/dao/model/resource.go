@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcestate"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -89,9 +90,11 @@ type ResourceEdges struct {
 	Components []*ResourceComponent `json:"components,omitempty"`
 	// Dependencies holds the value of the dependencies edge.
 	Dependencies []*ResourceRelationship `json:"dependencies,omitempty"`
+	// State of the resource.
+	State *ResourceState `json:"state,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [8]bool
+	loadedTypes [9]bool
 }
 
 // ProjectOrErr returns the Project value or an error if the edge
@@ -184,6 +187,19 @@ func (e ResourceEdges) DependenciesOrErr() ([]*ResourceRelationship, error) {
 		return e.Dependencies, nil
 	}
 	return nil, &NotLoadedError{edge: "dependencies"}
+}
+
+// StateOrErr returns the State value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ResourceEdges) StateOrErr() (*ResourceState, error) {
+	if e.loadedTypes[8] {
+		if e.State == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: resourcestate.Label}
+		}
+		return e.State, nil
+	}
+	return nil, &NotLoadedError{edge: "state"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -390,6 +406,11 @@ func (r *Resource) QueryComponents() *ResourceComponentQuery {
 // QueryDependencies queries the "dependencies" edge of the Resource entity.
 func (r *Resource) QueryDependencies() *ResourceRelationshipQuery {
 	return NewResourceClient(r.config).QueryDependencies(r)
+}
+
+// QueryState queries the "state" edge of the Resource entity.
+func (r *Resource) QueryState() *ResourceStateQuery {
+	return NewResourceClient(r.config).QueryState(r)
 }
 
 // Update returns a builder for updating this Resource.

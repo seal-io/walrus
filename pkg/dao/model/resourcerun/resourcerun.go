@@ -46,8 +46,6 @@ const (
 	FieldVariables = "variables"
 	// FieldInputConfigs holds the string denoting the input_configs field in the database.
 	FieldInputConfigs = "input_configs"
-	// FieldOutput holds the string denoting the output field in the database.
-	FieldOutput = "output"
 	// FieldDeployerType holds the string denoting the deployer_type field in the database.
 	FieldDeployerType = "deployer_type"
 	// FieldDuration holds the string denoting the duration field in the database.
@@ -106,7 +104,6 @@ var Columns = []string{
 	FieldComputedAttributes,
 	FieldVariables,
 	FieldInputConfigs,
-	FieldOutput,
 	FieldDeployerType,
 	FieldDuration,
 	FieldPreviousRequiredProviders,
@@ -213,11 +210,6 @@ func ByComputedAttributes(opts ...sql.OrderTermOption) OrderOption {
 // ByVariables orders the results by the variables field.
 func ByVariables(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVariables, opts...).ToFunc()
-}
-
-// ByOutput orders the results by the output field.
-func ByOutput(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldOutput, opts...).ToFunc()
 }
 
 // ByDeployerType orders the results by the deployer_type field.

@@ -25,6 +25,7 @@ type SchemaConfig struct {
 	ResourceDefinitionMatchingRule   string // ResourceDefinitionMatchingRule table.
 	ResourceRelationship             string // ResourceRelationship table.
 	ResourceRun                      string // ResourceRun table.
+	ResourceState                    string // ResourceState table.
 	Role                             string // Role table.
 	Setting                          string // Setting table.
 	Subject                          string // Subject table.

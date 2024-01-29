@@ -27,6 +27,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcestate"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -301,6 +302,25 @@ func (ru *ResourceUpdate) AddDependencies(r ...*ResourceRelationship) *ResourceU
 	return ru.AddDependencyIDs(ids...)
 }
 
+// SetStateID sets the "state" edge to the ResourceState entity by ID.
+func (ru *ResourceUpdate) SetStateID(id object.ID) *ResourceUpdate {
+	ru.mutation.SetStateID(id)
+	return ru
+}
+
+// SetNillableStateID sets the "state" edge to the ResourceState entity by ID if the given value is not nil.
+func (ru *ResourceUpdate) SetNillableStateID(id *object.ID) *ResourceUpdate {
+	if id != nil {
+		ru = ru.SetStateID(*id)
+	}
+	return ru
+}
+
+// SetState sets the "state" edge to the ResourceState entity.
+func (ru *ResourceUpdate) SetState(r *ResourceState) *ResourceUpdate {
+	return ru.SetStateID(r.ID)
+}
+
 // Mutation returns the ResourceMutation object of the builder.
 func (ru *ResourceUpdate) Mutation() *ResourceMutation {
 	return ru.mutation
@@ -385,6 +405,12 @@ func (ru *ResourceUpdate) RemoveDependencies(r ...*ResourceRelationship) *Resour
 		ids[i] = r[i].ID
 	}
 	return ru.RemoveDependencyIDs(ids...)
+}
+
+// ClearState clears the "state" edge to the ResourceState entity.
+func (ru *ResourceUpdate) ClearState() *ResourceUpdate {
+	ru.mutation.ClearState()
+	return ru
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -840,6 +866,37 @@ func (ru *ResourceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if ru.mutation.StateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   resource.StateTable,
+			Columns: []string{resource.StateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcestate.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = ru.schemaConfig.ResourceState
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.StateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   resource.StateTable,
+			Columns: []string{resource.StateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcestate.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = ru.schemaConfig.ResourceState
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = ru.schemaConfig.Resource
 	ctx = internal.NewSchemaConfigContext(ctx, ru.schemaConfig)
 	_spec.AddModifiers(ru.modifiers...)
@@ -1117,6 +1174,25 @@ func (ruo *ResourceUpdateOne) AddDependencies(r ...*ResourceRelationship) *Resou
 	return ruo.AddDependencyIDs(ids...)
 }
 
+// SetStateID sets the "state" edge to the ResourceState entity by ID.
+func (ruo *ResourceUpdateOne) SetStateID(id object.ID) *ResourceUpdateOne {
+	ruo.mutation.SetStateID(id)
+	return ruo
+}
+
+// SetNillableStateID sets the "state" edge to the ResourceState entity by ID if the given value is not nil.
+func (ruo *ResourceUpdateOne) SetNillableStateID(id *object.ID) *ResourceUpdateOne {
+	if id != nil {
+		ruo = ruo.SetStateID(*id)
+	}
+	return ruo
+}
+
+// SetState sets the "state" edge to the ResourceState entity.
+func (ruo *ResourceUpdateOne) SetState(r *ResourceState) *ResourceUpdateOne {
+	return ruo.SetStateID(r.ID)
+}
+
 // Mutation returns the ResourceMutation object of the builder.
 func (ruo *ResourceUpdateOne) Mutation() *ResourceMutation {
 	return ruo.mutation
@@ -1201,6 +1277,12 @@ func (ruo *ResourceUpdateOne) RemoveDependencies(r ...*ResourceRelationship) *Re
 		ids[i] = r[i].ID
 	}
 	return ruo.RemoveDependencyIDs(ids...)
+}
+
+// ClearState clears the "state" edge to the ResourceState entity.
+func (ruo *ResourceUpdateOne) ClearState() *ResourceUpdateOne {
+	ruo.mutation.ClearState()
+	return ruo
 }
 
 // Where appends a list predicates to the ResourceUpdate builder.
@@ -1819,6 +1901,37 @@ func (ruo *ResourceUpdateOne) sqlSave(ctx context.Context) (_node *Resource, err
 			},
 		}
 		edge.Schema = ruo.schemaConfig.ResourceRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ruo.mutation.StateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   resource.StateTable,
+			Columns: []string{resource.StateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcestate.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = ruo.schemaConfig.ResourceState
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.StateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   resource.StateTable,
+			Columns: []string{resource.StateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcestate.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = ruo.schemaConfig.ResourceState
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

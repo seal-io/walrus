@@ -25,6 +25,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcestate"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -290,6 +291,25 @@ func (rc *ResourceCreate) AddDependencies(r ...*ResourceRelationship) *ResourceC
 		ids[i] = r[i].ID
 	}
 	return rc.AddDependencyIDs(ids...)
+}
+
+// SetStateID sets the "state" edge to the ResourceState entity by ID.
+func (rc *ResourceCreate) SetStateID(id object.ID) *ResourceCreate {
+	rc.mutation.SetStateID(id)
+	return rc
+}
+
+// SetNillableStateID sets the "state" edge to the ResourceState entity by ID if the given value is not nil.
+func (rc *ResourceCreate) SetNillableStateID(id *object.ID) *ResourceCreate {
+	if id != nil {
+		rc = rc.SetStateID(*id)
+	}
+	return rc
+}
+
+// SetState sets the "state" edge to the ResourceState entity.
+func (rc *ResourceCreate) SetState(r *ResourceState) *ResourceCreate {
+	return rc.SetStateID(r.ID)
 }
 
 // Mutation returns the ResourceMutation object of the builder.
@@ -621,6 +641,23 @@ func (rc *ResourceCreate) createSpec() (*Resource, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = rc.schemaConfig.ResourceRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rc.mutation.StateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   resource.StateTable,
+			Columns: []string{resource.StateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(resourcestate.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = rc.schemaConfig.ResourceState
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

@@ -71,6 +71,8 @@ const (
 	EdgeComponents = "components"
 	// EdgeDependencies holds the string denoting the dependencies edge name in mutations.
 	EdgeDependencies = "dependencies"
+	// EdgeState holds the string denoting the state edge name in mutations.
+	EdgeState = "state"
 	// Table holds the table name of the resource in the database.
 	Table = "resources"
 	// ProjectTable is the table that holds the project relation/edge.
@@ -129,6 +131,13 @@ const (
 	DependenciesInverseTable = "resource_relationships"
 	// DependenciesColumn is the table column denoting the dependencies relation/edge.
 	DependenciesColumn = "resource_id"
+	// StateTable is the table that holds the state relation/edge.
+	StateTable = "resource_states"
+	// StateInverseTable is the table name for the ResourceState entity.
+	// It exists in this package in order to avoid circular dependency with the "resourcestate" package.
+	StateInverseTable = "resource_states"
+	// StateColumn is the table column denoting the state relation/edge.
+	StateColumn = "resource_id"
 )
 
 // Columns holds all SQL columns for resource fields.
@@ -342,6 +351,13 @@ func ByDependencies(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newDependenciesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByStateField orders the results by state field.
+func ByStateField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newStateStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newProjectStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -396,6 +412,13 @@ func newDependenciesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(DependenciesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, true, DependenciesTable, DependenciesColumn),
+	)
+}
+func newStateStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(StateInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, StateTable, StateColumn),
 	)
 }
 
