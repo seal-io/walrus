@@ -165,6 +165,13 @@ func (Resource) Edges() []ent.Edge {
 			Through("resource_relationships", ResourceRelationship.Type).
 			Annotations(
 				entx.SkipIO()),
+		// Resource 1-1 ResourceState.
+		edge.To("state", ResourceState.Type).
+			Comment("State of the resource.").
+			Unique().
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+				entx.SkipIO()),
 	}
 }
 
