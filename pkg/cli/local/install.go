@@ -77,6 +77,8 @@ func InstallLocalWalrusDockerContainer() error {
 		"--privileged",
 		"-e",
 		"SERVER_SETTING_LOCAL_ENVIRONMENT_MODE=docker",
+		"-e",
+		"SERVER_BUILTIN_CATALOG_PROVIDER",
 		"-v",
 		"/var/run/docker.sock:/var/run/docker.sock",
 		fmt.Sprintf("sealio/walrus:%s", getLocalWalrusTag()),
