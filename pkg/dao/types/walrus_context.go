@@ -7,9 +7,10 @@ import (
 
 const WalrusContextVariableName = openapi.WalrusContextVariableName
 
-// Context indicate the walrus related metadata, will set to attribute context while user module include this attribute.
+// Context indicates the walrus-related metadata,
+// will set to attribute context while user module include this attribute.
 type Context struct {
-	// Project indicate the project metadata.
+	// Project indicates the project metadata.
 	Project struct {
 		Name string    `json:"name,omitempty"`
 		ID   object.ID `json:"id,omitempty"`
@@ -24,7 +25,7 @@ type Context struct {
 		Namespace string `json:"namespace,omitempty"`
 	} `json:"environment,omitempty"`
 
-	// Resource indicate the resource metadata.
+	// Resource indicates the resource metadata.
 	Resource struct {
 		Name string    `json:"name,omitempty"`
 		ID   object.ID `json:"id,omitempty"`

@@ -5,8 +5,8 @@ import (
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
-	"github.com/seal-io/walrus/pkg/deployer/terraform"
 	"github.com/seal-io/walrus/utils/json"
 )
 
@@ -51,10 +51,10 @@ func (r *RouteLogRequest) Validate() error {
 	}
 
 	if r.JobType == "" {
-		r.JobType = terraform.JobTypeApply
+		r.JobType = types.RunJobTypeApply
 	}
 
-	if r.JobType != terraform.JobTypeApply && r.JobType != terraform.JobTypeDestroy {
+	if r.JobType != types.RunJobTypeApply && r.JobType != types.RunJobTypeDestroy {
 		return errors.New("invalid job type")
 	}
 

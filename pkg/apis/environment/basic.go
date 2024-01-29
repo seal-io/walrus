@@ -14,9 +14,9 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	"github.com/seal-io/walrus/pkg/deployer"
-	deployertf "github.com/seal-io/walrus/pkg/deployer/terraform"
 	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
 	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
@@ -291,7 +291,7 @@ func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 
 func (h Handler) getDeployer(ctx context.Context) (deptypes.Deployer, error) {
 	dep, err := deployer.Get(ctx, deptypes.CreateOptions{
-		Type:       deployertf.DeployerType,
+		Type:       types.DeployerTypeTF,
 		KubeConfig: h.kubeConfig,
 	})
 	if err != nil {

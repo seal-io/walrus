@@ -4,21 +4,22 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/deployer/terraform"
-	"github.com/seal-io/walrus/pkg/deployer/types"
+	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
 )
 
-var dpCreators map[types.Type]types.Creator
+var dpCreators map[deptypes.Type]deptypes.Creator
 
 func init() {
 	// Register deployer creators as below.
-	dpCreators = map[types.Type]types.Creator{
-		terraform.DeployerType: terraform.NewDeployer,
+	dpCreators = map[deptypes.Type]deptypes.Creator{
+		types.DeployerTypeTF: terraform.NewDeployer,
 	}
 }
 
 // Get returns types.Deployer with the given types.CreateOptions.
-func Get(ctx context.Context, opts types.CreateOptions) (types.Deployer, error) {
+func Get(ctx context.Context, opts deptypes.CreateOptions) (deptypes.Deployer, error) {
 	f, exist := dpCreators[opts.Type]
 	if !exist {
 		return nil, fmt.Errorf("unknown deployer: %s", opts.Type)

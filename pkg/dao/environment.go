@@ -25,7 +25,7 @@ func EnvironmentConnectorsEdgeSave(ctx context.Context, mc model.ClientSet, enti
 		return nil
 	}
 
-	// Default new items and create key set for items.
+	// Default new items and create a key set for items.
 	var (
 		newItems       = entity.Edges.Connectors
 		newItemsKeySet = sets.New[string]()
@@ -204,5 +204,24 @@ func GetEnvironmentsByIDs(ctx context.Context, mc model.ClientSet, ids ...object
 		WithConnectors(func(rq *model.EnvironmentConnectorRelationshipQuery) {
 			rq.WithConnector()
 		}).
+		All(ctx)
+}
+
+// GetConnectors gets connectors of an environment.
+func GetConnectors(
+	ctx context.Context,
+	mc model.ClientSet,
+	environmentID object.ID,
+) (model.Connectors, error) {
+	return mc.EnvironmentConnectorRelationships().Query().
+		Where(environmentconnectorrelationship.EnvironmentID(environmentID)).
+		QueryConnector().
+		Select(
+			connector.FieldID,
+			connector.FieldName,
+			connector.FieldType,
+			connector.FieldCategory,
+			connector.FieldConfigVersion,
+			connector.FieldConfigData).
 		All(ctx)
 }

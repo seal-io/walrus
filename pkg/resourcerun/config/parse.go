@@ -1,9 +1,10 @@
-package terraform
+package config
 
 import (
 	"bytes"
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
@@ -20,6 +21,22 @@ import (
 	pkgvariable "github.com/seal-io/walrus/pkg/variable"
 	"github.com/seal-io/walrus/utils/json"
 )
+
+const (
+	// _variablePrefix the prefix of the variable name.
+	_variablePrefix = "_walrus_var_"
+
+	// _resourcePrefix the prefix of the resource output name.
+	_resourcePrefix = "_walrus_res_"
+)
+
+// _interpolationReg is the regular expression for matching non-reference or non-variable expressions.
+// Reference: https://developer.hashicorp.com/terraform/language/expressions/strings#escape-sequences-1
+// To handle escape sequences, ${xxx} is converted to $${xxx}.
+// If there are more than two consecutive $ symbols, like $${xxx}, they are further converted to $$${xxx}.
+// During Terraform processing, $${} is ultimately transformed back to ${};
+// this interpolation is used to ensure a WYSIWYG user experience.
+var _interpolationReg = regexp.MustCompile(`\$\{((var\.)?([^.}]+)(?:\.([^.}]+))?)[^\}]*\}`)
 
 type RunOpts struct {
 	ResourceRun *model.ResourceRun
@@ -50,7 +67,7 @@ func ParseModuleAttributes(
 		return
 	}
 
-	// If resource run has variables that inherit from cloned run, use them directly.
+	// If a resource run has variables that inherit from cloned run, use them directly.
 	if opts.ResourceRun != nil && len(opts.ResourceRun.Variables) > 0 {
 		for k, v := range opts.ResourceRun.Variables {
 			variables = append(variables, &model.Variable{
@@ -153,7 +170,7 @@ func parseAttributeReplace(
 			return match
 		}
 
-		// If it is variable or resource reference, do not replace.
+		// If it is a variable or resource reference, do not replace.
 		if string(m[2]) == "var." {
 			return match
 		}
