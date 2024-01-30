@@ -12,14 +12,14 @@ $ kind create cluster --name local
 ### Local Postgres via [Docker](https://docs.docker.com/desktop/install/mac-install/)
 
 ```bash
-$ docker run -d -p 5432:5432 -e "POSTGRES_USER=root" -e "POSTGRES_PASSWORD=Root123" -e "POSTGRES_DB=walrus" postgres:14.6
+$ docker run -d -p 5432:5432 -e "POSTGRES_USER=root" -e "POSTGRES_PASSWORD=Root123" -e "POSTGRES_DB=walrus" postgres:16.1
 
 ```
 
 ### Local Casdoor via [Docker](https://docs.docker.com/desktop/install/mac-install/)
 
 ```bash
-$ docker run -d -p 8000:8000 sealio/casdoor:v1.344.0-seal.1
+$ docker run -d -p 8000:8000 sealio/casdoor:v1.515.0-seal.1
 
 ```
 

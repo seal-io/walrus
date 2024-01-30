@@ -1,4 +1,4 @@
-FROM --platform=$TARGETPLATFORM ubuntu:22.04
+FROM --platform=$TARGETPLATFORM ubuntu:24.04
 SHELL ["/bin/bash", "-c"]
 
 ARG TARGETPLATFORM
@@ -40,19 +40,19 @@ RUN set -eux; \
 # get postgres
 VOLUME /var/lib/postgresql
 RUN set -eux; \
-	groupadd -r postgres --gid=999; \
-	useradd -r -g postgres --uid=999 --home-dir=/var/lib/postgresql --shell=/bin/bash postgres; \
+	groupadd -r postgres --gid=9999; \
+	useradd -r -g postgres --uid=9999 --home-dir=/var/lib/postgresql --shell=/bin/bash postgres; \
 	mkdir -p /var/lib/postgresql; \
 	chown -R postgres:postgres /var/lib/postgresql
 RUN set -eux; \
     apt-get update && apt-get install -y --no-install-recommends \
-      postgresql-14 \
+      postgresql-16 \
     ; \
     rm -rf /var/lib/apt/lists/*; \
     \
-    ln -s /usr/lib/postgresql/14/bin /usr/lib/postgresql/bin && \
-    ln -s /etc/postgresql/14/main /etc/postgresql/main && \
-    ln -s /var/lib/postgresql/14/main /var/lib/postgresql/main; \
+    ln -s /usr/lib/postgresql/16/bin /usr/lib/postgresql/bin && \
+    ln -s /etc/postgresql/16/main /etc/postgresql/main && \
+    ln -s /var/lib/postgresql/16/main /var/lib/postgresql/main; \
     \
     ls -1 /usr/lib/postgresql/bin/ | xargs -I @ ln -sf /usr/lib/postgresql/bin/@ /usr/bin/@; \
     \
@@ -73,13 +73,15 @@ VOLUME /var/lib/k3s
 ENV K3S_DATA_DIR=/var/lib/k3s \
     K3S_RESOLV_CONF=/etc/resolv.conf \
     ETCDCTL_API=3
-COPY --from=rancher/k3s:v1.26.4-k3s1 \
+COPY --from=rancher/k3s:v1.27.9-k3s1 \
     /bin/blkid \
+    /bin/bandwidth \
     /bin/cni \
     /bin/conntrack \
     /bin/containerd \
     /bin/containerd-shim-runc-v2 \
     /bin/ethtool \
+    /bin/firewall \
     /bin/ip \
     /bin/ipset \
     /bin/k3s \
@@ -111,11 +113,11 @@ RUN set -eux; \
     ln -s /usr/bin/xtables-legacy-multi /usr/bin/ip6tables-restore && \
     ln -s /usr/bin/xtables-legacy-multi /usr/bin/ip6tables-translate; \
     \
-    IMAGE_URL="https://github.com/k3s-io/k3s/releases/download/v1.26.4%2Bk3s1/k3s-airgap-images-${TARGETARCH}.tar.zst"; \
+    IMAGE_URL="https://github.com/k3s-io/k3s/releases/download/v1.27.9%2Bk3s1/k3s-airgap-images-${TARGETARCH}.tar.zst"; \
     mkdir -p ${K3S_DATA_DIR}/agent/images && \
     axel -n 16 -o ${K3S_DATA_DIR}/agent/images/k3s-images.tar.zst ${IMAGE_URL}; \
     \
-    ETCDCTL_VER="v3.5.5"; \
+    ETCDCTL_VER="v3.5.11"; \
     ETCDCTL_URL="https://github.com/etcd-io/etcd/releases/download/${ETCDCTL_VER}/etcd-${ETCDCTL_VER}-linux-${TARGETARCH}.tar.gz"; \
     axel -n 16 -o /tmp/etcdctl.tar.gz ${ETCDCTL_URL} && \
     tar -xzvf /tmp/etcdctl.tar.gz --directory /usr/bin/ --strip-components=1 --no-same-owner etcd-${ETCDCTL_VER}-linux-${TARGETARCH}/etcdctl
@@ -124,10 +126,10 @@ RUN set -eux; \
 RUN set -exo pipefail; \
     case "${TARGETARCH}" in \
       amd64|x86_64) \
-        CRANE_URL='https://github.com/google/go-containerregistry/releases/download/v0.15.2/go-containerregistry_Linux_x86_64.tar.gz'; \
+        CRANE_URL='https://github.com/google/go-containerregistry/releases/download/v0.19.0/go-containerregistry_Linux_x86_64.tar.gz'; \
         ;; \
       aarch64|arm64) \
-        CRANE_URL='https://github.com/google/go-containerregistry/releases/download/v0.15.2/go-containerregistry_Linux_arm64.tar.gz'; \
+        CRANE_URL='https://github.com/google/go-containerregistry/releases/download/v0.19.0/go-containerregistry_Linux_arm64.tar.gz'; \
         ;; \
       *) \
         echo "Unsupported arch: ${TARGETARCH}"; \
@@ -141,29 +143,17 @@ RUN set -exo pipefail; \
       rm -f /tmp/crane.tar.gz;
 
 # get minio
-RUN set -exo pipefail; \
-	case "${TARGETARCH}" in \
-		amd64|x86_64) \
-			MINIO_URL='https://dl.min.io/server/minio/release/linux-amd64/minio'; \
-			;; \
-		aarch64|arm64) \
-			MINIO_URL='https://dl.min.io/server/minio/release/linux-arm64/minio'; \
-			;; \
-		*) \
-			echo "Unsupported arch: ${TARGETARCH}"; \
-			exit 1; \
-			;; \
-	esac; \
-	\
-	axel -n 16 -o /usr/bin/minio ${MINIO_URL} && \
-		chmod a+x /usr/bin/minio;
+COPY --from=minio/minio:RELEASE.2024-03-03T17-50-39Z \
+    /usr/bin/minio \
+    /usr/bin/mc \
+    /usr/bin/
 
 ENV CHARTS_DIR="/var/lib/walrus/manifests/charts" \
     CLI_DIR="/var/lib/walrus/cli"
 
 # get casdoor
 ENV BEEGO_CONFIG_PATH="/etc/casdoor/app.conf"
-COPY --from=sealio/casdoor:v1.344.0-seal.1 \
+COPY --from=sealio/casdoor:v1.515.0-seal.1 \
     /casdoor \
     /usr/bin/
 

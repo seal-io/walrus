@@ -20,19 +20,27 @@ func GetApplicationCredential(
 ) (*ApplicationCredential, error) {
 	getApplicationURL := fmt.Sprintf("%s/api/get-application?id=admin/%s", endpoint.Get(), appz)
 
-	var app ApplicationCredential
+	var getAppCredResp struct {
+		Status string                `json:"status"`
+		Msg    string                `json:"msg"`
+		Data   ApplicationCredential `json:"data"`
+	}
 
 	err := req.HTTPRequest().
 		WithCookies(adminSession...).
 		GetWithContext(ctx, getApplicationURL).
-		BodyJSON(&app)
+		BodyJSON(&getAppCredResp)
 	if err != nil {
 		return nil, errorx.Errorf("error getting app admin/%s: %v", appz, err)
 	}
 
-	if app.ClientID == "" || app.ClientSecret == "" {
+	if getAppCredResp.Status == statusError {
+		return nil, errorx.Errorf("failed to get app credential: %s", getAppCredResp.Msg)
+	}
+
+	if getAppCredResp.Data.ClientID == "" || getAppCredResp.Data.ClientSecret == "" {
 		return nil, errorx.Errorf("failed to get app admin/%s: blank client id/secret", appz)
 	}
 
-	return &app, nil
+	return &getAppCredResp.Data, nil
 }

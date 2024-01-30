@@ -12,3 +12,7 @@ const (
 	BuiltinAdmin        = "admin"
 	BuiltinAdminInitPwd = "Admin@123"
 )
+
+const (
+	statusError = "error"
+)

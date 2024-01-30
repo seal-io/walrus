@@ -4,7 +4,7 @@ resources:
     attributes:
       username: root
       database: walrus
-      engine_version: "14"
+      engine_version: "16"
   - name: walrus-redis
     type: redis
     attributes: {}
@@ -12,7 +12,7 @@ resources:
     type: containerservice
     attributes:
       containers:
-        - image: sealio/casdoor:v1.344.0-seal.1
+        - image: sealio/casdoor:v1.515.0-seal.1
           profile: run
           ports:
             - internal: 8000

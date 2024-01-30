@@ -112,7 +112,7 @@ data:
 
     if [[ ! -d ${PGDATA} ]]; then
       mkdir -p ${PGDATA}
-      chown 999:999 ${PGDATA}
+      chown 9999:9999 ${PGDATA}
     fi
 
   "probe.sh": |
@@ -185,7 +185,7 @@ spec:
       restartPolicy: Always
       initContainers:
         - name: init
-          image: postgres:14.8
+          image: postgres:16.1
           imagePullPolicy: IfNotPresent
           command:
             - /script/init.sh
@@ -199,7 +199,7 @@ spec:
               mountPath: /var/lib/postgresql/data
       containers:
         - name: postgres
-          image: postgres:14.8
+          image: postgres:16.1
           imagePullPolicy: IfNotPresent
           resources:
             limits:
@@ -209,7 +209,7 @@ spec:
               cpu: '500m'
               memory: '512Mi'
           securityContext:
-            runAsUser: 999
+            runAsUser: 9999
           ports:
             - name: conn
               containerPort: 5432
@@ -347,7 +347,7 @@ spec:
       restartPolicy: Always
       initContainers:
         - name: init
-          image: sealio/casdoor:v1.344.0-seal.1
+          image: sealio/casdoor:v1.515.0-seal.1
           imagePullPolicy: IfNotPresent
           workingDir: /tmp/conf
           command:
@@ -382,7 +382,7 @@ spec:
               mountPath: /tmp/conf
       containers:
         - name: casdoor
-          image: sealio/casdoor:v1.344.0-seal.1
+          image: sealio/casdoor:v1.515.0-seal.1
           imagePullPolicy: IfNotPresent
           resources:
             limits:

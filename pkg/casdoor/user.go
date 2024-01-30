@@ -115,7 +115,7 @@ func DeleteUser(ctx context.Context, clientID, clientSecret, org, usr string) er
 		return errorx.Errorf("error deleting user %s/%s: %v", org, usr, err)
 	}
 
-	if deleteUserResp.Status == "error" {
+	if deleteUserResp.Status == statusError {
 		return errorx.Errorf("failed to delete user %s/%s: %s", deleteUserResp.Msg, org, usr)
 	}
 
@@ -164,21 +164,29 @@ type User struct {
 func GetUser(ctx context.Context, clientID, clientSecret, org, usr string) (*User, error) {
 	getUserURL := fmt.Sprintf("%s/api/get-user?id=%s/%s", endpoint.Get(), org, usr)
 
-	var user User
+	var getUserResp struct {
+		Status string `json:"status"`
+		Msg    string `json:"msg"`
+		Data   User   `json:"data"`
+	}
 
 	err := req.HTTPRequest().
 		WithBasicAuth(clientID, clientSecret).
 		GetWithContext(ctx, getUserURL).
-		BodyJSON(&user)
+		BodyJSON(&getUserResp)
 	if err != nil {
 		return nil, errorx.Errorf("error getting user %s/%s: %v", org, usr, err)
 	}
 
-	if user.Owner == "" || user.Name == "" {
+	if getUserResp.Status == statusError {
+		return nil, errorx.Errorf("failed to get user: %s", getUserResp.Msg)
+	}
+
+	if getUserResp.Data.Owner == "" || getUserResp.Data.Name == "" {
 		return nil, errorx.Errorf("failed to get user %s/%s: not found", org, usr)
 	}
 
-	return &user, nil
+	return &getUserResp.Data, nil
 }
 
 type UserInfo struct {
@@ -189,7 +197,9 @@ type UserInfo struct {
 func GetUserInfo(ctx context.Context, userSessions []*req.HttpCookie) (*UserInfo, error) {
 	getAccountURL := fmt.Sprintf("%s/api/get-account", endpoint.Get())
 
-	var account struct {
+	var getAccountResp struct {
+		Status       string `json:"status"`
+		Msg          string `json:"msg"`
 		Sub          string `json:"sub"`
 		Name         string `json:"name"`
 		Organization struct {
@@ -200,17 +210,21 @@ func GetUserInfo(ctx context.Context, userSessions []*req.HttpCookie) (*UserInfo
 	err := req.HTTPRequest().
 		WithCookies(userSessions...).
 		GetWithContext(ctx, getAccountURL).
-		BodyJSON(&account)
+		BodyJSON(&getAccountResp)
 	if err != nil {
 		return nil, errorx.Errorf("error getting user account: %v", err)
 	}
 
-	if account.Sub == "" {
+	if getAccountResp.Status == statusError {
+		return nil, errorx.Errorf("failed to get user info: %s", getAccountResp.Msg)
+	}
+
+	if getAccountResp.Sub == "" {
 		return nil, errors.New("failed to get user account")
 	}
 
 	return &UserInfo{
-		Organization: account.Organization.Name,
-		Name:         account.Name,
+		Organization: getAccountResp.Organization.Name,
+		Name:         getAccountResp.Name,
 	}, nil
 }
