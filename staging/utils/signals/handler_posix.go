@@ -1,3 +1,5 @@
+//go:build !windows
+
 package signals
 
 import (
@@ -120,7 +122,7 @@ func Handler() context.Context {
 					continue // Cannot recycle the candidate, go ahead to confirm next.
 				}
 
-				logger.Infof("reaped child process %d", wpid)
+				logger.Debugf("reaped child process %d", wpid)
 			}
 		}
 	}()
