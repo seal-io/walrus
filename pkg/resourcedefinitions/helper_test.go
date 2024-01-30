@@ -10,7 +10,9 @@ import (
 )
 
 func Test_alignSchemas(t *testing.T) {
-	testCases, err := os.ReadDir("testdata")
+	dir := filepath.Join("testdata", "align_schemas")
+
+	testCases, err := os.ReadDir(dir)
 	if err != nil {
 		t.Fatalf("failed to read testdata: %v", err)
 	}
@@ -22,43 +24,53 @@ func Test_alignSchemas(t *testing.T) {
 			continue
 		}
 
-		givenPaths, err := filepath.Glob(
-			filepath.Join("testdata", tc.Name(), "given.*.yaml"))
-		if err != nil {
-			t.Fatalf("failed to glob given files: %v", err)
-		}
-
-		givens := make([]openapi3.Schemas, 0, len(givenPaths))
-
-		for i := range givenPaths {
-			givenPath := givenPaths[i]
-			givenOpenAPISchema, err := loader.LoadFromFile(givenPath)
+		var givenSchemasSlice []openapi3.Schemas
+		{
+			givenPaths, err := filepath.Glob(
+				filepath.Join(dir, tc.Name(), "given.*.yaml"))
 			if err != nil {
-				t.Fatalf("failed to load given file %q: %v", givenPath, err)
+				t.Fatalf("failed to glob given files: %v", err)
 			}
 
-			if givenOpenAPISchema.Components == nil ||
-				givenOpenAPISchema.Components.Schemas == nil {
-				t.Fatalf("given file %q has no components.schemas", givenPath)
+			givenSchemasSlice = make([]openapi3.Schemas, 0, len(givenPaths))
+
+			for i := range givenPaths {
+				givenPath := givenPaths[i]
+				givenOpenAPISchema, err := loader.LoadFromFile(givenPath)
+				if err != nil {
+					t.Fatalf("failed to load given file %q: %v", givenPath, err)
+				}
+
+				if givenOpenAPISchema.Components == nil ||
+					givenOpenAPISchema.Components.Schemas == nil {
+					t.Fatalf("given file %q has no components.schemas", givenPath)
+				}
+				givenSchemas := givenOpenAPISchema.Components.Schemas
+				givenSchemasSlice = append(givenSchemasSlice, givenSchemas)
 			}
-			givenSchemas := givenOpenAPISchema.Components.Schemas
-			givens = append(givens, givenSchemas)
 		}
 
-		expectedPath := filepath.Join("testdata", tc.Name(), "expected.yaml")
-		expectedOpenAPISchema, err := loader.LoadFromFile(expectedPath)
-		if err != nil {
-			t.Fatalf("failed to load expected file %q: %v", expectedPath, err)
+		var expectedSchemas openapi3.Schemas
+		{
+			expectedPath := filepath.Join(dir, tc.Name(), "expected.yaml")
+			expectedOpenAPISchema, err := loader.LoadFromFile(expectedPath)
+			if err != nil {
+				t.Fatalf("failed to load expected file %q: %v", expectedPath, err)
+			}
+
+			if expectedOpenAPISchema.Components == nil ||
+				expectedOpenAPISchema.Components.Schemas == nil {
+				t.Fatalf("expected file %q has no components.schemas", expectedPath)
+			}
+
+			expectedSchemas = expectedOpenAPISchema.Components.Schemas
 		}
 
-		if expectedOpenAPISchema.Components == nil ||
-			expectedOpenAPISchema.Components.Schemas == nil {
-			t.Fatalf("expected file %q has no components.schemas", expectedPath)
+		nb := map[string]any{
+			variablesSchemaKey: map[string]any{},
+			outputsSchemaKey:   map[string]any{},
 		}
-
-		expectedSchemas := expectedOpenAPISchema.Components.Schemas
-
-		actualSchema := alignSchemas(map[string]any{}, givens)
-		assert.Equal(t, expectedSchemas, actualSchema, tc.Name())
+		actualSchemas := alignSchemas(nb, givenSchemasSlice)
+		assert.Equal(t, expectedSchemas, actualSchemas, tc.Name())
 	}
 }
