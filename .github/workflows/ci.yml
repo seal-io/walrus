@@ -8,7 +8,6 @@ permissions:
 env:
   REPO: "sealio"
   VERSION: "${{ github.ref_name }}"
-  BUILD_PLATFORMS: "linux/amd64,linux/arm64"
   PARALLELIZE: "false"
   GO_VERSION: "1.21.6"
 
@@ -133,7 +132,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           file: .dist/package/${{ matrix.target }}/${{ matrix.task }}/image/Dockerfile
           context: .dist/package/${{ matrix.target }}/${{ matrix.task }}/
-          platforms: ${{ env.BUILD_PLATFORMS }}
+          platforms: "linux/amd64,linux/arm64"
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           # configure build cache,
