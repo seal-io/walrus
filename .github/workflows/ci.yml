@@ -208,3 +208,6 @@ jobs:
             hack/mirror/walrus-images.txt
             hack/mirror/walrus-load-images.sh
             hack/mirror/walrus-save-images.sh
+      - name: Generate checksum
+        uses: wangzuo/action-release-checksums@v1
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
