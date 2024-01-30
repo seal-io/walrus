@@ -1,0 +1,12 @@
+{
+  "storage": {
+    "class": "local_ssd",
+    "size": 20480
+  },
+  "database": "mydb",
+  "username": "rdsuser",
+  "architecture": "standalone",
+  "engine_version": "8.0",
+  "engine_parameters": [],
+  "replication_readonly_replicas": 1
+}

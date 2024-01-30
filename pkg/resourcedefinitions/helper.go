@@ -94,7 +94,7 @@ func GenSchema(ctx context.Context, mc model.ClientSet, df *model.ResourceDefini
 			defs = append(defs, mr.SchemaDefaultValue)
 		}
 
-		refillVariableSchemaRef(nb[variablesSchemaKey].(map[string]any), "", sr, defs)
+		refillVariableSchemaRef(nb[variablesSchemaKey].(map[string]any), "", sr, defs, "", sr.Value)
 	}
 
 	df.Schema = types.Schema{
@@ -506,8 +506,19 @@ func isSchemaRefTypeEqual(lsr, rsr *openapi3.SchemaRef) bool {
 	}
 }
 
-// refillVariableSchemaRef refills the default value to the variable schema.
-func refillVariableSchemaRef(nb map[string]any, key string, sr *openapi3.SchemaRef, defs [][]byte) {
+// refillVariableSchemaRef refills the default value to the given schema ref.
+//
+// It compares the default values have the same key,
+// only refills if all data are the same. If not the same, it will erase the default value and turn a required property to optional.
+//
+// The given notebook(`nb`) shares by the alignSchemas func,
+// refill if a property doesn't mutually exclusive in the default value.
+//
+// The given property name(`pName`) and schema(`pSchema`) are used to turn the required property to optional.
+func refillVariableSchemaRef(
+	nb map[string]any, key string, sr *openapi3.SchemaRef, defs [][]byte,
+	pName string, pSchema *openapi3.Schema,
+) {
 	if sr == nil || sr.Value == nil {
 		return
 	}
@@ -535,7 +546,7 @@ func refillVariableSchemaRef(nb map[string]any, key string, sr *openapi3.SchemaR
 				}
 
 				if nb := nb[nkey].(map[string]any); isDefaultableSchemaRef(nb) {
-					refillVariableSchemaRef(nb, nkey, v.Properties[k], defs)
+					refillVariableSchemaRef(nb, nkey, v.Properties[k], defs, k, v)
 				}
 			}
 		case isDefaultableSchemaRef(nb) &&
@@ -563,7 +574,7 @@ func refillVariableSchemaRef(nb map[string]any, key string, sr *openapi3.SchemaR
 		}
 
 		if nb := nb[nkey].(map[string]any); isDefaultableSchemaRef(nb) {
-			refillVariableSchemaRef(nb, nkey, v.Items, defs)
+			refillVariableSchemaRef(nb, nkey, v.Items, defs, key, v)
 		}
 
 		return
@@ -571,8 +582,30 @@ func refillVariableSchemaRef(nb map[string]any, key string, sr *openapi3.SchemaR
 
 	if isDefaultableSchemaRef(nb) {
 		def, ok := alignDefaultValue(key, defs)
-		if ok {
-			v.Default = def
+		if !ok {
+			// Return directly if not found.
+			return
+		}
+
+		v.Default = def
+
+		// NB(thxCode): turn the required fields to optional if found different defaults.
+		var i int
+		for ; i < len(pSchema.Required); i++ {
+			if pSchema.Required[i] == pName {
+				break
+			}
+		}
+
+		switch i {
+		case len(pSchema.Required):
+			return
+		case 0:
+			pSchema.Required = pSchema.Required[1:]
+		case len(pSchema.Required) - 1:
+			pSchema.Required = pSchema.Required[:i]
+		default:
+			pSchema.Required = append(pSchema.Required[:i], pSchema.Required[i+1:]...)
 		}
 	}
 }
@@ -599,7 +632,7 @@ func getKey(prefix, key string) string {
 // This function skips the value if the key's prefix is not found in all items.
 // For example, if any value of `a.b` from the given default value slice is not found,
 // any key starts with `a.b` will be skipped, and returns (nil, false).
-func alignDefaultValue(key string, defs [][]byte) (json.RawMessage, bool) {
+func alignDefaultValue(key string, defs [][]byte) (any, bool) {
 	prefix := key
 	if i := strings.LastIndex(key, "."); i > 0 {
 		prefix = key[:i]
@@ -622,7 +655,7 @@ func alignDefaultValue(key string, defs [][]byte) (json.RawMessage, bool) {
 		}
 	}
 
-	var def []byte
+	var def json.RawMessage
 
 	for _, d := range defs {
 		jq := json.Get(d, key)
@@ -641,5 +674,10 @@ func alignDefaultValue(key string, defs [][]byte) (json.RawMessage, bool) {
 		}
 	}
 
-	return def, true
+	if def != nil {
+		return def, true
+	}
+
+	// Avoid nil wrapped by type, e.g. json.RawMessage(nil).
+	return nil, true
 }
