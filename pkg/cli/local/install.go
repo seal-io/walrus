@@ -16,7 +16,7 @@ const (
 	walrusDockerExtensionName = "sealio/walrus-docker-extension"
 )
 
-func InstallLocalWalrus() error {
+func InstallLocalWalrus(opts InstallOptions) error {
 	if !IsDockerInstalled() {
 		return errors.New("docker is not available")
 	}
@@ -25,7 +25,10 @@ func InstallLocalWalrus() error {
 		return nil
 	}
 
-	if IsDockerExtensionAvailable() {
+	// Check if we can use docker extension to install.
+	// Installation using docker extension does not support bootstrap configurations.
+	// When env is set, we fall back to use docker engine.
+	if IsDockerExtensionAvailable() && len(opts.Env) == 0 {
 		confirm := ""
 		prompt := &survey.Input{
 			Message: "Install Walrus docker extension to proceed [y/N]",
@@ -45,9 +48,9 @@ func InstallLocalWalrus() error {
 		return InstallWalrusDockerExtension()
 	}
 
-	fmt.Println("Docker extension is not available, fall back to use docker engine...")
+	fmt.Println("Installing...")
 
-	return InstallLocalWalrusDockerContainer()
+	return InstallLocalWalrusDockerContainer(opts)
 }
 
 func InstallWalrusDockerExtension() error {
@@ -66,9 +69,9 @@ func InstallWalrusDockerExtension() error {
 	return nil
 }
 
-func InstallLocalWalrusDockerContainer() error {
-	// #nosec G204
-	cmd := exec.Command("docker", "run",
+func InstallLocalWalrusDockerContainer(opts InstallOptions) error {
+	runArgs := []string{
+		"run",
 		"-d",
 		"--name",
 		localWalrusContainerName,
@@ -77,14 +80,24 @@ func InstallLocalWalrusDockerContainer() error {
 		"-p",
 		"7443:443",
 		"--privileged",
-		"-e",
-		"SERVER_SETTING_LOCAL_ENVIRONMENT_MODE=docker",
 		"-v",
 		"/var/run/docker.sock:/var/run/docker.sock",
+	}
+
+	for _, env := range opts.Env {
+		runArgs = append(runArgs, "-e", env)
+	}
+
+	runArgs = append(runArgs,
+		"-e",
+		"SERVER_SETTING_LOCAL_ENVIRONMENT_MODE=docker",
+		"-e",
+		"SERVER_ENABLE_AUTHN=false",
 		fmt.Sprintf("sealio/walrus:%s", getLocalWalrusTag()),
-		"walrus",
-		"--enable-authn=false",
 	)
+
+	// #nosec G204
+	cmd := exec.Command("docker", runArgs...)
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("%w: %s", err, string(output))
 	}
