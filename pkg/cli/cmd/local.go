@@ -16,16 +16,19 @@ import (
 
 // Local generate local command.
 func Local() *cobra.Command {
+	installOptions := local.InstallOptions{}
 	// Command install.
 	installCmd := &cobra.Command{
 		Use:   "install",
 		Short: "Install local Walrus",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := install(); err != nil {
+			if err := install(installOptions); err != nil {
 				panic(err)
 			}
 		},
 	}
+
+	installOptions.AddFlags(installCmd)
 
 	// Command uninstall.
 	uninstallCmd := &cobra.Command{
@@ -53,8 +56,8 @@ func Local() *cobra.Command {
 }
 
 // install define the function for installing local Walrus.
-func install() error {
-	if err := local.InstallLocalWalrus(); err != nil {
+func install(opts local.InstallOptions) error {
+	if err := local.InstallLocalWalrus(opts); err != nil {
 		return fmt.Errorf("failed to install local Walrus: %w", err)
 	}
 
