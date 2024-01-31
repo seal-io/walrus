@@ -1,0 +1,20 @@
+{
+  "map_object_with_default_and_nest_object": {
+    "ab": {
+      "age": 23,
+      "email": {
+        "address": "bob",
+        "domain": "bob.com"
+      },
+      "name": "Bob"
+    },
+    "ac": {
+      "age": 20,
+      "email": {
+        "address": "amy",
+        "domain": "amy.com"
+      },
+      "name": "Amy"
+    }
+  }
+}

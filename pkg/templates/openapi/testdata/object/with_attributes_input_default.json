@@ -1,0 +1,26 @@
+{
+  "object_with_default": {
+    "age": 22,
+    "name": "Mia"
+  },
+  "object_with_attr_default": {
+    "name": "Mia"
+  },
+  "object_with_default_and_nest_object": {
+    "age": 22,
+    "email": {
+      "address": "Mia",
+      "domain": "Mia.com"
+    },
+    "name": "Mia"
+  },
+  "object_with_default_and_nest_object2": {},
+  "object_with_default_and_nest_object3": {},
+  "object_with_empty_default_and_nest_object": {
+    "name": "Mia"
+  },
+  "object_with_empty_default_and_nest_object_default": {
+    "age": 22,
+    "name": "Mia"
+  }
+}
