@@ -90,7 +90,7 @@ variable "object_with_default_and_nest_object3" {
       }),
       {
         "address"= "nest"
-        domain  = "nest.com"
+        "domain"  = "nest.com"
       })
   })
   default = {

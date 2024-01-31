@@ -12,7 +12,6 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/utils/gopool"
-	"github.com/seal-io/walrus/utils/json"
 )
 
 type patchResult struct {
@@ -176,7 +175,8 @@ func GenSchemaDefaultPatch(ctx context.Context, schema *openapi3.Schema) ([]byte
 	}
 }
 
-// GenSchemaDefaultWithAttribute compute default values with attributes and exist default values in sequence.
+// GenSchemaDefaultWithAttribute compute default values with attributes,
+// exist default values arranged in ascending order of merging priority.
 func GenSchemaDefaultWithAttribute(
 	ctx context.Context, schema *openapi3.Schema, attrs property.Values, defaultValuesByte ...[]byte,
 ) ([]byte, error) {
@@ -207,32 +207,34 @@ func GenSchemaDefaultWithAttribute(
 		}
 	}
 
-	// Merge the default from attributes and exist default.
-	genAttrs := make(property.Values)
+	// No need to merge with others.
+	if len(defaultValuesByte) == 0 {
+		return defaultWithAttrsByte, nil
+	}
 
-	if len(defaultWithAttrsByte) != 0 {
-		err = json.Unmarshal(defaultWithAttrsByte, &genAttrs)
+	// Merge default values in sequence.
+	var (
+		merged            []byte
+		patchesInSequence = append(defaultValuesByte, defaultWithAttrsByte)
+	)
+
+	for i := range patchesInSequence {
+		if len(patchesInSequence[i]) == 0 {
+			continue
+		}
+
+		if len(merged) == 0 {
+			merged = patchesInSequence[i]
+			continue
+		}
+
+		merged, err = jsonpatch.MergePatch(merged, patchesInSequence[i])
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	for i := range defaultValuesByte {
-		var defaultValues property.Values
-
-		err = json.Unmarshal(defaultValuesByte[i], &defaultValues)
-		if err != nil {
-			return nil, err
-		}
-
-		for k := range defaultValues {
-			if _, ok := genAttrs[k]; !ok {
-				genAttrs[k] = defaultValues[k]
-			}
-		}
-	}
-
-	return json.Marshal(genAttrs)
+	return merged, nil
 }
 
 func groupNodes(nodes []Node) map[string][]Node {

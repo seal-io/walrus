@@ -1,0 +1,33 @@
+{
+  "object_with_default": {
+    "age": 20,
+    "name": "Amy"
+  },
+  "object_with_attr_default": {
+    "age": 20
+  },
+  "object_with_default_and_nest_object": {
+    "age": 20,
+    "name": "Amy"
+  },
+  "object_with_default_and_nest_object2": {
+    "age": 20,
+    "email": {
+      "address": "amy"
+    },
+    "name": "Amy"
+  },
+  "object_with_default_and_nest_object3": {
+    "age": 20,
+    "email": {
+      "address": "amy"
+    },
+    "name": "Amy"
+  },
+  "object_with_empty_default_and_nest_object": {
+    "email": {
+      "address": "amy"
+    }
+  },
+  "object_with_empty_default_and_nest_object_default": {}
+}
