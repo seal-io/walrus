@@ -109,6 +109,27 @@ function package() {
       --progress="plain" \
       --file="${context}/image/Dockerfile" \
       "${context}"
+
+  else
+    local build_dir="${PACKAGE_DIR}/${target}/${task}/build"
+    local release_dir="${PACKAGE_DIR}/${target}/${task}/release"
+    mkdir -p "${release_dir}"
+
+    # copy walrus-images.txt to release dir and update image tag
+    sed "s/docker.io\/sealio\/walrus:.*$/docker.io\/sealio\/walrus:$(seal::image::tag)/g" "${ROOT_DIR}/hack/mirror/walrus-images.txt" > "${release_dir}/walrus-images.txt"
+
+    # rename cli to walrus-cli
+    for file in "${build_dir}/cli"*; do
+      mv "$file" "$(echo "$file" | sed 's/cli/walrus-cli/')";
+    done
+
+    # copy assets to release dir
+    cp "${build_dir}/walrus-cli"* "${release_dir}"
+    cp "${ROOT_DIR}/hack/mirror/walrus-load-images.sh" "${release_dir}"
+    cp "${ROOT_DIR}/hack/mirror/walrus-save-images.sh" "${release_dir}"
+
+    # create sha256sums.txt
+    shasum -a 256 "${release_dir}"/* | sed -e "s#${release_dir}/##g" > "${release_dir}/sha256sums.txt"
   fi
 }
 
