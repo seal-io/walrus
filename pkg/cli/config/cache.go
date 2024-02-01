@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/seal-io/walrus/utils/json"
 	"github.com/seal-io/walrus/utils/log"
@@ -23,7 +23,7 @@ func InitConfig() (*ServerContext, error) {
 	configDir := GetConfigDir()
 
 	// Config file.
-	filename := path.Join(configDir, configFileName)
+	filename := filepath.Join(configDir, configFileName)
 
 	_, err := os.Stat(filename)
 	if err != nil {
@@ -48,12 +48,12 @@ func GetConfigDir() string {
 		panic(fmt.Errorf("failed to get home dir: %w", err))
 	}
 
-	return path.Join(home, "."+cliName)
+	return filepath.Join(home, "."+cliName)
 }
 
 // GetServerContextFromCache load context from cache.
 func GetServerContextFromCache() (*ServerContext, error) {
-	filename := path.Join(GetConfigDir(), configFileName)
+	filename := filepath.Join(GetConfigDir(), configFileName)
 	content, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("error read config file %s: %w", filename, err)
@@ -71,7 +71,7 @@ func GetServerContextFromCache() (*ServerContext, error) {
 
 // SetServerContextToCache set context to cache.
 func SetServerContextToCache(s ServerContext) error {
-	filename := path.Join(GetConfigDir(), configFileName)
+	filename := filepath.Join(GetConfigDir(), configFileName)
 	content, err := json.MarshalIndent(s, "", " ")
 	if err != nil {
 		return fmt.Errorf("error decode config file %s: %w", filename, err)

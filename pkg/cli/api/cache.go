@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/seal-io/walrus/pkg/cli/config"
 	"github.com/seal-io/walrus/utils/json"
@@ -16,8 +16,8 @@ const (
 )
 
 var (
-	apiCacheFile        = path.Join(config.GetConfigDir(), apiCacheFileName)
-	apiVersionCacheFile = path.Join(config.GetConfigDir(), apiVersionCacheFileName)
+	apiCacheFile        = filepath.Join(config.GetConfigDir(), apiCacheFileName)
+	apiVersionCacheFile = filepath.Join(config.GetConfigDir(), apiVersionCacheFileName)
 )
 
 // getAPIFromCache load api from cache.
