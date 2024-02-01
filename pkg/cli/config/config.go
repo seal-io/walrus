@@ -7,7 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/henvic/httpretty"
@@ -222,7 +222,7 @@ func (c *Config) validateProject() error {
 		return nil
 	}
 
-	address := path.Join(apiVersion, projectResource, c.Project)
+	address := filepath.Join(apiVersion, projectResource, c.Project)
 	err := c.validateResourceItem(projectResource, c.Project, address)
 
 	return err
@@ -234,7 +234,7 @@ func (c *Config) validateEnvironment() error {
 		return nil
 	}
 
-	address := path.Join(apiVersion, projectResource, c.Project, environmentResource, c.Environment)
+	address := filepath.Join(apiVersion, projectResource, c.Project, environmentResource, c.Environment)
 	err := c.validateResourceItem(environmentResource, c.Environment, address)
 
 	return err
