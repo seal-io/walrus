@@ -41,9 +41,9 @@ type ResourceCreateInput struct {
 	// Type of the resource referring to a resource definition type.
 	Type string `path:"-" query:"-" json:"type,omitempty"`
 	// Attributes to configure the template.
-	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	Attributes property.Values `path:"-" query:"-" json:"attributes"`
 	// Computed attributes generated from attributes and schemas.
-	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
+	ComputedAttributes property.Values `path:"-" query:"-" json:"computed_attributes"`
 	// Endpoints of the resource.
 	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,cli-table-column,omitempty"`
 	// Change comment of the resource.
@@ -170,9 +170,9 @@ type ResourceCreateInputsItem struct {
 	// Type of the resource referring to a resource definition type.
 	Type string `path:"-" query:"-" json:"type,omitempty"`
 	// Attributes to configure the template.
-	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	Attributes property.Values `path:"-" query:"-" json:"attributes"`
 	// Computed attributes generated from attributes and schemas.
-	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
+	ComputedAttributes property.Values `path:"-" query:"-" json:"computed_attributes"`
 	// Endpoints of the resource.
 	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,cli-table-column,omitempty"`
 	// Change comment of the resource.
@@ -1040,9 +1040,9 @@ type ResourceUpdateInputsItem struct {
 	// Type of the resource referring to a resource definition type.
 	Type string `path:"-" query:"-" json:"type,omitempty"`
 	// Attributes to configure the template.
-	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	Attributes property.Values `path:"-" query:"-" json:"attributes"`
 	// Computed attributes generated from attributes and schemas.
-	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
+	ComputedAttributes property.Values `path:"-" query:"-" json:"computed_attributes"`
 	// Endpoints of the resource.
 	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,cli-table-column,omitempty"`
 	// Change comment of the resource.
@@ -1285,8 +1285,8 @@ type ResourceOutput struct {
 	UpdateTime         *time.Time              `json:"updateTime,omitempty"`
 	Status             status.Status           `json:"status,omitempty"`
 	Type               string                  `json:"type,omitempty"`
-	Attributes         property.Values         `json:"attributes,omitempty"`
-	ComputedAttributes property.Values         `json:"computedAttributes,omitempty"`
+	Attributes         property.Values         `json:"attributes"`
+	ComputedAttributes property.Values         `json:"computed_attributes"`
 	Endpoints          types.ResourceEndpoints `json:"endpoints,cli-table-column,omitempty"`
 
 	Project                        *ProjectOutput                        `json:"project,omitempty"`

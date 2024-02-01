@@ -12,6 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"golang.org/x/exp/slices"
+
+	"github.com/seal-io/walrus/pkg/dao/types/property"
 )
 
 const (
@@ -185,6 +187,10 @@ var (
 	ProjectIDValidator func(string) error
 	// EnvironmentIDValidator is a validator for the "environment_id" field. It is called by the builders before save.
 	EnvironmentIDValidator func(string) error
+	// DefaultAttributes holds the default value on creation for the "attributes" field.
+	DefaultAttributes property.Values
+	// DefaultComputedAttributes holds the default value on creation for the "computed_attributes" field.
+	DefaultComputedAttributes property.Values
 )
 
 // OrderOption defines the ordering options for the Resource queries.

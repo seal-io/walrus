@@ -500,13 +500,9 @@ func (ru *ResourceUpdate) Set(obj *Resource) *ResourceUpdate {
 	}
 	if !reflect.ValueOf(obj.Attributes).IsZero() {
 		ru.SetAttributes(obj.Attributes)
-	} else {
-		ru.ClearAttributes()
 	}
 	if !reflect.ValueOf(obj.ComputedAttributes).IsZero() {
 		ru.SetComputedAttributes(obj.ComputedAttributes)
-	} else {
-		ru.ClearComputedAttributes()
 	}
 	if !reflect.ValueOf(obj.Endpoints).IsZero() {
 		ru.SetEndpoints(obj.Endpoints)
@@ -1359,15 +1355,11 @@ func (ruo *ResourceUpdateOne) Set(obj *Resource) *ResourceUpdateOne {
 				if !reflect.DeepEqual(db.Attributes, obj.Attributes) {
 					ruo.SetAttributes(obj.Attributes)
 				}
-			} else {
-				ruo.ClearAttributes()
 			}
 			if !reflect.ValueOf(obj.ComputedAttributes).IsZero() {
 				if !reflect.DeepEqual(db.ComputedAttributes, obj.ComputedAttributes) {
 					ruo.SetComputedAttributes(obj.ComputedAttributes)
 				}
-			} else {
-				ruo.ClearComputedAttributes()
 			}
 			if !reflect.ValueOf(obj.Endpoints).IsZero() {
 				if !reflect.DeepEqual(db.Endpoints, obj.Endpoints) {

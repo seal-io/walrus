@@ -41,6 +41,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
+	"github.com/seal-io/walrus/pkg/dao/types/property"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -394,6 +395,14 @@ func init() {
 	resourceDescEnvironmentID := resourceFields[1].Descriptor()
 	// resource.EnvironmentIDValidator is a validator for the "environment_id" field. It is called by the builders before save.
 	resource.EnvironmentIDValidator = resourceDescEnvironmentID.Validators[0].(func(string) error)
+	// resourceDescAttributes is the schema descriptor for attributes field.
+	resourceDescAttributes := resourceFields[6].Descriptor()
+	// resource.DefaultAttributes holds the default value on creation for the attributes field.
+	resource.DefaultAttributes = resourceDescAttributes.Default.(property.Values)
+	// resourceDescComputedAttributes is the schema descriptor for computed_attributes field.
+	resourceDescComputedAttributes := resourceFields[7].Descriptor()
+	// resource.DefaultComputedAttributes holds the default value on creation for the computed_attributes field.
+	resource.DefaultComputedAttributes = resourceDescComputedAttributes.Default.(property.Values)
 	resourcecomponentMixin := schema.ResourceComponent{}.Mixin()
 	resourcecomponentMixinHooks0 := resourcecomponentMixin[0].Hooks()
 	resourcecomponent.Hooks[0] = resourcecomponentMixinHooks0[0]

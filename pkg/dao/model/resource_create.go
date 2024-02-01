@@ -351,6 +351,14 @@ func (rc *ResourceCreate) defaults() error {
 		v := resource.DefaultUpdateTime()
 		rc.mutation.SetUpdateTime(v)
 	}
+	if _, ok := rc.mutation.Attributes(); !ok {
+		v := resource.DefaultAttributes
+		rc.mutation.SetAttributes(v)
+	}
+	if _, ok := rc.mutation.ComputedAttributes(); !ok {
+		v := resource.DefaultComputedAttributes
+		rc.mutation.SetComputedAttributes(v)
+	}
 	return nil
 }
 
@@ -763,12 +771,6 @@ func (rc *ResourceCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Con
 		if _, set := rc.mutation.Field(resource.FieldResourceDefinitionMatchingRuleID); set {
 			obj.ResourceDefinitionMatchingRuleID = x.ResourceDefinitionMatchingRuleID
 		}
-		if _, set := rc.mutation.Field(resource.FieldAttributes); set {
-			obj.Attributes = x.Attributes
-		}
-		if _, set := rc.mutation.Field(resource.FieldComputedAttributes); set {
-			obj.ComputedAttributes = x.ComputedAttributes
-		}
 		if _, set := rc.mutation.Field(resource.FieldEndpoints); set {
 			obj.Endpoints = x.Endpoints
 		}
@@ -915,12 +917,6 @@ func (rcb *ResourceCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx contex
 			}
 			if _, set := rcb.builders[i].mutation.Field(resource.FieldResourceDefinitionMatchingRuleID); set {
 				objs[i].ResourceDefinitionMatchingRuleID = x[i].ResourceDefinitionMatchingRuleID
-			}
-			if _, set := rcb.builders[i].mutation.Field(resource.FieldAttributes); set {
-				objs[i].Attributes = x[i].Attributes
-			}
-			if _, set := rcb.builders[i].mutation.Field(resource.FieldComputedAttributes); set {
-				objs[i].ComputedAttributes = x[i].ComputedAttributes
 			}
 			if _, set := rcb.builders[i].mutation.Field(resource.FieldEndpoints); set {
 				objs[i].Endpoints = x[i].Endpoints
