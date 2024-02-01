@@ -39,12 +39,12 @@ function download_ui() {
 }
 
 function download_walrus_file_hub() {
-    local path="${1}"
+  local path="${1}"
 
-    mkdir -p "${path}"
-    if ! git clone --depth 1 https://github.com/seal-io/walrus-file-hub "${path}"; then
-      seal::log::fatal "failed to download walrus-file-hub"
-    fi
+  mkdir -p "${path}"
+  if ! git clone --depth 1 https://github.com/seal-io/walrus-file-hub "${path}"; then
+    seal::log::fatal "failed to download walrus-file-hub"
+  fi
 }
 
 function setup_image_package() {
@@ -57,14 +57,15 @@ function setup_image_package_context() {
   local target="$1"
   local task="$2"
   local path="$3"
-  local tag="$(seal::image::tag)"
 
   local context="${PACKAGE_DIR}/${target}/${task}"
   # create targeted dist
   rm -rf "${context}"
   mkdir -p "${context}"
+
   # copy targeted source to dist
   cp -rf "${path}/image" "${context}/image"
+
   # copy built result to dist
   cp -rf "${ROOT_DIR}/.dist/build/${target}" "${context}/build"
 
@@ -83,6 +84,48 @@ function setup_image_package_context() {
   echo -n "${context}"
 }
 
+# TODO(thxCode): move the following logic to a separate function.
+function setup_release() {
+  local context="$1"
+
+  local release="${context}/release"
+  # create release dir
+  rm -rf "${release}"
+  mkdir -p "${release}"
+
+  # copy and rename CLI
+  cp -rf "${context}/build/cli-"* "${release}/"
+  for file in "${release}/cli-"*; do
+    mv "${file}" "${file//cli/walrus-cli}"
+  done
+
+  # copy and update walrus-images.txt
+  sed "s/docker.io\/sealio\/walrus:.*$/docker.io\/sealio\/walrus:$(seal::image::tag)/g" "${ROOT_DIR}/hack/mirror/walrus-images.txt" >"${release}/walrus-images.txt"
+
+  # copy shell script
+  cp "${ROOT_DIR}/hack/mirror/walrus-load-images.sh" "${release}"
+  cp "${ROOT_DIR}/hack/mirror/walrus-save-images.sh" "${release}"
+
+  # create checksum
+  shasum -a 256 "${release}"/* | sed -e "s#${release}/##g" >"${release}/sha256sums.txt"
+}
+
+# FIXME(thxCode): remove this step after we adjust the walrus-catalog CI.
+function setup_tencent_cos() {
+  local context="$1"
+
+  local cos="${context}/cos"
+  # create cos dir
+  rm -rf "${cos}"
+  mkdir -p "${cos}"
+
+  # copy and rename CLI
+  cp -rf "${context}/build/cli-"* "${cos}/"
+  for file in "${cos}/cli-"*; do
+    mv "${file}" "${file//cli/walrus-cli}"
+  done
+}
+
 function package() {
   local target="$1"
   local task="$2"
@@ -95,6 +138,9 @@ function package() {
 
   # shellcheck disable=SC2155
   local context="$(setup_image_package_context "${target}" "${task}" "${path}")"
+
+  setup_release "${context}"
+  setup_tencent_cos "${context}"
 
   if [[ "${PACKAGE_BUILD:-true}" == "true" ]]; then
     # shellcheck disable=SC2086
@@ -109,27 +155,6 @@ function package() {
       --progress="plain" \
       --file="${context}/image/Dockerfile" \
       "${context}"
-
-  else
-    local build_dir="${PACKAGE_DIR}/${target}/${task}/build"
-    local release_dir="${PACKAGE_DIR}/${target}/${task}/release"
-    mkdir -p "${release_dir}"
-
-    # copy walrus-images.txt to release dir and update image tag
-    sed "s/docker.io\/sealio\/walrus:.*$/docker.io\/sealio\/walrus:$(seal::image::tag)/g" "${ROOT_DIR}/hack/mirror/walrus-images.txt" > "${release_dir}/walrus-images.txt"
-
-    # rename cli to walrus-cli
-    for file in "${build_dir}/cli"*; do
-      mv "$file" "$(echo "$file" | sed 's/cli/walrus-cli/')";
-    done
-
-    # copy assets to release dir
-    cp "${build_dir}/walrus-cli"* "${release_dir}"
-    cp "${ROOT_DIR}/hack/mirror/walrus-load-images.sh" "${release_dir}"
-    cp "${ROOT_DIR}/hack/mirror/walrus-save-images.sh" "${release_dir}"
-
-    # create sha256sums.txt
-    shasum -a 256 "${release_dir}"/* | sed -e "s#${release_dir}/##g" > "${release_dir}/sha256sums.txt"
   fi
 }
 

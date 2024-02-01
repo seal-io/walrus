@@ -176,7 +176,8 @@ jobs:
           DOCKERHUB_USERNAME: "${{ secrets.CI_DOCKERHUB_USERNAME }}"
           DOCKERHUB_PASSWORD: "${{ secrets.CI_DOCKERHUB_PASSWORD }}"
         continue-on-error: true
-      - name: Release CLI To OSS
+      # FIXME(thxCode): remove this step after we adjust the walrus-catalog CI.
+      - name: Upload Assets(CLI)
         uses: TencentCloud/cos-action@b0aa648235fb35a1bdd6a77f529eb0ac4c2f1c25
         if: ${{ github.event_name != 'pull_request' }}
         with:
@@ -184,7 +185,7 @@ jobs:
           secret_key: ${{ secrets.CI_TECENTCOS_SECRET_KEY }}
           cos_bucket: ${{ secrets.COS_BUCKET }}
           cos_region: ${{ secrets.COS_REGION }}
-          local_path: .dist/package/${{ matrix.target }}/${{ matrix.task }}/build/cli
+          local_path: .dist/package/${{ matrix.target }}/${{ matrix.task }}/cos
           remote_path: releases/${{ steps.metadata.outputs.version == 'main' && 'latest' || steps.metadata.outputs.version }}
           accelerate: true
           clean: false
