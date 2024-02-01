@@ -118,13 +118,15 @@ function package() {
     # copy walrus-images.txt to release dir and update image tag
     sed "s/docker.io\/sealio\/walrus:.*$/docker.io\/sealio\/walrus:$(seal::image::tag)/g" "${ROOT_DIR}/hack/mirror/walrus-images.txt" > "${release_dir}/walrus-images.txt"
 
-    # rename cli to walrus-cli
+    # rename cli to walrus-cli and move to cli dir
     for file in "${build_dir}/cli"*; do
       mv "$file" "$(echo "$file" | sed 's/cli/walrus-cli/')";
     done
+    mkdir -p "${build_dir}/cli"
+    mv "${build_dir}/walrus-cli"* "${build_dir}/cli"
 
     # copy assets to release dir
-    cp "${build_dir}/walrus-cli"* "${release_dir}"
+    cp "${build_dir}/cli/walrus-cli"* "${release_dir}"
     cp "${ROOT_DIR}/hack/mirror/walrus-load-images.sh" "${release_dir}"
     cp "${ROOT_DIR}/hack/mirror/walrus-save-images.sh" "${release_dir}"
 
