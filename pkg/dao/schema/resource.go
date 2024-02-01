@@ -78,7 +78,7 @@ func (Resource) Fields() []ent.Field {
 			Comment("Computed attributes generated from attributes and schemas.").
 			Default(property.Values{}).
 			Optional().
-			StructTag(`json:"computed_attributes"`).
+			StructTag(`json:"computedAttributes"`).
 			Annotations(
 				entx.SkipClearingOptionalField()),
 		field.JSON("endpoints", types.ResourceEndpoints{}).
