@@ -90,8 +90,10 @@ func PatchObjects(sc *config.Config, group string, objs ObjectByScope) (success,
 				return
 			}
 
+			defer resp.Body.Close()
+
 			results <- result{
-				err: common.CheckResponseStatus(resp, ""),
+				err: common.CheckResponseStatus(resp),
 				obj: o,
 			}
 		})
@@ -188,8 +190,9 @@ func batchCreateObjects(sc *config.Config, createOpt *api.Operation, scope Objec
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
-	return common.CheckResponseStatus(resp, "")
+	return common.CheckResponseStatus(resp)
 }
 
 // GetObjects send get objects request.
@@ -386,9 +389,10 @@ func DeleteObjects(sc *config.Config, group string, objs ObjectByScope) (*Object
 
 				return
 			}
+			defer resp.Body.Close()
 
 			results <- result{
-				err:  common.CheckResponseStatus(resp, ""),
+				err:  common.CheckResponseStatus(resp),
 				objs: o,
 			}
 		})

@@ -40,7 +40,7 @@ func Run() (returnErr error) {
 		// Set log level to ignore debug log for generate sub command.
 		log.SetLevel(log.WarnLevel)
 
-		err := serverConfig.ValidateAndSetup()
+		err := serverConfig.CheckReachable()
 		if err == nil {
 			err = cmd.Load(serverConfig, root, false)
 			if err != nil {

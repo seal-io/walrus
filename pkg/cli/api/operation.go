@@ -98,6 +98,7 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
 			}
+			defer resp.Body.Close()
 
 			format, ok := flags["output"].(*string)
 			if !ok {

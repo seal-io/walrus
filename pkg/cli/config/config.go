@@ -14,7 +14,6 @@ import (
 
 	"github.com/seal-io/walrus/pkg/cli/common"
 	"github.com/seal-io/walrus/utils/json"
-	"github.com/seal-io/walrus/utils/strs"
 	"github.com/seal-io/walrus/utils/version"
 )
 
@@ -223,7 +222,7 @@ func (c *Config) validateProject() error {
 	}
 
 	address := filepath.Join(apiVersion, projectResource, c.Project)
-	err := c.validateResourceItem(projectResource, c.Project, address)
+	err := c.validateResourceItem(address)
 
 	return err
 }
@@ -235,13 +234,13 @@ func (c *Config) validateEnvironment() error {
 	}
 
 	address := filepath.Join(apiVersion, projectResource, c.Project, environmentResource, c.Environment)
-	err := c.validateResourceItem(environmentResource, c.Environment, address)
+	err := c.validateResourceItem(address)
 
 	return err
 }
 
 // validateResourceItem send get resource request to server.
-func (c *Config) validateResourceItem(resource, name, address string) error {
+func (c *Config) validateResourceItem(address string) error {
 	req, err := http.NewRequest(http.MethodGet, address, nil)
 	if err != nil {
 		return err
@@ -251,8 +250,9 @@ func (c *Config) validateResourceItem(resource, name, address string) error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
-	return common.CheckResponseStatus(resp, fmt.Sprintf("%s %s", strs.Singularize(resource), name))
+	return common.CheckResponseStatus(resp)
 }
 
 // validateAccountInfo send get account info request to server.
@@ -266,8 +266,9 @@ func (c *Config) validateAccountInfo() error {
 	if err != nil {
 		return fmt.Errorf("access %s failed", c.Server)
 	}
+	defer resp.Body.Close()
 
-	return common.CheckResponseStatus(resp, "")
+	return common.CheckResponseStatus(resp)
 }
 
 func (c *Config) ServerVersion() (*Version, error) {
@@ -280,8 +281,9 @@ func (c *Config) ServerVersion() (*Version, error) {
 	if err != nil {
 		return nil, fmt.Errorf("access %s failed", c.Server)
 	}
+	defer resp.Body.Close()
 
-	err = common.CheckResponseStatus(resp, "")
+	err = common.CheckResponseStatus(resp)
 	if err != nil {
 		return nil, err
 	}
@@ -290,7 +292,6 @@ func (c *Config) ServerVersion() (*Version, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 
 	var v Version
 	err = json.Unmarshal(b, &v)
