@@ -43,7 +43,7 @@ type ResourceCreateInput struct {
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes"`
 	// Computed attributes generated from attributes and schemas.
-	ComputedAttributes property.Values `path:"-" query:"-" json:"computed_attributes"`
+	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes"`
 	// Endpoints of the resource.
 	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,cli-table-column,omitempty"`
 	// Change comment of the resource.
@@ -172,7 +172,7 @@ type ResourceCreateInputsItem struct {
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes"`
 	// Computed attributes generated from attributes and schemas.
-	ComputedAttributes property.Values `path:"-" query:"-" json:"computed_attributes"`
+	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes"`
 	// Endpoints of the resource.
 	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,cli-table-column,omitempty"`
 	// Change comment of the resource.
@@ -1042,7 +1042,7 @@ type ResourceUpdateInputsItem struct {
 	// Attributes to configure the template.
 	Attributes property.Values `path:"-" query:"-" json:"attributes"`
 	// Computed attributes generated from attributes and schemas.
-	ComputedAttributes property.Values `path:"-" query:"-" json:"computed_attributes"`
+	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes"`
 	// Endpoints of the resource.
 	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,cli-table-column,omitempty"`
 	// Change comment of the resource.
@@ -1286,7 +1286,7 @@ type ResourceOutput struct {
 	Status             status.Status           `json:"status,omitempty"`
 	Type               string                  `json:"type,omitempty"`
 	Attributes         property.Values         `json:"attributes"`
-	ComputedAttributes property.Values         `json:"computed_attributes"`
+	ComputedAttributes property.Values         `json:"computedAttributes"`
 	Endpoints          types.ResourceEndpoints `json:"endpoints,cli-table-column,omitempty"`
 
 	Project                        *ProjectOutput                        `json:"project,omitempty"`
