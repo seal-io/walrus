@@ -44,7 +44,6 @@ func (p *k8sProxy) handle(requestPath, rawQuery string) {
 	}
 
 	_, err = io.Copy(p.context.Writer, response.Body)
-
 	if err != nil {
 		_ = p.context.AbortWithError(http.StatusBadRequest, err)
 		return

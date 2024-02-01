@@ -536,6 +536,7 @@ func (r *stepDistributor) costPerConnPerDayQuery(
 		StartTime time.Time `json:"startTime,omitempty"`
 		CostPerConnector
 	}
+
 	err = r.client.CostReports().Query().
 		Modify(func(s *sql.Selector) {
 			s.
@@ -555,7 +556,6 @@ func (r *stepDistributor) costPerConnPerDayQuery(
 				)
 		}).
 		Scan(ctx, &costs)
-
 	if err != nil {
 		return nil, fmt.Errorf("error query cost per connector: %w", err)
 	}
