@@ -27,8 +27,8 @@ func authn(c *gin.Context, mc model.ClientSet, s session.Subject) (session.Subje
 		switch d {
 		case "", types.SubjectDomainBuiltin:
 			s.ID = sid
-			s.Domain, s.Groups, s.Name, err = builtin.Validate(c, sid, sv)
 
+			s.Domain, s.Groups, s.Name, err = builtin.Validate(c, sid, sv)
 			if err != nil {
 				revertSession(c.Request, c.Writer)
 				return s, err
