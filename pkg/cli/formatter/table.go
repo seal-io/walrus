@@ -1,7 +1,6 @@
 package formatter
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -12,7 +11,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/walrus/pkg/cli/common"
-	"github.com/seal-io/walrus/utils/json"
 )
 
 const (
@@ -49,28 +47,14 @@ type TableFormatter struct {
 }
 
 func (f *TableFormatter) Format(resp *http.Response) ([]byte, error) {
-	body, err := io.ReadAll(resp.Body)
-
-	defer func() { _ = resp.Body.Close() }()
-
+	err := common.CheckResponseStatus(resp)
 	if err != nil {
 		return nil, err
 	}
 
-	// Response status is not 200.
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		if len(body) == 0 {
-			return nil, fmt.Errorf("unexpected status code %d", resp.StatusCode)
-		}
-
-		data := common.ErrorResponse{}
-
-		err := json.Unmarshal(body, &data)
-		if err != nil {
-			return nil, fmt.Errorf("unexpected status code %d: %w", resp.StatusCode, err)
-		}
-
-		return nil, fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, data.Message)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
 	}
 
 	if len(body) == 0 {

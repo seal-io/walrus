@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 
 	"github.com/seal-io/walrus/utils/json"
 )
+
+var NotFoundReg = regexp.MustCompile(`model: (.+?) not found`)
 
 type ErrorResponse struct {
 	Message    string `json:"message"`
@@ -15,9 +18,9 @@ type ErrorResponse struct {
 	StatusText string `json:"statusText"`
 }
 
-func CheckResponseStatus(resp *http.Response, name string) error {
+func CheckResponseStatus(resp *http.Response) error {
 	switch {
-	default:
+	case resp.StatusCode >= 200 && resp.StatusCode < 300:
 		return nil
 	case resp.StatusCode == http.StatusConflict:
 		return NewRetryableError("conflict")
@@ -26,19 +29,41 @@ func CheckResponseStatus(resp *http.Response, name string) error {
 	case resp.StatusCode == http.StatusUnauthorized:
 		return fmt.Errorf("unauthorized, please check the validity of the token")
 	case resp.StatusCode == http.StatusNotFound:
-		if name == "" {
-			return errors.New("not found")
-		}
+		commonErrMsg := fmt.Sprintf("got not found response from %s", resp.Request.URL.String())
 
-		return fmt.Errorf("%s not found", name)
-	case resp.StatusCode < 200 || resp.StatusCode >= 300:
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return fmt.Errorf("unexpected status code %d, failed to read response body: %w", resp.StatusCode, err)
+			return fmt.Errorf("%s, failed to read response body: %w", commonErrMsg, err)
+		}
+
+		var errRes ErrorResponse
+
+		err = json.Unmarshal(body, &errRes)
+		if err != nil {
+			return fmt.Errorf("%s, failed to decode response body: %w", commonErrMsg, err)
+		}
+
+		matches := NotFoundReg.FindStringSubmatch(errRes.Message)
+
+		switch {
+		case len(matches) >= 2:
+			return fmt.Errorf("%s not found", matches[1])
+		case errRes.Message != "":
+			return fmt.Errorf("%s, %s", commonErrMsg, errRes.Message)
+		default:
+			return errors.New(commonErrMsg)
+		}
+	default:
+		commonErrMsg := fmt.Sprintf("unexpected status code %d from %s",
+			resp.StatusCode, resp.Request.URL.String())
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("%s, failed to read response body: %w", commonErrMsg, err)
 		}
 
 		var (
-			errMsg = fmt.Errorf("unexpected status code %d, %s", resp.StatusCode, string(body))
+			errMsg = fmt.Errorf("%s, %s", commonErrMsg, string(body))
 			errRes ErrorResponse
 		)
 
@@ -48,7 +73,7 @@ func CheckResponseStatus(resp *http.Response, name string) error {
 		}
 
 		if errRes.Message != "" {
-			errMsg = fmt.Errorf("unexpected status code %d, %s", resp.StatusCode, errRes.Message)
+			errMsg = fmt.Errorf("%s, %s", commonErrMsg, errRes.Message)
 		}
 
 		return errMsg
