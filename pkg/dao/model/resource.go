@@ -58,9 +58,9 @@ type Resource struct {
 	// ID of the resource definition matching rule to which the resource use.
 	ResourceDefinitionMatchingRuleID *object.ID `json:"resource_definition_matching_rule_id,omitempty"`
 	// Attributes to configure the template.
-	Attributes property.Values `json:"attributes,omitempty"`
+	Attributes property.Values `json:"attributes"`
 	// Computed attributes generated from attributes and schemas.
-	ComputedAttributes property.Values `json:"computed_attributes,omitempty"`
+	ComputedAttributes property.Values `json:"computed_attributes"`
 	// Endpoints of the resource.
 	Endpoints types.ResourceEndpoints `json:"endpoints,omitempty,cli-table-column"`
 	// Change comment of the resource.
