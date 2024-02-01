@@ -69,10 +69,18 @@ func (Resource) Fields() []ent.Field {
 			),
 		property.ValuesField("attributes").
 			Comment("Attributes to configure the template.").
-			Optional(),
+			Default(property.Values{}).
+			Optional().
+			StructTag(`json:"attributes"`).
+			Annotations(
+				entx.SkipClearingOptionalField()),
 		property.ValuesField("computed_attributes").
 			Comment("Computed attributes generated from attributes and schemas.").
-			Optional(),
+			Default(property.Values{}).
+			Optional().
+			StructTag(`json:"computed_attributes"`).
+			Annotations(
+				entx.SkipClearingOptionalField()),
 		field.JSON("endpoints", types.ResourceEndpoints{}).
 			Comment("Endpoints of the resource.").
 			Optional().
