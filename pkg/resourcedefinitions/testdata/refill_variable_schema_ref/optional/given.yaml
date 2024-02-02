@@ -108,6 +108,8 @@ components:
         - engine_version
         - infrastructure
         - engine_parameters
+        - operation_labels
+        - operation_pool_labels
       properties:
         context:
           type: object
@@ -281,6 +283,20 @@ components:
             group: Basic
             order: 4
             showIf: architecture=replication
+        operation_labels:
+          additionalProperties:
+            type: object
+          title: Operation Labels
+          type: object
+        operation_pool_labels:
+          default:
+            - name: default-node-pool
+          items:
+            additionalProperties:
+              type: string
+            type: object
+          title: Operation Pool Labels
+          type: array
       x-walrus-ui:
         groupOrder:
           - Basic

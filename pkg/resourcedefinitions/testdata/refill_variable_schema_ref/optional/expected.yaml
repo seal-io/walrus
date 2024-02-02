@@ -271,6 +271,22 @@ components:
             group: Basic
             order: 4
             showIf: architecture=replication
+        operation_labels:
+          additionalProperties:
+            type: object
+          title: Operation Labels
+          type: object
+        operation_pool_labels:
+          default:
+            - key1: "value1"
+          items:
+            additionalProperties:
+              default:
+                key1: "value1"
+              type: string
+            type: object
+          title: Operation Pool Labels
+          type: array
       x-walrus-ui:
         groupOrder:
           - Basic
