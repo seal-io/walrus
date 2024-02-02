@@ -3,6 +3,7 @@ package local
 import (
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -35,7 +36,8 @@ func InstallLocalWalrus() error {
 		}
 
 		if confirm != "y" {
-			return nil
+			fmt.Println("Installation aborted.")
+			os.Exit(1)
 		}
 
 		fmt.Println("Installing...")
