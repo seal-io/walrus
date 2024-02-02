@@ -147,7 +147,6 @@ components:
           type: object
           title: Context
           default: {}
-          nullable: true
           description: 'Receive contextual information. When Walrus deploys, Walrus
             will inject specific contextual information into this field.
 
@@ -171,7 +170,6 @@ components:
           default:
             size: 20480
             class: gp2
-          nullable: true
           properties:
             test_size:
               type: number
@@ -180,7 +178,6 @@ components:
               exclusiveMinimum: true
               minimum: 50000
               maximum: 60000
-              nullable: true
               x-walrus-ui:
                 order: 3
             size:
@@ -189,7 +186,6 @@ components:
               default: 50000
               minimum: 50000
               maximum: 60000
-              nullable: true
               description: 'Specify the storage size. Unit is megabyte.
 
                 '
@@ -199,7 +195,6 @@ components:
               type: string
               title: Class
               default: gp2
-              nullable: true
               description: 'Specify the storage class. See https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html.
 
                 '
@@ -223,7 +218,6 @@ components:
           type: string
           title: Database
           default: mydb
-          nullable: true
           maxLength: 15
           minLength: 2
           description: "Specify the database name. The database name must be 2-15
@@ -238,7 +232,6 @@ components:
           type: string
           title: Password
           format: password
-          nullable: true
           maxLength: 32
           minLength: 8
           writeOnly: true
@@ -255,7 +248,6 @@ components:
           type: string
           title: Username
           default: rdsuser
-          nullable: true
           maxLength: 16
           minLength: 2
           description: |
@@ -272,13 +264,11 @@ components:
           title: Resources
           default:
             class: db.t3.medium
-          nullable: true
           properties:
             class:
               type: string
               title: Class
               default: db.t3.medium
-              nullable: true
               description: 'Specify the computing resources. See https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html#Concepts.DBInstanceClass.Summary.
 
                 '
@@ -341,7 +331,6 @@ components:
             kms_key_id:
               type: string
               title: Kms Key Id
-              nullable: true
               description: 'Specify the KMS key ID which to encrypt the MySQL data.
                 If not specified, the MySQL data will not be encrypted.
 
@@ -351,7 +340,6 @@ components:
             domain_suffix:
               type: string
               title: Domain Suffix
-              nullable: true
               description: 'Specify the domain suffix of the CloudMap. The domain
                 suffix must be a valid DNS name.
 
@@ -362,7 +350,6 @@ components:
               type: boolean
               title: Publicly Accessible
               default: false
-              nullable: true
               description: 'Specify whether to enable public access. If enabled, the
                 MySQL service can be accessed from the public network.
 
@@ -404,7 +391,6 @@ components:
               colSpan: 12
           title: Engine Parameters
           default: []
-          nullable: true
           description: 'Specify the deployment engine parameters, select for https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Appendix.MySQL.Parameters.html.
 
             '
@@ -430,7 +416,6 @@ components:
             - 5
           type: number
           title: Replication Readonly Replicas
-          nullable: true
           description: 'Specify the number of read-only replicas under the replication
             deployment.
 

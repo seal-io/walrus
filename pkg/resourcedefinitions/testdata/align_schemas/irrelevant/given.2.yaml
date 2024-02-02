@@ -81,7 +81,6 @@ components:
           type: object
           title: Context
           default: {}
-          nullable: true
           description: 'Receive contextual information. When Walrus deploys, Walrus
             will inject specific contextual information into this field.
 
@@ -126,7 +125,6 @@ components:
                     value:
                       type: string
                       title: Value
-                      nullable: true
                       description: |
                         Specify the value of the environment variable.
                         Value changes will be propagated and restart the container.
@@ -136,7 +134,6 @@ components:
                   x-walrus-ui:
                     colSpan: 12
                 title: Envs
-                nullable: true
                 description: 'Configure the environment variables.
 
                   '
@@ -154,7 +151,6 @@ components:
                       type: string
                       title: Mode
                       default: '0644'
-                      nullable: true
                       maxLength: 4
                       minLength: 4
                       description: 'Specify the mode of the (configuration) file,
@@ -177,7 +173,6 @@ components:
                     content:
                       type: string
                       title: Content
-                      nullable: true
                       description: |
                         Specify the content of the (configuration) file.
                         Value source changes will be propagated but will not restart the container.
@@ -188,7 +183,6 @@ components:
                   x-walrus-ui:
                     colSpan: 12
                 title: Files
-                nullable: true
                 description: 'Configure the files.
 
                   '
@@ -213,7 +207,6 @@ components:
                       title: External
                       maximum: 65535
                       minimum: 1
-                      nullable: true
                       description: 'Specify the external port of the service. If not
                         specified, the port is not exposed.
 
@@ -250,7 +243,6 @@ components:
                   x-walrus-ui:
                     colSpan: 12
                 title: Ports
-                nullable: true
                 description: 'Configure the ports.
 
                   '
@@ -268,7 +260,6 @@ components:
                     tcp:
                       type: object
                       title: Tcp
-                      nullable: true
                       required:
                         - port
                       properties:
@@ -288,7 +279,6 @@ components:
                     grpc:
                       type: object
                       title: Grpc
-                      nullable: true
                       required:
                         - port
                       properties:
@@ -303,7 +293,6 @@ components:
                         service:
                           type: string
                           title: Service
-                          nullable: true
                           description: 'Specify the service name of the grpc service.
 
                             '
@@ -319,7 +308,6 @@ components:
                     http:
                       type: object
                       title: Http
-                      nullable: true
                       required:
                         - port
                       properties:
@@ -327,7 +315,6 @@ components:
                           type: string
                           title: Path
                           default: "/"
-                          nullable: true
                           description: 'Specify the path of the http request.
 
                             '
@@ -344,7 +331,6 @@ components:
                         headers:
                           type: object
                           title: Headers
-                          nullable: true
                           description: 'Specify the headers of the http request. To
                             pin the Hostname, please use `Host` header.
 
@@ -382,7 +368,6 @@ components:
                       title: Delay(Sec)
                       default: 0
                       minimum: 0
-                      nullable: true
                       description: 'Specify the delay time before starting the check.
 
                         '
@@ -392,7 +377,6 @@ components:
                     https:
                       type: object
                       title: Https
-                      nullable: true
                       required:
                         - port
                       properties:
@@ -400,7 +384,6 @@ components:
                           type: string
                           title: Path
                           default: "/"
-                          nullable: true
                           description: 'Specify the path of the http request.
 
                             '
@@ -417,7 +400,6 @@ components:
                         headers:
                           type: object
                           title: Headers
-                          nullable: true
                           description: 'Specify the headers of the http request. To
                             pin the Hostname, please use `Host` header.
 
@@ -437,7 +419,6 @@ components:
                     execute:
                       type: object
                       title: Execute
-                      nullable: true
                       required:
                         - command
                       properties:
@@ -463,7 +444,6 @@ components:
                       title: Retries
                       default: 1
                       minimum: 1
-                      nullable: true
                       description: 'Specify the number of retries before marking this
                         check as failed.
 
@@ -476,7 +456,6 @@ components:
                       title: Timeout(Sec)
                       default: 1
                       minimum: 1
-                      nullable: true
                       description: 'Specify the timeout of the check.
 
                         '
@@ -488,7 +467,6 @@ components:
                       title: Interval
                       default: 10
                       minimum: 5
-                      nullable: true
                       description: 'Specify how often to do the check.
 
                         '
@@ -499,7 +477,6 @@ components:
                       type: boolean
                       title: Teardown
                       default: false
-                      nullable: true
                       description: 'Specify whether to teardown the pod if the check
                         failed.
 
@@ -510,7 +487,6 @@ components:
                   x-walrus-ui:
                     colSpan: 12
                 title: Checks
-                nullable: true
                 description: 'Configure the healthz checks.
 
                   '
@@ -537,7 +513,6 @@ components:
                     volume:
                       type: string
                       title: Volume
-                      nullable: true
                       description: "Specify the name of the ephemeral volume which
                         shares between multiple containers. \nIf not specified, the
                         ephemeral volume is exclusively mounted by this container.\n"
@@ -547,7 +522,6 @@ components:
                     subpath:
                       type: string
                       title: Subpath
-                      nullable: true
                       description: 'Specify the path of the volume which the container
                         should be mounted.
 
@@ -559,7 +533,6 @@ components:
                       type: boolean
                       title: Readonly
                       default: false
-                      nullable: true
                       description: 'Specify whether to mount the volume as readonly.
 
                         '
@@ -569,7 +542,6 @@ components:
                   x-walrus-ui:
                     colSpan: 12
                 title: Mounts
-                nullable: true
                 description: 'Configure the mounts.
 
                   '
@@ -579,14 +551,12 @@ components:
               execute:
                 type: object
                 title: Execute
-                nullable: true
                 properties:
                   args:
                     type: array
                     items:
                       type: string
                     title: Args
-                    nullable: true
                     description: 'Specify the arguments of the command.
 
                       '
@@ -597,7 +567,6 @@ components:
                     type: number
                     title: As User
                     minimum: 0
-                    nullable: true
                     description: 'Specify the user id to run the command.
 
                       '
@@ -609,7 +578,6 @@ components:
                     items:
                       type: string
                     title: Command
-                    nullable: true
                     description: 'Specify the entrypoint of the container.
 
                       '
@@ -620,7 +588,6 @@ components:
                     type: number
                     title: As Group
                     minimum: 0
-                    nullable: true
                     description: 'Specify the group id to run the command.
 
                       '
@@ -630,7 +597,6 @@ components:
                   working_dir:
                     type: string
                     title: Working Dir
-                    nullable: true
                     description: 'Specify the working directory of the command.
 
                       '
@@ -640,7 +606,6 @@ components:
                   readonly_rootfs:
                     type: boolean
                     title: Readonly Rootfs
-                    nullable: true
                     description: 'Specify whether to mount the rootfs as readonly.
 
                       '
@@ -675,7 +640,6 @@ components:
                     title: Cpu(Core)
                     default: 0.25
                     minimum: 0.1
-                    nullable: true
                     description: 'Specify the cpu resources. Unit is core.
 
                       '
@@ -686,7 +650,6 @@ components:
                     type: number
                     title: Gpu(Core)
                     minimum: 0
-                    nullable: true
                     description: 'Specify the gpu resources. Unit is core.
 
                       '
@@ -698,7 +661,6 @@ components:
                     title: Memory(MiB)
                     default: 256
                     minimum: 10
-                    nullable: true
                     description: 'Specify the memory resources. Unit is megabyte.
 
                       '
@@ -871,12 +833,10 @@ components:
               max_unavailable: 0.25
             timeout: 300
             replicas: 1
-          nullable: true
           properties:
             rolling:
               type: object
               title: Rolling
-              nullable: true
               properties:
                 max_surge:
                   type: number
@@ -884,7 +844,6 @@ components:
                   default: 0.25
                   maximum: 1
                   minimum: 0.1
-                  nullable: true
                   description: 'The maximum number of pods that can be scheduled above
                     the desired number of pods. The value must be range between 0
                     to 1.
@@ -896,7 +855,6 @@ components:
                   default: 0.25
                   maximum: 1
                   minimum: 0.1
-                  nullable: true
                   description: 'The maximum number of pods that can be unavailable
                     during the update. The value must be range between 0 to 1.
 
@@ -930,7 +888,6 @@ components:
                 x-walrus-ui:
                   colSpan: 12
               title: Sysctls
-              nullable: true
               description: 'Specify the namespaced sysctls for the pod.
 
                 '
@@ -942,7 +899,6 @@ components:
               title: Timeout(Sec)
               default: 300
               minimum: 0
-              nullable: true
               description: "Specify the maximum time in seconds for a deployment to
                 make progress before it is considered to be failed. \n"
               x-walrus-ui:
@@ -951,7 +907,6 @@ components:
               type: number
               title: Fs Group
               minimum: 0
-              nullable: true
               description: 'Specify a special supplemental group that applies to all
                 containers in a pod.
 
@@ -963,7 +918,6 @@ components:
               title: Replicas
               default: 1
               minimum: 1
-              nullable: true
               description: 'Specify the desired replicas of the deployment.
 
                 '
@@ -1001,12 +955,10 @@ components:
           type: object
           title: Infrastructure
           default: {}
-          nullable: true
           properties:
             namespace:
               type: string
               title: Namespace
-              nullable: true
               x-walrus-ui:
                 order: 1
                 hidden: true
@@ -1014,7 +966,6 @@ components:
               type: string
               title: Gpu Vendor
               default: nvidia.com
-              nullable: true
               description: 'Specify the GPU vendor, default is `nvdia.com`.
 
                 '
@@ -1028,7 +979,6 @@ components:
               type: string
               title: Service Type
               default: NodePort
-              nullable: true
               description: 'Specify the service type of the Kubernetes cluster, default
                 is `NodePort`.
 
@@ -1039,7 +989,6 @@ components:
               type: string
               title: Domain Suffix
               default: cluster.local
-              nullable: true
               description: 'Specify the domain name of the Kubernetes cluster.
 
                 '

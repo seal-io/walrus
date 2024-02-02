@@ -10,7 +10,6 @@ components:
           title: Foo
           type: string
           default: foo
-          nullable: true
           x-walrus-ui:
             group: Basic
             order: 1
@@ -19,7 +18,6 @@ components:
           type: string
           description: description of bar.
           default: bar
-          nullable: true
           x-walrus-ui:
             group: Basic
             order: 2
