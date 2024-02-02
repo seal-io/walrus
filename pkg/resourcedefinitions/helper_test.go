@@ -160,7 +160,9 @@ func Test_refillVariableSchemaRef(t *testing.T) {
 		}
 
 		if sr, ok := givenSchemas[variablesSchemaKey]; ok {
-			refillVariableSchemaRef(nb[variablesSchemaKey].(map[string]any), "", sr, defs, "", sr.Value)
+			refillVariableSchemaRef(
+				nb[variablesSchemaKey].(map[string]any), "", sr, defs,
+				[]string{""}, []*openapi3.Schema{sr.Value})
 		}
 
 		actualSchemas := givenSchemas

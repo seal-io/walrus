@@ -7,7 +7,16 @@
   "username": "rdsuser",
   "architecture": "standalone",
   "engine_version": "8.0",
-  "engine_parameters": [],
+  "engine_parameters": [
+    {
+      "name": "max_connections",
+      "value": "1001"
+    },
+    {
+      "name": "innodb_buffer_pool_size",
+      "value": "1073741824"
+    }
+  ],
   "replication_readonly_replicas": 1,
   "infrastructure": {
     "vpc_id": "abc",

@@ -94,7 +94,9 @@ func GenSchema(ctx context.Context, mc model.ClientSet, df *model.ResourceDefini
 			defs = append(defs, mr.SchemaDefaultValue)
 		}
 
-		refillVariableSchemaRef(nb[variablesSchemaKey].(map[string]any), "", sr, defs, "", sr.Value)
+		refillVariableSchemaRef(
+			nb[variablesSchemaKey].(map[string]any), "", sr, defs,
+			[]string{""}, []*openapi3.Schema{sr.Value})
 	}
 
 	df.Schema = types.Schema{
@@ -514,10 +516,10 @@ func isSchemaRefTypeEqual(lsr, rsr *openapi3.SchemaRef) bool {
 // The given notebook(`nb`) shares by the alignSchemas func,
 // refill if a property doesn't mutually exclusive in the default value.
 //
-// The given property name(`pName`) and schema(`pSchema`) are used to turn the required property to optional.
+// The given property name(`pNames`) and schema(`pSchemas`) are used to turn the required property to optional.
 func refillVariableSchemaRef(
 	nb map[string]any, key string, sr *openapi3.SchemaRef, defs [][]byte,
-	pName string, pSchema *openapi3.Schema,
+	pNames []string, pSchemas []*openapi3.Schema,
 ) {
 	if sr == nil || sr.Value == nil {
 		return
@@ -546,7 +548,18 @@ func refillVariableSchemaRef(
 				}
 
 				if nb := nb[nkey].(map[string]any); isDefaultable(nb) {
-					refillVariableSchemaRef(nb, nkey, v.Properties[k], defs, k, v)
+					// Record all node from root to current point into the slice.
+					ns := make([]string, 0, len(pNames)+1)
+					ns = append(ns, pNames...)
+					ns = append(ns, k)
+
+					ss := make([]*openapi3.Schema, 0, len(pSchemas)+1)
+					ss = append(ss, pSchemas...)
+					ss = append(ss, v)
+
+					refillVariableSchemaRef(
+						nb, nkey, v.Properties[k], defs,
+						ns, ss)
 				}
 			}
 		case isDefaultable(nb) &&
@@ -574,7 +587,9 @@ func refillVariableSchemaRef(
 		}
 
 		if nb := nb[nkey].(map[string]any); isDefaultable(nb) {
-			refillVariableSchemaRef(nb, nkey, v.Items, defs, key, v)
+			refillVariableSchemaRef(
+				nb, nkey, v.Items, defs,
+				pNames, pSchemas)
 		}
 
 		return
@@ -589,24 +604,46 @@ func refillVariableSchemaRef(
 
 		v.Default = def
 
-		// NB(thxCode): turn the required fields to optional if found different defaults.
-		var i int
-		for ; i < len(pSchema.Required); i++ {
-			if pSchema.Required[i] == pName {
-				break
-			}
-		}
+		// Turn property to optional if found different defaults.
+		pName := pNames[len(pNames)-1]
+		pSchema := pSchemas[len(pSchemas)-1]
+		dropRequired(pSchema, pName)
 
-		switch i {
-		case len(pSchema.Required):
-			return
-		case 0:
-			pSchema.Required = pSchema.Required[1:]
-		case len(pSchema.Required) - 1:
-			pSchema.Required = pSchema.Required[:i]
-		default:
-			pSchema.Required = append(pSchema.Required[:i], pSchema.Required[i+1:]...)
+		// Effect to the parent node also if the node has no required property.
+		if len(pSchema.Required) == 0 && len(pSchemas) > 1 {
+			ppName := pNames[len(pNames)-2]
+			ppSchema := pSchemas[len(pSchemas)-2]
+			dropRequired(ppSchema, ppName)
 		}
+	}
+}
+
+// dropRequired drops the given property name from the required of the schema.
+func dropRequired(s *openapi3.Schema, n string) {
+	switch s.Type {
+	default:
+		return
+	case openapi3.TypeObject:
+	case openapi3.TypeArray:
+		s = s.Items.Value
+	}
+
+	var i int
+	for ; i < len(s.Required); i++ {
+		if s.Required[i] == n {
+			break
+		}
+	}
+
+	switch i {
+	case len(s.Required):
+		return
+	case 0:
+		s.Required = s.Required[1:]
+	case len(s.Required) - 1:
+		s.Required = s.Required[:i]
+	default:
+		s.Required = append(s.Required[:i], s.Required[i+1:]...)
 	}
 }
 

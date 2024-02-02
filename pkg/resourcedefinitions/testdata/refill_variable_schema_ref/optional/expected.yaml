@@ -102,8 +102,6 @@ components:
             colSpan: 12
     variables:
       type: object
-      required:
-        - infrastructure
       properties:
         context:
           type: object
@@ -243,20 +241,17 @@ components:
           type: array
           items:
             type: object
-            required:
-              - name
-              - value
             properties:
               name:
                 type: string
                 title: Name
+                default: "max_connections"
               value:
                 type: string
                 title: Value
             x-walrus-ui:
               colSpan: 12
           title: Engine Parameters
-          default: []
           x-walrus-ui:
             group: Basic
             order: 6

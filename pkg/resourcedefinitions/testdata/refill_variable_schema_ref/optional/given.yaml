@@ -102,10 +102,12 @@ components:
             colSpan: 12
     variables:
       type: object
+      # NB: we will tidy up this field.
       required:
         - architecture
         - engine_version
         - infrastructure
+        - engine_parameters
       properties:
         context:
           type: object
@@ -260,7 +262,6 @@ components:
             x-walrus-ui:
               colSpan: 12
           title: Engine Parameters
-          default: []
           x-walrus-ui:
             group: Basic
             order: 6

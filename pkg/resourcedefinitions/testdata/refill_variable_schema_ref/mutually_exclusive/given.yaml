@@ -102,6 +102,7 @@ components:
             colSpan: 12
     variables:
       type: object
+      # NB: we will tidy up this field.
       required:
         - architecture
         - engine_version
