@@ -565,8 +565,23 @@ func refillVariableSchemaRef(
 		case isDefaultable(nb) &&
 			v.AdditionalProperties.Schema != nil && v.AdditionalProperties.Schema.Value != nil:
 			def, ok := alignDefaults(key, defs)
-			if ok {
-				v.AdditionalProperties.Schema.Value.Default = def
+			if !ok {
+				// Return directly if not found.
+				return
+			}
+
+			v.AdditionalProperties.Schema.Value.Default = def
+
+			// Turn property to optional if found different defaults.
+			pName := pNames[len(pNames)-1]
+			pSchema := pSchemas[len(pSchemas)-1]
+			dropRequired(pSchema, pName)
+
+			// Effect to the parent node also if the node has no required property.
+			if len(pSchema.Required) == 0 && len(pSchemas) > 1 {
+				ppName := pNames[len(pNames)-2]
+				ppSchema := pSchemas[len(pSchemas)-2]
+				dropRequired(ppSchema, ppName)
 			}
 		}
 

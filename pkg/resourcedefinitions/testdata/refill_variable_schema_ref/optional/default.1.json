@@ -21,5 +21,13 @@
   "infrastructure": {
     "vpc_id": "abc",
     "publicly_accessible": true
-  }
+  },
+  "operation_labels": {
+    "key1": "value1"
+  },
+  "operation_pool_labels": [
+    {
+      "key1": "value1"
+    }
+  ]
 }
