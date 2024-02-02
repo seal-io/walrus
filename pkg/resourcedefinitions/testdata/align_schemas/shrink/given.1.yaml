@@ -147,7 +147,6 @@ components:
           type: object
           title: Context
           default: {}
-          nullable: true
           description: 'Receive contextual information. When Walrus deploys, Walrus
             will inject specific contextual information into this field.
 
@@ -171,7 +170,6 @@ components:
           default:
             size: 20480
             class: local_ssd
-          nullable: true
           properties:
             test_size:
               type: number
@@ -179,7 +177,6 @@ components:
               default: 20480
               minimum: 10240
               maximum: 50000
-              nullable: true
               x-walrus-ui:
                 order: 3
             size:
@@ -188,7 +185,6 @@ components:
               default: 20480
               minimum: 10240
               maximum: 50000
-              nullable: true
               description: 'Specify the storage size. Unit is megabyte.
 
                 '
@@ -198,7 +194,6 @@ components:
               type: string
               title: Class
               default: local_ssd
-              nullable: true
               description: 'Specify the storage class. See https://registry.terraform.io/providers/aliyun/alicloud/latest/docs/resources/db_instance#db_instance_storage_type.
 
                 '
@@ -222,7 +217,6 @@ components:
           type: string
           title: Database
           default: mydb
-          nullable: true
           maxLength: 64
           minLength: 16
           description: "Specify the database name. The database name must be 16-64
@@ -238,7 +232,6 @@ components:
           type: string
           title: Password
           format: password
-          nullable: true
           maxLength: 64
           minLength: 10
           writeOnly: true
@@ -255,7 +248,6 @@ components:
           type: string
           title: Username
           default: rdsuser
-          nullable: true
           maxLength: 16
           minLength: 2
           description: |
@@ -272,13 +264,11 @@ components:
           title: Resources
           default:
             class: rds.mysql.s2.large
-          nullable: true
           properties:
             class:
               type: string
               title: Class
               default: rds.mysql.s2.large
-              nullable: true
               description: "Specify the computing resources for primary instance.
                 \nSee https://www.alibabacloud.com/help/en/rds/apsaradb-rds-for-mysql/primary-apsaradb-rds-for-mysql-instance-types,
                 https://www.alibabacloud.com/help/en/rds/apsaradb-rds-for-mysql/primary-apsaradb-rds-for-mysql-instance-types-5.\n"
@@ -287,7 +277,6 @@ components:
             readonly_class:
               type: string
               title: Readonly Class
-              nullable: true
               description: |
                 Specify the computing resources for readonly instance.
                 Configure this field when `architecture` is `replication`, if not specified, it will use the same value as `class`.
@@ -352,7 +341,6 @@ components:
             kms_key_id:
               type: string
               title: Kms Key Id
-              nullable: true
               description: 'Specify the KMS key ID which to encrypt the MySQL data.
                 If not specified, the MySQL data will not be encrypted.
 
@@ -362,7 +350,6 @@ components:
             domain_suffix:
               type: string
               title: Domain Suffix
-              nullable: true
               description: 'Specify the domain suffix of the PrivateZone. The domain
                 suffix must be a valid DNS name.
 
@@ -373,7 +360,6 @@ components:
               type: boolean
               title: Publicly Accessible
               default: false
-              nullable: true
               description: 'Specify whether to enable public access. If enabled, the
                 MySQL service can be accessed from the public network.
 
@@ -415,7 +401,6 @@ components:
               colSpan: 12
           title: Engine Parameters
           default: []
-          nullable: true
           description: 'Specify the deployment engine parameters. See https://www.alibabacloud.com/help/en/rds/developer-reference/api-rds-2014-08-15-describeparametertemplates.
 
             '
@@ -445,7 +430,6 @@ components:
           type: number
           title: Replication Readonly Replicas
           default: 1
-          nullable: true
           description: 'Specify the number of read-only replicas under the replication
             deployment.
 

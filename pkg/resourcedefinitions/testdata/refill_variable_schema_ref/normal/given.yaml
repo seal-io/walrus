@@ -111,7 +111,6 @@ components:
           type: object
           title: Context
           default: {}
-          nullable: true
           description: Receive contextual information. When Walrus deploys, Walrus
             will inject specific contextual information into this field.
           x-walrus-ui:
@@ -126,20 +125,17 @@ components:
         storage:
           type: object
           title: Storage
-          nullable: true
           properties:
             size:
               type: number
               title: Size(MiB)
               minimum: 10240
-              nullable: true
               description: Specify the storage size. Unit is megabyte.
               x-walrus-ui:
                 order: 2
             class:
               type: string
               title: Class
-              nullable: true
               description: Specify the storage class.
               x-walrus-ui:
                 order: 1
@@ -150,7 +146,6 @@ components:
         database:
           type: string
           title: Database
-          nullable: true
           maxLength: 64
           minLength: 2
           description: "Specify the database name. The database name must be 2-64
@@ -163,7 +158,6 @@ components:
           type: string
           title: Password
           format: password
-          nullable: true
           maxLength: 32
           minLength: 8
           writeOnly: true
@@ -177,7 +171,6 @@ components:
           type: string
           title: Username
           default: myuser
-          nullable: true
           maxLength: 16
           minLength: 2
           description: 'Specify the account username. The username must be 2-16 characters
@@ -221,7 +214,6 @@ components:
             kms_key_id:
               type: string
               title: Kms Key Id
-              nullable: true
               description: Specify the KMS key ID which to encrypt the MySQL data.
                 If not specified, the MySQL data will not be encrypted.
               x-walrus-ui:
@@ -229,14 +221,12 @@ components:
             domain_suffix:
               type: string
               title: Domain Suffix
-              nullable: true
               x-walrus-ui:
                 order: 3
             publicly_accessible:
               type: boolean
               title: Publicly Accessible
               default: false
-              nullable: true
               description: Specify whether to enable public access. If enabled, the
                 MySQL service can be accessed from the public network.
               x-walrus-ui:
@@ -264,7 +254,6 @@ components:
               colSpan: 12
           title: Engine Parameters
           default: []
-          nullable: true
           x-walrus-ui:
             group: Basic
             order: 6
@@ -278,7 +267,6 @@ components:
           type: number
           title: Replication Readonly Replicas
           default: 1
-          nullable: true
           description: Specify the number of read-only replicas under the replication
             deployment.
           x-walrus-ui:

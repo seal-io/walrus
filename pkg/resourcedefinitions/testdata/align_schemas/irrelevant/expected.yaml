@@ -54,7 +54,6 @@ components:
           type: object
           title: Context
           default: {}
-          nullable: true
           description: Receive contextual information. When Walrus deploys, Walrus
             will inject specific contextual information into this field.
           x-walrus-ui:
