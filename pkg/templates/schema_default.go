@@ -27,6 +27,7 @@ func SetResourceDefinitionSchemaDefault(
 			ctx,
 			tv.UiSchema.VariableSchema(),
 			rule.Attributes,
+			tv.SchemaDefaultValue,
 		)
 		if err != nil {
 			return err
