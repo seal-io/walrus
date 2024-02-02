@@ -529,8 +529,8 @@ func refillVariableSchemaRef(
 	case openapi3.TypeObject:
 		switch {
 		case v.Properties != nil:
-			if isDefaultableSchemaRef(nb) {
-				def, ok := alignDefaultValue(key, defs)
+			if isDefaultable(nb) {
+				def, ok := alignDefaults(key, defs)
 				if !ok {
 					// Return directly if not found.
 					return
@@ -545,13 +545,13 @@ func refillVariableSchemaRef(
 					nb[nkey] = map[string]any{}
 				}
 
-				if nb := nb[nkey].(map[string]any); isDefaultableSchemaRef(nb) {
+				if nb := nb[nkey].(map[string]any); isDefaultable(nb) {
 					refillVariableSchemaRef(nb, nkey, v.Properties[k], defs, k, v)
 				}
 			}
-		case isDefaultableSchemaRef(nb) &&
+		case isDefaultable(nb) &&
 			v.AdditionalProperties.Schema != nil && v.AdditionalProperties.Schema.Value != nil:
-			def, ok := alignDefaultValue(key, defs)
+			def, ok := alignDefaults(key, defs)
 			if ok {
 				v.AdditionalProperties.Schema.Value.Default = def
 			}
@@ -561,7 +561,7 @@ func refillVariableSchemaRef(
 	case openapi3.TypeArray:
 		nkey := getKey(key, "@this")
 
-		def, ok := alignDefaultValue(nkey, defs)
+		def, ok := alignDefaults(nkey, defs)
 		if !ok {
 			// Return directly if not found.
 			return
@@ -573,15 +573,15 @@ func refillVariableSchemaRef(
 			nb[nkey] = map[string]any{}
 		}
 
-		if nb := nb[nkey].(map[string]any); isDefaultableSchemaRef(nb) {
+		if nb := nb[nkey].(map[string]any); isDefaultable(nb) {
 			refillVariableSchemaRef(nb, nkey, v.Items, defs, key, v)
 		}
 
 		return
 	}
 
-	if isDefaultableSchemaRef(nb) {
-		def, ok := alignDefaultValue(key, defs)
+	if isDefaultable(nb) {
+		def, ok := alignDefaults(key, defs)
 		if !ok {
 			// Return directly if not found.
 			return
@@ -610,8 +610,8 @@ func refillVariableSchemaRef(
 	}
 }
 
-// isDefaultableSchemaRef checks whether the schema ref can set default.
-func isDefaultableSchemaRef(nb map[string]any) bool {
+// isDefaultable checks whether the schema ref can set default.
+func isDefaultable(nb map[string]any) bool {
 	return nb == nil || nb[mefDefault] == nil
 }
 
@@ -625,14 +625,14 @@ func getKey(prefix, key string) string {
 	return prefix + "." + key
 }
 
-// alignDefaultValue compares the given key's value between all items of the given default value slice,
+// alignDefaults compares the given key's value between all items of the given default value slice,
 // if the value be same between all items, returns (default value, true),
 // otherwise, returns (nil, true).
 //
 // This function skips the value if the key's prefix is not found in all items.
 // For example, if any value of `a.b` from the given default value slice is not found,
 // any key starts with `a.b` will be skipped, and returns (nil, false).
-func alignDefaultValue(key string, defs [][]byte) (any, bool) {
+func alignDefaults(key string, defs [][]byte) (any, bool) {
 	prefix := key
 	if i := strings.LastIndex(key, "."); i > 0 {
 		prefix = key[:i]
