@@ -26,12 +26,18 @@ function lint() {
 
   [[ "${path}" == "${ROOT_DIR}" ]] || pushd "${path}" >/dev/null 2>&1
 
-  seal::format::run "${path}" "${path_ignored}"
+  local golangci_lint_opts=()
   if [[ ${#build_tags[@]} -gt 0 ]]; then
-    GOLANGCI_LINT_CACHE="$(go env GOCACHE)/golangci-lint" seal::lint::run --build-tags="\"${build_tags[*]}\"" "${path}/..."
-  else
-    GOLANGCI_LINT_CACHE="$(go env GOCACHE)/golangci-lint" seal::lint::run "${path}/..."
+    golangci_lint_opts+=("--build-tags=\"${build_tags[*]}\"")
   fi
+  if [[ -n "${path_ignored}" ]]; then
+    IFS=" " read -r -a ignored_path <<<"${path_ignored}"
+    for ig in "${ignored_path[@]}"; do
+      golangci_lint_opts+=("--skip-dirs=${ig}")
+    done
+  fi
+  golangci_lint_opts+=("${path}/...")
+  GOLANGCI_LINT_CACHE="$(go env GOCACHE)/golangci-lint" seal::lint::run "${golangci_lint_opts[@]}"
 
   [[ "${path}" == "${ROOT_DIR}" ]] || popd >/dev/null 2>&1
 }
@@ -68,7 +74,7 @@ seal::log::info "+++ LINT +++"
 seal::commit::lint "${ROOT_DIR}"
 
 dispatch "utils" "${ROOT_DIR}/staging/utils" "" "$@"
-dispatch "walrus" "${ROOT_DIR}" "pkg/dao/model pkg/i18n" "$@"
+dispatch "walrus" "${ROOT_DIR}" "staging pkg/dao/model pkg/i18n" "$@"
 
 after
 
