@@ -1,0 +1,33 @@
+{
+  "map": {
+    "key2": "value2",
+    "key1": "value1"
+  },
+  "list_map": [
+    {
+      "key1": "value1"
+    }
+  ],
+  "object_object_complex": {
+    "object": {
+      "object": {
+        "name": "myoperation2",
+        "value": "myvalue"
+      }
+    }
+  },
+  "list_object_list_complex": [
+    {
+      "array": [
+        {
+          "name": "myoperation",
+          "value": "myvalue"
+        }
+      ],
+      "map": {
+        "key2": "value2",
+        "key1": "value1"
+      }
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+info:
+  title: OpenAPI schema for resource definition type "dummy"
+  version: v0.0.0
+paths:
+openapi: 3.0.3
+components:
+  schemas:
+    variables:
+      type: object
+      required:
+        - map                      # expected: remove this.
+        - list_map                 # expected: remove this.
+        - object_object_complex
+        - list_object_list_complex # expected: remove this.
+      properties:
+        map:
+          type: object
+          default:                 # expected: remove this, as the given defaults are not the same.
+            key1: "value1"
+            key2: "value2"
+          additionalProperties:
+            type: string
+        list_map:
+          type: array
+          default:                 # expected: replace this, as the given defaults are the same.
+            - key1: "value1"
+            - key2: "value2"
+          items:
+            additionalProperties:
+              type: string
+            type: object
+        object_object_complex:
+          type: object
+          required:
+            - object              # expected: remove this, as there are defaults.
+            - map
+          properties:
+            object:
+              type: object
+                                  # expected: no default, as the given defaults are not the same.
+              properties:
+                object:
+                  type: object
+                  required:       # expected: remove this, as there are defaults.
+                    - name
+                    - value
+                  properties:
+                    name:
+                      type: string
+                    value:
+                      type: string
+                                 # expected: default, as the given defaults are the same.
+                map:
+                  type: object
+                  additionalProperties:
+                    type: string
+        list_object_list_complex:
+          type: array
+          items:
+            type: object
+            required:             # expected: remove this, as there are defaults.
+              - array
+              - map
+            properties:
+              array:
+                type: array
+                items:
+                  type: object
+                  required:       # expected: remove this, as there are defaults.
+                    - name
+                    - value
+                                  # expected: no default, as the given defaults are not the same.
+                  properties:
+                    name:
+                      type: string
+                                  # expected: default, as the given defaults are the same.
+                    value:
+                      type: string
+                                  # expected: default, as the given defaults are the same.
+              map:
+                type: object
+                additionalProperties:
+                  type: string
