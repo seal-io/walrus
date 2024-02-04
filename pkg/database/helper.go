@@ -7,10 +7,11 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/lib/pq" // Db = postgres.
 	"k8s.io/apimachinery/pkg/util/wait"
 
 	"github.com/seal-io/walrus/utils/log"
+
+	_ "github.com/lib/pq" // Db = postgres.
 )
 
 const (

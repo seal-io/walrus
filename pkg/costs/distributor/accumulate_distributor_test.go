@@ -7,16 +7,17 @@ import (
 	"testing"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/exp/slices"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/enttest"
-	_ "github.com/seal-io/walrus/pkg/dao/model/runtime"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/utils/timex"
+
+	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/seal-io/walrus/pkg/dao/model/runtime"
 )
 
 const (

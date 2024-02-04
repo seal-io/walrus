@@ -15,7 +15,6 @@ import (
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
-	_ "github.com/lib/pq" // Db = postgres.
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/exp/slices"
@@ -33,7 +32,6 @@ import (
 	"github.com/seal-io/walrus/pkg/casdoor"
 	"github.com/seal-io/walrus/pkg/cron"
 	"github.com/seal-io/walrus/pkg/dao/model"
-	_ "github.com/seal-io/walrus/pkg/dao/model/runtime" // Default = ent.
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/database"
 	"github.com/seal-io/walrus/pkg/datalisten"
@@ -47,6 +45,9 @@ import (
 	"github.com/seal-io/walrus/utils/runtimex"
 	"github.com/seal-io/walrus/utils/strs"
 	"github.com/seal-io/walrus/utils/version"
+
+	_ "github.com/lib/pq"                               // Db = postgres.
+	_ "github.com/seal-io/walrus/pkg/dao/model/runtime" // Default = ent.
 )
 
 type Server struct {

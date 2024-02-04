@@ -8,10 +8,9 @@ import (
 	"net/http"
 
 	jsonpatch "github.com/evanphx/json-patch"
+	"github.com/r3labs/sse"
 	"go.uber.org/multierr"
 	"k8s.io/apimachinery/pkg/util/sets"
-
-	"github.com/r3labs/sse"
 
 	"github.com/seal-io/walrus/pkg/cli/api"
 	"github.com/seal-io/walrus/pkg/cli/common"
