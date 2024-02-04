@@ -7,14 +7,13 @@ import (
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/operator/k8s/helm"
 	"github.com/seal-io/walrus/pkg/operator/k8s/intercept"
 	"github.com/seal-io/walrus/pkg/operator/k8s/kube"
 	"github.com/seal-io/walrus/pkg/operator/k8s/kubestatus"
-
-	"github.com/seal-io/walrus/pkg/dao/model"
-	"github.com/seal-io/walrus/pkg/dao/types"
-	"github.com/seal-io/walrus/pkg/dao/types/status"
 )
 
 // GetStatus implements operator.Operator.

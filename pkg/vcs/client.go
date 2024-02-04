@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/seal-io/walrus/pkg/vcs/driver/gitee"
-
 	"github.com/drone/go-scm/scm"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/vcs/driver/gitee"
 	"github.com/seal-io/walrus/pkg/vcs/driver/github"
 	"github.com/seal-io/walrus/pkg/vcs/driver/gitlab"
 	"github.com/seal-io/walrus/pkg/vcs/options"

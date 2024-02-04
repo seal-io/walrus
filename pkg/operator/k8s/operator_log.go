@@ -12,7 +12,6 @@ import (
 
 	"github.com/seal-io/walrus/pkg/operator/k8s/key"
 	"github.com/seal-io/walrus/pkg/operator/k8s/kube"
-
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
 )
 

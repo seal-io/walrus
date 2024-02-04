@@ -6,12 +6,13 @@ import (
 	"testing"
 	"time"
 
-	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/seal-io/walrus/pkg/dao/model/enttest"
-	_ "github.com/seal-io/walrus/pkg/dao/model/runtime"
 	"github.com/seal-io/walrus/pkg/dao/types"
+
+	_ "github.com/lib/pq"
+	_ "github.com/seal-io/walrus/pkg/dao/model/runtime"
 )
 
 const (

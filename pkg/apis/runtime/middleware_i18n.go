@@ -7,8 +7,9 @@ import (
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 
-	_ "github.com/seal-io/walrus/pkg/i18n"
 	"github.com/seal-io/walrus/utils/log"
+
+	_ "github.com/seal-io/walrus/pkg/i18n"
 )
 
 const (
