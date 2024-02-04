@@ -1,0 +1,64 @@
+info:
+  title: OpenAPI schema for resource definition type "dummy"
+  version: v0.0.0
+paths:
+openapi: 3.0.3
+components:
+  schemas:
+    variables:
+      type: object
+      required:
+        - object_object_complex
+      properties:
+        map:
+          type: object
+          additionalProperties:
+            type: string
+        list_map:
+          type: array
+          default:
+            - key1: "value1"
+          items:
+            additionalProperties:
+              type: string
+            type: object
+        object_object_complex:
+          type: object
+          required:
+            - map
+          properties:
+            object:
+              type: object
+              properties:
+                object:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    value:
+                      type: string
+                      default: "myvalue"
+                map:
+                  type: object
+                  additionalProperties:
+                    type: string
+        list_object_list_complex:
+          type: array
+          items:
+            type: object
+            properties:
+              array:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      default: "myoperation"
+                    value:
+                      type: string
+                      default: "myvalue"
+              map:
+                type: object
+                additionalProperties:
+                  type: string

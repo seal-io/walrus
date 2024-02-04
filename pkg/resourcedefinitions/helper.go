@@ -538,7 +538,11 @@ func refillVariableSchemaRef(
 					return
 				}
 
-				v.Default = def
+				// Refill the default value to the root,
+				// but ignore this refilling when it is an array item.
+				if !strings.HasSuffix(key, ".0") {
+					v.Default = def
+				}
 			}
 
 			for k := range v.Properties {
@@ -575,18 +579,18 @@ func refillVariableSchemaRef(
 			if !strings.HasSuffix(key, ".0") {
 				v.Default = def
 			}
+		}
 
-			// Turn property to optional if found different defaults.
-			pName := pNames[len(pNames)-1]
-			pSchema := pSchemas[len(pSchemas)-1]
-			dropRequired(pSchema, pName)
+		// Turn property to optional if found different defaults.
+		pName := pNames[len(pNames)-1]
+		pSchema := pSchemas[len(pSchemas)-1]
+		dropRequired(pSchema, v, pName)
 
-			// Effect to the parent node also if the node has no required property.
-			if len(pSchema.Required) == 0 && len(pSchemas) > 1 {
-				ppName := pNames[len(pNames)-2]
-				ppSchema := pSchemas[len(pSchemas)-2]
-				dropRequired(ppSchema, ppName)
-			}
+		// Effect to the parent node also if the node has no required property.
+		if len(pSchemas) > 1 {
+			ppName := pNames[len(pNames)-2]
+			ppSchema := pSchemas[len(pSchemas)-2]
+			dropRequired(ppSchema, pSchema, ppName)
 		}
 
 		return
@@ -626,43 +630,50 @@ func refillVariableSchemaRef(
 		// Turn property to optional if found different defaults.
 		pName := pNames[len(pNames)-1]
 		pSchema := pSchemas[len(pSchemas)-1]
-		dropRequired(pSchema, pName)
+		dropRequired(pSchema, v, pName)
 
 		// Effect to the parent node also if the node has no required property.
-		if len(pSchema.Required) == 0 && len(pSchemas) > 1 {
+		if len(pSchemas) > 1 {
 			ppName := pNames[len(pNames)-2]
 			ppSchema := pSchemas[len(pSchemas)-2]
-			dropRequired(ppSchema, ppName)
+			dropRequired(ppSchema, pSchema, ppName)
 		}
 	}
 }
 
-// dropRequired drops the given property name from the required of the schema.
-func dropRequired(s *openapi3.Schema, n string) {
-	switch s.Type {
+// dropRequired drops the given property name from the parent schema required list,
+// if the property schema's required list is empty.
+func dropRequired(parentSchema, propSchema *openapi3.Schema, propName string) {
+	// Return directly, if required list is not empty.
+	if len(propSchema.Required) != 0 {
+		return
+	}
+
+	// Otherwise, drop the property from the required list.
+	switch parentSchema.Type {
 	default:
 		return
 	case openapi3.TypeObject:
 	case openapi3.TypeArray:
-		s = s.Items.Value
+		parentSchema = parentSchema.Items.Value
 	}
 
 	var i int
-	for ; i < len(s.Required); i++ {
-		if s.Required[i] == n {
+	for ; i < len(parentSchema.Required); i++ {
+		if parentSchema.Required[i] == propName {
 			break
 		}
 	}
 
 	switch i {
-	case len(s.Required):
+	case len(parentSchema.Required):
 		return
 	case 0:
-		s.Required = s.Required[1:]
-	case len(s.Required) - 1:
-		s.Required = s.Required[:i]
+		parentSchema.Required = parentSchema.Required[1:]
+	case len(parentSchema.Required) - 1:
+		parentSchema.Required = parentSchema.Required[:i]
 	default:
-		s.Required = append(s.Required[:i], s.Required[i+1:]...)
+		parentSchema.Required = append(parentSchema.Required[:i], parentSchema.Required[i+1:]...)
 	}
 }
 
