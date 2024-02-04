@@ -102,6 +102,8 @@ components:
             colSpan: 12
     variables:
       type: object
+      required:
+        - infrastructure
       properties:
         context:
           type: object
@@ -205,6 +207,8 @@ components:
         infrastructure:
           type: object
           title: Infrastructure
+          required:
+            - kms_key_id
           properties:
             vpc_id:
               type: string
@@ -272,17 +276,19 @@ components:
             order: 4
             showIf: architecture=replication
         operation_labels:
+          default:
+            key1: "value1"
+            key2: "value2"
           additionalProperties:
-            type: object
+            type: string
           title: Operation Labels
           type: object
         operation_pool_labels:
           default:
             - key1: "value1"
+            - key2: "value2"
           items:
             additionalProperties:
-              default:
-                key1: "value1"
               type: string
             type: object
           title: Operation Pool Labels

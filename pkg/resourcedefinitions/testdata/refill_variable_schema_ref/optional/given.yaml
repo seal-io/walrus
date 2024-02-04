@@ -212,8 +212,10 @@ components:
         infrastructure:
           type: object
           title: Infrastructure
+          # NB: we will tidy up this field.
           required:
             - vpc_id
+            - kms_key_id
           properties:
             # NB: we mark this property optional as the given defaults are not the same.
             vpc_id:
@@ -284,8 +286,10 @@ components:
             order: 4
             showIf: architecture=replication
         operation_labels:
+          default:
+            name: default-node
           additionalProperties:
-            type: object
+            type: string
           title: Operation Labels
           type: object
         operation_pool_labels:
