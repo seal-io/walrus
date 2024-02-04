@@ -13,17 +13,6 @@ function generate() {
   local path="$3"
 
   go run -mod=mod "${path}"
-
-  # FIXME(thxCode): remove this after bumped entc version.
-  if [[ "${task}" == "entc" ]]; then
-    local gofmt_opts=(
-      "-w"
-      "-r"
-      "interface{} -> any"
-      "${ROOT_DIR}/pkg/dao/model"
-    )
-    gofmt "${gofmt_opts[@]}"
-  fi
 }
 
 function dispatch() {
