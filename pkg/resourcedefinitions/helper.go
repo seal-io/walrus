@@ -570,7 +570,11 @@ func refillVariableSchemaRef(
 				return
 			}
 
-			v.AdditionalProperties.Schema.Value.Default = def
+			// Refill the default value to the additional properties,
+			// but ignore this refilling when it is an array item.
+			if !strings.HasSuffix(key, ".0") {
+				v.Default = def
+			}
 
 			// Turn property to optional if found different defaults.
 			pName := pNames[len(pNames)-1]
@@ -694,14 +698,14 @@ func alignDefaults(key string, defs [][]byte) (any, bool) {
 		var found bool
 
 		for _, d := range defs {
-			jq := json.Get(d, prefix)
+			jq := json.Get(d, key)
 			if jq.Exists() {
 				found = true
 				break
 			}
 		}
 
-		// Return directly if parent is not found.
+		// Return directly if key is not found.
 		if !found {
 			return nil, false
 		}

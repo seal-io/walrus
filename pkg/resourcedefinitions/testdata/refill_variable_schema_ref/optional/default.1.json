@@ -23,11 +23,15 @@
     "publicly_accessible": true
   },
   "operation_labels": {
-    "key1": "value1"
+    "key1": "value1",
+    "key2": "value2"
   },
   "operation_pool_labels": [
     {
       "key1": "value1"
+    },
+    {
+      "key2": "value2"
     }
   ]
 }
