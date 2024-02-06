@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -60,11 +61,17 @@ func replaceAttributes(
 	outputValues map[string]property.Value,
 ) (property.Values, error) {
 	for n, v := range varValues {
-		attrByte = bytes.ReplaceAll(attrByte, []byte(n), v)
+		escapedValue := strconv.Quote(string(v))
+		// Remove quotes.
+		escapedValueWithoutQuotes := escapedValue[1 : len(escapedValue)-1]
+		attrByte = bytes.ReplaceAll(attrByte, []byte(n), []byte(escapedValueWithoutQuotes))
 	}
 
 	for n, v := range outputValues {
-		attrByte = bytes.ReplaceAll(attrByte, []byte(n), v)
+		escapedValue := strconv.Quote(string(v))
+		// Remove quotes.
+		escapedValueWithoutQuotes := escapedValue[1 : len(escapedValue)-1]
+		attrByte = bytes.ReplaceAll(attrByte, []byte(n), []byte(escapedValueWithoutQuotes))
 	}
 
 	var injectAttrs property.Values
