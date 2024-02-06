@@ -29,7 +29,7 @@ func TestInjectAttributes(t *testing.T) {
 			name:     "interpolation with variable",
 			attrByte: []byte(`{"a": "${var.b}"}`),
 			varValues: map[string]json.RawMessage{
-				"${var.b}": json.RawMessage(`c`),
+				`"${var.b}"`: json.RawMessage(`"c"`),
 			},
 			expected: property.Values{
 				"a": json.RawMessage(`"c"`),
@@ -39,7 +39,7 @@ func TestInjectAttributes(t *testing.T) {
 			name:     "interpolation with output",
 			attrByte: []byte(`{"a": "${res.b.c}"}`),
 			outputValues: map[string]property.Value{
-				"${res.b.c}": property.Value(`d`),
+				`"${res.b.c}"`: property.Value(`"d"`),
 			},
 			expected: property.Values{
 				"a": json.RawMessage(`"d"`),
@@ -49,12 +49,22 @@ func TestInjectAttributes(t *testing.T) {
 			name:     "interpolation with variable have newline",
 			attrByte: []byte(`{"a": "${var.b}"}`),
 			varValues: map[string]json.RawMessage{
-				"${var.b}": json.RawMessage(`-----BEGIN RSA PRIVATE KEY-----
+				`"${var.b}"`: json.RawMessage(`"-----BEGIN RSA PRIVATE KEY-----
 xxx
------END RSA PRIVATE KEY-----`),
+-----END RSA PRIVATE KEY-----"`),
 			},
 			expected: property.Values{
 				"a": json.RawMessage(`"-----BEGIN RSA PRIVATE KEY-----\nxxx\n-----END RSA PRIVATE KEY-----"`),
+			},
+		},
+		{
+			name:     "interpolation with empty variable",
+			attrByte: []byte(`{"a": "${var.b}"}`),
+			varValues: map[string]json.RawMessage{
+				`"${var.b}"`: json.RawMessage(`""`),
+			},
+			expected: property.Values{
+				"a": json.RawMessage(`""`),
 			},
 		},
 	}

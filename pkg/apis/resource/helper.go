@@ -61,17 +61,13 @@ func replaceAttributes(
 	outputValues map[string]property.Value,
 ) (property.Values, error) {
 	for n, v := range varValues {
-		escapedValue := strconv.Quote(string(v))
-		// Remove quotes.
-		escapedValueWithoutQuotes := escapedValue[1 : len(escapedValue)-1]
-		attrByte = bytes.ReplaceAll(attrByte, []byte(n), []byte(escapedValueWithoutQuotes))
+		escapedValue := escapeString(string(v))
+		attrByte = bytes.ReplaceAll(attrByte, []byte(n), []byte(escapedValue))
 	}
 
 	for n, v := range outputValues {
-		escapedValue := strconv.Quote(string(v))
-		// Remove quotes.
-		escapedValueWithoutQuotes := escapedValue[1 : len(escapedValue)-1]
-		attrByte = bytes.ReplaceAll(attrByte, []byte(n), []byte(escapedValueWithoutQuotes))
+		escapedValue := escapeString(string(v))
+		attrByte = bytes.ReplaceAll(attrByte, []byte(n), []byte(escapedValue))
 	}
 
 	var injectAttrs property.Values
@@ -234,4 +230,12 @@ func toResource(
 	}
 
 	return r
+}
+
+// escapeString escapes the string value.
+// It will escape the string value to be a valid JSON string.
+func escapeString(v string) string {
+	escapedValue := strconv.Quote(v)
+
+	return fmt.Sprintf(`"%s"`, strings.TrimSuffix(strings.TrimPrefix(escapedValue, `"\"`), `\""`))
 }
