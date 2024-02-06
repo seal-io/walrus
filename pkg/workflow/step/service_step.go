@@ -35,7 +35,7 @@ if [ "{{workflow.parameters.tlsVerify}}" == "true" ]; then
 fi
 
 # check resource exist.
-status=$(curl -s -w "%{http_code}" -o /dev/null "$commonPath/resources/$resourceName" -X "GET" -H "Authorization: Bearer $token" $tlsVerify)
+status=$(curl -sS -w "%{http_code}" -o /dev/null "$commonPath/resources/$resourceName" -X "GET" -H "Authorization: Bearer $token" $tlsVerify)
 # if status >= 200 and status < 300
 if [ "$status" -ge 200 ] && [ "$status" -lt 300 ]; then
 	jobType="upgrade"
@@ -43,7 +43,7 @@ fi
 
 # If jobType create resource.
 if [ "$jobType" == "create" ]; then
-	response=$(curl -s "$commonPath/resources" -X "POST" -H "content-type: application/json" -H "Authorization: Bearer $token" -d '{{inputs.parameters.attributes}}' $tlsVerify)
+	response=$(curl -sS "$commonPath/resources" -X "POST" -H "content-type: application/json" -H "Authorization: Bearer $token" -d '{{inputs.parameters.attributes}}' $tlsVerify)
 	name=$(echo $response | jq -r '.name')
 
 	if [ "$name" == "null" ]; then
@@ -54,7 +54,7 @@ fi
 
 # If jobType upgrade resource.
 if [ "$jobType" == "upgrade" ]; then
-	status=$(curl -s -w "%{http_code}" -o /dev/null "$commonPath/resources/$resourceName/upgrade" -X "PUT" -H "content-type: application/json" -H "Authorization: Bearer $token" -d '{{inputs.parameters.attributes}}' $tlsVerify)
+	status=$(curl -sS -w "%{http_code}" -o /dev/null "$commonPath/resources/$resourceName/upgrade" -X "PUT" -H "content-type: application/json" -H "Authorization: Bearer $token" -d '{{inputs.parameters.attributes}}' $tlsVerify)
 
 	# if not status >= 200 and status < 300
 	if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
@@ -64,17 +64,17 @@ if [ "$jobType" == "upgrade" ]; then
 fi
 
 # Get latest revision id
-revisionResponse=$(curl -s "$commonPath/resources/$resourceName/revisions?page=1&perPage=1&sort=-createTime" -X GET -H "Authorization: Bearer $token" $tlsVerify)
+revisionResponse=$(curl -sS "$commonPath/resources/$resourceName/revisions?page=1&perPage=1&sort=-createTime" -X GET -H "Authorization: Bearer $token" $tlsVerify)
 revisionID=$(echo $revisionResponse | jq -r '.items[0].id')
 
 # Watch service logs until the service finished.
-curl -o - -s "$commonPath/resources/$resourceName/revisions/$revisionID/log?jobType=apply&watch=true" -X GET -H "Authorization: Bearer $token" $tlsVerify --compressed
+curl -o - -sS "$commonPath/resources/$resourceName/revisions/$revisionID/log?jobType=apply&watch=true" -X GET -H "Authorization: Bearer $token" $tlsVerify --compressed
 
 # Check revision status. wait until revision status is ready.
 timeout=30
 factor=1
 while true; do
-	statusResponse=$(curl -s "$commonPath/resources/$resourceName/revisions/$revisionID" -X GET -H "Authorization: Bearer $token" $tlsVerify)
+	statusResponse=$(curl -sS "$commonPath/resources/$resourceName/revisions/$revisionID" -X GET -H "Authorization: Bearer $token" $tlsVerify)
 	statusSummary=$(echo $statusResponse | jq -r '.status.summaryStatus')
 
 	if [ "$statusSummary" == "Succeeded" ]; then
