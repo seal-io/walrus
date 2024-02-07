@@ -36,6 +36,41 @@ func TestParseParams(t *testing.T) {
 		},
 		{
 			attributes: map[string]any{
+				"description": "${workflow.var.var-1}",
+			},
+			params: map[string]string{
+				"var-1": "aaa",
+			},
+			config: types.WorkflowVariables{
+				{
+					Name:      "var-1",
+					Value:     "alice",
+					Overwrite: true,
+				},
+			},
+			expected: map[string]any{
+				"description": "aaa",
+			},
+			wantError: false,
+		},
+		{
+			attributes: map[string]any{
+				"description": "${workflow.var.var-1}",
+			},
+			config: types.WorkflowVariables{
+				{
+					Name:      "var-1",
+					Value:     "alice",
+					Overwrite: false,
+				},
+			},
+			expected: map[string]any{
+				"description": "alice",
+			},
+			wantError: false,
+		},
+		{
+			attributes: map[string]any{
 				"deepAttr": map[string]any{
 					"deepKey": "${workflow.var.replace}",
 				},
