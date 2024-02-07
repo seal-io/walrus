@@ -353,7 +353,7 @@ func parseWorkflowVariables(
 		return nil, err
 	}
 
-	re := regexp.MustCompile(`\$\{\s*workflow\.var\.(\w+)\s*\}`)
+	re := regexp.MustCompile(`\$\{\s*workflow\.var\.([-\w]+)\s*}`)
 	replaced := re.ReplaceAllFunc(bs, func(s []byte) []byte {
 		name := re.FindSubmatch(s)[1]
 		name = bytes.TrimSpace(name)
