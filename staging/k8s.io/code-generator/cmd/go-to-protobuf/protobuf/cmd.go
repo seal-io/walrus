@@ -249,13 +249,20 @@ func Run(g *Generator) {
 		log.Fatalf("Unable to find 'protoc': %v", err)
 	}
 
-	searchArgs := []string{"-I", ".", "-I", g.OutputBase}
+	searchArgs := []string{"-I=."}
+	if g.OutputBase != "" {
+		searchArgs = append(searchArgs, fmt.Sprintf("-I=%s", g.OutputBase))
+	}
 	if len(g.ProtoImport) != 0 {
 		for _, s := range g.ProtoImport {
-			searchArgs = append(searchArgs, "-I", s)
+			searchArgs = append(searchArgs, fmt.Sprintf("-I=%s", s))
 		}
 	}
-	args := append(searchArgs, fmt.Sprintf("--gogo_out=%s", g.OutputBase))
+	output := g.OutputBase
+	if output == "" {
+		output = "."
+	}
+	args := append(searchArgs, fmt.Sprintf("--gogo_out=%s", output))
 
 	buf := &bytes.Buffer{}
 	if len(g.Conditional) > 0 {
@@ -414,9 +421,9 @@ func importOrder(deps map[string][]string) ([]string, error) {
 	if len(remainingNodes) > 0 {
 		return nil, fmt.Errorf("cycle: remaining nodes: %#v, remaining edges: %#v", remainingNodes, graph)
 	}
-	//for _, n := range sorted {
+	// for _, n := range sorted {
 	//	fmt.Println("topological order", n)
-	//}
+	// }
 	return sorted, nil
 }
 

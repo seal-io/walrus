@@ -75,16 +75,27 @@ var registerExternalTypesTemplate = `
 // GroupName specifies the group name used to register the objects.
 const GroupName = "$.groupName$"
 
-// GroupVersion specifies the group and the version used to register the objects.
-var GroupVersion = $.groupVersion|raw${Group: GroupName, Version: "$.version$"}
-
-// SchemeGroupVersion is group version used to register these objects
-// Deprecated: use GroupVersion instead.
+// SchemeGroupVersion is group version used to register these objects.
 var SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: "$.version$"}
 
-// Resource takes an unqualified resource and returns a Group qualified GroupResource
-func Resource(resource string) schema.GroupResource {
-	return SchemeGroupVersion.WithResource(resource).GroupResource()
+// SchemeGroupVersionResource is a convenience method to return the GroupVersionResource for a resource.
+func SchemeGroupVersionResource(resource string) schema.GroupVersionResource {
+	return SchemeGroupVersion.WithResource(resource)
+}
+
+// SchemeResource takes an unqualified resource and returns a Group qualified GroupResource.
+func SchemeResource(resource string) schema.GroupResource {
+	return SchemeGroupVersionResource(resource).GroupResource()
+}
+
+// SchemeGroupVersionKind is a convenience method to return the GroupVersionKind for a kind.
+func SchemeGroupVersionKind(kind string) schema.GroupVersionKind {
+	return SchemeGroupVersion.WithKind(kind)
+}
+
+// SchemeKind takes an unqualified kind and returns a Group qualified GroupKind.
+func SchemeKind(kind string) schema.GroupKind {
+	return SchemeGroupVersionKind(kind).GroupKind()
 }
 
 var (

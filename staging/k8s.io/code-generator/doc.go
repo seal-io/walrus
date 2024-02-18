@@ -1,3 +1,6 @@
+// Copyright (c) 2024 Seal, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 /*
 Copyright 2021 The Kubernetes Authors.
 
