@@ -207,6 +207,13 @@ limitations under the License.
 // those.
 package logr
 
+import (
+	"fmt"
+	"bytes"
+	"bufio"
+	"io"
+)
+
 // New returns a new Logger instance.  This is primarily used by libraries
 // implementing LogSink, rather than end users.  Passing a nil sink will create
 // a Logger which discards all log lines.
@@ -251,6 +258,23 @@ type Logger struct {
 	level int
 }
 
+func (l Logger) Write(p []byte) (int, error) {
+	if l.sink != nil && l.sink.Enabled(l.level) { // see comment in Enabled
+		// If the sink is an io.Writer,
+		// we can write directly to it.
+		if w, ok := l.sink.(io.Writer); ok {
+			return w.Write(p)
+		}
+		// Otherwise, we'll split the input into lines and log each one.
+		s := bufio.NewScanner(bytes.NewReader(p))
+		for s.Scan() {
+			l.sink.Info(l.level, s.Text())
+		}
+		return len(p), s.Err()
+	}
+	return len(p), nil
+}
+
 // Enabled tests whether this Logger is enabled.  For example, commandline
 // flags might be used to set the logging verbosity and disable some info logs.
 func (l Logger) Enabled() bool {
@@ -281,6 +305,31 @@ func (l Logger) Info(msg string, keysAndValues ...any) {
 	}
 }
 
+// InfoDepth logs a non-error message with the given depth.
+func (l Logger) InfoDepth(depth int, msg string, keysAndValues ...any) {
+	l.WithCallDepth(1+depth).Info(msg, keysAndValues...)
+}
+
+// Infoln logs a non-error message with the given args.
+func (l Logger) Infoln(args ...any) {
+	l.WithCallDepth(1).Info(fmt.Sprintln(args...))
+}
+
+// InfolnDepth logs a non-error message with the given depth and args.
+func (l Logger) InfolnDepth(depth int, args ...any) {
+	l.WithCallDepth(1 + depth).Info(fmt.Sprintln(args...))
+}
+
+// Infof logs a non-error message with the given format and args.
+func (l Logger) Infof(format string, args ...any) {
+	l.WithCallDepth(1).Info(fmt.Sprintf(format, args...))
+}
+
+// InfofDepth logs a non-error message with the given depth, format and args.
+func (l Logger) InfofDepth(depth int, format string, args ...any) {
+	l.WithCallDepth(1 + depth).Info(fmt.Sprintf(format, args...))
+}
+
 // Error logs an error, with the given message and key/value pairs as context.
 // It functions similarly to Info, but may have unique behavior, and should be
 // preferred for logging errors (see the package documentations for more
@@ -299,6 +348,56 @@ func (l Logger) Error(err error, msg string, keysAndValues ...any) {
 		withHelper.GetCallStackHelper()()
 	}
 	l.sink.Error(err, msg, keysAndValues...)
+}
+
+// ErrorDepth logs an error message with the given depth.
+//
+// The depth and msg arguments should be used to add context to any underlying error,
+// while the err argument should be used to attach the actual error that
+// triggered this log line, if present. The err parameter is optional
+// and nil may be passed instead of an error instance.
+func (l Logger) ErrorDepth(depth int, err error, msg string, keysAndValues ...any) {
+	l.WithCallDepth(1+depth).Error(err, msg, keysAndValues...)
+}
+
+// Errorln logs an error message with the given args.
+//
+// The msg argument should be used to add context to any underlying error,
+// while the err argument should be used to attach the actual error that
+// triggered this log line, if present. The err parameter is optional
+// and nil may be passed instead of an error instance.
+func (l Logger) Errorln(err error, args ...any) {
+	l.WithCallDepth(1).Error(err, fmt.Sprintln(args...))
+}
+
+// ErrorlnDepth logs an error message with the given depth and args.
+//
+// The depth and msg arguments should be used to add context to any underlying error,
+// while the err argument should be used to attach the actual error that
+// triggered this log line, if present. The err parameter is optional
+// and nil may be passed instead of an error instance.
+func (l Logger) ErrorlnDepth(depth int, err error, args ...any) {
+	l.WithCallDepth(1+depth).Error(err, fmt.Sprintln(args...))
+}
+
+// Errorf logs an error message with the given format and args.
+//
+// The format and args arguments should be used to add context to any underlying error,
+// while the err argument should be used to attach the actual error that
+// triggered this log line, if present. The err parameter is optional
+// and nil may be passed instead of an error instance.
+func (l Logger) Errorf(err error, format string, args ...any) {
+	l.WithCallDepth(1).Error(err, fmt.Sprintf(format, args...))
+}
+
+// ErrorfDepth logs an error message with the given depth, format and args.
+//
+// The depth, format and args arguments should be used to add context to any underlying error,
+// while the err argument should be used to attach the actual error that
+// triggered this log line, if present. The err parameter is optional
+// and nil may be passed instead of an error instance.
+func (l Logger) ErrorfDepth(depth int, err error, format string, args ...any) {
+	l.WithCallDepth(1+depth).Error(err, fmt.Sprintf(format, args...))
 }
 
 // V returns a new Logger instance for a specific verbosity level, relative to
