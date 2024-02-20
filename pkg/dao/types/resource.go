@@ -1,6 +1,8 @@
 package types
 
-import "sort"
+import (
+	"sort"
+)
 
 const (
 	// ResourceRelationshipTypeImplicit indicates the resource dependency is auto created by resource reference.

@@ -1,6 +1,8 @@
 package status
 
-import "strings"
+import (
+	"strings"
+)
 
 type (
 	// Walker holds the steps and makes a summary of the status's conditions.
@@ -235,4 +237,6 @@ var replacements = map[string]struct {
 	"Ready":       {"Preparing", "NotReady", "Ready"},
 	"Active":      {"Preparing", "Inactive", "Active"},
 	"Canceled":    {"Canceling", "CancelFailed", "Canceled"},
+	"Planned":     {"Planning", "Failed", "Planned"},
+	"Apply":       {"Running", "Failed", "Succeeded"},
 }
