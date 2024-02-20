@@ -11,8 +11,8 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
-	pkgrun "github.com/seal-io/walrus/pkg/resourcerun"
-	runconfig "github.com/seal-io/walrus/pkg/resourcerun/config"
+	runconfig "github.com/seal-io/walrus/pkg/resourceruns/config"
+	runstatus "github.com/seal-io/walrus/pkg/resourceruns/status"
 	"github.com/seal-io/walrus/pkg/settings"
 	"github.com/seal-io/walrus/utils/log"
 )
@@ -21,7 +21,7 @@ import (
 type Deployer struct {
 	logger          log.Logger
 	clientSet       *kubernetes.Clientset
-	runConfigLoader runconfig.Loader
+	runConfigurator runconfig.Configurator
 }
 
 func NewDeployer(_ context.Context, opts deptypes.CreateOptions) (deptypes.Deployer, error) {
@@ -33,7 +33,7 @@ func NewDeployer(_ context.Context, opts deptypes.CreateOptions) (deptypes.Deplo
 	return &Deployer{
 		clientSet:       clientSet,
 		logger:          log.WithName("deployer").WithName("tf"),
-		runConfigLoader: runconfig.NewInputLoader(types.DeployerTypeTF),
+		runConfigurator: runconfig.NewConfigurator(types.DeployerTypeTF),
 	}, nil
 }
 
@@ -46,35 +46,59 @@ func (d Deployer) Type() deptypes.Type {
 func (d Deployer) Apply(
 	ctx context.Context,
 	mc model.ClientSet,
-	resource *model.Resource,
+	run *model.ResourceRun,
 	opts deptypes.ApplyOptions,
 ) (err error) {
-	run, err := pkgrun.Create(ctx, mc, pkgrun.CreateOptions{
-		ResourceID:    resource.ID,
-		ChangeComment: resource.ChangeComment,
-		DeployerType:  types.DeployerTypeTF,
-		JobType:       types.RunJobTypeApply,
-	})
-	if err != nil {
-		return err
+	defer d.errorHandle(mc, run, err)
+
+	if !status.ResourceRunStatusPlanned.IsTrue(run) {
+		err = fmt.Errorf("resource run %s is not planned", run.ID)
+		return
 	}
 
-	defer func() {
-		if err == nil {
-			return
-		}
+	status.ResourceRunStatusPlanned.True(run, "")
+	status.ResourceRunStatusApply.Unknown(run, "")
 
-		// Update a failure status.
-		status.ResourceRunStatusReady.False(run, err.Error())
+	run, err = runstatus.UpdateStatus(ctx, mc, run)
+	if err != nil {
+		return
+	}
 
-		// Report to resource run.
-		_ = pkgrun.UpdateStatus(ctx, mc, run)
-	}()
-
-	return d.createK8sJob(ctx, mc, createK8sJobOptions{
-		Type:        types.RunJobTypeApply,
+	err = d.createK8sJob(ctx, mc, createK8sJobOptions{
+		Type:        types.RunTaskTypeApply,
 		ResourceRun: run,
 	})
+
+	return
+}
+
+func (d Deployer) Plan(
+	ctx context.Context,
+	mc model.ClientSet,
+	run *model.ResourceRun,
+	opts deptypes.PlanOptions,
+) (err error) {
+	defer d.errorHandle(mc, run, err)
+
+	if !status.ResourceRunStatusPending.IsUnknown(run) {
+		err = fmt.Errorf("resource run %s is not pending", run.ID)
+		return
+	}
+
+	status.ResourceRunStatusPending.True(run, "")
+	status.ResourceRunStatusPlanned.Unknown(run, "")
+
+	run, err = runstatus.UpdateStatus(ctx, mc, run)
+	if err != nil {
+		return
+	}
+
+	err = d.createK8sJob(ctx, mc, createK8sJobOptions{
+		Type:        types.RunTaskTypePlan,
+		ResourceRun: run,
+	})
+
+	return err
 }
 
 // Destroy creates a new resource run by the given resource,
@@ -82,39 +106,51 @@ func (d Deployer) Apply(
 func (d Deployer) Destroy(
 	ctx context.Context,
 	mc model.ClientSet,
-	resource *model.Resource,
+	run *model.ResourceRun,
 	opts deptypes.DestroyOptions,
 ) (err error) {
-	run, err := pkgrun.Create(ctx, mc, pkgrun.CreateOptions{
-		ResourceID:   resource.ID,
-		DeployerType: types.DeployerTypeTF,
-		JobType:      types.RunJobTypeDestroy,
-	})
-	if err != nil {
-		return err
+	defer d.errorHandle(mc, run, err)
+
+	if !status.ResourceRunStatusPlanned.IsTrue(run) {
+		err = fmt.Errorf("resource run %s is not planned", run.ID)
+		return
 	}
 
-	defer func() {
-		if err == nil {
-			return
-		}
+	status.ResourceRunStatusPlanned.True(run, "")
+	status.ResourceRunStatusApply.Unknown(run, "")
 
-		// Update a failure status.
-		status.ResourceRunStatusReady.False(run, err.Error())
+	run, err = runstatus.UpdateStatus(ctx, mc, run)
+	if err != nil {
+		return
+	}
 
-		// Report to resource run.
-		_ = pkgrun.UpdateStatus(ctx, mc, run)
-	}()
-
-	return d.createK8sJob(ctx, mc, createK8sJobOptions{
-		Type:        types.RunJobTypeDestroy,
+	err = d.createK8sJob(ctx, mc, createK8sJobOptions{
+		Type:        types.RunTaskTypeDestroy,
 		ResourceRun: run,
 	})
+
+	return
+}
+
+// errorHandle handles the error of the deployer operation.
+func (d Deployer) errorHandle(mc model.ClientSet, run *model.ResourceRun, err error) {
+	if err == nil {
+		return
+	}
+
+	// Update a failure status.
+	runstatus.SetStatusFalse(run, err.Error())
+
+	// Report to resource run.
+	_, updateErr := runstatus.UpdateStatus(context.Background(), mc, run)
+	if updateErr != nil {
+		d.logger.Errorf("failed to update the status of the resource run: %v", updateErr)
+	}
 }
 
 type createK8sJobOptions struct {
 	// Type indicates the type of the job.
-	Type string
+	Type types.RunJobType
 	// ResourceRun indicates the resource run to create the deployment job.
 	ResourceRun *model.ResourceRun
 }
@@ -122,7 +158,7 @@ type createK8sJobOptions struct {
 // createK8sJob creates a k8s job to deploy, destroy or rollback the resource.
 func (d Deployer) createK8sJob(ctx context.Context, mc model.ClientSet, opts createK8sJobOptions) error {
 	// Prepare tfConfig for deployment.
-	secretOpts, err := runconfig.GetConfigLoaderOptions(ctx, mc, opts.ResourceRun, _secretMountPath)
+	secretOpts, err := runconfig.GetConfigOptions(ctx, mc, opts.ResourceRun, _secretMountPath)
 	if err != nil {
 		return err
 	}
@@ -136,7 +172,7 @@ func (d Deployer) createK8sJob(ctx context.Context, mc model.ClientSet, opts cre
 		return err
 	}
 
-	jobEnv := d.getEnv(ctx, mc)
+	jobEnv := d.getEnv(ctx, mc, opts)
 
 	localEnvironmentMode, err := settings.LocalEnvironmentMode.Value(ctx, mc)
 	if err != nil {
@@ -145,17 +181,31 @@ func (d Deployer) createK8sJob(ctx context.Context, mc model.ClientSet, opts cre
 
 	// Create a deployment job.
 	jobOpts := JobCreateOptions{
-		Type:          opts.Type,
-		ResourceRunID: opts.ResourceRun.ID.String(),
-		Image:         jobImage,
-		Env:           jobEnv,
-		DockerMode:    localEnvironmentMode == "docker",
+		Type:        opts.Type,
+		Image:       jobImage,
+		Env:         jobEnv,
+		DockerMode:  localEnvironmentMode == "docker",
+		ResourceRun: opts.ResourceRun,
+		ServerURL:   secretOpts.SeverULR,
+		Token:       secretOpts.Token,
 	}
 
 	return CreateJob(ctx, d.clientSet, jobOpts)
 }
 
-func (d Deployer) getEnv(ctx context.Context, mc model.ClientSet) (env []corev1.EnvVar) {
+func (d Deployer) getEnv(ctx context.Context, mc model.ClientSet, opts createK8sJobOptions) (env []corev1.EnvVar) {
+	env = append(env, corev1.EnvVar{
+		Name: "ACCESS_TOKEN",
+		ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: _jobSecretPrefix + string(opts.ResourceRun.ID),
+				},
+				Key: _accessTokenkey,
+			},
+		},
+	})
+
 	if v := settings.DeployerAllProxy.ShouldValue(ctx, mc); v != "" {
 		env = append(env, corev1.EnvVar{
 			Name:  "ALL_PROXY",
@@ -207,13 +257,13 @@ func (d Deployer) getEnv(ctx context.Context, mc model.ClientSet) (env []corev1.
 }
 
 // createK8sSecrets creates the k8s secrets for deployment.
-func (d Deployer) createK8sSecrets(ctx context.Context, mc model.ClientSet, opts *runconfig.LoaderOptions) error {
+func (d Deployer) createK8sSecrets(ctx context.Context, mc model.ClientSet, opts *runconfig.Options) error {
 	secretData := make(map[string][]byte)
 	// SecretName terraform tfConfig name.
 	secretName := _jobSecretPrefix + string(opts.ResourceRun.ID)
 
 	// Prepare terraform config files bytes for deployment.
-	inputConfigs, err := d.runConfigLoader.LoadAll(ctx, mc, opts)
+	inputConfigs, err := d.runConfigurator.LoadAll(ctx, mc, opts)
 	if err != nil {
 		return err
 	}
@@ -223,7 +273,7 @@ func (d Deployer) createK8sSecrets(ctx context.Context, mc model.ClientSet, opts
 	}
 
 	// Mount the provider configs(e.g. kubeconfig) to secret.
-	providerConfigs, err := d.runConfigLoader.LoadProviders(opts.Connectors)
+	providerConfigs, err := d.runConfigurator.LoadProviders(opts.Connectors)
 	if err != nil {
 		return err
 	}
@@ -231,6 +281,9 @@ func (d Deployer) createK8sSecrets(ctx context.Context, mc model.ClientSet, opts
 	for k, v := range providerConfigs {
 		secretData[k] = v
 	}
+
+	// Mount deploy access token to secret.
+	secretData[_accessTokenkey] = []byte(opts.Token)
 
 	// Create deployment secret.
 	if err = CreateSecret(ctx, d.clientSet, secretName, secretData); err != nil {

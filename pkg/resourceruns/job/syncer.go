@@ -1,22 +1,38 @@
-package terraform
+package job
 
 import (
 	"context"
 	"fmt"
 
+	"k8s.io/client-go/rest"
+
 	runbus "github.com/seal-io/walrus/pkg/bus/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/deployer"
+	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
+	runstatus "github.com/seal-io/walrus/pkg/resourceruns/status"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/strs"
 )
 
-// SyncResourceRunStatus updates the status of the service according to its recent finished service run.
-func SyncResourceRunStatus(ctx context.Context, bm runbus.BusMessage) (err error) {
-	var (
-		logger = log.WithName("deployer").WithName("tf")
+func Syncer(kc *rest.Config) syncer {
+	return syncer{
+		logger: log.WithName("resource-run").WithName("syncer"),
+		kc:     kc,
+	}
+}
 
+type syncer struct {
+	logger log.Logger
+	kc     *rest.Config
+}
+
+// Do handler update of the resource run.
+func (s syncer) Do(ctx context.Context, bm runbus.BusMessage) (err error) {
+	var (
 		mc  = bm.TransactionalModelClient
 		run = bm.Refer
 	)
@@ -32,7 +48,30 @@ func SyncResourceRunStatus(ctx context.Context, bm runbus.BusMessage) (err error
 		return err
 	}
 
-	if status.ResourceRunStatusReady.IsTrue(run) {
+	dp, err := deployer.Get(ctx, deptypes.CreateOptions{
+		Type:       types.DeployerTypeTF,
+		KubeConfig: s.kc,
+	})
+	if err != nil {
+		return err
+	}
+
+	switch {
+	case runstatus.IsStatusPlanned(run):
+		if !run.ApprovalRequired {
+			err = PerformRunJob(ctx, mc, dp, run)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}
+
+		// If approval required, set the status planned.
+		status.ResourceStatusPlanned.Reset(entity, "")
+		status.ResourceStatusPlanned.True(entity, "")
+
+	case runstatus.IsStatusSucceeded(run):
 		switch {
 		case status.ResourceStatusDeleted.IsUnknown(entity):
 			err = mc.Resources().DeleteOne(entity).
@@ -45,7 +84,7 @@ func SyncResourceRunStatus(ctx context.Context, bm runbus.BusMessage) (err error
 			// Check dependants.
 			dependants, rerr := dao.GetResourceDependantNames(ctx, mc, entity)
 			if rerr != nil {
-				logger.Errorf("failed to get dependants of resource %s: %v", entity.Name, rerr)
+				s.logger.Errorf("failed to get dependants of resource %s: %v", entity.Name, rerr)
 			}
 
 			if len(dependants) > 0 {
@@ -63,10 +102,13 @@ func SyncResourceRunStatus(ctx context.Context, bm runbus.BusMessage) (err error
 			status.ResourceStatusDeployed.True(entity, "")
 			status.ResourceStatusReady.Unknown(entity, "")
 		}
-	} else if status.ResourceRunStatusReady.IsFalse(run) {
+	case runstatus.IsStatusFailed(run):
 		switch {
 		case status.ResourceStatusDeleted.IsUnknown(entity):
 			status.ResourceStatusDeleted.False(entity, "")
+		case status.ResourceStatusStopped.IsUnknown(entity):
+			status.ResourceStatusStopped.False(entity, "")
+		// TODO case plan.
 		default:
 			status.ResourceStatusDeployed.False(entity, "")
 		}

@@ -1,13 +1,14 @@
-package resourcerun
+package resourceruns
 
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/walrus/pkg/auths/session"
-	runbus "github.com/seal-io/walrus/pkg/bus/resourcerun"
+	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
@@ -20,8 +21,12 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
-	pkgresource "github.com/seal-io/walrus/pkg/resource"
+	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
+	"github.com/seal-io/walrus/pkg/resourceruns/annotations"
+	runjob "github.com/seal-io/walrus/pkg/resourceruns/job"
+	runstatus "github.com/seal-io/walrus/pkg/resourceruns/status"
 	"github.com/seal-io/walrus/pkg/terraform/parser"
+	"github.com/seal-io/walrus/utils/errorx"
 )
 
 type CreateOptions struct {
@@ -29,14 +34,17 @@ type CreateOptions struct {
 	ResourceID object.ID
 
 	// DeployerType is the type of the deployer that run uses.
-	// required: true
+	// +required: true
 	DeployerType string
 
-	// JobType is the type of the job, apply or destroy.
-	JobType string
+	// RunType the type of the run, create, delete, etc.
+	Type types.RunType
 
 	// ChangeComment is the comment of the change.
 	ChangeComment string
+
+	// ApprovalRequired is the run need approval.
+	ApprovalRequired bool
 }
 
 // Create creates a resource run.
@@ -52,9 +60,11 @@ func Create(ctx context.Context, mc model.ClientSet, opts CreateOptions) (*model
 		return nil, err
 	}
 
-	if prevEntity != nil && status.ResourceRunStatusReady.IsUnknown(prevEntity) {
+	if prevEntity != nil && runstatus.IsStatusRunning(prevEntity) {
 		return nil, errors.New("deployment is running")
 	}
+
+	// TODO mark all previous runs to invalid.(runs needs to be approved).
 
 	// Get the corresponding resource and template version.
 	res, err := mc.Resources().Query().
@@ -124,20 +134,13 @@ func Create(ctx context.Context, mc model.ClientSet, opts CreateOptions) (*model
 		return nil, errors.New("missing template or resource definition")
 	}
 
-	var subjectID object.ID
-
-	s, _ := session.GetSubject(ctx)
-	if s.ID != "" {
-		subjectID = s.ID
-	} else {
-		subjectID, err = pkgresource.GetSubjectID(res)
-		if err != nil {
-			return nil, err
-		}
+	s, err := session.GetSubject(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	userSubject, err := mc.Subjects().Query().
-		Where(subject.ID(subjectID)).
+		Where(subject.ID(s.ID)).
 		Only(ctx)
 	if err != nil {
 		return nil, err
@@ -155,40 +158,55 @@ func Create(ctx context.Context, mc model.ClientSet, opts CreateOptions) (*model
 		DeployerType:       opts.DeployerType,
 		CreatedBy:          userSubject.Name,
 		ChangeComment:      opts.ChangeComment,
+		Type:               opts.Type.String(),
+		ApprovalRequired:   opts.ApprovalRequired,
 	}
 
-	status.ResourceRunStatusReady.Unknown(entity, "")
+	status.ResourceRunStatusPending.Unknown(entity, "")
 	entity.Status.SetSummary(status.WalkResourceRun(&entity.Status))
 
 	output := res.Edges.State.Data
 
-	switch {
-	case opts.JobType == types.RunJobTypeApply && output != "":
-		// Get required providers from the previous output after first deployment.
-		requiredProviders, err := getRequiredProviders(ctx, mc, opts.ResourceID, output)
-		if err != nil {
-			return nil, err
-		}
-		entity.PreviousRequiredProviders = requiredProviders
-	case opts.JobType == types.RunJobTypeDestroy && output != "":
-		if status.ResourceRunStatusReady.IsFalse(prevEntity) {
+	if prevEntity != nil && output != "" {
+		switch {
+		case opts.Type == types.RunTypeCreate ||
+			opts.Type == types.RunTypeUpgrade ||
+			opts.Type == types.RunTypeStart ||
+			opts.Type == types.RunTypeRollback:
 			// Get required providers from the previous output after first deployment.
 			requiredProviders, err := getRequiredProviders(ctx, mc, opts.ResourceID, output)
 			if err != nil {
 				return nil, err
 			}
 			entity.PreviousRequiredProviders = requiredProviders
-		} else {
-			// Copy required providers from the previous run.
-			entity.PreviousRequiredProviders = prevEntity.PreviousRequiredProviders
-			// Reuse other fields from the previous run.
-			entity.TemplateID = prevEntity.TemplateID
-			entity.TemplateName = prevEntity.TemplateName
-			entity.TemplateVersion = prevEntity.TemplateVersion
-			entity.Attributes = prevEntity.Attributes
-			entity.ComputedAttributes = prevEntity.ComputedAttributes
-			entity.InputConfigs = prevEntity.InputConfigs
+
+		case opts.Type == types.RunTypeDelete ||
+			opts.Type == types.RunTypeStop:
+			if status.ResourceRunStatusApply.IsFalse(prevEntity) {
+				// Get required providers from the previous output after first deployment.
+				requiredProviders, err := getRequiredProviders(ctx, mc, opts.ResourceID, output)
+				if err != nil {
+					return nil, err
+				}
+				entity.PreviousRequiredProviders = requiredProviders
+			} else {
+				// Copy required providers from the previous run.
+				entity.PreviousRequiredProviders = prevEntity.PreviousRequiredProviders
+				// Reuse other fields from the previous run.
+				entity.TemplateID = prevEntity.TemplateID
+				entity.TemplateName = prevEntity.TemplateName
+				entity.TemplateVersion = prevEntity.TemplateVersion
+				entity.Attributes = prevEntity.Attributes
+				entity.ComputedAttributes = prevEntity.ComputedAttributes
+				entity.InputConfigs = prevEntity.InputConfigs
+			}
 		}
+	}
+
+	// Set subject ID.
+	err = annotations.SetSubjectID(ctx, entity)
+	if err != nil {
+		return nil, err
 	}
 
 	// Create run.
@@ -210,7 +228,7 @@ func getRequiredProviders(
 ) ([]types.ProviderRequirement, error) {
 	stateRequiredProviderSet := sets.NewString()
 
-	previousRequiredProviders, err := getPreviousRequiredProviders(ctx, mc, instanceID)
+	previousRequiredProviders, err := dao.GetPreviousRequiredProviders(ctx, mc, instanceID)
 	if err != nil {
 		return nil, err
 	}
@@ -233,63 +251,20 @@ func getRequiredProviders(
 	return requiredProviders, nil
 }
 
-// getPreviousRequiredProviders get previous succeed run required providers.
-// NB(alex): the previous run may be failed, the failed run may not contain required providers of states.
-func getPreviousRequiredProviders(
-	ctx context.Context,
-	mc model.ClientSet,
-	resourceID object.ID,
-) ([]types.ProviderRequirement, error) {
-	prevRequiredProviders := make([]types.ProviderRequirement, 0)
-
-	entity, err := mc.ResourceRuns().Query().
-		Where(resourcerun.ResourceID(resourceID)).
-		Order(model.Desc(resourcerun.FieldCreateTime)).
-		First(ctx)
-	if err != nil && !model.IsNotFound(err) {
-		return nil, err
-	}
-
-	if entity == nil {
-		return prevRequiredProviders, nil
-	}
-
-	templateVersion, err := mc.TemplateVersions().Query().
-		Where(
-			templateversion.TemplateID(entity.TemplateID),
-			templateversion.Version(entity.TemplateVersion),
-		).
-		Only(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(templateVersion.Schema.RequiredProviders) != 0 {
-		prevRequiredProviders = append(prevRequiredProviders, templateVersion.Schema.RequiredProviders...)
-	}
-
-	return prevRequiredProviders, nil
-}
-
-// UpdateStatus updates the status of the resource run.
-func UpdateStatus(ctx context.Context, mc model.ClientSet, run *model.ResourceRun) error {
-	if run == nil {
-		return nil
-	}
-
-	// Report to resource run.
-	run.Status.SetSummary(status.WalkResourceRun(&run.Status))
-
-	run, err := mc.ResourceRuns().UpdateOne(run).
-		SetStatus(run.Status).
-		Save(ctx)
+// Apply the resource run in planned status.
+func Apply(ctx context.Context, mc model.ClientSet, dp deptypes.Deployer, run *model.ResourceRun) error {
+	resourceLatestRun, err := dao.GetResourceLatestRun(ctx, mc, run.ResourceID)
 	if err != nil {
 		return err
 	}
 
-	if err = runbus.Notify(ctx, mc, run); err != nil {
-		return err
+	if resourceLatestRun.ID != run.ID {
+		return errorx.Errorf("Only the latest resource run can be applied")
 	}
 
-	return nil
+	if !runstatus.IsStatusPlanned(run) {
+		return fmt.Errorf("can not apply run in status: %s", run.Status.SummaryStatus)
+	}
+
+	return runjob.PerformRunJob(ctx, mc, dp, run)
 }
