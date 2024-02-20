@@ -60,12 +60,24 @@ type ResourceRun struct {
 	Duration int `json:"duration,omitempty"`
 	// Previous provider requirement of the run.
 	PreviousRequiredProviders []types.ProviderRequirement `json:"previous_required_providers,omitempty"`
+	// Record of the run plan.
+	PlanRecord string `json:"plan_record,omitempty"`
 	// Record of the run.
 	Record string `json:"record,omitempty"`
 	// Change comment of the run.
 	ChangeComment string `json:"change_comment,omitempty"`
 	// User who created the run.
 	CreatedBy string `json:"created_by,omitempty"`
+	// Type of the run.
+	Type string `json:"type,omitempty"`
+	// If the run requires approval.
+	ApprovalRequired bool `json:"approval_required,omitempty"`
+	// Annotations holds the value of the "annotations" field.
+	Annotations map[string]string `json:"annotations,omitempty"`
+	// Changes of the resource components.
+	ComponentChanges []*types.ResourceComponentChange `json:"component_changes,omitempty"`
+	// Change summary of the resource.
+	ComponentChangeSummary types.ResourceComponentChangeSummary `json:"component_change_summary,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ResourceRunQuery when eager-loading is set.
 	Edges        ResourceRunEdges `json:"edges,omitempty"`
@@ -129,7 +141,7 @@ func (*ResourceRun) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case resourcerun.FieldStatus, resourcerun.FieldInputConfigs, resourcerun.FieldPreviousRequiredProviders:
+		case resourcerun.FieldStatus, resourcerun.FieldInputConfigs, resourcerun.FieldPreviousRequiredProviders, resourcerun.FieldAnnotations, resourcerun.FieldComponentChanges, resourcerun.FieldComponentChangeSummary:
 			values[i] = new([]byte)
 		case resourcerun.FieldVariables:
 			values[i] = new(crypto.Map[string, string])
@@ -137,9 +149,11 @@ func (*ResourceRun) scanValues(columns []string) ([]any, error) {
 			values[i] = new(object.ID)
 		case resourcerun.FieldAttributes, resourcerun.FieldComputedAttributes:
 			values[i] = new(property.Values)
+		case resourcerun.FieldApprovalRequired:
+			values[i] = new(sql.NullBool)
 		case resourcerun.FieldDuration:
 			values[i] = new(sql.NullInt64)
-		case resourcerun.FieldTemplateName, resourcerun.FieldTemplateVersion, resourcerun.FieldDeployerType, resourcerun.FieldRecord, resourcerun.FieldChangeComment, resourcerun.FieldCreatedBy:
+		case resourcerun.FieldTemplateName, resourcerun.FieldTemplateVersion, resourcerun.FieldDeployerType, resourcerun.FieldPlanRecord, resourcerun.FieldRecord, resourcerun.FieldChangeComment, resourcerun.FieldCreatedBy, resourcerun.FieldType:
 			values[i] = new(sql.NullString)
 		case resourcerun.FieldCreateTime:
 			values[i] = new(sql.NullTime)
@@ -261,6 +275,12 @@ func (rr *ResourceRun) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field previous_required_providers: %w", err)
 				}
 			}
+		case resourcerun.FieldPlanRecord:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field plan_record", values[i])
+			} else if value.Valid {
+				rr.PlanRecord = value.String
+			}
 		case resourcerun.FieldRecord:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field record", values[i])
@@ -278,6 +298,42 @@ func (rr *ResourceRun) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field created_by", values[i])
 			} else if value.Valid {
 				rr.CreatedBy = value.String
+			}
+		case resourcerun.FieldType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field type", values[i])
+			} else if value.Valid {
+				rr.Type = value.String
+			}
+		case resourcerun.FieldApprovalRequired:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field approval_required", values[i])
+			} else if value.Valid {
+				rr.ApprovalRequired = value.Bool
+			}
+		case resourcerun.FieldAnnotations:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field annotations", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &rr.Annotations); err != nil {
+					return fmt.Errorf("unmarshal field annotations: %w", err)
+				}
+			}
+		case resourcerun.FieldComponentChanges:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field component_changes", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &rr.ComponentChanges); err != nil {
+					return fmt.Errorf("unmarshal field component_changes: %w", err)
+				}
+			}
+		case resourcerun.FieldComponentChangeSummary:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field component_change_summary", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &rr.ComponentChangeSummary); err != nil {
+					return fmt.Errorf("unmarshal field component_change_summary: %w", err)
+				}
 			}
 		default:
 			rr.selectValues.Set(columns[i], values[i])
@@ -376,6 +432,9 @@ func (rr *ResourceRun) String() string {
 	builder.WriteString("previous_required_providers=")
 	builder.WriteString(fmt.Sprintf("%v", rr.PreviousRequiredProviders))
 	builder.WriteString(", ")
+	builder.WriteString("plan_record=")
+	builder.WriteString(rr.PlanRecord)
+	builder.WriteString(", ")
 	builder.WriteString("record=")
 	builder.WriteString(rr.Record)
 	builder.WriteString(", ")
@@ -384,6 +443,21 @@ func (rr *ResourceRun) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("created_by=")
 	builder.WriteString(rr.CreatedBy)
+	builder.WriteString(", ")
+	builder.WriteString("type=")
+	builder.WriteString(rr.Type)
+	builder.WriteString(", ")
+	builder.WriteString("approval_required=")
+	builder.WriteString(fmt.Sprintf("%v", rr.ApprovalRequired))
+	builder.WriteString(", ")
+	builder.WriteString("annotations=")
+	builder.WriteString(fmt.Sprintf("%v", rr.Annotations))
+	builder.WriteString(", ")
+	builder.WriteString("component_changes=")
+	builder.WriteString(fmt.Sprintf("%v", rr.ComponentChanges))
+	builder.WriteString(", ")
+	builder.WriteString("component_change_summary=")
+	builder.WriteString(fmt.Sprintf("%v", rr.ComponentChangeSummary))
 	builder.WriteByte(')')
 	return builder.String()
 }

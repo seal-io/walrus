@@ -122,11 +122,6 @@ func ComputedAttributes(v property.Values) predicate.Resource {
 	return predicate.Resource(sql.FieldEQ(FieldComputedAttributes, v))
 }
 
-// ChangeComment applies equality check predicate on the "change_comment" field. It's identical to ChangeCommentEQ.
-func ChangeComment(v string) predicate.Resource {
-	return predicate.Resource(sql.FieldEQ(FieldChangeComment, v))
-}
-
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Resource {
 	return predicate.Resource(sql.FieldEQ(FieldName, v))
@@ -940,81 +935,6 @@ func EndpointsIsNil() predicate.Resource {
 // EndpointsNotNil applies the NotNil predicate on the "endpoints" field.
 func EndpointsNotNil() predicate.Resource {
 	return predicate.Resource(sql.FieldNotNull(FieldEndpoints))
-}
-
-// ChangeCommentEQ applies the EQ predicate on the "change_comment" field.
-func ChangeCommentEQ(v string) predicate.Resource {
-	return predicate.Resource(sql.FieldEQ(FieldChangeComment, v))
-}
-
-// ChangeCommentNEQ applies the NEQ predicate on the "change_comment" field.
-func ChangeCommentNEQ(v string) predicate.Resource {
-	return predicate.Resource(sql.FieldNEQ(FieldChangeComment, v))
-}
-
-// ChangeCommentIn applies the In predicate on the "change_comment" field.
-func ChangeCommentIn(vs ...string) predicate.Resource {
-	return predicate.Resource(sql.FieldIn(FieldChangeComment, vs...))
-}
-
-// ChangeCommentNotIn applies the NotIn predicate on the "change_comment" field.
-func ChangeCommentNotIn(vs ...string) predicate.Resource {
-	return predicate.Resource(sql.FieldNotIn(FieldChangeComment, vs...))
-}
-
-// ChangeCommentGT applies the GT predicate on the "change_comment" field.
-func ChangeCommentGT(v string) predicate.Resource {
-	return predicate.Resource(sql.FieldGT(FieldChangeComment, v))
-}
-
-// ChangeCommentGTE applies the GTE predicate on the "change_comment" field.
-func ChangeCommentGTE(v string) predicate.Resource {
-	return predicate.Resource(sql.FieldGTE(FieldChangeComment, v))
-}
-
-// ChangeCommentLT applies the LT predicate on the "change_comment" field.
-func ChangeCommentLT(v string) predicate.Resource {
-	return predicate.Resource(sql.FieldLT(FieldChangeComment, v))
-}
-
-// ChangeCommentLTE applies the LTE predicate on the "change_comment" field.
-func ChangeCommentLTE(v string) predicate.Resource {
-	return predicate.Resource(sql.FieldLTE(FieldChangeComment, v))
-}
-
-// ChangeCommentContains applies the Contains predicate on the "change_comment" field.
-func ChangeCommentContains(v string) predicate.Resource {
-	return predicate.Resource(sql.FieldContains(FieldChangeComment, v))
-}
-
-// ChangeCommentHasPrefix applies the HasPrefix predicate on the "change_comment" field.
-func ChangeCommentHasPrefix(v string) predicate.Resource {
-	return predicate.Resource(sql.FieldHasPrefix(FieldChangeComment, v))
-}
-
-// ChangeCommentHasSuffix applies the HasSuffix predicate on the "change_comment" field.
-func ChangeCommentHasSuffix(v string) predicate.Resource {
-	return predicate.Resource(sql.FieldHasSuffix(FieldChangeComment, v))
-}
-
-// ChangeCommentIsNil applies the IsNil predicate on the "change_comment" field.
-func ChangeCommentIsNil() predicate.Resource {
-	return predicate.Resource(sql.FieldIsNull(FieldChangeComment))
-}
-
-// ChangeCommentNotNil applies the NotNil predicate on the "change_comment" field.
-func ChangeCommentNotNil() predicate.Resource {
-	return predicate.Resource(sql.FieldNotNull(FieldChangeComment))
-}
-
-// ChangeCommentEqualFold applies the EqualFold predicate on the "change_comment" field.
-func ChangeCommentEqualFold(v string) predicate.Resource {
-	return predicate.Resource(sql.FieldEqualFold(FieldChangeComment, v))
-}
-
-// ChangeCommentContainsFold applies the ContainsFold predicate on the "change_comment" field.
-func ChangeCommentContainsFold(v string) predicate.Resource {
-	return predicate.Resource(sql.FieldContainsFold(FieldChangeComment, v))
 }
 
 // HasProject applies the HasEdge predicate on the "project" edge.

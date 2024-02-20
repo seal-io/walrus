@@ -628,6 +628,14 @@ func init() {
 	resourcerunDescPreviousRequiredProviders := resourcerunFields[12].Descriptor()
 	// resourcerun.DefaultPreviousRequiredProviders holds the default value on creation for the previous_required_providers field.
 	resourcerun.DefaultPreviousRequiredProviders = resourcerunDescPreviousRequiredProviders.Default.([]types.ProviderRequirement)
+	// resourcerunDescApprovalRequired is the schema descriptor for approval_required field.
+	resourcerunDescApprovalRequired := resourcerunFields[18].Descriptor()
+	// resourcerun.DefaultApprovalRequired holds the default value on creation for the approval_required field.
+	resourcerun.DefaultApprovalRequired = resourcerunDescApprovalRequired.Default.(bool)
+	// resourcerunDescAnnotations is the schema descriptor for annotations field.
+	resourcerunDescAnnotations := resourcerunFields[19].Descriptor()
+	// resourcerun.DefaultAnnotations holds the default value on creation for the annotations field.
+	resourcerun.DefaultAnnotations = resourcerunDescAnnotations.Default.(map[string]string)
 	resourcestateMixin := schema.ResourceState{}.Mixin()
 	resourcestateMixinHooks0 := resourcestateMixin[0].Hooks()
 	resourcestate.Hooks[0] = resourcestateMixinHooks0[0]

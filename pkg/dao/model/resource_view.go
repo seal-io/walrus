@@ -46,8 +46,6 @@ type ResourceCreateInput struct {
 	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes"`
 	// Endpoints of the resource.
 	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,cli-table-column,omitempty"`
-	// Change comment of the resource.
-	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 
 	// Template specifies full inserting the new TemplateVersion entity of the Resource entity.
 	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template,omitempty"`
@@ -72,7 +70,6 @@ func (rci *ResourceCreateInput) Model() *Resource {
 		Attributes:         rci.Attributes,
 		ComputedAttributes: rci.ComputedAttributes,
 		Endpoints:          rci.Endpoints,
-		ChangeComment:      rci.ChangeComment,
 	}
 
 	if rci.Project != nil {
@@ -175,8 +172,6 @@ type ResourceCreateInputsItem struct {
 	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes"`
 	// Endpoints of the resource.
 	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,cli-table-column,omitempty"`
-	// Change comment of the resource.
-	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 
 	// Template specifies full inserting the new TemplateVersion entity.
 	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template,omitempty"`
@@ -261,7 +256,6 @@ func (rci *ResourceCreateInputs) Model() []*Resource {
 			Attributes:         rci.Items[i].Attributes,
 			ComputedAttributes: rci.Items[i].ComputedAttributes,
 			Endpoints:          rci.Items[i].Endpoints,
-			ChangeComment:      rci.Items[i].ChangeComment,
 		}
 
 		if rci.Project != nil {
@@ -533,8 +527,6 @@ type ResourcePatchInput struct {
 	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
 	// Endpoints of the resource.
 	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,omitempty"`
-	// Change comment of the resource.
-	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 
 	// Template indicates replacing the stale TemplateVersion entity.
 	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template,omitempty"`
@@ -564,7 +556,6 @@ func (rpi *ResourcePatchInput) PatchModel() *Resource {
 		Attributes:         rpi.Attributes,
 		ComputedAttributes: rpi.ComputedAttributes,
 		Endpoints:          rpi.Endpoints,
-		ChangeComment:      rpi.ChangeComment,
 	}
 
 	if rpi.Project != nil {
@@ -932,8 +923,6 @@ type ResourceUpdateInput struct {
 	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
 	// Endpoints of the resource.
 	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,omitempty"`
-	// Change comment of the resource.
-	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 
 	// Template indicates replacing the stale TemplateVersion entity.
 	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template,omitempty"`
@@ -959,7 +948,6 @@ func (rui *ResourceUpdateInput) Model() *Resource {
 		Attributes:         rui.Attributes,
 		ComputedAttributes: rui.ComputedAttributes,
 		Endpoints:          rui.Endpoints,
-		ChangeComment:      rui.ChangeComment,
 	}
 
 	if rui.Template != nil {
@@ -1045,8 +1033,6 @@ type ResourceUpdateInputsItem struct {
 	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes"`
 	// Endpoints of the resource.
 	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,cli-table-column,omitempty"`
-	// Change comment of the resource.
-	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 
 	// Template indicates replacing the stale TemplateVersion entity.
 	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template,omitempty"`
@@ -1132,7 +1118,6 @@ func (rui *ResourceUpdateInputs) Model() []*Resource {
 			Attributes:         rui.Items[i].Attributes,
 			ComputedAttributes: rui.Items[i].ComputedAttributes,
 			Endpoints:          rui.Items[i].Endpoints,
-			ChangeComment:      rui.Items[i].ChangeComment,
 		}
 
 		if rui.Items[i].Template != nil {

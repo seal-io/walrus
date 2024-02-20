@@ -64,8 +64,6 @@ type Resource struct {
 	ComputedAttributes property.Values `json:"computedAttributes"`
 	// Endpoints of the resource.
 	Endpoints types.ResourceEndpoints `json:"endpoints,omitempty,cli-table-column"`
-	// Change comment of the resource.
-	ChangeComment string `json:"change_comment,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ResourceQuery when eager-loading is set.
 	Edges        ResourceEdges `json:"edges,omitempty"`
@@ -215,7 +213,7 @@ func (*Resource) scanValues(columns []string) ([]any, error) {
 			values[i] = new(object.ID)
 		case resource.FieldAttributes, resource.FieldComputedAttributes:
 			values[i] = new(property.Values)
-		case resource.FieldName, resource.FieldDescription, resource.FieldType, resource.FieldChangeComment:
+		case resource.FieldName, resource.FieldDescription, resource.FieldType:
 			values[i] = new(sql.NullString)
 		case resource.FieldCreateTime, resource.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -348,12 +346,6 @@ func (r *Resource) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &r.Endpoints); err != nil {
 					return fmt.Errorf("unmarshal field endpoints: %w", err)
 				}
-			}
-		case resource.FieldChangeComment:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field change_comment", values[i])
-			} else if value.Valid {
-				r.ChangeComment = value.String
 			}
 		default:
 			r.selectValues.Set(columns[i], values[i])
@@ -493,9 +485,6 @@ func (r *Resource) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("endpoints=")
 	builder.WriteString(fmt.Sprintf("%v", r.Endpoints))
-	builder.WriteString(", ")
-	builder.WriteString("change_comment=")
-	builder.WriteString(r.ChangeComment)
 	builder.WriteByte(')')
 	return builder.String()
 }
