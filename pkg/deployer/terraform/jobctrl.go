@@ -6,7 +6,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
@@ -14,15 +13,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
-	"k8s.io/client-go/rest"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	runbus "github.com/seal-io/walrus/pkg/bus/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
-	"github.com/seal-io/walrus/pkg/dao/types/status"
 	opk8s "github.com/seal-io/walrus/pkg/operator/k8s"
 	"github.com/seal-io/walrus/pkg/operator/k8s/kube"
 	"github.com/seal-io/walrus/utils/log"
@@ -31,11 +25,15 @@ import (
 
 type JobCreateOptions struct {
 	// Type is the deployment type of job, apply or destroy or other.
-	Type          string
-	ResourceRunID string
-	Image         string
-	Env           []corev1.EnvVar
-	DockerMode    bool
+	Type types.RunJobType
+
+	Image      string
+	Env        []corev1.EnvVar
+	DockerMode bool
+
+	ResourceRun *model.ResourceRun
+	Token       string
+	ServerURL   string
 }
 
 type StreamJobLogsOptions struct {
@@ -45,19 +43,10 @@ type StreamJobLogsOptions struct {
 	Out     io.Writer
 }
 
-type JobReconciler struct {
-	Logger      logr.Logger
-	Kubeconfig  *rest.Config
-	KubeClient  client.Client
-	ModelClient *model.Client
-}
-
 const (
 	// _podName the name of the pod.
 	_podName = "deployer"
 
-	// _resourceRunIDLabel pod template label key for resource run id.
-	_resourceRunIDLabel = "walrus.seal.io/resource-run-id"
 	// _jobNameFormat the format of job name.
 	_jobNameFormat = "tf-job-%s-%s"
 	// _jobSecretPrefix the prefix of secret name.
@@ -66,128 +55,10 @@ const (
 	_secretMountPath = "/var/terraform/secrets"
 	// _workdir the working directory of the job.
 	_workdir = "/var/terraform/workspace"
+
+	// _accessTokenkey the key of token in secret.
+	_accessTokenkey = "access-token"
 )
-
-const (
-	// _applyCommands the commands to apply deployment of the resource.
-	_applyCommands = "terraform init -no-color && terraform apply -auto-approve -no-color"
-	// _destroyCommands the commands to destroy deployment of the resource.
-	_destroyCommands = "terraform init -no-color && terraform destroy -auto-approve -no-color"
-)
-
-func (r JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	job := &batchv1.Job{}
-
-	err := r.KubeClient.Get(ctx, req.NamespacedName, job)
-	if err != nil {
-		if kerrors.IsNotFound(err) {
-			return ctrl.Result{}, nil
-		}
-
-		return ctrl.Result{}, err
-	}
-
-	err = r.syncresourceRunStatus(ctx, job)
-	if err != nil && !model.IsNotFound(err) {
-		return ctrl.Result{}, err
-	}
-
-	return ctrl.Result{}, nil
-}
-
-func (r JobReconciler) Setup(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&batchv1.Job{}).
-		Complete(r)
-}
-
-// syncresourceRunStatus sync the resource run status.
-func (r JobReconciler) syncresourceRunStatus(ctx context.Context, job *batchv1.Job) (err error) {
-	appRunID, ok := job.Labels[_resourceRunIDLabel]
-	if !ok {
-		// Not a deployer job.
-		return nil
-	}
-
-	appRun, err := r.ModelClient.ResourceRuns().Get(ctx, object.ID(appRunID))
-	if err != nil {
-		return err
-	}
-
-	// If the resource run status is not running, then skip it.
-	if !status.ResourceRunStatusReady.IsUnknown(appRun) {
-		return nil
-	}
-
-	if job.Status.Succeeded == 0 && job.Status.Failed == 0 {
-		return nil
-	}
-
-	status.ResourceRunStatusReady.True(appRun, "")
-
-	// Get job pods logs.
-	record, err := r.getJobPodsLogs(ctx, job.Name)
-	if err != nil {
-		r.Logger.Error(err, "failed to get job pod logs", "resource-run", appRunID)
-		record = err.Error()
-	}
-
-	if job.Status.Succeeded > 0 {
-		r.Logger.Info("succeed", "resource-run", appRunID)
-	}
-
-	if job.Status.Failed > 0 {
-		r.Logger.Info("failed", "resource-run", appRunID)
-		status.ResourceRunStatusReady.False(appRun, "")
-	}
-
-	// Report to resource run.
-	appRun.Record = record
-	appRun.Status.SetSummary(status.WalkResourceRun(&appRun.Status))
-	appRun.Duration = int(time.Since(*appRun.CreateTime).Seconds())
-
-	appRun, err = r.ModelClient.ResourceRuns().UpdateOne(appRun).
-		SetStatus(appRun.Status).
-		SetRecord(appRun.Record).
-		SetDuration(appRun.Duration).
-		Save(ctx)
-	if err != nil {
-		return err
-	}
-
-	return runbus.Notify(ctx, r.ModelClient, appRun)
-}
-
-// getJobPodsLogs returns the logs of all pods of a job.
-func (r JobReconciler) getJobPodsLogs(ctx context.Context, jobName string) (string, error) {
-	clientSet, err := kubernetes.NewForConfig(r.Kubeconfig)
-	if err != nil {
-		return "", err
-	}
-	ls := "job-name=" + jobName
-
-	pods, err := clientSet.CoreV1().Pods(types.WalrusSystemNamespace).
-		List(ctx, metav1.ListOptions{LabelSelector: ls})
-	if err != nil {
-		return "", err
-	}
-
-	var logs string
-
-	for _, pod := range pods.Items {
-		var podLogs []byte
-
-		podLogs, err = clientSet.CoreV1().Pods(types.WalrusSystemNamespace).
-			GetLogs(pod.Name, &corev1.PodLogOptions{}).
-			DoRaw(ctx)
-		if err != nil {
-			return "", err
-		}
-		logs += string(podLogs)
-	}
-
-	return logs, nil
-}
 
 // CreateJob create a job to run terraform deployment.
 func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCreateOptions) error {
@@ -195,9 +66,9 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 		logger = log.WithName("deployer").WithName("tf")
 
 		backoffLimit            int32 = 0
-		ttlSecondsAfterFinished int32 = 3600
-		name                          = getK8sJobName(_jobNameFormat, opts.Type, opts.ResourceRunID)
-		configName                    = _jobSecretPrefix + opts.ResourceRunID
+		ttlSecondsAfterFinished int32 = 600
+		name                          = getK8sJobName(_jobNameFormat, opts.Type.String(), opts.ResourceRun.ID.String())
+		configName                    = _jobSecretPrefix + opts.ResourceRun.ID.String()
 	)
 
 	secret, err := clientSet.CoreV1().Secrets(types.WalrusSystemNamespace).Get(ctx, configName, metav1.GetOptions{})
@@ -205,7 +76,7 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 		return err
 	}
 
-	podTemplate := getPodTemplate(opts.ResourceRunID, configName, opts)
+	podTemplate := getPodTemplate(configName, opts)
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
@@ -265,18 +136,19 @@ func CreateSecret(ctx context.Context, clientSet *kubernetes.Clientset, name str
 }
 
 // getPodTemplate returns a pod template for deployment.
-func getPodTemplate(resourceRunID, configName string, opts JobCreateOptions) corev1.PodTemplateSpec {
+func getPodTemplate(configName string, opts JobCreateOptions) corev1.PodTemplateSpec {
 	var (
 		command       = []string{"/bin/sh", "-c"}
 		deployCommand = fmt.Sprintf("cp %s/main.tf main.tf && ", _secretMountPath)
-		varfile       = fmt.Sprintf(" -var-file=%s/terraform.tfvars", _secretMountPath)
 	)
 
 	switch opts.Type {
-	case types.RunJobTypeApply:
-		deployCommand += _applyCommands + varfile
-	case types.RunJobTypeDestroy:
-		deployCommand += _destroyCommands + varfile
+	case types.RunTaskTypePlan:
+		deployCommand += getPlanCommands(opts.ResourceRun, opts)
+	case types.RunTaskTypeApply:
+		deployCommand += getApplyCommands(opts.ResourceRun, opts)
+	case types.RunTaskTypeDestroy:
+		deployCommand += getDestroyCommands(opts.ResourceRun, opts)
 	}
 
 	command = append(command, deployCommand)
@@ -323,7 +195,7 @@ func getPodTemplate(resourceRunID, configName string, opts JobCreateOptions) cor
 		ObjectMeta: metav1.ObjectMeta{
 			Name: _podName,
 			Labels: map[string]string{
-				_resourceRunIDLabel: resourceRunID,
+				types.LabelWalrusResourceRunID: opts.ResourceRun.ID.String(),
 			},
 		},
 		Spec: corev1.PodSpec{

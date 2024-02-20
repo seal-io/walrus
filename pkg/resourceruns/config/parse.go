@@ -16,7 +16,8 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/crypto"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
-	pkgresource "github.com/seal-io/walrus/pkg/resource"
+	"github.com/seal-io/walrus/pkg/resources/interpolation"
+	"github.com/seal-io/walrus/pkg/resourcestate"
 	pkgvariable "github.com/seal-io/walrus/pkg/variable"
 	"github.com/seal-io/walrus/utils/json"
 )
@@ -134,8 +135,8 @@ func parseAttributeReplace(
 		return nil, nil, nil, err
 	}
 
-	variableMatches := pkgresource.VariableReg.FindAllSubmatch(bs, -1)
-	resourceMatches := pkgresource.ResourceReg.FindAllSubmatch(bs, -1)
+	variableMatches := interpolation.VariableReg.FindAllSubmatch(bs, -1)
+	resourceMatches := interpolation.ResourceReg.FindAllSubmatch(bs, -1)
 
 	variableMatched := sets.NewString()
 
@@ -156,10 +157,10 @@ func parseAttributeReplace(
 	}
 
 	variableRepl := "${var." + _variablePrefix + "${1}}"
-	bs = pkgresource.VariableReg.ReplaceAll(bs, []byte(variableRepl))
+	bs = interpolation.VariableReg.ReplaceAll(bs, []byte(variableRepl))
 
 	resourceRepl := "${var." + _resourcePrefix + "${1}_${2}}"
-	bs = pkgresource.ResourceReg.ReplaceAll(bs, []byte(resourceRepl))
+	bs = interpolation.ResourceReg.ReplaceAll(bs, []byte(resourceRepl))
 
 	// Replace interpolation from ${} to $${} to avoid escape sequences.
 	bs = _interpolationReg.ReplaceAllFunc(bs, func(match []byte) []byte {
@@ -221,5 +222,5 @@ func getResourceDependencyOutputsByID(
 		dependencyResourceIDs = append(dependencyResourceIDs, d.DependencyID)
 	}
 
-	return pkgresource.GetDependencyOutputs(ctx, client, dependencyResourceIDs, dependOutputs)
+	return resourcestate.GetDependencyOutputs(ctx, client, dependencyResourceIDs, dependOutputs)
 }

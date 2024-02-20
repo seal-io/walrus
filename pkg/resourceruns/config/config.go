@@ -5,18 +5,21 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/seal-io/walrus/pkg/auths"
 	"github.com/seal-io/walrus/pkg/auths/session"
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
-	"github.com/seal-io/walrus/pkg/dao/types/status"
 	pkgenv "github.com/seal-io/walrus/pkg/environment"
-	pkgresource "github.com/seal-io/walrus/pkg/resource"
+	"github.com/seal-io/walrus/pkg/resourceruns/annotations"
+	"github.com/seal-io/walrus/pkg/resourceruns/status"
+	"github.com/seal-io/walrus/pkg/settings"
+	"github.com/seal-io/walrus/utils/pointer"
 )
 
-// Loader is the interface to construct input configs and dependency connectors for the run.
-type Loader interface {
+// Configurator is the interface to construct input configs and dependency connectors for the run.
+type Configurator interface {
 	InputLoader
 	ProviderLoader
 }
@@ -24,9 +27,9 @@ type Loader interface {
 // InputLoader is the interface to construct input configs for the run.
 type InputLoader interface {
 	// LoadMain loads the main config file of the config options.
-	LoadMain(context.Context, model.ClientSet, *LoaderOptions) (types.ResourceRunConfigData, error)
+	LoadMain(context.Context, model.ClientSet, *Options) (types.ResourceRunConfigData, error)
 	// LoadAll loads the configs files of the config options.
-	LoadAll(context.Context, model.ClientSet, *LoaderOptions) (map[string]types.ResourceRunConfigData, error)
+	LoadAll(context.Context, model.ClientSet, *Options) (map[string]types.ResourceRunConfigData, error)
 }
 
 // ProviderLoader is the interface to construct dependency connectors files for the run.
@@ -36,8 +39,8 @@ type ProviderLoader interface {
 	LoadProviders(model.Connectors) (map[string]types.ResourceRunConfigData, error)
 }
 
-// LoaderOptions are the options for load a run config files.
-type LoaderOptions struct {
+// Options are the options for load a run config files.
+type Options struct {
 	// SecretMountPath of the deployment job.
 	SecretMountPath string
 
@@ -46,32 +49,35 @@ type LoaderOptions struct {
 	SubjectID   object.ID
 	// Walrus Context.
 	Context types.Context
+
+	SeverULR string
+	Token    string
 }
 
-// NewInputLoader creates a new plan with the plan type.
-func NewInputLoader(deployerType string) Loader {
+// NewConfigurator creates a new configurator with the deployer type.
+func NewConfigurator(deployerType string) Configurator {
 	switch deployerType {
 	case types.DeployerTypeTF:
-		return NewTerraformLoader()
+		return NewTerraformConfigurator()
 	default:
 		return nil
 	}
 }
 
-// GetConfigLoaderOptions sets the config loader options.
+// GetConfigOptions sets the config loader options.
 // It will fetch the resource run, environment, project, resource and subject.
-func GetConfigLoaderOptions(
+func GetConfigOptions(
 	ctx context.Context,
 	mc model.ClientSet,
 	run *model.ResourceRun,
 	secretMountPath string,
-) (*LoaderOptions, error) {
-	opts := &LoaderOptions{
+) (*Options, error) {
+	opts := &Options{
 		ResourceRun:     run,
 		SecretMountPath: secretMountPath,
 	}
 
-	if !status.ResourceRunStatusReady.IsUnknown(run) {
+	if !status.IsStatusRunning(run) {
 		return nil, errors.New("resource run is not running")
 	}
 
@@ -95,7 +101,7 @@ func GetConfigLoaderOptions(
 		return nil, err
 	}
 
-	sj, err := getSubject(ctx, mc, res)
+	sj, err := getSubject(ctx, mc, run)
 	if err != nil {
 		return nil, err
 	}
@@ -109,11 +115,17 @@ func GetConfigLoaderOptions(
 		SetEnvironment(env.ID, env.Name, pkgenv.GetManagedNamespaceName(env)).
 		SetResource(res.ID, res.Name)
 
+	// Get the backend config.
+	opts.SeverULR, opts.Token, err = getBackendConfig(ctx, mc, opts)
+	if err != nil {
+		return nil, err
+	}
+
 	return opts, nil
 }
 
 // getSubject gets the subject of the given resource.
-func getSubject(ctx context.Context, mc model.ClientSet, res *model.Resource) (*model.Subject, error) {
+func getSubject(ctx context.Context, mc model.ClientSet, run *model.ResourceRun) (*model.Subject, error) {
 	var (
 		subjectID object.ID
 		err       error
@@ -123,7 +135,7 @@ func getSubject(ctx context.Context, mc model.ClientSet, res *model.Resource) (*
 	if s.ID != "" {
 		subjectID = s.ID
 	} else {
-		subjectID, err = pkgresource.GetSubjectID(res)
+		subjectID, err = annotations.GetSubjectID(run)
 		if err != nil {
 			return nil, err
 		}
@@ -134,4 +146,45 @@ func getSubject(ctx context.Context, mc model.ClientSet, res *model.Resource) (*
 	}
 
 	return mc.Subjects().Get(ctx, subjectID)
+}
+
+// getBackendConfig returns the address and token for run config.
+func getBackendConfig(
+	ctx context.Context,
+	mc model.ClientSet,
+	opts *Options,
+) (address, token string, err error) {
+	// Prepare address for terraform backend.
+	address, err = settings.ServeUrl.Value(ctx, mc)
+	if err != nil {
+		return "", "", err
+	}
+
+	if address == "" {
+		return "", "", errors.New("server address is empty")
+	}
+
+	// Prepare API token for terraform backend.
+	const _1Day = 60 * 60 * 24
+
+	at, err := auths.GetAccessToken(ctx,
+		mc, opts.SubjectID, types.TokenKindDeployment, opts.ResourceRun.ID.String())
+	if err != nil && !model.IsNotFound(err) {
+		return "", "", err
+	}
+
+	if at != nil {
+		token = at.AccessToken
+		return
+	}
+
+	at, err = auths.CreateAccessToken(ctx,
+		mc, opts.SubjectID, types.TokenKindDeployment, opts.ResourceRun.ID.String(), pointer.Int(_1Day))
+	if err != nil {
+		return "", "", err
+	}
+
+	token = at.AccessToken
+
+	return
 }
