@@ -1,6 +1,8 @@
-package resource
+package interpolation
 
-import "regexp"
+import (
+	"regexp"
+)
 
 var (
 	// VariableReg is the regexp to match the variable reference in attributes.

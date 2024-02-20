@@ -15,7 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
-	"github.com/seal-io/walrus/pkg/deployer/terraform"
+	runjob "github.com/seal-io/walrus/pkg/resourceruns/job"
 	pkgworkflow "github.com/seal-io/walrus/pkg/workflow"
 )
 
@@ -68,7 +68,7 @@ func (m *Manager) Setup(ctx context.Context, opts SetupOptions) ([]Reconciler, e
 
 	// Setup reconciler below.
 	return []Reconciler{
-		terraform.JobReconciler{
+		runjob.Reconciler{
 			Logger:      opts.GetLogger().WithName("deployer").WithName("tf"),
 			Kubeconfig:  opts.GetConfig(),
 			KubeClient:  opts.GetClient(),

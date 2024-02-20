@@ -18,7 +18,8 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/deployer"
 	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
-	pkgresource "github.com/seal-io/walrus/pkg/resource"
+	pkgresource "github.com/seal-io/walrus/pkg/resources"
+	resstatus "github.com/seal-io/walrus/pkg/resources/status"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/strs"
 )
@@ -163,9 +164,7 @@ func (in *RelationshipCheckTask) destroyResources(ctx context.Context) error {
 			continue
 		}
 
-		err = pkgresource.Destroy(ctx, in.modelClient, res, pkgresource.Options{
-			Deployer: in.deployer,
-		})
+		err = pkgresource.PerformResource(ctx, in.modelClient, in.deployer, res.ID)
 		if err != nil {
 			return err
 		}
@@ -205,9 +204,7 @@ func (in *RelationshipCheckTask) stopResources(ctx context.Context) error {
 			continue
 		}
 
-		err = pkgresource.Stop(ctx, in.modelClient, res, pkgresource.Options{
-			Deployer: in.deployer,
-		})
+		err = pkgresource.PerformResource(ctx, in.modelClient, in.deployer, res.ID)
 		if err != nil {
 			return err
 		}
@@ -257,7 +254,7 @@ func (in *RelationshipCheckTask) checkDependencies(ctx context.Context, res *mod
 	}
 
 	for _, depRes := range dependencyResources {
-		if pkgresource.IsStatusReady(depRes) {
+		if resstatus.IsStatusReady(depRes) {
 			continue
 		}
 
@@ -297,14 +294,12 @@ func (in *RelationshipCheckTask) deployResource(ctx context.Context, entity *mod
 	// Reset status.
 	status.ResourceStatusDeployed.Reset(entity, "")
 
-	err := pkgresource.UpdateStatus(ctx, in.modelClient, entity)
+	err := resstatus.UpdateStatus(ctx, in.modelClient, entity)
 	if err != nil {
 		return err
 	}
 
-	return pkgresource.Apply(ctx, in.modelClient, entity, pkgresource.Options{
-		Deployer: in.deployer,
-	})
+	return pkgresource.PerformResource(ctx, in.modelClient, in.deployer, entity.ID)
 }
 
 // setResourceStatusFalse sets a resource status to false if parent dependencies statuses are false or deleted.
@@ -312,14 +307,14 @@ func (in *RelationshipCheckTask) setResourceStatusFalse(
 	ctx context.Context,
 	res, parentResource *model.Resource,
 ) error {
-	if pkgresource.IsStatusError(parentResource) {
+	if resstatus.IsStatusError(parentResource) {
 		status.ResourceStatusProgressing.False(
 			res,
 			fmt.Sprintf("Dependency resource %q has encountered an error, please check it",
 				parentResource.Name),
 		)
 
-		err := pkgresource.UpdateStatus(ctx, in.modelClient, res)
+		err := resstatus.UpdateStatus(ctx, in.modelClient, res)
 		if err != nil {
 			return err
 		}
@@ -327,14 +322,14 @@ func (in *RelationshipCheckTask) setResourceStatusFalse(
 		return nil
 	}
 
-	if pkgresource.IsStatusDeleted(parentResource) {
+	if resstatus.IsStatusDeleted(parentResource) {
 		status.ResourceStatusProgressing.False(
 			res,
 			fmt.Sprintf("Dependency resource %q is in delete status, please check it",
 				parentResource.Name),
 		)
 
-		err := pkgresource.UpdateStatus(ctx, in.modelClient, res)
+		err := resstatus.UpdateStatus(ctx, in.modelClient, res)
 		if err != nil {
 			return err
 		}
@@ -342,13 +337,13 @@ func (in *RelationshipCheckTask) setResourceStatusFalse(
 		return nil
 	}
 
-	if pkgresource.IsStatusStopped(parentResource) {
+	if resstatus.IsStatusStopped(parentResource) {
 		status.ResourceStatusProgressing.False(
 			res,
 			fmt.Sprintf("Dependency resource %q is in stop status, please check it", parentResource.Name),
 		)
 
-		err := pkgresource.UpdateStatus(ctx, in.modelClient, res)
+		err := resstatus.UpdateStatus(ctx, in.modelClient, res)
 		if err != nil {
 			return err
 		}
@@ -364,14 +359,14 @@ func (in *RelationshipCheckTask) checkDependantResourceStatus(
 	ctx context.Context,
 	res, dependantResource *model.Resource,
 ) (bool, error) {
-	if pkgresource.IsStatusError(dependantResource) {
+	if resstatus.IsStatusError(dependantResource) {
 		status.ResourceStatusProgressing.False(
 			res,
 			fmt.Sprintf("Dependant resource %q has encountered an error, please check it",
 				dependantResource.Name),
 		)
 
-		err := pkgresource.UpdateStatus(ctx, in.modelClient, res)
+		err := resstatus.UpdateStatus(ctx, in.modelClient, res)
 		if err != nil {
 			return false, err
 		}
@@ -379,14 +374,14 @@ func (in *RelationshipCheckTask) checkDependantResourceStatus(
 		return false, nil
 	}
 
-	// If the dependant resource is deployed or to be deployed, the resource can not be deleted or stopped.
-	if pkgresource.IsStatusDeployed(dependantResource) {
+	// If the dependant resource is deployed or to be deployed, the resource cannot be deleted or stopped.
+	if resstatus.IsStatusDeployed(dependantResource) {
 		status.ResourceStatusProgressing.False(
 			res,
 			fmt.Sprintf("Dependant resource %q is in deploy status, please check it", dependantResource.Name),
 		)
 
-		err := pkgresource.UpdateStatus(ctx, in.modelClient, res)
+		err := resstatus.UpdateStatus(ctx, in.modelClient, res)
 		if err != nil {
 			return false, err
 		}

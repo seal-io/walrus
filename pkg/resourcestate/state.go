@@ -1,10 +1,10 @@
-package resource
+package resourcestate
 
 import (
 	"context"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
-	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcestate"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/terraform/parser"
@@ -17,9 +17,8 @@ func GetDependencyOutputs(
 	dependencyResourceIDs []object.ID,
 	dependOutputs map[string]string,
 ) (map[string]types.OutputValue, error) {
-	dependencyResources, err := client.Resources().Query().
-		Where(resource.IDIn(dependencyResourceIDs...)).
-		WithState().
+	states, err := client.ResourceStates().Query().
+		Where(resourcestate.ResourceIDIn(dependencyResourceIDs...)).
 		All(ctx)
 	if err != nil {
 		return nil, err
@@ -29,8 +28,8 @@ func GetDependencyOutputs(
 
 	var p parser.StateParser
 
-	for _, r := range dependencyResources {
-		osm, err := p.GetOutputMap(r.Edges.State.Data)
+	for _, s := range states {
+		osm, err := p.GetOutputMap(s.Data)
 		if err != nil {
 			return nil, err
 		}

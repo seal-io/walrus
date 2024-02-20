@@ -13,6 +13,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
+	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
@@ -177,4 +178,49 @@ func GetResourceDependantResource(
 			resourcerelationship.TypeEQ(types.ResourceRelationshipTypeImplicit),
 		).QueryResource().
 		All(ctx)
+}
+
+func GetResourceLatestRun(ctx context.Context, mc model.ClientSet, resourceID object.ID) (*model.ResourceRun, error) {
+	return mc.ResourceRuns().Query().
+		Where(resourcerun.ResourceID(resourceID)).
+		Order(model.Desc(resourcerun.FieldCreateTime)).
+		First(ctx)
+}
+
+// GetPreviousRequiredProviders get previous succeed run required providers.
+// NB(alex): the previous run may be failed, the failed run may not contain required providers of states.
+func GetPreviousRequiredProviders(
+	ctx context.Context,
+	mc model.ClientSet,
+	resourceID object.ID,
+) ([]types.ProviderRequirement, error) {
+	prevRequiredProviders := make([]types.ProviderRequirement, 0)
+
+	entity, err := mc.ResourceRuns().Query().
+		Where(resourcerun.ResourceID(resourceID)).
+		Order(model.Desc(resourcerun.FieldCreateTime)).
+		First(ctx)
+	if err != nil && !model.IsNotFound(err) {
+		return nil, err
+	}
+
+	if entity == nil {
+		return prevRequiredProviders, nil
+	}
+
+	templateVersion, err := mc.TemplateVersions().Query().
+		Where(
+			templateversion.TemplateID(entity.TemplateID),
+			templateversion.Version(entity.TemplateVersion),
+		).
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(templateVersion.Schema.RequiredProviders) != 0 {
+		prevRequiredProviders = append(prevRequiredProviders, templateVersion.Schema.RequiredProviders...)
+	}
+
+	return prevRequiredProviders, nil
 }
