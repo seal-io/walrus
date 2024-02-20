@@ -86,7 +86,7 @@ func (StateParser) GetComponentsAndExtractDependencies(
 			continue
 		}
 
-		classResource := &model.ResourceComponent{
+		classResourceComponents := &model.ResourceComponent{
 			ProjectID:     run.ProjectID,
 			EnvironmentID: run.EnvironmentID,
 			ResourceID:    run.ResourceID,
@@ -97,14 +97,14 @@ func (StateParser) GetComponentsAndExtractDependencies(
 			DeployerType:  run.DeployerType,
 			Shape:         types.ResourceComponentShapeClass,
 		}
-		classResource.Edges.Instances = make(model.ResourceComponents, len(rs.Instances))
+		classResourceComponents.Edges.Instances = make(model.ResourceComponents, len(rs.Instances))
 
 		// The module key is used to identify the terraform resource module.
 		mk := strs.Join(".", rs.Module, rs.Type, rs.Name)
 		if rs.Mode == types.ResourceComponentModeData {
 			mk = strs.Join(".", rs.Module, rs.Mode, rs.Type, rs.Name)
 		}
-		moduleComponentMap[mk] = classResource
+		moduleComponentMap[mk] = classResourceComponents
 
 		for i, is := range rs.Instances {
 			instanceID, err := ParseInstanceID(is)
@@ -153,16 +153,19 @@ func (StateParser) GetComponentsAndExtractDependencies(
 			}
 
 			// Assume that the first instance's dependencies are the dependencies of the class resource.
-			if _, ok := moduleComponentMap[key(classResource)]; !ok {
-				componentDependencies[key(classResource)] = is.Dependencies
+			if _, ok := moduleComponentMap[key(classResourceComponents)]; !ok {
+				componentDependencies[key(classResourceComponents)] = is.Dependencies
 			}
 
-			dependencies[key(instanceResource)] = append(dependencies[key(instanceResource)], key(classResource))
-			classResource.Edges.Instances[i] = instanceResource
+			dependencies[key(instanceResource)] = append(
+				dependencies[key(instanceResource)],
+				key(classResourceComponents),
+			)
+			classResourceComponents.Edges.Instances[i] = instanceResource
 			componentDependencies[key(instanceResource)] = is.Dependencies
 		}
 
-		components = append(components, classResource)
+		components = append(components, classResourceComponents)
 	}
 
 	// Get resource dependencies.

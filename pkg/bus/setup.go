@@ -3,6 +3,8 @@ package bus
 import (
 	"context"
 
+	"k8s.io/client-go/rest"
+
 	authstoken "github.com/seal-io/walrus/pkg/auths/token"
 	"github.com/seal-io/walrus/pkg/bus/builtin"
 	"github.com/seal-io/walrus/pkg/bus/catalog"
@@ -15,14 +17,15 @@ import (
 	pkgcatalog "github.com/seal-io/walrus/pkg/catalog"
 	"github.com/seal-io/walrus/pkg/cron"
 	"github.com/seal-io/walrus/pkg/dao/model"
-	"github.com/seal-io/walrus/pkg/deployer/terraform"
 	pkgenv "github.com/seal-io/walrus/pkg/environment"
 	"github.com/seal-io/walrus/pkg/resourcedefinitions"
+	runjob "github.com/seal-io/walrus/pkg/resourceruns/job"
 	"github.com/seal-io/walrus/pkg/templates"
 )
 
 type SetupOptions struct {
 	ModelClient model.ClientSet
+	K8sConfig   *rest.Config
 }
 
 func Setup(ctx context.Context, opts SetupOptions) (err error) {
@@ -35,7 +38,7 @@ func Setup(ctx context.Context, opts SetupOptions) (err error) {
 
 	// ResourceRun.
 	err = resourcerun.AddSubscriber("terraform-sync-resource-run-status",
-		terraform.SyncResourceRunStatus)
+		runjob.Syncer(opts.K8sConfig).Do)
 	if err != nil {
 		return
 	}

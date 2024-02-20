@@ -158,7 +158,9 @@ func (in *StatusSyncTask) process(
 	// State resource.
 	if status.ResourceStatusUnDeployed.IsTrue(res) ||
 		status.ResourceStatusDeleted.Exist(res) ||
-		status.ResourceStatusStopped.Exist(res) {
+		status.ResourceStatusStopped.Exist(res) ||
+		status.ResourceStatusPlanned.IsUnknown(res) ||
+		status.ResourceStatusPlanned.IsTrue(res) {
 		// Skip if the resource is undeployed, on deleting or stopping.
 		return berr
 	}

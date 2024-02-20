@@ -1,4 +1,4 @@
-package resource
+package resources
 
 import (
 	"fmt"
@@ -193,7 +193,7 @@ func TopologicalSortResourceNodes(nodes []*ResourceNode) []*ResourceNode {
 		}
 	}
 
-	queue := []*ResourceNode{}
+	var queue []*ResourceNode
 
 	for _, node := range nodes {
 		if inDegree[node] == 0 {
@@ -201,7 +201,7 @@ func TopologicalSortResourceNodes(nodes []*ResourceNode) []*ResourceNode {
 		}
 	}
 
-	result := []*ResourceNode{}
+	var result []*ResourceNode
 
 	for len(queue) > 0 {
 		current := queue[0]
