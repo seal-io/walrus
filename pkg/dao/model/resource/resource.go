@@ -53,8 +53,6 @@ const (
 	FieldComputedAttributes = "computed_attributes"
 	// FieldEndpoints holds the string denoting the endpoints field in the database.
 	FieldEndpoints = "endpoints"
-	// FieldChangeComment holds the string denoting the change_comment field in the database.
-	FieldChangeComment = "change_comment"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
@@ -159,7 +157,6 @@ var Columns = []string{
 	FieldAttributes,
 	FieldComputedAttributes,
 	FieldEndpoints,
-	FieldChangeComment,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -268,11 +265,6 @@ func ByAttributes(opts ...sql.OrderTermOption) OrderOption {
 // ByComputedAttributes orders the results by the computed_attributes field.
 func ByComputedAttributes(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldComputedAttributes, opts...).ToFunc()
-}
-
-// ByChangeComment orders the results by the change_comment field.
-func ByChangeComment(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldChangeComment, opts...).ToFunc()
 }
 
 // ByProjectField orders the results by project field.
