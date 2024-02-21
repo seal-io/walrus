@@ -64,8 +64,6 @@ func Create(ctx context.Context, mc model.ClientSet, opts CreateOptions) (*model
 		return nil, errors.New("deployment is running")
 	}
 
-	// TODO mark all previous runs to invalid.(runs needs to be approved).
-
 	// Get the corresponding resource and template version.
 	res, err := mc.Resources().Query().
 		Where(resource.ID(opts.ResourceID)).

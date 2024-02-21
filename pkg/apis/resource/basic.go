@@ -1,14 +1,21 @@
 package resource
 
 import (
+	"context"
+	"time"
+
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	pkgresource "github.com/seal-io/walrus/pkg/resources"
+	"github.com/seal-io/walrus/utils/gopool"
+	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/topic"
 )
 
@@ -64,6 +71,11 @@ func (h Handler) Get(req GetRequest) (GetResponse, error) {
 }
 
 func (h Handler) Delete(req DeleteRequest) (err error) {
+	err = h.cleanResourcePlanFiles(req.Context, req.ID)
+	if err != nil {
+		return err
+	}
+
 	if req.WithoutCleanup {
 		// Do not clean deployed native resources.
 		return h.modelClient.Resources().DeleteOneID(req.ID).
@@ -299,6 +311,11 @@ func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 		return err
 	}
 
+	err = h.cleanResourcePlanFiles(req.Context, req.IDs()...)
+	if err != nil {
+		return err
+	}
+
 	return pkgresource.CollectionDelete(req.Context, h.modelClient, resources, pkgresource.DeleteOptions{
 		Options: pkgresource.Options{
 			Deployer:            dp,
@@ -306,4 +323,29 @@ func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 		},
 		WithoutCleanup: req.WithoutCleanup,
 	})
+}
+
+func (h Handler) cleanResourcePlanFiles(ctx context.Context, resourceIDs ...object.ID) error {
+	logger := log.WithName("apis").WithName("resource")
+
+	runs, err := h.modelClient.ResourceRuns().Query().
+		Where(resourcerun.ResourceIDIn(resourceIDs...)).
+		All(ctx)
+	if err != nil {
+		return err
+	}
+
+	gopool.Go(func() {
+		subCtx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+		defer cancel()
+
+		for i := range runs {
+			run := runs[i]
+			if rerr := h.storageManager.DeleteRunPlan(subCtx, run); rerr != nil {
+				logger.Error(rerr, "failed to delete run plan", "run", run.ID)
+			}
+		}
+	})
+
+	return nil
 }

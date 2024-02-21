@@ -692,9 +692,10 @@ func (r *Server) Run(c context.Context) error {
 
 	// Start k8s controllers.
 	startK8sCtrlsOpts := startK8sCtrlsOptions{
-		MgrIsReady:  initOpts.K8sCtrlMgrIsReady,
-		RestConfig:  k8sCfg,
-		ModelClient: modelClient,
+		MgrIsReady:     initOpts.K8sCtrlMgrIsReady,
+		RestConfig:     k8sCfg,
+		ModelClient:    modelClient,
+		StorageManager: storageMgr,
 	}
 
 	g.Go(func() error {

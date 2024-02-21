@@ -108,7 +108,8 @@ func (s syncer) Do(ctx context.Context, bm runbus.BusMessage) (err error) {
 			status.ResourceStatusDeleted.False(entity, "")
 		case status.ResourceStatusStopped.IsUnknown(entity):
 			status.ResourceStatusStopped.False(entity, "")
-		// TODO case plan.
+		case status.ResourceStatusPlanned.IsUnknown(entity):
+			status.ResourceStatusPlanned.False(entity, "")
 		default:
 			status.ResourceStatusDeployed.False(entity, "")
 		}

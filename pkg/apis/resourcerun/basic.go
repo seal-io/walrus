@@ -1,10 +1,16 @@
 package resourcerun
 
 import (
+	"context"
+	"time"
+
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
+	"github.com/seal-io/walrus/utils/gopool"
+	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/topic"
 )
 
@@ -146,6 +152,11 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 	ids := req.IDs()
 
+	err := h.cleanPlanFiles(req.Context, ids...)
+	if err != nil {
+		return err
+	}
+
 	return h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
 		_, err := tx.ResourceRuns().Delete().
 			Where(resourcerun.IDIn(ids...)).
@@ -153,4 +164,28 @@ func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 
 		return err
 	})
+}
+
+func (h Handler) cleanPlanFiles(ctx context.Context, ids ...object.ID) error {
+	logger := log.WithName("apis").WithName("resourcerun")
+
+	runs, err := h.modelClient.ResourceRuns().Query().
+		Where(resourcerun.IDIn(ids...)).
+		All(ctx)
+	if err != nil {
+		return err
+	}
+
+	gopool.Go(func() {
+		subCtx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+		defer cancel()
+
+		for i := range runs {
+			if rerr := h.storageManager.DeleteRunPlan(subCtx, runs[i]); err != nil {
+				logger.Error(rerr, "failed to delete run plan", "run", runs[i].ID)
+			}
+		}
+	})
+
+	return nil
 }
