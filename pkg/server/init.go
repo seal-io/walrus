@@ -14,6 +14,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/cache"
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/storage"
 	"github.com/seal-io/walrus/utils/strs"
 )
 
@@ -25,6 +26,7 @@ type initOptions struct {
 	DatabaseDriver         *sql.DB
 	CacheDriver            cache.Driver
 	BuiltinCatalogProvider string
+	StorageManager         *storage.Manager
 }
 
 func (r *Server) init(ctx context.Context, opts initOptions) error {

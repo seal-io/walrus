@@ -8,11 +8,13 @@ import (
 
 	"github.com/seal-io/walrus/pkg/apis"
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/storage"
 )
 
 type startApisOptions struct {
-	K8sConfig   *rest.Config
-	ModelClient *model.Client
+	K8sConfig      *rest.Config
+	ModelClient    *model.Client
+	StorageManager *storage.Manager
 }
 
 func (r *Server) startApis(ctx context.Context, opts startApisOptions) error {
@@ -29,6 +31,7 @@ func (r *Server) startApis(ctx context.Context, opts startApisOptions) error {
 			WebsocketConnMaxPerIP: r.WebsocketConnMaxPerIP,
 			K8sConfig:             opts.K8sConfig,
 			ModelClient:           opts.ModelClient,
+			StorageManager:        opts.StorageManager,
 		},
 		BindAddress:       r.BindAddress,
 		BindWithDualStack: r.BindWithDualStack,

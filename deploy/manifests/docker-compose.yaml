@@ -116,6 +116,19 @@ services:
     ports:
       - "3000:3000"
 
+  minio:
+    image: minio/minio
+    restart: always
+    container_name: minio
+    volumes:
+      - minio-data:/var/run/walrus
+    ports:
+      - "9000:9000"
+    environment:
+      MINIO_ROOT_USER: "minio"
+      MINIO_ROOT_PASSWORD: "Minio123"
+    command: server /var/run/walrus
+
 volumes:
   walrus-data: { }
   prometheus-data: { }

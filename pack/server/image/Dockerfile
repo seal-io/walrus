@@ -140,6 +140,24 @@ RUN set -exo pipefail; \
       chmod a+x /usr/bin/crane && \
       rm -f /tmp/crane.tar.gz;
 
+# get minio
+RUN set -exo pipefail; \
+	case "${TARGETARCH}" in \
+		amd64|x86_64) \
+			MINIO_URL='https://dl.min.io/server/minio/release/linux-amd64/minio'; \
+			;; \
+		aarch64|arm64) \
+			MINIO_URL='https://dl.min.io/server/minio/release/linux-arm64/minio'; \
+			;; \
+		*) \
+			echo "Unsupported arch: ${TARGETARCH}"; \
+			exit 1; \
+			;; \
+	esac; \
+	\
+	axel -n 16 -o /usr/bin/minio ${MINIO_URL} && \
+		chmod a+x /usr/bin/minio;
+
 ENV CHARTS_DIR="/var/lib/walrus/manifests/charts" \
     CLI_DIR="/var/lib/walrus/cli"
 
