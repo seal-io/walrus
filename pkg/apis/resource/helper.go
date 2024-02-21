@@ -13,7 +13,8 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
-	pkgresource "github.com/seal-io/walrus/pkg/resource"
+	"github.com/seal-io/walrus/pkg/resources/interpolation"
+	"github.com/seal-io/walrus/pkg/resourcestate"
 	pkgvariable "github.com/seal-io/walrus/pkg/variable"
 	"github.com/seal-io/walrus/utils/json"
 )
@@ -123,7 +124,7 @@ func getInterpolationOutputValues(
 	}
 
 	// Get should inject resource outputs.
-	outputs, err := pkgresource.GetDependencyOutputs(ctx, client, depIDs, resOutputs)
+	outputs, err := resourcestate.GetDependencyOutputs(ctx, client, depIDs, resOutputs)
 	if err != nil {
 		return nil, err
 	}
@@ -151,8 +152,8 @@ func getInterpolationOutputValues(
 func getInterpolationTargets(
 	attrByte []byte,
 ) ([]string, []string, map[string]string) {
-	variableMatches := pkgresource.VariableReg.FindAllSubmatch(attrByte, -1)
-	resourceMatches := pkgresource.ResourceReg.FindAllSubmatch(attrByte, -1)
+	variableMatches := interpolation.VariableReg.FindAllSubmatch(attrByte, -1)
+	resourceMatches := interpolation.ResourceReg.FindAllSubmatch(attrByte, -1)
 
 	var (
 		variableMatched = sets.NewString()

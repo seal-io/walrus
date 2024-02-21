@@ -20,9 +20,10 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
-	"github.com/seal-io/walrus/pkg/dao/types/status"
-	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	"github.com/seal-io/walrus/pkg/resourcedefinitions"
+	runstatus "github.com/seal-io/walrus/pkg/resourceruns/status"
+	pkgresource "github.com/seal-io/walrus/pkg/resources"
+	"github.com/seal-io/walrus/pkg/resources/status"
 	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/strs"
 )
@@ -34,14 +35,24 @@ type AccessEndpoint struct {
 	Endpoints []string `json:"endpoints,omitempty"`
 }
 
-type RouteUpgradeRequest struct {
-	_ struct{} `route:"PUT=/upgrade"`
+type (
+	RouteUpgradeRequest struct {
+		_ struct{} `route:"PUT=/upgrade"`
 
-	model.ResourceUpdateInput `path:",inline" json:",inline"`
+		model.ResourceUpdateInput `path:",inline" json:",inline"`
 
-	Draft           bool `json:"draft,default=false"`
-	ReuseAttributes bool `json:"reuseAttributes,default=false"`
-}
+		Draft            bool   `json:"draft,default=false"`
+		ChangeComment    string `json:"changeComment,omitempty"`
+		ReuseAttributes  bool   `json:"reuseAttributes,default=false"`
+		ApprovalRequired bool   `json:"approvalRequired,default=false"`
+	}
+
+	RouteUpgradeResponse struct {
+		*model.ResourceOutput
+
+		Run *model.ResourceRunOutput `json:"run"`
+	}
+)
 
 func (r *RouteUpgradeRequest) Validate() error {
 	if err := r.ResourceUpdateInput.Validate(); err != nil {
@@ -65,7 +76,7 @@ func (r *RouteUpgradeRequest) Validate() error {
 		return fmt.Errorf("failed to get resource: %w", err)
 	}
 
-	if r.Draft && !pkgresource.IsInactive(entity) {
+	if r.Draft && !status.IsInactive(entity) {
 		return errorx.HttpErrorf(http.StatusBadRequest,
 			"cannot update resource draft in %q status", entity.Status.SummaryStatus)
 	}
@@ -201,7 +212,8 @@ type RouteRollbackRequest struct {
 
 	RunID object.ID `query:"runID"`
 
-	ChangeComment string `json:"changeComment"`
+	ChangeComment    string `json:"changeComment"`
+	ApprovalRequired bool   `json:"approvalRequired,default=false"`
 }
 
 func (r *RouteRollbackRequest) Validate() error {
@@ -218,7 +230,7 @@ func (r *RouteRollbackRequest) Validate() error {
 		return fmt.Errorf("failed to get the latest run: %w", err)
 	}
 
-	if status.ResourceRunStatusReady.IsUnknown(latestRun) {
+	if runstatus.IsStatusRunning(latestRun) {
 		return errors.New("latest run is running")
 	}
 
@@ -230,7 +242,8 @@ type RouteStopRequest struct {
 
 	model.ResourceDeleteInput `path:",inline"`
 
-	ChangeComment string `json:"changeComment"`
+	ChangeComment    string `json:"changeComment"`
+	ApprovalRequired bool   `json:"approvalRequired,default=false"`
 }
 
 func (r *RouteStopRequest) Validate() error {
@@ -296,15 +309,24 @@ func validateStop(ctx context.Context, mc model.ClientSet, resources ...*model.R
 	return nil
 }
 
-type RouteStartRequest struct {
-	_ struct{} `route:"POST=/start"`
+type (
+	RouteStartRequest struct {
+		_ struct{} `route:"POST=/start"`
 
-	model.ResourceQueryInput `path:",inline"`
+		model.ResourceQueryInput `path:",inline"`
 
-	ChangeComment string `json:"changeComment"`
+		ChangeComment    string `json:"changeComment"`
+		ApprovalRequired bool   `json:"approvalRequired,default=false"`
 
-	resource *model.Resource `json:"-"`
-}
+		resource *model.Resource `json:"-"`
+	}
+
+	RouteStartResponse struct {
+		*model.ResourceOutput
+
+		Run *model.ResourceRunOutput `json:"run"`
+	}
+)
 
 func (r *RouteStartRequest) Validate() error {
 	if err := r.ResourceQueryInput.Validate(); err != nil {
@@ -332,7 +354,7 @@ func (r *RouteStartRequest) Validate() error {
 		return err
 	}
 
-	if !pkgresource.IsInactive(res) {
+	if !status.IsInactive(res) {
 		return errorx.HttpErrorf(
 			http.StatusBadRequest,
 			"cannot start resource %q: in %q status",
@@ -407,7 +429,8 @@ type CollectionRouteStartRequest struct {
 
 	StartInputs `path:",inline" json:",inline"`
 
-	ChangeComment string `json:"changeComment"`
+	ChangeComment    string `json:"changeComment"`
+	ApprovalRequired bool   `json:"approvalRequired,default=false"`
 
 	Resources []*model.Resource `json:"-"`
 }
@@ -440,7 +463,7 @@ func (r *CollectionRouteStartRequest) Validate() error {
 
 	for i := range entities {
 		entity := entities[i]
-		if !pkgresource.IsInactive(entity) {
+		if !status.IsInactive(entity) {
 			return errorx.HttpErrorf(
 				http.StatusBadRequest,
 				"cannot start resource %q: in %q status",
@@ -459,7 +482,8 @@ type CollectionRouteStopRequest struct {
 
 	model.ResourceDeleteInputs `path:",inline" json:",inline"`
 
-	ChangeComment string `json:"changeComment"`
+	ChangeComment    string `json:"changeComment"`
+	ApprovalRequired bool   `json:"approvalRequired,default=false"`
 
 	Resources []*model.Resource `json:"-"`
 }
@@ -486,9 +510,10 @@ type CollectionRouteUpgradeRequest struct {
 
 	model.ResourceUpdateInputs `path:",inline" json:",inline"`
 
-	ChangeComment   string `json:"changeComment"`
-	Draft           bool   `json:"draft,default=false"`
-	ReuseAttributes bool   `json:"reuseAttributes,default=false"`
+	ChangeComment    string `json:"changeComment"`
+	Draft            bool   `json:"draft,default=false"`
+	ReuseAttributes  bool   `json:"reuseAttributes,default=false"`
+	ApprovalRequired bool   `json:"approvalRequired,default=false"`
 }
 
 func (r *CollectionRouteUpgradeRequest) Validate() error {
@@ -538,7 +563,7 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 		for i := range entities {
 			entitiesMap[entities[i].ID] = entities[i]
 
-			if r.Draft && !pkgresource.IsInactive(entities[i]) {
+			if r.Draft && !status.IsInactive(entities[i]) {
 				return errorx.HttpErrorf(http.StatusBadRequest,
 					"cannot update resource draft in %q status", entities[i].Status.SummaryStatus)
 			}

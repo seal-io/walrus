@@ -45,6 +45,17 @@ func TestParseConfig(t *testing.T) {
 				Secure:          true,
 			},
 		},
+		{
+			name:   "without-port",
+			config: `s3://ak1:sk2sk2sk2@yourdomain.com/bucketName`,
+			want: &Config{
+				Endpoint:        "yourdomain.com",
+				Bucket:          "bucketName",
+				AccessKeyID:     "ak1",
+				SecretAccessKey: "sk2sk2sk2",
+				Secure:          true,
+			},
+		},
 	}
 	for _, tt := range tests {
 		got, err := ParseConfig(tt.config)

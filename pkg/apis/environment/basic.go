@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	"github.com/seal-io/walrus/pkg/deployer"
 	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
+	pkgresource "github.com/seal-io/walrus/pkg/resources"
 	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/topic"
@@ -29,7 +30,11 @@ func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 		return nil, err
 	}
 
-	return createEnvironment(req.Context, h.modelClient, dp, req.Model(), false)
+	return createEnvironment(req.Context, h.modelClient, req.Model(), pkgresource.Options{
+		Deployer:            dp,
+		Draft:               false,
+		RunApprovalRequired: req.ApprovalRequired,
+	})
 }
 
 func (h Handler) Get(req GetRequest) (GetResponse, error) {

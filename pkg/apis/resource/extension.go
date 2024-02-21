@@ -1,7 +1,6 @@
 package resource
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
@@ -9,136 +8,75 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
-	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
-	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
-	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	pkgcomponent "github.com/seal-io/walrus/pkg/resourcecomponents"
+	pkgresource "github.com/seal-io/walrus/pkg/resources"
 	tfparser "github.com/seal-io/walrus/pkg/terraform/parser"
-	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/topic"
 )
 
-func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
+func (h Handler) RouteUpgrade(req RouteUpgradeRequest) (*RouteUpgradeResponse, error) {
 	entity := req.Model()
 
-	return upgrade(req.Context, h.kubeConfig, h.modelClient, entity, req.Draft)
+	dp, err := getDeployer(req.Context, h.kubeConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	run, err := pkgresource.Upgrade(req.Context, h.modelClient, entity, pkgresource.Options{
+		Deployer:      dp,
+		ChangeComment: req.ChangeComment,
+		Draft:         req.Draft,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &RouteUpgradeResponse{
+		ResourceOutput: model.ExposeResource(entity),
+		Run:            model.ExposeResourceRun(run),
+	}, nil
 }
 
 func (h Handler) RouteRollback(req RouteRollbackRequest) error {
-	rev, err := h.modelClient.ResourceRuns().Query().
-		Where(
-			resourcerun.ID(req.RunID),
-			resourcerun.ResourceID(req.ID)).
-		WithResource().
-		Only(req.Context)
-	if err != nil {
-		return err
-	}
-
-	entity := rev.Edges.Resource
-	entity.Attributes = rev.Attributes
-	entity.ComputedAttributes = rev.ComputedAttributes
-	entity.ChangeComment = req.ChangeComment
-
-	if entity.TemplateID != nil {
-		// Find previous template version when the resource is using template not definition.
-		tv, err := h.modelClient.TemplateVersions().Query().
-			Where(
-				templateversion.Version(rev.TemplateVersion),
-				templateversion.TemplateID(rev.TemplateID)).
-			Only(req.Context)
-		if err != nil {
-			return err
-		}
-
-		entity.TemplateID = &tv.ID
-	}
-
-	status.ResourceStatusDeployed.Reset(entity, "Rolling back")
-	entity.Status.SetSummary(status.WalkResource(&entity.Status))
-
-	if err := pkgresource.SetSubjectID(req.Context, entity); err != nil {
-		return err
-	}
-
-	entity, err = h.modelClient.Resources().UpdateOne(entity).
-		Set(entity).
-		SaveE(req.Context, dao.ResourceDependenciesEdgeSave)
-	if err != nil {
-		return errorx.Wrap(err, "error updating resource")
-	}
-
 	dp, err := getDeployer(req.Context, h.kubeConfig)
 	if err != nil {
 		return err
 	}
 
-	applyOpts := pkgresource.Options{
-		Deployer: dp,
-	}
-
-	return pkgresource.Apply(
+	return pkgresource.Rollback(
 		req.Context,
 		h.modelClient,
-		entity,
-		applyOpts)
+		req.ID,
+		req.RunID,
+		pkgresource.Options{
+			Deployer:      dp,
+			ChangeComment: req.ChangeComment,
+		})
 }
 
-func (h Handler) RouteStart(req RouteStartRequest) error {
+func (h Handler) RouteStart(req RouteStartRequest) (*RouteStartResponse, error) {
 	entity := req.resource
-	entity.ChangeComment = req.ChangeComment
 
-	return h.start(req.Context, entity)
-}
-
-func (h Handler) start(ctx context.Context, entity *model.Resource) error {
-	status.ResourceStatusUnDeployed.Remove(entity)
-	status.ResourceStatusStopped.Remove(entity)
-	status.ResourceStatusDeployed.Reset(entity, "Deploying")
-	entity.Status.SetSummary(status.WalkResource(&entity.Status))
-
-	if err := pkgresource.SetSubjectID(ctx, entity); err != nil {
-		return err
+	dp, err := getDeployer(req.Context, h.kubeConfig)
+	if err != nil {
+		return nil, err
 	}
 
-	err := h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
-		entity, err = tx.Resources().UpdateOne(entity).
-			Set(entity).
-			SaveE(ctx, dao.ResourceDependenciesEdgeSave)
-
-		return err
+	run, err := pkgresource.Start(req.Context, h.modelClient, entity, pkgresource.Options{
+		Deployer:      dp,
+		ChangeComment: req.ChangeComment,
 	})
 	if err != nil {
-		return errorx.Wrap(err, "error updating resource")
+		return nil, err
 	}
 
-	dp, err := getDeployer(ctx, h.kubeConfig)
-	if err != nil {
-		return err
-	}
-
-	applyOpts := pkgresource.Options{
-		Deployer: dp,
-	}
-
-	ready, err := pkgresource.CheckDependencyStatus(ctx, h.modelClient, dp, entity)
-	if err != nil {
-		return errorx.Wrap(err, "error checking dependency status")
-	}
-
-	if ready {
-		return pkgresource.Apply(
-			ctx,
-			h.modelClient,
-			entity,
-			applyOpts)
-	}
-
-	return nil
+	return &RouteStartResponse{
+		ResourceOutput: model.ExposeResource(entity),
+		Run:            model.ExposeResourceRun(run),
+	}, nil
 }
 
 func (h Handler) RouteStop(req RouteStopRequest) error {
@@ -148,7 +86,8 @@ func (h Handler) RouteStop(req RouteStopRequest) error {
 	}
 
 	opts := pkgresource.Options{
-		Deployer: dp,
+		Deployer:      dp,
+		ChangeComment: req.ChangeComment,
 	}
 
 	entity, err := h.modelClient.Resources().Query().
@@ -156,18 +95,6 @@ func (h Handler) RouteStop(req RouteStopRequest) error {
 		Only(req.Context)
 	if err != nil {
 		return err
-	}
-	entity.ChangeComment = req.ChangeComment
-
-	if err := pkgresource.SetSubjectID(req.Context, entity); err != nil {
-		return err
-	}
-
-	entity, err = h.modelClient.Resources().UpdateOne(entity).
-		Set(entity).
-		Save(req.Context)
-	if err != nil {
-		return errorx.Wrap(err, "error updating resource")
 	}
 
 	return pkgresource.Stop(req.Context, h.modelClient, entity, opts)
@@ -366,16 +293,15 @@ func (h Handler) CollectionRouteStart(req CollectionRouteStartRequest) error {
 		return err
 	}
 
-	for i := range resources {
-		entity := resources[i]
-		entity.ChangeComment = req.ChangeComment
-
-		if err := h.start(req.Context, entity); err != nil {
-			return err
-		}
+	dp, err := getDeployer(req.Context, h.kubeConfig)
+	if err != nil {
+		return err
 	}
 
-	return nil
+	return pkgresource.CollectionStart(req.Context, h.modelClient, resources, pkgresource.Options{
+		Deployer:      dp,
+		ChangeComment: req.ChangeComment,
+	})
 }
 
 func (h Handler) CollectionRouteStop(req CollectionRouteStopRequest) error {
@@ -385,37 +311,24 @@ func (h Handler) CollectionRouteStop(req CollectionRouteStopRequest) error {
 	}
 
 	opts := pkgresource.Options{
-		Deployer: dp,
+		Deployer:      dp,
+		ChangeComment: req.ChangeComment,
 	}
 
-	resources, err := pkgresource.ReverseTopologicalSortResources(req.Resources)
+	return pkgresource.CollectionStop(req.Context, h.modelClient, req.Resources, opts)
+}
+
+func (h Handler) CollectionRouteUpgrade(req CollectionRouteUpgradeRequest) error {
+	resources := req.Model()
+
+	dp, err := getDeployer(req.Context, h.kubeConfig)
 	if err != nil {
 		return err
 	}
 
-	for i := range resources {
-		res := resources[i]
-		res.ChangeComment = req.ChangeComment
-
-		if err := pkgresource.SetSubjectID(req.Context, res); err != nil {
-			return err
-		}
-
-		res, err := h.modelClient.Resources().UpdateOne(res).
-			Set(res).
-			Save(req.Context)
-		if err != nil {
-			return errorx.Wrap(err, "error updating resource")
-		}
-
-		if err := pkgresource.Stop(req.Context, h.modelClient, res, opts); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (h Handler) CollectionRouteUpgrade(req CollectionRouteUpgradeRequest) error {
-	return UpgradeResources(req, h.modelClient, h.kubeConfig)
+	return pkgresource.CollectionUpgrade(req.Context, h.modelClient, resources, pkgresource.Options{
+		Deployer:      dp,
+		ChangeComment: req.ChangeComment,
+		Draft:         req.Draft,
+	})
 }
