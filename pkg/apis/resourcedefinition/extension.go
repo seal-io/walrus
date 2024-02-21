@@ -1,7 +1,10 @@
 package resourcedefinition
 
 import (
-	apiresource "github.com/seal-io/walrus/pkg/apis/resource"
+	"context"
+
+	"k8s.io/client-go/rest"
+
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
@@ -9,7 +12,12 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
+	"github.com/seal-io/walrus/pkg/deployer"
+	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
+	pkgresource "github.com/seal-io/walrus/pkg/resources"
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/topic"
 )
 
@@ -179,9 +187,46 @@ func (h Handler) RouteGetResources(req RouteGetResourcesRequest) (RouteGetResour
 }
 
 func (h Handler) RouteDeleteResources(req RouteDeleteResourcesRequest) error {
-	return apiresource.DeleteResources(req.CollectionDeleteRequest, h.modelClient, h.kubeConfig)
+	dp, err := getDeployer(req.Context, h.kubeConfig)
+	if err != nil {
+		return err
+	}
+
+	resources, err := h.modelClient.Resources().Query().
+		Where(resource.IDIn(req.IDs()...)).
+		All(req.Context)
+	if err != nil {
+		return err
+	}
+
+	return pkgresource.CollectionDelete(req.Context, h.modelClient, resources, pkgresource.DeleteOptions{
+		Options: pkgresource.Options{
+			Deployer: dp,
+		},
+		WithoutCleanup: req.WithoutCleanup,
+	})
 }
 
 func (h Handler) RouteUpgradeResources(req RouteUpgradeResourcesRequest) error {
-	return apiresource.UpgradeResources(req.CollectionRouteUpgradeRequest, h.modelClient, h.kubeConfig)
+	dp, err := getDeployer(req.Context, h.kubeConfig)
+	if err != nil {
+		return err
+	}
+
+	return pkgresource.CollectionUpgrade(req.Context, h.modelClient, req.Model(), pkgresource.Options{
+		Deployer:      dp,
+		ChangeComment: req.ChangeComment,
+	})
+}
+
+func getDeployer(ctx context.Context, kubeConfig *rest.Config) (deptypes.Deployer, error) {
+	dep, err := deployer.Get(ctx, deptypes.CreateOptions{
+		Type:       types.DeployerTypeTF,
+		KubeConfig: kubeConfig,
+	})
+	if err != nil {
+		return nil, errorx.Wrap(err, "failed to get deployer")
+	}
+
+	return dep, nil
 }

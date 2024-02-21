@@ -13,14 +13,16 @@ import (
 	"github.com/seal-io/walrus/pkg/apis/variable"
 	"github.com/seal-io/walrus/pkg/apis/workflow"
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/storage"
 	pkgworkflow "github.com/seal-io/walrus/pkg/workflow"
 )
 
-func Handle(mc model.ClientSet, kc *rest.Config, wc pkgworkflow.Client) Handler {
+func Handle(mc model.ClientSet, kc *rest.Config, wc pkgworkflow.Client, sm *storage.Manager) Handler {
 	return Handler{
 		modelClient:    mc,
 		kubeConfig:     kc,
 		workflowClient: wc,
+		storageManager: sm,
 	}
 }
 
@@ -28,6 +30,7 @@ type Handler struct {
 	modelClient    model.ClientSet
 	kubeConfig     *rest.Config
 	workflowClient pkgworkflow.Client
+	storageManager *storage.Manager
 }
 
 func (Handler) Kind() string {
@@ -37,7 +40,7 @@ func (Handler) Kind() string {
 func (h Handler) SubResourceHandlers() []runtime.IResourceHandler {
 	return []runtime.IResourceHandler{
 		connector.Handle(h.modelClient),
-		environment.Handle(h.modelClient, h.kubeConfig),
+		environment.Handle(h.modelClient, h.kubeConfig, h.storageManager),
 		variable.Handle(h.modelClient),
 		workflow.Handle(h.modelClient, h.kubeConfig, h.workflowClient),
 		catalog.Handle(h.modelClient),

@@ -21,10 +21,11 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
-	"github.com/seal-io/walrus/pkg/dao/types/status"
-	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	"github.com/seal-io/walrus/pkg/resourcedefinitions"
-	"github.com/seal-io/walrus/pkg/resourcerun/config"
+	"github.com/seal-io/walrus/pkg/resourceruns/config"
+	runstatus "github.com/seal-io/walrus/pkg/resourceruns/status"
+	pkgresource "github.com/seal-io/walrus/pkg/resources"
+	"github.com/seal-io/walrus/pkg/resources/status"
 	"github.com/seal-io/walrus/pkg/terraform/convertor"
 	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/json"
@@ -36,10 +37,16 @@ type (
 	CreateRequest struct {
 		model.ResourceCreateInput `path:",inline" json:",inline"`
 
-		Draft bool `json:"draft,default=false"`
+		Draft            bool   `json:"draft,default=false"`
+		ApprovalRequired bool   `json:"approvalRequired,default=false"`
+		ChangeComment    string `json:"changeComment,omitempty"`
 	}
 
-	CreateResponse = *model.ResourceOutput
+	CreateResponse struct {
+		*model.ResourceOutput
+
+		Run *model.ResourceRunOutput `json:"run"`
+	}
 )
 
 func (r *CreateRequest) Validate() error {
@@ -55,7 +62,8 @@ type (
 type DeleteRequest struct {
 	model.ResourceDeleteInput `path:",inline"`
 
-	WithoutCleanup bool `query:"withoutCleanup,omitempty"`
+	WithoutCleanup   bool `query:"withoutCleanup,omitempty"`
+	ApprovalRequired bool `query:"approvalRequired,omitempty"`
 }
 
 func (r *DeleteRequest) Validate() error {
@@ -89,11 +97,21 @@ func (r *DeleteRequest) Validate() error {
 	return nil
 }
 
-type PatchRequest struct {
-	model.ResourcePatchInput `path:",inline" json:",inline"`
+type (
+	PatchRequest struct {
+		model.ResourcePatchInput `path:",inline" json:",inline"`
 
-	Draft bool `json:"draft,default=false"`
-}
+		Draft            bool   `json:"draft,default=false"`
+		ChangeComment    string `json:"changeComment,omitempty"`
+		ApprovalRequired bool   `json:"approvalRequired,default=false"`
+	}
+
+	PatchResponse struct {
+		*model.ResourceOutput
+
+		Run *model.ResourceRunOutput `json:"run"`
+	}
+)
 
 func (r *PatchRequest) Validate() error {
 	if err := r.ResourcePatchInput.Validate(); err != nil {
@@ -120,7 +138,7 @@ func (r *PatchRequest) Validate() error {
 		return fmt.Errorf("failed to get resource: %w", err)
 	}
 
-	if r.Draft && !pkgresource.IsInactive(entity) {
+	if r.Draft && !status.IsInactive(entity) {
 		return errorx.HttpErrorf(http.StatusBadRequest,
 			"cannot update resource draft in %q status", entity.Status.SummaryStatus)
 	}
@@ -229,7 +247,8 @@ type (
 	CollectionCreateRequest struct {
 		model.ResourceCreateInputs `path:",inline" json:",inline"`
 
-		Draft bool `json:"draft,default=false"`
+		Draft            bool `json:"draft,default=false"`
+		ApprovalRequired bool `json:"approvalRequired,default=false"`
 	}
 
 	CollectionCreateResponse = []*model.ResourceOutput
@@ -406,7 +425,8 @@ func (r *CollectionGetRequest) SetStream(stream runtime.RequestUnidiStream) {
 type CollectionDeleteRequest struct {
 	model.ResourceDeleteInputs `path:",inline" json:",inline"`
 
-	WithoutCleanup bool `query:"withoutCleanup,omitempty"`
+	WithoutCleanup   bool `query:"withoutCleanup,omitempty"`
+	ApprovalRequired bool `query:"approvalRequired,omitempty"`
 }
 
 func (r *CollectionDeleteRequest) Validate() error {
@@ -480,21 +500,11 @@ func validateRunsStatus(ctx context.Context, mc model.ClientSet, ids ...object.I
 	}
 
 	for _, r := range runs {
-		switch r.Status.SummaryStatus {
-		case status.ResourceRunSummaryStatusSucceed:
-		case status.ResourceRunSummaryStatusFailed:
-		case status.ResourceRunSummaryStatusRunning:
+		if runstatus.IsStatusRunning(r) {
 			return errorx.HttpErrorf(
 				http.StatusBadRequest,
 				"deployment of resource %q is running, please wait for it to finish",
 				r.Edges.Resource.Name,
-			)
-		default:
-			return errorx.HttpErrorf(
-				http.StatusBadRequest,
-				"invalid deployment status of resource %q: %s",
-				r.Edges.Resource.Name,
-				r.Status.SummaryStatus,
 			)
 		}
 	}

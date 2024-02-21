@@ -8,43 +8,34 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
-	pkgresource "github.com/seal-io/walrus/pkg/resource"
-	"github.com/seal-io/walrus/utils/errorx"
+	pkgresource "github.com/seal-io/walrus/pkg/resources"
 	"github.com/seal-io/walrus/utils/topic"
 )
 
-func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
+func (h Handler) Create(req CreateRequest) (*CreateResponse, error) {
 	entity := req.Model()
-
-	err := pkgresource.SetDefaultLabels(req.Context, h.modelClient, entity)
-	if err != nil {
-		return nil, err
-	}
-
-	if req.Draft {
-		_, err := pkgresource.CreateDraftResources(req.Context, req.Client, entity)
-		return model.ExposeResource(entity), err
-	}
 
 	dp, err := getDeployer(req.Context, h.kubeConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = pkgresource.SetSubjectID(req.Context, entity); err != nil {
-		return nil, err
-	}
-
-	createOpts := pkgresource.Options{
-		Deployer: dp,
-	}
-
-	return pkgresource.Create(
+	entity, run, err := pkgresource.Create(
 		req.Context,
 		h.modelClient,
 		entity,
-		createOpts,
+		pkgresource.Options{
+			Deployer:            dp,
+			ChangeComment:       req.ChangeComment,
+			Draft:               req.Draft,
+			RunApprovalRequired: req.ApprovalRequired,
+		},
 	)
+
+	return &CreateResponse{
+		ResourceOutput: model.ExposeResource(entity),
+		Run:            model.ExposeResourceRun(run),
+	}, err
 }
 
 func (h Handler) Get(req GetRequest) (GetResponse, error) {
@@ -84,21 +75,43 @@ func (h Handler) Delete(req DeleteRequest) (err error) {
 		return err
 	}
 
-	destroyOpts := pkgresource.Options{
-		Deployer: dp,
+	deleteOptions := pkgresource.DeleteOptions{
+		Options: pkgresource.Options{
+			Deployer:            dp,
+			RunApprovalRequired: req.ApprovalRequired,
+		},
+		WithoutCleanup: req.WithoutCleanup,
 	}
 
-	return pkgresource.Destroy(
+	return pkgresource.Delete(
 		req.Context,
 		h.modelClient,
 		req.Model(),
-		destroyOpts)
+		deleteOptions)
 }
 
-func (h Handler) Patch(req PatchRequest) error {
+func (h Handler) Patch(req PatchRequest) (*PatchResponse, error) {
 	entity := req.Model()
 
-	return upgrade(req.Context, h.kubeConfig, h.modelClient, entity, req.Draft)
+	dp, err := getDeployer(req.Context, h.kubeConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	run, err := pkgresource.Upgrade(req.Context, h.modelClient, entity, pkgresource.Options{
+		Deployer:            dp,
+		ChangeComment:       req.ChangeComment,
+		Draft:               req.Draft,
+		RunApprovalRequired: req.ApprovalRequired,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &PatchResponse{
+		ResourceOutput: model.ExposeResource(entity),
+		Run:            model.ExposeResourceRun(run),
+	}, nil
 }
 
 func (h Handler) CollectionCreate(req CollectionCreateRequest) (CollectionCreateResponse, error) {
@@ -109,26 +122,13 @@ func (h Handler) CollectionCreate(req CollectionCreateRequest) (CollectionCreate
 		return nil, err
 	}
 
-	err = h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
-		if err := pkgresource.SetSubjectID(req.Context, entities...); err != nil {
-			return err
-		}
-
-		if err := pkgresource.SetDefaultLabels(req.Context, tx, entities...); err != nil {
-			return err
-		}
-
-		if req.Draft {
-			_, err := pkgresource.CreateDraftResources(req.Context, tx, entities...)
-			return err
-		}
-
-		_, err := pkgresource.CreateScheduledResources(req.Context, tx, dp, entities)
-
-		return err
+	entities, err = pkgresource.CollectionCreate(req.Context, h.modelClient, entities, pkgresource.Options{
+		Deployer:            dp,
+		Draft:               req.Draft,
+		RunApprovalRequired: req.ApprovalRequired,
 	})
 	if err != nil {
-		return nil, errorx.Wrap(err, "failed to create resources")
+		return nil, err
 	}
 
 	return model.ExposeResources(entities), nil
@@ -287,5 +287,23 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 }
 
 func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
-	return DeleteResources(req, h.modelClient, h.kubeConfig)
+	resources, err := h.modelClient.Resources().Query().
+		Where(resource.IDIn(req.IDs()...)).
+		All(req.Context)
+	if err != nil {
+		return err
+	}
+
+	dp, err := getDeployer(req.Context, h.kubeConfig)
+	if err != nil {
+		return err
+	}
+
+	return pkgresource.CollectionDelete(req.Context, h.modelClient, resources, pkgresource.DeleteOptions{
+		Options: pkgresource.Options{
+			Deployer:            dp,
+			RunApprovalRequired: req.ApprovalRequired,
+		},
+		WithoutCleanup: req.WithoutCleanup,
+	})
 }

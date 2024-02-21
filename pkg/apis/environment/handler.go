@@ -7,18 +7,21 @@ import (
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/apis/variable"
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/storage"
 )
 
-func Handle(mc model.ClientSet, kc *rest.Config) Handler {
+func Handle(mc model.ClientSet, kc *rest.Config, sm *storage.Manager) Handler {
 	return Handler{
-		modelClient: mc,
-		kubeConfig:  kc,
+		modelClient:    mc,
+		kubeConfig:     kc,
+		storageManager: sm,
 	}
 }
 
 type Handler struct {
-	modelClient model.ClientSet
-	kubeConfig  *rest.Config
+	modelClient    model.ClientSet
+	kubeConfig     *rest.Config
+	storageManager *storage.Manager
 }
 
 func (Handler) Kind() string {
@@ -28,6 +31,6 @@ func (Handler) Kind() string {
 func (h Handler) SubResourceHandlers() []runtime.IResourceHandler {
 	return []runtime.IResourceHandler{
 		variable.Handle(h.modelClient),
-		resource.Handle(h.modelClient, h.kubeConfig),
+		resource.Handle(h.modelClient, h.kubeConfig, h.storageManager),
 	}
 }

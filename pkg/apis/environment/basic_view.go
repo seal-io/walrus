@@ -15,6 +15,8 @@ import (
 type (
 	CreateRequest struct {
 		model.EnvironmentCreateInput `path:",inline" json:",inline"`
+
+		ApprovalRequired bool `json:"approvalRequired,default=false"`
 	}
 
 	CreateResponse = *model.EnvironmentOutput

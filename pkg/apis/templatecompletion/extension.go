@@ -156,7 +156,6 @@ func (h Handler) CollectionRouteCreatePullRequest(
 		Sha:  commit.Sha,
 	}
 	_, err = client.Git.CreateBranch(req.Context, req.Repository, refInput)
-
 	if err != nil {
 		return nil, errorx.Wrapf(err, "error creating new branch %s for repository %s",
 			refInput.Name, req.Repository)

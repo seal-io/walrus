@@ -2,6 +2,7 @@ package resourcerun
 
 import (
 	"errors"
+	"mime/multipart"
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -50,11 +51,9 @@ func (r *RouteLogRequest) Validate() error {
 		return err
 	}
 
-	if r.JobType == "" {
-		r.JobType = types.RunJobTypeApply
-	}
-
-	if r.JobType != types.RunJobTypeApply && r.JobType != types.RunJobTypeDestroy {
+	switch r.JobType {
+	case types.RunTaskTypeApply.String(), types.RunTaskTypeDestroy.String(), types.RunTaskTypePlan.String():
+	default:
 		return errors.New("invalid job type")
 	}
 
@@ -88,5 +87,42 @@ type (
 	RouteGetDiffPreviousResponse struct {
 		Old RunDiff `json:"old"`
 		New RunDiff `json:"new"`
+	}
+)
+
+type (
+	RouteApplyRequest struct {
+		_ struct{} `route:"PUT=/apply"`
+
+		model.ResourceRunQueryInput `path:",inline"`
+
+		Approve bool `json:"approve,default=false"`
+	}
+)
+
+func (r *RouteApplyRequest) Validate() error {
+	return r.ResourceRunQueryInput.Validate()
+}
+
+type (
+	RouteSetPlanRequest struct {
+		_ struct{} `route:"POST=/plan"`
+
+		model.ResourceRunQueryInput `path:",inline"`
+
+		JsonPlan *multipart.FileHeader `form:"jsonplan"`
+		Plan     *multipart.FileHeader `form:"plan"`
+	}
+)
+
+func (r *RouteSetPlanRequest) Validate() error {
+	return r.ResourceRunQueryInput.Validate()
+}
+
+type (
+	RouteGetPlanRequest struct {
+		_ struct{} `route:"GET=/plan"`
+
+		model.ResourceRunQueryInput `path:",inline"`
 	}
 )

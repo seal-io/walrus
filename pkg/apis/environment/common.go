@@ -18,9 +18,8 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
-	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
-	pkgresource "github.com/seal-io/walrus/pkg/resource"
 	"github.com/seal-io/walrus/pkg/resourcedefinitions"
+	pkgresource "github.com/seal-io/walrus/pkg/resources"
 	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/validation"
 )
@@ -28,9 +27,8 @@ import (
 func createEnvironment(
 	ctx *gin.Context,
 	mc model.ClientSet,
-	dp deptypes.Deployer,
 	entity *model.Environment,
-	draft bool,
+	opts pkgresource.Options,
 ) (*model.EnvironmentOutput, error) {
 	// Validate the creating environment has the same use with subject.
 	sj := session.MustGetSubject(ctx)
@@ -48,7 +46,6 @@ func createEnvironment(
 		}
 
 		// TODO(thxCode): move the following codes into DAO.
-
 		resourceInputs := entity.Edges.Resources
 
 		for _, res := range resourceInputs {
@@ -63,28 +60,13 @@ func createEnvironment(
 			if err != nil {
 				return err
 			}
-
-			err = pkgresource.SetEnvResourceDefaultLabels(entity, res)
-			if err != nil {
-				return err
-			}
-		}
-
-		if err = pkgresource.SetSubjectID(ctx, resourceInputs...); err != nil {
-			return err
 		}
 
 		var resources model.Resources
-		if draft {
-			resources, err = pkgresource.CreateDraftResources(ctx, tx, resourceInputs...)
-			if err != nil {
-				return err
-			}
-		} else {
-			resources, err = pkgresource.CreateScheduledResources(ctx, tx, dp, resourceInputs)
-			if err != nil {
-				return err
-			}
+
+		resources, err = pkgresource.CollectionCreate(ctx, tx, resourceInputs, opts)
+		if err != nil {
+			return err
 		}
 
 		entity.Edges.Resources = resources

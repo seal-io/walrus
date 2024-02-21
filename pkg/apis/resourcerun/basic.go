@@ -9,7 +9,10 @@ import (
 )
 
 func (h Handler) Get(req GetRequest) (GetResponse, error) {
-	entity, err := h.modelClient.ResourceRuns().Get(req.Context, req.ID)
+	entity, err := h.modelClient.ResourceRuns().Query().
+		Where(resourcerun.ID(req.ID)).
+		WithResource().
+		Only(req.Context)
 	if err != nil {
 		return nil, err
 	}
@@ -76,6 +79,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 			case modelchange.EventTypeCreate, modelchange.EventTypeUpdate:
 				runs, err := query.Clone().
 					Where(resourcerun.IDIn(ids...)).
+					WithResource().
 					// Must append service ID.
 					Select(resourcerun.FieldResourceID).
 					Unique(false).
@@ -129,6 +133,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 	entities, err := query.
 		// Must append service ID.
 		Select(resourcerun.FieldResourceID).
+		WithResource().
 		Unique(false).
 		All(req.Context)
 	if err != nil {

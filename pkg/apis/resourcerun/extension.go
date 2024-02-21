@@ -13,7 +13,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
 
-	runbus "github.com/seal-io/walrus/pkg/bus/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/connector"
@@ -26,13 +25,18 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
+	"github.com/seal-io/walrus/pkg/deployer"
 	"github.com/seal-io/walrus/pkg/deployer/terraform"
+	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
 	"github.com/seal-io/walrus/pkg/operator"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
 	"github.com/seal-io/walrus/pkg/resourcecomponents"
+	pkgrun "github.com/seal-io/walrus/pkg/resourceruns"
+	runstatus "github.com/seal-io/walrus/pkg/resourceruns/status"
 	"github.com/seal-io/walrus/pkg/servervars"
 	"github.com/seal-io/walrus/pkg/settings"
 	tfparser "github.com/seal-io/walrus/pkg/terraform/parser"
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/gopool"
 	"github.com/seal-io/walrus/utils/json"
 	"github.com/seal-io/walrus/utils/log"
@@ -122,25 +126,12 @@ func (h Handler) RouteUpdateTerraformStates(
 		updateCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		status.ResourceRunStatusReady.False(entity, err.Error())
-		entity.Status.SetSummary(status.WalkResourceRun(&entity.Status))
+		runstatus.SetStatusFalse(entity, err.Error())
 
-		uerr := h.modelClient.ResourceRuns().UpdateOne(entity).
-			SetStatus(entity.Status).
-			Exec(updateCtx)
-		if uerr != nil {
+		if _, uerr := runstatus.UpdateStatus(updateCtx, h.modelClient, entity); uerr != nil {
 			logger.Errorf("update status failed: %v", err)
-			return
-		}
-
-		if nerr := runbus.Notify(updateCtx, h.modelClient, entity); nerr != nil {
-			logger.Errorf("notify failed: %v", nerr)
 		}
 	}()
-
-	if err = runbus.Notify(req.Context, h.modelClient, entity); err != nil {
-		return err
-	}
 
 	return manageResourceComponentsAndEndpoints(req.Context, h.modelClient, entity, state.Data)
 }
@@ -606,4 +597,115 @@ func (h Handler) RouteGetDiffPrevious(req RouteGetDiffPreviousRequest) (*RouteGe
 			ComputedAttributes: compareRun.ComputedAttributes,
 		},
 	}, nil
+}
+
+// RouteApply apply the planned run.
+func (h Handler) RouteApply(req RouteApplyRequest) error {
+	run, err := h.modelClient.ResourceRuns().Get(req.Context, req.ID)
+	if err != nil {
+		return err
+	}
+
+	if !runstatus.IsStatusPlanned(run) {
+		return errorx.Errorf("can not approve a non-planned run: %s", run.Status.SummaryStatus)
+	}
+
+	if !req.Approve {
+		status.ResourceRunStatusCanceled.True(run, "")
+		run.Status.SetSummary(status.WalkResourceRun(&run.Status))
+
+		_, err = runstatus.UpdateStatus(req.Context, h.modelClient, run)
+
+		return err
+	}
+
+	dp, err := deployer.Get(req.Context, deptypes.CreateOptions{
+		Type:       types.DeployerTypeTF,
+		KubeConfig: h.kubeConfig,
+	})
+	if err != nil {
+		return err
+	}
+
+	return pkgrun.Apply(req.Context, h.modelClient, dp, run)
+}
+
+func (h Handler) RouteSetPlan(req RouteSetPlanRequest) error {
+	run, err := h.modelClient.ResourceRuns().Get(req.Context, req.ID)
+	if err != nil {
+		return err
+	}
+
+	jsonPlanHeader, err := req.Context.FormFile("jsonplan")
+	if err != nil {
+		return err
+	}
+
+	// Get change file from form change field.
+	jsonPlanFile, err := jsonPlanHeader.Open()
+	if err != nil {
+		return err
+	}
+	defer jsonPlanFile.Close()
+
+	jsonPlanBytes, err := io.ReadAll(jsonPlanFile)
+	if err != nil {
+		return err
+	}
+
+	var runPlanChanges *types.Plan
+	if err = json.Unmarshal(jsonPlanBytes, &runPlanChanges); err != nil {
+		return err
+	}
+
+	run.ComponentChangeSummary = runPlanChanges.GetResourceChangeSummary()
+	run.ComponentChanges = runPlanChanges.ResourceComponentChanges
+
+	err = h.modelClient.ResourceRuns().UpdateOne(run).
+		SetComponentChangeSummary(run.ComponentChangeSummary).
+		SetComponentChanges(run.ComponentChanges).
+		Exec(req.Context)
+	if err != nil {
+		return err
+	}
+
+	planHeader, err := req.Context.FormFile("plan")
+	if err != nil {
+		return err
+	}
+
+	// Get plan file from form plan field.
+	planFile, err := planHeader.Open()
+	if err != nil {
+		return err
+	}
+	defer planFile.Close()
+
+	// Set plan file to storage.
+	planBytes, err := io.ReadAll(planFile)
+	if err != nil {
+		return err
+	}
+
+	return h.storageManager.SetRunPlan(req.Context, run, planBytes)
+}
+
+func (h Handler) RouteGetPlan(req RouteGetPlanRequest) error {
+	run, err := h.modelClient.ResourceRuns().Get(req.Context, req.ID)
+	if err != nil {
+		return err
+	}
+
+	// TODO Encrypt the plan file with key.
+	plan, err := h.storageManager.GetRunPlan(req.Context, run)
+	if err != nil {
+		return err
+	}
+
+	req.Context.Writer.Header().Set("Content-Type", "application/zip")
+	req.Context.Writer.Header().Set("Content-Disposition", "attachment; filename=plan.out")
+
+	_, err = req.Context.Writer.Write(plan)
+
+	return err
 }

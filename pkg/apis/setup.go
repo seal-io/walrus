@@ -30,6 +30,7 @@ import (
 	"github.com/seal-io/walrus/pkg/apis/walrusfilehub"
 	"github.com/seal-io/walrus/pkg/auths"
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/storage"
 	pkgworkflow "github.com/seal-io/walrus/pkg/workflow"
 )
 
@@ -40,8 +41,9 @@ type SetupOptions struct {
 	ConnBurst             int
 	WebsocketConnMaxPerIP int
 	// Derived from configuration.
-	K8sConfig   *rest.Config
-	ModelClient *model.Client
+	K8sConfig      *rest.Config
+	ModelClient    *model.Client
+	StorageManager *storage.Manager
 }
 
 func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, error) {
@@ -101,7 +103,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		r.Routes(cost.Handle(opts.ModelClient))
 		r.Routes(dashboard.Handle(opts.ModelClient))
 		r.Routes(perspective.Handle(opts.ModelClient))
-		r.Routes(project.Handle(opts.ModelClient, opts.K8sConfig, wc))
+		r.Routes(project.Handle(opts.ModelClient, opts.K8sConfig, wc, opts.StorageManager))
 		r.Routes(resourcedefinition.Handle(opts.ModelClient, opts.K8sConfig))
 		r.Routes(role.Handle(opts.ModelClient))
 		r.Routes(setting.Handle(opts.ModelClient))
