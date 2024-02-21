@@ -29,6 +29,9 @@ const (
 
 	// TypeK8s represents the kubernetes block.
 	TypeK8s = "kubernetes"
+
+	// TypeFeatures represents the features block.
+	TypeFeatures = "features"
 )
 
 type (

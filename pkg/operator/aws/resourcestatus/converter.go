@@ -9,12 +9,14 @@ import (
 // | Human Readable Status | Human Sensible Status |
 // | --------------------- | --------------------- |
 // | running               |                       |
-// | terminated            |                       |
-// | stopped               |                       |
+// | terminated            | Inactive              |
+// | stopped               | Inactive              |
 // ref: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html
 var ec2InstanceStatusConverter = status.NewConverter(
 	[]string{
 		"running",
+	},
+	[]string{
 		"terminated",
 		"stopped",
 	},
@@ -32,6 +34,7 @@ var ec2ImageStatusConverter = status.NewConverter(
 	[]string{
 		"available",
 	},
+	nil,
 	[]string{
 		"failed",
 	},
@@ -43,13 +46,15 @@ var ec2ImageStatusConverter = status.NewConverter(
 // | --------------------- | --------------------- |
 // | in_use                |                       |
 // | available             |                       |
-// | deleted               |                       |
+// | deleted               | Inactive              |
 // | error                 |                       |
 // ref: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeVolumes.html
 var ec2VolumeStatusConverter = status.NewConverter(
 	[]string{
 		"in_use",
 		"available",
+	},
+	[]string{
 		"deleted",
 	},
 	[]string{
@@ -70,6 +75,7 @@ var ec2SnapshotStatusConverter = status.NewConverter(
 		"completed",
 		"recoverable",
 	},
+	nil,
 	[]string{
 		"error",
 	},
@@ -91,6 +97,7 @@ var ec2NetworkInterfaceStatusConverter = status.NewConverter(
 		"in-use",
 	},
 	nil,
+	nil,
 )
 
 // vpcStatusConverter generate the summary use following table, other status will be treated as transitioning.
@@ -104,6 +111,7 @@ var vpcStatusConverter = status.NewConverter(
 		"available",
 	},
 	nil,
+	nil,
 )
 
 // ec2SubnetStatusConverter generate the summary use following table, other status will be treated as transitioning.
@@ -116,6 +124,7 @@ var ec2SubnetStatusConverter = status.NewConverter(
 	[]string{
 		"available",
 	},
+	nil,
 	nil,
 )
 
@@ -133,15 +142,16 @@ var ec2SubnetStatusConverter = status.NewConverter(
 // | Incompatible-restore                            | Error                 |
 // | Insufficient-capacity                           | Error                 |
 // | Restore-error                                   | Error                 |
-// | Stopped                                         |                       |
+// | Stopped                                         | Inactive              |
 // | Storage-full                                    | Error                 |
 // ref: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/accessing-monitoring.html#Overview.DBInstance.Status
 var rdsDBInstanceStatusConverter = status.NewConverter(
 	[]string{
 		"available",
+	},
+	[]string{
 		"stopped",
 	},
-
 	[]string{
 		"failed",
 		"inaccessible-encryption-credentials",
@@ -167,15 +177,16 @@ var rdsDBInstanceStatusConverter = status.NewConverter(
 // | Inaccessible-encryption-credentials-recoverable | Error                 |
 // | Maintenance                                     |                       |
 // | Migration-failed                                | Error                 |
-// | Stopped                                         |                       |
+// | Stopped                                         | Inactive              |
 // https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/accessing-monitoring.html#Aurora.Status
 var rdsDBClusterStatusConverter = status.NewConverter(
 	[]string{
 		"available",
 		"maintenance",
+	},
+	[]string{
 		"stopped",
 	},
-
 	[]string{
 		"cloning-failed",
 		"failing-over",
@@ -195,7 +206,7 @@ var cloudFrontStatusConverter = status.NewConverter(
 	[]string{
 		"deployed",
 	},
-
+	nil,
 	nil,
 )
 
@@ -204,16 +215,17 @@ var cloudFrontStatusConverter = status.NewConverter(
 // | Human Readable Status   | Human Sensible Status |
 // | ----------------------- | --------------------- |
 // | available               |                       |
-// | deleted                 |                       |
+// | deleted                 | Inactive              |
 // | incompatible-network    | Error                 |
 // | restore-failed          | Error                 |
 // ref: https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_CacheCluster.html
 var elasticCacheStatusConverter = status.NewConverter(
 	[]string{
 		"available",
+	},
+	[]string{
 		"deleted",
 	},
-
 	[]string{
 		"incompatible-network",
 		"restore-failed",
@@ -233,7 +245,7 @@ var elbLoadBalancerStatusConverter = status.NewConverter(
 	[]string{
 		"active",
 	},
-
+	nil,
 	[]string{
 		"failed",
 		"active_impaired",
@@ -246,14 +258,15 @@ var elbLoadBalancerStatusConverter = status.NewConverter(
 // | --------------------- | --------------------- |
 // | ACTIVE                |                       |
 // | FAILED                | Error                 |
-// | INACTIVE              |                       |
+// | INACTIVE              | Inactive              |
 // ref: https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_Cluster.html
 var eksClusterStatusConverter = status.NewConverter(
 	[]string{
 		"ACTIVE",
+	},
+	[]string{
 		"INACTIVE",
 	},
-
 	[]string{
 		"FAILED",
 	},

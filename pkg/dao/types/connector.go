@@ -5,6 +5,8 @@ const (
 	ConnectorTypeKubernetes string = "Kubernetes"
 	ConnectorTypeAlibaba    string = "Alibaba"
 	ConnectorTypeAWS        string = "AWS"
+	ConnectorTypeAzure      string = "Azure"
+	ConnectorTypeGoogle     string = "Google"
 )
 
 const (

@@ -6,7 +6,9 @@ import (
 
 	"github.com/seal-io/walrus/pkg/operator/alibaba"
 	"github.com/seal-io/walrus/pkg/operator/aws"
+	"github.com/seal-io/walrus/pkg/operator/azure"
 	"github.com/seal-io/walrus/pkg/operator/docker"
+	"github.com/seal-io/walrus/pkg/operator/google"
 	"github.com/seal-io/walrus/pkg/operator/k8s"
 	"github.com/seal-io/walrus/pkg/operator/types"
 	"github.com/seal-io/walrus/pkg/operator/unknown"
@@ -21,6 +23,8 @@ func init() {
 		k8s.OperatorType:     k8s.New,
 		aws.OperatorType:     aws.New,
 		alibaba.OperatorType: alibaba.New,
+		azure.OperatorType:   azure.New,
+		google.OperatorType:  google.New,
 		docker.OperatorType:  docker.New,
 	}
 }

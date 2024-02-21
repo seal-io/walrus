@@ -11,6 +11,7 @@ func TestConverterExample(t *testing.T) {
 	const (
 		StatusCreating     = "Creating"
 		StatusAvailable    = "Available"
+		StatusInActive     = "InActive"
 		StatusUnAvailable  = "UnAvailable"
 		StatusCreateFailed = "CreateFailed"
 	)
@@ -20,6 +21,7 @@ func TestConverterExample(t *testing.T) {
 	//  | Human Readable Status | Human Sensible Status |
 	//  | --------------------- | --------------------- |
 	//  | StatusAvailable       |                       |
+	//  | StatusInActive        | Inactive              |
 	//  | StatusUnAvailable     | Error                 |
 	//  | StatusCreateFailed    | Error                 |
 
@@ -27,6 +29,9 @@ func TestConverterExample(t *testing.T) {
 	f := NewConverter(
 		[]string{
 			StatusAvailable,
+		},
+		[]string{
+			StatusInActive,
 		},
 		[]string{
 			StatusUnAvailable,
@@ -47,6 +52,7 @@ func TestConverter(t *testing.T) {
 	const (
 		StatusCreating     = "Creating"
 		StatusAvailable    = "Available"
+		StatusInActive     = "InActive"
 		StatusUnAvailable  = "UnAvailable"
 		StatusCreateFailed = "CreateFailed"
 	)
@@ -54,6 +60,9 @@ func TestConverter(t *testing.T) {
 	f := NewConverter(
 		[]string{
 			StatusAvailable,
+		},
+		[]string{
+			StatusInActive,
 		},
 		[]string{
 			StatusUnAvailable,
@@ -82,6 +91,16 @@ func TestConverter(t *testing.T) {
 				Summary: Summary{
 					SummaryStatus: StatusCreating,
 					Transitioning: true,
+				},
+			},
+		},
+		{
+			name:  "inactive",
+			input: []string{StatusInActive, ""},
+			expected: &Status{
+				Summary: Summary{
+					SummaryStatus: StatusInActive,
+					Inactive:      true,
 				},
 			},
 		},

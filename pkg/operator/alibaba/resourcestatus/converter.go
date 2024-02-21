@@ -9,11 +9,13 @@ import (
 // | Human Readable Status | Human Sensible Status |
 // | --------------------- | --------------------- |
 // | Running               |                       |
-// | Stopped               |          			   |
+// | Stopped               | Inactive              |
 // ref: https://www.alibabacloud.com/help/en/elastic-compute-service/latest/describeinstances
 var ecsInstanceStatusConverter = status.NewConverter(
 	[]string{
 		"Running",
+	},
+	[]string{
 		"Stopped",
 	},
 	nil,
@@ -32,7 +34,7 @@ var ecsImageStatusConverter = status.NewConverter(
 	[]string{
 		"Available",
 	},
-
+	nil,
 	[]string{
 		"UnAvailable",
 		"CreateFailed",
@@ -55,6 +57,7 @@ var ecsDiskStatusConverter = status.NewConverter(
 		"All",
 	},
 	nil,
+	nil,
 )
 
 // ecsSnapshotStatusConverter generate the summary use following table, other status will be treated as transitioning.
@@ -70,6 +73,7 @@ var ecsSnapshotStatusConverter = status.NewConverter(
 		"accomplished",
 		"all",
 	},
+	nil,
 	[]string{
 		"failed",
 	},
@@ -89,6 +93,7 @@ var ecsNetworkInterfaceStatusConverter = status.NewConverter(
 		"InUse",
 	},
 	nil,
+	nil,
 )
 
 // cdnDomainStatusConverter generate the summary use following table, other status will be treated as transitioning.
@@ -104,6 +109,7 @@ var cdnDomainStatusConverter = status.NewConverter(
 	[]string{
 		"online",
 	},
+	nil,
 	[]string{
 		"offline",
 		"configure_failed",
@@ -123,6 +129,7 @@ var rdsDBInstanceStatusConverter = status.NewConverter(
 		"Released",
 	},
 	nil,
+	nil,
 )
 
 // polarDBClusterStatusConverter generate the summary use following table,
@@ -131,12 +138,14 @@ var rdsDBInstanceStatusConverter = status.NewConverter(
 // | Human Readable Status | Human Sensible Status |
 // | --------------------- | --------------------- |
 // | Running               |                       |
-// | Deleted               |                       |
-// | Stopped               |                       |
+// | Deleted               | Inactive              |
+// | Stopped               | Inactive              |
 // https://www.alibabacloud.com/help/en/polardb/latest/cluster-status
 var polarDBClusterStatusConverter = status.NewConverter(
 	[]string{
 		"Running",
+	},
+	[]string{
 		"Deleted",
 		"Stopped",
 	},
@@ -148,7 +157,7 @@ var polarDBClusterStatusConverter = status.NewConverter(
 //
 // | Human Readable Status | Human Sensible Status |
 // | --------------------- | --------------------- |
-// | inactive              | Error                 |
+// | inactive              | Inactive              |
 // | active                |                       |
 // | locked                | Error                 |
 // ref: https://www.alibabacloud.com/help/en/server-load-balancer/latest/describeloadbalancers
@@ -158,6 +167,8 @@ var slbLoadBalancerStatusConverter = status.NewConverter(
 	},
 	[]string{
 		"inactive",
+	},
+	[]string{
 		"locked",
 	},
 )
@@ -173,6 +184,7 @@ var vpcStatusConverter = status.NewConverter(
 		"Available",
 	},
 	nil,
+	nil,
 )
 
 // vpcVSwitchStatusConverter generate the summary use following table, other status will be treated as transitioning.
@@ -185,6 +197,7 @@ var vpcVSwitchStatusConverter = status.NewConverter(
 	[]string{
 		"Available",
 	},
+	nil,
 	nil,
 )
 
@@ -201,6 +214,7 @@ var vpcEipStatusConverter = status.NewConverter(
 		"Available",
 	},
 	nil,
+	nil,
 )
 
 // csClusterStatusConverter generate the summary use following table, other status will be treated as transitioning.
@@ -212,14 +226,16 @@ var vpcEipStatusConverter = status.NewConverter(
 // | running               |                       |
 // | updating_failed       | Error                 |
 // | disconnected          | Error                 |
-// | stopped               |                       |
-// | deleted               |                       |
+// | stopped               | Inactive              |
+// | deleted               | Inactive              |
 // | delete_failed         | Error                 |
 // ref: https://www.alibabacloud.com/help/en/container-service-for-kubernetes/latest/describeclusterdetail
 var csClusterStatusConverter = status.NewConverter(
 	[]string{
 		"initial",
 		"running",
+	},
+	[]string{
 		"stopped",
 		"deleted",
 	},

@@ -16,6 +16,8 @@ const (
 	TypeKubectl    = "kubectl"
 	TypeAliCloud   = "alicloud"
 	TypeAWS        = "aws"
+	TypeAzureRM    = "azurerm"
+	TypeGoogle     = "google"
 	TypeDocker     = "docker"
 	// Add more convertor type.
 )
@@ -28,6 +30,8 @@ var supportedProviders = []string{
 	TypeKubectl,
 	TypeAliCloud,
 	TypeAWS,
+	TypeAzureRM,
+	TypeGoogle,
 	// Add more convertor type.
 }
 
@@ -50,6 +54,10 @@ func LoadConvertor(provider string) Convertor {
 		return AlibabaConvertor(provider)
 	case TypeAWS:
 		return AWSConvertor(provider)
+	case TypeAzureRM:
+		return AzureRMConvertor(provider)
+	case TypeGoogle:
+		return GoogleConvertor(provider)
 	case TypeDocker:
 		return DockerConvertor(provider)
 	default:
