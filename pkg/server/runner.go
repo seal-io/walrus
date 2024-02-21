@@ -37,6 +37,7 @@ import (
 	"github.com/seal-io/walrus/pkg/datalisten"
 	"github.com/seal-io/walrus/pkg/k8s"
 	"github.com/seal-io/walrus/pkg/servervars"
+	"github.com/seal-io/walrus/pkg/storage"
 	"github.com/seal-io/walrus/utils/clis"
 	"github.com/seal-io/walrus/utils/cryptox"
 	"github.com/seal-io/walrus/utils/files"
@@ -85,6 +86,8 @@ type Server struct {
 	CacheSourceConnMaxOpen int
 	CacheSourceConnMaxIdle int
 	CacheSourceConnMaxLife time.Duration
+
+	S3SourceAddress string
 
 	EnableAuthn            bool
 	AuthnSessionMaxIdle    time.Duration
@@ -387,11 +390,18 @@ func (r *Server) Flags(cmd *cli.Command) {
 		&cli.StringFlag{
 			Name: "cache-source-address",
 			Usage: "The addresses for connecting cache source, e.g. " +
-				"Redis(redis://[username[:password]@]host[:port]/dbname[?param1=value1&...&paramN=valueN]), " +
+				"Redis(redis://[username[:password]@]host[:port]/dbname[?param1=value1&...&paramN=valueN])" +
 				"Redis Cluster(rediss://[username[:password]@]host[:port]?addr=host2[:port2]&addr=host3" +
 				"[:port3][&param1=value1&...&paramN=valueN]).",
 			Destination: &r.CacheSourceAddress,
 			Value:       r.CacheSourceAddress,
+		},
+		&cli.StringFlag{
+			Name: "s3-source-address",
+			Usage: "The addresses for connecting s3 service, e.g. " +
+				"S3(s3://[aceessKey[:secretKey]@]region.endpoint[:port]/bucketName[?param1=value1&...&paramN=valueN])",
+			Destination: &r.S3SourceAddress,
+			Value:       r.S3SourceAddress,
 		},
 		&cli.IntFlag{
 			Name:        "cache-source-conn-max-open",
@@ -584,6 +594,38 @@ func (r *Server) Run(c context.Context) error {
 		}
 	}
 
+	if r.S3SourceAddress == "" {
+		var e storage.Embedded
+
+		g.Go(func() error {
+			log.Info("running embedded s3")
+
+			err := e.Run(ctx)
+			if err != nil {
+				log.Errorf("error running embedded s3: %v", err)
+			}
+
+			return err
+		})
+
+		r.S3SourceAddress = storage.DefaultS3SourceAddress
+	}
+
+	storageConf, err := storage.NewConfig(r.S3SourceAddress)
+	if err != nil {
+		return fmt.Errorf("error loading s3 config: %w", err)
+	}
+
+	if err = storage.Wait(ctx, storageConf.Endpoint); err != nil {
+		return fmt.Errorf("error waiting s3 ready: %w", err)
+	}
+
+	// Load object manager.
+	storageMgr, err := storage.NewManager(storageConf)
+	if err != nil {
+		return fmt.Errorf("error loading object manager: %w", err)
+	}
+
 	// Enable authentication if needed.
 	if r.EnableAuthn {
 		if r.CasdoorServer == "" {
@@ -624,6 +666,7 @@ func (r *Server) Run(c context.Context) error {
 		DatabaseDriver:         databaseDrv,
 		CacheDriver:            cacheDrv,
 		BuiltinCatalogProvider: r.BuiltinCatalogProvider,
+		StorageManager:         storageMgr,
 	}
 	if err = r.init(ctx, initOpts); err != nil {
 		log.Errorf("error initializing: %v", err)
@@ -667,8 +710,9 @@ func (r *Server) Run(c context.Context) error {
 
 	// Start apis.
 	startApisOpts := startApisOptions{
-		ModelClient: modelClient,
-		K8sConfig:   k8sCfg,
+		ModelClient:    modelClient,
+		K8sConfig:      k8sCfg,
+		StorageManager: storageMgr,
 	}
 
 	g.Go(func() error {

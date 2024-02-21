@@ -10,5 +10,6 @@ import (
 func (r *Server) setupBusSubscribers(ctx context.Context, opts initOptions) error {
 	return bus.Setup(ctx, bus.SetupOptions{
 		ModelClient: opts.ModelClient,
+		K8sConfig:   opts.K8sConfig,
 	})
 }
