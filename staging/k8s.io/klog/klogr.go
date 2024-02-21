@@ -20,6 +20,8 @@ import (
 	"github.com/go-logr/logr"
 
 	"k8s.io/klog/v2/internal/serialize"
+	"bytes"
+	"bufio"
 )
 
 const (
@@ -99,6 +101,15 @@ func (l klogger) WithValues(kvList ...interface{}) logr.LogSink {
 func (l klogger) WithCallDepth(depth int) logr.LogSink {
 	l.callDepth += depth
 	return &l
+}
+
+func (l klogger) Write(p []byte) (int, error) {
+	v := VDepth(l.callDepth+1, Level(0))
+	s := bufio.NewScanner(bytes.NewReader(p))
+	for s.Scan() {
+		v.PrintSDepth(l.callDepth+1, s.Text(), l.values...)
+	}
+	return len(p), s.Err()
 }
 
 var _ logr.LogSink = &klogger{}

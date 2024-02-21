@@ -722,6 +722,16 @@ func (l *loggingT) printDepth(s severity.Severity, logger *logWriter, filter Log
 	l.printWithInfos(buf, file, line, s, logger, filter, depth+1, args...)
 }
 
+func (l *loggingT) printDepthWithoutHeader(s severity.Severity, logger *logWriter, filter LogFilter, depth int, args ...interface{}) {
+	if false {
+		_ = fmt.Sprint(args...) //  // cause vet to treat this function like fmt.Print
+	}
+
+	buf, file, line := l.header(s, depth)
+	buf.Reset() // Reset header.
+	l.printWithInfos(buf, file, line, s, logger, filter, depth+1, args...)
+}
+
 func (l *loggingT) printWithInfos(buf *buffer.Buffer, file string, line int, s severity.Severity, logger *logWriter, filter LogFilter, depth int, args ...interface{}) {
 	// If a logger is set and doesn't support writing a formatted buffer,
 	// we clear the generated header as we rely on the backing
@@ -828,6 +838,18 @@ func (l *loggingT) printS(err error, s severity.Severity, depth int, msg string,
 	serialize.KVListFormat(&b.Buffer, keysAndValues...)
 	l.printDepth(s, nil, nil, depth+1, &b.Buffer)
 	// Make the buffer available for reuse.
+	buffer.PutBuffer(b)
+}
+
+// printSRaw prints a log message with no header and no formatting.
+func (l *loggingT) printSRaw(err error, s severity.Severity, depth int, msg string, keysAndValues ...interface{}) {
+	b := buffer.GetBuffer()
+	b.WriteString(msg)
+	if err != nil {
+		serialize.KVListFormat(&b.Buffer, "err", err)
+	}
+	serialize.KVListFormat(&b.Buffer, keysAndValues...)
+	l.printDepthWithoutHeader(s, nil, nil, depth+1, &b.Buffer)
 	buffer.PutBuffer(b)
 }
 
@@ -1492,6 +1514,14 @@ func (v Verbose) Error(err error, msg string, args ...interface{}) {
 func (v Verbose) ErrorS(err error, msg string, keysAndValues ...interface{}) {
 	if v.enabled {
 		logging.errorS(err, v.logger, logging.filter, 0, msg, keysAndValues...)
+	}
+}
+
+// PrintSDepth is similar to InfoSDepth,
+// but never print header and formatting, like enable --skip_headers.
+func (v Verbose) PrintSDepth(depth int, msg string, keysAndValues ...interface{}) {
+	if v.enabled {
+		logging.printSRaw(nil, severity.InfoLog, depth+1, msg, keysAndValues...)
 	}
 }
 
