@@ -8,12 +8,14 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/k8sctrls"
+	"github.com/seal-io/walrus/pkg/storage"
 )
 
 type startK8sCtrlsOptions struct {
-	MgrIsReady  *atomic.Bool
-	RestConfig  *rest.Config
-	ModelClient *model.Client
+	MgrIsReady     *atomic.Bool
+	RestConfig     *rest.Config
+	ModelClient    *model.Client
+	StorageManager *storage.Manager
 }
 
 func (r *Server) startK8sCtrls(ctx context.Context, opts startK8sCtrlsOptions) error {
@@ -30,7 +32,8 @@ func (r *Server) startK8sCtrls(ctx context.Context, opts startK8sCtrlsOptions) e
 	startOpts := k8sctrls.StartOptions{
 		RestConfig: opts.RestConfig,
 		SetupOptions: k8sctrls.SetupOptions{
-			ModelClient: opts.ModelClient,
+			ModelClient:    opts.ModelClient,
+			StorageManager: opts.StorageManager,
 		},
 	}
 

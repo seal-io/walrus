@@ -20,13 +20,16 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	runstatus "github.com/seal-io/walrus/pkg/resourceruns/status"
+	"github.com/seal-io/walrus/pkg/storage"
+	"github.com/seal-io/walrus/utils/gopool"
 )
 
 type Reconciler struct {
-	Logger      logr.Logger
-	Kubeconfig  *rest.Config
-	KubeClient  client.Client
-	ModelClient *model.Client
+	Logger         logr.Logger
+	Kubeconfig     *rest.Config
+	KubeClient     client.Client
+	ModelClient    *model.Client
+	StorageManager *storage.Manager
 }
 
 func (r Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -115,6 +118,9 @@ func (r Reconciler) syncRunStatus(ctx context.Context, job *batchv1.Job) (err er
 		return err
 	}
 
+	// Clean plan files.
+	r.cleanPlanFiles(run)
+
 	return runbus.Notify(ctx, r.ModelClient, run)
 }
 
@@ -147,4 +153,21 @@ func (r Reconciler) getJobPodsLogs(ctx context.Context, jobName string) (string,
 	}
 
 	return logs, nil
+}
+
+func (r Reconciler) cleanPlanFiles(run *model.ResourceRun) {
+	// When run status is planned, skip it.
+	if runstatus.IsStatusPlanned(run) {
+		return
+	}
+
+	gopool.Go(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+		defer cancel()
+
+		err := r.StorageManager.DeleteRunPlan(ctx, run)
+		if err != nil {
+			r.Logger.Error(err, "failed to delete run plan", "run", run.ID)
+		}
+	})
 }

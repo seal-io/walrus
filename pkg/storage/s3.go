@@ -81,7 +81,12 @@ func (m *Manager) DeleteRunPlan(ctx context.Context, run *model.ResourceRun) err
 	fileName := GetPlanFileName(run)
 	bucketName := m.config.Bucket
 
-	return m.minioClient.RemoveObject(ctx, bucketName, fileName, minio.RemoveObjectOptions{})
+	err := m.minioClient.RemoveObject(ctx, bucketName, fileName, minio.RemoveObjectOptions{})
+	if err != nil && !(minio.ToErrorResponse(err).Code == "NoSuchKey") {
+		return err
+	}
+
+	return nil
 }
 
 func (m *Manager) CheckValidBucketName(ctx context.Context, bucketName string) error {

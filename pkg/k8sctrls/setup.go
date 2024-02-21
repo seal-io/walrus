@@ -16,6 +16,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	runjob "github.com/seal-io/walrus/pkg/resourceruns/job"
+	"github.com/seal-io/walrus/pkg/storage"
 	pkgworkflow "github.com/seal-io/walrus/pkg/workflow"
 )
 
@@ -28,7 +29,8 @@ func init() {
 type SetupOptions struct {
 	ReconcileHelper
 
-	ModelClient *model.Client
+	ModelClient    *model.Client
+	StorageManager *storage.Manager
 }
 
 type ReconcileHelper interface {
@@ -69,10 +71,11 @@ func (m *Manager) Setup(ctx context.Context, opts SetupOptions) ([]Reconciler, e
 	// Setup reconciler below.
 	return []Reconciler{
 		runjob.Reconciler{
-			Logger:      opts.GetLogger().WithName("deployer").WithName("tf"),
-			Kubeconfig:  opts.GetConfig(),
-			KubeClient:  opts.GetClient(),
-			ModelClient: opts.ModelClient,
+			Logger:         opts.GetLogger().WithName("deployer").WithName("tf"),
+			Kubeconfig:     opts.GetConfig(),
+			KubeClient:     opts.GetClient(),
+			ModelClient:    opts.ModelClient,
+			StorageManager: opts.StorageManager,
 		},
 		pkgworkflow.WorkflowReconciler{
 			Logger:     opts.GetLogger().WithName("workflow"),
