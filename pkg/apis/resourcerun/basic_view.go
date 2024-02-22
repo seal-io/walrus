@@ -4,10 +4,14 @@ import (
 	"errors"
 	"fmt"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqljson"
+
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
 
 type (
@@ -17,6 +21,12 @@ type (
 )
 
 type (
+	CollectionFieldQuery struct {
+		QueryID     object.ID `query:"id"`
+		QueryType   string    `query:"type"`
+		QueryStatus string    `query:"status"`
+	}
+
 	CollectionGetRequest struct {
 		model.ResourceRunQueryInputs `path:",inline" query:",inline"`
 
@@ -25,6 +35,9 @@ type (
 		] `query:",inline"`
 
 		Stream *runtime.RequestUnidiStream
+
+		CollectionFieldQuery `query:",inline"`
+		Rollback             bool `query:"rollback"`
 	}
 
 	CollectionGetResponse = []*model.ResourceRunOutput
@@ -32,6 +45,32 @@ type (
 
 func (r *CollectionGetRequest) SetStream(stream runtime.RequestUnidiStream) {
 	r.Stream = &stream
+}
+
+func (q *CollectionFieldQuery) Queries() (queries []predicate.ResourceRun, ok bool) {
+	if q.QueryID != "" {
+		queries = append(queries, resourcerun.ID(q.QueryID))
+		ok = true
+	}
+
+	if q.QueryType != "" {
+		queries = append(queries, resourcerun.Type(q.QueryType))
+		ok = true
+	}
+
+	if q.QueryStatus != "" {
+		queries = append(queries, func(s *sql.Selector) {
+			s.Where(sqljson.ValueEQ(
+				resourcerun.FieldStatus,
+				q.QueryStatus,
+				sqljson.Path("summaryStatus"),
+			))
+		})
+
+		ok = true
+	}
+
+	return
 }
 
 type CollectionDeleteRequest struct {
