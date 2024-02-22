@@ -20,7 +20,8 @@ const (
 	// _applyCommands the commands to apply deployment of the resource run.
 	_applyCommands = "terraform init -no-color && terraform apply %s -no-color"
 	// _destroyCommands the commands to destroy deployment of the resource run.
-	_destroyCommands = "terraform init -no-color && terraform destroy %s -no-color"
+	// As destroy planned in plan file, use apply command to execution the plan.
+	_destroyCommands = "terraform init -no-color && terraform apply %s -no-color"
 
 	// _planAPI.
 	_planAPI = "/v1/projects/%s/environments/%s/resources/%s/runs/%s/plan"

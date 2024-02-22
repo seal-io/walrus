@@ -80,8 +80,6 @@ func (r Reconciler) syncRunStatus(ctx context.Context, job *batchv1.Job) (err er
 		return nil
 	}
 
-	runstatus.SetStatusTrue(run, "")
-
 	// Get job pods logs.
 	record, err := r.getJobPodsLogs(ctx, job.Name)
 	if err != nil {
@@ -89,13 +87,19 @@ func (r Reconciler) syncRunStatus(ctx context.Context, job *batchv1.Job) (err er
 		record = err.Error()
 	}
 
+	update := r.ModelClient.ResourceRuns().UpdateOne(run)
+
 	if job.Status.Succeeded > 0 {
 		r.Logger.Info("succeed", "resource-run", runID)
+		runstatus.SetStatusTrue(run, "")
 	}
 
 	if job.Status.Failed > 0 {
 		r.Logger.Info("failed", "resource-run", runID)
-		runstatus.SetStatusFalse(run, "")
+		runstatus.SetStatusFalse(run, "run job failed")
+		// Clear component changes and summary when run failed.
+		update.ClearComponentChanges().
+			ClearComponentChangeSummary()
 	}
 
 	// Report to application run.
@@ -108,7 +112,7 @@ func (r Reconciler) syncRunStatus(ctx context.Context, job *batchv1.Job) (err er
 	run.Status.SetSummary(status.WalkResourceRun(&run.Status))
 	run.Duration = int(time.Since(*run.CreateTime).Seconds())
 
-	run, err = r.ModelClient.ResourceRuns().UpdateOne(run).
+	run, err = update.
 		SetStatus(run.Status).
 		SetPlanRecord(run.PlanRecord).
 		SetRecord(run.Record).

@@ -7,6 +7,7 @@ import (
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
+	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	"github.com/seal-io/walrus/utils/gopool"
@@ -45,6 +46,17 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 
 	if req.Resource != nil && req.Resource.ID != "" {
 		query.Where(resourcerun.ResourceID(req.Resource.ID))
+	}
+
+	if fieldQueries, ok := req.Queries(); ok {
+		query.Where(fieldQueries...)
+	}
+
+	if req.Rollback {
+		query.Where(resourcerun.TypeIn(
+			types.RunTypeCreate.String(),
+			types.RunTypeUpgrade.String(),
+		))
 	}
 
 	if stream := req.Stream; stream != nil {
