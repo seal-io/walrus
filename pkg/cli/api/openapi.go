@@ -16,7 +16,6 @@ import (
 	"github.com/seal-io/walrus/pkg/cli/config"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/strs"
-	versionutil "github.com/seal-io/walrus/utils/version"
 )
 
 const (
@@ -125,8 +124,7 @@ func LoadOpenAPIFromSchema(t openapi3.T) (*API, error) {
 	}
 
 	api.Version = Version{
-		Version:      t.Info.Version,
-		IsDevVersion: versionutil.IsDevVersionWith(t.Info.Version),
+		Version: t.Info.Version,
 	}
 	api.Short = t.Info.Title
 	api.Long = t.Info.Description

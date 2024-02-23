@@ -7,7 +7,6 @@ import (
 
 	"github.com/seal-io/walrus/pkg/cli/config"
 	"github.com/seal-io/walrus/utils/json"
-	versionutil "github.com/seal-io/walrus/utils/version"
 )
 
 const (
@@ -49,9 +48,8 @@ func setAPIToCache(api *API) error {
 
 	// API version cache.
 	v := Version{
-		Version:      api.Version.Version,
-		GitCommit:    api.Version.GitCommit,
-		IsDevVersion: versionutil.IsDevVersionWith(api.Version.Version),
+		Version:   api.Version.Version,
+		GitCommit: api.Version.GitCommit,
 	}
 
 	vb, err := json.MarshalIndent(v, "", " ")
