@@ -14,19 +14,17 @@ type VersionInfo struct {
 
 // Version include the version and commit.
 type Version struct {
-	Version      string `json:"version" yaml:"version"`
-	GitCommit    string `json:"gitCommit" yaml:"gitCommit"`
-	IsDevVersion bool   `json:"isDevVersion" yaml:"isDevVersion"`
+	Version   string `json:"version" yaml:"version"`
+	GitCommit string `json:"gitCommit" yaml:"gitCommit"`
 }
 
 // GetVersion get client, server and openapi version.
-func GetVersion(sc *config.Config) (*VersionInfo, error) {
+func GetVersion(sc *config.Config) *VersionInfo {
 	// Client version.
 	info := &VersionInfo{
 		ClientVersion: Version{
-			Version:      version.Version,
-			GitCommit:    version.GitCommit,
-			IsDevVersion: version.IsDevVersion(),
+			Version:   version.Version,
+			GitCommit: version.GitCommit,
 		},
 	}
 
@@ -34,25 +32,24 @@ func GetVersion(sc *config.Config) (*VersionInfo, error) {
 		// Server version.
 		sv, err := sc.ServerVersion()
 		if err != nil {
-			return nil, err
+			// Return client version if server version is not reachable.
+			return info
 		}
 
 		info.ServerVersion = Version{
-			Version:      sv.Version,
-			GitCommit:    sv.Commit,
-			IsDevVersion: version.IsDevVersionWith(sv.Version),
+			Version:   sv.Version,
+			GitCommit: sv.Commit,
 		}
 
 		// Openapi version.
 		av := GetAPIVersionFromCache()
 		if av != nil {
 			info.OpenAPIVersion = Version{
-				Version:      av.Version,
-				GitCommit:    av.GitCommit,
-				IsDevVersion: version.IsDevVersionWith(av.Version),
+				Version:   av.Version,
+				GitCommit: av.GitCommit,
 			}
 		}
 	}
 
-	return info, nil
+	return info
 }

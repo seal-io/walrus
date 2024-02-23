@@ -18,10 +18,7 @@ func Version(sc *config.Config) *cobra.Command {
 		Short:   "Print the CLI and server version information",
 		GroupID: common.GroupOther.ID,
 		Run: func(cmd *cobra.Command, args []string) {
-			info, err := api.GetVersion(sc)
-			if err != nil {
-				panic(err)
-			}
+			info := api.GetVersion(sc)
 
 			b, err := yaml.Marshal(info)
 			if err != nil {
