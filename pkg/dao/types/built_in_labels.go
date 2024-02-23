@@ -32,6 +32,9 @@ const (
 	// LabelWalrusResourceDefinition indicates if the template is for resource definition.
 	LabelWalrusResourceDefinition string = "walrus.seal.io/resource-definition"
 
+	// LabelWalrusResourceDefinitionName indicates the name of the resource definition.
+	LabelWalrusResourceDefinitionName string = "walrus.seal.io/resource-definition-name"
+
 	// LabelResourceStoppable indicates if the resource is stoppable.
 	LabelResourceStoppable string = "walrus.seal.io/stoppable"
 

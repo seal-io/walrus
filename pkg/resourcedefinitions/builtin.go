@@ -3,21 +3,25 @@ package resourcedefinitions
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
-	"golang.org/x/exp/slices"
-
 	"github.com/seal-io/walrus/pkg/bus/builtin"
-	"github.com/seal-io/walrus/pkg/catalog"
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/template"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/templates"
 	"github.com/seal-io/walrus/utils/log"
 )
+
+type templateWithConnector struct {
+	templateID    object.ID
+	connectorType string
+}
 
 func SyncBuiltinResourceDefinitions(ctx context.Context, m builtin.BusMessage) error {
 	logger := log.WithName("builtin").WithName("resource-definitions")
@@ -31,12 +35,18 @@ func SyncBuiltinResourceDefinitions(ctx context.Context, m builtin.BusMessage) e
 		return err
 	}
 
-	resourceTypeToConnectorTypes := make(map[string][]string)
+	resourceDefinitionToConnectorTypes := make(map[string][]templateWithConnector)
 
 	for _, t := range ts {
 		labels := t.Labels
 
 		if len(labels) == 0 {
+			continue
+		}
+
+		rdn, ok := labels[types.LabelWalrusResourceDefinitionName]
+		if !ok {
+			logger.Warnf("builtin template %s missing label %s", t.Name, types.LabelWalrusResourceDefinitionName)
 			continue
 		}
 
@@ -52,26 +62,36 @@ func SyncBuiltinResourceDefinitions(ctx context.Context, m builtin.BusMessage) e
 			continue
 		}
 
-		resourceTypeToConnectorTypes[rt] = append(resourceTypeToConnectorTypes[rt], ct)
+		key := fmt.Sprintf("%s/%s", rdn, rt)
+		resourceDefinitionToConnectorTypes[key] = append(resourceDefinitionToConnectorTypes[key], templateWithConnector{
+			templateID:    t.ID,
+			connectorType: ct,
+		})
 	}
 
-	resourceDefinitions := make([]*model.ResourceDefinition, 0, len(resourceTypeToConnectorTypes))
+	resourceDefinitions := make([]*model.ResourceDefinition, 0, len(resourceDefinitionToConnectorTypes))
 
-	for res, conns := range resourceTypeToConnectorTypes {
+	for key, conns := range resourceDefinitionToConnectorTypes {
+		keys := strings.SplitN(key, "/", 2)
+		rdn := keys[0]
+		rt := keys[1]
+
 		// Sort the connector types to ensure the order of matching rules is deterministic.
-		slices.Sort(conns)
+		sort.Slice(conns, func(i, j int) bool {
+			return conns[i].connectorType < conns[j].connectorType
+		})
 
 		var definition *model.ResourceDefinition
 
-		definition, err = newResourceDefinition(ctx, mc, res, conns)
+		definition, err = newResourceDefinition(ctx, mc, rdn, rt, conns)
 		if err != nil {
-			logger.Errorf("failed to create builtin %s resource definition: %v", res, err)
+			logger.Errorf("failed to create builtin %s resource definition: %v", rdn, err)
 			continue
 		}
 
 		resourceDefinitions = append(resourceDefinitions, definition)
 
-		logger.Debugf("created builtin %s resource definition", res)
+		logger.Debugf("created builtin %s resource definition", rdn)
 	}
 
 	err = mc.ResourceDefinitions().CreateBulk().
@@ -89,17 +109,18 @@ func SyncBuiltinResourceDefinitions(ctx context.Context, m builtin.BusMessage) e
 func newResourceDefinition(
 	ctx context.Context,
 	mc model.ClientSet,
+	resourceDefinitionName string,
 	resourceType string,
-	connectorTypes []string,
+	templateWithConnector []templateWithConnector,
 ) (*model.ResourceDefinition, error) {
 	logger := log.WithName("builtin").WithName("resource-definitions")
 
-	matchingRules := make([]*model.ResourceDefinitionMatchingRule, 0, len(connectorTypes))
+	matchingRules := make([]*model.ResourceDefinitionMatchingRule, 0, len(templateWithConnector))
 
-	for _, connectorType := range connectorTypes {
-		ct := strings.ToLower(connectorType)
+	for _, tmpl := range templateWithConnector {
+		ct := strings.ToLower(tmpl.connectorType)
 
-		m, err := newMatchingRule(ctx, mc, resourceType, ct)
+		m, err := newMatchingRule(ctx, mc, tmpl.templateID, ct)
 		if err != nil {
 			logger.Errorf("failed to create matching rule for builtin %s-%s: %v", ct, resourceType, err)
 			continue
@@ -108,7 +129,7 @@ func newResourceDefinition(
 		matchingRules = append(matchingRules, m)
 	}
 
-	bn := "builtin-" + resourceType
+	bn := "builtin-" + resourceDefinitionName
 	rd := &model.ResourceDefinition{
 		Name:        bn,
 		Type:        resourceType,
@@ -135,13 +156,11 @@ func newResourceDefinition(
 func newMatchingRule(
 	ctx context.Context,
 	mc model.ClientSet,
-	resourceType string,
+	templateID object.ID,
 	connectorType string,
 ) (*model.ResourceDefinitionMatchingRule, error) {
-	name := fmt.Sprintf("%s/%s-%s", catalog.BuiltinCatalog().Name, connectorType, resourceType)
-
 	version, err := mc.TemplateVersions().Query().
-		Where(templateversion.Name(name)).
+		Where(templateversion.TemplateID(templateID)).
 		Order(dao.OrderSemverVersionFunc).
 		First(ctx)
 	if err != nil {

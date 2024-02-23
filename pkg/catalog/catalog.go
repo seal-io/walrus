@@ -196,6 +196,8 @@ func createWalrusBuiltinLabels(topics []string) map[string]string {
 		switch {
 		case topic == WalrusResourceDefinitionRepositoryTopic:
 			labels[types.LabelWalrusResourceDefinition] = "true"
+		case strings.HasPrefix(topic, "r-"):
+			labels[types.LabelWalrusResourceDefinitionName] = strings.TrimPrefix(topic, "r-")
 		case strings.HasPrefix(topic, "c-"):
 			labels[types.LabelWalrusConnectorType] = strings.TrimPrefix(topic, "c-")
 		case strings.HasPrefix(topic, "t-"):
