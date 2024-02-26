@@ -161,6 +161,20 @@ func (rcc *ResourceComponentCreate) SetShape(s string) *ResourceComponentCreate 
 	return rcc
 }
 
+// SetIndexKey sets the "index_key" field.
+func (rcc *ResourceComponentCreate) SetIndexKey(s string) *ResourceComponentCreate {
+	rcc.mutation.SetIndexKey(s)
+	return rcc
+}
+
+// SetNillableIndexKey sets the "index_key" field if the given value is not nil.
+func (rcc *ResourceComponentCreate) SetNillableIndexKey(s *string) *ResourceComponentCreate {
+	if s != nil {
+		rcc.SetIndexKey(*s)
+	}
+	return rcc
+}
+
 // SetID sets the "id" field.
 func (rcc *ResourceComponentCreate) SetID(o object.ID) *ResourceComponentCreate {
 	rcc.mutation.SetID(o)
@@ -457,6 +471,10 @@ func (rcc *ResourceComponentCreate) createSpec() (*ResourceComponent, *sqlgraph.
 		_spec.SetField(resourcecomponent.FieldShape, field.TypeString, value)
 		_node.Shape = value
 	}
+	if value, ok := rcc.mutation.IndexKey(); ok {
+		_spec.SetField(resourcecomponent.FieldIndexKey, field.TypeString, value)
+		_node.IndexKey = value
+	}
 	if nodes := rcc.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -665,6 +683,9 @@ func (rcc *ResourceComponentCreate) Set(obj *ResourceComponent) *ResourceCompone
 	if obj.ClassID != "" {
 		rcc.SetClassID(obj.ClassID)
 	}
+	if obj.IndexKey != "" {
+		rcc.SetIndexKey(obj.IndexKey)
+	}
 
 	// Record the given object.
 	rcc.object = obj
@@ -736,6 +757,9 @@ func (rcc *ResourceComponentCreate) SaveE(ctx context.Context, cbs ...func(ctx c
 		}
 		if _, set := rcc.mutation.Field(resourcecomponent.FieldShape); set {
 			obj.Shape = x.Shape
+		}
+		if _, set := rcc.mutation.Field(resourcecomponent.FieldIndexKey); set {
+			obj.IndexKey = x.IndexKey
 		}
 		obj.Edges = x.Edges
 	}
@@ -871,6 +895,9 @@ func (rccb *ResourceComponentCreateBulk) SaveE(ctx context.Context, cbs ...func(
 			}
 			if _, set := rccb.builders[i].mutation.Field(resourcecomponent.FieldShape); set {
 				objs[i].Shape = x[i].Shape
+			}
+			if _, set := rccb.builders[i].mutation.Field(resourcecomponent.FieldIndexKey); set {
+				objs[i].IndexKey = x[i].IndexKey
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -1080,6 +1107,9 @@ func (u *ResourceComponentUpsertOne) UpdateNewValues() *ResourceComponentUpsertO
 		}
 		if _, exists := u.create.mutation.Shape(); exists {
 			s.SetIgnore(resourcecomponent.FieldShape)
+		}
+		if _, exists := u.create.mutation.IndexKey(); exists {
+			s.SetIgnore(resourcecomponent.FieldIndexKey)
 		}
 	}))
 	return u
@@ -1367,6 +1397,9 @@ func (u *ResourceComponentUpsertBulk) UpdateNewValues() *ResourceComponentUpsert
 			}
 			if _, exists := b.mutation.Shape(); exists {
 				s.SetIgnore(resourcecomponent.FieldShape)
+			}
+			if _, exists := b.mutation.IndexKey(); exists {
+				s.SetIgnore(resourcecomponent.FieldIndexKey)
 			}
 		}
 	}))

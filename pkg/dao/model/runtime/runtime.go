@@ -404,6 +404,10 @@ func init() {
 	resourceDescComputedAttributes := resourceFields[7].Descriptor()
 	// resource.DefaultComputedAttributes holds the default value on creation for the computed_attributes field.
 	resource.DefaultComputedAttributes = resourceDescComputedAttributes.Default.(property.Values)
+	// resourceDescIsModified is the schema descriptor for is_modified field.
+	resourceDescIsModified := resourceFields[9].Descriptor()
+	// resource.DefaultIsModified holds the default value on creation for the is_modified field.
+	resource.DefaultIsModified = resourceDescIsModified.Default.(bool)
 	resourcecomponentMixin := schema.ResourceComponent{}.Mixin()
 	resourcecomponentMixinHooks0 := resourcecomponentMixin[0].Hooks()
 	resourcecomponent.Hooks[0] = resourcecomponentMixinHooks0[0]
@@ -628,10 +632,10 @@ func init() {
 	resourcerunDescPreviousRequiredProviders := resourcerunFields[12].Descriptor()
 	// resourcerun.DefaultPreviousRequiredProviders holds the default value on creation for the previous_required_providers field.
 	resourcerun.DefaultPreviousRequiredProviders = resourcerunDescPreviousRequiredProviders.Default.([]types.ProviderRequirement)
-	// resourcerunDescApprovalRequired is the schema descriptor for approval_required field.
-	resourcerunDescApprovalRequired := resourcerunFields[18].Descriptor()
-	// resourcerun.DefaultApprovalRequired holds the default value on creation for the approval_required field.
-	resourcerun.DefaultApprovalRequired = resourcerunDescApprovalRequired.Default.(bool)
+	// resourcerunDescPreview is the schema descriptor for preview field.
+	resourcerunDescPreview := resourcerunFields[18].Descriptor()
+	// resourcerun.DefaultPreview holds the default value on creation for the preview field.
+	resourcerun.DefaultPreview = resourcerunDescPreview.Default.(bool)
 	// resourcerunDescAnnotations is the schema descriptor for annotations field.
 	resourcerunDescAnnotations := resourcerunFields[19].Descriptor()
 	// resourcerun.DefaultAnnotations holds the default value on creation for the annotations field.

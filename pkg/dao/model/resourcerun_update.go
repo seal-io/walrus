@@ -247,16 +247,16 @@ func (rru *ResourceRunUpdate) SetNillableType(s *string) *ResourceRunUpdate {
 	return rru
 }
 
-// SetApprovalRequired sets the "approval_required" field.
-func (rru *ResourceRunUpdate) SetApprovalRequired(b bool) *ResourceRunUpdate {
-	rru.mutation.SetApprovalRequired(b)
+// SetPreview sets the "preview" field.
+func (rru *ResourceRunUpdate) SetPreview(b bool) *ResourceRunUpdate {
+	rru.mutation.SetPreview(b)
 	return rru
 }
 
-// SetNillableApprovalRequired sets the "approval_required" field if the given value is not nil.
-func (rru *ResourceRunUpdate) SetNillableApprovalRequired(b *bool) *ResourceRunUpdate {
+// SetNillablePreview sets the "preview" field if the given value is not nil.
+func (rru *ResourceRunUpdate) SetNillablePreview(b *bool) *ResourceRunUpdate {
 	if b != nil {
-		rru.SetApprovalRequired(*b)
+		rru.SetPreview(*b)
 	}
 	return rru
 }
@@ -431,7 +431,7 @@ func (rru *ResourceRunUpdate) Set(obj *ResourceRun) *ResourceRunUpdate {
 	}
 	rru.SetCreatedBy(obj.CreatedBy)
 	rru.SetType(obj.Type)
-	rru.SetApprovalRequired(obj.ApprovalRequired)
+	rru.SetPreview(obj.Preview)
 	if !reflect.ValueOf(obj.Annotations).IsZero() {
 		rru.SetAnnotations(obj.Annotations)
 	}
@@ -540,8 +540,8 @@ func (rru *ResourceRunUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := rru.mutation.GetType(); ok {
 		_spec.SetField(resourcerun.FieldType, field.TypeString, value)
 	}
-	if value, ok := rru.mutation.ApprovalRequired(); ok {
-		_spec.SetField(resourcerun.FieldApprovalRequired, field.TypeBool, value)
+	if value, ok := rru.mutation.Preview(); ok {
+		_spec.SetField(resourcerun.FieldPreview, field.TypeBool, value)
 	}
 	if value, ok := rru.mutation.Annotations(); ok {
 		_spec.SetField(resourcerun.FieldAnnotations, field.TypeJSON, value)
@@ -796,16 +796,16 @@ func (rruo *ResourceRunUpdateOne) SetNillableType(s *string) *ResourceRunUpdateO
 	return rruo
 }
 
-// SetApprovalRequired sets the "approval_required" field.
-func (rruo *ResourceRunUpdateOne) SetApprovalRequired(b bool) *ResourceRunUpdateOne {
-	rruo.mutation.SetApprovalRequired(b)
+// SetPreview sets the "preview" field.
+func (rruo *ResourceRunUpdateOne) SetPreview(b bool) *ResourceRunUpdateOne {
+	rruo.mutation.SetPreview(b)
 	return rruo
 }
 
-// SetNillableApprovalRequired sets the "approval_required" field if the given value is not nil.
-func (rruo *ResourceRunUpdateOne) SetNillableApprovalRequired(b *bool) *ResourceRunUpdateOne {
+// SetNillablePreview sets the "preview" field if the given value is not nil.
+func (rruo *ResourceRunUpdateOne) SetNillablePreview(b *bool) *ResourceRunUpdateOne {
 	if b != nil {
-		rruo.SetApprovalRequired(*b)
+		rruo.SetPreview(*b)
 	}
 	return rruo
 }
@@ -1031,8 +1031,8 @@ func (rruo *ResourceRunUpdateOne) Set(obj *ResourceRun) *ResourceRunUpdateOne {
 			if db.Type != obj.Type {
 				rruo.SetType(obj.Type)
 			}
-			if db.ApprovalRequired != obj.ApprovalRequired {
-				rruo.SetApprovalRequired(obj.ApprovalRequired)
+			if db.Preview != obj.Preview {
+				rruo.SetPreview(obj.Preview)
 			}
 			if !reflect.ValueOf(obj.Annotations).IsZero() {
 				if !reflect.DeepEqual(db.Annotations, obj.Annotations) {
@@ -1142,8 +1142,8 @@ func (rruo *ResourceRunUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx con
 		if _, set := rruo.mutation.Field(resourcerun.FieldType); set {
 			obj.Type = x.Type
 		}
-		if _, set := rruo.mutation.Field(resourcerun.FieldApprovalRequired); set {
-			obj.ApprovalRequired = x.ApprovalRequired
+		if _, set := rruo.mutation.Field(resourcerun.FieldPreview); set {
+			obj.Preview = x.Preview
 		}
 		if _, set := rruo.mutation.Field(resourcerun.FieldAnnotations); set {
 			obj.Annotations = x.Annotations
@@ -1292,8 +1292,8 @@ func (rruo *ResourceRunUpdateOne) sqlSave(ctx context.Context) (_node *ResourceR
 	if value, ok := rruo.mutation.GetType(); ok {
 		_spec.SetField(resourcerun.FieldType, field.TypeString, value)
 	}
-	if value, ok := rruo.mutation.ApprovalRequired(); ok {
-		_spec.SetField(resourcerun.FieldApprovalRequired, field.TypeBool, value)
+	if value, ok := rruo.mutation.Preview(); ok {
+		_spec.SetField(resourcerun.FieldPreview, field.TypeBool, value)
 	}
 	if value, ok := rruo.mutation.Annotations(); ok {
 		_spec.SetField(resourcerun.FieldAnnotations, field.TypeJSON, value)

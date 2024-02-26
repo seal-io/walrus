@@ -590,6 +590,8 @@ type ResourceComponentPatchInput struct {
 	Shape string `path:"-" query:"-" json:"shape,omitempty"`
 	// Keys of the component.
 	Keys *types.ResourceComponentOperationKeys `path:"-" query:"-" json:"keys,omitempty"`
+	// Index key to identify the component instance.
+	IndexKey string `path:"-" query:"-" json:"indexKey,omitempty"`
 
 	// Components indicates replacing the stale ResourceComponent entities.
 	Components []*ResourceComponentCreateInput `uri:"-" query:"-" json:"components,omitempty"`
@@ -617,6 +619,7 @@ func (rcpi *ResourceComponentPatchInput) PatchModel() *ResourceComponent {
 		DeployerType: rcpi.DeployerType,
 		Shape:        rcpi.Shape,
 		Keys:         rcpi.Keys,
+		IndexKey:     rcpi.IndexKey,
 	}
 
 	if rcpi.Project != nil {
@@ -788,6 +791,7 @@ func (rcpi *ResourceComponentPatchInput) ValidateWith(ctx context.Context, cs Cl
 			resourcecomponent.FieldCreateTime,
 			resourcecomponent.FieldUpdateTime,
 			resourcecomponent.FieldStatus,
+			resourcecomponent.FieldIndexKey,
 		)...,
 	)
 
@@ -836,6 +840,9 @@ func (rcpi *ResourceComponentPatchInput) ValidateWith(ctx context.Context, cs Cl
 	}
 	if e.Shape != _obj.Shape {
 		return errors.New("field shape is immutable")
+	}
+	if e.IndexKey != _obj.IndexKey {
+		return errors.New("field indexKey is immutable")
 	}
 
 	rcpi.patchedEntity = _obj
@@ -1406,6 +1413,7 @@ type ResourceComponentOutput struct {
 	DeployerType string                                `json:"deployerType,omitempty"`
 	Shape        string                                `json:"shape,omitempty"`
 	Keys         *types.ResourceComponentOperationKeys `json:"keys,omitempty"`
+	IndexKey     string                                `json:"indexKey,omitempty"`
 
 	Project      *ProjectOutput                         `json:"project,omitempty"`
 	Environment  *EnvironmentOutput                     `json:"environment,omitempty"`
@@ -1445,6 +1453,7 @@ func ExposeResourceComponent(_rc *ResourceComponent) *ResourceComponentOutput {
 		DeployerType: _rc.DeployerType,
 		Shape:        _rc.Shape,
 		Keys:         _rc.Keys,
+		IndexKey:     _rc.IndexKey,
 	}
 
 	if _rc.Edges.Project != nil {

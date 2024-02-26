@@ -214,16 +214,16 @@ func (rrc *ResourceRunCreate) SetType(s string) *ResourceRunCreate {
 	return rrc
 }
 
-// SetApprovalRequired sets the "approval_required" field.
-func (rrc *ResourceRunCreate) SetApprovalRequired(b bool) *ResourceRunCreate {
-	rrc.mutation.SetApprovalRequired(b)
+// SetPreview sets the "preview" field.
+func (rrc *ResourceRunCreate) SetPreview(b bool) *ResourceRunCreate {
+	rrc.mutation.SetPreview(b)
 	return rrc
 }
 
-// SetNillableApprovalRequired sets the "approval_required" field if the given value is not nil.
-func (rrc *ResourceRunCreate) SetNillableApprovalRequired(b *bool) *ResourceRunCreate {
+// SetNillablePreview sets the "preview" field if the given value is not nil.
+func (rrc *ResourceRunCreate) SetNillablePreview(b *bool) *ResourceRunCreate {
 	if b != nil {
-		rrc.SetApprovalRequired(*b)
+		rrc.SetPreview(*b)
 	}
 	return rrc
 }
@@ -335,9 +335,9 @@ func (rrc *ResourceRunCreate) defaults() error {
 		v := resourcerun.DefaultPreviousRequiredProviders
 		rrc.mutation.SetPreviousRequiredProviders(v)
 	}
-	if _, ok := rrc.mutation.ApprovalRequired(); !ok {
-		v := resourcerun.DefaultApprovalRequired
-		rrc.mutation.SetApprovalRequired(v)
+	if _, ok := rrc.mutation.Preview(); !ok {
+		v := resourcerun.DefaultPreview
+		rrc.mutation.SetPreview(v)
 	}
 	if _, ok := rrc.mutation.Annotations(); !ok {
 		v := resourcerun.DefaultAnnotations
@@ -420,8 +420,8 @@ func (rrc *ResourceRunCreate) check() error {
 	if _, ok := rrc.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New(`model: missing required field "ResourceRun.type"`)}
 	}
-	if _, ok := rrc.mutation.ApprovalRequired(); !ok {
-		return &ValidationError{Name: "approval_required", err: errors.New(`model: missing required field "ResourceRun.approval_required"`)}
+	if _, ok := rrc.mutation.Preview(); !ok {
+		return &ValidationError{Name: "preview", err: errors.New(`model: missing required field "ResourceRun.preview"`)}
 	}
 	if _, ok := rrc.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "ResourceRun.project"`)}
@@ -537,9 +537,9 @@ func (rrc *ResourceRunCreate) createSpec() (*ResourceRun, *sqlgraph.CreateSpec) 
 		_spec.SetField(resourcerun.FieldType, field.TypeString, value)
 		_node.Type = value
 	}
-	if value, ok := rrc.mutation.ApprovalRequired(); ok {
-		_spec.SetField(resourcerun.FieldApprovalRequired, field.TypeBool, value)
-		_node.ApprovalRequired = value
+	if value, ok := rrc.mutation.Preview(); ok {
+		_spec.SetField(resourcerun.FieldPreview, field.TypeBool, value)
+		_node.Preview = value
 	}
 	if value, ok := rrc.mutation.Annotations(); ok {
 		_spec.SetField(resourcerun.FieldAnnotations, field.TypeJSON, value)
@@ -643,7 +643,7 @@ func (rrc *ResourceRunCreate) Set(obj *ResourceRun) *ResourceRunCreate {
 	rrc.SetPreviousRequiredProviders(obj.PreviousRequiredProviders)
 	rrc.SetCreatedBy(obj.CreatedBy)
 	rrc.SetType(obj.Type)
-	rrc.SetApprovalRequired(obj.ApprovalRequired)
+	rrc.SetPreview(obj.Preview)
 
 	// Optional.
 	if obj.CreateTime != nil {
@@ -1249,15 +1249,15 @@ func (u *ResourceRunUpsert) UpdateType() *ResourceRunUpsert {
 	return u
 }
 
-// SetApprovalRequired sets the "approval_required" field.
-func (u *ResourceRunUpsert) SetApprovalRequired(v bool) *ResourceRunUpsert {
-	u.Set(resourcerun.FieldApprovalRequired, v)
+// SetPreview sets the "preview" field.
+func (u *ResourceRunUpsert) SetPreview(v bool) *ResourceRunUpsert {
+	u.Set(resourcerun.FieldPreview, v)
 	return u
 }
 
-// UpdateApprovalRequired sets the "approval_required" field to the value that was provided on create.
-func (u *ResourceRunUpsert) UpdateApprovalRequired() *ResourceRunUpsert {
-	u.SetExcluded(resourcerun.FieldApprovalRequired)
+// UpdatePreview sets the "preview" field to the value that was provided on create.
+func (u *ResourceRunUpsert) UpdatePreview() *ResourceRunUpsert {
+	u.SetExcluded(resourcerun.FieldPreview)
 	return u
 }
 
@@ -1626,17 +1626,17 @@ func (u *ResourceRunUpsertOne) UpdateType() *ResourceRunUpsertOne {
 	})
 }
 
-// SetApprovalRequired sets the "approval_required" field.
-func (u *ResourceRunUpsertOne) SetApprovalRequired(v bool) *ResourceRunUpsertOne {
+// SetPreview sets the "preview" field.
+func (u *ResourceRunUpsertOne) SetPreview(v bool) *ResourceRunUpsertOne {
 	return u.Update(func(s *ResourceRunUpsert) {
-		s.SetApprovalRequired(v)
+		s.SetPreview(v)
 	})
 }
 
-// UpdateApprovalRequired sets the "approval_required" field to the value that was provided on create.
-func (u *ResourceRunUpsertOne) UpdateApprovalRequired() *ResourceRunUpsertOne {
+// UpdatePreview sets the "preview" field to the value that was provided on create.
+func (u *ResourceRunUpsertOne) UpdatePreview() *ResourceRunUpsertOne {
 	return u.Update(func(s *ResourceRunUpsert) {
-		s.UpdateApprovalRequired()
+		s.UpdatePreview()
 	})
 }
 
@@ -2183,17 +2183,17 @@ func (u *ResourceRunUpsertBulk) UpdateType() *ResourceRunUpsertBulk {
 	})
 }
 
-// SetApprovalRequired sets the "approval_required" field.
-func (u *ResourceRunUpsertBulk) SetApprovalRequired(v bool) *ResourceRunUpsertBulk {
+// SetPreview sets the "preview" field.
+func (u *ResourceRunUpsertBulk) SetPreview(v bool) *ResourceRunUpsertBulk {
 	return u.Update(func(s *ResourceRunUpsert) {
-		s.SetApprovalRequired(v)
+		s.SetPreview(v)
 	})
 }
 
-// UpdateApprovalRequired sets the "approval_required" field to the value that was provided on create.
-func (u *ResourceRunUpsertBulk) UpdateApprovalRequired() *ResourceRunUpsertBulk {
+// UpdatePreview sets the "preview" field to the value that was provided on create.
+func (u *ResourceRunUpsertBulk) UpdatePreview() *ResourceRunUpsertBulk {
 	return u.Update(func(s *ResourceRunUpsert) {
-		s.UpdateApprovalRequired()
+		s.UpdatePreview()
 	})
 }
 

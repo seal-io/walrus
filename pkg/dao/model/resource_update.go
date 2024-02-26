@@ -222,6 +222,20 @@ func (ru *ResourceUpdate) ClearEndpoints() *ResourceUpdate {
 	return ru
 }
 
+// SetIsModified sets the "is_modified" field.
+func (ru *ResourceUpdate) SetIsModified(b bool) *ResourceUpdate {
+	ru.mutation.SetIsModified(b)
+	return ru
+}
+
+// SetNillableIsModified sets the "is_modified" field if the given value is not nil.
+func (ru *ResourceUpdate) SetNillableIsModified(b *bool) *ResourceUpdate {
+	if b != nil {
+		ru.SetIsModified(*b)
+	}
+	return ru
+}
+
 // SetTemplate sets the "template" edge to the TemplateVersion entity.
 func (ru *ResourceUpdate) SetTemplate(t *TemplateVersion) *ResourceUpdate {
 	return ru.SetTemplateID(t.ID)
@@ -515,6 +529,7 @@ func (ru *ResourceUpdate) Set(obj *Resource) *ResourceUpdate {
 	} else {
 		ru.ClearEndpoints()
 	}
+	ru.SetIsModified(obj.IsModified)
 
 	// With Default.
 	if obj.UpdateTime != nil {
@@ -597,6 +612,9 @@ func (ru *ResourceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if ru.mutation.EndpointsCleared() {
 		_spec.ClearField(resource.FieldEndpoints, field.TypeJSON)
+	}
+	if value, ok := ru.mutation.IsModified(); ok {
+		_spec.SetField(resource.FieldIsModified, field.TypeBool, value)
 	}
 	if ru.mutation.TemplateCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1063,6 +1081,20 @@ func (ruo *ResourceUpdateOne) ClearEndpoints() *ResourceUpdateOne {
 	return ruo
 }
 
+// SetIsModified sets the "is_modified" field.
+func (ruo *ResourceUpdateOne) SetIsModified(b bool) *ResourceUpdateOne {
+	ruo.mutation.SetIsModified(b)
+	return ruo
+}
+
+// SetNillableIsModified sets the "is_modified" field if the given value is not nil.
+func (ruo *ResourceUpdateOne) SetNillableIsModified(b *bool) *ResourceUpdateOne {
+	if b != nil {
+		ruo.SetIsModified(*b)
+	}
+	return ruo
+}
+
 // SetTemplate sets the "template" edge to the TemplateVersion entity.
 func (ruo *ResourceUpdateOne) SetTemplate(t *TemplateVersion) *ResourceUpdateOne {
 	return ruo.SetTemplateID(t.ID)
@@ -1399,6 +1431,9 @@ func (ruo *ResourceUpdateOne) Set(obj *Resource) *ResourceUpdateOne {
 			} else {
 				ruo.ClearEndpoints()
 			}
+			if db.IsModified != obj.IsModified {
+				ruo.SetIsModified(obj.IsModified)
+			}
 
 			// With Default.
 			if (obj.UpdateTime != nil) && (!reflect.DeepEqual(db.UpdateTime, obj.UpdateTime)) {
@@ -1478,6 +1513,9 @@ func (ruo *ResourceUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context
 		}
 		if _, set := ruo.mutation.Field(resource.FieldEndpoints); set {
 			obj.Endpoints = x.Endpoints
+		}
+		if _, set := ruo.mutation.Field(resource.FieldIsModified); set {
+			obj.IsModified = x.IsModified
 		}
 		obj.Edges = x.Edges
 	}
@@ -1601,6 +1639,9 @@ func (ruo *ResourceUpdateOne) sqlSave(ctx context.Context) (_node *Resource, err
 	}
 	if ruo.mutation.EndpointsCleared() {
 		_spec.ClearField(resource.FieldEndpoints, field.TypeJSON)
+	}
+	if value, ok := ruo.mutation.IsModified(); ok {
+		_spec.SetField(resource.FieldIsModified, field.TypeBool, value)
 	}
 	if ruo.mutation.TemplateCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -62,8 +62,8 @@ const (
 	FieldCreatedBy = "created_by"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
-	// FieldApprovalRequired holds the string denoting the approval_required field in the database.
-	FieldApprovalRequired = "approval_required"
+	// FieldPreview holds the string denoting the preview field in the database.
+	FieldPreview = "preview"
 	// FieldAnnotations holds the string denoting the annotations field in the database.
 	FieldAnnotations = "annotations"
 	// FieldComponentChanges holds the string denoting the component_changes field in the database.
@@ -124,7 +124,7 @@ var Columns = []string{
 	FieldChangeComment,
 	FieldCreatedBy,
 	FieldType,
-	FieldApprovalRequired,
+	FieldPreview,
 	FieldAnnotations,
 	FieldComponentChanges,
 	FieldComponentChangeSummary,
@@ -170,8 +170,8 @@ var (
 	DefaultDuration int
 	// DefaultPreviousRequiredProviders holds the default value on creation for the "previous_required_providers" field.
 	DefaultPreviousRequiredProviders []types.ProviderRequirement
-	// DefaultApprovalRequired holds the default value on creation for the "approval_required" field.
-	DefaultApprovalRequired bool
+	// DefaultPreview holds the default value on creation for the "preview" field.
+	DefaultPreview bool
 	// DefaultAnnotations holds the default value on creation for the "annotations" field.
 	DefaultAnnotations map[string]string
 )
@@ -269,9 +269,9 @@ func ByType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldType, opts...).ToFunc()
 }
 
-// ByApprovalRequired orders the results by the approval_required field.
-func ByApprovalRequired(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldApprovalRequired, opts...).ToFunc()
+// ByPreview orders the results by the preview field.
+func ByPreview(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPreview, opts...).ToFunc()
 }
 
 // ByProjectField orders the results by project field.

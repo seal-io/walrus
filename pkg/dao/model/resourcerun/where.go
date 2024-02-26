@@ -148,9 +148,9 @@ func Type(v string) predicate.ResourceRun {
 	return predicate.ResourceRun(sql.FieldEQ(FieldType, v))
 }
 
-// ApprovalRequired applies equality check predicate on the "approval_required" field. It's identical to ApprovalRequiredEQ.
-func ApprovalRequired(v bool) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldEQ(FieldApprovalRequired, v))
+// Preview applies equality check predicate on the "preview" field. It's identical to PreviewEQ.
+func Preview(v bool) predicate.ResourceRun {
+	return predicate.ResourceRun(sql.FieldEQ(FieldPreview, v))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
@@ -1213,14 +1213,14 @@ func TypeContainsFold(v string) predicate.ResourceRun {
 	return predicate.ResourceRun(sql.FieldContainsFold(FieldType, v))
 }
 
-// ApprovalRequiredEQ applies the EQ predicate on the "approval_required" field.
-func ApprovalRequiredEQ(v bool) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldEQ(FieldApprovalRequired, v))
+// PreviewEQ applies the EQ predicate on the "preview" field.
+func PreviewEQ(v bool) predicate.ResourceRun {
+	return predicate.ResourceRun(sql.FieldEQ(FieldPreview, v))
 }
 
-// ApprovalRequiredNEQ applies the NEQ predicate on the "approval_required" field.
-func ApprovalRequiredNEQ(v bool) predicate.ResourceRun {
-	return predicate.ResourceRun(sql.FieldNEQ(FieldApprovalRequired, v))
+// PreviewNEQ applies the NEQ predicate on the "preview" field.
+func PreviewNEQ(v bool) predicate.ResourceRun {
+	return predicate.ResourceRun(sql.FieldNEQ(FieldPreview, v))
 }
 
 // AnnotationsIsNil applies the IsNil predicate on the "annotations" field.

@@ -10499,6 +10499,7 @@ type ResourceMutation struct {
 	computed_attributes                      *property.Values
 	endpoints                                *types.ResourceEndpoints
 	appendendpoints                          types.ResourceEndpoints
+	is_modified                              *bool
 	clearedFields                            map[string]struct{}
 	project                                  *object.ID
 	clearedproject                           bool
@@ -11365,6 +11366,42 @@ func (m *ResourceMutation) ResetEndpoints() {
 	delete(m.clearedFields, resource.FieldEndpoints)
 }
 
+// SetIsModified sets the "is_modified" field.
+func (m *ResourceMutation) SetIsModified(b bool) {
+	m.is_modified = &b
+}
+
+// IsModified returns the value of the "is_modified" field in the mutation.
+func (m *ResourceMutation) IsModified() (r bool, exists bool) {
+	v := m.is_modified
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsModified returns the old "is_modified" field's value of the Resource entity.
+// If the Resource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceMutation) OldIsModified(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsModified is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsModified requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsModified: %w", err)
+	}
+	return oldValue.IsModified, nil
+}
+
+// ResetIsModified resets all changes to the "is_modified" field.
+func (m *ResourceMutation) ResetIsModified() {
+	m.is_modified = nil
+}
+
 // ClearProject clears the "project" edge to the Project entity.
 func (m *ResourceMutation) ClearProject() {
 	m.clearedproject = true
@@ -11735,7 +11772,7 @@ func (m *ResourceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ResourceMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 17)
 	if m.name != nil {
 		fields = append(fields, resource.FieldName)
 	}
@@ -11784,6 +11821,9 @@ func (m *ResourceMutation) Fields() []string {
 	if m.endpoints != nil {
 		fields = append(fields, resource.FieldEndpoints)
 	}
+	if m.is_modified != nil {
+		fields = append(fields, resource.FieldIsModified)
+	}
 	return fields
 }
 
@@ -11824,6 +11864,8 @@ func (m *ResourceMutation) Field(name string) (ent.Value, bool) {
 		return m.ComputedAttributes()
 	case resource.FieldEndpoints:
 		return m.Endpoints()
+	case resource.FieldIsModified:
+		return m.IsModified()
 	}
 	return nil, false
 }
@@ -11865,6 +11907,8 @@ func (m *ResourceMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldComputedAttributes(ctx)
 	case resource.FieldEndpoints:
 		return m.OldEndpoints(ctx)
+	case resource.FieldIsModified:
+		return m.OldIsModified(ctx)
 	}
 	return nil, fmt.Errorf("unknown Resource field %s", name)
 }
@@ -11985,6 +12029,13 @@ func (m *ResourceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEndpoints(v)
+		return nil
+	case resource.FieldIsModified:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsModified(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Resource field %s", name)
@@ -12151,6 +12202,9 @@ func (m *ResourceMutation) ResetField(name string) error {
 		return nil
 	case resource.FieldEndpoints:
 		m.ResetEndpoints()
+		return nil
+	case resource.FieldIsModified:
+		m.ResetIsModified()
 		return nil
 	}
 	return fmt.Errorf("unknown Resource field %s", name)
@@ -12414,6 +12468,7 @@ type ResourceComponentMutation struct {
 	name                *string
 	deployer_type       *string
 	shape               *string
+	index_key           *string
 	clearedFields       map[string]struct{}
 	project             *object.ID
 	clearedproject      bool
@@ -13088,6 +13143,55 @@ func (m *ResourceComponentMutation) ResetShape() {
 	m.shape = nil
 }
 
+// SetIndexKey sets the "index_key" field.
+func (m *ResourceComponentMutation) SetIndexKey(s string) {
+	m.index_key = &s
+}
+
+// IndexKey returns the value of the "index_key" field in the mutation.
+func (m *ResourceComponentMutation) IndexKey() (r string, exists bool) {
+	v := m.index_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIndexKey returns the old "index_key" field's value of the ResourceComponent entity.
+// If the ResourceComponent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceComponentMutation) OldIndexKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIndexKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIndexKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIndexKey: %w", err)
+	}
+	return oldValue.IndexKey, nil
+}
+
+// ClearIndexKey clears the value of the "index_key" field.
+func (m *ResourceComponentMutation) ClearIndexKey() {
+	m.index_key = nil
+	m.clearedFields[resourcecomponent.FieldIndexKey] = struct{}{}
+}
+
+// IndexKeyCleared returns if the "index_key" field was cleared in this mutation.
+func (m *ResourceComponentMutation) IndexKeyCleared() bool {
+	_, ok := m.clearedFields[resourcecomponent.FieldIndexKey]
+	return ok
+}
+
+// ResetIndexKey resets all changes to the "index_key" field.
+func (m *ResourceComponentMutation) ResetIndexKey() {
+	m.index_key = nil
+	delete(m.clearedFields, resourcecomponent.FieldIndexKey)
+}
+
 // ClearProject clears the "project" edge to the Project entity.
 func (m *ResourceComponentMutation) ClearProject() {
 	m.clearedproject = true
@@ -13446,7 +13550,7 @@ func (m *ResourceComponentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ResourceComponentMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 15)
 	if m.create_time != nil {
 		fields = append(fields, resourcecomponent.FieldCreateTime)
 	}
@@ -13489,6 +13593,9 @@ func (m *ResourceComponentMutation) Fields() []string {
 	if m.shape != nil {
 		fields = append(fields, resourcecomponent.FieldShape)
 	}
+	if m.index_key != nil {
+		fields = append(fields, resourcecomponent.FieldIndexKey)
+	}
 	return fields
 }
 
@@ -13525,6 +13632,8 @@ func (m *ResourceComponentMutation) Field(name string) (ent.Value, bool) {
 		return m.DeployerType()
 	case resourcecomponent.FieldShape:
 		return m.Shape()
+	case resourcecomponent.FieldIndexKey:
+		return m.IndexKey()
 	}
 	return nil, false
 }
@@ -13562,6 +13671,8 @@ func (m *ResourceComponentMutation) OldField(ctx context.Context, name string) (
 		return m.OldDeployerType(ctx)
 	case resourcecomponent.FieldShape:
 		return m.OldShape(ctx)
+	case resourcecomponent.FieldIndexKey:
+		return m.OldIndexKey(ctx)
 	}
 	return nil, fmt.Errorf("unknown ResourceComponent field %s", name)
 }
@@ -13669,6 +13780,13 @@ func (m *ResourceComponentMutation) SetField(name string, value ent.Value) error
 		}
 		m.SetShape(v)
 		return nil
+	case resourcecomponent.FieldIndexKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIndexKey(v)
+		return nil
 	}
 	return fmt.Errorf("unknown ResourceComponent field %s", name)
 }
@@ -13708,6 +13826,9 @@ func (m *ResourceComponentMutation) ClearedFields() []string {
 	if m.FieldCleared(resourcecomponent.FieldClassID) {
 		fields = append(fields, resourcecomponent.FieldClassID)
 	}
+	if m.FieldCleared(resourcecomponent.FieldIndexKey) {
+		fields = append(fields, resourcecomponent.FieldIndexKey)
+	}
 	return fields
 }
 
@@ -13730,6 +13851,9 @@ func (m *ResourceComponentMutation) ClearField(name string) error {
 		return nil
 	case resourcecomponent.FieldClassID:
 		m.ClearClassID()
+		return nil
+	case resourcecomponent.FieldIndexKey:
+		m.ClearIndexKey()
 		return nil
 	}
 	return fmt.Errorf("unknown ResourceComponent nullable field %s", name)
@@ -13780,6 +13904,9 @@ func (m *ResourceComponentMutation) ResetField(name string) error {
 		return nil
 	case resourcecomponent.FieldShape:
 		m.ResetShape()
+		return nil
+	case resourcecomponent.FieldIndexKey:
+		m.ResetIndexKey()
 		return nil
 	}
 	return fmt.Errorf("unknown ResourceComponent field %s", name)
@@ -17357,7 +17484,7 @@ type ResourceRunMutation struct {
 	change_comment                    *string
 	created_by                        *string
 	_type                             *string
-	approval_required                 *bool
+	preview                           *bool
 	annotations                       *map[string]string
 	component_changes                 *[]*types.ResourceComponentChange
 	appendcomponent_changes           []*types.ResourceComponentChange
@@ -18311,40 +18438,40 @@ func (m *ResourceRunMutation) ResetType() {
 	m._type = nil
 }
 
-// SetApprovalRequired sets the "approval_required" field.
-func (m *ResourceRunMutation) SetApprovalRequired(b bool) {
-	m.approval_required = &b
+// SetPreview sets the "preview" field.
+func (m *ResourceRunMutation) SetPreview(b bool) {
+	m.preview = &b
 }
 
-// ApprovalRequired returns the value of the "approval_required" field in the mutation.
-func (m *ResourceRunMutation) ApprovalRequired() (r bool, exists bool) {
-	v := m.approval_required
+// Preview returns the value of the "preview" field in the mutation.
+func (m *ResourceRunMutation) Preview() (r bool, exists bool) {
+	v := m.preview
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldApprovalRequired returns the old "approval_required" field's value of the ResourceRun entity.
+// OldPreview returns the old "preview" field's value of the ResourceRun entity.
 // If the ResourceRun object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ResourceRunMutation) OldApprovalRequired(ctx context.Context) (v bool, err error) {
+func (m *ResourceRunMutation) OldPreview(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldApprovalRequired is only allowed on UpdateOne operations")
+		return v, errors.New("OldPreview is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldApprovalRequired requires an ID field in the mutation")
+		return v, errors.New("OldPreview requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldApprovalRequired: %w", err)
+		return v, fmt.Errorf("querying old value for OldPreview: %w", err)
 	}
-	return oldValue.ApprovalRequired, nil
+	return oldValue.Preview, nil
 }
 
-// ResetApprovalRequired resets all changes to the "approval_required" field.
-func (m *ResourceRunMutation) ResetApprovalRequired() {
-	m.approval_required = nil
+// ResetPreview resets all changes to the "preview" field.
+func (m *ResourceRunMutation) ResetPreview() {
+	m.preview = nil
 }
 
 // SetAnnotations sets the "annotations" field.
@@ -18686,8 +18813,8 @@ func (m *ResourceRunMutation) Fields() []string {
 	if m._type != nil {
 		fields = append(fields, resourcerun.FieldType)
 	}
-	if m.approval_required != nil {
-		fields = append(fields, resourcerun.FieldApprovalRequired)
+	if m.preview != nil {
+		fields = append(fields, resourcerun.FieldPreview)
 	}
 	if m.annotations != nil {
 		fields = append(fields, resourcerun.FieldAnnotations)
@@ -18746,8 +18873,8 @@ func (m *ResourceRunMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedBy()
 	case resourcerun.FieldType:
 		return m.GetType()
-	case resourcerun.FieldApprovalRequired:
-		return m.ApprovalRequired()
+	case resourcerun.FieldPreview:
+		return m.Preview()
 	case resourcerun.FieldAnnotations:
 		return m.Annotations()
 	case resourcerun.FieldComponentChanges:
@@ -18803,8 +18930,8 @@ func (m *ResourceRunMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldCreatedBy(ctx)
 	case resourcerun.FieldType:
 		return m.OldType(ctx)
-	case resourcerun.FieldApprovalRequired:
-		return m.OldApprovalRequired(ctx)
+	case resourcerun.FieldPreview:
+		return m.OldPreview(ctx)
 	case resourcerun.FieldAnnotations:
 		return m.OldAnnotations(ctx)
 	case resourcerun.FieldComponentChanges:
@@ -18960,12 +19087,12 @@ func (m *ResourceRunMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetType(v)
 		return nil
-	case resourcerun.FieldApprovalRequired:
+	case resourcerun.FieldPreview:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetApprovalRequired(v)
+		m.SetPreview(v)
 		return nil
 	case resourcerun.FieldAnnotations:
 		v, ok := value.(map[string]string)
@@ -19169,8 +19296,8 @@ func (m *ResourceRunMutation) ResetField(name string) error {
 	case resourcerun.FieldType:
 		m.ResetType()
 		return nil
-	case resourcerun.FieldApprovalRequired:
-		m.ResetApprovalRequired()
+	case resourcerun.FieldPreview:
+		m.ResetPreview()
 		return nil
 	case resourcerun.FieldAnnotations:
 		m.ResetAnnotations()

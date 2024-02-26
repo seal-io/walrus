@@ -70,8 +70,8 @@ type ResourceRun struct {
 	CreatedBy string `json:"created_by,omitempty"`
 	// Type of the run.
 	Type string `json:"type,omitempty"`
-	// If the run requires approval.
-	ApprovalRequired bool `json:"approval_required,omitempty"`
+	// If the run is preview.
+	Preview bool `json:"preview,omitempty"`
 	// Annotations holds the value of the "annotations" field.
 	Annotations map[string]string `json:"annotations,omitempty"`
 	// Changes of the resource components.
@@ -149,7 +149,7 @@ func (*ResourceRun) scanValues(columns []string) ([]any, error) {
 			values[i] = new(object.ID)
 		case resourcerun.FieldAttributes, resourcerun.FieldComputedAttributes:
 			values[i] = new(property.Values)
-		case resourcerun.FieldApprovalRequired:
+		case resourcerun.FieldPreview:
 			values[i] = new(sql.NullBool)
 		case resourcerun.FieldDuration:
 			values[i] = new(sql.NullInt64)
@@ -305,11 +305,11 @@ func (rr *ResourceRun) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				rr.Type = value.String
 			}
-		case resourcerun.FieldApprovalRequired:
+		case resourcerun.FieldPreview:
 			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field approval_required", values[i])
+				return fmt.Errorf("unexpected type %T for field preview", values[i])
 			} else if value.Valid {
-				rr.ApprovalRequired = value.Bool
+				rr.Preview = value.Bool
 			}
 		case resourcerun.FieldAnnotations:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -447,8 +447,8 @@ func (rr *ResourceRun) String() string {
 	builder.WriteString("type=")
 	builder.WriteString(rr.Type)
 	builder.WriteString(", ")
-	builder.WriteString("approval_required=")
-	builder.WriteString(fmt.Sprintf("%v", rr.ApprovalRequired))
+	builder.WriteString("preview=")
+	builder.WriteString(fmt.Sprintf("%v", rr.Preview))
 	builder.WriteString(", ")
 	builder.WriteString("annotations=")
 	builder.WriteString(fmt.Sprintf("%v", rr.Annotations))
