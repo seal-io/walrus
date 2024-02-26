@@ -91,8 +91,8 @@ func (ResourceRun) Fields() []ent.Field {
 		field.String("type").
 			Comment("Type of the run.").
 			Annotations(entx.SkipInput()),
-		field.Bool("approval_required").
-			Comment("If the run requires approval.").
+		field.Bool("preview").
+			Comment("If the run is preview.").
 			Default(false),
 		field.JSON("annotations", map[string]string{}).
 			Optional().
