@@ -57,6 +57,8 @@ type ResourceComponent struct {
 	DeployerType string `json:"deployer_type,omitempty"`
 	// Shape of the component, it can be class or instance shape.
 	Shape string `json:"shape,omitempty"`
+	// Index key to identify the component instance.
+	IndexKey string `json:"index_key,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ResourceComponentQuery when eager-loading is set.
 	Edges        ResourceComponentEdges `json:"edges,omitempty"`
@@ -206,7 +208,7 @@ func (*ResourceComponent) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case resourcecomponent.FieldID, resourcecomponent.FieldProjectID, resourcecomponent.FieldEnvironmentID, resourcecomponent.FieldResourceID, resourcecomponent.FieldConnectorID, resourcecomponent.FieldCompositionID, resourcecomponent.FieldClassID:
 			values[i] = new(object.ID)
-		case resourcecomponent.FieldMode, resourcecomponent.FieldType, resourcecomponent.FieldName, resourcecomponent.FieldDeployerType, resourcecomponent.FieldShape:
+		case resourcecomponent.FieldMode, resourcecomponent.FieldType, resourcecomponent.FieldName, resourcecomponent.FieldDeployerType, resourcecomponent.FieldShape, resourcecomponent.FieldIndexKey:
 			values[i] = new(sql.NullString)
 		case resourcecomponent.FieldCreateTime, resourcecomponent.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -318,6 +320,12 @@ func (rc *ResourceComponent) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field shape", values[i])
 			} else if value.Valid {
 				rc.Shape = value.String
+			}
+		case resourcecomponent.FieldIndexKey:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field index_key", values[i])
+			} else if value.Valid {
+				rc.IndexKey = value.String
 			}
 		default:
 			rc.selectValues.Set(columns[i], values[i])
@@ -445,6 +453,9 @@ func (rc *ResourceComponent) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("shape=")
 	builder.WriteString(rc.Shape)
+	builder.WriteString(", ")
+	builder.WriteString("index_key=")
+	builder.WriteString(rc.IndexKey)
 	builder.WriteByte(')')
 	return builder.String()
 }

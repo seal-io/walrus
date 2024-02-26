@@ -47,6 +47,8 @@ const (
 	FieldDeployerType = "deployer_type"
 	// FieldShape holds the string denoting the shape field in the database.
 	FieldShape = "shape"
+	// FieldIndexKey holds the string denoting the index_key field in the database.
+	FieldIndexKey = "index_key"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
@@ -137,6 +139,7 @@ var Columns = []string{
 	FieldName,
 	FieldDeployerType,
 	FieldShape,
+	FieldIndexKey,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -254,6 +257,11 @@ func ByDeployerType(opts ...sql.OrderTermOption) OrderOption {
 // ByShape orders the results by the shape field.
 func ByShape(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldShape, opts...).ToFunc()
+}
+
+// ByIndexKey orders the results by the index_key field.
+func ByIndexKey(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIndexKey, opts...).ToFunc()
 }
 
 // ByProjectField orders the results by project field.

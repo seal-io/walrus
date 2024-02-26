@@ -314,6 +314,9 @@ func (rcu *ResourceComponentUpdate) sqlSave(ctx context.Context) (n int, err err
 	if rcu.mutation.StatusCleared() {
 		_spec.ClearField(resourcecomponent.FieldStatus, field.TypeJSON)
 	}
+	if rcu.mutation.IndexKeyCleared() {
+		_spec.ClearField(resourcecomponent.FieldIndexKey, field.TypeString)
+	}
 	if rcu.mutation.ComponentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -873,6 +876,9 @@ func (rcuo *ResourceComponentUpdateOne) sqlSave(ctx context.Context) (_node *Res
 	}
 	if rcuo.mutation.StatusCleared() {
 		_spec.ClearField(resourcecomponent.FieldStatus, field.TypeJSON)
+	}
+	if rcuo.mutation.IndexKeyCleared() {
+		_spec.ClearField(resourcecomponent.FieldIndexKey, field.TypeString)
 	}
 	if rcuo.mutation.ComponentsCleared() {
 		edge := &sqlgraph.EdgeSpec{

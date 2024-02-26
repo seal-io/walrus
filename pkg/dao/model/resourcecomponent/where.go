@@ -126,6 +126,11 @@ func Shape(v string) predicate.ResourceComponent {
 	return predicate.ResourceComponent(sql.FieldEQ(FieldShape, v))
 }
 
+// IndexKey applies equality check predicate on the "index_key" field. It's identical to IndexKeyEQ.
+func IndexKey(v string) predicate.ResourceComponent {
+	return predicate.ResourceComponent(sql.FieldEQ(FieldIndexKey, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.ResourceComponent {
 	return predicate.ResourceComponent(sql.FieldEQ(FieldCreateTime, v))
@@ -979,6 +984,81 @@ func ShapeEqualFold(v string) predicate.ResourceComponent {
 // ShapeContainsFold applies the ContainsFold predicate on the "shape" field.
 func ShapeContainsFold(v string) predicate.ResourceComponent {
 	return predicate.ResourceComponent(sql.FieldContainsFold(FieldShape, v))
+}
+
+// IndexKeyEQ applies the EQ predicate on the "index_key" field.
+func IndexKeyEQ(v string) predicate.ResourceComponent {
+	return predicate.ResourceComponent(sql.FieldEQ(FieldIndexKey, v))
+}
+
+// IndexKeyNEQ applies the NEQ predicate on the "index_key" field.
+func IndexKeyNEQ(v string) predicate.ResourceComponent {
+	return predicate.ResourceComponent(sql.FieldNEQ(FieldIndexKey, v))
+}
+
+// IndexKeyIn applies the In predicate on the "index_key" field.
+func IndexKeyIn(vs ...string) predicate.ResourceComponent {
+	return predicate.ResourceComponent(sql.FieldIn(FieldIndexKey, vs...))
+}
+
+// IndexKeyNotIn applies the NotIn predicate on the "index_key" field.
+func IndexKeyNotIn(vs ...string) predicate.ResourceComponent {
+	return predicate.ResourceComponent(sql.FieldNotIn(FieldIndexKey, vs...))
+}
+
+// IndexKeyGT applies the GT predicate on the "index_key" field.
+func IndexKeyGT(v string) predicate.ResourceComponent {
+	return predicate.ResourceComponent(sql.FieldGT(FieldIndexKey, v))
+}
+
+// IndexKeyGTE applies the GTE predicate on the "index_key" field.
+func IndexKeyGTE(v string) predicate.ResourceComponent {
+	return predicate.ResourceComponent(sql.FieldGTE(FieldIndexKey, v))
+}
+
+// IndexKeyLT applies the LT predicate on the "index_key" field.
+func IndexKeyLT(v string) predicate.ResourceComponent {
+	return predicate.ResourceComponent(sql.FieldLT(FieldIndexKey, v))
+}
+
+// IndexKeyLTE applies the LTE predicate on the "index_key" field.
+func IndexKeyLTE(v string) predicate.ResourceComponent {
+	return predicate.ResourceComponent(sql.FieldLTE(FieldIndexKey, v))
+}
+
+// IndexKeyContains applies the Contains predicate on the "index_key" field.
+func IndexKeyContains(v string) predicate.ResourceComponent {
+	return predicate.ResourceComponent(sql.FieldContains(FieldIndexKey, v))
+}
+
+// IndexKeyHasPrefix applies the HasPrefix predicate on the "index_key" field.
+func IndexKeyHasPrefix(v string) predicate.ResourceComponent {
+	return predicate.ResourceComponent(sql.FieldHasPrefix(FieldIndexKey, v))
+}
+
+// IndexKeyHasSuffix applies the HasSuffix predicate on the "index_key" field.
+func IndexKeyHasSuffix(v string) predicate.ResourceComponent {
+	return predicate.ResourceComponent(sql.FieldHasSuffix(FieldIndexKey, v))
+}
+
+// IndexKeyIsNil applies the IsNil predicate on the "index_key" field.
+func IndexKeyIsNil() predicate.ResourceComponent {
+	return predicate.ResourceComponent(sql.FieldIsNull(FieldIndexKey))
+}
+
+// IndexKeyNotNil applies the NotNil predicate on the "index_key" field.
+func IndexKeyNotNil() predicate.ResourceComponent {
+	return predicate.ResourceComponent(sql.FieldNotNull(FieldIndexKey))
+}
+
+// IndexKeyEqualFold applies the EqualFold predicate on the "index_key" field.
+func IndexKeyEqualFold(v string) predicate.ResourceComponent {
+	return predicate.ResourceComponent(sql.FieldEqualFold(FieldIndexKey, v))
+}
+
+// IndexKeyContainsFold applies the ContainsFold predicate on the "index_key" field.
+func IndexKeyContainsFold(v string) predicate.ResourceComponent {
+	return predicate.ResourceComponent(sql.FieldContainsFold(FieldIndexKey, v))
 }
 
 // HasProject applies the HasEdge predicate on the "project" edge.

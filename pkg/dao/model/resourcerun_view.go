@@ -60,8 +60,8 @@ type ResourceRunCreateInput struct {
 	Record string `path:"-" query:"-" json:"record,omitempty"`
 	// Change comment of the run.
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
-	// If the run requires approval.
-	ApprovalRequired bool `path:"-" query:"-" json:"approvalRequired,omitempty"`
+	// If the run is preview.
+	Preview bool `path:"-" query:"-" json:"preview,omitempty"`
 	// Changes of the resource components.
 	ComponentChanges []*types.ResourceComponentChange `path:"-" query:"-" json:"componentChanges,omitempty"`
 	// Change summary of the resource.
@@ -89,7 +89,7 @@ func (rrci *ResourceRunCreateInput) Model() *ResourceRun {
 		PlanRecord:                rrci.PlanRecord,
 		Record:                    rrci.Record,
 		ChangeComment:             rrci.ChangeComment,
-		ApprovalRequired:          rrci.ApprovalRequired,
+		Preview:                   rrci.Preview,
 		ComponentChanges:          rrci.ComponentChanges,
 		ComponentChangeSummary:    rrci.ComponentChangeSummary,
 	}
@@ -176,8 +176,8 @@ type ResourceRunCreateInputsItem struct {
 	Record string `path:"-" query:"-" json:"record,omitempty"`
 	// Change comment of the run.
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
-	// If the run requires approval.
-	ApprovalRequired bool `path:"-" query:"-" json:"approvalRequired,omitempty"`
+	// If the run is preview.
+	Preview bool `path:"-" query:"-" json:"preview,omitempty"`
 	// Changes of the resource components.
 	ComponentChanges []*types.ResourceComponentChange `path:"-" query:"-" json:"componentChanges,omitempty"`
 	// Change summary of the resource.
@@ -237,7 +237,7 @@ func (rrci *ResourceRunCreateInputs) Model() []*ResourceRun {
 			PlanRecord:                rrci.Items[i].PlanRecord,
 			Record:                    rrci.Items[i].Record,
 			ChangeComment:             rrci.Items[i].ChangeComment,
-			ApprovalRequired:          rrci.Items[i].ApprovalRequired,
+			Preview:                   rrci.Items[i].Preview,
 			ComponentChanges:          rrci.Items[i].ComponentChanges,
 			ComponentChangeSummary:    rrci.Items[i].ComponentChangeSummary,
 		}
@@ -509,8 +509,8 @@ type ResourceRunPatchInput struct {
 	CreatedBy string `path:"-" query:"-" json:"createdBy,omitempty"`
 	// Type of the run.
 	Type string `path:"-" query:"-" json:"type,omitempty"`
-	// If the run requires approval.
-	ApprovalRequired bool `path:"-" query:"-" json:"approvalRequired,omitempty"`
+	// If the run is preview.
+	Preview bool `path:"-" query:"-" json:"preview,omitempty"`
 	// Annotations holds the value of the "annotations" field.
 	Annotations map[string]string `path:"-" query:"-" json:"annotations,omitempty"`
 	// Changes of the resource components.
@@ -545,7 +545,7 @@ func (rrpi *ResourceRunPatchInput) PatchModel() *ResourceRun {
 		ChangeComment:             rrpi.ChangeComment,
 		CreatedBy:                 rrpi.CreatedBy,
 		Type:                      rrpi.Type,
-		ApprovalRequired:          rrpi.ApprovalRequired,
+		Preview:                   rrpi.Preview,
 		Annotations:               rrpi.Annotations,
 		ComponentChanges:          rrpi.ComponentChanges,
 		ComponentChangeSummary:    rrpi.ComponentChangeSummary,
@@ -902,8 +902,8 @@ type ResourceRunUpdateInput struct {
 	Record string `path:"-" query:"-" json:"record,omitempty"`
 	// Change comment of the run.
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
-	// If the run requires approval.
-	ApprovalRequired bool `path:"-" query:"-" json:"approvalRequired,omitempty"`
+	// If the run is preview.
+	Preview bool `path:"-" query:"-" json:"preview,omitempty"`
 	// Changes of the resource components.
 	ComponentChanges []*types.ResourceComponentChange `path:"-" query:"-" json:"componentChanges,omitempty"`
 	// Change summary of the resource.
@@ -930,7 +930,7 @@ func (rrui *ResourceRunUpdateInput) Model() *ResourceRun {
 		PlanRecord:                rrui.PlanRecord,
 		Record:                    rrui.Record,
 		ChangeComment:             rrui.ChangeComment,
-		ApprovalRequired:          rrui.ApprovalRequired,
+		Preview:                   rrui.Preview,
 		ComponentChanges:          rrui.ComponentChanges,
 		ComponentChangeSummary:    rrui.ComponentChangeSummary,
 	}
@@ -987,8 +987,8 @@ type ResourceRunUpdateInputsItem struct {
 	Record string `path:"-" query:"-" json:"record,omitempty"`
 	// Change comment of the run.
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
-	// If the run requires approval.
-	ApprovalRequired bool `path:"-" query:"-" json:"approvalRequired"`
+	// If the run is preview.
+	Preview bool `path:"-" query:"-" json:"preview"`
 	// Changes of the resource components.
 	ComponentChanges []*types.ResourceComponentChange `path:"-" query:"-" json:"componentChanges,omitempty"`
 	// Change summary of the resource.
@@ -1047,7 +1047,7 @@ func (rrui *ResourceRunUpdateInputs) Model() []*ResourceRun {
 			PlanRecord:                rrui.Items[i].PlanRecord,
 			Record:                    rrui.Items[i].Record,
 			ChangeComment:             rrui.Items[i].ChangeComment,
-			ApprovalRequired:          rrui.Items[i].ApprovalRequired,
+			Preview:                   rrui.Items[i].Preview,
 			ComponentChanges:          rrui.Items[i].ComponentChanges,
 			ComponentChangeSummary:    rrui.Items[i].ComponentChangeSummary,
 		}
@@ -1184,7 +1184,7 @@ type ResourceRunOutput struct {
 	ChangeComment             string                               `json:"changeComment,omitempty"`
 	CreatedBy                 string                               `json:"createdBy,omitempty"`
 	Type                      string                               `json:"type,omitempty"`
-	ApprovalRequired          bool                                 `json:"approvalRequired,omitempty"`
+	Preview                   bool                                 `json:"preview,omitempty"`
 	ComponentChanges          []*types.ResourceComponentChange     `json:"componentChanges,omitempty"`
 	ComponentChangeSummary    types.ResourceComponentChangeSummary `json:"componentChangeSummary,omitempty"`
 
@@ -1227,7 +1227,7 @@ func ExposeResourceRun(_rr *ResourceRun) *ResourceRunOutput {
 		ChangeComment:             _rr.ChangeComment,
 		CreatedBy:                 _rr.CreatedBy,
 		Type:                      _rr.Type,
-		ApprovalRequired:          _rr.ApprovalRequired,
+		Preview:                   _rr.Preview,
 		ComponentChanges:          _rr.ComponentChanges,
 		ComponentChangeSummary:    _rr.ComponentChangeSummary,
 	}
