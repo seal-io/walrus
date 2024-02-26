@@ -7,12 +7,12 @@ const (
 const (
 	LabelWalrusProjectName     string = "walrus.seal.io/project-name"
 	LabelWalrusEnvironmentName string = "walrus.seal.io/environment-name"
-	LabelWalrusServiceName     string = "walrus.seal.io/service-name"
+	LabelWalrusResourceName    string = "walrus.seal.io/resource-name"
 	// LabelWalrusEnvironmentPath indicate environment with project name, format: projectName/environmentName.
 	LabelWalrusEnvironmentPath string = "walrus.seal.io/environment-path"
-	// LabelWalrusServicePath indicate service with project name and environment name,
-	// format: projectName/environmentName/serviceName
-	LabelWalrusServicePath string = "walrus.seal.io/service-path"
+	// LabelWalrusResourcePath indicate resource with project name and environment name,
+	// format: projectName/environmentName/resourceName
+	LabelWalrusResourcePath string = "walrus.seal.io/resource-path"
 	// LabelWalrusManaged indicates whether the resource is managed by Seal.
 	LabelWalrusManaged string = "walrus.seal.io/managed"
 	// LabelWalrusCategory indicates the category of the resource.

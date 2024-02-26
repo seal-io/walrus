@@ -54,8 +54,8 @@ type (
 
 		// When draft is true, clone given resources as undeployed draft in target environment.
 		Draft bool `json:"draft,default=false"`
-		// When approvalRequired is true, the resource runs will be planned and wait to be approved.
-		ApprovalRequired bool `json:"approvalRequired,default=false"`
+		// When preview is true, the resource runs will be planned and wait to be approved.
+		Preview bool `json:"preview,default=false"`
 	}
 
 	RouteCloneEnvironmentResponse = model.EnvironmentOutput
@@ -81,8 +81,8 @@ type RouteStopRequest struct {
 	model.EnvironmentQueryInput `path:",inline"`
 
 	stoppableResources model.Resources `json:"-"`
-	// When approvalRequired is true, the resource runs will be planned and wait to be approved.
-	ApprovalRequired bool `json:"approvalRequired,default=false"`
+	// When preview is true, the resource runs will be planned and wait to be approved.
+	Preview bool `json:"preview,default=false"`
 }
 
 func (r *RouteStopRequest) Validate() error {
@@ -153,8 +153,8 @@ type RouteStartRequest struct {
 	_ struct{} `route:"POST=/start"`
 
 	model.EnvironmentQueryInput `path:",inline"`
-	// When approvalRequired is true, the resource runs will be planned and wait to be approved.
-	ApprovalRequired bool `json:"approvalRequired,default=false"`
+	// When preview is true, the resource runs will be planned and wait to be approved.
+	Preview bool `json:"preview,default=false"`
 }
 
 func (r *RouteStartRequest) Validate() error {

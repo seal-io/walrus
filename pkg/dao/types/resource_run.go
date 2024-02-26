@@ -26,7 +26,7 @@ const (
 
 const (
 	RunTypeCreate   RunType = "create"
-	RunTypeUpgrade  RunType = "upgrade"
+	RunTypeUpdate   RunType = "update"
 	RunTypeDelete   RunType = "delete"
 	RunTypeStart    RunType = "start"
 	RunTypeStop     RunType = "stop"

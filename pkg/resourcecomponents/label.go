@@ -53,7 +53,7 @@ func Label(
 		ls := map[string]string{
 			types.LabelWalrusProjectName:     edges.Project.Name,
 			types.LabelWalrusEnvironmentName: edges.Environment.Name,
-			types.LabelWalrusServiceName:     edges.Resource.Name,
+			types.LabelWalrusResourceName:    edges.Resource.Name,
 		}
 
 		err := op.Label(ctx, candidates[i], ls)

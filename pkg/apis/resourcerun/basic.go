@@ -55,7 +55,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 	if req.Rollback {
 		query.Where(resourcerun.TypeIn(
 			types.RunTypeCreate.String(),
-			types.RunTypeUpgrade.String(),
+			types.RunTypeUpdate.String(),
 		))
 	}
 

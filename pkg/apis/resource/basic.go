@@ -32,10 +32,10 @@ func (h Handler) Create(req CreateRequest) (*CreateResponse, error) {
 		h.modelClient,
 		entity,
 		pkgresource.Options{
-			Deployer:            dp,
-			ChangeComment:       req.ChangeComment,
-			Draft:               req.Draft,
-			RunApprovalRequired: req.ApprovalRequired,
+			Deployer:      dp,
+			ChangeComment: req.ChangeComment,
+			Draft:         req.Draft,
+			Preview:       req.Preview,
 		},
 	)
 
@@ -89,8 +89,8 @@ func (h Handler) Delete(req DeleteRequest) (err error) {
 
 	deleteOptions := pkgresource.DeleteOptions{
 		Options: pkgresource.Options{
-			Deployer:            dp,
-			RunApprovalRequired: req.ApprovalRequired,
+			Deployer: dp,
+			Preview:  req.Preview,
 		},
 		WithoutCleanup: req.WithoutCleanup,
 	}
@@ -111,10 +111,10 @@ func (h Handler) Patch(req PatchRequest) (*PatchResponse, error) {
 	}
 
 	run, err := pkgresource.Upgrade(req.Context, h.modelClient, entity, pkgresource.Options{
-		Deployer:            dp,
-		ChangeComment:       req.ChangeComment,
-		Draft:               req.Draft,
-		RunApprovalRequired: req.ApprovalRequired,
+		Deployer:      dp,
+		ChangeComment: req.ChangeComment,
+		Draft:         req.Draft,
+		Preview:       req.Preview,
 	})
 	if err != nil {
 		return nil, err
@@ -135,9 +135,9 @@ func (h Handler) CollectionCreate(req CollectionCreateRequest) (CollectionCreate
 	}
 
 	entities, err = pkgresource.CollectionCreate(req.Context, h.modelClient, entities, pkgresource.Options{
-		Deployer:            dp,
-		Draft:               req.Draft,
-		RunApprovalRequired: req.ApprovalRequired,
+		Deployer: dp,
+		Draft:    req.Draft,
+		Preview:  req.Preview,
 	})
 	if err != nil {
 		return nil, err
@@ -318,8 +318,8 @@ func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 
 	return pkgresource.CollectionDelete(req.Context, h.modelClient, resources, pkgresource.DeleteOptions{
 		Options: pkgresource.Options{
-			Deployer:            dp,
-			RunApprovalRequired: req.ApprovalRequired,
+			Deployer: dp,
+			Preview:  req.Preview,
 		},
 		WithoutCleanup: req.WithoutCleanup,
 	})

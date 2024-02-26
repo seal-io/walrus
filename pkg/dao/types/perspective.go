@@ -91,7 +91,7 @@ const (
 	FilterFieldEnvironmentPath = FilterField("label:" + LabelWalrusEnvironmentPath)
 
 	// FilterFieldServicePath is "label:seal.io/service-name".
-	FilterFieldServicePath = FilterField("label:" + LabelWalrusServicePath)
+	FilterFieldServicePath = FilterField("label:" + LabelWalrusResourcePath)
 )
 
 func (f *FilterField) IsLabel() bool {
@@ -129,12 +129,12 @@ const (
 		"label:" + LabelWalrusEnvironmentName,
 	) // "label:walrus.seal.io/environment-name".
 	GroupByFieldService = GroupByField(
-		"label:" + LabelWalrusServiceName,
-	) // "label:walrus.seal.io/service-name".
+		"label:" + LabelWalrusResourceName,
+	) // "label:walrus.seal.io/resource-name".
 	GroupByFieldEnvironmentPath = GroupByField(
 		"label:" + LabelWalrusEnvironmentPath,
 	) // "label:walrus.seal.io/environment-path".
-	GroupByFieldServicePath = GroupByField("label:" + LabelWalrusServicePath) // "label:walrus.seal.io/service-path".
+	GroupByFieldServicePath = GroupByField("label:" + LabelWalrusResourcePath) // "label:walrus.seal.io/service-path".
 )
 
 func (f *GroupByField) IsLabel() bool {

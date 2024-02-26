@@ -37,8 +37,8 @@ type Options struct {
 
 	// RunType The type of the resource run.
 	RunType types.RunType
-	// RunApprovalRequired if the resource run requires approval.
-	RunApprovalRequired bool
+	// Preview if the resource run requires preview.
+	Preview bool
 	// ChangeComment of the resource run.
 	ChangeComment string
 }
@@ -102,11 +102,11 @@ func Create(
 
 		// Create resource run.
 		run, err = pkgrun.Create(ctx, tx, pkgrun.CreateOptions{
-			ResourceID:       entity.ID,
-			DeployerType:     opts.Deployer.Type(),
-			Type:             types.RunTypeCreate,
-			ChangeComment:    opts.ChangeComment,
-			ApprovalRequired: opts.RunApprovalRequired,
+			ResourceID:    entity.ID,
+			DeployerType:  opts.Deployer.Type(),
+			Type:          types.RunTypeCreate,
+			ChangeComment: opts.ChangeComment,
+			Preview:       opts.Preview,
 		})
 
 		return err
@@ -139,7 +139,7 @@ func Upgrade(
 	entity *model.Resource,
 	opts Options,
 ) (*model.ResourceRun, error) {
-	opts.RunType = types.RunTypeUpgrade
+	opts.RunType = types.RunTypeUpdate
 	return upgrade(ctx, mc, entity, opts)
 }
 
@@ -191,11 +191,11 @@ func Delete(ctx context.Context, mc model.ClientSet, entity *model.Resource, opt
 	defer errorHandler(mc, entity, run, status.ResourceStatusDeleted, err)
 
 	run, err = pkgrun.Create(ctx, mc, pkgrun.CreateOptions{
-		ResourceID:       entity.ID,
-		DeployerType:     opts.Deployer.Type(),
-		Type:             types.RunTypeDelete,
-		ChangeComment:    opts.ChangeComment,
-		ApprovalRequired: opts.RunApprovalRequired,
+		ResourceID:    entity.ID,
+		DeployerType:  opts.Deployer.Type(),
+		Type:          types.RunTypeDelete,
+		ChangeComment: opts.ChangeComment,
+		Preview:       opts.Preview,
 	})
 	if err != nil {
 		return err
@@ -284,11 +284,11 @@ func upgrade(
 	defer errorHandler(mc, entity, run, status.ResourceStatusDeployed, err)
 
 	run, err = pkgrun.Create(ctx, mc, pkgrun.CreateOptions{
-		ResourceID:       entity.ID,
-		DeployerType:     opts.Deployer.Type(),
-		Type:             opts.RunType,
-		ChangeComment:    opts.ChangeComment,
-		ApprovalRequired: opts.RunApprovalRequired,
+		ResourceID:    entity.ID,
+		DeployerType:  opts.Deployer.Type(),
+		Type:          opts.RunType,
+		ChangeComment: opts.ChangeComment,
+		Preview:       opts.Preview,
 	})
 	if err != nil {
 		return nil, err
@@ -356,11 +356,11 @@ func Stop(ctx context.Context, mc model.ClientSet, entity *model.Resource, opts 
 	defer errorHandler(mc, entity, run, status.ResourceStatusStopped, err)
 
 	run, err = pkgrun.Create(ctx, mc, pkgrun.CreateOptions{
-		ResourceID:       entity.ID,
-		DeployerType:     opts.Deployer.Type(),
-		Type:             types.RunTypeStop,
-		ChangeComment:    opts.ChangeComment,
-		ApprovalRequired: opts.RunApprovalRequired,
+		ResourceID:    entity.ID,
+		DeployerType:  opts.Deployer.Type(),
+		Type:          types.RunTypeStop,
+		ChangeComment: opts.ChangeComment,
+		Preview:       opts.Preview,
 	})
 	if err != nil {
 		return err
@@ -434,11 +434,11 @@ func Rollback(ctx context.Context, mc model.ClientSet, resourceID, runID object.
 
 	// Create resource run.
 	run, err = pkgrun.Create(ctx, mc, pkgrun.CreateOptions{
-		ResourceID:       entity.ID,
-		DeployerType:     opts.Deployer.Type(),
-		Type:             types.RunTypeRollback,
-		ChangeComment:    opts.ChangeComment,
-		ApprovalRequired: opts.RunApprovalRequired,
+		ResourceID:    entity.ID,
+		DeployerType:  opts.Deployer.Type(),
+		Type:          types.RunTypeRollback,
+		ChangeComment: opts.ChangeComment,
+		Preview:       opts.Preview,
 	})
 	if err != nil {
 		return err
@@ -468,7 +468,7 @@ func CollectionUpgrade(ctx context.Context, mc model.ClientSet, entities model.R
 		return err
 	}
 
-	opts.RunType = types.RunTypeUpgrade
+	opts.RunType = types.RunTypeUpdate
 
 	for envID := range groupedResources {
 		envResources, err := TopologicalSortResources(groupedResources[envID])

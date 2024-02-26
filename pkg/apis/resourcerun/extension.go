@@ -658,6 +658,16 @@ func (h Handler) RouteSetPlan(req RouteSetPlanRequest) error {
 		return err
 	}
 
+	runPlanChanges.ResourceComponentChanges, err = resourcecomponents.FilterResourceComponentChange(
+		req.Context,
+		h.modelClient,
+		run.ResourceID,
+		runPlanChanges.ResourceComponentChanges,
+	)
+	if err != nil {
+		return err
+	}
+
 	run.ComponentChangeSummary = runPlanChanges.GetResourceChangeSummary()
 	run.ComponentChanges = runPlanChanges.ResourceComponentChanges
 

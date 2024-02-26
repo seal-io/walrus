@@ -662,10 +662,10 @@ func testAc(name string, startTime time.Time, totalCost float64, conn *model.Con
 			testLabelEnv: env,
 
 			// Original labels.
-			types.LabelWalrusServiceName:     name,
+			types.LabelWalrusResourceName:    name,
 			types.LabelWalrusEnvironmentName: env,
 			types.LabelWalrusProjectName:     projName,
-			types.LabelWalrusServicePath:     fmt.Sprintf("%s/%s/%s", projName, env, name),
+			types.LabelWalrusResourcePath:    fmt.Sprintf("%s/%s/%s", projName, env, name),
 			types.LabelWalrusEnvironmentPath: fmt.Sprintf("%s/%s", projName, env),
 		},
 
