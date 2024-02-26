@@ -16,7 +16,7 @@ type (
 	CreateRequest struct {
 		model.EnvironmentCreateInput `path:",inline" json:",inline"`
 
-		ApprovalRequired bool `json:"approvalRequired,default=false"`
+		Preview bool `json:"preview,default=false"`
 	}
 
 	CreateResponse = *model.EnvironmentOutput

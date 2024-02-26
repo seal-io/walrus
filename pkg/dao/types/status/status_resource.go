@@ -3,7 +3,6 @@ package status
 const (
 	ResourceStatusUnDeployed  ConditionType = "Undeployed"
 	ResourceStatusStopped     ConditionType = "Stopped"
-	ResourceStatusPlanned     ConditionType = "Planned"
 	ResourceStatusDeployed    ConditionType = "Deployed"
 	ResourceStatusDeleted     ConditionType = "Deleted"
 	ResourceStatusReady       ConditionType = "Ready"
@@ -40,7 +39,6 @@ var resourceStatusPaths = NewWalker(
 		{
 			ResourceStatusDeleted,
 			ResourceStatusProgressing,
-			ResourceStatusPlanned,
 			ResourceStatusDeployed,
 			ResourceStatusUnDeployed,
 			ResourceStatusStopped,

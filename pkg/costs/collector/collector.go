@@ -31,7 +31,7 @@ var (
 	labelMapping = map[string]string{
 		"walrus_seal_io_project_name":     types.LabelWalrusProjectName,
 		"walrus_seal_io_environment_name": types.LabelWalrusEnvironmentName,
-		"walrus_seal_io_service_name":     types.LabelWalrusServiceName,
+		"walrus_seal_io_service_name":     types.LabelWalrusResourceName,
 	}
 )
 
@@ -298,11 +298,11 @@ func toLabels(origin map[string]string) map[string]string {
 
 	proj, ok1 := labels[types.LabelWalrusProjectName]
 	env, ok2 := labels[types.LabelWalrusEnvironmentName]
-	svc, ok3 := labels[types.LabelWalrusServiceName]
+	svc, ok3 := labels[types.LabelWalrusResourceName]
 
 	if ok1 && ok2 && ok3 {
 		labels[types.LabelWalrusEnvironmentPath] = fmt.Sprintf("%s/%s", proj, env)
-		labels[types.LabelWalrusServicePath] = fmt.Sprintf("%s/%s/%s", proj, env, svc)
+		labels[types.LabelWalrusResourcePath] = fmt.Sprintf("%s/%s/%s", proj, env, svc)
 	}
 
 	return labels

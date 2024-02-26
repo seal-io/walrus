@@ -58,7 +58,7 @@ func (s syncer) Do(ctx context.Context, bm runbus.BusMessage) (err error) {
 
 	switch {
 	case runstatus.IsStatusPlanned(run):
-		if !run.ApprovalRequired {
+		if !run.Preview {
 			err = PerformRunJob(ctx, mc, dp, run)
 			if err != nil {
 				return err

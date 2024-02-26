@@ -37,9 +37,9 @@ type (
 	CreateRequest struct {
 		model.ResourceCreateInput `path:",inline" json:",inline"`
 
-		Draft            bool   `json:"draft,default=false"`
-		ApprovalRequired bool   `json:"approvalRequired,default=false"`
-		ChangeComment    string `json:"changeComment,omitempty"`
+		Draft         bool   `json:"draft,default=false"`
+		Preview       bool   `json:"preview,default=false"`
+		ChangeComment string `json:"changeComment,omitempty"`
 	}
 
 	CreateResponse struct {
@@ -62,8 +62,8 @@ type (
 type DeleteRequest struct {
 	model.ResourceDeleteInput `path:",inline"`
 
-	WithoutCleanup   bool `query:"withoutCleanup,omitempty"`
-	ApprovalRequired bool `query:"approvalRequired,omitempty"`
+	WithoutCleanup bool `query:"withoutCleanup,omitempty"`
+	Preview        bool `query:"preview,omitempty"`
 }
 
 func (r *DeleteRequest) Validate() error {
@@ -101,9 +101,9 @@ type (
 	PatchRequest struct {
 		model.ResourcePatchInput `path:",inline" json:",inline"`
 
-		Draft            bool   `json:"draft,default=false"`
-		ChangeComment    string `json:"changeComment,omitempty"`
-		ApprovalRequired bool   `json:"approvalRequired,default=false"`
+		Draft         bool   `json:"draft,default=false"`
+		ChangeComment string `json:"changeComment,omitempty"`
+		Preview       bool   `json:"preview,default=false"`
 	}
 
 	PatchResponse struct {
@@ -247,8 +247,8 @@ type (
 	CollectionCreateRequest struct {
 		model.ResourceCreateInputs `path:",inline" json:",inline"`
 
-		Draft            bool `json:"draft,default=false"`
-		ApprovalRequired bool `json:"approvalRequired,default=false"`
+		Draft   bool `json:"draft,default=false"`
+		Preview bool `json:"preview,default=false"`
 	}
 
 	CollectionCreateResponse = []*model.ResourceOutput
@@ -425,8 +425,8 @@ func (r *CollectionGetRequest) SetStream(stream runtime.RequestUnidiStream) {
 type CollectionDeleteRequest struct {
 	model.ResourceDeleteInputs `path:",inline" json:",inline"`
 
-	WithoutCleanup   bool `query:"withoutCleanup,omitempty"`
-	ApprovalRequired bool `query:"approvalRequired,omitempty"`
+	WithoutCleanup bool `query:"withoutCleanup,omitempty"`
+	Preview        bool `query:"preview,omitempty"`
 }
 
 func (r *CollectionDeleteRequest) Validate() error {

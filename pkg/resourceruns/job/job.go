@@ -10,11 +10,17 @@ import (
 	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
 	runstatus "github.com/seal-io/walrus/pkg/resourceruns/status"
 	resstatus "github.com/seal-io/walrus/pkg/resources/status"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 // PerformRunJob performs the run job by the given run.
 // Depending on the run type and status, the deployer will perform different actions.
 func PerformRunJob(ctx context.Context, mc model.ClientSet, dp deptypes.Deployer, run *model.ResourceRun) error {
+	if status.ResourceRunStatusCanceled.IsTrue(run) {
+		log.WithName("resourceruns.job").Info("run job is canceled", "run:", run.ID)
+		return nil
+	}
+
 	runJobType, err := GetRunJobType(run)
 	if err != nil {
 		return err
@@ -30,6 +36,7 @@ func PerformRunJob(ctx context.Context, mc model.ClientSet, dp deptypes.Deployer
 			return err
 		}
 
+		res.IsModified = false
 		status.ResourceStatusDeployed.Reset(res, "")
 
 		if err = resstatus.UpdateStatus(ctx, mc, res); err != nil {
@@ -42,6 +49,7 @@ func PerformRunJob(ctx context.Context, mc model.ClientSet, dp deptypes.Deployer
 		if err != nil {
 			return err
 		}
+		res.IsModified = false
 		// Mark resource status as destroying.（stop or delete）.
 		switch types.RunType(run.Type) {
 		case types.RunTypeStop:
@@ -84,7 +92,7 @@ func GetRunJobType(run *model.ResourceRun) (types.RunJobType, error) {
 
 	if runstatus.IsStatusPlanned(run) {
 		switch types.RunType(run.Type) {
-		case types.RunTypeCreate, types.RunTypeUpgrade, types.RunTypeStart, types.RunTypeRollback:
+		case types.RunTypeCreate, types.RunTypeUpdate, types.RunTypeStart, types.RunTypeRollback:
 			return types.RunTaskTypeApply, nil
 		case types.RunTypeDelete, types.RunTypeStop:
 			return types.RunTaskTypeDestroy, nil

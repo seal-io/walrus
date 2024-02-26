@@ -29,6 +29,7 @@ func (h Handler) RouteUpgrade(req RouteUpgradeRequest) (*RouteUpgradeResponse, e
 		Deployer:      dp,
 		ChangeComment: req.ChangeComment,
 		Draft:         req.Draft,
+		Preview:       req.Preview,
 	})
 	if err != nil {
 		return nil, err

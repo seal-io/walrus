@@ -41,10 +41,10 @@ type (
 
 		model.ResourceUpdateInput `path:",inline" json:",inline"`
 
-		Draft            bool   `json:"draft,default=false"`
-		ChangeComment    string `json:"changeComment,omitempty"`
-		ReuseAttributes  bool   `json:"reuseAttributes,default=false"`
-		ApprovalRequired bool   `json:"approvalRequired,default=false"`
+		Draft           bool   `json:"draft,default=false"`
+		ChangeComment   string `json:"changeComment,omitempty"`
+		ReuseAttributes bool   `json:"reuseAttributes,default=false"`
+		Preview         bool   `json:"preview,default=false"`
 	}
 
 	RouteUpgradeResponse struct {
@@ -212,8 +212,8 @@ type RouteRollbackRequest struct {
 
 	RunID object.ID `query:"runID"`
 
-	ChangeComment    string `json:"changeComment"`
-	ApprovalRequired bool   `json:"approvalRequired,default=false"`
+	ChangeComment string `json:"changeComment"`
+	Preview       bool   `json:"preview,default=false"`
 }
 
 func (r *RouteRollbackRequest) Validate() error {
@@ -242,8 +242,8 @@ type RouteStopRequest struct {
 
 	model.ResourceDeleteInput `path:",inline"`
 
-	ChangeComment    string `json:"changeComment"`
-	ApprovalRequired bool   `json:"approvalRequired,default=false"`
+	ChangeComment string `json:"changeComment"`
+	Preview       bool   `json:"preview,default=false"`
 }
 
 func (r *RouteStopRequest) Validate() error {
@@ -315,8 +315,8 @@ type (
 
 		model.ResourceQueryInput `path:",inline"`
 
-		ChangeComment    string `json:"changeComment"`
-		ApprovalRequired bool   `json:"approvalRequired,default=false"`
+		ChangeComment string `json:"changeComment"`
+		Preview       bool   `json:"preview,default=false"`
 
 		resource *model.Resource `json:"-"`
 	}
@@ -429,8 +429,8 @@ type CollectionRouteStartRequest struct {
 
 	StartInputs `path:",inline" json:",inline"`
 
-	ChangeComment    string `json:"changeComment"`
-	ApprovalRequired bool   `json:"approvalRequired,default=false"`
+	ChangeComment string `json:"changeComment"`
+	Preview       bool   `json:"preview,default=false"`
 
 	Resources []*model.Resource `json:"-"`
 }
@@ -482,8 +482,8 @@ type CollectionRouteStopRequest struct {
 
 	model.ResourceDeleteInputs `path:",inline" json:",inline"`
 
-	ChangeComment    string `json:"changeComment"`
-	ApprovalRequired bool   `json:"approvalRequired,default=false"`
+	ChangeComment string `json:"changeComment"`
+	Preview       bool   `json:"preview,default=false"`
 
 	Resources []*model.Resource `json:"-"`
 }
@@ -510,10 +510,10 @@ type CollectionRouteUpgradeRequest struct {
 
 	model.ResourceUpdateInputs `path:",inline" json:",inline"`
 
-	ChangeComment    string `json:"changeComment"`
-	Draft            bool   `json:"draft,default=false"`
-	ReuseAttributes  bool   `json:"reuseAttributes,default=false"`
-	ApprovalRequired bool   `json:"approvalRequired,default=false"`
+	ChangeComment   string `json:"changeComment"`
+	Draft           bool   `json:"draft,default=false"`
+	ReuseAttributes bool   `json:"reuseAttributes,default=false"`
+	Preview         bool   `json:"preview,default=false"`
 }
 
 func (r *CollectionRouteUpgradeRequest) Validate() error {

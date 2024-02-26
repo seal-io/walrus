@@ -43,8 +43,8 @@ type CreateOptions struct {
 	// ChangeComment is the comment of the change.
 	ChangeComment string
 
-	// ApprovalRequired is the run need approval.
-	ApprovalRequired bool
+	// Preview is the run need preview.
+	Preview bool
 }
 
 // Create creates a resource run.
@@ -157,7 +157,7 @@ func Create(ctx context.Context, mc model.ClientSet, opts CreateOptions) (*model
 		CreatedBy:          userSubject.Name,
 		ChangeComment:      opts.ChangeComment,
 		Type:               opts.Type.String(),
-		ApprovalRequired:   opts.ApprovalRequired,
+		Preview:            opts.Preview,
 	}
 
 	status.ResourceRunStatusPending.Unknown(entity, "")
@@ -168,7 +168,7 @@ func Create(ctx context.Context, mc model.ClientSet, opts CreateOptions) (*model
 	if prevEntity != nil && output != "" {
 		switch {
 		case opts.Type == types.RunTypeCreate ||
-			opts.Type == types.RunTypeUpgrade ||
+			opts.Type == types.RunTypeUpdate ||
 			opts.Type == types.RunTypeStart ||
 			opts.Type == types.RunTypeRollback:
 			// Get required providers from the previous output after first deployment.
@@ -213,6 +213,17 @@ func Create(ctx context.Context, mc model.ClientSet, opts CreateOptions) (*model
 		Save(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	// Cancel the previous planed run if new run is created.
+	if prevEntity != nil && prevEntity.Status.SummaryStatus == string(status.ResourceRunStatusPlanned) {
+		status.ResourceRunStatusCanceled.Reset(prevEntity, "canceled by new run")
+		entity.Status.SetSummary(status.WalkResourceRun(&prevEntity.Status))
+
+		_, err = runstatus.UpdateStatus(ctx, mc, prevEntity)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return entity, nil
