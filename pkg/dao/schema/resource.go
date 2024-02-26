@@ -85,6 +85,11 @@ func (Resource) Fields() []ent.Field {
 			Comment("Endpoints of the resource.").
 			Optional().
 			StructTag(`json:"endpoints,omitempty,cli-table-column"`),
+		field.Bool("is_modified").
+			Comment("Whether the resource is modified.").
+			Default(false).
+			Annotations(
+				entx.SkipInput()),
 	}
 }
 

@@ -84,6 +84,13 @@ func (ResourceComponent) Fields() []ent.Field {
 			Annotations(
 				entx.SkipInput(),
 				entx.SkipStoringField()),
+		field.String("index_key").
+			Comment("Index key to identify the component instance.").
+			Optional().
+			Immutable().
+			Annotations(
+				entx.SkipInput(),
+			),
 	}
 }
 
