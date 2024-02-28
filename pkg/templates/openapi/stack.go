@@ -39,6 +39,7 @@ type Node interface {
 	GetParentID() string
 	Children() []Node
 	GetDefault() any
+	GetSchema() openapi3.Schema
 }
 
 // DefaultPatchNode is a implement of Node to generate default value tree.
@@ -56,12 +57,7 @@ func (n *DefaultPatchNode) GetID() string {
 
 // GetParentID returns the id of the ancestor nodes.
 func (n *DefaultPatchNode) GetParentID() string {
-	arr := strings.Split(n.id, ".")
-	if len(arr) < 2 {
-		return ""
-	}
-
-	return strings.Join(arr[:len(arr)-1], ".")
+	return getParentID(n.id)
 }
 
 // Children returns the children of the node.
@@ -80,18 +76,24 @@ func (n *DefaultPatchNode) Children() []Node {
 			children = append(children, sdn)
 		}
 
-		return children
-	case openapi3.TypeArray:
-		if n.Default == nil {
-			return nil
+		if propSchema := n.Schema.AdditionalProperties.Schema; propSchema != nil {
+			children = append(children, &DefaultPatchNode{
+				Schema: propSchema.Value,
+				id:     getID(n.GetID(), "*"),
+			})
 		}
 
-		return []Node{
-			&DefaultPatchNode{
-				Schema: n.Schema.Items.Value,
-				id:     n.GetID() + ".0",
-				def:    n.Default,
-			},
+		return children
+	case openapi3.TypeArray:
+		switch n.Schema.Items.Value.Type {
+		case openapi3.TypeArray, openapi3.TypeObject:
+			return []Node{
+				&DefaultPatchNode{
+					Schema: n.Schema.Items.Value,
+					id:     getID(n.GetID(), "*"),
+					def:    n.Schema.Items.Value.Default,
+				},
+			}
 		}
 	}
 
@@ -103,10 +105,32 @@ func (n *DefaultPatchNode) GetDefault() any {
 	return n.def
 }
 
+// GetSchema returns the schema of the node.
+func (n *DefaultPatchNode) GetSchema() openapi3.Schema {
+	return *n.Schema
+}
+
 func getID(pid, cid string) string {
 	if pid != "" {
 		return pid + "." + cid
 	}
 
 	return cid
+}
+
+func getParentID(cid string) string {
+	arr := strings.Split(cid, ".")
+	if len(arr) < 2 {
+		return ""
+	}
+
+	return strings.Join(arr[:len(arr)-1], ".")
+}
+
+func getLastName(cid string) string {
+	arr := strings.Split(cid, ".")
+	if len(arr) <= 1 {
+		return cid
+	}
+	return arr[len(arr)-1]
 }

@@ -1,12 +1,44 @@
 {
-  "list_object_with_default_and_nest_object": [
+  "list_object_with_default": [
     {
-      "age": 23,
+      "age": 30,
       "email": {
-        "address": "bob",
-        "domain": "example.com"
+        "address": "bob_input_default",
+        "domain": "bob_input_default.com"
       },
-      "name": "Bob"
+      "name": "Bob Input Default"
+    }
+  ],
+  "list_object_with_default2": [
+    {
+      "age": 30,
+      "email": {
+        "address": "bob_input_default",
+        "domain": "bob_input_default.com"
+      },
+      "name": "Bob Input Default"
+    }
+  ],
+  "list_map_object": [
+    {
+      "a": {
+        "age": 30,
+        "email": {
+          "address": "amy_input_default_nest",
+          "domain": "amy_input_default_nest.com"
+        },
+        "name": "Amy"
+      }
+    },
+    {
+      "b": {
+        "age": 30,
+        "email": {
+          "address": "mia_input_default_nest",
+          "domain": "mia_input_default_nest.com"
+        },
+        "name": "Mia"
+      }
     }
   ]
 }

@@ -3,15 +3,18 @@ package openapi
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/spyzhov/ajson"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 
 	"github.com/seal-io/walrus/pkg/dao/types/property"
 	"github.com/seal-io/walrus/utils/gopool"
+	"github.com/seal-io/walrus/utils/json"
 )
 
 type patchResult struct {
@@ -21,7 +24,7 @@ type patchResult struct {
 }
 
 // GenSchemaDefaultPatch generates the default patch for the variable schema.
-// The input root schema type should be object.
+// The input root schema type should be object type.
 func GenSchemaDefaultPatch(ctx context.Context, schema *openapi3.Schema) ([]byte, error) {
 	if schema == nil || schema.IsEmpty() {
 		return nil, nil
@@ -43,100 +46,11 @@ func GenSchemaDefaultPatch(ctx context.Context, schema *openapi3.Schema) ([]byte
 		name := gn
 
 		gopool.Go(func() {
-			switch {
-			default:
-				// 3.1 No node found.
-				resultChan <- patchResult{
-					group: name,
-				}
-			case len(nodes) == 1:
-				// 3.1 Root node without sub nodes will set default and return.
-				def := nodes[0].GetDefault()
-				if def == nil {
-					resultChan <- patchResult{
-						group: name,
-					}
-
-					return
-				}
-
-				// 3.2 Generate patch for the node.
-				p, err := sjson.SetBytes([]byte{}, nodes[0].GetID(), def)
-				if err != nil {
-					resultChan <- patchResult{
-						group: name,
-						err:   fmt.Errorf("set patch node error for %s %s: %w", nodes[0].GetID(), string(p), err),
-					}
-
-					return
-				}
-
-				resultChan <- patchResult{
-					group: name,
-					patch: p,
-				}
-			case len(nodes) > 1:
-				// 3.1 Root node with sub nodes will apply patch in priority root > sub nodes.
-				if nodes[0].GetDefault() == nil {
-					resultChan <- patchResult{
-						group: name,
-						patch: nil,
-					}
-
-					return
-				}
-
-				// 3.2 Generate root patch.
-				p, err := sjson.SetBytes([]byte{}, nodes[0].GetID(), nodes[0].GetDefault())
-				if err != nil {
-					resultChan <- patchResult{
-						group: name,
-						err:   fmt.Errorf("set patch node error for %s %s: %w", nodes[0].GetID(), string(p), err),
-					}
-
-					return
-				}
-
-				// 3.3 Generate patch from sub nodes and merge the root into the sub nodes.
-				for i := 0; i < len(nodes); i++ {
-					np := nodes[i]
-					if np.GetDefault() == nil {
-						continue
-					}
-
-					// Generate sub node patch.
-					npb, err := sjson.SetBytes([]byte{}, nodes[i].GetID(), nodes[i].GetDefault())
-					if err != nil {
-						resultChan <- patchResult{
-							group: name,
-							err:   fmt.Errorf("set patch node error for %s %s: %w", nodes[0].GetID(), string(p), err),
-						}
-
-						return
-					}
-
-					var (
-						pid = np.GetParentID()
-						pr  = gjson.ParseBytes(p)
-					)
-
-					// 3.4 Only merge sub node's patch while ancestor already initialize it parent.
-					if pe := pr.Get(pid); pe.Exists() {
-						p, err = jsonpatch.MergePatch(npb, p)
-						if err != nil {
-							resultChan <- patchResult{
-								group: name,
-								err:   fmt.Errorf("merge patch error for %s %s: %w", nodes[i].GetID(), string(p), err),
-							}
-
-							return
-						}
-					}
-				}
-				resultChan <- patchResult{
-					group: name,
-					patch: p,
-				}
+			patch, err := applyPatches(nodes)
+			resultChan <- patchResult{
+				group: name,
+				patch: patch,
+				err:   err,
 			}
 		})
 	}
@@ -173,6 +87,160 @@ func GenSchemaDefaultPatch(ctx context.Context, schema *openapi3.Schema) ([]byte
 			count++
 		}
 	}
+}
+
+// applyPatches apply nodes' default to the patch.
+func applyPatches(nodes []Node) (patch []byte, err error) {
+	if len(nodes) == 0 || nodes[0].GetDefault() == nil {
+		return
+	}
+
+	// 1. Root node.
+	root := nodes[0]
+	patch, err = sjson.SetBytes(patch, root.GetID(), root.GetDefault())
+	if err != nil {
+		return patch, fmt.Errorf("set patch node error for %s %s: %w", root.GetID(), string(patch), err)
+	}
+
+	if len(nodes) == 1 {
+		return patch, nil
+	}
+
+	// 2. Child nodes.
+	for _, node := range nodes[1:] {
+		if node.GetDefault() == nil {
+			continue
+		}
+
+		switch {
+		case strings.Contains(node.GetID(), "*"):
+			// 2.1 Apply patch with wildcard.
+			patch, err = applyPatchWithWildcard(node, patch)
+			if err != nil {
+				return patch, fmt.Errorf("error apply patch with wildcard: %w", err)
+			}
+
+		default:
+			// 2.2 Apply patch with nodeID.
+			patch, err = applyPatch(node, patch)
+			if err != nil {
+				return patch, err
+			}
+		}
+	}
+
+	return patch, nil
+}
+
+// applyPatchWithWildcard apply the node's default to the patch, the id of the node could contain *.
+func applyPatchWithWildcard(node Node, patch []byte) ([]byte, error) {
+	var (
+		nodeID      = node.GetID()
+		parentID    = node.GetParentID()
+		nodeDefault = node.GetDefault()
+		nodeSchema  = node.GetSchema()
+	)
+
+	var (
+		pathes []string
+		err    error
+	)
+	switch {
+	case strings.HasSuffix(nodeID, "*"):
+		// Value in that nodeID need update.
+		pathes, err = getTidwallFormatPathes(nodeID, "", patch)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		// Value in that nodeID need create/update.
+		pathes, err = getTidwallFormatPathes(parentID, getLastName(nodeID), patch)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for _, id := range pathes {
+		ajNode := &DefaultPatchNode{
+			Schema: &nodeSchema,
+			id:     id,
+			def:    nodeDefault,
+		}
+
+		patch, err = applyPatch(ajNode, patch)
+		if err != nil {
+			return patch, err
+		}
+	}
+
+	return patch, nil
+}
+
+// applyPatch apply the node's default to the patch, the id of the node must not contain *.
+func applyPatch(node Node, patch []byte) ([]byte, error) {
+	var (
+		patchJson  = gjson.ParseBytes(patch)
+		parentJson = patchJson.Get(node.GetParentID())
+	)
+
+	if !parentJson.Exists() {
+		// Skip nodes without default or whose ancestors haven't been initialized.
+		return patch, nil
+	}
+
+	var (
+		nodeID    = node.GetID()
+		nodeJson  = patchJson.Get(nodeID)
+		nodePatch = node.GetDefault()
+		err       error
+	)
+
+	if nodeJson.Exists() {
+		if !nodeJson.IsObject() {
+			return patch, nil
+		}
+
+		nodePatch, err = json.PatchObject(node.GetDefault(), nodeJson.Value())
+		if err != nil {
+			return patch, fmt.Errorf("error generate patch for object %s: %w", nodeID, err)
+		}
+	}
+
+	// Set patch with nodeID.
+	patch, err = sjson.SetBytes(patch, nodeID, nodePatch)
+	if err != nil {
+		return patch, fmt.Errorf("error set patch for %s: %w", nodeID, err)
+	}
+
+	return patch, nil
+}
+
+// jsonPathToTidwallFormat convert the jsonpath the patch that tidwall/sjson and tidwall/gjson used.
+func jsonPathToTidwallFormat(jsonPath string) string {
+	re := regexp.MustCompile(`\]\[|\[|\]`)
+
+	jsonPath = strings.ReplaceAll(jsonPath, "'", "")
+	jsonPath = re.ReplaceAllString(jsonPath, ".")
+	jsonPath = strings.TrimSuffix(strings.TrimPrefix(jsonPath, "$."), ".")
+	return jsonPath
+}
+
+func getTidwallFormatPathes(nodeID, suffix string, patch []byte) ([]string, error) {
+	jsonPath := fmt.Sprintf("$.%s", nodeID)
+	ajNodes, err := ajson.JSONPath(patch, jsonPath)
+	if err != nil {
+		return nil, fmt.Errorf("error get nodes from path %s: %w", jsonPath, err)
+	}
+
+	pathes := make([]string, len(ajNodes))
+	for i := range ajNodes {
+		if suffix != "" {
+			pathes[i] = jsonPathToTidwallFormat(ajNodes[i].Path()) + "." + suffix
+			continue
+		}
+		pathes[i] = jsonPathToTidwallFormat(ajNodes[i].Path())
+	}
+	return pathes, nil
 }
 
 // GenSchemaDefaultWithAttribute compute default values with attributes,

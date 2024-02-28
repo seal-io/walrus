@@ -1,5 +1,145 @@
 {
-  "list_object_with_default_and_nest_object": [
+  "list_bool": [
+    true,
+    false
+  ],
+  "list_list_object": [
+    [
+      {
+        "age": 20,
+        "email": {
+          "address": "bob_nest",
+          "domain": "nest.com"
+        },
+        "name": "Bob"
+      },
+      {
+        "age": 20,
+        "email": {
+          "address": "bob_nest",
+          "domain": "nest.com"
+        },
+        "name": "Mia"
+      }
+    ],
+    [
+      {
+        "age": 20,
+        "email": {
+          "address": "bob_nest",
+          "domain": "nest.com"
+        },
+        "name": "Bob2"
+      },
+      {
+        "age": 20,
+        "email": {
+          "address": "bob_nest",
+          "domain": "nest.com"
+        },
+        "name": "Mia2"
+      }
+    ]
+  ],
+  "list_list_string": [
+    [
+      "Bob",
+      "Mia"
+    ]
+  ],
+  "list_map": [
+    {
+      "name": "Bob"
+    },
+    {
+      "name": "Mia"
+    }
+  ],
+  "list_map_object": [
+    {
+      "a": {
+        "age": 20,
+        "email": {
+          "address": "bob_nest",
+          "domain": "example.com"
+        },
+        "name": "Bob"
+      }
+    },
+    {
+      "a": {
+        "age": 20,
+        "email": {
+          "address": "bob_nest",
+          "domain": "nest.com"
+        },
+        "name": "Mia"
+      }
+    }
+  ],
+  "list_map_object_with_list": [
+    {
+      "a": {
+        "age": 20,
+        "email": {
+          "address": "bob_nest",
+          "domain": "nest.com"
+        },
+        "labels": [
+          "label3"
+        ],
+        "name": "Bob"
+      }
+    },
+    {
+      "a": {
+        "age": 20,
+        "email": {
+          "address": "bob_nest",
+          "domain": "nest.com"
+        },
+        "labels": [
+          "label1",
+          "label1"
+        ],
+        "name": "Mia"
+      }
+    }
+  ],
+  "list_map_object_with_map": [
+    {
+      "a": {
+        "age": 20,
+        "email": {
+          "address": "bob_nest",
+          "domain": "nest.com"
+        },
+        "labels": {
+          "a": "a",
+          "job": "teacher"
+        },
+        "name": "Bob"
+      }
+    },
+    {
+      "a": {
+        "age": 20,
+        "email": {
+          "address": "bob_nest",
+          "domain": "nest.com"
+        },
+        "labels": {
+          "job": "teacher"
+        },
+        "name": "Mia"
+      }
+    }
+  ],
+  "list_number": [
+    1,
+    2
+  ],
+  "list_object_with_default": [
     {
       "age": 23,
       "email": {
@@ -8,5 +148,19 @@
       },
       "name": "Bob"
     }
+  ],
+  "list_object_with_default2": [
+    {
+      "age": 20,
+      "email": {
+        "address": "bob_nest",
+        "domain": "nest.com"
+      },
+      "name": "Bob"
+    }
+  ],
+  "list_string": [
+    "Bob",
+    "Mia"
   ]
 }

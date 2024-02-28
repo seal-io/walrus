@@ -1,3 +1,156 @@
 {
-  "list_object_with_default_and_nest_object": []
+  "list_bool": [
+    true
+  ],
+  "list_list_object": [
+    [
+      {
+        "age": 20,
+        "email": {
+          "address": "bob_nest",
+          "domain": "nest.com"
+        },
+        "name": "Bob Input"
+      },
+      {
+        "age": 20,
+        "email": {
+          "address": "bob_nest",
+          "domain": "nest.com"
+        },
+        "name": "Bob2 Input"
+      }
+    ],
+    [
+      {
+        "age": 20,
+        "email": {
+          "address": "bob_nest",
+          "domain": "nest.com"
+        },
+        "name": "Bob2 Input"
+      },
+      {
+        "age": 20,
+        "email": {
+          "address": "bob_nest",
+          "domain": "nest.com"
+        },
+        "name": "Mia2 Input"
+      }
+    ]
+  ],
+  "list_list_string": [],
+  "list_map": [
+    {
+      "name": "Bob Input"
+    },
+    {
+      "first_name": "Mia Input"
+    }
+  ],
+  "list_map_object": [
+    {
+      "a": {
+        "age": 20,
+        "email": {
+          "address": "bob_input_nest",
+          "domain": "bob_input.com"
+        },
+        "name": "Amy Input"
+      }
+    },
+    {
+      "b": {
+        "age": 20,
+        "email": {
+          "address": "mia_input_nest",
+          "domain": "mia_input.com"
+        },
+        "name": "Mia Input"
+      }
+    }
+  ],
+  "list_map_object_with_list": [
+    {
+      "a": {
+        "age": 20,
+        "email": {
+          "address": "bob_nest",
+          "domain": "nest.com"
+        },
+        "labels": [
+          "label3_input"
+        ],
+        "name": "Bob Input"
+      }
+    },
+    {
+      "b": {
+        "age": 20,
+        "email": {
+          "address": "bob_nest",
+          "domain": "nest.com"
+        },
+        "labels": [
+          "label1_input"
+        ],
+        "name": "Mia Input"
+      }
+    }
+  ],
+  "list_map_object_with_map": [
+    {
+      "a": {
+        "age": 20,
+        "email": {
+          "address": "bob_nest",
+          "domain": "nest.com"
+        },
+        "labels": {
+          "a_input": "a_input",
+          "job": "teacher"
+        },
+        "name": "Bob Input"
+      }
+    },
+    {
+      "b": {
+        "age": 20,
+        "email": {
+          "address": "bob_nest",
+          "domain": "nest.com"
+        },
+        "labels": {
+          "job": "teacher"
+        },
+        "name": "Mia Input"
+      }
+    }
+  ],
+  "list_number": [
+    1
+  ],
+  "list_object_with_default": [
+    {
+      "email": {
+        "address": "bob_input",
+        "domain": "input.com"
+      },
+      "name": "Bob Input"
+    }
+  ],
+  "list_object_with_default2": [
+    {
+      "age": 20,
+      "email": {
+        "address": "bob_nest",
+        "domain": "nest.com"
+      },
+      "name": "Bob Input"
+    }
+  ],
+  "list_string": [
+    "Bob Input"
+  ]
 }
