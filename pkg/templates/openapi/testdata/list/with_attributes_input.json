@@ -1,3 +1,105 @@
 {
-  "list_object_with_default_and_nest_object": []
+  "list_string": [
+    "Bob Input"
+  ],
+  "list_bool": [
+    true
+  ],
+  "list_number": [
+    1
+  ],
+  "list_map": [
+    {
+      "name": "Bob Input"
+    },
+    {
+      "first_name": "Mia Input"
+    }
+  ],
+  "list_list_string": [],
+  "list_object_with_default": [
+    {
+      "email": {
+        "address": "bob_input",
+        "domain": "input.com"
+      },
+      "name": "Bob Input"
+    }
+  ],
+  "list_object_with_default2": [
+    {
+      "name": "Bob Input"
+    }
+  ],
+  "list_map_object": [
+    {
+      "a": {
+        "email": {
+          "address": "bob_input_nest",
+          "domain": "bob_input.com"
+        },
+        "name": "Amy Input"
+      }
+    },
+    {
+      "b": {
+        "email": {
+          "address": "mia_input_nest",
+          "domain": "mia_input.com"
+        },
+        "name": "Mia Input"
+      }
+    }
+  ],
+  "list_map_object_with_map": [
+    {
+      "a": {
+        "labels": {
+          "a_input": "a_input"
+        },
+        "name": "Bob Input"
+      }
+    },
+    {
+      "b": {
+        "name": "Mia Input"
+      }
+    }
+  ],
+  "list_map_object_with_list": [
+    {
+      "a": {
+        "labels": [
+          "label3_input"
+        ],
+        "name": "Bob Input"
+      }
+    },
+    {
+      "b": {
+        "labels": [
+          "label1_input"
+        ],
+        "name": "Mia Input"
+      }
+    }
+  ],
+  "list_list_object": [
+    [
+      {
+        "name": "Bob Input"
+      },
+      {
+        "name": "Bob2 Input"
+      }
+    ],
+    [
+      {
+        "name": "Bob2 Input"
+      },
+      {
+        "name": "Mia2 Input"
+      }
+    ]
+  ]
 }
