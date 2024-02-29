@@ -145,7 +145,7 @@ func (r *RouteUpgradeRequest) Validate() error {
 		})
 
 		if def == nil {
-			return errors.New("find no matching resource definition")
+			return errors.New("no matching resource definition found")
 		}
 
 		if err = validateAttributesWithResourceDefinition(
@@ -652,7 +652,7 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 					ResourceLabels:    input.Labels,
 				})
 			if rf == nil {
-				return fmt.Errorf("find no mathcing resource definition for resource %s", input.Name)
+				return fmt.Errorf("no matching resource definition found for resource %s", input.Name)
 			}
 
 			// Validate attributes with resource definition schema.

@@ -180,7 +180,7 @@ func (r *PatchRequest) Validate() error {
 		})
 
 		if def == nil {
-			return errors.New("find no matching resource definition")
+			return errors.New("no matching resource definition found")
 		}
 
 		// Mutate definition edge according to matching resource definition.
@@ -295,7 +295,7 @@ func (r *CollectionCreateRequest) Validate() error {
 			})
 
 			if def == nil {
-				return fmt.Errorf("find no mathcing resource definition for resource %s", rci.Name)
+				return fmt.Errorf("no matching resource definition found for resource %s", rci.Name)
 			}
 
 			rci.ResourceDefinition = &model.ResourceDefinitionQueryInput{
@@ -606,7 +606,7 @@ func ValidateCreateInput(rci *model.ResourceCreateInput) error {
 			ResourceLabels:    rci.Labels,
 		})
 		if def == nil {
-			return errors.New("find no matching resource definition")
+			return errors.New("no matching resource definition found")
 		}
 
 		if err = validateAttributesWithResourceDefinition(

@@ -216,7 +216,7 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 			})
 
 			if def == nil {
-				return fmt.Errorf("find no mathcing resource definition for resource %s", res.Name)
+				return fmt.Errorf("no matching resource definition found for resource %s", res.Name)
 			}
 
 			// Mutate definition edge according to matching resource definition.
