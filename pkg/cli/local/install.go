@@ -75,6 +75,8 @@ func InstallLocalWalrusDockerContainer(opts InstallOptions) error {
 		"-d",
 		"--name",
 		localWalrusContainerName,
+		"--restart",
+		"unless-stopped",
 		"-p",
 		"7080:80",
 		"-p",
