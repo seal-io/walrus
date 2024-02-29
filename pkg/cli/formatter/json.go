@@ -35,7 +35,7 @@ func (f *JsonFormatter) Format(resp *http.Response) ([]byte, error) {
 	var b bytes.Buffer
 	enc := json.NewEncoder(&b)
 	enc.SetEscapeHTML(false)
-	enc.SetIndent("", "\t")
+	enc.SetIndent("", "  ")
 
 	err = enc.Encode(data)
 	if err != nil {
