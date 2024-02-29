@@ -4,7 +4,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/walrus/pkg/apis/resourcecomponent"
-	"github.com/seal-io/walrus/pkg/apis/resourcerevision"
+	"github.com/seal-io/walrus/pkg/apis/resourcerun"
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
 )
@@ -31,7 +31,7 @@ func (h Handler) SubResourceHandlers() []runtime.IResourceHandler {
 			resourcecomponent.Handle(h.modelClient),
 			"Component"),
 		runtime.Alias(
-			resourcerevision.Handle(h.modelClient, h.kubeConfig),
-			"Revision"),
+			resourcerun.Handle(h.modelClient, h.kubeConfig),
+			"Run"),
 	}
 }

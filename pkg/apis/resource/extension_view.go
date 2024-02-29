@@ -16,7 +16,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinition"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcedefinitionmatchingrule"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -187,7 +187,7 @@ func (r *RouteUpgradeRequest) Validate() error {
 		return err
 	}
 
-	if err = validateRevisionsStatus(r.Context, r.Client, r.ID); err != nil {
+	if err = validateRunsStatus(r.Context, r.Client, r.ID); err != nil {
 		return err
 	}
 
@@ -199,7 +199,7 @@ type RouteRollbackRequest struct {
 
 	model.ResourceQueryInput `path:",inline"`
 
-	RevisionID object.ID `query:"revisionID"`
+	RunID object.ID `query:"runID"`
 
 	ChangeComment string `json:"changeComment"`
 }
@@ -209,17 +209,17 @@ func (r *RouteRollbackRequest) Validate() error {
 		return err
 	}
 
-	latestRevision, err := r.Client.ResourceRevisions().Query().
-		Where(resourcerevision.ResourceID(r.ID)).
-		Order(model.Desc(resourcerevision.FieldCreateTime)).
-		Select(resourcerevision.FieldStatus).
+	latestRun, err := r.Client.ResourceRuns().Query().
+		Where(resourcerun.ResourceID(r.ID)).
+		Order(model.Desc(resourcerun.FieldCreateTime)).
+		Select(resourcerun.FieldStatus).
 		First(r.Context)
 	if err != nil && !model.IsNotFound(err) {
-		return fmt.Errorf("failed to get the latest revision: %w", err)
+		return fmt.Errorf("failed to get the latest run: %w", err)
 	}
 
-	if status.ResourceRevisionStatusReady.IsUnknown(latestRevision) {
-		return errors.New("latest revision is running")
+	if status.ResourceRunStatusReady.IsUnknown(latestRun) {
+		return errors.New("latest run is running")
 	}
 
 	return nil
@@ -680,7 +680,7 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 		}
 
 		// Validate whether the resource is deploying.
-		err = validateRevisionsStatus(
+		err = validateRunsStatus(
 			r.Context, r.Client,
 			input.ID)
 		if err != nil {

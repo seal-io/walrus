@@ -150,13 +150,13 @@ func Test_getOperationSummaryAndDescription(t *testing.T) {
 			given: Route{
 				RouteProfile: RouteProfile{
 					ResourceProfile: ResourceProfile{
-						Kinds: []string{"Project", "Environment", "Resource", "ResourceRevision"},
+						Kinds: []string{"Project", "Environment", "Resource", "ResourceRun"},
 					},
 					Method:     http.MethodDelete,
 					Collection: true,
 				},
 			},
-			expected: "Delete resource revisions that belongs to an environment of a project.",
+			expected: "Delete resource runs that belongs to an environment of a project.",
 		},
 		{
 			name: "long description",

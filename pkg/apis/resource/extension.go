@@ -9,7 +9,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -30,10 +30,10 @@ func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 }
 
 func (h Handler) RouteRollback(req RouteRollbackRequest) error {
-	rev, err := h.modelClient.ResourceRevisions().Query().
+	rev, err := h.modelClient.ResourceRuns().Query().
 		Where(
-			resourcerevision.ID(req.RevisionID),
-			resourcerevision.ResourceID(req.ID)).
+			resourcerun.ID(req.RunID),
+			resourcerun.ResourceID(req.ID)).
 		WithResource().
 		Only(req.Context)
 	if err != nil {
@@ -236,7 +236,7 @@ func (h Handler) RouteGetEndpoints(req RouteGetEndpointsRequest) (RouteGetEndpoi
 
 func (h Handler) RouteGetOutputs(req RouteGetOutputsRequest) (RouteGetOutputsResponse, error) {
 	if stream := req.Stream; stream != nil {
-		t, err := topic.Subscribe(modelchange.ResourceRevision)
+		t, err := topic.Subscribe(modelchange.ResourceRun)
 		if err != nil {
 			return nil, err
 		}
@@ -261,8 +261,8 @@ func (h Handler) RouteGetOutputs(req RouteGetOutputsRequest) (RouteGetOutputsRes
 			}
 
 			for _, id := range dm.IDs() {
-				ar, err := h.modelClient.ResourceRevisions().Query().
-					Where(resourcerevision.ID(id)).
+				ar, err := h.modelClient.ResourceRuns().Query().
+					Where(resourcerun.ID(id)).
 					Only(stream)
 				if err != nil {
 					return nil, err
@@ -285,13 +285,13 @@ func (h Handler) RouteGetOutputs(req RouteGetOutputsRequest) (RouteGetOutputsRes
 
 				switch dm.Type {
 				case modelchange.EventTypeCreate:
-					// While create new resource revision,
-					// the outputs of new revision is the previous outputs.
+					// While create new resource run,
+					// the outputs of new run is the previous outputs.
 					resp = runtime.TypedResponse(modelchange.EventTypeDelete.String(), outs)
 				case modelchange.EventTypeUpdate:
-					// While the resource revision status is succeeded,
-					// the outputs is updated to the current revision.
-					if status.ResourceRevisionStatusReady.IsTrue(ar) {
+					// While the resource run status is succeeded,
+					// the outputs is updated to the current run.
+					if status.ResourceRunStatusReady.IsTrue(ar) {
 						continue
 					}
 
@@ -309,7 +309,7 @@ func (h Handler) RouteGetOutputs(req RouteGetOutputsRequest) (RouteGetOutputsRes
 }
 
 func (h Handler) getResourceOutputs(ctx context.Context, id object.ID, onlySuccess bool) ([]types.OutputValue, error) {
-	sr, err := h.getLatestRevision(ctx, id)
+	sr, err := h.getLatestRun(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -318,11 +318,11 @@ func (h Handler) getResourceOutputs(ctx context.Context, id object.ID, onlySucce
 		return nil, nil
 	}
 
-	if onlySuccess && !status.ResourceRevisionStatusReady.IsTrue(sr) {
+	if onlySuccess && !status.ResourceRunStatusReady.IsTrue(sr) {
 		return nil, nil
 	}
 
-	var p tfparser.ResourceRevisionParser
+	var p tfparser.ResourceRunParser
 
 	o, err := p.GetOriginalOutputs(sr)
 	if err != nil {
@@ -332,23 +332,23 @@ func (h Handler) getResourceOutputs(ctx context.Context, id object.ID, onlySucce
 	return o, nil
 }
 
-func (h Handler) getLatestRevision(ctx context.Context, id object.ID) (*model.ResourceRevision, error) {
-	sr, err := h.modelClient.ResourceRevisions().Query().
-		Where(resourcerevision.ResourceID(id)).
+func (h Handler) getLatestRun(ctx context.Context, id object.ID) (*model.ResourceRun, error) {
+	sr, err := h.modelClient.ResourceRuns().Query().
+		Where(resourcerun.ResourceID(id)).
 		Select(
-			resourcerevision.FieldOutput,
-			resourcerevision.FieldTemplateName,
-			resourcerevision.FieldTemplateVersion,
-			resourcerevision.FieldAttributes,
-			resourcerevision.FieldStatus,
+			resourcerun.FieldOutput,
+			resourcerun.FieldTemplateName,
+			resourcerun.FieldTemplateVersion,
+			resourcerun.FieldAttributes,
+			resourcerun.FieldStatus,
 		).
 		WithResource(func(sq *model.ResourceQuery) {
 			sq.Select(resource.FieldName)
 		}).
-		Order(model.Desc(resourcerevision.FieldCreateTime)).
+		Order(model.Desc(resourcerun.FieldCreateTime)).
 		First(ctx)
 	if err != nil && !model.IsNotFound(err) {
-		return nil, fmt.Errorf("error getting the latest resource revision")
+		return nil, fmt.Errorf("error getting the latest resource run")
 	}
 
 	return sr, nil

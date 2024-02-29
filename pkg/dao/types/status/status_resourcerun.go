@@ -1,46 +1,46 @@
 package status
 
 const (
-	ResourceRevisionStatusReady ConditionType = "Ready"
+	ResourceRunStatusReady ConditionType = "Ready"
 
-	ResourceRevisionSummaryStatusRunning string = "Running"
-	ResourceRevisionSummaryStatusFailed  string = "Failed"
-	ResourceRevisionSummaryStatusSucceed string = "Succeeded"
+	ResourceRunSummaryStatusRunning string = "Running"
+	ResourceRunSummaryStatusFailed  string = "Failed"
+	ResourceRunSummaryStatusSucceed string = "Succeeded"
 )
 
-// resourceRevisionStatusPaths makes the following decision.
+// resourceRunStatusPaths makes the following decision.
 //
 // |  Condition Type  |     Condition Status    | Human Readable Status | Human Sensible Status |
 // | ---------------- | ----------------------- | --------------------- | --------------------- |
 // | Ready            | Unknown                 | Running               | Transitioning         |
 // | Ready            | False                   | Failed                | Error                 |
 // | Ready            | True                    | Succeeded               |                       |.
-var resourceRevisionStatusPaths = NewWalker(
+var resourceRunStatusPaths = NewWalker(
 	[][]ConditionType{
 		{
-			ResourceRevisionStatusReady,
+			ResourceRunStatusReady,
 		},
 	},
 	func(d Decision[ConditionType]) {
-		d.Make(ResourceRevisionStatusReady,
+		d.Make(ResourceRunStatusReady,
 			func(st ConditionStatus, reason string) *Summary {
 				switch st {
 				case ConditionStatusUnknown:
 					return &Summary{
-						SummaryStatus: ResourceRevisionSummaryStatusRunning,
+						SummaryStatus: ResourceRunSummaryStatusRunning,
 						Transitioning: true,
 					}
 				case ConditionStatusFalse:
 					return &Summary{
-						SummaryStatus: ResourceRevisionSummaryStatusFailed,
+						SummaryStatus: ResourceRunSummaryStatusFailed,
 						Error:         true,
 					}
 				}
-				return &Summary{SummaryStatus: ResourceRevisionSummaryStatusSucceed}
+				return &Summary{SummaryStatus: ResourceRunSummaryStatusSucceed}
 			})
 	},
 )
 
-func WalkResourceRevision(st *Status) *Summary {
-	return resourceRevisionStatusPaths.Walk(st)
+func WalkResourceRun(st *Status) *Summary {
+	return resourceRunStatusPaths.Walk(st)
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	revisionbus "github.com/seal-io/walrus/pkg/bus/resourcerevision"
+	runbus "github.com/seal-io/walrus/pkg/bus/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
@@ -12,18 +12,18 @@ import (
 	"github.com/seal-io/walrus/utils/strs"
 )
 
-// SyncResourceRevisionStatus updates the status of the service according to its recent finished service revision.
-func SyncResourceRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) (err error) {
+// SyncResourceRunStatus updates the status of the service according to its recent finished service run.
+func SyncResourceRunStatus(ctx context.Context, bm runbus.BusMessage) (err error) {
 	var (
 		logger = log.WithName("deployer").WithName("tf")
 
-		mc       = bm.TransactionalModelClient
-		revision = bm.Refer
+		mc  = bm.TransactionalModelClient
+		run = bm.Refer
 	)
 
 	// Report to resource.
 	entity, err := mc.Resources().Query().
-		Where(resource.ID(revision.ResourceID)).
+		Where(resource.ID(run.ResourceID)).
 		Select(
 			resource.FieldID,
 			resource.FieldStatus).
@@ -32,7 +32,7 @@ func SyncResourceRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) 
 		return err
 	}
 
-	if status.ResourceRevisionStatusReady.IsTrue(revision) {
+	if status.ResourceRunStatusReady.IsTrue(run) {
 		switch {
 		case status.ResourceStatusDeleted.IsUnknown(entity):
 			err = mc.Resources().DeleteOne(entity).
@@ -63,7 +63,7 @@ func SyncResourceRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) 
 			status.ResourceStatusDeployed.True(entity, "")
 			status.ResourceStatusReady.Unknown(entity, "")
 		}
-	} else if status.ResourceRevisionStatusReady.IsFalse(revision) {
+	} else if status.ResourceRunStatusReady.IsFalse(run) {
 		switch {
 		case status.ResourceStatusDeleted.IsUnknown(entity):
 			status.ResourceStatusDeleted.False(entity, "")
@@ -71,7 +71,7 @@ func SyncResourceRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) 
 			status.ResourceStatusDeployed.False(entity, "")
 		}
 
-		entity.Status.SummaryStatusMessage = revision.Status.SummaryStatusMessage
+		entity.Status.SummaryStatusMessage = run.Status.SummaryStatusMessage
 	}
 
 	entity.Status.SetSummary(status.WalkResource(&entity.Status))

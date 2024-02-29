@@ -7,7 +7,7 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/terraform/parser"
 )
@@ -19,31 +19,31 @@ func GetDependencyOutputs(
 	dependencyResourceIDs []object.ID,
 	dependOutputs map[string]string,
 ) (map[string]parser.OutputState, error) {
-	dependencyRevisions, err := client.ResourceRevisions().Query().
+	dependencyRuns, err := client.ResourceRuns().Query().
 		Select(
-			resourcerevision.FieldID,
-			resourcerevision.FieldAttributes,
-			resourcerevision.FieldOutput,
-			resourcerevision.FieldResourceID,
-			resourcerevision.FieldProjectID,
+			resourcerun.FieldID,
+			resourcerun.FieldAttributes,
+			resourcerun.FieldOutput,
+			resourcerun.FieldResourceID,
+			resourcerun.FieldProjectID,
 		).
 		Where(func(s *sql.Selector) {
 			sq := s.Clone().
 				AppendSelectExprAs(
 					sql.RowNumber().
-						PartitionBy(resourcerevision.FieldResourceID).
-						OrderBy(sql.Desc(resourcerevision.FieldCreateTime)),
+						PartitionBy(resourcerun.FieldResourceID).
+						OrderBy(sql.Desc(resourcerun.FieldCreateTime)),
 					"row_number",
 				).
 				Where(s.P()).
 				From(s.Table()).
-				As(resourcerevision.Table)
+				As(resourcerun.Table)
 
-			// Query the latest revision of the resource.
+			// Query the latest run of the resource.
 			s.Where(sql.EQ(s.C("row_number"), 1)).
 				From(sq)
 		}).
-		Where(resourcerevision.ResourceIDIn(dependencyResourceIDs...)).
+		Where(resourcerun.ResourceIDIn(dependencyResourceIDs...)).
 		WithResource(func(rq *model.ResourceQuery) {
 			rq.Select(
 				resource.FieldTemplateID,
@@ -57,9 +57,9 @@ func GetDependencyOutputs(
 
 	outputs := make(map[string]parser.OutputState)
 
-	var p parser.ResourceRevisionParser
+	var p parser.ResourceRunParser
 
-	for _, r := range dependencyRevisions {
+	for _, r := range dependencyRuns {
 		osm, err := p.GetOutputsMap(r)
 		if err != nil {
 			return nil, err

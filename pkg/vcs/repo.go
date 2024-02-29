@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/drone/go-scm/scm"
-	"github.com/go-git/go-git/v5"
+	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
-	"github.com/hashicorp/go-getter"
-	"github.com/hashicorp/go-version"
+	getter "github.com/hashicorp/go-getter"
+	version "github.com/hashicorp/go-version"
 
 	"github.com/seal-io/walrus/pkg/vcs/driver/github"
 	"github.com/seal-io/walrus/utils/log"

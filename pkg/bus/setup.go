@@ -7,7 +7,7 @@ import (
 	"github.com/seal-io/walrus/pkg/bus/builtin"
 	"github.com/seal-io/walrus/pkg/bus/catalog"
 	"github.com/seal-io/walrus/pkg/bus/environment"
-	"github.com/seal-io/walrus/pkg/bus/resourcerevision"
+	"github.com/seal-io/walrus/pkg/bus/resourcerun"
 	"github.com/seal-io/walrus/pkg/bus/setting"
 	"github.com/seal-io/walrus/pkg/bus/template"
 	"github.com/seal-io/walrus/pkg/bus/templateversion"
@@ -33,9 +33,9 @@ func Setup(ctx context.Context, opts SetupOptions) (err error) {
 		return
 	}
 
-	// ResourceRevision.
-	err = resourcerevision.AddSubscriber("terraform-sync-resource-revision-status",
-		terraform.SyncResourceRevisionStatus)
+	// ResourceRun.
+	err = resourcerun.AddSubscriber("terraform-sync-resource-run-status",
+		terraform.SyncResourceRunStatus)
 	if err != nil {
 		return
 	}

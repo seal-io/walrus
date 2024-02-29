@@ -1,4 +1,4 @@
-package resourcerevision
+package resourcerun
 
 import (
 	"k8s.io/client-go/rest"
@@ -19,5 +19,5 @@ type Handler struct {
 }
 
 func (Handler) Kind() string {
-	return "ResourceRevision"
+	return "ResourceRun"
 }

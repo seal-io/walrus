@@ -33,8 +33,8 @@ var (
 		"/projects/:project/environments/:environment/graph",
 		"/projects/:project/environments/:environment/apply",
 		"/projects/:project/environments/:environment/export",
-		"/projects/:project/environments/:environment/resources/:resource/revisions/:resourcerevision/log",
-		"/projects/:project/environments/:environment/resources/:resource/revisions/:resourcerevision/terraform-states",
+		"/projects/:project/environments/:environment/resources/:resource/runs/:resourcerun/log",
+		"/projects/:project/environments/:environment/resources/:resource/runs/:resourcerun/terraform-states",
 		"/projects/:project/environments/:environment/resources/_/graph",
 		"/projects/:project/environments/:environment/resources/:resource/graph",
 		"/projects/:project/environments/:environment/resources/:resource/components/:resourcecomponent/keys",
@@ -54,8 +54,8 @@ var (
 	}
 	// CliJsonYamlOutputFormatPaths is a list of paths that should be output as JSON/YAML.
 	cliJsonYamlOutputFormatPaths = []string{
-		"/projects/:project/environments/:environment/resources/:resource/revisions/:resourcerevision/diff-latest",
-		"/projects/:project/environments/:environment/resources/:resource/revisions/:resourcerevision/diff-previous",
+		"/projects/:project/environments/:environment/resources/:resource/runs/:resourcerun/diff-latest",
+		"/projects/:project/environments/:environment/resources/:resource/runs/:resourcerun/diff-previous",
 	}
 )
 

@@ -18,7 +18,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	revisionbus "github.com/seal-io/walrus/pkg/bus/resourcerevision"
+	runbus "github.com/seal-io/walrus/pkg/bus/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
@@ -36,18 +36,18 @@ const (
 
 type JobCreateOptions struct {
 	// Type is the deployment type of job, apply or destroy or other.
-	Type               string
-	ResourceRevisionID string
-	Image              string
-	Env                []corev1.EnvVar
-	DockerMode         bool
+	Type          string
+	ResourceRunID string
+	Image         string
+	Env           []corev1.EnvVar
+	DockerMode    bool
 }
 
 type StreamJobLogsOptions struct {
-	Cli        *coreclient.CoreV1Client
-	RevisionID object.ID
-	JobType    string
-	Out        io.Writer
+	Cli     *coreclient.CoreV1Client
+	RunID   object.ID
+	JobType string
+	Out     io.Writer
 }
 
 type JobReconciler struct {
@@ -61,8 +61,8 @@ const (
 	// _podName the name of the pod.
 	_podName = "deployer"
 
-	// _applicationRevisionIDLabel pod template label key for application revision id.
-	_applicationRevisionIDLabel = "walrus.seal.io/application-revision-id"
+	// _resourceRunIDLabel pod template label key for resource run id.
+	_resourceRunIDLabel = "walrus.seal.io/resource-run-id"
 	// _jobNameFormat the format of job name.
 	_jobNameFormat = "tf-job-%s-%s"
 	// _jobSecretPrefix the prefix of secret name.
@@ -74,9 +74,9 @@ const (
 )
 
 const (
-	// _applyCommands the commands to apply deployment of the application.
+	// _applyCommands the commands to apply deployment of the resource.
 	_applyCommands = "terraform init -no-color && terraform apply -auto-approve -no-color"
-	// _destroyCommands the commands to destroy deployment of the application.
+	// _destroyCommands the commands to destroy deployment of the resource.
 	_destroyCommands = "terraform init -no-color && terraform destroy -auto-approve -no-color"
 )
 
@@ -92,7 +92,7 @@ func (r JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	err = r.syncApplicationRevisionStatus(ctx, job)
+	err = r.syncresourceRunStatus(ctx, job)
 	if err != nil && !model.IsNotFound(err) {
 		return ctrl.Result{}, err
 	}
@@ -106,21 +106,21 @@ func (r JobReconciler) Setup(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-// syncApplicationRevisionStatus sync the application revision status.
-func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *batchv1.Job) (err error) {
-	appRevisionID, ok := job.Labels[_applicationRevisionIDLabel]
+// syncresourceRunStatus sync the resource run status.
+func (r JobReconciler) syncresourceRunStatus(ctx context.Context, job *batchv1.Job) (err error) {
+	appRunID, ok := job.Labels[_resourceRunIDLabel]
 	if !ok {
 		// Not a deployer job.
 		return nil
 	}
 
-	appRevision, err := r.ModelClient.ResourceRevisions().Get(ctx, object.ID(appRevisionID))
+	appRun, err := r.ModelClient.ResourceRuns().Get(ctx, object.ID(appRunID))
 	if err != nil {
 		return err
 	}
 
-	// If the application revision status is not running, then skip it.
-	if !status.ResourceRevisionStatusReady.IsUnknown(appRevision) {
+	// If the resource run status is not running, then skip it.
+	if !status.ResourceRunStatusReady.IsUnknown(appRun) {
 		return nil
 	}
 
@@ -128,39 +128,39 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 		return nil
 	}
 
-	status.ResourceRevisionStatusReady.True(appRevision, "")
+	status.ResourceRunStatusReady.True(appRun, "")
 
 	// Get job pods logs.
 	record, err := r.getJobPodsLogs(ctx, job.Name)
 	if err != nil {
-		r.Logger.Error(err, "failed to get job pod logs", "application-revision", appRevisionID)
+		r.Logger.Error(err, "failed to get job pod logs", "resource-run", appRunID)
 		record = err.Error()
 	}
 
 	if job.Status.Succeeded > 0 {
-		r.Logger.Info("succeed", "application-revision", appRevisionID)
+		r.Logger.Info("succeed", "resource-run", appRunID)
 	}
 
 	if job.Status.Failed > 0 {
-		r.Logger.Info("failed", "application-revision", appRevisionID)
-		status.ResourceRevisionStatusReady.False(appRevision, "")
+		r.Logger.Info("failed", "resource-run", appRunID)
+		status.ResourceRunStatusReady.False(appRun, "")
 	}
 
-	// Report to application revision.
-	appRevision.Record = record
-	appRevision.Status.SetSummary(status.WalkResourceRevision(&appRevision.Status))
-	appRevision.Duration = int(time.Since(*appRevision.CreateTime).Seconds())
+	// Report to resource run.
+	appRun.Record = record
+	appRun.Status.SetSummary(status.WalkResourceRun(&appRun.Status))
+	appRun.Duration = int(time.Since(*appRun.CreateTime).Seconds())
 
-	appRevision, err = r.ModelClient.ResourceRevisions().UpdateOne(appRevision).
-		SetStatus(appRevision.Status).
-		SetRecord(appRevision.Record).
-		SetDuration(appRevision.Duration).
+	appRun, err = r.ModelClient.ResourceRuns().UpdateOne(appRun).
+		SetStatus(appRun.Status).
+		SetRecord(appRun.Record).
+		SetDuration(appRun.Duration).
 		Save(ctx)
 	if err != nil {
 		return err
 	}
 
-	return revisionbus.Notify(ctx, r.ModelClient, appRevision)
+	return runbus.Notify(ctx, r.ModelClient, appRun)
 }
 
 // getJobPodsLogs returns the logs of all pods of a job.
@@ -201,8 +201,8 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 
 		backoffLimit            int32 = 0
 		ttlSecondsAfterFinished int32 = 3600
-		name                          = getK8sJobName(_jobNameFormat, opts.Type, opts.ResourceRevisionID)
-		configName                    = _jobSecretPrefix + opts.ResourceRevisionID
+		name                          = getK8sJobName(_jobNameFormat, opts.Type, opts.ResourceRunID)
+		configName                    = _jobSecretPrefix + opts.ResourceRunID
 	)
 
 	secret, err := clientSet.CoreV1().Secrets(types.WalrusSystemNamespace).Get(ctx, configName, metav1.GetOptions{})
@@ -210,7 +210,7 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 		return err
 	}
 
-	podTemplate := getPodTemplate(opts.ResourceRevisionID, configName, opts)
+	podTemplate := getPodTemplate(opts.ResourceRunID, configName, opts)
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
@@ -270,7 +270,7 @@ func CreateSecret(ctx context.Context, clientSet *kubernetes.Clientset, name str
 }
 
 // getPodTemplate returns a pod template for deployment.
-func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOptions) corev1.PodTemplateSpec {
+func getPodTemplate(resourceRunID, configName string, opts JobCreateOptions) corev1.PodTemplateSpec {
 	var (
 		command       = []string{"/bin/sh", "-c"}
 		deployCommand = fmt.Sprintf("cp %s/main.tf main.tf && ", _secretMountPath)
@@ -328,7 +328,7 @@ func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOpti
 		ObjectMeta: metav1.ObjectMeta{
 			Name: _podName,
 			Labels: map[string]string{
-				_applicationRevisionIDLabel: applicationRevisionID,
+				_resourceRunIDLabel: resourceRunID,
 			},
 		},
 		Spec: corev1.PodSpec{
@@ -353,15 +353,15 @@ func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOpti
 	}
 }
 
-// getK8sJobName returns the kubernetes job name for the given application revision id.
-func getK8sJobName(format, jobType, applicationRevisionID string) string {
-	return fmt.Sprintf(format, jobType, applicationRevisionID)
+// getK8sJobName returns the kubernetes job name for the given resource run id.
+func getK8sJobName(format, jobType, resourceRunID string) string {
+	return fmt.Sprintf(format, jobType, resourceRunID)
 }
 
 // StreamJobLogs streams the logs of a job.
 func StreamJobLogs(ctx context.Context, opts StreamJobLogsOptions) error {
 	var (
-		jobName       = getK8sJobName(_jobNameFormat, opts.JobType, opts.RevisionID.String())
+		jobName       = getK8sJobName(_jobNameFormat, opts.JobType, opts.RunID.String())
 		labelSelector = "job-name=" + jobName
 	)
 

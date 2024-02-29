@@ -1,4 +1,4 @@
-package resourcerevision
+package resourcerun
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 	"github.com/seal-io/walrus/utils/json"
 )
 
-type RevisionDiff struct {
+type RunDiff struct {
 	TemplateName       string          `json:"templateName"`
 	TemplateVersion    string          `json:"templateVersion"`
 	Attributes         property.Values `json:"attributes"`
@@ -21,7 +21,7 @@ type (
 	RouteGetTerraformStatesRequest struct {
 		_ struct{} `route:"GET=/terraform-states"`
 
-		model.ResourceRevisionQueryInput `path:",inline"`
+		model.ResourceRunQueryInput `path:",inline"`
 	}
 
 	RouteGetTerraformStatesResponse = json.RawMessage
@@ -30,7 +30,7 @@ type (
 type RouteUpdateTerraformStatesRequest struct {
 	_ struct{} `route:"PUT=/terraform-states"`
 
-	model.ResourceRevisionQueryInput `path:",inline"`
+	model.ResourceRunQueryInput `path:",inline"`
 
 	json.RawMessage `path:"-" json:",inline"`
 }
@@ -38,7 +38,7 @@ type RouteUpdateTerraformStatesRequest struct {
 type RouteLogRequest struct {
 	_ struct{} `route:"GET=/log"`
 
-	model.ResourceRevisionQueryInput `path:",inline"`
+	model.ResourceRunQueryInput `path:",inline"`
 
 	JobType string `query:"jobType,omitempty"`
 
@@ -46,7 +46,7 @@ type RouteLogRequest struct {
 }
 
 func (r *RouteLogRequest) Validate() error {
-	if err := r.ResourceRevisionQueryInput.Validate(); err != nil {
+	if err := r.ResourceRunQueryInput.Validate(); err != nil {
 		return err
 	}
 
@@ -69,12 +69,12 @@ type (
 	RouteGetDiffLatestRequest struct {
 		_ struct{} `route:"GET=/diff-latest"`
 
-		model.ResourceRevisionQueryInput `path:",inline"`
+		model.ResourceRunQueryInput `path:",inline"`
 	}
 
 	RouteGetDiffLatestResponse struct {
-		Old RevisionDiff `json:"old"`
-		New RevisionDiff `json:"new"`
+		Old RunDiff `json:"old"`
+		New RunDiff `json:"new"`
 	}
 )
 
@@ -82,11 +82,11 @@ type (
 	RouteGetDiffPreviousRequest struct {
 		_ struct{} `route:"GET=/diff-previous"`
 
-		model.ResourceRevisionQueryInput `path:",inline"`
+		model.ResourceRunQueryInput `path:",inline"`
 	}
 
 	RouteGetDiffPreviousResponse struct {
-		Old RevisionDiff `json:"old"`
-		New RevisionDiff `json:"new"`
+		Old RunDiff `json:"old"`
+		New RunDiff `json:"new"`
 	}
 )

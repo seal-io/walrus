@@ -1,4 +1,4 @@
-package resourcerevision
+package resourcerun
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
 
-	revisionbus "github.com/seal-io/walrus/pkg/bus/resourcerevision"
+	runbus "github.com/seal-io/walrus/pkg/bus/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/connector"
@@ -21,7 +21,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/project"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
@@ -37,13 +37,13 @@ import (
 	"github.com/seal-io/walrus/utils/log"
 )
 
-// RouteGetTerraformStates get the terraform states of the service revision deployment.
+// RouteGetTerraformStates get the terraform states of the service run deployment.
 func (h Handler) RouteGetTerraformStates(
 	req RouteGetTerraformStatesRequest,
 ) (RouteGetTerraformStatesResponse, error) {
-	entity, err := h.modelClient.ResourceRevisions().Query().
-		Where(resourcerevision.ID(req.ID)).
-		Select(resourcerevision.FieldOutput).
+	entity, err := h.modelClient.ResourceRuns().Query().
+		Where(resourcerun.ID(req.ID)).
+		Select(resourcerun.FieldOutput).
 		Only(req.Context)
 	if err != nil {
 		return nil, err
@@ -56,22 +56,22 @@ func (h Handler) RouteGetTerraformStates(
 	return RouteGetTerraformStatesResponse(entity.Output), nil
 }
 
-// RouteUpdateTerraformStates update the terraform states of the service revision deployment.
+// RouteUpdateTerraformStates update the terraform states of the service run deployment.
 func (h Handler) RouteUpdateTerraformStates(
 	req RouteUpdateTerraformStatesRequest,
 ) (err error) {
-	logger := log.WithName("api").WithName("resource-revision")
+	logger := log.WithName("api").WithName("resource-run")
 
-	entity, err := h.modelClient.ResourceRevisions().Query().
-		Where(resourcerevision.ID(req.ID)).
+	entity, err := h.modelClient.ResourceRuns().Query().
+		Where(resourcerun.ID(req.ID)).
 		Select(
-			resourcerevision.FieldID,
-			resourcerevision.FieldProjectID,
-			resourcerevision.FieldEnvironmentID,
-			resourcerevision.FieldResourceID,
-			resourcerevision.FieldStatus,
-			resourcerevision.FieldRecord,
-			resourcerevision.FieldDeployerType).
+			resourcerun.FieldID,
+			resourcerun.FieldProjectID,
+			resourcerun.FieldEnvironmentID,
+			resourcerun.FieldResourceID,
+			resourcerun.FieldStatus,
+			resourcerun.FieldRecord,
+			resourcerun.FieldDeployerType).
 		WithProject(func(pq *model.ProjectQuery) {
 			pq.Select(
 				project.FieldID,
@@ -93,7 +93,7 @@ func (h Handler) RouteUpdateTerraformStates(
 	}
 	entity.Output = string(req.RawMessage)
 
-	err = h.modelClient.ResourceRevisions().UpdateOne(entity).
+	err = h.modelClient.ResourceRuns().UpdateOne(entity).
 		SetOutput(entity.Output).
 		Exec(req.Context)
 	if err != nil {
@@ -109,10 +109,10 @@ func (h Handler) RouteUpdateTerraformStates(
 		updateCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		status.ResourceRevisionStatusReady.False(entity, err.Error())
-		entity.Status.SetSummary(status.WalkResourceRevision(&entity.Status))
+		status.ResourceRunStatusReady.False(entity, err.Error())
+		entity.Status.SetSummary(status.WalkResourceRun(&entity.Status))
 
-		uerr := h.modelClient.ResourceRevisions().UpdateOne(entity).
+		uerr := h.modelClient.ResourceRuns().UpdateOne(entity).
 			SetStatus(entity.Status).
 			Exec(updateCtx)
 		if uerr != nil {
@@ -120,12 +120,12 @@ func (h Handler) RouteUpdateTerraformStates(
 			return
 		}
 
-		if nerr := revisionbus.Notify(updateCtx, h.modelClient, entity); nerr != nil {
+		if nerr := runbus.Notify(updateCtx, h.modelClient, entity); nerr != nil {
 			logger.Errorf("notify failed: %v", nerr)
 		}
 	}()
 
-	if err = revisionbus.Notify(req.Context, h.modelClient, entity); err != nil {
+	if err = runbus.Notify(req.Context, h.modelClient, entity); err != nil {
 		return err
 	}
 
@@ -137,9 +137,9 @@ func (h Handler) RouteUpdateTerraformStates(
 func manageResourceComponentsAndEndpoints(
 	ctx context.Context,
 	modelClient model.ClientSet,
-	entity *model.ResourceRevision,
+	entity *model.ResourceRun,
 ) error {
-	var p tfparser.ResourceRevisionParser
+	var p tfparser.ResourceRunParser
 
 	mappedOutputs, err := p.GetOriginalOutputsMap(entity)
 	if err != nil {
@@ -315,7 +315,7 @@ func manageResourceComponentsAndEndpoints(
 	}
 
 	gopool.Go(func() {
-		logger := log.WithName("api").WithName("resource-revision")
+		logger := log.WithName("api").WithName("resource-run")
 
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 		defer cancel()
@@ -336,7 +336,7 @@ func reconcileResourceComponents(
 	resourceID object.ID,
 	connRess map[object.ID][]*model.ResourceComponent,
 ) error {
-	logger := log.WithName("api").WithName("resource-revision")
+	logger := log.WithName("api").WithName("resource-run")
 
 	// Fetch related connectors at once,
 	// and then index these connectors by its id.
@@ -470,117 +470,117 @@ func (h Handler) RouteLog(req RouteLogRequest) error {
 	}
 
 	return terraform.StreamJobLogs(ctx, terraform.StreamJobLogsOptions{
-		Cli:        cli,
-		RevisionID: req.ID,
-		JobType:    req.JobType,
-		Out:        out,
+		Cli:     cli,
+		RunID:   req.ID,
+		JobType: req.JobType,
+		Out:     out,
 	})
 }
 
-// RouteGetDiffLatest get the revision with the service latest revision diff.
+// RouteGetDiffLatest get the run with the service latest run diff.
 func (h Handler) RouteGetDiffLatest(req RouteGetDiffLatestRequest) (*RouteGetDiffLatestResponse, error) {
-	compareRevision, err := h.modelClient.ResourceRevisions().Query().
+	compareRun, err := h.modelClient.ResourceRuns().Query().
 		Select(
-			resourcerevision.FieldID,
-			resourcerevision.FieldResourceID,
-			resourcerevision.FieldTemplateName,
-			resourcerevision.FieldTemplateVersion,
-			resourcerevision.FieldAttributes,
-			resourcerevision.FieldComputedAttributes,
+			resourcerun.FieldID,
+			resourcerun.FieldResourceID,
+			resourcerun.FieldTemplateName,
+			resourcerun.FieldTemplateVersion,
+			resourcerun.FieldAttributes,
+			resourcerun.FieldComputedAttributes,
 		).
-		Where(resourcerevision.ID(req.ID)).
-		Order(model.Desc(resourcerevision.FieldCreateTime)).
+		Where(resourcerun.ID(req.ID)).
+		Order(model.Desc(resourcerun.FieldCreateTime)).
 		Only(req.Context)
 	if err != nil {
 		return nil, err
 	}
 
-	latestRevision, err := h.modelClient.ResourceRevisions().Query().
+	latestRun, err := h.modelClient.ResourceRuns().Query().
 		Select(
-			resourcerevision.FieldID,
-			resourcerevision.FieldTemplateName,
-			resourcerevision.FieldTemplateVersion,
-			resourcerevision.FieldAttributes,
-			resourcerevision.FieldComputedAttributes,
+			resourcerun.FieldID,
+			resourcerun.FieldTemplateName,
+			resourcerun.FieldTemplateVersion,
+			resourcerun.FieldAttributes,
+			resourcerun.FieldComputedAttributes,
 		).
-		Where(resourcerevision.ResourceID(compareRevision.ResourceID)).
-		Order(model.Desc(resourcerevision.FieldCreateTime)).
+		Where(resourcerun.ResourceID(compareRun.ResourceID)).
+		Order(model.Desc(resourcerun.FieldCreateTime)).
 		First(req.Context)
 	if err != nil {
 		return nil, err
 	}
 
 	return &RouteGetDiffLatestResponse{
-		Old: RevisionDiff{
-			TemplateName:       latestRevision.TemplateName,
-			TemplateVersion:    latestRevision.TemplateVersion,
-			Attributes:         latestRevision.Attributes,
-			ComputedAttributes: latestRevision.ComputedAttributes,
+		Old: RunDiff{
+			TemplateName:       latestRun.TemplateName,
+			TemplateVersion:    latestRun.TemplateVersion,
+			Attributes:         latestRun.Attributes,
+			ComputedAttributes: latestRun.ComputedAttributes,
 		},
-		New: RevisionDiff{
-			TemplateName:       compareRevision.TemplateName,
-			TemplateVersion:    compareRevision.TemplateVersion,
-			Attributes:         compareRevision.Attributes,
-			ComputedAttributes: compareRevision.ComputedAttributes,
+		New: RunDiff{
+			TemplateName:       compareRun.TemplateName,
+			TemplateVersion:    compareRun.TemplateVersion,
+			Attributes:         compareRun.Attributes,
+			ComputedAttributes: compareRun.ComputedAttributes,
 		},
 	}, nil
 }
 
-// RouteGetDiffPrevious get the revision with the service previous revision diff.
+// RouteGetDiffPrevious get the run with the service previous run diff.
 func (h Handler) RouteGetDiffPrevious(req RouteGetDiffPreviousRequest) (*RouteGetDiffPreviousResponse, error) {
-	compareRevision, err := h.modelClient.ResourceRevisions().Query().
+	compareRun, err := h.modelClient.ResourceRuns().Query().
 		Select(
-			resourcerevision.FieldID,
-			resourcerevision.FieldTemplateName,
-			resourcerevision.FieldTemplateVersion,
-			resourcerevision.FieldAttributes,
-			resourcerevision.FieldResourceID,
-			resourcerevision.FieldCreateTime,
-			resourcerevision.FieldComputedAttributes,
+			resourcerun.FieldID,
+			resourcerun.FieldTemplateName,
+			resourcerun.FieldTemplateVersion,
+			resourcerun.FieldAttributes,
+			resourcerun.FieldResourceID,
+			resourcerun.FieldCreateTime,
+			resourcerun.FieldComputedAttributes,
 		).
-		Where(resourcerevision.ID(req.ID)).
-		Order(model.Desc(resourcerevision.FieldCreateTime)).
+		Where(resourcerun.ID(req.ID)).
+		Order(model.Desc(resourcerun.FieldCreateTime)).
 		Only(req.Context)
 	if err != nil {
 		return nil, err
 	}
 
-	var old RevisionDiff
+	var old RunDiff
 
-	previousRevision, err := h.modelClient.ResourceRevisions().Query().
+	previousRun, err := h.modelClient.ResourceRuns().Query().
 		Select(
-			resourcerevision.FieldID,
-			resourcerevision.FieldTemplateName,
-			resourcerevision.FieldTemplateVersion,
-			resourcerevision.FieldAttributes,
-			resourcerevision.FieldComputedAttributes,
+			resourcerun.FieldID,
+			resourcerun.FieldTemplateName,
+			resourcerun.FieldTemplateVersion,
+			resourcerun.FieldAttributes,
+			resourcerun.FieldComputedAttributes,
 		).
 		Where(
-			resourcerevision.ResourceID(compareRevision.ResourceID),
-			resourcerevision.CreateTimeLT(*compareRevision.CreateTime),
+			resourcerun.ResourceID(compareRun.ResourceID),
+			resourcerun.CreateTimeLT(*compareRun.CreateTime),
 		).
-		Order(model.Desc(resourcerevision.FieldCreateTime)).
+		Order(model.Desc(resourcerun.FieldCreateTime)).
 		First(req.Context)
 	if err != nil && !model.IsNotFound(err) {
 		return nil, err
 	}
 
-	if previousRevision != nil {
-		old = RevisionDiff{
-			TemplateName:       previousRevision.TemplateName,
-			TemplateVersion:    previousRevision.TemplateVersion,
-			Attributes:         previousRevision.Attributes,
-			ComputedAttributes: previousRevision.ComputedAttributes,
+	if previousRun != nil {
+		old = RunDiff{
+			TemplateName:       previousRun.TemplateName,
+			TemplateVersion:    previousRun.TemplateVersion,
+			Attributes:         previousRun.Attributes,
+			ComputedAttributes: previousRun.ComputedAttributes,
 		}
 	}
 
 	return &RouteGetDiffPreviousResponse{
 		Old: old,
-		New: RevisionDiff{
-			TemplateName:       compareRevision.TemplateName,
-			TemplateVersion:    compareRevision.TemplateVersion,
-			Attributes:         compareRevision.Attributes,
-			ComputedAttributes: compareRevision.ComputedAttributes,
+		New: RunDiff{
+			TemplateName:       compareRun.TemplateName,
+			TemplateVersion:    compareRun.TemplateVersion,
+			Attributes:         compareRun.Attributes,
+			ComputedAttributes: compareRun.ComputedAttributes,
 		},
 	}, nil
 }

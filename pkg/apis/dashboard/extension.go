@@ -11,7 +11,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/schema/intercept"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
@@ -19,27 +19,27 @@ import (
 	"github.com/seal-io/walrus/utils/timex"
 )
 
-var getResourceRevisionFields = resourcerevision.WithoutFields(
-	resourcerevision.FieldRecord,
-	resourcerevision.FieldInputPlan,
-	resourcerevision.FieldOutput,
-	resourcerevision.FieldTemplateName,
-	resourcerevision.FieldTemplateVersion,
-	resourcerevision.FieldAttributes,
-	resourcerevision.FieldVariables,
+var getResourceRunFields = resourcerun.WithoutFields(
+	resourcerun.FieldRecord,
+	resourcerun.FieldInputPlan,
+	resourcerun.FieldOutput,
+	resourcerun.FieldTemplateName,
+	resourcerun.FieldTemplateVersion,
+	resourcerun.FieldAttributes,
+	resourcerun.FieldVariables,
 )
 
 const summaryStatus = "(status ->> 'summaryStatus')"
 
-// CollectionRouteGetLatestResourceRevisions returns the latest 10 revisions of resources.
-func (h Handler) CollectionRouteGetLatestResourceRevisions(
-	req CollectionRouteGetLatestResourceRevisionsRequest,
-) (CollectionRouteGetLatestResourceRevisionsResponse, int, error) {
+// CollectionRouteGetLatestResourceRuns returns the latest 10 runs of resources.
+func (h Handler) CollectionRouteGetLatestResourceRuns(
+	req CollectionRouteGetLatestResourceRunsRequest,
+) (CollectionRouteGetLatestResourceRunsResponse, int, error) {
 	ctx := intercept.WithProjectInterceptor(req.Context)
 
-	query := h.modelClient.ResourceRevisions().Query().
-		Order(model.Desc(resourcerevision.FieldCreateTime)).
-		Select(getResourceRevisionFields...).
+	query := h.modelClient.ResourceRuns().Query().
+		Order(model.Desc(resourcerun.FieldCreateTime)).
+		Select(getResourceRunFields...).
 		WithProject(func(pq *model.ProjectQuery) {
 			pq.Select(
 				resource.FieldID,
@@ -65,7 +65,7 @@ func (h Handler) CollectionRouteGetLatestResourceRevisions(
 		return nil, 0, err
 	}
 
-	return model.ExposeResourceRevisions(entities), len(entities), nil
+	return model.ExposeResourceRuns(entities), len(entities), nil
 }
 
 func (h Handler) CollectionRouteGetBasicInformation(
@@ -112,10 +112,10 @@ func (h Handler) CollectionRouteGetBasicInformation(
 		}
 	}
 
-	// Count resource revisions below owned projects if needed.
-	var resourceRevisionNum int
-	if req.WithResourceRevision {
-		resourceRevisionNum, err = h.modelClient.ResourceRevisions().Query().
+	// Count resource runs below owned projects if needed.
+	var resourceRunNum int
+	if req.WithResourceRun {
+		resourceRunNum, err = h.modelClient.ResourceRuns().Query().
 			Count(ctx)
 		if err != nil {
 			return nil, err
@@ -128,46 +128,46 @@ func (h Handler) CollectionRouteGetBasicInformation(
 		Connector:         connectorNum,
 		Resource:          resourceNum,
 		ResourceComponent: resourceComponentNum,
-		ResourceRevision:  resourceRevisionNum,
+		ResourceRun:       resourceRunNum,
 	}, nil
 }
 
-// CollectionRouteGetResourceRevisionStatistics returns statistics of resource revisions.
-func (h Handler) CollectionRouteGetResourceRevisionStatistics(
-	req CollectionRouteGetResourceRevisionStatisticsRequest,
-) (*CollectionRouteGetResourceRevisionStatisticsResponse, error) {
+// CollectionRouteGetResourceRunStatistics returns statistics of resource runs.
+func (h Handler) CollectionRouteGetResourceRunStatistics(
+	req CollectionRouteGetResourceRunStatisticsRequest,
+) (*CollectionRouteGetResourceRunStatisticsResponse, error) {
 	ctx := intercept.WithProjectInterceptor(req.Context)
 
 	query := h.modelClient.Projects().Query().
-		QueryResourceRevisions()
+		QueryResourceRuns()
 
-	statusStats, err := getResourceRevisionStatusStats(ctx,
+	statusStats, err := getResourceRunStatusStats(ctx,
 		query.Clone(),
 		req.StartTime, req.EndTime, req.Step)
 	if err != nil {
 		return nil, err
 	}
 
-	statusCount, err := getResourceRevisionStatusCount(ctx,
+	statusCount, err := getResourceRunStatusCount(ctx,
 		query.Clone())
 	if err != nil {
 		return nil, err
 	}
 
-	return &CollectionRouteGetResourceRevisionStatisticsResponse{
+	return &CollectionRouteGetResourceRunStatisticsResponse{
 		StatusStats: statusStats,
 		StatusCount: statusCount,
 	}, nil
 }
 
-// getResourceRevisionStatusStats collects the status counts of resource revisions
+// getResourceRunStatusStats collects the status counts of resource runs
 // according to the given time range.
-func getResourceRevisionStatusStats(
+func getResourceRunStatusStats(
 	ctx context.Context,
-	query *model.ResourceRevisionQuery,
+	query *model.ResourceRunQuery,
 	startTime, endTime time.Time,
 	step string,
-) ([]*RevisionStatusStats, error) {
+) ([]*RunStatusStats, error) {
 	loc := startTime.Location()
 
 	// Get time series by time range.
@@ -184,21 +184,21 @@ func getResourceRevisionStatusStats(
 	}
 	_, offset := startTime.Zone()
 
-	groupBy, err := sqlx.DateTruncWithZoneOffsetSQL(resourcerevision.FieldCreateTime, step, offset)
+	groupBy, err := sqlx.DateTruncWithZoneOffsetSQL(resourcerun.FieldCreateTime, step, offset)
 	if err != nil {
 		return nil, err
 	}
 
 	err = query.
 		Where(
-			resourcerevision.CreateTimeGTE(startTime),
-			resourcerevision.CreateTimeLTE(endTime)).
+			resourcerun.CreateTimeGTE(startTime),
+			resourcerun.CreateTimeLTE(endTime)).
 		Modify(func(q *sql.Selector) {
 			// Count.
 			q.
 				Select(
 					sql.As(sql.Count(summaryStatus), "count"),
-					sql.As(groupBy, resourcerevision.FieldCreateTime),
+					sql.As(groupBy, resourcerun.FieldCreateTime),
 					sql.As(summaryStatus, "summary_status")).
 				GroupBy(
 					groupBy,
@@ -219,36 +219,36 @@ func getResourceRevisionStatusStats(
 		format = "2006"
 	}
 
-	statMap := make(map[string]*RevisionStatusStats, 0)
+	statMap := make(map[string]*RunStatusStats, 0)
 
 	for _, t := range timeSeries {
 		// Default status bucket.
 		timeString := t.Format(format)
-		statMap[timeString] = &RevisionStatusStats{}
+		statMap[timeString] = &RunStatusStats{}
 	}
 
 	for _, c := range counts {
 		t := c.CreateTime.In(loc).Format(format)
 		if _, ok := statMap[t]; !ok {
-			statMap[t] = &RevisionStatusStats{}
+			statMap[t] = &RunStatusStats{}
 		}
 
 		switch c.SummaryStatus {
-		case status.ResourceRevisionSummaryStatusFailed:
+		case status.ResourceRunSummaryStatusFailed:
 			statMap[t].Failed = c.Count
-		case status.ResourceRevisionSummaryStatusSucceed:
+		case status.ResourceRunSummaryStatusSucceed:
 			statMap[t].Succeeded = c.Count
-		case status.ResourceRevisionSummaryStatusRunning:
+		case status.ResourceRunSummaryStatusRunning:
 			statMap[t].Running = c.Count
 		}
 	}
 
 	// Construct result through reducing status by time series.
-	r := make([]*RevisionStatusStats, 0, len(statMap))
+	r := make([]*RunStatusStats, 0, len(statMap))
 
 	for k, sm := range statMap {
-		r = append(r, &RevisionStatusStats{
-			RevisionStatusCount: RevisionStatusCount{
+		r = append(r, &RunStatusStats{
+			RunStatusCount: RunStatusCount{
 				Failed:    sm.Failed,
 				Succeeded: sm.Succeeded,
 				Running:   sm.Running,
@@ -265,11 +265,11 @@ func getResourceRevisionStatusStats(
 	return r, nil
 }
 
-// getResourceRevisionStatusCount returns the status counts by the resource revisions.
-func getResourceRevisionStatusCount(
+// getResourceRunStatusCount returns the status counts by the resource runs.
+func getResourceRunStatusCount(
 	ctx context.Context,
-	query *model.ResourceRevisionQuery,
-) (*RevisionStatusCount, error) {
+	query *model.ResourceRunQuery,
+) (*RunStatusCount, error) {
 	// Count by the status group.
 	var counts []struct {
 		SummaryStatus string `json:"summary_status"`
@@ -290,15 +290,15 @@ func getResourceRevisionStatusCount(
 	}
 
 	// Construct result.
-	var r RevisionStatusCount
+	var r RunStatusCount
 
 	for _, sc := range counts {
 		switch sc.SummaryStatus {
-		case status.ResourceRevisionSummaryStatusFailed:
+		case status.ResourceRunSummaryStatusFailed:
 			r.Failed = sc.Count
-		case status.ResourceRevisionSummaryStatusSucceed:
+		case status.ResourceRunSummaryStatusSucceed:
 			r.Succeeded = sc.Count
-		case status.ResourceRevisionSummaryStatusRunning:
+		case status.ResourceRunSummaryStatusRunning:
 			r.Running = sc.Count
 		}
 	}

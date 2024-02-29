@@ -11,30 +11,30 @@ import (
 	"github.com/seal-io/walrus/utils/validation"
 )
 
-type RevisionStatusCount struct {
+type RunStatusCount struct {
 	Running   int `json:"running"`
 	Failed    int `json:"failed"`
 	Succeeded int `json:"succeeded"`
 }
 
-// RevisionStatusStats is the statistics of resource revision status.
-type RevisionStatusStats struct {
-	RevisionStatusCount
+// RunStatusStats is the statistics of resource run status.
+type RunStatusStats struct {
+	RunStatusCount
 
 	StartTime string `json:"startTime,omitempty"`
 }
 
 type (
-	CollectionRouteGetLatestResourceRevisionsRequest struct {
-		_ struct{} `route:"GET=/latest-resource-revisions"`
+	CollectionRouteGetLatestResourceRunsRequest struct {
+		_ struct{} `route:"GET=/latest-resource-runs"`
 
 		Context *gin.Context
 	}
 
-	CollectionRouteGetLatestResourceRevisionsResponse = []*model.ResourceRevisionOutput
+	CollectionRouteGetLatestResourceRunsResponse = []*model.ResourceRunOutput
 )
 
-func (r *CollectionRouteGetLatestResourceRevisionsRequest) SetGinContext(ctx *gin.Context) {
+func (r *CollectionRouteGetLatestResourceRunsRequest) SetGinContext(ctx *gin.Context) {
 	r.Context = ctx
 }
 
@@ -43,7 +43,7 @@ type (
 		_ struct{} `route:"GET=/basic-information"`
 
 		WithResourceComponent bool `query:"withResourceComponent,omitempty"`
-		WithResourceRevision  bool `query:"withResourceRevision,omitempty"`
+		WithResourceRun       bool `query:"withResourceRun,omitempty"`
 
 		Context *gin.Context
 	}
@@ -59,8 +59,8 @@ type (
 		Resource int `json:"resource"`
 		// Resource component number.
 		ResourceComponent int `json:"resourceComponent,omitempty"`
-		// Resource revision number.
-		ResourceRevision int `json:"resourceRevision,omitempty"`
+		// Resource run number.
+		ResourceRun int `json:"resourceRun,omitempty"`
 	}
 )
 
@@ -69,8 +69,8 @@ func (r *CollectionRouteGetBasicInformationRequest) SetGinContext(ctx *gin.Conte
 }
 
 type (
-	CollectionRouteGetResourceRevisionStatisticsRequest struct {
-		_ struct{} `route:"POST=/resource-revision-statistics"`
+	CollectionRouteGetResourceRunStatisticsRequest struct {
+		_ struct{} `route:"POST=/resource-run-statistics"`
 
 		Step      string    `json:"step"`
 		StartTime time.Time `json:"startTime"`
@@ -79,13 +79,13 @@ type (
 		Context *gin.Context
 	}
 
-	CollectionRouteGetResourceRevisionStatisticsResponse struct {
-		StatusCount *RevisionStatusCount   `json:"statusCount"`
-		StatusStats []*RevisionStatusStats `json:"statusStats"`
+	CollectionRouteGetResourceRunStatisticsResponse struct {
+		StatusCount *RunStatusCount   `json:"statusCount"`
+		StatusStats []*RunStatusStats `json:"statusStats"`
 	}
 )
 
-func (r *CollectionRouteGetResourceRevisionStatisticsRequest) Validate() error {
+func (r *CollectionRouteGetResourceRunStatisticsRequest) Validate() error {
 	if err := validation.TimeRange(r.StartTime, r.EndTime); err != nil {
 		return err
 	}
@@ -99,6 +99,6 @@ func (r *CollectionRouteGetResourceRevisionStatisticsRequest) Validate() error {
 	return nil
 }
 
-func (r *CollectionRouteGetResourceRevisionStatisticsRequest) SetGinContext(ctx *gin.Context) {
+func (r *CollectionRouteGetResourceRunStatisticsRequest) SetGinContext(ctx *gin.Context) {
 	r.Context = ctx
 }

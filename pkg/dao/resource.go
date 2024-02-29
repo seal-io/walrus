@@ -12,7 +12,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerevision"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 )
@@ -82,49 +82,49 @@ func ResourceDependenciesEdgeSave(ctx context.Context, mc model.ClientSet, entit
 	return resourceRelationshipUpdateDependants(ctx, mc, entity)
 }
 
-func GetLatestRevisions(
+func GetLatestRuns(
 	ctx context.Context,
 	modelClient model.ClientSet,
 	resourceIDs ...object.ID,
-) ([]*model.ResourceRevision, error) {
-	// Get the latest revisions of given resources by the following sql:
-	// SELECT resource_revisions.*
-	// FROM resource_revisions
+) ([]*model.ResourceRun, error) {
+	// Get the latest runs of given resources by the following sql:
+	// SELECT resource_runs.*
+	// FROM resource_runs
 	// JOIN (
-	// 	 SELECT resource_id, MAX(create_time) AS create_time FROM resource_revisions GROUP BY resource_id
+	// 	 SELECT resource_id, MAX(create_time) AS create_time FROM resource_runs GROUP BY resource_id
 	// ) t
-	// ON resource_revisions.resource_id=t.resource_id
-	// AND resource_revisions.create_time=t.create_time
-	// WHERE resource_revisions.resource_id IN (...)
+	// ON resource_runs.resource_id=t.resource_id
+	// AND resource_runs.create_time=t.create_time
+	// WHERE resource_runs.resource_id IN (...)
 	ids := make([]any, len(resourceIDs))
 	for i := range resourceIDs {
 		ids[i] = resourceIDs[i]
 	}
 
-	return modelClient.ResourceRevisions().Query().
+	return modelClient.ResourceRuns().Query().
 		Modify(func(s *sql.Selector) {
 			t := sql.Select(
-				resourcerevision.FieldResourceID,
-				sql.As(sql.Max(resourcerevision.FieldCreateTime), resourcerevision.FieldCreateTime),
+				resourcerun.FieldResourceID,
+				sql.As(sql.Max(resourcerun.FieldCreateTime), resourcerun.FieldCreateTime),
 			).
-				From(sql.Table(resourcerevision.Table)).
-				GroupBy(resourcerevision.FieldResourceID).
+				From(sql.Table(resourcerun.Table)).
+				GroupBy(resourcerun.FieldResourceID).
 				As("t")
 			s.Join(t).
 				OnP(
 					sql.And(
 						sql.ColumnsEQ(
-							s.C(resourcerevision.FieldResourceID),
-							t.C(resourcerevision.FieldResourceID),
+							s.C(resourcerun.FieldResourceID),
+							t.C(resourcerun.FieldResourceID),
 						),
 						sql.ColumnsEQ(
-							s.C(resourcerevision.FieldCreateTime),
-							t.C(resourcerevision.FieldCreateTime),
+							s.C(resourcerun.FieldCreateTime),
+							t.C(resourcerun.FieldCreateTime),
 						),
 					),
 				).
 				Where(
-					sql.In(s.C(resourcerevision.FieldResourceID), ids...),
+					sql.In(s.C(resourcerun.FieldResourceID), ids...),
 				)
 		}).
 		WithResource(func(sq *model.ResourceQuery) {
