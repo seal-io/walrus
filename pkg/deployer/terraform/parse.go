@@ -21,8 +21,8 @@ import (
 	"github.com/seal-io/walrus/utils/json"
 )
 
-type RevisionOpts struct {
-	ResourceRevision *model.ResourceRevision
+type RunOpts struct {
+	ResourceRun *model.ResourceRun
 
 	ResourceName string
 
@@ -36,7 +36,7 @@ func ParseModuleAttributes(
 	mc model.ClientSet,
 	attributes map[string]any,
 	onlyValidated bool,
-	opts RevisionOpts,
+	opts RunOpts,
 ) (attrs map[string]any, variables model.Variables, outputs map[string]parser.OutputState, err error) {
 	var (
 		templateVariables         []string
@@ -50,9 +50,9 @@ func ParseModuleAttributes(
 		return
 	}
 
-	// If resource revision has variables that inherit from cloned revision, use them directly.
-	if opts.ResourceRevision != nil && len(opts.ResourceRevision.Variables) > 0 {
-		for k, v := range opts.ResourceRevision.Variables {
+	// If resource run has variables that inherit from cloned run, use them directly.
+	if opts.ResourceRun != nil && len(opts.ResourceRun.Variables) > 0 {
+		for k, v := range opts.ResourceRun.Variables {
 			variables = append(variables, &model.Variable{
 				Name:  k,
 				Value: crypto.String(v),
@@ -71,7 +71,7 @@ func ParseModuleAttributes(
 		outputs, err = getResourceDependencyOutputsByID(
 			ctx,
 			mc,
-			opts.ResourceRevision.ResourceID,
+			opts.ResourceRun.ResourceID,
 			dependOutputMap)
 		if err != nil {
 			return nil, nil, nil, err

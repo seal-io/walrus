@@ -81,7 +81,7 @@ func (r *DeleteRequest) Validate() error {
 	}
 
 	if !r.WithoutCleanup {
-		if err = validateRevisionsStatus(r.Context, r.Client, r.ID); err != nil {
+		if err = validateRunsStatus(r.Context, r.Client, r.ID); err != nil {
 			return err
 		}
 	}
@@ -212,7 +212,7 @@ func (r *PatchRequest) Validate() error {
 		return err
 	}
 
-	if err = validateRevisionsStatus(r.Context, r.Client, patched.ID); err != nil {
+	if err = validateRunsStatus(r.Context, r.Client, patched.ID); err != nil {
 		return err
 	}
 
@@ -438,7 +438,7 @@ func (r *CollectionDeleteRequest) Validate() error {
 	}
 
 	if r.WithoutCleanup {
-		if err = validateRevisionsStatus(r.Context, r.Client, ids...); err != nil {
+		if err = validateRunsStatus(r.Context, r.Client, ids...); err != nil {
 			return err
 		}
 	}
@@ -472,18 +472,18 @@ func validateEnvironment(tv *model.TemplateVersion, env *model.Environment) erro
 	return err
 }
 
-// validateRevisionsStatus validates revision status of given resource IDs.
-func validateRevisionsStatus(ctx context.Context, mc model.ClientSet, ids ...object.ID) error {
-	revisions, err := dao.GetLatestRevisions(ctx, mc, ids...)
+// validateRunsStatus validates run status of given resource IDs.
+func validateRunsStatus(ctx context.Context, mc model.ClientSet, ids ...object.ID) error {
+	runs, err := dao.GetLatestRuns(ctx, mc, ids...)
 	if err != nil {
-		return fmt.Errorf("failed to get resource revisions: %w", err)
+		return fmt.Errorf("failed to get resource runs: %w", err)
 	}
 
-	for _, r := range revisions {
+	for _, r := range runs {
 		switch r.Status.SummaryStatus {
-		case status.ResourceRevisionSummaryStatusSucceed:
-		case status.ResourceRevisionSummaryStatusFailed:
-		case status.ResourceRevisionSummaryStatusRunning:
+		case status.ResourceRunSummaryStatusSucceed:
+		case status.ResourceRunSummaryStatusFailed:
+		case status.ResourceRunSummaryStatusRunning:
 			return errorx.HttpErrorf(
 				http.StatusBadRequest,
 				"deployment of resource %q is running, please wait for it to finish",
@@ -515,7 +515,7 @@ func validateVariable(
 		attrs[k] = string(json.ShouldMarshal(v))
 	}
 
-	opts := terraform.RevisionOpts{
+	opts := terraform.RunOpts{
 		ResourceName:  resourceName,
 		ProjectID:     projectID,
 		EnvironmentID: environmentID,

@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/dustin/go-humanize"
+	humanize "github.com/dustin/go-humanize"
 	core "k8s.io/api/core/v1"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -283,7 +283,7 @@ func (d KubernetesDriver) put(ctx context.Context, key string, v []byte) error {
 		}
 
 		d.logger.V(5).InfoS("updated secret",
-			"namespace", sec.Namespace, "name", sec.Name, "revision", sec.ResourceVersion)
+			"namespace", sec.Namespace, "name", sec.Name, "run", sec.ResourceVersion)
 
 		return nil
 	}
@@ -306,7 +306,7 @@ func (d KubernetesDriver) put(ctx context.Context, key string, v []byte) error {
 	}
 
 	d.logger.V(5).InfoS("created secret",
-		"namespace", sec.Namespace, "name", sec.Name, "revision", sec.ResourceVersion)
+		"namespace", sec.Namespace, "name", sec.Name, "run", sec.ResourceVersion)
 
 	return nil
 }
@@ -341,7 +341,7 @@ func (d KubernetesDriver) delete(ctx context.Context, sec *core.Secret) error {
 	}
 
 	d.logger.V(5).InfoS("deleted secret",
-		"namespace", sec.Namespace, "name", sec.Name, "revision", sec.ResourceVersion)
+		"namespace", sec.Namespace, "name", sec.Name, "run", sec.ResourceVersion)
 
 	return nil
 }

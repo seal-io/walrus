@@ -63,18 +63,18 @@ if [ "$jobType" == "upgrade" ]; then
 	fi
 fi
 
-# Get latest revision id
-revisionResponse=$(curl -sS "$commonPath/resources/$resourceName/revisions?page=1&perPage=1&sort=-createTime" -X GET -H "Authorization: Bearer $token" $tlsVerify)
-revisionID=$(echo $revisionResponse | jq -r '.items[0].id')
+# Get latest run id
+runResponse=$(curl -sS "$commonPath/resources/$resourceName/runs?page=1&perPage=1&sort=-createTime" -X GET -H "Authorization: Bearer $token" $tlsVerify)
+runID=$(echo $runResponse | jq -r '.items[0].id')
 
 # Watch service logs until the service finished.
-curl -o - -sS "$commonPath/resources/$resourceName/revisions/$revisionID/log?jobType=apply&watch=true" -X GET -H "Authorization: Bearer $token" $tlsVerify --compressed
+curl -o - -sS "$commonPath/resources/$resourceName/runs/$runID/log?jobType=apply&watch=true" -X GET -H "Authorization: Bearer $token" $tlsVerify --compressed
 
-# Check revision status. wait until revision status is ready.
+# Check run status. wait until run status is ready.
 timeout=30
 factor=1
 while true; do
-	statusResponse=$(curl -sS "$commonPath/resources/$resourceName/revisions/$revisionID" -X GET -H "Authorization: Bearer $token" $tlsVerify)
+	statusResponse=$(curl -sS "$commonPath/resources/$resourceName/runs/$runID" -X GET -H "Authorization: Bearer $token" $tlsVerify)
 	statusSummary=$(echo $statusResponse | jq -r '.status.summaryStatus')
 
 	if [ "$statusSummary" == "Succeeded" ]; then

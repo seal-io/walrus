@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/hcl/v2"
+	hcl "github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	tfaddr "github.com/hashicorp/terraform-registry-address"
 	"github.com/zclconf/go-cty/cty"
@@ -26,13 +26,13 @@ import (
 // ConnectorSeparator is used to separate the connector id and the instance name.
 const ConnectorSeparator = "connector--"
 
-type ResourceRevisionParser struct{}
+type ResourceRunParser struct{}
 
-// GetResourcesAndDependencies returns the resources and dependency resources after parsed the resource revision output.
+// GetResourcesAndDependencies returns the resources and dependency resources after parsed the resource run output.
 //
 // GetResourcesAndDependencies returns list must not be `nil` unless unexpected input or raising error,
 // it can be used to clean stale items safety if got an empty list.
-func (ResourceRevisionParser) GetResourcesAndDependencies(revision *model.ResourceRevision) (
+func (ResourceRunParser) GetResourcesAndDependencies(run *model.ResourceRun) (
 	resources model.ResourceComponents,
 	dependencies map[string][]string,
 	err error,
@@ -40,8 +40,8 @@ func (ResourceRevisionParser) GetResourcesAndDependencies(revision *model.Resour
 	logger := log.WithName("deployer").WithName("tf").WithName("parser")
 	dependencies = make(map[string][]string)
 
-	var revisionState state
-	if err := json.Unmarshal([]byte(revision.Output), &revisionState); err != nil {
+	var runState state
+	if err := json.Unmarshal([]byte(run.Output), &runState); err != nil {
 		return nil, nil, err
 	}
 
@@ -53,7 +53,7 @@ func (ResourceRevisionParser) GetResourcesAndDependencies(revision *model.Resour
 		key               = dao.ResourceComponentGetUniqueKey
 	)
 
-	for _, rs := range revisionState.Resources {
+	for _, rs := range runState.Resources {
 		switch rs.Mode {
 		default:
 			logger.Errorf("unknown resource mode: %s", rs.Mode)
@@ -74,14 +74,14 @@ func (ResourceRevisionParser) GetResourcesAndDependencies(revision *model.Resour
 		}
 
 		classResource := &model.ResourceComponent{
-			ProjectID:     revision.ProjectID,
-			EnvironmentID: revision.EnvironmentID,
-			ResourceID:    revision.ResourceID,
+			ProjectID:     run.ProjectID,
+			EnvironmentID: run.EnvironmentID,
+			ResourceID:    run.ResourceID,
 			ConnectorID:   object.ID(connectorID),
 			Mode:          rs.Mode,
 			Type:          rs.Type,
 			Name:          rs.Name,
-			DeployerType:  revision.DeployerType,
+			DeployerType:  run.DeployerType,
 			Shape:         types.ResourceComponentShapeClass,
 		}
 		classResource.Edges.Instances = make(model.ResourceComponents, len(rs.Instances))
@@ -128,15 +128,15 @@ func (ResourceRevisionParser) GetResourcesAndDependencies(revision *model.Resour
 			}
 
 			instanceResource := &model.ResourceComponent{
-				ProjectID:     revision.ProjectID,
-				EnvironmentID: revision.EnvironmentID,
-				ResourceID:    revision.ResourceID,
+				ProjectID:     run.ProjectID,
+				EnvironmentID: run.EnvironmentID,
+				ResourceID:    run.ResourceID,
 				ConnectorID:   object.ID(connectorID),
 				Mode:          rs.Mode,
 				Type:          rs.Type,
 				Name:          instanceID,
 				Shape:         types.ResourceComponentShapeInstance,
-				DeployerType:  revision.DeployerType,
+				DeployerType:  run.DeployerType,
 			}
 
 			// Assume that the first instance's dependencies are the dependencies of the class resource.
@@ -168,15 +168,15 @@ func (ResourceRevisionParser) GetResourcesAndDependencies(revision *model.Resour
 	return resources, dependencies, nil
 }
 
-// GetOutputsMap returns the original outputs after parsed the resource revision output(terraform state).
+// GetOutputsMap returns the original outputs after parsed the resource run output(terraform state).
 //
 // Since we mutate the output names before executing a terraform deployment,
 // the output's name(hcl label) is not the same as the original one defined on the terraform template.
 //
 // This function is used for bridging the referring between multiple (walrus)resources.
 // Use GetOriginalOutputsMap if wanna the original outputs.
-func (ResourceRevisionParser) GetOutputsMap(revision *model.ResourceRevision) (map[string]types.OutputValue, error) {
-	if len(revision.Output) == 0 {
+func (ResourceRunParser) GetOutputsMap(run *model.ResourceRun) (map[string]types.OutputValue, error) {
+	if len(run.Output) == 0 {
 		return nil, nil
 	}
 
@@ -184,7 +184,7 @@ func (ResourceRevisionParser) GetOutputsMap(revision *model.ResourceRevision) (m
 	// {
 	//   "outputs": {}
 	// }.
-	r := json.Get(strs.ToBytes(&revision.Output), "outputs")
+	r := json.Get(strs.ToBytes(&run.Output), "outputs")
 	if !r.Exists() || !r.IsObject() {
 		return map[string]types.OutputValue{}, nil
 	}
@@ -197,24 +197,24 @@ func (ResourceRevisionParser) GetOutputsMap(revision *model.ResourceRevision) (m
 	return osm, nil
 }
 
-// GetOriginalOutputs returns the original outputs after parsed the resource revision output(terraform state).
+// GetOriginalOutputs returns the original outputs after parsed the resource run output(terraform state).
 //
-// The given revision must carry the resource on the edges, especially the resource's name.
+// The given run must carry the resource on the edges, especially the resource's name.
 //
 // This function returns the original outputs,
 // which means the output's name(hcl label) is the same as the original one defined on the terraform template.
-func (p ResourceRevisionParser) GetOriginalOutputs(revision *model.ResourceRevision) ([]types.OutputValue, error) {
-	if revision.Edges.Resource == nil || revision.Edges.Resource.Name == "" {
+func (p ResourceRunParser) GetOriginalOutputs(run *model.ResourceRun) ([]types.OutputValue, error) {
+	if run.Edges.Resource == nil || run.Edges.Resource.Name == "" {
 		return nil, errors.New("resource name is empty")
 	}
 
-	osm, err := p.GetOutputsMap(revision)
+	osm, err := p.GetOutputsMap(run)
 	if err != nil {
 		return nil, err
 	}
 
 	var (
-		prefix = revision.Edges.Resource.Name + "_"
+		prefix = run.Edges.Resource.Name + "_"
 		oss    = make([]types.OutputValue, 0, len(osm))
 		count  int
 	)
@@ -255,10 +255,10 @@ func (p ResourceRevisionParser) GetOriginalOutputs(revision *model.ResourceRevis
 
 // GetOriginalOutputsMap is similar to GetOriginalOutputs,
 // but returns the original outputs in map form.
-func (p ResourceRevisionParser) GetOriginalOutputsMap(
-	revision *model.ResourceRevision,
+func (p ResourceRunParser) GetOriginalOutputsMap(
+	run *model.ResourceRun,
 ) (map[string]types.OutputValue, error) {
-	oss, err := p.GetOriginalOutputs(revision)
+	oss, err := p.GetOriginalOutputs(run)
 	if err != nil {
 		return nil, err
 	}
@@ -300,7 +300,7 @@ func ParseInstanceProviderConnector(providerString string) (string, error) {
 }
 
 // ParseInstanceID get the real instance id from the instance object state.
-// The instance id is stored in the "name" attribute of application resource.
+// The instance id is stored in the "name" attribute of resource resource.
 func ParseInstanceID(is instanceObjectState) (string, error) {
 	if is.Attributes != nil {
 		ty, err := ctyjson.ImpliedType(is.Attributes)
@@ -370,12 +370,12 @@ func ParseStateProviders(s string) ([]string, error) {
 
 	providers := sets.NewString()
 
-	var revisionState state
-	if err := json.Unmarshal([]byte(s), &revisionState); err != nil {
+	var runState state
+	if err := json.Unmarshal([]byte(s), &runState); err != nil {
 		return nil, err
 	}
 
-	for _, resource := range revisionState.Resources {
+	for _, resource := range runState.Resources {
 		pAddr, err := ParseAbsProviderString(resource.Provider)
 		if err != nil {
 			return nil, err

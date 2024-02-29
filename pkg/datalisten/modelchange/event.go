@@ -20,8 +20,8 @@ var (
 	Resource = topic.Topic(migrate.ResourcesTable.Name)
 	// ResourceComponent is the topic for model.ResourceComponent.
 	ResourceComponent = topic.Topic(migrate.ResourceComponentsTable.Name)
-	// ResourceRevision is the topic for model.ResourceRevision.
-	ResourceRevision = topic.Topic(migrate.ResourceRevisionsTable.Name)
+	// ResourceRun is the topic for model.ResourceRun.
+	ResourceRun = topic.Topic(migrate.ResourceRunsTable.Name)
 	// Template is the topic for model.Template.
 	Template = topic.Topic(migrate.TemplatesTable.Name)
 	// Workflow is the topic for model.Workflow.
@@ -40,7 +40,7 @@ var tableNameSet = sets.NewString(
 	string(Connector),
 	string(Resource),
 	string(ResourceComponent),
-	string(ResourceRevision),
+	string(ResourceRun),
 	string(Template),
 	string(Workflow),
 	string(WorkflowExecution),
