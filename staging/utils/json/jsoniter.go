@@ -14,9 +14,11 @@ import (
 type RawMessage = stdjson.RawMessage
 
 var (
-	json          = jsoniter.ConfigCompatibleWithStandardLibrary
-	Marshal       = json.Marshal
-	Unmarshal     = json.Unmarshal
+	json      = jsoniter.ConfigCompatibleWithStandardLibrary
+	Marshal   = json.Marshal
+	Unmarshal = json.Unmarshal
+	// MarshalIndent has format issue, it only indents the first level of the json now, upgrade after issue fixed.
+	// https://github.com/json-iterator/go/issues/645
 	MarshalIndent = json.MarshalIndent
 	NewDecoder    = json.NewDecoder
 	NewEncoder    = json.NewEncoder

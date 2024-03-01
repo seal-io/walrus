@@ -2,11 +2,10 @@ package formatter
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-
-	"github.com/seal-io/walrus/utils/json"
 )
 
 // JsonFormatter use to convert response to json format.
@@ -33,6 +32,11 @@ func (f *JsonFormatter) Format(resp *http.Response) ([]byte, error) {
 	}
 
 	var b bytes.Buffer
+
+	// TODO(michelia): Normally we use github.com/seal-io/walrus/utils/json as our json util,
+	// since the upstream json-iterator has a bug with MarshalIndent, we use the standard library here,
+	// upgrade to github.com/seal-io/walrus/utils/json when the bug is fixed.
+	// https://github.com/json-iterator/go/issues/645
 	enc := json.NewEncoder(&b)
 	enc.SetEscapeHTML(false)
 	enc.SetIndent("", "  ")
