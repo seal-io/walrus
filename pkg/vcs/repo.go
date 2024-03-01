@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-version"
 
 	"github.com/seal-io/walrus/pkg/vcs/driver/github"
+	"github.com/seal-io/walrus/pkg/vcs/driver/gitlab"
 	"github.com/seal-io/walrus/utils/log"
 )
 
@@ -34,6 +35,44 @@ type Repository struct {
 	Driver string `json:"driver"`
 	// SubPath is the sub path of the repository.
 	SubPath string `json:"subPath"`
+}
+
+// FileRawURL returns raw URL of a file in a git repository.
+func (r *Repository) FileRawURL(file string) (string, error) {
+	if file == "" {
+		return "", nil
+	}
+
+	endpoint, err := transport.NewEndpoint(r.Link)
+	if err != nil {
+		return "", err
+	}
+
+	var (
+		githubRawHost = "raw.githubusercontent.com"
+		gitlabRawHost = "gitlab.com"
+		giteeRawHost  = "gitee.com"
+		ref           = "HEAD"
+	)
+
+	if r.Reference != "" {
+		ref = r.Reference
+	}
+
+	switch endpoint.Host {
+	case "github.com":
+		return fmt.Sprintf("https://%s/%s/%s/%s/%s", githubRawHost, r.Namespace, r.Name, ref, file), nil
+	case "gitlab.com":
+		return fmt.Sprintf("https://%s/%s/%s/-/raw/%s/%s", gitlabRawHost, r.Namespace, r.Name, ref, file), nil
+	case "gitee.com":
+		return fmt.Sprintf("https://%s/%s/%s/raw/%s/%s", giteeRawHost, r.Namespace, r.Name, ref, file), nil
+	}
+
+	if r.Driver == gitlab.Driver {
+		return fmt.Sprintf("%s/-/raw/%s/%s", endpoint.String(), ref, file), nil
+	}
+
+	return "", nil
 }
 
 // ParseURLToRepo parses a raw URL to a git repository.

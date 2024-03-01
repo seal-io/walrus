@@ -10,7 +10,6 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
-	"github.com/seal-io/walrus/pkg/templates/loader"
 	"github.com/seal-io/walrus/pkg/templates/openapi"
 	"github.com/seal-io/walrus/pkg/vcs"
 	"github.com/seal-io/walrus/utils/log"
@@ -74,64 +73,14 @@ func getValidVersions(
 			dir = filepath.Join(dir, subPath)
 		}
 
-		schema, err := loader.LoadOriginalSchema(dir, entity.Name)
+		sg, err := getSchemas(dir, entity.Name)
 		if err != nil {
-			logger.Warnf("failed to load \"%s:%s\" of catalog %q schema: %v", entity.Name, tag, entity.CatalogID, err)
+			logger.Warnf("error get \"%s:%s\"'s schema of catalog %q: %v", entity.Name, tag, entity.CatalogID, err)
 			continue
-		}
-
-		fileSchema, err := loader.LoadFileSchema(dir, entity.Name)
-		if err != nil {
-			logger.Warnf("failed to load \"%s:%s\" of catalog %q schema: %v", entity.Name, tag, entity.CatalogID, err)
-			continue
-		}
-
-		if err = schema.Validate(); err != nil {
-			logger.Warnf(
-				"failed to validate \"%s:%s\" of catalog %q schema: %v",
-				entity.Name,
-				tag,
-				entity.CatalogID,
-				err,
-			)
-
-			continue
-		}
-
-		satisfy, err := isConstraintSatisfied(fileSchema)
-		if err != nil {
-			logger.Warnf(
-				"failed to check constraint satisfy \"%s:%s\" of catalog %q: %v",
-				entity.Name,
-				tag,
-				entity.CatalogID,
-				err,
-			)
-
-			continue
-		}
-
-		if !satisfy {
-			logger.Infof(
-				"\"%s:%s\" of catalog %q does not satisfy server version constraint",
-				entity.Name,
-				tag,
-				entity.CatalogID,
-			)
-
-			continue
-		}
-
-		uiSchema := schema.Expose(openapi.WalrusContextVariableName)
-		if fileSchema != nil && !fileSchema.IsEmpty() {
-			uiSchema = fileSchema.Expose()
 		}
 
 		validVersions = append(validVersions, v)
-		versionSchema[v] = &schemaGroup{
-			Schema:   schema,
-			UISchema: &uiSchema,
-		}
+		versionSchema[v] = sg
 	}
 
 	return validVersions, versionSchema, nil

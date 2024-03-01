@@ -72,7 +72,7 @@ func syncSchema(ctx context.Context, mc model.ClientSet, t *model.Template) erro
 	}
 
 	if repo.Reference != "" {
-		return syncTemplateFromRef(ctx, mc, t, repo)
+		return SyncTemplateFromGitRef(ctx, mc, t, repo)
 	}
 
 	return SyncTemplateFromGitRepo(ctx, mc, t, repo)
@@ -96,7 +96,7 @@ func (s versionSchemaSyncer) Do(_ context.Context, message templateversion.BusMe
 		logger.Debugf("syncing schema for template version %s", m.ID)
 
 		// Sync schema.
-		err := syncTemplateVersion(ctx, s.mc, m)
+		err := SyncTemplateVersion(ctx, s.mc, m)
 		if err != nil {
 			logger.Warnf("syncing template version %s schema failed: %v", m.ID, err)
 			return
