@@ -37,16 +37,11 @@ type (
 	CreateRequest struct {
 		model.ResourceCreateInput `path:",inline" json:",inline"`
 
-		Draft         bool   `json:"draft,default=false"`
-		Preview       bool   `json:"preview,default=false"`
-		ChangeComment string `json:"changeComment,omitempty"`
+		Draft   bool `json:"draft,default=false"`
+		Preview bool `json:"preview,default=false"`
 	}
 
-	CreateResponse struct {
-		*model.ResourceOutput
-
-		Run *model.ResourceRunOutput `json:"run"`
-	}
+	CreateResponse = *model.ResourceOutput
 )
 
 func (r *CreateRequest) Validate() error {
@@ -494,7 +489,7 @@ func validateEnvironment(tv *model.TemplateVersion, env *model.Environment) erro
 
 // validateRunsStatus validates run status of given resource IDs.
 func validateRunsStatus(ctx context.Context, mc model.ClientSet, ids ...object.ID) error {
-	runs, err := dao.GetLatestRuns(ctx, mc, ids...)
+	runs, err := dao.GetResourcesLatestRuns(ctx, mc, ids...)
 	if err != nil {
 		return fmt.Errorf("failed to get resource runs: %w", err)
 	}

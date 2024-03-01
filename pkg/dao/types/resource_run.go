@@ -64,7 +64,7 @@ func (p *Plan) UnmarshalJSON(data []byte) error {
 	p.ResourceComponentChanges = make([]*ResourceComponentChange, len(p.Plan.ResourceChanges))
 
 	for i, rc := range p.Plan.ResourceChanges {
-		p.ResourceComponentChanges[i] = &ResourceComponentChange{
+		rcc := &ResourceComponentChange{
 			ResourceChange: rc,
 			Change: &Change{
 				Change: rc.Change,
@@ -73,12 +73,19 @@ func (p *Plan) UnmarshalJSON(data []byte) error {
 
 		switch {
 		case rc.Change.Actions.Create():
-			p.ResourceComponentChanges[i].Change.Type = ResourceComponentChangeTypeCreate
-		case rc.Change.Actions.Update():
-			p.ResourceComponentChanges[i].Change.Type = ResourceComponentChangeTypeUpdate
+			rcc.Change.Type = ResourceComponentChangeTypeCreate
+		case rc.Change.Actions.Update(),
+			rc.Change.Actions.Replace(),
+			rc.Change.Actions.CreateBeforeDestroy(),
+			rc.Change.Actions.DestroyBeforeCreate():
+			rcc.Change.Type = ResourceComponentChangeTypeUpdate
 		case rc.Change.Actions.Delete():
-			p.ResourceComponentChanges[i].Change.Type = ResourceComponentChangeTypeDelete
+			rcc.Change.Type = ResourceComponentChangeTypeDelete
+		case rc.Change.Actions.NoOp(), rc.Change.Actions.Read():
+			rcc.Change.Type = ResourceComponentChangeTypeNoChange
 		}
+
+		p.ResourceComponentChanges[i] = rcc
 	}
 
 	return nil
@@ -116,9 +123,10 @@ type ResourceComponentChange struct {
 }
 
 const (
-	ResourceComponentChangeTypeCreate = "create"
-	ResourceComponentChangeTypeUpdate = "update"
-	ResourceComponentChangeTypeDelete = "delete"
+	ResourceComponentChangeTypeCreate   = "create"
+	ResourceComponentChangeTypeUpdate   = "update"
+	ResourceComponentChangeTypeDelete   = "delete"
+	ResourceComponentChangeTypeNoChange = "no-change"
 )
 
 type Change struct {

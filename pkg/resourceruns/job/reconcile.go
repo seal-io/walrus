@@ -58,7 +58,7 @@ func (r Reconciler) Setup(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-// syncRunStatus sync the application run status.
+// syncRunStatus sync the resource run status.
 func (r Reconciler) syncRunStatus(ctx context.Context, job *batchv1.Job) (err error) {
 	runID, ok := job.Labels[types.LabelWalrusResourceRunID]
 	if !ok {
@@ -102,7 +102,7 @@ func (r Reconciler) syncRunStatus(ctx context.Context, job *batchv1.Job) (err er
 			ClearComponentChangeSummary()
 	}
 
-	// Report to application run.
+	// Report to Resource run.
 	if runstatus.IsStatusPlanCondition(run) {
 		run.PlanRecord = record
 	} else {

@@ -390,7 +390,7 @@ func (r *Server) Flags(cmd *cli.Command) {
 		&cli.StringFlag{
 			Name: "cache-source-address",
 			Usage: "The addresses for connecting cache source, e.g. " +
-				"Redis(redis://[username[:password]@]host[:port]/dbname[?param1=value1&...&paramN=valueN])" +
+				"Redis(redis://[username[:password]@]host[:port]/dbname[?param1=value1&...&paramN=valueN]), " +
 				"Redis Cluster(rediss://[username[:password]@]host[:port]?addr=host2[:port2]&addr=host3" +
 				"[:port3][&param1=value1&...&paramN=valueN]).",
 			Destination: &r.CacheSourceAddress,

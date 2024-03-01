@@ -31,7 +31,7 @@ var (
 	labelMapping = map[string]string{
 		"walrus_seal_io_project_name":     types.LabelWalrusProjectName,
 		"walrus_seal_io_environment_name": types.LabelWalrusEnvironmentName,
-		"walrus_seal_io_service_name":     types.LabelWalrusResourceName,
+		"walrus_seal_io_resource_name":    types.LabelWalrusResourceName,
 	}
 )
 

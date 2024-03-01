@@ -28,6 +28,11 @@ import (
 // ConnectorSeparator is used to separate the connector id and the instance name.
 const ConnectorSeparator = "connector--"
 
+// The type terraform data implements the standard resource lifecycle,
+// but does not directly take any other actions.
+// Resource components should skip the data type.
+const TerraformTypeData = "terraform_data"
+
 type StateParser struct{}
 
 // GetComponentsAndExtractDependencies returns the components and dependency components after parse the resource state.
@@ -67,6 +72,10 @@ func (StateParser) GetComponentsAndExtractDependencies(
 	)
 
 	for _, rs := range runState.Resources {
+		if rs.Type == TerraformTypeData {
+			continue
+		}
+
 		switch rs.Mode {
 		default:
 			logger.Errorf("unknown resource mode: %s", rs.Mode)
@@ -107,7 +116,7 @@ func (StateParser) GetComponentsAndExtractDependencies(
 		moduleComponentMap[mk] = classResourceComponents
 
 		for i, is := range rs.Instances {
-			instanceID, err := ParseInstanceID(is)
+			instanceID, err := ParseInstanceID(rs, is)
 			if err != nil {
 				logger.Errorf("parse instance id failed: %v, instance: %v",
 					err, is)
@@ -116,6 +125,13 @@ func (StateParser) GetComponentsAndExtractDependencies(
 
 			if instanceID == "" {
 				logger.Errorf("instance id is empty, instance: %v", is)
+				continue
+			}
+
+			// The index key is used to identify the terraform resource instance.
+			indexKey, err := ParseIndexKey(rs, is)
+			if err != nil {
+				logger.Errorf("parse index key failed: %v, instance: %v", err, is)
 				continue
 			}
 
@@ -150,6 +166,7 @@ func (StateParser) GetComponentsAndExtractDependencies(
 				Name:          instanceID,
 				Shape:         types.ResourceComponentShapeInstance,
 				DeployerType:  run.DeployerType,
+				IndexKey:      indexKey,
 			}
 
 			// Assume that the first instance's dependencies are the dependencies of the class resource.
@@ -310,8 +327,8 @@ func ParseInstanceProviderConnector(providerString string) (string, error) {
 }
 
 // ParseInstanceID get the real instance id from the instance object state.
-// The instance id is stored in the "name" attribute of resource resource.
-func ParseInstanceID(is instanceObjectState) (string, error) {
+// The instance id is stored in the "name" attribute of resource component.
+func ParseInstanceID(rs resourceState, is instanceObjectState) (string, error) {
 	if is.Attributes != nil {
 		ty, err := ctyjson.ImpliedType(is.Attributes)
 		if err != nil {
@@ -347,7 +364,7 @@ func ParseInstanceID(is instanceObjectState) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("no id found in instance object state: %v", is)
+	return ParseIndexKey(rs, is)
 }
 
 // ParseInstanceMetadata get the metadata from the instance object state.
@@ -489,4 +506,25 @@ func ParseAbsProviderString(str string) (*AbsProviderConfig, error) {
 	}
 
 	return ret, nil
+}
+
+// ParseIndexKey parse the index key from the instance object state.
+// The index key is used to identify the terraform resource instance, e.g. `helm_release.foo[0]`.
+func ParseIndexKey(rs resourceState, is instanceObjectState) (string, error) {
+	if rs.Type == "" || rs.Name == "" {
+		return "", errors.New("resource type or name is empty")
+	}
+
+	if is.IndexKey == nil {
+		return strs.Join(".", rs.Module, rs.Type, rs.Name), nil
+	}
+
+	switch is.IndexKey.(type) {
+	case string:
+		return strs.Join(".", rs.Module, rs.Type, rs.Name) + fmt.Sprintf("[\"%v\"]", is.IndexKey), nil
+	case int:
+		return strs.Join(".", rs.Module, rs.Type, rs.Name) + fmt.Sprintf("[%v]", is.IndexKey), nil
+	}
+
+	return "", fmt.Errorf("invalid index key: %v", is.IndexKey)
 }

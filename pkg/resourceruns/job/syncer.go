@@ -66,11 +66,6 @@ func (s syncer) Do(ctx context.Context, bm runbus.BusMessage) (err error) {
 
 			return nil
 		}
-
-		// If approval required, set the status planned.
-		status.ResourceStatusPlanned.Reset(entity, "")
-		status.ResourceStatusPlanned.True(entity, "")
-
 	case runstatus.IsStatusSucceeded(run):
 		switch {
 		case status.ResourceStatusDeleted.IsUnknown(entity):
@@ -103,15 +98,18 @@ func (s syncer) Do(ctx context.Context, bm runbus.BusMessage) (err error) {
 			status.ResourceStatusReady.Unknown(entity, "")
 		}
 	case runstatus.IsStatusFailed(run):
-		switch {
-		case status.ResourceStatusDeleted.IsUnknown(entity):
-			status.ResourceStatusDeleted.False(entity, "")
-		case status.ResourceStatusStopped.IsUnknown(entity):
-			status.ResourceStatusStopped.False(entity, "")
-		case status.ResourceStatusPlanned.IsUnknown(entity):
-			status.ResourceStatusPlanned.False(entity, "")
-		default:
+		// If plan failed, resource status will not change.
+		if status.ResourceRunStatusPlanned.IsFalse(run) {
+			return nil
+		}
+
+		switch run.Type {
+		case types.RunTypeCreate.String(), types.RunTypeUpdate.String(), types.RunTypeRollback.String(), types.RunTypeStart.String():
 			status.ResourceStatusDeployed.False(entity, "")
+		case types.RunTypeDelete.String():
+			status.ResourceStatusDeleted.False(entity, "")
+		case types.RunTypeStop.String():
+			status.ResourceStatusStopped.False(entity, "")
 		}
 
 		entity.Status.SummaryStatusMessage = run.Status.SummaryStatusMessage

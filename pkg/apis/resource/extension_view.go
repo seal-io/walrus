@@ -46,12 +46,6 @@ type (
 		ReuseAttributes bool   `json:"reuseAttributes,default=false"`
 		Preview         bool   `json:"preview,default=false"`
 	}
-
-	RouteUpgradeResponse struct {
-		*model.ResourceOutput
-
-		Run *model.ResourceRunOutput `json:"run"`
-	}
 )
 
 func (r *RouteUpgradeRequest) Validate() error {

@@ -2,7 +2,6 @@ package resource
 
 import (
 	"context"
-	"time"
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -13,13 +12,12 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
+	pkgrun "github.com/seal-io/walrus/pkg/resourceruns"
 	pkgresource "github.com/seal-io/walrus/pkg/resources"
-	"github.com/seal-io/walrus/utils/gopool"
-	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/topic"
 )
 
-func (h Handler) Create(req CreateRequest) (*CreateResponse, error) {
+func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 	entity := req.Model()
 
 	dp, err := getDeployer(req.Context, h.kubeConfig)
@@ -27,22 +25,18 @@ func (h Handler) Create(req CreateRequest) (*CreateResponse, error) {
 		return nil, err
 	}
 
-	entity, run, err := pkgresource.Create(
+	entity, _, err = pkgresource.Create(
 		req.Context,
 		h.modelClient,
 		entity,
 		pkgresource.Options{
-			Deployer:      dp,
-			ChangeComment: req.ChangeComment,
-			Draft:         req.Draft,
-			Preview:       req.Preview,
+			Deployer: dp,
+			Draft:    req.Draft,
+			Preview:  req.Preview,
 		},
 	)
 
-	return &CreateResponse{
-		ResourceOutput: model.ExposeResource(entity),
-		Run:            model.ExposeResourceRun(run),
-	}, err
+	return model.ExposeResource(entity), err
 }
 
 func (h Handler) Get(req GetRequest) (GetResponse, error) {
@@ -71,7 +65,7 @@ func (h Handler) Get(req GetRequest) (GetResponse, error) {
 }
 
 func (h Handler) Delete(req DeleteRequest) (err error) {
-	err = h.cleanResourcePlanFiles(req.Context, req.ID)
+	err = h.cleanResourcePlanFiles(req.Context, h.modelClient, req.ID)
 	if err != nil {
 		return err
 	}
@@ -311,7 +305,7 @@ func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 		return err
 	}
 
-	err = h.cleanResourcePlanFiles(req.Context, req.IDs()...)
+	err = h.cleanResourcePlanFiles(req.Context, h.modelClient, req.IDs()...)
 	if err != nil {
 		return err
 	}
@@ -325,27 +319,13 @@ func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 	})
 }
 
-func (h Handler) cleanResourcePlanFiles(ctx context.Context, resourceIDs ...object.ID) error {
-	logger := log.WithName("apis").WithName("resource")
-
-	runs, err := h.modelClient.ResourceRuns().Query().
+func (h Handler) cleanResourcePlanFiles(ctx context.Context, mc model.ClientSet, resourceIDs ...object.ID) error {
+	runIDs, err := h.modelClient.ResourceRuns().Query().
 		Where(resourcerun.ResourceIDIn(resourceIDs...)).
-		All(ctx)
+		IDs(ctx)
 	if err != nil {
 		return err
 	}
 
-	gopool.Go(func() {
-		subCtx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
-		defer cancel()
-
-		for i := range runs {
-			run := runs[i]
-			if rerr := h.storageManager.DeleteRunPlan(subCtx, run); rerr != nil {
-				logger.Error(rerr, "failed to delete run plan", "run", run.ID)
-			}
-		}
-	})
-
-	return nil
+	return pkgrun.CleanPlanFiles(ctx, mc, h.storageManager, runIDs...)
 }

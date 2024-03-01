@@ -238,5 +238,5 @@ var replacements = map[string]struct {
 	"Active":      {"Preparing", "Inactive", "Active"},
 	"Canceled":    {"Canceling", "CancelFailed", "Canceled"},
 	"Planned":     {"Planning", "Failed", "Planned"},
-	"Apply":       {"Running", "Failed", "Succeeded"},
+	"Applied":     {"Running", "Failed", "Succeeded"},
 }

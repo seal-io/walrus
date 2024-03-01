@@ -3,7 +3,7 @@ package status
 const (
 	ResourceRunStatusPending  ConditionType = "Pending"
 	ResourceRunStatusPlanned  ConditionType = "Planned"
-	ResourceRunStatusApply    ConditionType = "Apply"
+	ResourceRunStatusApplied  ConditionType = "Applied"
 	ResourceRunStatusCanceled ConditionType = "Canceled"
 
 	ResourceRunSummaryStatusRunning string = "Running"
@@ -20,16 +20,16 @@ const (
 //	| Plan             | Unknown                 | Planning              | Transitioning         |
 //	| Plan             | False                   | Failed                | Error                 |
 //	| Plan             | True                    | Planned               |                       |
-//	| Apply            | Unknown                 | Running               | Transitioning         |
-//	| Apply            | False                   | Failed                | Error                 |
-//	| Apply            | True                    | Succeeded             |                       |
+//	| Applied          | Unknown                 | Running               | Transitioning         |
+//	| Applied          | False                   | Failed                | Error                 |
+//	| Applied          | True                    | Succeeded             |                       |
 //	| Canceled         | True                    | Canceled              | Canceled              |
 var resourceRunStatusPaths = NewWalker(
 	[][]ConditionType{
 		{
 			ResourceRunStatusPending,
 			ResourceRunStatusPlanned,
-			ResourceRunStatusApply,
+			ResourceRunStatusApplied,
 			ResourceRunStatusCanceled,
 		},
 	},
