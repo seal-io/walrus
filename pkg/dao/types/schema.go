@@ -17,6 +17,10 @@ const (
 	OutputSchemaKey   = "outputs"
 )
 
+const (
+	TagUserEdited = "user-edited"
+)
+
 // Schema specifies the openAPI schema with variables and outputs.
 type Schema struct {
 	OpenAPISchema *openapi3.T `json:"openAPISchema"`
@@ -172,6 +176,11 @@ func (s UISchema) IsEmpty() bool {
 		s.OpenAPISchema.Components.Schemas[VariableSchemaKey].Value == nil
 }
 
+// IsUserEdited reports if the ui schema is edited by user.
+func (s *UISchema) IsUserEdited() bool {
+	return s.OpenAPISchema != nil && s.OpenAPISchema.Tags.Get(TagUserEdited) != nil
+}
+
 // VariableSchema returns the variables' schema.
 func (s *UISchema) VariableSchema() *openapi3.Schema {
 	if s.IsEmpty() {
@@ -188,6 +197,37 @@ func (s *UISchema) SetVariableSchema(v *openapi3.Schema) {
 	}
 
 	s.OpenAPISchema.Components.Schemas[VariableSchemaKey].Value = v
+}
+
+// SetUserEdited sets the user edited tag to the ui schema.
+func (s *UISchema) SetUserEdited() {
+	if s.OpenAPISchema != nil {
+		tag := s.OpenAPISchema.Tags.Get(TagUserEdited)
+		if tag == nil {
+			s.OpenAPISchema.Tags = append(
+				s.OpenAPISchema.Tags,
+				&openapi3.Tag{Name: TagUserEdited})
+		}
+	}
+}
+
+// UnsetUserEdited unsets the user edited tag to the ui schema.
+func (s *UISchema) UnsetUserEdited() {
+	if s.OpenAPISchema != nil {
+		tag := s.OpenAPISchema.Tags.Get(TagUserEdited)
+		if tag == nil {
+			return
+		}
+
+		newTags := make(openapi3.Tags, len(s.OpenAPISchema.Tags)-1)
+		for _, v := range s.OpenAPISchema.Tags {
+			if v.Name != TagUserEdited {
+				newTags = append(newTags, v)
+			}
+		}
+
+		s.OpenAPISchema.Tags = newTags
+	}
 }
 
 // Validate reports if the ui schema is valid.

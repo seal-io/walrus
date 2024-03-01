@@ -23,6 +23,7 @@ func (h Handler) Update(req UpdateRequest) error {
 		return err
 	}
 
+	entity.UiSchema.SetUserEdited()
 	_, err = h.modelClient.TemplateVersions().UpdateOne(entity).
 		SetUiSchema(entity.UiSchema).
 		SetSchemaDefaultValue(entity.SchemaDefaultValue).

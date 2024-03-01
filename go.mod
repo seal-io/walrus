@@ -65,6 +65,7 @@ require (
 	github.com/r3labs/sse v0.0.0-20210224172625-26fe804710bc
 	github.com/redis/go-redis/v9 v9.4.0
 	github.com/sashabaranov/go-openai v1.18.1
+	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.22
 	github.com/seal-io/walrus/utils v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.9.3
 	github.com/sony/sonyflake v1.2.0
@@ -344,7 +345,6 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
-	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.22 // indirect
 	github.com/segmentio/fasthash v1.0.3 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/sethvargo/go-limiter v0.7.2 // indirect
