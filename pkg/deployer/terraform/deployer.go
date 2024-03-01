@@ -57,7 +57,7 @@ func (d Deployer) Apply(
 	}
 
 	status.ResourceRunStatusPlanned.True(run, "")
-	status.ResourceRunStatusApply.Unknown(run, "")
+	status.ResourceRunStatusApplied.Unknown(run, "")
 
 	run, err = runstatus.UpdateStatus(ctx, mc, run)
 	if err != nil {
@@ -117,7 +117,7 @@ func (d Deployer) Destroy(
 	}
 
 	status.ResourceRunStatusPlanned.True(run, "")
-	status.ResourceRunStatusApply.Unknown(run, "")
+	status.ResourceRunStatusApplied.Unknown(run, "")
 
 	run, err = runstatus.UpdateStatus(ctx, mc, run)
 	if err != nil {

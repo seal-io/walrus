@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 
@@ -25,8 +26,11 @@ import (
 	"github.com/seal-io/walrus/pkg/resourceruns/annotations"
 	runjob "github.com/seal-io/walrus/pkg/resourceruns/job"
 	runstatus "github.com/seal-io/walrus/pkg/resourceruns/status"
+	"github.com/seal-io/walrus/pkg/storage"
 	"github.com/seal-io/walrus/pkg/terraform/parser"
 	"github.com/seal-io/walrus/utils/errorx"
+	"github.com/seal-io/walrus/utils/gopool"
+	"github.com/seal-io/walrus/utils/log"
 )
 
 type CreateOptions struct {
@@ -180,7 +184,7 @@ func Create(ctx context.Context, mc model.ClientSet, opts CreateOptions) (*model
 
 		case opts.Type == types.RunTypeDelete ||
 			opts.Type == types.RunTypeStop:
-			if status.ResourceRunStatusApply.IsFalse(prevEntity) {
+			if status.ResourceRunStatusApplied.IsFalse(prevEntity) {
 				// Get required providers from the previous output after first deployment.
 				requiredProviders, err := getRequiredProviders(ctx, mc, opts.ResourceID, output)
 				if err != nil {
@@ -262,10 +266,16 @@ func getRequiredProviders(
 
 // Apply the resource run in planned status.
 func Apply(ctx context.Context, mc model.ClientSet, dp deptypes.Deployer, run *model.ResourceRun) error {
-	resourceLatestRun, err := dao.GetResourceLatestRun(ctx, mc, run.ResourceID)
+	resourceLatestRuns, err := dao.GetResourcesLatestRuns(ctx, mc, run.ResourceID)
 	if err != nil {
 		return err
 	}
+
+	if len(resourceLatestRuns) == 0 {
+		return errorx.Errorf("Latest resource run not found")
+	}
+
+	resourceLatestRun := resourceLatestRuns[0]
 
 	if resourceLatestRun.ID != run.ID {
 		return errorx.Errorf("Only the latest resource run can be applied")
@@ -276,4 +286,28 @@ func Apply(ctx context.Context, mc model.ClientSet, dp deptypes.Deployer, run *m
 	}
 
 	return runjob.PerformRunJob(ctx, mc, dp, run)
+}
+
+func CleanPlanFiles(ctx context.Context, mc model.ClientSet, sm *storage.Manager, ids ...object.ID) error {
+	logger := log.WithName("resource-run")
+
+	runs, err := mc.ResourceRuns().Query().
+		Where(resourcerun.IDIn(ids...)).
+		All(ctx)
+	if err != nil {
+		return err
+	}
+
+	gopool.Go(func() {
+		subCtx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+		defer cancel()
+
+		for i := range runs {
+			if rerr := sm.DeleteRunPlan(subCtx, runs[i]); err != nil {
+				logger.Error(rerr, "failed to delete run plan", "run", runs[i].ID)
+			}
+		}
+	})
+
+	return nil
 }

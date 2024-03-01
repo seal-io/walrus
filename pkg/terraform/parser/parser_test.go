@@ -49,21 +49,46 @@ func TestParseInstanceProviderConnector(t *testing.T) {
 
 func TestParseInstanceID(t *testing.T) {
 	testCases := []struct {
+		rs             resourceState
 		input          instanceObjectState
 		expectedOutput string
 		expectedError  bool
 	}{
 		{
+			rs:             resourceState{Module: "a", Name: "test", Type: "test"},
 			input:          instanceObjectState{Attributes: []byte(`{"id":"123"}`)},
 			expectedOutput: "123",
 			expectedError:  false,
 		},
 		{
+			rs:             resourceState{Name: "test", Type: "test"},
 			input:          instanceObjectState{AttributesFlat: map[string]string{"id": "123"}},
 			expectedOutput: "123",
 			expectedError:  false,
 		},
 		{
+			rs:             resourceState{Module: "a", Name: "foo", Type: "helm_release"},
+			input:          instanceObjectState{IndexKey: 0},
+			expectedOutput: "a.helm_release.foo[0]",
+			expectedError:  false,
+		},
+		{
+			rs: resourceState{Module: "a", Name: "bar", Type: "helm_release"},
+			input: instanceObjectState{
+				Attributes: []byte(`{"id":"123"}`),
+				IndexKey:   "foo",
+			},
+			expectedOutput: "123",
+			expectedError:  false,
+		},
+		{
+			rs:             resourceState{Module: "b", Name: "bar", Type: "helm_release"},
+			input:          instanceObjectState{IndexKey: "foo"},
+			expectedOutput: "b.helm_release.bar[\"foo\"]",
+			expectedError:  false,
+		},
+		{
+			rs:             resourceState{},
 			input:          instanceObjectState{},
 			expectedOutput: "",
 			expectedError:  true,
@@ -71,7 +96,7 @@ func TestParseInstanceID(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		actualOutput, actualError := ParseInstanceID(tc.input)
+		actualOutput, actualError := ParseInstanceID(tc.rs, tc.input)
 		assert.Equal(t, tc.expectedOutput, actualOutput)
 
 		if tc.expectedError {

@@ -8,6 +8,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcecomponent"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcestate"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	pkgcomponent "github.com/seal-io/walrus/pkg/resourcecomponents"
@@ -17,28 +18,25 @@ import (
 	"github.com/seal-io/walrus/utils/topic"
 )
 
-func (h Handler) RouteUpgrade(req RouteUpgradeRequest) (*RouteUpgradeResponse, error) {
+func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 	entity := req.Model()
 
 	dp, err := getDeployer(req.Context, h.kubeConfig)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	run, err := pkgresource.Upgrade(req.Context, h.modelClient, entity, pkgresource.Options{
+	_, err = pkgresource.Upgrade(req.Context, h.modelClient, entity, pkgresource.Options{
 		Deployer:      dp,
 		ChangeComment: req.ChangeComment,
 		Draft:         req.Draft,
 		Preview:       req.Preview,
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &RouteUpgradeResponse{
-		ResourceOutput: model.ExposeResource(entity),
-		Run:            model.ExposeResourceRun(run),
-	}, nil
+	return nil
 }
 
 func (h Handler) RouteRollback(req RouteRollbackRequest) error {
@@ -166,7 +164,7 @@ func (h Handler) RouteGetOutputs(req RouteGetOutputsRequest) (RouteGetOutputsRes
 		Where(resource.ID(req.ID))
 
 	if stream := req.Stream; stream != nil {
-		t, err := topic.Subscribe(modelchange.Resource)
+		t, err := topic.Subscribe(modelchange.ResourceState)
 		if err != nil {
 			return nil, err
 		}
@@ -191,17 +189,26 @@ func (h Handler) RouteGetOutputs(req RouteGetOutputsRequest) (RouteGetOutputsRes
 			}
 
 			for _, id := range dm.IDs() {
-				if id != req.ID {
-					continue
-				}
-
-				res, err := query.Clone().
-					WithState().
+				state, err := h.modelClient.ResourceStates().Query().
+					Where(resourcestate.ID(id)).
+					Select(resourcestate.FieldID,
+						resourcestate.FieldResourceID).
 					Only(stream)
 				if err != nil {
 					return nil, err
 				}
 
+				if state.ResourceID != req.ID {
+					continue
+				}
+
+				res, err := query.Clone().
+					Only(stream)
+				if err != nil {
+					return nil, err
+				}
+
+				res.Edges.State = state
 				outs, err := h.getResourceOutputs(res)
 				if err != nil {
 					return nil, err

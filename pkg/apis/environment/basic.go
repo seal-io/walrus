@@ -3,7 +3,6 @@ package environment
 import (
 	"context"
 	"net/http"
-	"time"
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/auths/session"
@@ -21,9 +20,9 @@ import (
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	"github.com/seal-io/walrus/pkg/deployer"
 	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
+	pkgrun "github.com/seal-io/walrus/pkg/resourceruns"
 	pkgresource "github.com/seal-io/walrus/pkg/resources"
 	"github.com/seal-io/walrus/utils/errorx"
-	"github.com/seal-io/walrus/utils/gopool"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/topic"
 )
@@ -91,12 +90,12 @@ func (h Handler) Update(req UpdateRequest) error {
 }
 
 func (h Handler) Delete(req DeleteRequest) error {
-	err := h.cleanEnvironmentPlanFiles(req.Context, req.ID)
-	if err != nil {
-		return err
-	}
-
 	return h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
+		err := h.cleanEnvironmentPlanFiles(req.Context, tx, req.ID)
+		if err != nil {
+			return err
+		}
+
 		entity, err := dao.GetEnvironmentByID(req.Context, tx, req.ID)
 		if err != nil {
 			return err
@@ -281,12 +280,12 @@ func (h Handler) CollectionDelete(req CollectionDeleteRequest) error {
 		}
 	}
 
-	err := h.cleanEnvironmentPlanFiles(req.Context, ids...)
-	if err != nil {
-		return err
-	}
-
 	return h.modelClient.WithTx(req.Context, func(tx *model.Tx) error {
+		err := h.cleanEnvironmentPlanFiles(req.Context, tx, ids...)
+		if err != nil {
+			return err
+		}
+
 		entities, err := dao.GetEnvironmentsByIDs(req.Context, tx, ids...)
 		if err != nil {
 			return err
@@ -320,26 +319,13 @@ func (h Handler) getDeployer(ctx context.Context) (deptypes.Deployer, error) {
 	return dep, nil
 }
 
-func (h Handler) cleanEnvironmentPlanFiles(ctx context.Context, environmentIDs ...object.ID) error {
-	logger := log.WithName("apis").WithName("environment")
-
-	runs, err := h.modelClient.ResourceRuns().Query().
+func (h Handler) cleanEnvironmentPlanFiles(ctx context.Context, mc model.ClientSet, environmentIDs ...object.ID) error {
+	runsIDs, err := mc.ResourceRuns().Query().
 		Where(resourcerun.EnvironmentIDIn(environmentIDs...)).
-		All(ctx)
+		IDs(ctx)
 	if err != nil {
 		return err
 	}
 
-	gopool.Go(func() {
-		subCtx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
-		defer cancel()
-
-		for i := range runs {
-			if rerr := h.storageManager.DeleteRunPlan(subCtx, runs[i]); rerr != nil {
-				logger.Error(rerr, "failed to delete run plan", "run", runs[i].ID)
-			}
-		}
-	})
-
-	return nil
+	return pkgrun.CleanPlanFiles(ctx, mc, h.storageManager, runsIDs...)
 }

@@ -20,6 +20,8 @@ var (
 	Resource = topic.Topic(migrate.ResourcesTable.Name)
 	// ResourceComponent is the topic for model.ResourceComponent.
 	ResourceComponent = topic.Topic(migrate.ResourceComponentsTable.Name)
+	// ResourceState is the topic for model.ResourceState.
+	ResourceState = topic.Topic(migrate.ResourceStatesTable.Name)
 	// ResourceRun is the topic for model.ResourceRun.
 	ResourceRun = topic.Topic(migrate.ResourceRunsTable.Name)
 	// Template is the topic for model.Template.

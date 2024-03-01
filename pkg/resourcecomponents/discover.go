@@ -2,7 +2,9 @@ package resourcecomponents
 
 import (
 	"context"
+	"fmt"
 
+	tfjson "github.com/hashicorp/terraform-json"
 	"go.uber.org/multierr"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -10,6 +12,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	optypes "github.com/seal-io/walrus/pkg/operator/types"
+	"github.com/seal-io/walrus/pkg/terraform/parser"
 	"github.com/seal-io/walrus/utils/strs"
 )
 
@@ -117,4 +120,72 @@ func Discover(
 	}
 
 	return ncrs, berr
+}
+
+// FilterResourceComponentChange filters the given types.ResourceComponentChange items with current resource's model.ResourceComponents.
+func FilterResourceComponentChange(
+	ctx context.Context,
+	mc model.ClientSet,
+	resourceID object.ID,
+	changes []*types.ResourceComponentChange,
+) ([]*types.ResourceComponentChange, error) {
+	// Get the resource components of the resource.
+	rcs, err := mc.ResourceComponents().Query().
+		Where(resourcecomponent.ResourceID(resourceID)).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Index the resource components by their type and name.
+	rcsIndex := make(map[string]*model.ResourceComponent, len(rcs))
+
+	for i := range rcs {
+		if rcs[i].IndexKey == "" {
+			continue
+		}
+
+		rcsIndex[rcs[i].IndexKey] = rcs[i]
+	}
+
+	// Filter the changes.
+	var fchanges []*types.ResourceComponentChange
+
+	for i := range changes {
+		rcc := changes[i]
+		if rcc.Type == parser.TerraformTypeData || rcc.Mode == tfjson.DataResourceMode {
+			continue
+		}
+
+		// Create change is always accepted.
+		if rcc.Change.Type == types.ResourceComponentChangeTypeCreate {
+			fchanges = append(fchanges, rcc)
+			continue
+		}
+
+		switch rcc.Index.(type) {
+		case int:
+			rcsKey := strs.Join(".", rcc.ModuleAddress, rcc.Type, rcc.Name) + fmt.Sprintf("[%d]", rcc.Index)
+			if rc, rcsOk := rcsIndex[rcsKey]; rcsOk {
+				rcc.Name = rc.Name
+				fchanges = append(fchanges, rcc)
+				continue
+			}
+		case string:
+			rcsKey := strs.Join(".", rcc.ModuleAddress, rcc.Type, rcc.Name) + fmt.Sprintf("[\"%s\"]", rcc.Index)
+			if rc, rcsOk := rcsIndex[rcsKey]; rcsOk {
+				rcc.Name = rc.Name
+				fchanges = append(fchanges, rcc)
+				continue
+			}
+		}
+
+		key := strs.Join(".", rcc.ModuleAddress, rcc.Type, rcc.Name)
+		if rc, ok := rcsIndex[key]; ok {
+			rcc.Name = rc.Name
+			fchanges = append(fchanges, rcc)
+		}
+	}
+
+	return fchanges, nil
 }

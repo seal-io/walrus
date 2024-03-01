@@ -17,7 +17,7 @@ import (
 // Depending on the run type and status, the deployer will perform different actions.
 func PerformRunJob(ctx context.Context, mc model.ClientSet, dp deptypes.Deployer, run *model.ResourceRun) error {
 	if status.ResourceRunStatusCanceled.IsTrue(run) {
-		log.WithName("resourceruns.job").Info("run job is canceled", "run:", run.ID)
+		log.WithName("resource-run").Info("run job is canceled", "run:", run.ID)
 		return nil
 	}
 
