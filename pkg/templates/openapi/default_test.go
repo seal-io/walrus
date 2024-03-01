@@ -1,7 +1,6 @@
 package openapi
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"os"
@@ -66,11 +65,11 @@ func TestGenSchemaDefaultPatch(t *testing.T) {
 				return
 			}
 
-			var eb bytes.Buffer
-			err = json.Compact(&eb, fb)
-			assert.NoError(t, err)
-
-			assert.Equal(t, eb.String(), string(m))
+			// Unmarshal and compare the result to prevent the order of the map keys from affecting the result.
+			var expected, actual any
+			assert.NoError(t, json.Unmarshal(fb, &expected))
+			assert.NoError(t, json.Unmarshal(m, &actual))
+			assert.Equal(t, expected, actual)
 		})
 	}
 }
@@ -138,11 +137,11 @@ func TestGenSchemaDefaultWithAttribute(t *testing.T) {
 				return
 			}
 
-			var eb bytes.Buffer
-			err = json.Compact(&eb, fb)
-			assert.NoError(t, err)
-
-			assert.Equal(t, eb.String(), string(m))
+			// Unmarshal and compare the result to prevent the order of the map keys from affecting the result.
+			var expected, actual any
+			assert.NoError(t, json.Unmarshal(fb, &expected))
+			assert.NoError(t, json.Unmarshal(m, &actual))
+			assert.Equal(t, expected, actual)
 		})
 	}
 }
