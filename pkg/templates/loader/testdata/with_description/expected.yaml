@@ -1,29 +1,53 @@
-openAPISchema:
-  components:
-    schemas:
-      variables:
-        properties:
-          foo:
-            default: bar
-            description: description of foo.
-            title: Foo
-            type: string
-            x-walrus-original:
+schema:
+  openAPISchema:
+    components:
+      schemas:
+        variables:
+          properties:
+            foo:
+              default: bar
+              description: description of foo.
+              title: Foo
               type: string
-            x-walrus-ui:
-              group: Basic
-              order: 1
-        type: object
-        x-walrus-original:
-          sequence:
-          - foo
-        x-walrus-ui:
-          groupOrder:
-          - Basic
-  info:
-    title: OpenAPI schema for template dev-template
-    version: ""
-  openapi: 3.0.3
-  paths: null
-readme: ""
-requiredProviders: null
+              x-walrus-original:
+                type: string
+              x-walrus-ui:
+                group: Basic
+                order: 1
+          type: object
+          x-walrus-original:
+            sequence:
+            - foo
+          x-walrus-ui:
+            groupOrder:
+            - Basic
+    info:
+      title: OpenAPI schema for template dev-template
+      version: ""
+    openapi: 3.0.3
+    paths: null
+  readme: ""
+  requiredProviders: null
+uiSchema:
+  openAPISchema:
+    components:
+      schemas:
+        variables:
+          properties:
+            foo:
+              default: bar
+              description: description of foo.
+              title: Foo
+              type: string
+              x-walrus-ui:
+                group: Basic
+                order: 1
+          type: object
+          x-walrus-ui:
+            groupOrder:
+            - Basic
+    info:
+      title: OpenAPI schema for template dev-template
+      version: ""
+    openapi: 3.0.3
+    paths: null

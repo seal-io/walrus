@@ -320,7 +320,7 @@ func genTemplateVersionsFromGitRepo(
 	ctx context.Context,
 	entity *model.Template,
 	newVersions []*version.Version,
-	versionSchema map[*version.Version]*schemaGroup,
+	versionSchema map[*version.Version]*loader.SchemaGroup,
 	repo *vcs.Repository,
 	mc model.ClientSet,
 ) (model.TemplateVersions, error) {
@@ -364,17 +364,18 @@ func genTemplateVersion(
 	ctx context.Context,
 	source, ref string,
 	entity *model.Template,
-	schema *schemaGroup, mc model.ClientSet,
+	schema *loader.SchemaGroup, mc model.ClientSet,
 ) (*model.TemplateVersion, error) {
 	// Generate template version.
 	tv := &model.TemplateVersion{
-		TemplateID: entity.ID,
-		Name:       entity.Name,
-		Version:    ref,
-		Source:     source,
-		Schema:     *schema.Schema,
-		UiSchema:   *schema.UISchema,
-		ProjectID:  entity.ProjectID,
+		TemplateID:       entity.ID,
+		Name:             entity.Name,
+		Version:          ref,
+		Source:           source,
+		Schema:           *schema.Schema,
+		OriginalUISchema: *schema.UISchema,
+		UiSchema:         *schema.UISchema,
+		ProjectID:        entity.ProjectID,
 	}
 
 	// Set Schema Default.

@@ -9,6 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/templates/loader"
 	"github.com/seal-io/walrus/pkg/templates/openapi"
 	"github.com/seal-io/walrus/utils/json"
 )
@@ -75,9 +76,9 @@ type WrapComponents struct {
 }
 
 // FormattedOpenAPI generates formatted openapi yaml.
-func FormattedOpenAPI(originSchema, fileSchema *types.TemplateVersionSchema) ([]byte, error) {
+func FormattedOpenAPI(s *loader.SchemaGroup) ([]byte, error) {
 	// 1. Get variables sequence from original schema.
-	vs := originSchema.VariableSchema()
+	vs := s.Schema.VariableSchema()
 	oseq := openapi.GetExtOriginal(vs.Extensions).VariablesSequence
 
 	// 2. Get merged schema.
@@ -86,17 +87,15 @@ func FormattedOpenAPI(originSchema, fileSchema *types.TemplateVersionSchema) ([]
 		err    error
 	)
 
-	es := originSchema.Expose(openapi.WalrusContextVariableName)
+	es := s.Schema.Expose(openapi.WalrusContextVariableName)
 	if es.IsEmpty() {
 		return nil, nil
 	}
 
-	if fileSchema == nil || fileSchema.IsEmpty() {
+	if s.UISchema.IsEmpty() {
 		merged = es.VariableSchema()
 	} else {
-		fe := fileSchema.Expose()
-
-		merged, err = openapi.UnionSchema(es.VariableSchema(), fe.VariableSchema())
+		merged, err = openapi.UnionSchema(es.VariableSchema(), s.UISchema.VariableSchema())
 		if err != nil {
 			return nil, err
 		}

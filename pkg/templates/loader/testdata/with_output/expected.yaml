@@ -1,36 +1,39 @@
-openAPISchema:
-  components:
-    schemas:
-      outputs:
-        properties:
-          first:
-            description: The first output.
-            title: First
-            type: object
-            x-walrus-original:
-              type: dynamic
-              value-expression: MQ==
-            x-walrus-ui:
-              colSpan: 12
-              order: 1
-              widget: YamlEditor
-          second:
-            description: The second output.
-            title: Second
-            type: object
-            writeOnly: true
-            x-walrus-original:
-              type: dynamic
-              value-expression: Mg==
-            x-walrus-ui:
-              colSpan: 12
-              order: 2
-              widget: YamlEditor
-        type: object
-  info:
-    title: OpenAPI schema for template dev-template
-    version: ""
-  openapi: 3.0.3
-  paths: null
-readme: ""
-requiredProviders: null
+schema:
+  openAPISchema:
+    components:
+      schemas:
+        outputs:
+          properties:
+            first:
+              description: The first output.
+              title: First
+              type: object
+              x-walrus-original:
+                type: dynamic
+                value-expression: MQ==
+              x-walrus-ui:
+                colSpan: 12
+                order: 1
+                widget: YamlEditor
+            second:
+              description: The second output.
+              title: Second
+              type: object
+              writeOnly: true
+              x-walrus-original:
+                type: dynamic
+                value-expression: Mg==
+              x-walrus-ui:
+                colSpan: 12
+                order: 2
+                widget: YamlEditor
+          type: object
+    info:
+      title: OpenAPI schema for template dev-template
+      version: ""
+    openapi: 3.0.3
+    paths: null
+  readme: ""
+  requiredProviders: null
+uiSchema:
+  openAPISchema: null

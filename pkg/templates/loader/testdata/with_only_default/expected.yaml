@@ -1,113 +1,186 @@
-openAPISchema:
-  components:
-    schemas:
-      variables:
-        properties:
-          def_list_object:
-            default:
-            - email:
-                domain: example.com
-              name: Bob
-            items:
-              properties:
-                email:
-                  properties:
-                    domain:
-                      title: Domain
-                      type: string
-                      x-walrus-original:
+schema:
+  openAPISchema:
+    components:
+      schemas:
+        variables:
+          properties:
+            def_list_object:
+              default:
+              - email:
+                  domain: example.com
+                name: Bob
+              items:
+                properties:
+                  email:
+                    properties:
+                      domain:
+                        title: Domain
                         type: string
-                  required:
-                  - domain
-                  title: Email
-                  type: object
-                  x-walrus-original:
-                    type:
-                    - object
-                    - domain: string
-                  x-walrus-ui:
-                    colSpan: 12
-                name:
-                  title: Name
-                  type: string
-                  x-walrus-original:
+                        x-walrus-original:
+                          type: string
+                    required:
+                    - domain
+                    title: Email
+                    type: object
+                    x-walrus-original:
+                      type:
+                      - object
+                      - domain: string
+                    x-walrus-ui:
+                      colSpan: 12
+                  name:
+                    title: Name
                     type: string
-              required:
-              - email
-              - name
-              type: object
-              x-walrus-original:
-                type:
-                - object
-                - email:
+                    x-walrus-original:
+                      type: string
+                required:
+                - email
+                - name
+                type: object
+                x-walrus-original:
+                  type:
                   - object
-                  - domain: string
-                  name: string
-              x-walrus-ui:
-                colSpan: 12
-            title: Def List Object
-            type: array
-            x-walrus-original:
-              type:
-              - tuple
-              - - - object
                   - email:
                     - object
                     - domain: string
                     name: string
-            x-walrus-ui:
-              colSpan: 12
-              group: Basic
-              order: 3
-          def_list_string:
-            default:
-            - a1
-            - a2
-            items:
-              type: string
+                x-walrus-ui:
+                  colSpan: 12
+              title: Def List Object
+              type: array
               x-walrus-original:
+                type:
+                - tuple
+                - - - object
+                    - email:
+                      - object
+                      - domain: string
+                      name: string
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 3
+            def_list_string:
+              default:
+              - a1
+              - a2
+              items:
                 type: string
-            title: Def List String
-            type: array
-            x-walrus-original:
-              type:
-              - tuple
-              - - string
-                - string
-            x-walrus-ui:
-              colSpan: 12
-              group: Basic
-              order: 1
-          def_list_tuple:
-            default:
-            - a1
-            - true
-            items:
-              type: object
-            title: Def List Tuple
-            type: array
-            x-walrus-original:
-              type:
-              - tuple
-              - - string
-                - bool
-            x-walrus-ui:
-              colSpan: 12
-              group: Basic
-              order: 2
-        type: object
-        x-walrus-original:
-          sequence:
-          - def_list_string
-          - def_list_tuple
-          - def_list_object
-        x-walrus-ui:
-          groupOrder:
-          - Basic
-  info:
-    title: OpenAPI schema for template dev-template
-    version: ""
-  openapi: 3.0.3
-  paths: null
-readme: ""
-requiredProviders: null
+                x-walrus-original:
+                  type: string
+              title: Def List String
+              type: array
+              x-walrus-original:
+                type:
+                - tuple
+                - - string
+                  - string
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 1
+            def_list_tuple:
+              default:
+              - a1
+              - true
+              items:
+                type: object
+              title: Def List Tuple
+              type: array
+              x-walrus-original:
+                type:
+                - tuple
+                - - string
+                  - bool
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 2
+          type: object
+          x-walrus-original:
+            sequence:
+            - def_list_string
+            - def_list_tuple
+            - def_list_object
+          x-walrus-ui:
+            groupOrder:
+            - Basic
+    info:
+      title: OpenAPI schema for template dev-template
+      version: ""
+    openapi: 3.0.3
+    paths: null
+  readme: ""
+  requiredProviders: null
+uiSchema:
+  openAPISchema:
+    components:
+      schemas:
+        variables:
+          properties:
+            def_list_object:
+              default:
+              - email:
+                  domain: example.com
+                name: Bob
+              items:
+                properties:
+                  email:
+                    properties:
+                      domain:
+                        title: Domain
+                        type: string
+                    required:
+                    - domain
+                    title: Email
+                    type: object
+                    x-walrus-ui:
+                      colSpan: 12
+                  name:
+                    title: Name
+                    type: string
+                required:
+                - email
+                - name
+                type: object
+                x-walrus-ui:
+                  colSpan: 12
+              title: Def List Object
+              type: array
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 3
+            def_list_string:
+              default:
+              - a1
+              - a2
+              items:
+                type: string
+              title: Def List String
+              type: array
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 1
+            def_list_tuple:
+              default:
+              - a1
+              - true
+              items:
+                type: object
+              title: Def List Tuple
+              type: array
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 2
+          type: object
+          x-walrus-ui:
+            groupOrder:
+            - Basic
+    info:
+      title: OpenAPI schema for template dev-template
+      version: ""
+    openapi: 3.0.3
+    paths: null

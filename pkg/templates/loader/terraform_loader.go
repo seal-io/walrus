@@ -46,28 +46,21 @@ func NewTerraformLoader() SchemaLoader {
 
 // Load loads the internal template version schema and data.
 func (l *TerraformLoader) Load(
-	rootDir, templateName string, mode Mode,
-) (*types.TemplateVersionSchema, error) {
+	rootDir, templateName string,
+) (*SchemaGroup, error) {
 	mod, err := l.loadMod(rootDir)
 	if err != nil {
 		return nil, err
 	}
 
-	s, err := l.loadSchema(rootDir, mod, templateName, mode)
+	ts, fs, err := l.loadSchema(rootDir, mod, templateName)
 	if err != nil {
 		return nil, err
 	}
 
-	d, err := l.loadData(rootDir, mod)
-	if err != nil {
-		return nil, err
-	}
-
-	return &types.TemplateVersionSchema{
-		Schema: types.Schema{
-			OpenAPISchema: s,
-		},
-		TemplateVersionSchemaData: d,
+	return &SchemaGroup{
+		Schema:   ts,
+		UISchema: fs,
 	}, nil
 }
 
@@ -86,33 +79,52 @@ func (l *TerraformLoader) loadSchema(
 	rootDir string,
 	mod *tfconfig.Module,
 	template string,
-	mode Mode,
-) (*openapi3.T, error) {
-	// Variables and info.
-	vs, info, err := l.getVariableSchema(rootDir, mod, mode)
+) (*types.TemplateVersionSchema, *types.UISchema, error) {
+	// Schema.
+	ts, err := l.getSchemaFromTerraform(template, mod)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	d, err := l.loadData(rootDir, mod)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	wts := &types.TemplateVersionSchema{
+		Schema: types.Schema{
+			OpenAPISchema: ts,
+		},
+		TemplateVersionSchemaData: d,
+	}
+
+	// UI Schema.
+	fs, err := l.getSchemaFromFile(rootDir, ts)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	wfs := types.Schema{
+		OpenAPISchema: fs,
+	}
+
+	uiSchema := wts.Expose(openapi.WalrusContextVariableName)
+	if fs != nil && !wfs.IsEmpty() {
+		uiSchema = wfs.Expose()
+	}
+
+	return wts, &uiSchema, nil
+}
+
+func (l *TerraformLoader) getSchemaFromTerraform(template string, mod *tfconfig.Module) (*openapi3.T, error) {
+	varsSchema, err := l.getVariableSchemaFromTerraform(mod)
 	if err != nil {
 		return nil, err
 	}
 
-	var ots *openapi3.Schema
-
-	switch mode {
-	case ModeSchemaFile:
-		// Empty schema.
-		if vs == nil {
-			return nil, nil
-		}
-	default:
-		// Outputs.
-		ots, err = l.getOutputSchemaFromTerraform(mod)
-		if err != nil {
-			return nil, err
-		}
-
-		// Empty schema.
-		if vs == nil && ots == nil {
-			return nil, nil
-		}
+	outputsSchema, err := l.getOutputSchemaFromTerraform(mod)
+	if err != nil {
+		return nil, err
 	}
 
 	// OpenAPI OpenAPISchema.
@@ -125,67 +137,75 @@ func (l *TerraformLoader) loadSchema(
 			Schemas: openapi3.Schemas{},
 		},
 	}
-	if info != nil {
-		t.Info = info
+
+	if varsSchema != nil {
+		t.Components.Schemas["variables"] = varsSchema.NewRef()
 	}
 
-	if vs != nil {
-		t.Components.Schemas["variables"] = vs.NewRef()
-	}
-
-	if ots != nil {
-		t.Components.Schemas["outputs"] = ots.NewRef()
+	if outputsSchema != nil {
+		t.Components.Schemas["outputs"] = outputsSchema.NewRef()
 	}
 
 	return t, nil
 }
 
-// getVariableSchema generate variable schemas from terraform files or schema.yaml.
-func (l *TerraformLoader) getVariableSchema(
-	rootDir string,
-	mod *tfconfig.Module,
-	mode Mode,
-) (*openapi3.Schema, *openapi3.Info, error) {
-	fromOriginal, err := l.getVariableSchemaFromTerraform(mod)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	fromFile, info, err := l.getVariableSchemaAndInfoFromFile(rootDir)
-	if err != nil {
-		log.Warnf("error loading schema from file: %v", err)
-	}
-
-	var final *openapi3.Schema
-
-	switch mode {
-	case ModeOriginal:
-		final = fromOriginal
-	case ModeSchemaFile:
-		final = l.applyMissingConfig(fromOriginal, fromFile)
-	default:
-		// Merge, apply customized schema to generated schema.
-		if fromFile == nil {
-			return fromOriginal, nil, nil
-		}
-
-		// Generate merged variables in sequence.
-		final, err = openapi.UnionSchema(fromOriginal, fromFile)
-		if err != nil {
-			return nil, nil, err
+// getSchemaFromFile get openapi schema from schema.yaml.
+func (l *TerraformLoader) getSchemaFromFile(rootDir string, originalSchema *openapi3.T) (*openapi3.T, error) {
+	schemaFile := filepath.Join(rootDir, "schema.yaml")
+	if !files.Exists(schemaFile) {
+		if schemaFile = filepath.Join(rootDir, "schema.yml"); !files.Exists(schemaFile) {
+			return nil, nil
 		}
 	}
 
-	// Inject extensions.
-	l.injectExts(final)
+	content, err := os.ReadFile(schemaFile)
+	if err != nil {
+		return nil, fmt.Errorf("error reading schema file %s: %w", schemaFile, err)
+	}
 
-	return final, info, nil
+	if len(content) == 0 {
+		return nil, nil
+	}
+
+	// Openapi loader will cache the data with file path as key if we use LoadFromFile,
+	// since the repo with different tag the schema.yaml file is the same, so we use LoadFromData to skip the cache.
+	it, err := openapi3.NewLoader().LoadFromData(content)
+	if err != nil {
+		return nil, fmt.Errorf("error loading schema file %s: %w", schemaFile, err)
+	}
+
+	if it.Components == nil ||
+		it.Components.Schemas == nil ||
+		it.Components.Schemas["variables"] == nil ||
+		it.Components.Schemas["variables"].Value == nil {
+		return nil, nil
+	}
+
+	// Inject.
+	var (
+		varsSchema         = it.Components.Schemas["variables"].Value
+		originalVarsSchema *openapi3.Schema
+	)
+
+	if originalSchema.Components != nil && originalSchema.Components.Schemas["variables"] != nil {
+		originalVarsSchema = originalSchema.Components.Schemas["variables"].Value
+	}
+
+	varsSchema = l.applyMissingConfig(originalVarsSchema, varsSchema)
+	l.injectExts(varsSchema)
+	it.Components.Schemas["variables"].Value = varsSchema
+
+	return it, nil
 }
 
 // applyMissingConfig apply the missing config to schema generate from schema.yaml.
 func (l *TerraformLoader) applyMissingConfig(generated, customized *openapi3.Schema) *openapi3.Schema {
 	if customized == nil {
 		return nil
+	}
+
+	if generated == nil {
+		return customized
 	}
 
 	s := *customized
@@ -308,42 +328,10 @@ func (l *TerraformLoader) getVariableSchemaFromTerraform(mod *tfconfig.Module) (
 		WithOriginalVariablesSequence(keys).
 		Export()
 
+	// Inject extensions.
+	l.injectExts(varSchemas)
+
 	return varSchemas, nil
-}
-
-// getVariableSchemaAndInfoFromFile get variables schema and openapi info from schema.yaml.
-func (l *TerraformLoader) getVariableSchemaAndInfoFromFile(rootDir string) (*openapi3.Schema, *openapi3.Info, error) {
-	schemaFile := filepath.Join(rootDir, "schema.yaml")
-	if !files.Exists(schemaFile) {
-		if schemaFile = filepath.Join(rootDir, "schema.yml"); !files.Exists(schemaFile) {
-			return nil, nil, nil
-		}
-	}
-
-	content, err := os.ReadFile(schemaFile)
-	if err != nil {
-		return nil, nil, fmt.Errorf("error reading schema file %s: %w", schemaFile, err)
-	}
-
-	if len(content) == 0 {
-		return nil, nil, nil
-	}
-
-	// Openapi loader will cache the data with file path as key if we use LoadFromFile,
-	// since the repo with different tag the schema.yaml file is the same, so we use LoadFromData to skip the cache.
-	it, err := openapi3.NewLoader().LoadFromData(content)
-	if err != nil {
-		return nil, nil, fmt.Errorf("error loading schema file %s: %w", schemaFile, err)
-	}
-
-	if it.Components == nil ||
-		it.Components.Schemas == nil ||
-		it.Components.Schemas["variables"] == nil ||
-		it.Components.Schemas["variables"].Value == nil {
-		return nil, nil, nil
-	}
-
-	return it.Components.Schemas["variables"].Value, it.Info, nil
 }
 
 // getOutputSchemaFromTerraform generate output schemas from terraform files.

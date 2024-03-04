@@ -10,16 +10,12 @@ import (
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
+	"github.com/seal-io/walrus/pkg/templates/loader"
 	"github.com/seal-io/walrus/pkg/templates/openapi"
 	"github.com/seal-io/walrus/pkg/vcs"
 	"github.com/seal-io/walrus/utils/log"
 	utilversion "github.com/seal-io/walrus/utils/version"
 )
-
-type schemaGroup struct {
-	Schema   *types.TemplateVersionSchema
-	UISchema *types.UISchema
-}
 
 // getValidVersions get valid terraform module versions.
 func getValidVersions(
@@ -27,7 +23,7 @@ func getValidVersions(
 	r *git.Repository,
 	versions []*version.Version,
 	subPath string,
-) ([]*version.Version, map[*version.Version]*schemaGroup, error) {
+) ([]*version.Version, map[*version.Version]*loader.SchemaGroup, error) {
 	logger := log.WithName("template")
 
 	w, err := r.Worktree()
@@ -36,7 +32,7 @@ func getValidVersions(
 	}
 
 	validVersions := make([]*version.Version, 0, len(versions))
-	versionSchema := make(map[*version.Version]*schemaGroup)
+	versionSchema := make(map[*version.Version]*loader.SchemaGroup)
 
 	for i := range versions {
 		v := versions[i]
@@ -86,7 +82,7 @@ func getValidVersions(
 	return validVersions, versionSchema, nil
 }
 
-func isConstraintSatisfied(schema *types.TemplateVersionSchema) (bool, error) {
+func isConstraintSatisfied(schema *types.UISchema) (bool, error) {
 	v := utilversion.Version
 
 	if utilversion.IsDevVersion() {
