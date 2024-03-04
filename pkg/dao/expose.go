@@ -11,9 +11,9 @@ func ExposeResourceDefinition(_rd *model.ResourceDefinition) *model.ResourceDefi
 	}
 
 	// Will generate UI schema while it isn't exist, the UI schema without variables consider as exist.
-	if _rd.UiSchema != nil && _rd.UiSchema.OpenAPISchema == nil {
+	if _rd.UISchema != nil && _rd.UISchema.OpenAPISchema == nil {
 		uiSchema := _rd.Schema.Expose()
-		_rd.UiSchema = &uiSchema
+		_rd.UISchema = &uiSchema
 	}
 
 	return model.ExposeResourceDefinition(_rd)

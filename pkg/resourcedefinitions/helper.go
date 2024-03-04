@@ -54,7 +54,7 @@ func GenSchema(ctx context.Context, mc model.ClientSet, df *model.ResourceDefini
 		}
 
 		for i := range tvs {
-			switch s, uis := tvs[i].Schema.OpenAPISchema, tvs[i].UiSchema.OpenAPISchema; {
+			switch s, uis := tvs[i].Schema.OpenAPISchema, tvs[i].UISchema.OpenAPISchema; {
 			case s == nil || s.Components == nil || len(s.Components.Schemas) == 0:
 				// Skip mutuallyExclusive schema.
 				continue

@@ -14,12 +14,12 @@ func (h Handler) RouteReset(req RouteResetRequest) error {
 		return err
 	}
 
-	if entity.UiSchema.IsUserEdited() {
-		entity.UiSchema.UnsetUserEdited()
+	if entity.UISchema.IsUserEdited() {
+		entity.UISchema.UnsetUserEdited()
 	}
 
 	_, err = h.modelClient.TemplateVersions().UpdateOne(entity).
-		SetUiSchema(entity.OriginalUISchema).
+		SetUISchema(entity.OriginalUISchema).
 		Save(req.Context)
 	if err != nil {
 		return fmt.Errorf("error unset ui schema tags: %w", err)

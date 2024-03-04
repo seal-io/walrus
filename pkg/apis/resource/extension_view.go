@@ -96,7 +96,7 @@ func (r *RouteUpgradeRequest) Validate() error {
 			Where(templateversion.ID(r.Template.ID)).
 			Select(
 				templateversion.FieldSchema,
-				templateversion.FieldUiSchema,
+				templateversion.FieldUISchema,
 			).
 			Only(r.Context)
 		if err != nil {
@@ -125,7 +125,7 @@ func (r *RouteUpgradeRequest) Validate() error {
 				resourcedefinition.FieldName,
 				resourcedefinition.FieldType,
 				resourcedefinition.FieldSchema,
-				resourcedefinition.FieldUiSchema,
+				resourcedefinition.FieldUISchema,
 			).
 			WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
 				rq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
@@ -619,7 +619,7 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 				Where(templateversion.ID(input.Template.ID)).
 				Select(
 					templateversion.FieldSchema,
-					templateversion.FieldUiSchema).
+					templateversion.FieldUISchema).
 				Only(r.Context)
 			if err != nil {
 				return fmt.Errorf("failed to get template version: %w", err)
@@ -644,7 +644,7 @@ func (r *CollectionRouteUpgradeRequest) Validate() error {
 						resourcedefinition.FieldName,
 						resourcedefinition.FieldType,
 						resourcedefinition.FieldSchema,
-						resourcedefinition.FieldUiSchema,
+						resourcedefinition.FieldUISchema,
 					).
 					WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
 						rq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).

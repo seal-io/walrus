@@ -204,7 +204,7 @@ func (c *TerraformConfigurator) getModuleConfig(
 			templateversion.FieldVersion,
 			templateversion.FieldSource,
 			templateversion.FieldSchema,
-			templateversion.FieldUiSchema,
+			templateversion.FieldUISchema,
 		).
 		Where(templateversion.Or(predicates...)).
 		Only(ctx)

@@ -321,7 +321,7 @@ func genTemplateVersion(
 		Source:           source,
 		Schema:           *schema.Schema,
 		OriginalUISchema: *schema.UISchema,
-		UiSchema:         *schema.UISchema,
+		UISchema:         *schema.UISchema,
 		ProjectID:        entity.ProjectID,
 	}
 
