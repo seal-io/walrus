@@ -24176,6 +24176,7 @@ type TemplateVersionMutation struct {
 	version                     *string
 	source                      *string
 	schema                      *types.TemplateVersionSchema
+	original_ui_schema          *types.UISchema
 	uiSchema                    *types.UISchema
 	schema_default_value        *[]byte
 	clearedFields               map[string]struct{}
@@ -24550,6 +24551,42 @@ func (m *TemplateVersionMutation) ResetSchema() {
 	m.schema = nil
 }
 
+// SetOriginalUISchema sets the "original_ui_schema" field.
+func (m *TemplateVersionMutation) SetOriginalUISchema(ts types.UISchema) {
+	m.original_ui_schema = &ts
+}
+
+// OriginalUISchema returns the value of the "original_ui_schema" field in the mutation.
+func (m *TemplateVersionMutation) OriginalUISchema() (r types.UISchema, exists bool) {
+	v := m.original_ui_schema
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOriginalUISchema returns the old "original_ui_schema" field's value of the TemplateVersion entity.
+// If the TemplateVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TemplateVersionMutation) OldOriginalUISchema(ctx context.Context) (v types.UISchema, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOriginalUISchema is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOriginalUISchema requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOriginalUISchema: %w", err)
+	}
+	return oldValue.OriginalUISchema, nil
+}
+
+// ResetOriginalUISchema resets all changes to the "original_ui_schema" field.
+func (m *TemplateVersionMutation) ResetOriginalUISchema() {
+	m.original_ui_schema = nil
+}
+
 // SetUiSchema sets the "uiSchema" field.
 func (m *TemplateVersionMutation) SetUiSchema(ts types.UISchema) {
 	m.uiSchema = &ts
@@ -24880,7 +24917,7 @@ func (m *TemplateVersionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TemplateVersionMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.create_time != nil {
 		fields = append(fields, templateversion.FieldCreateTime)
 	}
@@ -24901,6 +24938,9 @@ func (m *TemplateVersionMutation) Fields() []string {
 	}
 	if m.schema != nil {
 		fields = append(fields, templateversion.FieldSchema)
+	}
+	if m.original_ui_schema != nil {
+		fields = append(fields, templateversion.FieldOriginalUISchema)
 	}
 	if m.uiSchema != nil {
 		fields = append(fields, templateversion.FieldUiSchema)
@@ -24933,6 +24973,8 @@ func (m *TemplateVersionMutation) Field(name string) (ent.Value, bool) {
 		return m.Source()
 	case templateversion.FieldSchema:
 		return m.Schema()
+	case templateversion.FieldOriginalUISchema:
+		return m.OriginalUISchema()
 	case templateversion.FieldUiSchema:
 		return m.UiSchema()
 	case templateversion.FieldSchemaDefaultValue:
@@ -24962,6 +25004,8 @@ func (m *TemplateVersionMutation) OldField(ctx context.Context, name string) (en
 		return m.OldSource(ctx)
 	case templateversion.FieldSchema:
 		return m.OldSchema(ctx)
+	case templateversion.FieldOriginalUISchema:
+		return m.OldOriginalUISchema(ctx)
 	case templateversion.FieldUiSchema:
 		return m.OldUiSchema(ctx)
 	case templateversion.FieldSchemaDefaultValue:
@@ -25025,6 +25069,13 @@ func (m *TemplateVersionMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSchema(v)
+		return nil
+	case templateversion.FieldOriginalUISchema:
+		v, ok := value.(types.UISchema)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOriginalUISchema(v)
 		return nil
 	case templateversion.FieldUiSchema:
 		v, ok := value.(types.UISchema)
@@ -25131,6 +25182,9 @@ func (m *TemplateVersionMutation) ResetField(name string) error {
 		return nil
 	case templateversion.FieldSchema:
 		m.ResetSchema()
+		return nil
+	case templateversion.FieldOriginalUISchema:
+		m.ResetOriginalUISchema()
 		return nil
 	case templateversion.FieldUiSchema:
 		m.ResetUiSchema()

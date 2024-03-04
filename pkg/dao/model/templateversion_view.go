@@ -390,6 +390,8 @@ type TemplateVersionPatchInput struct {
 	Source string `path:"-" query:"-" json:"source,omitempty"`
 	// Generated schema and data of the template.
 	Schema types.TemplateVersionSchema `path:"-" query:"-" json:"schema,omitempty"`
+	// store the original ui schema of the template.
+	OriginalUISchema types.UISchema `path:"-" query:"-" json:"originalUISchema,omitempty"`
 	// ui schema of the template.
 	UiSchema types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
 	// Default value generated from schema and ui schema
@@ -411,6 +413,7 @@ func (tvpi *TemplateVersionPatchInput) PatchModel() *TemplateVersion {
 		Version:            tvpi.Version,
 		Source:             tvpi.Source,
 		Schema:             tvpi.Schema,
+		OriginalUISchema:   tvpi.OriginalUISchema,
 		UiSchema:           tvpi.UiSchema,
 		SchemaDefaultValue: tvpi.SchemaDefaultValue,
 	}
@@ -499,6 +502,7 @@ func (tvpi *TemplateVersionPatchInput) ValidateWith(ctx context.Context, cs Clie
 		templateversion.WithoutFields(
 			templateversion.FieldCreateTime,
 			templateversion.FieldUpdateTime,
+			templateversion.FieldOriginalUISchema,
 			templateversion.FieldSchemaDefaultValue,
 		)...,
 	)

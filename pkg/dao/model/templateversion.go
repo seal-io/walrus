@@ -40,6 +40,8 @@ type TemplateVersion struct {
 	Source string `json:"source,omitempty"`
 	// Generated schema and data of the template.
 	Schema types.TemplateVersionSchema `json:"schema,omitempty"`
+	// store the original ui schema of the template.
+	OriginalUISchema types.UISchema `json:"original_ui_schema,omitempty"`
 	// ui schema of the template.
 	UiSchema types.UISchema `json:"uiSchema,omitempty"`
 	// Default value generated from schema and ui schema
@@ -116,7 +118,7 @@ func (*TemplateVersion) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case templateversion.FieldSchema, templateversion.FieldUiSchema, templateversion.FieldSchemaDefaultValue:
+		case templateversion.FieldSchema, templateversion.FieldOriginalUISchema, templateversion.FieldUiSchema, templateversion.FieldSchemaDefaultValue:
 			values[i] = new([]byte)
 		case templateversion.FieldID, templateversion.FieldTemplateID, templateversion.FieldProjectID:
 			values[i] = new(object.ID)
@@ -189,6 +191,14 @@ func (tv *TemplateVersion) assignValues(columns []string, values []any) error {
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &tv.Schema); err != nil {
 					return fmt.Errorf("unmarshal field schema: %w", err)
+				}
+			}
+		case templateversion.FieldOriginalUISchema:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field original_ui_schema", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &tv.OriginalUISchema); err != nil {
+					return fmt.Errorf("unmarshal field original_ui_schema: %w", err)
 				}
 			}
 		case templateversion.FieldUiSchema:
@@ -291,6 +301,9 @@ func (tv *TemplateVersion) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("schema=")
 	builder.WriteString(fmt.Sprintf("%v", tv.Schema))
+	builder.WriteString(", ")
+	builder.WriteString("original_ui_schema=")
+	builder.WriteString(fmt.Sprintf("%v", tv.OriginalUISchema))
 	builder.WriteString(", ")
 	builder.WriteString("uiSchema=")
 	builder.WriteString(fmt.Sprintf("%v", tv.UiSchema))
