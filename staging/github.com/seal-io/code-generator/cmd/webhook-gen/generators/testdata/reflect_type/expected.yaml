@@ -1,0 +1,56 @@
+mutating:
+  admissionReviewVersions:
+  - v1
+  clientConfig: {}
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  name: mutate.samplecontroller.seal.io.v1.dummy
+  namespaceSelector:
+    matchExpressions:
+    - key: walrus.seal.io/operate
+      operator: Exists
+  objectSelector:
+    matchLabels:
+      label: value
+  reinvocationPolicy: Never
+  rules:
+  - apiGroups:
+    - samplecontroller.seal.io
+    apiVersions:
+    - v1
+    resources:
+    - dummies
+    scope: '*'
+  sideEffects: None
+  timeoutSeconds: 10
+validating:
+  admissionReviewVersions:
+  - v1
+  clientConfig: {}
+  failurePolicy: Fail
+  matchConditions:
+  - expression: self.b > 0
+    name: test
+  matchPolicy: Equivalent
+  name: validate.samplecontroller.seal.io.v1.dummy
+  namespaceSelector:
+    matchExpressions:
+    - key: walrus.seal.io/operate
+      operator: Exists
+  objectSelector:
+    matchLabels:
+      label: value
+  rules:
+  - apiGroups:
+    - samplecontroller.seal.io
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    - DELETE
+    resources:
+    - dummies
+    scope: '*'
+  sideEffects: None
+  timeoutSeconds: 10

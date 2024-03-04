@@ -1,0 +1,67 @@
+//go:build !jsoniter
+
+package json
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+var (
+	Marshal       = json.Marshal
+	Unmarshal     = json.Unmarshal
+	MarshalIndent = json.MarshalIndent
+	NewDecoder    = json.NewDecoder
+	NewEncoder    = json.NewEncoder
+)
+
+// MustMarshal is similar to Marshal,
+// but panics if found error.
+func MustMarshal(v any) []byte {
+	bs, err := Marshal(v)
+	if err != nil {
+		panic(fmt.Errorf("marshal json: %w", err))
+	}
+
+	return bs
+}
+
+// MustUnmarshal is similar to Unmarshal,
+// but panics if found error.
+func MustUnmarshal(data []byte, v any) {
+	err := Unmarshal(data, v)
+	if err != nil {
+		panic(fmt.Errorf("unmarshal json: %w", err))
+	}
+}
+
+// MustMarshalIndent is similar to MarshalIndent,
+// but panics if found error.
+func MustMarshalIndent(v any, prefix, indent string) []byte {
+	bs, err := MarshalIndent(v, prefix, indent)
+	if err != nil {
+		panic(fmt.Errorf("marshal indent json: %w", err))
+	}
+
+	return bs
+}
+
+// ShouldMarshal is similar to Marshal,
+// but never return error.
+func ShouldMarshal(v any) []byte {
+	bs, _ := Marshal(v)
+	return bs
+}
+
+// ShouldUnmarshal is similar to Unmarshal,
+// but never return error.
+func ShouldUnmarshal(data []byte, v any) {
+	_ = Unmarshal(data, v)
+}
+
+// ShouldMarshalIndent is similar to MarshalIndent,
+// but never return error.
+func ShouldMarshalIndent(v any, prefix, indent string) []byte {
+	bs, _ := MarshalIndent(v, prefix, indent)
+	return bs
+}

@@ -1,0 +1,12 @@
+apiVersion: apiregistration.k8s.io/v1
+kind: APIService
+metadata:
+  creationTimestamp: null
+  name: v1.server.walrus.seal.io
+spec:
+  group: server.walrus.seal.io
+  groupPriorityMinimum: 100
+  insecureSkipTLSVerify: true
+  version: v1
+  versionPriority: 100
+status: {}

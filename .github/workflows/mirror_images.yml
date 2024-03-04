@@ -1,0 +1,50 @@
+name: Mirror images
+
+permissions:
+  contents: write
+  pull-requests: read
+  actions: write
+
+defaults:
+  run:
+    shell: bash
+
+on:
+  push:
+    paths:
+      - "hack/mirror/mirror-images.txt"
+  workflow_dispatch: {}
+
+jobs:
+  mirror-images:
+    timeout-minutes: 10
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: imjasonh/setup-crane@v0.3
+        with:
+          version: v0.16.1
+      - name: Mirror images
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # login to dockerhub
+          crane auth login docker.io -u ${{ secrets.CI_DOCKERHUB_USERNAME }} -p ${{ secrets.CI_DOCKERHUB_PASSWORD }}
+
+          # mirror images
+          while IFS= read -r line || [[ -n "$line" ]]; do
+            if [[ "$line" == \#* ]]; then
+              continue
+            fi
+
+            source_image=$(echo "$line" | awk '{print $1}')
+            target_image=$(echo "$line" | awk '{print $2}')
+
+            echo "Mirror image $source_image to $target_image"
+            crane copy $source_image $target_image
+          done < ${{ github.workspace }}/hack/mirror/mirror-images.txt
