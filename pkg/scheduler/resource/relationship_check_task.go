@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/deployer"
 	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
+	runstatus "github.com/seal-io/walrus/pkg/resourceruns/status"
 	pkgresource "github.com/seal-io/walrus/pkg/resources"
 	resstatus "github.com/seal-io/walrus/pkg/resources/status"
 	"github.com/seal-io/walrus/utils/log"
@@ -308,47 +309,24 @@ func (in *RelationshipCheckTask) setResourceStatusFalse(
 	res, parentResource *model.Resource,
 ) error {
 	if resstatus.IsStatusError(parentResource) {
-		status.ResourceStatusProgressing.False(
-			res,
-			fmt.Sprintf("Dependency resource %q has encountered an error, please check it",
-				parentResource.Name),
-		)
+		errMsg := fmt.Sprintf("Dependency resource %q has encountered an error, please check it",
+			parentResource.Name)
 
-		err := resstatus.UpdateStatus(ctx, in.modelClient, res)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return setResourceStatusFalse(ctx, in.modelClient, res, errMsg)
 	}
 
 	if resstatus.IsStatusDeleted(parentResource) {
-		status.ResourceStatusProgressing.False(
-			res,
-			fmt.Sprintf("Dependency resource %q is in delete status, please check it",
-				parentResource.Name),
-		)
+		errMsg := fmt.Sprintf("Dependency resource %q is in delete status, please check it",
+			parentResource.Name)
 
-		err := resstatus.UpdateStatus(ctx, in.modelClient, res)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return setResourceStatusFalse(ctx, in.modelClient, res, errMsg)
 	}
 
 	if resstatus.IsStatusStopped(parentResource) {
-		status.ResourceStatusProgressing.False(
-			res,
-			fmt.Sprintf("Dependency resource %q is in stop status, please check it", parentResource.Name),
-		)
+		errMsg := fmt.Sprintf("Dependency resource %q is in stop status, please check it",
+			parentResource.Name)
 
-		err := resstatus.UpdateStatus(ctx, in.modelClient, res)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return setResourceStatusFalse(ctx, in.modelClient, res, errMsg)
 	}
 
 	return nil
@@ -360,13 +338,10 @@ func (in *RelationshipCheckTask) checkDependantResourceStatus(
 	res, dependantResource *model.Resource,
 ) (bool, error) {
 	if resstatus.IsStatusError(dependantResource) {
-		status.ResourceStatusProgressing.False(
-			res,
-			fmt.Sprintf("Dependant resource %q has encountered an error, please check it",
-				dependantResource.Name),
-		)
+		errMsg := fmt.Sprintf("Dependant resource %q has encountered an error, please check it",
+			dependantResource.Name)
 
-		err := resstatus.UpdateStatus(ctx, in.modelClient, res)
+		err := setResourceStatusFalse(ctx, in.modelClient, res, errMsg)
 		if err != nil {
 			return false, err
 		}
@@ -376,12 +351,10 @@ func (in *RelationshipCheckTask) checkDependantResourceStatus(
 
 	// If the dependant resource is deployed or to be deployed, the resource cannot be deleted or stopped.
 	if resstatus.IsStatusDeployed(dependantResource) {
-		status.ResourceStatusProgressing.False(
-			res,
-			fmt.Sprintf("Dependant resource %q is in deploy status, please check it", dependantResource.Name),
-		)
+		errMsg := fmt.Sprintf("Dependant resource %q is in deploy status, please check it",
+			dependantResource.Name)
 
-		err := resstatus.UpdateStatus(ctx, in.modelClient, res)
+		err := setResourceStatusFalse(ctx, in.modelClient, res, errMsg)
 		if err != nil {
 			return false, err
 		}
@@ -390,4 +363,27 @@ func (in *RelationshipCheckTask) checkDependantResourceStatus(
 	}
 
 	return true, nil
+}
+
+// setResourceStatusFalse sets resource and resource run status to false.
+func setResourceStatusFalse(ctx context.Context, mc model.ClientSet, res *model.Resource, errMsg string) error {
+	status.ResourceStatusProgressing.False(res, errMsg)
+
+	err := resstatus.UpdateStatus(ctx, mc, res)
+	if err != nil {
+		return err
+	}
+
+	runs, err := dao.GetResourcesLatestRuns(ctx, mc, res.ID)
+	if err != nil {
+		return err
+	}
+
+	if len(runs) == 0 {
+		return nil
+	}
+
+	runstatus.SetStatusFalse(runs[0], errMsg)
+
+	return nil
 }

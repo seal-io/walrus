@@ -237,9 +237,6 @@ func upgrade(
 
 	// Update Status and ave the resource.
 	if opts.Draft {
-		status.ResourceStatusUnDeployed.True(entity, "Draft")
-		entity.Status.SetSummary(status.WalkResource(&entity.Status))
-
 		err := mc.Resources().UpdateOne(entity).
 			Set(entity).
 			Exec(ctx)

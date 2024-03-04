@@ -56,11 +56,10 @@ func (h Handler) RouteGetTerraformStates(
 		return nil, err
 	}
 
-	stateData := entity.Edges.Resource.Edges.State.Data
-
-	if stateData == "" {
+	if entity.Edges.Resource.Edges.State == nil || entity.Edges.Resource.Edges.State.Data == "" {
 		return nil, nil
 	}
+	stateData := entity.Edges.Resource.Edges.State.Data
 
 	return RouteGetTerraformStatesResponse(stateData), nil
 }
