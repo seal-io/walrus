@@ -65,6 +65,11 @@ func (TemplateVersion) Fields() []ent.Field {
 		field.JSON("schema", types.TemplateVersionSchema{}).
 			Comment("Generated schema and data of the template.").
 			Default(types.TemplateVersionSchema{}),
+		field.JSON("original_ui_schema", types.UISchema{}).
+			Comment("store the original ui schema of the template.").
+			Default(types.UISchema{}).
+			Annotations(
+				entx.SkipIO()),
 		field.JSON("uiSchema", types.UISchema{}).
 			Comment("ui schema of the template.").
 			Default(types.UISchema{}).
