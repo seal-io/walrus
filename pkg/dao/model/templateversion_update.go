@@ -77,16 +77,16 @@ func (tvu *TemplateVersionUpdate) SetNillableOriginalUISchema(ts *types.UISchema
 	return tvu
 }
 
-// SetUiSchema sets the "uiSchema" field.
-func (tvu *TemplateVersionUpdate) SetUiSchema(ts types.UISchema) *TemplateVersionUpdate {
-	tvu.mutation.SetUiSchema(ts)
+// SetUISchema sets the "ui_schema" field.
+func (tvu *TemplateVersionUpdate) SetUISchema(ts types.UISchema) *TemplateVersionUpdate {
+	tvu.mutation.SetUISchema(ts)
 	return tvu
 }
 
-// SetNillableUiSchema sets the "uiSchema" field if the given value is not nil.
-func (tvu *TemplateVersionUpdate) SetNillableUiSchema(ts *types.UISchema) *TemplateVersionUpdate {
+// SetNillableUISchema sets the "ui_schema" field if the given value is not nil.
+func (tvu *TemplateVersionUpdate) SetNillableUISchema(ts *types.UISchema) *TemplateVersionUpdate {
 	if ts != nil {
-		tvu.SetUiSchema(*ts)
+		tvu.SetUISchema(*ts)
 	}
 	return tvu
 }
@@ -234,9 +234,9 @@ func (tvu *TemplateVersionUpdate) check() error {
 			return &ValidationError{Name: "original_ui_schema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.original_ui_schema": %w`, err)}
 		}
 	}
-	if v, ok := tvu.mutation.UiSchema(); ok {
+	if v, ok := tvu.mutation.UISchema(); ok {
 		if err := v.Validate(); err != nil {
-			return &ValidationError{Name: "uiSchema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.uiSchema": %w`, err)}
+			return &ValidationError{Name: "ui_schema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.ui_schema": %w`, err)}
 		}
 	}
 	if _, ok := tvu.mutation.TemplateID(); tvu.mutation.TemplateCleared() && !ok {
@@ -280,7 +280,7 @@ func (tvu *TemplateVersionUpdate) Set(obj *TemplateVersion) *TemplateVersionUpda
 	// Without Default.
 	tvu.SetSchema(obj.Schema)
 	tvu.SetOriginalUISchema(obj.OriginalUISchema)
-	tvu.SetUiSchema(obj.UiSchema)
+	tvu.SetUISchema(obj.UISchema)
 	if !reflect.ValueOf(obj.SchemaDefaultValue).IsZero() {
 		tvu.SetSchemaDefaultValue(obj.SchemaDefaultValue)
 	}
@@ -323,8 +323,8 @@ func (tvu *TemplateVersionUpdate) sqlSave(ctx context.Context) (n int, err error
 	if value, ok := tvu.mutation.OriginalUISchema(); ok {
 		_spec.SetField(templateversion.FieldOriginalUISchema, field.TypeJSON, value)
 	}
-	if value, ok := tvu.mutation.UiSchema(); ok {
-		_spec.SetField(templateversion.FieldUiSchema, field.TypeJSON, value)
+	if value, ok := tvu.mutation.UISchema(); ok {
+		_spec.SetField(templateversion.FieldUISchema, field.TypeJSON, value)
 	}
 	if value, ok := tvu.mutation.SchemaDefaultValue(); ok {
 		_spec.SetField(templateversion.FieldSchemaDefaultValue, field.TypeBytes, value)
@@ -487,16 +487,16 @@ func (tvuo *TemplateVersionUpdateOne) SetNillableOriginalUISchema(ts *types.UISc
 	return tvuo
 }
 
-// SetUiSchema sets the "uiSchema" field.
-func (tvuo *TemplateVersionUpdateOne) SetUiSchema(ts types.UISchema) *TemplateVersionUpdateOne {
-	tvuo.mutation.SetUiSchema(ts)
+// SetUISchema sets the "ui_schema" field.
+func (tvuo *TemplateVersionUpdateOne) SetUISchema(ts types.UISchema) *TemplateVersionUpdateOne {
+	tvuo.mutation.SetUISchema(ts)
 	return tvuo
 }
 
-// SetNillableUiSchema sets the "uiSchema" field if the given value is not nil.
-func (tvuo *TemplateVersionUpdateOne) SetNillableUiSchema(ts *types.UISchema) *TemplateVersionUpdateOne {
+// SetNillableUISchema sets the "ui_schema" field if the given value is not nil.
+func (tvuo *TemplateVersionUpdateOne) SetNillableUISchema(ts *types.UISchema) *TemplateVersionUpdateOne {
 	if ts != nil {
-		tvuo.SetUiSchema(*ts)
+		tvuo.SetUISchema(*ts)
 	}
 	return tvuo
 }
@@ -657,9 +657,9 @@ func (tvuo *TemplateVersionUpdateOne) check() error {
 			return &ValidationError{Name: "original_ui_schema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.original_ui_schema": %w`, err)}
 		}
 	}
-	if v, ok := tvuo.mutation.UiSchema(); ok {
+	if v, ok := tvuo.mutation.UISchema(); ok {
 		if err := v.Validate(); err != nil {
-			return &ValidationError{Name: "uiSchema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.uiSchema": %w`, err)}
+			return &ValidationError{Name: "ui_schema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.ui_schema": %w`, err)}
 		}
 	}
 	if _, ok := tvuo.mutation.TemplateID(); tvuo.mutation.TemplateCleared() && !ok {
@@ -717,8 +717,8 @@ func (tvuo *TemplateVersionUpdateOne) Set(obj *TemplateVersion) *TemplateVersion
 			if !reflect.DeepEqual(db.OriginalUISchema, obj.OriginalUISchema) {
 				tvuo.SetOriginalUISchema(obj.OriginalUISchema)
 			}
-			if !reflect.DeepEqual(db.UiSchema, obj.UiSchema) {
-				tvuo.SetUiSchema(obj.UiSchema)
+			if !reflect.DeepEqual(db.UISchema, obj.UISchema) {
+				tvuo.SetUISchema(obj.UISchema)
 			}
 			if !reflect.ValueOf(obj.SchemaDefaultValue).IsZero() {
 				if !bytes.Equal(db.SchemaDefaultValue, obj.SchemaDefaultValue) {
@@ -781,8 +781,8 @@ func (tvuo *TemplateVersionUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx
 		if _, set := tvuo.mutation.Field(templateversion.FieldOriginalUISchema); set {
 			obj.OriginalUISchema = x.OriginalUISchema
 		}
-		if _, set := tvuo.mutation.Field(templateversion.FieldUiSchema); set {
-			obj.UiSchema = x.UiSchema
+		if _, set := tvuo.mutation.Field(templateversion.FieldUISchema); set {
+			obj.UISchema = x.UISchema
 		}
 		if _, set := tvuo.mutation.Field(templateversion.FieldSchemaDefaultValue); set {
 			obj.SchemaDefaultValue = x.SchemaDefaultValue
@@ -866,8 +866,8 @@ func (tvuo *TemplateVersionUpdateOne) sqlSave(ctx context.Context) (_node *Templ
 	if value, ok := tvuo.mutation.OriginalUISchema(); ok {
 		_spec.SetField(templateversion.FieldOriginalUISchema, field.TypeJSON, value)
 	}
-	if value, ok := tvuo.mutation.UiSchema(); ok {
-		_spec.SetField(templateversion.FieldUiSchema, field.TypeJSON, value)
+	if value, ok := tvuo.mutation.UISchema(); ok {
+		_spec.SetField(templateversion.FieldUISchema, field.TypeJSON, value)
 	}
 	if value, ok := tvuo.mutation.SchemaDefaultValue(); ok {
 		_spec.SetField(templateversion.FieldSchemaDefaultValue, field.TypeBytes, value)

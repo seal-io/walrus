@@ -37,7 +37,7 @@ type TemplateVersionCreateInput struct {
 	// Generated schema and data of the template.
 	Schema types.TemplateVersionSchema `path:"-" query:"-" json:"schema,omitempty"`
 	// ui schema of the template.
-	UiSchema types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
+	UISchema types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
 }
 
 // Model returns the TemplateVersion entity for creating,
@@ -52,7 +52,7 @@ func (tvci *TemplateVersionCreateInput) Model() *TemplateVersion {
 		Version:  tvci.Version,
 		Name:     tvci.Name,
 		Schema:   tvci.Schema,
-		UiSchema: tvci.UiSchema,
+		UISchema: tvci.UISchema,
 	}
 
 	if tvci.Project != nil {
@@ -106,7 +106,7 @@ type TemplateVersionCreateInputsItem struct {
 	// Generated schema and data of the template.
 	Schema types.TemplateVersionSchema `path:"-" query:"-" json:"schema,omitempty"`
 	// ui schema of the template.
-	UiSchema types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
+	UISchema types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
 }
 
 // ValidateWith checks the TemplateVersionCreateInputsItem entity with the given context and client set.
@@ -149,7 +149,7 @@ func (tvci *TemplateVersionCreateInputs) Model() []*TemplateVersion {
 			Version:  tvci.Items[i].Version,
 			Name:     tvci.Items[i].Name,
 			Schema:   tvci.Items[i].Schema,
-			UiSchema: tvci.Items[i].UiSchema,
+			UISchema: tvci.Items[i].UISchema,
 		}
 
 		if tvci.Project != nil {
@@ -393,7 +393,7 @@ type TemplateVersionPatchInput struct {
 	// store the original ui schema of the template.
 	OriginalUISchema types.UISchema `path:"-" query:"-" json:"originalUISchema,omitempty"`
 	// ui schema of the template.
-	UiSchema types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
+	UISchema types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
 	// Default value generated from schema and ui schema
 	SchemaDefaultValue []byte `path:"-" query:"-" json:"schemaDefaultValue,omitempty"`
 
@@ -414,7 +414,7 @@ func (tvpi *TemplateVersionPatchInput) PatchModel() *TemplateVersion {
 		Source:             tvpi.Source,
 		Schema:             tvpi.Schema,
 		OriginalUISchema:   tvpi.OriginalUISchema,
-		UiSchema:           tvpi.UiSchema,
+		UISchema:           tvpi.UISchema,
 		SchemaDefaultValue: tvpi.SchemaDefaultValue,
 	}
 
@@ -732,7 +732,7 @@ type TemplateVersionUpdateInput struct {
 	// Generated schema and data of the template.
 	Schema types.TemplateVersionSchema `path:"-" query:"-" json:"schema,omitempty"`
 	// ui schema of the template.
-	UiSchema types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
+	UISchema types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
 }
 
 // Model returns the TemplateVersion entity for modifying,
@@ -747,7 +747,7 @@ func (tvui *TemplateVersionUpdateInput) Model() *TemplateVersion {
 		Name:     tvui.Name,
 		Version:  tvui.Version,
 		Schema:   tvui.Schema,
-		UiSchema: tvui.UiSchema,
+		UISchema: tvui.UISchema,
 	}
 
 	return _tv
@@ -787,7 +787,7 @@ type TemplateVersionUpdateInputsItem struct {
 	// Generated schema and data of the template.
 	Schema types.TemplateVersionSchema `path:"-" query:"-" json:"schema"`
 	// ui schema of the template.
-	UiSchema types.UISchema `path:"-" query:"-" json:"uiSchema"`
+	UISchema types.UISchema `path:"-" query:"-" json:"uiSchema"`
 }
 
 // ValidateWith checks the TemplateVersionUpdateInputsItem entity with the given context and client set.
@@ -830,7 +830,7 @@ func (tvui *TemplateVersionUpdateInputs) Model() []*TemplateVersion {
 			Name:     tvui.Items[i].Name,
 			Version:  tvui.Items[i].Version,
 			Schema:   tvui.Items[i].Schema,
-			UiSchema: tvui.Items[i].UiSchema,
+			UISchema: tvui.Items[i].UISchema,
 		}
 
 		_tvs[i] = _tv
@@ -974,7 +974,7 @@ type TemplateVersionOutput struct {
 	Version    string                      `json:"version,cli-table-column,omitempty"`
 	Source     string                      `json:"source,omitempty"`
 	Schema     types.TemplateVersionSchema `json:"schema,omitempty"`
-	UiSchema   types.UISchema              `json:"uiSchema,omitempty"`
+	UISchema   types.UISchema              `json:"uiSchema,omitempty"`
 
 	Template *TemplateOutput `json:"template,omitempty"`
 	Project  *ProjectOutput  `json:"project,omitempty"`
@@ -1004,7 +1004,7 @@ func ExposeTemplateVersion(_tv *TemplateVersion) *TemplateVersionOutput {
 		Version:    _tv.Version,
 		Source:     _tv.Source,
 		Schema:     _tv.Schema,
-		UiSchema:   _tv.UiSchema,
+		UISchema:   _tv.UISchema,
 	}
 
 	if _tv.Edges.Template != nil {
