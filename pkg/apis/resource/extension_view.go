@@ -215,6 +215,10 @@ func (r *RouteRollbackRequest) Validate() error {
 		return err
 	}
 
+	if !r.RunID.Valid() {
+		return errorx.New("run ID is required")
+	}
+
 	latestRun, err := r.Client.ResourceRuns().Query().
 		Where(resourcerun.ResourceID(r.ID)).
 		Order(model.Desc(resourcerun.FieldCreateTime)).
