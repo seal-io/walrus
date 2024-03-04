@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/pkg/settings"
+	"github.com/seal-io/walrus/pkg/templates/loader"
 	"github.com/seal-io/walrus/pkg/vcs"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/strs"
@@ -192,60 +193,6 @@ func SyncTemplateFromGitRef(
 	}
 
 	return createTemplateVersions(ctx, mc, entity, []*model.TemplateVersion{tv})
-}
-
-// SyncTemplateVersion syncs template version schema and ui schema from remote.
-func SyncTemplateVersion(ctx context.Context, mc model.ClientSet, tv *model.TemplateVersion) error {
-	tempDir := filepath.Join(os.TempDir(), "seal-template-version-"+strs.String(10))
-	defer os.RemoveAll(tempDir)
-
-	// Clone git repository.
-	repo, err := vcs.ParseURLToRepo(tv.Source)
-	if err != nil {
-		return err
-	}
-
-	r, err := vcs.CloneGitRepo(ctx, repo.Link, tempDir, settings.SkipRemoteTLSVerify.ShouldValueBool(ctx, mc))
-	if err != nil {
-		return err
-	}
-
-	if err = vcs.HardResetGitRepo(r, repo.Reference); err != nil {
-		return err
-	}
-
-	w, err := r.Worktree()
-	if err != nil {
-		return err
-	}
-
-	rootDir := w.Filesystem.Root()
-
-	if repo.SubPath != "" {
-		rootDir = filepath.Join(rootDir, repo.SubPath)
-	}
-
-	// Regenerate template version.
-	schema, err := getSchemas(rootDir, tv.Name)
-	if err != nil {
-		return err
-	}
-
-	tp := &model.Template{
-		ID:        tv.TemplateID,
-		Name:      tv.Name,
-		ProjectID: tv.ProjectID,
-	}
-	update, err := genTemplateVersion(ctx, tv.Source, tv.Version, tp, schema, mc)
-	if err != nil {
-		return err
-	}
-
-	return mc.TemplateVersions().UpdateOneID(tv.ID).
-		SetSchema(update.Schema).
-		SetUiSchema(update.UiSchema).
-		SetSchemaDefaultValue(update.SchemaDefaultValue).
-		Exec(ctx)
 }
 
 // createTemplateVersions creates template versions.

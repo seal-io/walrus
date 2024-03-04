@@ -12,7 +12,6 @@ import (
 	"github.com/seal-io/walrus/pkg/bus/resourcerun"
 	"github.com/seal-io/walrus/pkg/bus/setting"
 	"github.com/seal-io/walrus/pkg/bus/template"
-	"github.com/seal-io/walrus/pkg/bus/templateversion"
 	"github.com/seal-io/walrus/pkg/bus/token"
 	pkgcatalog "github.com/seal-io/walrus/pkg/catalog"
 	"github.com/seal-io/walrus/pkg/cron"
@@ -53,13 +52,6 @@ func Setup(ctx context.Context, opts SetupOptions) (err error) {
 	// Template.
 	err = template.AddSubscriber("sync-template-schema",
 		templates.SchemaSync(opts.ModelClient).Do)
-	if err != nil {
-		return
-	}
-
-	// TemplateVersion.
-	err = templateversion.AddSubscriber("sync-template-version-schema",
-		templates.VersionSchemaSync(opts.ModelClient).Do)
 	if err != nil {
 		return
 	}
