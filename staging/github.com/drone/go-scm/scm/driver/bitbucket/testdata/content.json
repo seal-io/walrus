@@ -1,0 +1,31 @@
+{
+    "mimetype": null,
+    "links": {
+        "self": {
+            "href": "https://api.bitbucket.org/2.0/repositories/tphoney/scm-test/src/0846a192175701903ddd9264ece31922d8437c1a/README.md"
+        },
+        "meta": {
+            "href": "https://api.bitbucket.org/2.0/repositories/tphoney/scm-test/src/0846a192175701903ddd9264ece31922d8437c1a/README.md?format=meta"
+        },
+        "history": {
+            "href": "https://api.bitbucket.org/2.0/repositories/tphoney/scm-test/filehistory/0846a192175701903ddd9264ece31922d8437c1a/README.md"
+        }
+    },
+    "escaped_path": "README.md",
+    "path": "README.md",
+    "commit": {
+        "type": "commit",
+        "hash": "0846a192175701903ddd9264ece31922d8437c1a",
+        "links": {
+            "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/tphoney/scm-test/commit/0846a192175701903ddd9264ece31922d8437c1a"
+            },
+            "html": {
+                "href": "https://bitbucket.org/tphoney/scm-test/commits/0846a192175701903ddd9264ece31922d8437c1a"
+            }
+        }
+    },
+    "attributes": [],
+    "type": "commit_file",
+    "size": 39
+}

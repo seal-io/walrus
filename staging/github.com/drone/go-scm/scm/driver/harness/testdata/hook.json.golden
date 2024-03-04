@@ -1,0 +1,8 @@
+{
+    "ID": "webhookname",
+    "Name": "webhookname",
+    "Target": "http://1.1.1.1",
+    "Events": [],
+    "Active": true,
+    "SkipVerify": true
+}

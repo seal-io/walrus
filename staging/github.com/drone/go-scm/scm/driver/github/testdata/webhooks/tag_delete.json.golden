@@ -1,0 +1,27 @@
+{
+  "Ref": {
+    "Name": "v0.0.1",
+    "Sha": ""
+  },
+  "Repo": {
+    "ID": "13933572",
+    "Namespace": "bradrydzewski",
+    "Name": "drone-test-go",
+    "Perm": null,
+    "Branch": "master",
+    "Private": true,
+    "Visibility": 2,
+    "Clone": "https://github.com/bradrydzewski/drone-test-go.git",
+    "CloneSSH": "git@github.com:bradrydzewski/drone-test-go.git",
+    "Link": "https://github.com/bradrydzewski/drone-test-go",
+    "Created": "0001-01-01T00:00:00Z",
+    "Updated": "0001-01-01T00:00:00Z"
+  },
+  "Action": "deleted",
+  "Sender": {
+    "Login": "bradrydzewski",
+    "Name": "",
+    "Email": "",
+    "Avatar": "https://avatars1.githubusercontent.com/u/817538?v=4"
+  }
+}

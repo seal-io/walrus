@@ -1,0 +1,46 @@
+[
+  {
+    "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/pulls/comments/6922557",
+    "id": 6922557,
+    "path": null,
+    "position": null,
+    "original_position": null,
+    "commit_id": null,
+    "original_commit_id": null,
+    "user": {
+      "id": 1535738,
+      "login": "kit101",
+      "name": "kit101",
+      "avatar_url": "https://portrait.gitee.com/uploads/avatars/user/511/1535738_qkssk1711_1578953939.png",
+      "url": "https://gitee.com/api/v5/users/kit101",
+      "html_url": "https://gitee.com/kit101",
+      "remark": "",
+      "followers_url": "https://gitee.com/api/v5/users/kit101/followers",
+      "following_url": "https://gitee.com/api/v5/users/kit101/following_url{/other_user}",
+      "gists_url": "https://gitee.com/api/v5/users/kit101/gists{/gist_id}",
+      "starred_url": "https://gitee.com/api/v5/users/kit101/starred{/owner}{/repo}",
+      "subscriptions_url": "https://gitee.com/api/v5/users/kit101/subscriptions",
+      "organizations_url": "https://gitee.com/api/v5/users/kit101/orgs",
+      "repos_url": "https://gitee.com/api/v5/users/kit101/repos",
+      "events_url": "https://gitee.com/api/v5/users/kit101/events{/privacy}",
+      "received_events_url": "https://gitee.com/api/v5/users/kit101/received_events",
+      "type": "User"
+    },
+    "created_at": "2021-10-07T09:26:45+08:00",
+    "updated_at": "2021-10-07T09:26:45+08:00",
+    "body": "test comment 1",
+    "html_url": "https://gitee.com/kit101/drone-yml-test/pulls/7#note_6922557",
+    "pull_request_url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/pulls/7",
+    "_links": {
+      "self": {
+        "href": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/pulls/comments/6922557"
+      },
+      "html": {
+        "href": "https://gitee.com/kit101/drone-yml-test/pulls/7#note_6922557"
+      },
+      "pull_request": {
+        "href": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/pulls/7"
+      }
+    }
+  }
+]

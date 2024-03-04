@@ -1,0 +1,44 @@
+[
+  {
+    "type": "file",
+    "size": null,
+    "name": "CreateByDroneGiteeProvider.md",
+    "path": "apitest/CreateByDroneGiteeProvider.md",
+    "sha": "9de0cf94e1e3c1cbe0a25c3865de4cc9ede7ad3e",
+    "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/contents/apitest/CreateByDroneGiteeProvider.md",
+    "html_url": "https://gitee.com/kit101/drone-yml-test/blob/master/apitest/CreateByDroneGiteeProvider.md",
+    "download_url": "https://gitee.com/kit101/drone-yml-test/raw/master/apitest/CreateByDroneGiteeProvider.md",
+    "_links": {
+      "self": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/contents/apitest/CreateByDroneGiteeProvider.md",
+      "html": "https://gitee.com/kit101/drone-yml-test/blob/master/apitest/CreateByDroneGiteeProvider.md"
+    }
+  },
+  {
+    "type": "file",
+    "size": null,
+    "name": "UpdateByDroneGiteeProvider.md",
+    "path": "apitest/UpdateByDroneGiteeProvider.md",
+    "sha": "480a4b3865989bfa78d8f249b124716dda1581d7",
+    "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/contents/apitest/UpdateByDroneGiteeProvider.md",
+    "html_url": "https://gitee.com/kit101/drone-yml-test/blob/master/apitest/UpdateByDroneGiteeProvider.md",
+    "download_url": "https://gitee.com/kit101/drone-yml-test/raw/master/apitest/UpdateByDroneGiteeProvider.md",
+    "_links": {
+      "self": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/contents/apitest/UpdateByDroneGiteeProvider.md",
+      "html": "https://gitee.com/kit101/drone-yml-test/blob/master/apitest/UpdateByDroneGiteeProvider.md"
+    }
+  },
+  {
+    "type": "dir",
+    "size": null,
+    "name": "newdir",
+    "path": "apitest/newdir",
+    "sha": "2f5fb87ae0d8b8a5f78b4dbfefc1fd70b356bdc4",
+    "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/contents/apitest/newdir",
+    "html_url": "https://gitee.com/kit101/drone-yml-test/blob/master/apitest/newdir",
+    "download_url": "https://gitee.com/kit101/drone-yml-test/raw/master/apitest/newdir",
+    "_links": {
+      "self": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/contents/apitest/newdir",
+      "html": "https://gitee.com/kit101/drone-yml-test/blob/master/apitest/newdir"
+    }
+  }
+]

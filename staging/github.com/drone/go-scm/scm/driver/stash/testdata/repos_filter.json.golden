@@ -1,0 +1,15 @@
+[
+   {
+        "ID": "2",
+        "Namespace": "PRJ",
+        "Name": "quux",
+        "Perm": null,
+        "Branch": "master",
+        "Private": true,
+        "Clone": "http://example.com:7990/scm/prj/quux.git",
+        "CloneSSH": "ssh://git@example.com:7999/prj/quux.git",
+        "Link": "http://example.com:7990/projects/PRJ/repos/quux/browse",
+        "Created": "0001-01-01T00:00:00Z",
+        "Updated": "0001-01-01T00:00:00Z"
+    }
+]

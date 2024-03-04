@@ -1,0 +1,14 @@
+[
+  {
+    "kind": "file",
+    "path": "apitest/CreateByDroneGiteeProvider.md"
+  },
+  {
+    "kind": "file",
+    "path": "apitest/UpdateByDroneGiteeProvider.md"
+  },
+  {
+    "kind": "directory",
+    "path": "apitest/newdir"
+  }
+]

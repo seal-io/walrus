@@ -1,0 +1,12 @@
+[
+    {
+        "Value": "john@company.com",
+        "verified": true,
+        "primary": false
+    },
+    {
+        "Value": "jane@company.com",
+        "verified": false,
+        "primary": false
+    }
+]

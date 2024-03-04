@@ -1,0 +1,21 @@
+[
+  {
+    "Message": "add3\n",
+    "Sha": "00b76e8abd51ae6a96318b3450944b32995f9158",
+    "Link": "https://gitee.com/kit101/drone-yml-test/commits/00b76e8abd51ae6a96318b3450944b32995f9158",
+    "Author": {
+      "Name": "kit101",
+      "Email": "qkssk1711@163.com",
+      "Date": "2021-09-30T18:09:57+08:00",
+      "Login": "kit101",
+      "Avatar": "https://portrait.gitee.com/uploads/avatars/user/511/1535738_qkssk1711_1578953939.png"
+    },
+    "Committer": {
+      "Name": "kit101",
+      "Email": "qkssk1711@163.com",
+      "Date": "2021-09-30T18:09:57+08:00",
+      "Login": "kit101",
+      "Avatar": "https://portrait.gitee.com/uploads/avatars/user/511/1535738_qkssk1711_1578953939.png"
+    }
+  }
+]

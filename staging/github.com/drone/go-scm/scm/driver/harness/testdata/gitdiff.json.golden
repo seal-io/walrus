@@ -1,0 +1,38 @@
+[
+    {
+        "Path": "hello.go",
+        "Added": true,
+        "Renamed": false,
+        "Deleted": false,
+        "Sha": "",
+        "BlobID": "",
+        "PrevFilePath": "hello.go"
+    },
+    {
+        "Path": "null.go",
+        "Added": false,
+        "Renamed": false,
+        "Deleted": true,
+        "Sha": "",
+        "BlobID": "",
+        "PrevFilePath": "null.go"
+    },
+    {
+        "Path": "version4.go",
+        "Added": false,
+        "Renamed": false,
+        "Deleted": false,
+        "Sha": "",
+        "BlobID": "",
+        "PrevFilePath": "version4.go"
+    },
+    {
+        "Path": "version_1.go",
+        "Added": false,
+        "Renamed": true,
+        "Deleted": false,
+        "Sha": "",
+        "BlobID": "",
+        "PrevFilePath": "version1.go"
+    }
+]

@@ -1,0 +1,8 @@
+{
+    "ID": "9",
+    "Name": "drone",
+    "Target": "https://example.com",
+    "Events": [],
+    "Active": true,
+    "SkipVerify": true
+}

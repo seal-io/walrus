@@ -1,0 +1,12 @@
+{
+    "ID": 1,
+    "Body": "Me too",
+    "Author": {
+        "Login": "octocat",
+        "Name": "",
+        "Email": "",
+        "Avatar": "https://github.com/images/error/octocat_happy.gif"
+    },
+    "Created": "2011-04-14T16:00:49Z",
+    "Updated": "2011-04-14T16:00:49Z"
+}

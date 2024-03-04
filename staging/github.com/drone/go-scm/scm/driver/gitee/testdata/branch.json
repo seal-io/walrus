@@ -1,0 +1,49 @@
+{
+  "name": "master",
+  "commit": {
+    "sha": "e3c0ff4d5cef439ea11b30866fb1ed79b420801d",
+    "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/commits/e3c0ff4d5cef439ea11b30866fb1ed79b420801d",
+    "commit": {
+      "author": {
+        "name": "kit101",
+        "date": "2021-08-23T23:45:53+08:00",
+        "email": "qkssk1711@163.com"
+      },
+      "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/git/commits/e3c0ff4d5cef439ea11b30866fb1ed79b420801d",
+      "message": "add/update/delete/rename\n",
+      "tree": {
+        "sha": "55d4c682f3e2b276cc40c70e59cebb17dcb1273a",
+        "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/git/trees/55d4c682f3e2b276cc40c70e59cebb17dcb1273a"
+      },
+      "committer": {
+        "name": "kit101",
+        "date": "2021-08-23T23:45:53+08:00",
+        "email": "qkssk1711@163.com"
+      }
+    },
+    "author": {
+      "avatar_url": "https://portrait.gitee.com/uploads/avatars/user/511/1535738_qkssk1711_1578953939.png",
+      "url": "https://gitee.com/api/v5/users/kit101",
+      "id": 1535738,
+      "login": "kit101"
+    },
+    "parents": [
+      {
+        "sha": "537575f44a09c57dfc472e26fe067754fd2f9374",
+        "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/commits/537575f44a09c57dfc472e26fe067754fd2f9374"
+      }
+    ],
+    "committer": {
+      "avatar_url": "https://portrait.gitee.com/uploads/avatars/user/511/1535738_qkssk1711_1578953939.png",
+      "url": "https://gitee.com/api/v5/users/kit101",
+      "id": 1535738,
+      "login": "kit101"
+    }
+  },
+  "_links": {
+    "html": "https://gitee.com/kit101/drone-yml-test/tree/master",
+    "self": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/branches/master"
+  },
+  "protected": false,
+  "protection_url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/branches/master/protection"
+}

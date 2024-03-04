@@ -1,0 +1,12 @@
+{
+    "ID": 419169807,
+    "Body": "Lovely comment",
+    "Author": {
+        "ID": "{6b408a94-1b8b-4f62-b37f-3069e13bc33e}",
+        "Login": "brian.jacobson",
+        "Name": "Brian Jacobson",
+        "Avatar": "http://localhost:3000/avatars/1"
+    },
+    "Created": "2023-08-14T11:38:53.460132+00:00",
+    "Updated": "2023-08-14T11:38:53.460205+00:00"
+}

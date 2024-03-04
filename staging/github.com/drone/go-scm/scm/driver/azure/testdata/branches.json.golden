@@ -1,0 +1,22 @@
+[
+  {
+    "Name": "main",
+    "Path": "refs/heads/main",
+    "Sha": "e0aee6aa543294d62520fb906689da6710af149c"
+  },
+  {
+    "Name": "pr_branch",
+    "Path": "refs/heads/pr_branch",
+    "Sha": "01768d964c03e97260af0bd8cd9e5cd1f9ac6356"
+  },
+  {
+    "Name": "test_branch",
+    "Path": "refs/heads/test_branch",
+    "Sha": "d2036abdecd80290e971e263fe668ca87608f8d1"
+  },
+  {
+    "Name": "refs/pull/1/merge",
+    "Path": "refs/pull/1/merge",
+    "Sha": "e29c0a25614589e1310574b42f799101903b7e30"
+  }
+]

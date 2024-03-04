@@ -1,0 +1,9 @@
+[
+    {
+        "Path": "/testfile",
+        "Added": false,
+        "Renamed": false,
+        "Deleted": false,
+        "BlobID": ""
+    }
+]

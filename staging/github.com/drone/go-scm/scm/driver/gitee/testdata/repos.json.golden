@@ -1,0 +1,19 @@
+[
+  {
+    "ID": "14836026",
+    "Namespace": "kit101",
+    "Name": "drone-yml-test",
+    "Perm": {
+      "Pull": true,
+      "Push": true,
+      "Admin": true
+    },
+    "Branch": "master",
+    "Private": false,
+    "Clone": "https://gitee.com/kit101/drone-yml-test.git",
+    "CloneSSH": "git@gitee.com:kit101/drone-yml-test.git",
+    "Link": "https://gitee.com/kit101/drone-yml-test.git",
+    "Created": "2021-03-24T11:24:34+08:00",
+    "Updated": "2021-09-30T18:10:27+08:00"
+  }
+]

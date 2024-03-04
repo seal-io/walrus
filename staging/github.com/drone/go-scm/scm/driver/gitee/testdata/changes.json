@@ -1,0 +1,87 @@
+{
+  "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/commits/7e84b6f94b8d4bfaa051910cc4ce16b73bcffd51",
+  "sha": "7e84b6f94b8d4bfaa051910cc4ce16b73bcffd51",
+  "html_url": "https://gitee.com/kit101/drone-yml-test/commit/7e84b6f94b8d4bfaa051910cc4ce16b73bcffd51",
+  "comments_url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/commits/7e84b6f94b8d4bfaa051910cc4ce16b73bcffd51/comments",
+  "commit": {
+    "author": {
+      "name": "kit101",
+      "date": "2021-08-23T23:41:22+08:00",
+      "email": "qkssk1711@163.com"
+    },
+    "committer": {
+      "name": "kit101",
+      "date": "2021-08-23T23:41:22+08:00",
+      "email": "qkssk1711@163.com"
+    },
+    "message": "rename\n",
+    "tree": {
+      "sha": "3dd0fe5f5bcde3966871c8eb2c91d55554dab80f",
+      "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/git/trees/3dd0fe5f5bcde3966871c8eb2c91d55554dab80f"
+    }
+  },
+  "author": {
+    "id": 1535738,
+    "login": "kit101",
+    "name": "kit101",
+    "avatar_url": "https://portrait.gitee.com/uploads/avatars/user/511/1535738_qkssk1711_1578953939.png",
+    "url": "https://gitee.com/api/v5/users/kit101",
+    "html_url": "https://gitee.com/kit101",
+    "remark": "",
+    "followers_url": "https://gitee.com/api/v5/users/kit101/followers",
+    "following_url": "https://gitee.com/api/v5/users/kit101/following_url{/other_user}",
+    "gists_url": "https://gitee.com/api/v5/users/kit101/gists{/gist_id}",
+    "starred_url": "https://gitee.com/api/v5/users/kit101/starred{/owner}{/repo}",
+    "subscriptions_url": "https://gitee.com/api/v5/users/kit101/subscriptions",
+    "organizations_url": "https://gitee.com/api/v5/users/kit101/orgs",
+    "repos_url": "https://gitee.com/api/v5/users/kit101/repos",
+    "events_url": "https://gitee.com/api/v5/users/kit101/events{/privacy}",
+    "received_events_url": "https://gitee.com/api/v5/users/kit101/received_events",
+    "type": "User"
+  },
+  "committer": {
+    "id": 1535738,
+    "login": "kit101",
+    "name": "kit101",
+    "avatar_url": "https://portrait.gitee.com/uploads/avatars/user/511/1535738_qkssk1711_1578953939.png",
+    "url": "https://gitee.com/api/v5/users/kit101",
+    "html_url": "https://gitee.com/kit101",
+    "remark": "",
+    "followers_url": "https://gitee.com/api/v5/users/kit101/followers",
+    "following_url": "https://gitee.com/api/v5/users/kit101/following_url{/other_user}",
+    "gists_url": "https://gitee.com/api/v5/users/kit101/gists{/gist_id}",
+    "starred_url": "https://gitee.com/api/v5/users/kit101/starred{/owner}{/repo}",
+    "subscriptions_url": "https://gitee.com/api/v5/users/kit101/subscriptions",
+    "organizations_url": "https://gitee.com/api/v5/users/kit101/orgs",
+    "repos_url": "https://gitee.com/api/v5/users/kit101/repos",
+    "events_url": "https://gitee.com/api/v5/users/kit101/events{/privacy}",
+    "received_events_url": "https://gitee.com/api/v5/users/kit101/received_events",
+    "type": "User"
+  },
+  "parents": [
+    {
+      "sha": "f87d3cca9d85a7e52bb9dadac176817812b76fbd",
+      "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/commits/f87d3cca9d85a7e52bb9dadac176817812b76fbd"
+    }
+  ],
+  "stats": {
+    "id": "7e84b6f94b8d4bfaa051910cc4ce16b73bcffd51",
+    "additions": 3,
+    "deletions": 3,
+    "total": 6
+  },
+  "files": [
+    {
+      "sha": "b748919728ba7080c9e41e2b888872b09d246d90",
+      "filename": "rename.4.txt",
+      "status": "modified",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "blob_url": "https://gitee.com/kit101/drone-yml-test/blob/7e84b6f94b8d4bfaa051910cc4ce16b73bcffd51/rename.4.txt",
+      "raw_url": "https://gitee.com/kit101/drone-yml-test/raw/7e84b6f94b8d4bfaa051910cc4ce16b73bcffd51/rename.4.txt",
+      "content_url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/contents/rename.4.txt?ref=7e84b6f94b8d4bfaa051910cc4ce16b73bcffd51",
+      "patch": ""
+    }
+  ]
+}

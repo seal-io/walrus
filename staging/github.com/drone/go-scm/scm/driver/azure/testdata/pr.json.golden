@@ -1,0 +1,36 @@
+{
+  "Number": 19,
+  "Title": "test_pr",
+  "Body": "test_pr_body",
+  "Sha": "01768d964c03e97260af0bd8cd9e5cd1f9ac6356",
+  "Ref": "",
+  "Source": "pr_branch",
+  "Target": "main",
+  "Ref": "refs/pull/19/merge",
+  "Fork": "",
+  "Link": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a/pullRequests/19",
+  "Diff": "",
+  "Closed": true,
+  "Merged": true,
+  "Base": {
+    "Name": "",
+    "Path": "",
+    "Sha": "b748ab7eb49b8627214f22f631f878c4af9893b5"
+  },
+  "Head": {
+    "Name": "",
+    "Path": "",
+    "Sha": "01768d964c03e97260af0bd8cd9e5cd1f9ac6356"
+  },
+  "Author": {
+    "Login": "tp@harness.io",
+    "Name": "",
+    "Email": "",
+    "Avatar": "https://dev.azure.com/tphoney/_api/_common/identityImage?id=3ff4a20f-306e-677e-8a01-57f35e71f109",
+    "Created": "0001-01-01T00:00:00Z",
+    "Updated": "0001-01-01T00:00:00Z"
+  },
+  "Created": "2022-03-04T13:34:54.3177724Z",
+  "Updated": "0001-01-01T00:00:00Z",
+  "Labels": null
+}

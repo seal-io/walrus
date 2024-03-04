@@ -1,0 +1,25 @@
+{
+  "Action": "created",
+  "Ref": {
+    "Name": "1.3",
+    "Sha": "aa9d11518a64dcd0d591a2a4eb35dfb4d91d49d5"
+  },
+  "Repo": {
+    "ID": "14836026",
+    "Namespace": "kit101",
+    "Name": "drone-yml-test",
+    "Branch": "master",
+    "Private": false,
+    "Clone": "https://gitee.com/kit101/drone-yml-test.git",
+    "CloneSSH": "git@gitee.com:kit101/drone-yml-test.git",
+    "Link": "https://gitee.com/kit101/drone-yml-test",
+    "Created": "2021-03-24T11:24:34+08:00",
+    "Updated": "2021-10-08T16:01:12+08:00"
+  },
+  "Sender": {
+    "Avatar": "https://portrait.gitee.com/uploads/avatars/user/511/1535738_qkssk1711_1578953939.png",
+    "Email": "qkssk1711@163.com",
+    "Login": "kit101",
+    "Name": "kit101"
+  }
+}

@@ -1,0 +1,14 @@
+[
+    {
+        "Title":       "Awesome app v0.2 beta",
+        "Description": "## CHANGELOG\r\n\r\n- Escape label and milestone titles to prevent XSS in GFM autocomplete. !2740\r\n- Prevent private snippets from being embeddable.\r\n- Add subresources removal to member destroy service.",
+        "Tag":         "v0.2",
+        "Commitish":   "079e90101242458910cccd35eab0e211dfc359c0"
+    },
+    {
+        "Title":       "Awesome app v0.1 alpha",
+        "Description": "## CHANGELOG\r\n\r\n-Remove limit of 100 when searching repository code. !8671\r\n- Show error message when attempting to reopen an MR and there is an open MR for the same branch. !16447 (Akos Gyimesi)\r\n- Fix a bug where internal email pattern wasn't respected. !22516",
+        "Tag":         "v0.1",
+        "Commitish":   "f8d3d94cbd347e924aa7b715845e439d00e80ca4"
+    }
+]

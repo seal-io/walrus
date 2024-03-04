@@ -1,0 +1,40 @@
+[
+  {
+    "id": 9,
+    "parent_id": 16,
+    "uid": "demo",
+    "path": "px7xd_BFRCi-pfWPYXVjvw/default/codeciintegration/demo",
+    "description": "",
+    "is_public": false,
+    "created_by": 10,
+    "created": 1675210116158,
+    "updated": 1675389801066,
+    "default_branch": "main",
+    "fork_id": 0,
+    "num_forks": 0,
+    "num_pulls": 4,
+    "num_closed_pulls": 0,
+    "num_open_pulls": 1,
+    "num_merged_pulls": 3,
+    "git_url": "https://qa.harness.io/code/git/px7xd_BFRCi-pfWPYXVjvw/default/codeciintegration/demo.git"
+  },
+  {
+    "id": 11,
+    "parent_id": 16,
+    "uid": "thomas",
+    "path": "px7xd_BFRCi-pfWPYXVjvw/default/codeciintegration/thomas",
+    "description": "Playground project for Thomas",
+    "is_public": true,
+    "created_by": 10,
+    "created": 1675458112548,
+    "updated": 1675458112548,
+    "default_branch": "main",
+    "fork_id": 0,
+    "num_forks": 0,
+    "num_pulls": 0,
+    "num_closed_pulls": 0,
+    "num_open_pulls": 0,
+    "num_merged_pulls": 0,
+    "git_url": "https://qa.harness.io/code/git/px7xd_BFRCi-pfWPYXVjvw/default/codeciintegration/thomas.git"
+  }
+]

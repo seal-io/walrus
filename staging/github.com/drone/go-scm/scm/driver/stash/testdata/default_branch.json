@@ -1,0 +1,8 @@
+{
+    "id": "refs/heads/feature_branch",
+    "displayId": "feature_branch",
+    "type": "BRANCH",
+    "latestCommit": "c567b3f4a2980299e2a1148360f23ffb0f4c9764",
+    "latestChangeset": "c567b3f4a2980299e2a1148360f23ffb0f4c9764",
+    "isDefault": true
+}

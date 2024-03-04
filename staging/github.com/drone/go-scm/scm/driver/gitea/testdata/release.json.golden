@@ -1,0 +1,10 @@
+{
+  "ID": 1,
+  "Title": "v1.0.0",
+  "Description": "Description of the release",
+  "Link": "https://try.gitea.com/octocat/Hello-World/releases/tag/v1.0.0",
+  "Tag": "v1.0.0",
+  "Commitish": "master",
+  "Draft": false,
+  "Prerelease": false
+}

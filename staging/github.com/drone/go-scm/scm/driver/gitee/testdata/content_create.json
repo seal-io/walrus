@@ -1,0 +1,40 @@
+{
+  "content": {
+    "name": "CreateByDroneGiteeProvider.md",
+    "path": "apitest/CreateByDroneGiteeProvider.md",
+    "size": 56,
+    "sha": "9de0cf94e1e3c1cbe0a25c3865de4cc9ede7ad3e",
+    "type": "file",
+    "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/contents/apitest/CreateByDroneGiteeProvider.md",
+    "html_url": "https://gitee.com/kit101/drone-yml-test/blob/master/apitest/CreateByDroneGiteeProvider.md",
+    "download_url": "https://gitee.com/kit101/drone-yml-test/raw/master/apitest/CreateByDroneGiteeProvider.md",
+    "_links": {
+      "self": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/contents/apitest/CreateByDroneGiteeProvider.md",
+      "html": "https://gitee.com/kit101/drone-yml-test/blob/master/apitest/CreateByDroneGiteeProvider.md"
+    }
+  },
+  "commit": {
+    "sha": "261b772064f5aed55d626799417ec31b1c48080b",
+    "author": {
+      "name": "kit101",
+      "date": "2021-08-17T15:16:26+00:00",
+      "email": "kit101@gitee.com"
+    },
+    "committer": {
+      "name": "Gitee",
+      "date": "2021-08-17T15:16:26+00:00",
+      "email": "noreply@gitee.com"
+    },
+    "message": "my commit message",
+    "tree": {
+      "sha": "3830427494001c27ed6a9711a823a4fc6af836af",
+      "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/git/trees/3830427494001c27ed6a9711a823a4fc6af836af"
+    },
+    "parents": [
+      {
+        "sha": "d295a4c616d46fbcdfa3dfd1473c1337a1ec6f83",
+        "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/commits/d295a4c616d46fbcdfa3dfd1473c1337a1ec6f83"
+      }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+    "id": 419169807,
+    "created_on": "2023-08-14T11:38:53.460132+00:00",
+    "updated_on": "2023-08-14T11:38:53.460205+00:00",
+    "content": {
+        "type": "rendered",
+        "raw": "Lovely comment",
+        "markup": "markdown",
+        "html": "<p>Lovely comment<\/p>"
+    },
+    "user": {
+        "display_name": "Brian Jacobson",
+        "links": {
+            "self": {
+                "href": "https:\/\/bitbucket.org\/!api\/2.0\/users\/%7B6dff94-1b8b-4f62-b37f-3069e13dfdf33e%7D"
+            },
+            "avatar": {
+                "href": "http:\/\/localhost:3000\/avatars\/1"
+            },
+            "html": {
+                "href": "https:\/\/bitbucket.org\/%7B6dff94-1b8b-4f62-b37f-3069e13dfdf33e%7D\/"
+            }
+        },
+        "type": "user",
+        "uuid": "{6b408a94-1b8b-4f62-b37f-3069e13bc33e}",
+        "account_id": "60259ce8164527007100d945",
+        "nickname": "brian.jacobson"
+    },
+    "deleted": false,
+    "type": "pullrequest_comment",
+    "links": {
+        "self": {
+            "href": "https:\/\/bitbucket.org\/!api\/2.0\/repositories\/brianharness\/test\/pullrequests\/3\/comments\/419169807"
+        },
+        "html": {
+            "href": "https:\/\/bitbucket.org\/brianharness\/test\/pull-requests\/3\/_\/diff#comment-419169807"
+        }
+    },
+    "pullrequest": {
+        "type": "pullrequest",
+        "id": 3,
+        "title": "README.md edited online with Bitbucket",
+        "links": {
+            "self": {
+                "href": "https:\/\/bitbucket.org\/!api\/2.0\/repositories\/brianharness\/test\/pullrequests\/3"
+            },
+            "html": {
+                "href": "https:\/\/bitbucket.org\/brianharness\/test\/pull-requests\/3"
+            }
+        }
+    }
+}

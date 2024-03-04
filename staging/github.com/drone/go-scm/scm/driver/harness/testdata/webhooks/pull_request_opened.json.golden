@@ -1,0 +1,48 @@
+{
+  "Action": "created",
+  "Repo": {
+    "ID": "13",
+    "Namespace": "",
+    "Name": "aba",
+    "Branch": "main",
+    "Private": false,
+    "Clone": "http://localhost:3000/git/kmpySmUISimoRrJL6NL73w/myOrg/myProject/aba.git",
+    "CloneSSH": "",
+    "Link": "http://localhost:3000/git/kmpySmUISimoRrJL6NL73w/myOrg/myProject/aba.git",
+    "Created": "0001-01-01T00:00:00Z",
+    "Updated": "0001-01-01T00:00:00Z"
+  },
+  "PullRequest": {
+    "Number": 4,
+    "Title": "aw",
+    "Body": "",
+    "Sha": "d74b1ebfe520ac01b209dd9085f005884cc9f4cd",
+    "Ref": "refs/heads/b",
+    "Source": "b",
+    "Target": "main",
+    "Fork": "fork",
+    "Link": "http://localhost:3000/codeowners/asdsad/pulls/14",
+    "Closed": false,
+    "Merged": false,
+    "Author": {
+      "ID": "0osgWsTZRsSZ8RWfjLRkEg",
+      "Login": "0osgWsTZRsSZ8RWfjLRkEg",
+      "Name": "Admin",
+      "Email": "admin@harness.io",
+      "Avatar": "",
+      "Created": "2023-02-02T18:21:25.38-08:00",
+      "Updated": "2023-02-02T18:21:25.38-08:00"
+    },
+    "Created": "0001-01-01T00:00:00Z",
+    "Updated": "0001-01-01T00:00:00Z"
+  },
+  "Sender": {
+    "ID": "0osgWsTZRsSZ8RWfjLRkEg",
+    "Login": "0osgWsTZRsSZ8RWfjLRkEg",
+    "Name": "default",
+    "Email": "default@harness.io",
+    "Avatar": "",
+    "Created": "2023-02-02T18:21:25.38-08:00",
+    "Updated": "2023-02-02T18:21:25.38-08:00"
+  }
+}

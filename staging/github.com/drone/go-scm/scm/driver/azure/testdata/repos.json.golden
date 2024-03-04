@@ -1,0 +1,14 @@
+[
+    {
+        "ID": "91f0d4cb-4c36-49a5-b28d-2d72da089c4d",
+        "Name": "test_project",
+        "Branch": "main",
+        "Link": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/91f0d4cb-4c36-49a5-b28d-2d72da089c4d"
+    },
+    {
+        "ID": "fde2d21f-13b9-4864-a995-83329045289a",
+        "Name": "test_repo2",
+        "Branch": "main",
+        "Link": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a"
+    }
+]

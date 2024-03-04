@@ -1,0 +1,53 @@
+{
+    "Action": "updated",
+    "Repo": {
+        "ID": "1",
+        "Namespace": "PRJ",
+        "Name": "my-repo",
+        "Perm": null,
+        "Branch": "master",
+        "Private": true,
+        "Clone": "http://example.com:7990/scm/prj/my-repo.git",
+        "CloneSSH": "ssh://git@example.com:7999/prj/my-repo.git",
+        "Link": "http://example.com:7990/projects/PRJ/repos/my-repo/browse",
+        "Created": "0001-01-01T00:00:00Z",
+        "Updated": "0001-01-01T00:00:00Z"
+    },
+    "PullRequest": {
+        "Number": 6,
+        "Title": "Clean README.md",
+        "Body": "Removed old information out of `REAME.nd`.",
+        "Sha": "a268fca7b65055e13f60ac1a2c9a527615f113ca",
+        "Ref": "refs/pull-requests/6/from",
+        "Source": "cleanup",
+        "Target": "master",
+        "Fork": "~jcitizen/my-repo",
+        "Link": "http://example.com:7990/projects/PRJ/repos/my-repo/pull-requests/6",
+        "Closed": false,
+        "Merged": false,
+        "Base": {
+            "Name": "master",
+            "Path": "refs/heads/master",
+            "Sha": "a4dae7792cf772d72149730091141ef48bba8697"
+        },
+        "Head": {
+            "Name": "cleanup",
+            "Path": "refs/heads/cleanup",
+            "Sha": "a268fca7b65055e13f60ac1a2c9a527615f113ca"
+        },
+        "Author": {
+            "Login": "jcitizen",
+            "Name": "Jane Citizen",
+            "Email": "jane@example.com",
+            "Avatar": "https://www.gravatar.com/avatar/9e26471d35a78862c17e467d87cddedf.jpg"
+        },
+        "Created": "2021-11-24T14:26:49Z",
+        "Updated": "2021-11-24T14:43:48Z"
+    },
+    "Sender": {
+        "Login": "jcitizen",
+        "Name": "Jane Citizen",
+        "Email": "jane@example.com",
+        "Avatar": "https://www.gravatar.com/avatar/9e26471d35a78862c17e467d87cddedf.jpg"
+    }
+}

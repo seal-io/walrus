@@ -1,0 +1,82 @@
+[
+  {
+    "path": "lib/gitlab/ci/ansi2json",
+    "kind": "directory"
+  },
+  {
+    "path": "lib/gitlab/ci/build",
+    "kind": "directory"
+  },
+  {
+    "path": "lib/gitlab/ci/config",
+    "kind": "directory"
+  },
+  {
+    "path": "lib/gitlab/ci/parsers",
+    "kind": "directory"
+  },
+  {
+    "path": "lib/gitlab/ci/pipeline",
+    "kind": "directory"
+  },
+  {
+    "path": "lib/gitlab/ci/reports",
+    "kind": "directory"
+  },
+  {
+    "path": "lib/gitlab/ci/status",
+    "kind": "directory"
+  },
+  {
+    "path": "lib/gitlab/ci/templates",
+    "kind": "directory"
+  },
+  {
+    "path": "lib/gitlab/ci/trace",
+    "kind": "directory"
+  },
+  {
+    "path": "lib/gitlab/ci/variables",
+    "kind": "directory"
+  },
+  {
+    "path": "lib/gitlab/ci/ansi2html.rb",
+    "kind": "file"
+  },
+  {
+    "path": "lib/gitlab/ci/ansi2json.rb",
+    "kind": "file"
+  },
+  {
+    "path": "lib/gitlab/ci/charts.rb",
+    "kind": "file"
+  },
+  {
+    "path": "lib/gitlab/ci/config.rb",
+    "kind": "file"
+  },
+  {
+    "path": "lib/gitlab/ci/cron_parser.rb",
+    "kind": "file"
+  },
+  {
+    "path": "lib/gitlab/ci/mask_secret.rb",
+    "kind": "file"
+  },
+  {
+    "path": "lib/gitlab/ci/model.rb",
+    "kind": "file"
+  },
+  {
+    "path": "lib/gitlab/ci/parsers.rb",
+    "kind": "file"
+  },
+  {
+    "path": "lib/gitlab/ci/trace.rb",
+    "kind": "file"
+  },
+  {
+    "path": "lib/gitlab/ci/yaml_processor.rb",
+    "kind": "file"
+  }
+]

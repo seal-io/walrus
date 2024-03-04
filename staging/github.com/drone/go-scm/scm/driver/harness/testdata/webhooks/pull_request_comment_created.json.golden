@@ -1,0 +1,51 @@
+{
+  "Repo": {
+    "ID": "18",
+    "Namespace": "",
+    "Name": "demo",
+    "Branch": "main",
+    "Private": false,
+    "Clone": "http://localhost:3000/git/asd/demo.git",
+    "CloneSSH": "",
+    "Link": "http://localhost:3000/git/asd/demo.git",
+    "Created": "0001-01-01T00:00:00Z",
+    "Updated": "0001-01-01T00:00:00Z"
+  },
+  "PullRequest": {
+    "Number": 2,
+    "Title": "Update test.txt",
+    "Body": "",
+    "Sha": "",
+    "Ref": "refs/heads/pr2",
+    "Source": "pr2",
+    "Target": "main",
+    "Fork": "fork",
+    "Link": "http://localhost:3000/codeowners/asdsad/pulls/14",
+    "Closed": false,
+    "Merged": false,
+    "Author": {
+      "ID": "0osgWsTZRsSZ8RWfjLRkEg",
+      "Login": "0osgWsTZRsSZ8RWfjLRkEg",
+      "Name": "Admin",
+      "Email": "admin@harness.io",
+      "Avatar": "",
+      "Created": "2023-02-02T18:21:25.38-08:00",
+      "Updated": "2023-02-02T18:21:25.38-08:00"
+    },
+    "Created": "0001-01-01T00:00:00Z",
+    "Updated": "0001-01-01T00:00:00Z"
+  },
+  "Comment": {
+    "ID": 1,
+    "Body": "pr comment"
+  },
+  "Sender": {
+    "ID": "admin",
+    "Login": "admin",
+    "Name": "Administrator",
+    "Email": "admin@gitness.io",
+    "Avatar": "",
+    "Created": "2023-10-03T04:20:21.613-07:00",
+    "Updated": "2023-10-03T04:20:21.613-07:00"
+  }
+}

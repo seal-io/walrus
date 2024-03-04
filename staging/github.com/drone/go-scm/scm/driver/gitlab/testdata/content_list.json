@@ -1,0 +1,142 @@
+[
+    {
+        "id": "ff85b01e96cca1db128a3ea0b3643667f50e464f",
+        "name": "ansi2json",
+        "type": "tree",
+        "path": "lib/gitlab/ci/ansi2json",
+        "mode": "040000"
+    },
+    {
+        "id": "b044e0902a1d468d0e59ca733da6c22c4710af20",
+        "name": "build",
+        "type": "tree",
+        "path": "lib/gitlab/ci/build",
+        "mode": "040000"
+    },
+    {
+        "id": "80cecd7647164c63768f52b431509d04d7f7dcf6",
+        "name": "config",
+        "type": "tree",
+        "path": "lib/gitlab/ci/config",
+        "mode": "040000"
+    },
+    {
+        "id": "1d53ca741903e40610728c07b637da21fbf9f394",
+        "name": "parsers",
+        "type": "tree",
+        "path": "lib/gitlab/ci/parsers",
+        "mode": "040000"
+    },
+    {
+        "id": "1a8b0f4be2707c3d7bdede2865c4a2c8a4af99a9",
+        "name": "pipeline",
+        "type": "tree",
+        "path": "lib/gitlab/ci/pipeline",
+        "mode": "040000"
+    },
+    {
+        "id": "42afb52861c8f807f6ccf95e98607638b6d30f22",
+        "name": "reports",
+        "type": "tree",
+        "path": "lib/gitlab/ci/reports",
+        "mode": "040000"
+    },
+    {
+        "id": "1cf9d5d945923d8a3f820b5b39aa65431b271375",
+        "name": "status",
+        "type": "tree",
+        "path": "lib/gitlab/ci/status",
+        "mode": "040000"
+    },
+    {
+        "id": "f02f0b133c976074cec2b3babc88966f2ef32374",
+        "name": "templates",
+        "type": "tree",
+        "path": "lib/gitlab/ci/templates",
+        "mode": "040000"
+    },
+    {
+        "id": "f2f31cbc4e89da99530cd30d7fc5f4d989d05b90",
+        "name": "trace",
+        "type": "tree",
+        "path": "lib/gitlab/ci/trace",
+        "mode": "040000"
+    },
+    {
+        "id": "8d06f84b4a11604dacb1e37eb3c99094f2bccbd8",
+        "name": "variables",
+        "type": "tree",
+        "path": "lib/gitlab/ci/variables",
+        "mode": "040000"
+    },
+    {
+        "id": "eb5d78ebcd41aee923ad02c8fe4b340d87254d59",
+        "name": "ansi2html.rb",
+        "type": "blob",
+        "path": "lib/gitlab/ci/ansi2html.rb",
+        "mode": "100644"
+    },
+    {
+        "id": "79114d35916cc46aff83b225c3fcef3e47fe0719",
+        "name": "ansi2json.rb",
+        "type": "blob",
+        "path": "lib/gitlab/ci/ansi2json.rb",
+        "mode": "100644"
+    },
+    {
+        "id": "3fbfdffe277f296e8f116f078e80adbe072a158b",
+        "name": "charts.rb",
+        "type": "blob",
+        "path": "lib/gitlab/ci/charts.rb",
+        "mode": "100644"
+    },
+    {
+        "id": "9c1e6277e95ee74775a45cadd3628bc05e777660",
+        "name": "config.rb",
+        "type": "blob",
+        "path": "lib/gitlab/ci/config.rb",
+        "mode": "100644"
+    },
+    {
+        "id": "1d7e7ea0f9af2839512d89488f4873f0edd4a6dc",
+        "name": "cron_parser.rb",
+        "type": "blob",
+        "path": "lib/gitlab/ci/cron_parser.rb",
+        "mode": "100644"
+    },
+    {
+        "id": "58d55b1bd6f394aeff2cb579efa48970b52f095b",
+        "name": "mask_secret.rb",
+        "type": "blob",
+        "path": "lib/gitlab/ci/mask_secret.rb",
+        "mode": "100644"
+    },
+    {
+        "id": "1625cb841b694deea23c816761e09b4337affc03",
+        "name": "model.rb",
+        "type": "blob",
+        "path": "lib/gitlab/ci/model.rb",
+        "mode": "100644"
+    },
+    {
+        "id": "c76cd5ff28512ed90616be13d9e776b83124eab2",
+        "name": "parsers.rb",
+        "type": "blob",
+        "path": "lib/gitlab/ci/parsers.rb",
+        "mode": "100644"
+    },
+    {
+        "id": "941f7178dacf36fce67fdfa538f1d8ef50e5d6da",
+        "name": "trace.rb",
+        "type": "blob",
+        "path": "lib/gitlab/ci/trace.rb",
+        "mode": "100644"
+    },
+    {
+        "id": "f6a3abefcfb350d9ff69560a579b3c9473612a8b",
+        "name": "yaml_processor.rb",
+        "type": "blob",
+        "path": "lib/gitlab/ci/yaml_processor.rb",
+        "mode": "100644"
+    }
+]

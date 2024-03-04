@@ -1,0 +1,30 @@
+{
+  "type": "file",
+  "sha": "7839122fc2ec4af9d5a6c14c779a82a05c5769b5",
+  "name": "README.md",
+  "path": "README.md",
+  "latest_commit": {
+    "sha": "98189d5cf2a751a6246c24a72945ba70839f1b20",
+    "title": "initial commit",
+    "message": "initial commit",
+    "author": {
+      "identity": {
+        "name": "gitness",
+        "email": "system@gitness"
+      },
+      "when": "2023-02-02T14:12:13Z"
+    },
+    "committer": {
+      "identity": {
+        "name": "gitness",
+        "email": "system@gitness"
+      },
+      "when": "2023-02-02T14:12:13Z"
+    }
+  },
+  "content": {
+    "encoding": "base64",
+    "data": "IyB0aG9tYXMKUGxheWdyb3VuZCBwcm9qZWN0IGZvciBUaG9tYXM=",
+    "size": 38
+  }
+}

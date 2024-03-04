@@ -1,0 +1,49 @@
+{
+  "size": 25,
+  "limit": 25,
+  "isLastPage": false,
+  "values": [
+    {
+      "slug": "quux",
+      "id": 2,
+      "name": "quux",
+      "scmId": "git",
+      "state": "AVAILABLE",
+      "statusMessage": "Available",
+      "forkable": true,
+      "project": {
+        "key": "PRJ",
+        "id": 2,
+        "name": "different_name",
+        "public": false,
+        "type": "NORMAL",
+        "links": {
+          "self": [
+            {
+              "href": "http://example.com:7990/projects/PRJ"
+            }
+          ]
+        }
+      },
+      "public": false,
+      "links": {
+        "clone": [
+          {
+            "href": "ssh://git@example.com:7999/prj/quux.git",
+            "name": "ssh"
+          },
+          {
+            "href": "http://jcitizen@example.com:7990/scm/prj/quux.git",
+            "name": "http"
+          }
+        ],
+        "self": [
+          {
+            "href": "http://example.com:7990/projects/PRJ/repos/quux/browse"
+          }
+        ]
+      }
+    }
+  ],
+  "start": 0
+}

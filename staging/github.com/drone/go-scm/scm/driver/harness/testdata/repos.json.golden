@@ -1,0 +1,22 @@
+[
+    {
+        "ID": "9",
+        "Namespace": "px7xd_BFRCi-pfWPYXVjvw/default/codeciintegration/demo",
+        "Name": "demo",
+        "Branch": "main",
+        "Private": true,
+        "Clone": "https://qa.harness.io/code/git/px7xd_BFRCi-pfWPYXVjvw/default/codeciintegration/demo.git",
+        "CloneSSH": "https://qa.harness.io/code/git/px7xd_BFRCi-pfWPYXVjvw/default/codeciintegration/demo.git",
+        "Link": "https://qa.harness.io/code/git/px7xd_BFRCi-pfWPYXVjvw/default/codeciintegration/demo.git"
+    },
+    {
+        "ID": "11",
+        "Namespace": "px7xd_BFRCi-pfWPYXVjvw/default/codeciintegration/thomas",
+        "Name": "thomas",
+        "Branch": "main",
+        "Private": false,
+        "Clone": "https://qa.harness.io/code/git/px7xd_BFRCi-pfWPYXVjvw/default/codeciintegration/thomas.git",
+        "CloneSSH": "https://qa.harness.io/code/git/px7xd_BFRCi-pfWPYXVjvw/default/codeciintegration/thomas.git",
+        "Link": "https://qa.harness.io/code/git/px7xd_BFRCi-pfWPYXVjvw/default/codeciintegration/thomas.git"
+    }
+]

@@ -1,0 +1,82 @@
+[
+  {
+    "sha": "2eac1cac02c325058cf959725c45b0612d3e8177",
+    "filename": "change/add.txt",
+    "status": "deleted",
+    "additions": "0",
+    "deletions": "1",
+    "blob_url": "https://gitee.com/kit101/drone-yml-test/blob/2eac1cac02c325058cf959725c45b0612d3e8177/change/add.txt",
+    "raw_url": "https://gitee.com/kit101/drone-yml-test/raw/2eac1cac02c325058cf959725c45b0612d3e8177/change/add.txt",
+    "patch": {
+      "diff": "@@ -1 +0,0 @@\n-add\n\\ No newline at end of file\n",
+      "new_path": "change/add.txt",
+      "old_path": "change/add.txt",
+      "a_mode": "100644",
+      "b_mode": "0",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": true,
+      "too_large": false
+    }
+  },
+  {
+    "sha": "411db0d9e9072851383751c260dc1601840906e4",
+    "filename": "change/add2.txt",
+    "status": "added",
+    "additions": "4",
+    "deletions": "0",
+    "blob_url": "https://gitee.com/kit101/drone-yml-test/blob/411db0d9e9072851383751c260dc1601840906e4/change/add2.txt",
+    "raw_url": "https://gitee.com/kit101/drone-yml-test/raw/411db0d9e9072851383751c260dc1601840906e4/change/add2.txt",
+    "patch": {
+      "diff": "@@ -0,0 +1,4 @@\n+add 2\n+add 2\n+add 2\n+add 2\n\\ No newline at end of file\n",
+      "new_path": "change/add2.txt",
+      "old_path": "change/add2.txt",
+      "a_mode": "0",
+      "b_mode": "100644",
+      "new_file": true,
+      "renamed_file": false,
+      "deleted_file": false,
+      "too_large": false
+    }
+  },
+  {
+    "sha": "411db0d9e9072851383751c260dc1601840906e4",
+    "filename": "change/modified.txt",
+    "status": null,
+    "additions": "6",
+    "deletions": "1",
+    "blob_url": "https://gitee.com/kit101/drone-yml-test/blob/411db0d9e9072851383751c260dc1601840906e4/change/modified.txt",
+    "raw_url": "https://gitee.com/kit101/drone-yml-test/raw/411db0d9e9072851383751c260dc1601840906e4/change/modified.txt",
+    "patch": {
+      "diff": "@@ -1,2 +1,7 @@\n will be modified\n-modified\n\\ No newline at end of file\n+modified\n+modified 2\n+modified 2\n+modified 2\n+modified 2\n+modified 2\n\\ No newline at end of file\n",
+      "new_path": "change/modified.txt",
+      "old_path": "change/modified.txt",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "too_large": false
+    }
+  },
+  {
+    "sha": "411db0d9e9072851383751c260dc1601840906e4",
+    "filename": "change/rename.2.txt",
+    "status": "renamed",
+    "additions": "0",
+    "deletions": "0",
+    "blob_url": "https://gitee.com/kit101/drone-yml-test/blob/411db0d9e9072851383751c260dc1601840906e4/change/rename.2.txt",
+    "raw_url": "https://gitee.com/kit101/drone-yml-test/raw/411db0d9e9072851383751c260dc1601840906e4/change/rename.2.txt",
+    "patch": {
+      "diff": "",
+      "new_path": "change/rename.2.txt",
+      "old_path": "change/rename.1.txt",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": true,
+      "deleted_file": false,
+      "too_large": false
+    }
+  }
+]

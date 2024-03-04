@@ -1,0 +1,32 @@
+{
+  "number": 1,
+  "created": 1675960384081,
+  "edited": 1675960384081,
+  "state": "open",
+  "is_draft": false,
+  "title": "pull title",
+  "description": "pull description",
+  "source_repo_id": 11,
+  "source_branch": "bla",
+  "target_repo_id": 11,
+  "target_branch": "main",
+  "merged": null,
+  "merge_strategy": null,
+  "merge_head_sha": null,
+  "merge_base_sha": null,
+  "author": {
+    "id": 14,
+    "uid": "0Nnoezs6RGa_fOWvG_Ta4w",
+    "display_name": "thomas.honey",
+    "email": "thomas.honey@harness.io",
+    "type": "user",
+    "created": 1675248918372,
+    "updated": 1675248918372
+  },
+  "merger": null,
+  "stats": {
+    "conversations": 0,
+    "commits": 1,
+    "files_changed": 1
+  }
+}

@@ -1,0 +1,53 @@
+[
+    {
+        "sha": "c4e897c1fcd1cae04abf761f034ae4c5e210caad",
+        "old_sha": "0000000000000000000000000000000000000000",
+        "path": "hello.go",
+        "old_path": "hello.go",
+        "status": "ADDED",
+        "additions": 8,
+        "deletions": 0,
+        "changes": 8,
+        "content_url": "/api/v1/hello.go",
+        "is_binary": false,
+        "is_submodule": false
+    },
+    {
+        "sha": "0000000000000000000000000000000000000000",
+        "old_sha": "d7fcbf28651697b00add519d8b4402a5ab46ffc2",
+        "path": "null.go",
+        "old_path": "null.go",
+        "status": "DELETED",
+        "additions": 0,
+        "deletions": 118,
+        "changes": 118,
+        "content_url": "/api/v1/null.go",
+        "is_binary": false,
+        "is_submodule": false
+    },
+    {
+        "sha": "ce5a2cd34b697f7a8507192e7074b33737c6740c",
+        "old_sha": "7697802e4d16b255e7ea22a86071cfbe9af6aa39",
+        "path": "version4.go",
+        "old_path": "version4.go",
+        "status": "MODIFIED",
+        "additions": 8,
+        "deletions": 7,
+        "changes": 15,
+        "content_url": "/api/v1/version4.go",
+        "is_binary": false,
+        "is_submodule": false
+    },
+    {
+        "sha": "",
+        "path": "version_1.go",
+        "old_path": "version1.go",
+        "status": "RENAMED",
+        "additions": 0,
+        "deletions": 0,
+        "changes": 0,
+        "content_url": "/api/v1/version_1.go",
+        "is_binary": false,
+        "is_submodule": false
+    }
+]

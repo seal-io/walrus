@@ -1,0 +1,37 @@
+{
+  "uuid": "{02b941e3-cfaa-40f9-9a58-cec53e20bdc3}",
+  "links": {
+    "owners": {
+      "href": "https://api.bitbucket.org/2.0/workspaces/atlassian/members?q=permission%3D%22owner%22"
+    },
+    "hooks": {
+      "href": "https://api.bitbucket.org/2.0/workspaces/atlassian/hooks"
+    },
+    "self": {
+      "href": "https://api.bitbucket.org/2.0/workspaces/atlassian"
+    },
+    "repositories": {
+      "href": "https://api.bitbucket.org/2.0/repositories/atlassian"
+    },
+    "html": {
+      "href": "https://bitbucket.org/atlassian/"
+    },
+    "avatar": {
+      "href": "https://bitbucket.org/workspaces/atlassian/avatar/?ts=1612327398"
+    },
+    "members": {
+      "href": "https://api.bitbucket.org/2.0/workspaces/atlassian/members"
+    },
+    "projects": {
+      "href": "https://api.bitbucket.org/2.0/workspaces/atlassian/projects"
+    },
+    "snippets": {
+      "href": "https://api.bitbucket.org/2.0/snippets/atlassian"
+    }
+  },
+  "created_on": "2018-11-29T02:26:39.297476+00:00",
+  "type": "workspace",
+  "slug": "atlassian",
+  "is_private": true,
+  "name": "Atlassian"
+}

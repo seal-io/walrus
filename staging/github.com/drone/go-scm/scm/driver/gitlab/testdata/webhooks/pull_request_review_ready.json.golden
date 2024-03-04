@@ -1,0 +1,43 @@
+{
+    "Action": "review_ready",
+    "Repo": {
+        "ID": "44067058",
+        "Namespace": "rathod.meetsatish",
+        "Name": "meet",
+        "Perm": null,
+        "Branch": "main",
+        "Private": false,
+        "Clone": "https://gitlab.com/rathod.meetsatish/meet.git",
+        "CloneSSH": "git@gitlab.com:rathod.meetsatish/meet.git",
+        "Link": "https://gitlab.com/rathod.meetsatish/meet",
+        "Created": "0001-01-01T00:00:00Z",
+        "Updated": "0001-01-01T00:00:00Z"
+    },
+    "PullRequest": {
+        "Number": 3,
+        "Title": "Draft: Update README.md",
+        "Body": "",
+        "Sha": "ffd71529ecdfb41a530ee13f91b8fdd3e743c754",
+        "Ref": "refs/merge-requests/3/head",
+        "Source": "main1234",
+        "Target": "main",
+        "Fork": "Meet Rathod/meet",
+        "Link": "https://gitlab.com/rathod.meetsatish/meet/-/merge_requests/3",
+        "Closed": false,
+        "Merged": false,
+        "Author": {
+            "Login": "rathod.meetsatish",
+            "Name": "Meet Rathod",
+            "Email": "",
+            "Avatar": "https://secure.gravatar.com/avatar/0e68aaeb6c49dd6ba280370c96280803?s=80&d=identicon"
+        },
+        "Created": "0001-01-01T00:00:00Z",
+        "Updated": "0001-01-01T00:00:00Z"
+    },
+    "Sender": {
+        "Login": "rathod.meetsatish",
+        "Name": "Meet Rathod",
+        "Email": "",
+        "Avatar": "https://secure.gravatar.com/avatar/0e68aaeb6c49dd6ba280370c96280803?s=80&d=identicon"
+    }
+}

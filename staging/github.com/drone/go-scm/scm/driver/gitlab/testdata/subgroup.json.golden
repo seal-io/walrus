@@ -1,0 +1,17 @@
+{
+    "ID": "14264161",
+    "Namespace": "gitlab-org/gitter",
+    "Name": "gitter-demo-app",
+    "Perm": {
+        "Pull": true,
+        "Push": false,
+        "Admin": false
+    },
+    "Branch": "master",
+    "Private": false,
+    "Clone": "https://gitlab.com/gitlab-org/gitter/gitter-demo-app.git",
+    "CloneSSH": "git@gitlab.com:gitlab-org/gitter/gitter-demo-app.git",
+    "Link": "https://gitlab.com/gitlab-org/gitter/gitter-demo-app",
+    "Created": "0001-01-01T00:00:00Z",
+    "Updated": "0001-01-01T00:00:00Z"
+}

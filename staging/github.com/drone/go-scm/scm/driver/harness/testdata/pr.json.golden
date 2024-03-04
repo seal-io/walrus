@@ -1,0 +1,20 @@
+{
+	"Number": 1,
+	"Title": "pull title",
+	"Body": "pull description",
+	"Sha": "",
+	"Ref": "refs/pullreq/1/head",
+	"Source": "bla",
+	"Target": "main",
+	"Fork": "fork",
+	"Link": "",
+	"Diff": "",
+	"Closed": false,
+	"Merged": false,
+	"Author": {
+		"ID": "0Nnoezs6RGa_fOWvG_Ta4w",
+		"Login": "thomas.honey@harness.io",
+		"Name": "thomas.honey",
+		"Email": "thomas.honey@harness.io"
+	}
+}

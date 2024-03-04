@@ -1,0 +1,31 @@
+{
+  "Number": 4982,
+    "Title": "IOS date picker component duplicate March issue",
+    "Body": "IOS date picker component duplicate March issue",
+    "Sha": "31c54529bd80",
+    "Ref": "",
+    "Source": "Lachlan-Vass/ios-date-picker-component-duplicate-marc-1579222909688",
+    "Target": "master",
+    "Fork": "lachlanv/atlaskit",
+    "Link": "https://bitbucket.org/atlassian/atlaskit/pull-requests/4982",
+    "Diff": "https://api.bitbucket.org/2.0/repositories/atlassian/atlaskit/diff/lachlanv/atlaskit:31c54529bd80%0D710db794f15b?from_pullrequest_id=4982",
+    "Closed": false,
+    "Merged": false,
+    "Base": {
+      "Sha": "710db794f15b",
+      "Path": "refs/heads/master",
+      "Name": "master"
+    },
+    "Head": {
+      "Sha": "31c54529bd80",
+      "Path": "refs/heads/Lachlan-Vass/ios-date-picker-component-duplicate-marc-1579222909688",
+      "Name": "Lachlan-Vass/ios-date-picker-component-duplicate-marc-1579222909688"
+    },
+    "Author": {
+      "Login": "Lachlan",
+      "Name": "Lachlan Vass",
+      "Avatar": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/5c7c7b1a0b79db7c3e33eca2/6b6b8178-0da0-4a37-b0dd-f8b5e3628eaa/128"
+    },
+    "Created": "2020-01-17T01:02:49.003611Z",
+    "Updated": "2020-01-17T01:02:49.933253Z"
+}

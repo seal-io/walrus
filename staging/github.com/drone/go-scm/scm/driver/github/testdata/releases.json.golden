@@ -1,0 +1,14 @@
+[
+  {
+    "ID": 1,
+    "Title": "v1.0.0",
+    "Description": "Description of the release",
+    "Link": "https://github.com/octocat/Hello-World/releases/v1.0.0",
+    "Tag": "v1.0.0",
+    "Commitish": "master",
+    "Draft": false,
+    "Prerelease": false,
+    "Created": "2013-02-27T19:35:32Z",
+    "Published": "2013-02-27T19:35:32Z"
+  }
+]

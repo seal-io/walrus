@@ -1,0 +1,60 @@
+{
+  "Ref": "refs/heads/feat-2-1",
+  "Before": "6168d9dae737b47f00c59fafca10c913a6850c3a",
+  "After": "9921e45e570db8e57e544650baf837932fb2100f",
+  "Repo": {
+    "ID": "14836026",
+    "Namespace": "kit101",
+    "Name": "drone-yml-test",
+    "Perm": null,
+    "Branch": "master",
+    "Private": false,
+    "Clone": "https://gitee.com/kit101/drone-yml-test.git",
+    "CloneSSH": "git@gitee.com:kit101/drone-yml-test.git",
+    "Link": "https://gitee.com/kit101/drone-yml-test",
+    "Created": "2021-03-24T11:24:34+08:00",
+    "Updated": "2021-10-08T17:53:18+08:00"
+  },
+  "Commit": {
+    "Sha": "9921e45e570db8e57e544650baf837932fb2100f",
+    "Message": "feat-2-1\n",
+    "Author": {
+      "Login": "kit101",
+      "Name": "kit101",
+      "Email": "qkssk1711@163.com",
+      "Date": "2021-10-08T17:53:12+08:00"
+    },
+    "Committer": {
+      "Login": "kit101",
+      "Name": "kit101",
+      "Email": "qkssk1711@163.com",
+      "Date": "2021-10-08T17:53:12+08:00"
+    },
+    "Link": "https://gitee.com/kit101/drone-yml-test/compare/6168d9dae737b47f00c59fafca10c913a6850c3a...9921e45e570db8e57e544650baf837932fb2100f"
+  },
+  "Commits": [
+    {
+      "Sha": "9921e45e570db8e57e544650baf837932fb2100f",
+      "Message": "feat-2-1\n",
+      "Link": "https://gitee.com/kit101/drone-yml-test/commit/9921e45e570db8e57e544650baf837932fb2100f",
+      "Author": {
+        "Login": "kit101",
+        "Email": "qkssk1711@163.com",
+        "Name": "kit101",
+        "Date": "2021-10-08T17:53:12+08:00"
+      },
+      "Committer": {
+        "Login": "kit101",
+        "Email": "qkssk1711@163.com",
+        "Name": "kit101",
+        "Date": "2021-10-08T17:53:12+08:00"
+      }
+    }
+  ],
+  "Sender": {
+    "Avatar": "https://portrait.gitee.com/uploads/avatars/user/511/1535738_qkssk1711_1578953939.png",
+    "Email": "qkssk1711@163.com",
+    "Login": "kit101",
+    "Name": "kit101"
+  }
+}

@@ -1,0 +1,8 @@
+{
+    "Number": 1,
+    "State": 3,
+    "Environment": "production",
+    "EnvironmentURL": "",
+    "Desc": "Deployment finished successfully.",
+    "Target": "https://example.com/deployment/42/output"
+}

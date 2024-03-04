@@ -1,0 +1,77 @@
+{
+    "value": [
+        {
+            "name": "refs/heads/main",
+            "objectId": "e0aee6aa543294d62520fb906689da6710af149c",
+            "creator": {
+                "displayName": "tp",
+                "url": "https://spsproduks1.vssps.visualstudio.com/A93f74f38-2b8d-42d4-a5cb-74646f46666e/_apis/Identities/3ff4a20f-306e-677e-8a01-57f35e71f109",
+                "_links": {
+                    "avatar": {
+                        "href": "https://dev.azure.com/tphoney/_apis/GraphProfile/MemberAvatars/msa.M2ZmNGEyMGYtMzA2ZS03NzdlLThhMDEtNTdmMzVlNzFmMTA5"
+                    }
+                },
+                "id": "3ff4a20f-306e-677e-8a01-57f35e71f109",
+                "uniqueName": "tp@harness.io",
+                "imageUrl": "https://dev.azure.com/tphoney/_api/_common/identityImage?id=3ff4a20f-306e-677e-8a01-57f35e71f109",
+                "descriptor": "msa.M2ZmNGEyMGYtMzA2ZS03NzdlLThhMDEtNTdmMzVlNzFmMTA5"
+            },
+            "url": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a/refs?filter=heads%2Fmain"
+        },
+        {
+            "name": "refs/heads/pr_branch",
+            "objectId": "01768d964c03e97260af0bd8cd9e5cd1f9ac6356",
+            "creator": {
+                "displayName": "tp",
+                "url": "https://spsproduks1.vssps.visualstudio.com/A93f74f38-2b8d-42d4-a5cb-74646f46666e/_apis/Identities/3ff4a20f-306e-677e-8a01-57f35e71f109",
+                "_links": {
+                    "avatar": {
+                        "href": "https://dev.azure.com/tphoney/_apis/GraphProfile/MemberAvatars/msa.M2ZmNGEyMGYtMzA2ZS03NzdlLThhMDEtNTdmMzVlNzFmMTA5"
+                    }
+                },
+                "id": "3ff4a20f-306e-677e-8a01-57f35e71f109",
+                "uniqueName": "tp@harness.io",
+                "imageUrl": "https://dev.azure.com/tphoney/_api/_common/identityImage?id=3ff4a20f-306e-677e-8a01-57f35e71f109",
+                "descriptor": "msa.M2ZmNGEyMGYtMzA2ZS03NzdlLThhMDEtNTdmMzVlNzFmMTA5"
+            },
+            "url": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a/refs?filter=heads%2Fpr_branch"
+        },
+        {
+            "name": "refs/heads/test_branch",
+            "objectId": "d2036abdecd80290e971e263fe668ca87608f8d1",
+            "creator": {
+                "displayName": "tp",
+                "url": "https://spsproduks1.vssps.visualstudio.com/A93f74f38-2b8d-42d4-a5cb-74646f46666e/_apis/Identities/3ff4a20f-306e-677e-8a01-57f35e71f109",
+                "_links": {
+                    "avatar": {
+                        "href": "https://dev.azure.com/tphoney/_apis/GraphProfile/MemberAvatars/msa.M2ZmNGEyMGYtMzA2ZS03NzdlLThhMDEtNTdmMzVlNzFmMTA5"
+                    }
+                },
+                "id": "3ff4a20f-306e-677e-8a01-57f35e71f109",
+                "uniqueName": "tp@harness.io",
+                "imageUrl": "https://dev.azure.com/tphoney/_api/_common/identityImage?id=3ff4a20f-306e-677e-8a01-57f35e71f109",
+                "descriptor": "msa.M2ZmNGEyMGYtMzA2ZS03NzdlLThhMDEtNTdmMzVlNzFmMTA5"
+            },
+            "url": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a/refs?filter=heads%2Ftest_branch"
+        },
+        {
+            "name": "refs/pull/1/merge",
+            "objectId": "e29c0a25614589e1310574b42f799101903b7e30",
+            "creator": {
+                "displayName": "Microsoft.VisualStudio.Services.TFS",
+                "url": "https://spsproduks1.vssps.visualstudio.com/A93f74f38-2b8d-42d4-a5cb-74646f46666e/_apis/Identities/00000002-0000-8888-8000-000000000000",
+                "_links": {
+                    "avatar": {
+                        "href": "https://dev.azure.com/tphoney/_apis/GraphProfile/MemberAvatars/s2s.MDAwMDAwMDItMDAwMC04ODg4LTgwMDAtMDAwMDAwMDAwMDAwQDJjODk1OTA4LTA0ZTAtNDk1Mi04OWZkLTU0YjAwNDZkNjI4OA"
+                    }
+                },
+                "id": "00000002-0000-8888-8000-000000000000",
+                "uniqueName": "00000002-0000-8888-8000-000000000000@2c895908-04e0-4952-89fd-54b0046d6288",
+                "imageUrl": "https://dev.azure.com/tphoney/_api/_common/identityImage?id=00000002-0000-8888-8000-000000000000",
+                "descriptor": "s2s.MDAwMDAwMDItMDAwMC04ODg4LTgwMDAtMDAwMDAwMDAwMDAwQDJjODk1OTA4LTA0ZTAtNDk1Mi04OWZkLTU0YjAwNDZkNjI4OA"
+            },
+            "url": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a/refs?filter=pull%2F1%2Fmerge"
+        }
+    ],
+    "count": 4
+}

@@ -1,0 +1,19 @@
+{
+  "sha": "1d640265d8bdd818175fa736f0fcbad2c9b716c9",
+  "title": "delete README.2",
+  "message": "delete README.2\n\ndelete README.2",
+  "author": {
+    "identity": {
+      "name": "thomas.honey",
+      "email": "thomas.honey@harness.io"
+    },
+    "when": "2023-02-08T16:17:50Z"
+  },
+  "committer": {
+    "identity": {
+      "name": "Harness",
+      "email": "noreply@harness.io"
+    },
+    "when": "2023-02-08T16:17:50Z"
+  }
+}

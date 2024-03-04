@@ -1,0 +1,34 @@
+{
+  "Action": "opened",
+  "Repo": {
+    "ID": "14836026",
+    "Namespace": "kit101",
+    "Name": "drone-yml-test",
+    "Branch": "master",
+    "Private": false,
+    "Clone": "https://gitee.com/kit101/drone-yml-test.git",
+    "CloneSSH": "git@gitee.com:kit101/drone-yml-test.git",
+    "Link": "https://gitee.com/kit101/drone-yml-test",
+    "Created": "2021-03-24T11:24:34+08:00",
+    "Updated": "2021-10-08T16:08:32+08:00"
+  },
+  "Issue": {
+    "Number": 735267896979,
+    "Title": "test issue hook",
+    "Body": "test issue hook",
+    "Link": "https://gitee.com/kit101/drone-yml-test/issues/I4CYEO",
+    "Closed": false,
+    "Author": {
+      "Login": "kit101",
+      "Avatar": "https://portrait.gitee.com/uploads/avatars/user/511/1535738_qkssk1711_1578953939.png"
+    },
+    "Created": "2021-10-08T16:08:32+08:00",
+    "Updated": "2021-10-08T16:08:32+08:00"
+  },
+  "Sender": {
+    "Avatar": "https://portrait.gitee.com/uploads/avatars/user/511/1535738_qkssk1711_1578953939.png",
+    "Email": "qkssk1711@163.com",
+    "Login": "kit101",
+    "Name": "kit101"
+  }
+}

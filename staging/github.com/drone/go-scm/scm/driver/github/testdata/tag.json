@@ -1,0 +1,10 @@
+{
+    "ref": "refs/tags/v0.1",
+    "node_id": "MDY6Q29tbWl0MTI5NjI2OTo3ZmQxYTYwYjAxZjkxYjMxNGY1OTk1NWE0ZTRkNGU4MGQ4ZWRmMTFk",
+    "url": "https://api.github.com/repos/octocat/Hello-World/git/refs/tags/v0.1",
+    "object": {
+        "sha": "7fd1a60b01f91b314f59955a4e4d4e80d8edf11d",
+        "type": "commit",
+        "url": "https://api.github.com/repos/octocat/Hello-World/git/commits/7fd1a60b01f91b314f59955a4e4d4e80d8edf11d"
+    }
+}

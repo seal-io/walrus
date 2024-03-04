@@ -1,0 +1,68 @@
+{
+  "trigger": "branch_updated",
+  "repo": {
+    "id": 68,
+    "path": "vpCkHKsDSxK9_KYfjCTMKA/default/Repo_With_PR_checks/abhinav-git-sync",
+    "uid": "abhinav-git-sync",
+    "default_branch": "master",
+    "git_url": "https://git.harness.io/vpCkHKsDSxK9_KYfjCTMKA/default/Repo_With_PR_checks/abhinav-git-sync.git"
+  },
+  "principal": {
+    "id": 59,
+    "uid": "ec9UfvFwTf663F47Hlqxbg",
+    "display_name": "abhinav.singh@harness.io",
+    "email": "abhinav.singh@harness.io",
+    "type": "user",
+    "created": 1697617589873,
+    "updated": 1697617589873
+  },
+  "ref": {
+    "name": "refs/heads/master",
+    "repo": {
+      "id": 68,
+      "path": "vpCkHKsDSxK9_KYfjCTMKA/default/Repo_With_PR_checks/abhinav-git-sync",
+      "uid": "abhinav-git-sync",
+      "default_branch": "master",
+      "git_url": "https://git.harness.io/vpCkHKsDSxK9_KYfjCTMKA/default/Repo_With_PR_checks/abhinav-git-sync.git"
+    }
+  },
+  "sha": "92e21bfcddc1418079cddbb518ad6fd72917798a",
+  "commit": {
+    "sha": "92e21bfcddc1418079cddbb518ad6fd72917798a",
+    "message": "Create asdsad (#2)",
+    "author": {
+      "identity": {
+        "name": "abhinav.singh@harness.io",
+        "email": "abhinav.singh@harness.io"
+      },
+      "when": "2023-12-05T11:59:39Z"
+    },
+    "committer": {
+      "identity": {
+        "name": "Harness",
+        "email": "noreply@harness.io"
+      },
+      "when": "2023-12-05T11:59:39Z"
+    }
+  },
+  "head_commit": {
+    "sha": "92e21bfcddc1418079cddbb518ad6fd72917798a",
+    "message": "Create asdsad (#2)",
+    "author": {
+      "identity": {
+        "name": "abhinav.singh@harness.io",
+        "email": "abhinav.singh@harness.io"
+      },
+      "when": "2023-12-05T11:59:39Z"
+    },
+    "committer": {
+      "identity": {
+        "name": "Harness",
+        "email": "noreply@harness.io"
+      },
+      "when": "2023-12-05T11:59:39Z"
+    }
+  },
+  "old_sha": "a273c385628167932e10caaa58e12550c491f241",
+  "forced": false
+}

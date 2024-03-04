@@ -1,0 +1,50 @@
+{
+    "Ref": "refs/heads/trangineni/devtfvars-1685475548410",
+    "After": "51a33664b6d7fb5aa15063064eb230362cd02e9e",
+    "Before": "b2b710209761a3fab9fc867aad7b7725fd0fd028",
+    "Repo": {
+        "ID": "13027",
+        "Namespace": "ISCLOUD",
+        "Name": "transamerica.cloud.individual.tftest",
+        "Perm": null,
+        "Branch": "master",
+        "Private": true,
+        "Clone": "",
+        "CloneSSH": "",
+        "Link": "",
+        "Created": "0001-01-01T00:00:00Z",
+        "Updated": "0001-01-01T00:00:00Z"
+    },
+    "Commit": {
+        "Sha": "51a33664b6d7fb5aa15063064eb230362cd02e9e",
+        "Message": "",
+        "Author": {
+            "Name": "Rangineni, Tanuja",
+            "Email": "tanuja.rangineni@transamerica.com",
+            "Date": "0001-01-01T00:00:00Z",
+            "Login": "trangineni",
+            "Avatar": "https://www.gravatar.com/avatar/1c0ba1559ee8ed291204dad48479149b.jpg"
+        },
+        "Committer": {
+            "Name": "Rangineni, Tanuja",
+            "Email": "tanuja.rangineni@transamerica.com",
+            "Date": "0001-01-01T00:00:00Z",
+            "Login": "trangineni",
+            "Avatar": "https://www.gravatar.com/avatar/1c0ba1559ee8ed291204dad48479149b.jpg"
+        },
+        "Link": ""
+    },
+    "Commits": [
+        {
+            "Sha": "51a33664b6d7fb5aa15063064eb230362cd02e9e",
+            "Message": "",
+            "Link": ""
+        }
+    ], 
+    "Sender": {
+        "Login": "trangineni",
+        "Name": "Rangineni, Tanuja",
+        "Email": "tanuja.rangineni@transamerica.com",
+        "Avatar": "https://www.gravatar.com/avatar/1c0ba1559ee8ed291204dad48479149b.jpg"
+    }
+}

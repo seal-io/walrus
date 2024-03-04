@@ -1,0 +1,53 @@
+{
+    "Action": "synchronized",
+    "Repo": {
+        "ID": "1",
+        "Namespace": "PRJ",
+        "Name": "my-repo",
+        "Perm": null,
+        "Branch": "master",
+        "Private": true,
+        "Clone": "http://example.com:7990/scm/prj/my-repo.git",
+        "CloneSSH": "ssh://git@example.com:7999/prj/my-repo.git",
+        "Link": "http://example.com:7990/projects/PRJ/repos/my-repo/browse",
+        "Created": "0001-01-01T00:00:00Z",
+        "Updated": "0001-01-01T00:00:00Z"
+    },
+    "PullRequest": {
+        "Number": 2,
+        "Title": "added LICENSE",
+        "Body": "added BSD license text",
+        "Sha": "c00d0f269a9844dd168f72f6a9d78a9cff49a318",
+        "Ref": "refs/pull-requests/2/from",
+        "Source": "feature-2",
+        "Target": "master",
+        "Fork": "PRJ/my-repo",
+        "Link": "http://example.com:7990/projects/PRJ/repos/my-repo/pull-requests/2",
+        "Closed": false,
+        "Merged": false,
+        "Base": {
+            "Name": "master",
+            "Path": "refs/heads/master",
+            "Sha": "0667def9e377a8fa76ce67b6d4e53e21b246f030"
+        },
+        "Head": {
+            "Name": "feature-2",
+            "Path": "refs/heads/feature-2",
+            "Sha": "c00d0f269a9844dd168f72f6a9d78a9cff49a318"
+        },
+        "Author": {
+            "Login": "jcitizen",
+            "Name": "Jane Citizen",
+            "Email": "jane@example.com",
+            "Avatar": "https://www.gravatar.com/avatar/9e26471d35a78862c17e467d87cddedf.jpg"
+        },
+        "Created": "2021-11-22T14:36:40Z",
+        "Updated": "2021-11-23T13:16:20Z"
+    },
+    "Sender": {
+        "Login": "jcitizen",
+        "Name": "Jane Citizen",
+        "Email": "jane@example.com",
+        "Avatar": "https://www.gravatar.com/avatar/9e26471d35a78862c17e467d87cddedf.jpg"
+    }
+}

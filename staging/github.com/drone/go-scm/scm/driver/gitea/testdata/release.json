@@ -1,0 +1,10 @@
+{
+  "id": 1,
+  "name": "v1.0.0",
+  "body": "Description of the release",
+  "url": "https://try.gitea.com/api/v1/repos/octocat/Hello-World/123",
+  "tag_name": "v1.0.0",
+  "target_commitish": "master",
+  "draft": false,
+  "prerelease": false
+}

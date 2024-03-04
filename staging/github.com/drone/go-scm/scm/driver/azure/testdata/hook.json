@@ -1,0 +1,58 @@
+{
+    "id": "d455cb11-20a0-4b15-b546-7e9fb9973cc6",
+    "url": "https://dev.azure.com/tphoney/_apis/hooks/subscriptions/d455cb11-20a0-4b15-b546-7e9fb9973cc6",
+    "status": "enabled",
+    "publisherId": "tfs",
+    "eventType": "git.pullrequest.created",
+    "subscriber": null,
+    "resourceVersion": "1.0",
+    "eventDescription": "Repository test_repo2",
+    "consumerId": "webHooks",
+    "consumerActionId": "httpRequest",
+    "actionDescription": "To host www.bla.com",
+    "probationRetries": 1,
+    "createdBy": {
+        "displayName": "tp",
+        "id": "3ff4a20f-306e-677e-8a01-57f35e71f109",
+        "uniqueName": "tp@harness.io",
+        "descriptor": "msa.M2ZmNGEyMGYtMzA2ZS03NzdlLThhMDEtNTdmMzVlNzFmMTA5"
+    },
+    "createdDate": "2022-03-25T13:28:12.39Z",
+    "modifiedBy": {
+        "displayName": "tp",
+        "id": "3ff4a20f-306e-677e-8a01-57f35e71f109",
+        "uniqueName": "tp@harness.io",
+        "descriptor": "msa.M2ZmNGEyMGYtMzA2ZS03NzdlLThhMDEtNTdmMzVlNzFmMTA5"
+    },
+    "modifiedDate": "2022-03-29T10:39:13.813Z",
+    "lastProbationRetryDate": "2022-03-28T10:44:51.093Z",
+    "publisherInputs": {
+        "branch": "",
+        "projectId": "d350c9c0-7749-4ff8-a78f-f9c1f0e56729",
+        "pullrequestCreatedBy": "",
+        "pullrequestReviewersContains": "",
+        "repository": "fde2d21f-13b9-4864-a995-83329045289a",
+        "tfsSubscriptionId": "4ce8d6c4-f655-418d-8eb6-9462dd01ff39"
+    },
+    "consumerInputs": {
+        "acceptUntrustedCerts": "true",
+        "url": "http://www.bla.com"
+    },
+    "_links": {
+        "self": {
+            "href": "https://dev.azure.com/tphoney/_apis/hooks/subscriptions/d455cb11-20a0-4b15-b546-7e9fb9973cc6"
+        },
+        "consumer": {
+            "href": "https://dev.azure.com/tphoney/_apis/hooks/consumers/webHooks"
+        },
+        "actions": {
+            "href": "https://dev.azure.com/tphoney/_apis/hooks/consumers/webHooks/actions"
+        },
+        "notifications": {
+            "href": "https://dev.azure.com/tphoney/_apis/hooks/subscriptions/d455cb11-20a0-4b15-b546-7e9fb9973cc6/notifications"
+        },
+        "publisher": {
+            "href": "https://dev.azure.com/tphoney/_apis/hooks/publishers/tfs"
+        }
+    }
+}

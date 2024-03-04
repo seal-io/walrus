@@ -1,0 +1,224 @@
+{
+  "eventKey": "pr:modified",
+  "date": "2021-11-24T14:43:48+0000",
+  "actor": {
+    "name": "jcitizen",
+    "emailAddress": "jane@example.com",
+    "id": 1,
+    "displayName": "Jane Citizen",
+    "active": true,
+    "slug": "jcitizen",
+    "type": "NORMAL",
+    "links": {
+      "self": [
+        {
+          "href": "http://example.com:7990/users/jcitizen"
+        }
+      ]
+    }
+  },
+  "pullRequest": {
+    "id": 6,
+    "version": 1,
+    "title": "Clean README.md",
+    "description": "Removed old information out of `REAME.nd`.",
+    "state": "OPEN",
+    "open": true,
+    "closed": false,
+    "createdDate": 1637764009216,
+    "updatedDate": 1637765028112,
+    "fromRef": {
+      "id": "refs/heads/cleanup",
+      "displayId": "cleanup",
+      "latestCommit": "a268fca7b65055e13f60ac1a2c9a527615f113ca",
+      "type": "BRANCH",
+      "repository": {
+        "slug": "my-repo",
+        "id": 12,
+        "name": "My Repo",
+        "hierarchyId": "5aa23c1a1280b0c0acce",
+        "scmId": "git",
+        "state": "AVAILABLE",
+        "statusMessage": "Available",
+        "forkable": true,
+        "origin": {
+          "slug": "my-repo",
+          "id": 1,
+          "name": "My Repo",
+          "hierarchyId": "5aa23c1a1280b0c0acce",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PRJ",
+            "id": 2,
+            "name": "Project",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://example.com:7990/projects/PRJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "ssh://git@example.com:7999/prj/my-repo.git",
+                "name": "ssh"
+              },
+              {
+                "href": "http://example.com:7990/scm/prj/my-repo.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://example.com:7990/projects/PRJ/repos/my-repo/browse"
+              }
+            ]
+          }
+        },
+        "project": {
+          "key": "~jcitizen",
+          "id": 1,
+          "name": "Jane Citizen",
+          "type": "PERSONAL",
+          "owner": {
+            "name": "jcitizen",
+            "emailAddress": "jane@example.com",
+            "id": 2,
+            "displayName": "Jane Citizen",
+            "active": true,
+            "slug": "jcitizen",
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://example.com:7990/users/jcitizen"
+                }
+              ]
+            }
+          },
+          "links": {
+            "self": [
+              {
+                "href": "http://example.com:7990/users/jcitizen"
+              }
+            ]
+          }
+        },
+        "public": false,
+        "links": {
+          "clone": [
+            {
+              "href": "http://example.com:7990/scm/~jcitizen/my-repo.git",
+              "name": "http"
+            },
+            {
+              "href": "ssh://git@example.com:7999/~jcitizen/my-repo.git",
+              "name": "ssh"
+            }
+          ],
+          "self": [
+            {
+              "href": "http://example.com:7990/users/jcitizen/repos/my-repo/browse"
+            }
+          ]
+        }
+      }
+    },
+    "toRef": {
+      "id": "refs/heads/master",
+      "displayId": "master",
+      "latestCommit": "a4dae7792cf772d72149730091141ef48bba8697",
+      "type": "BRANCH",
+      "repository": {
+        "slug": "my-repo",
+        "id": 1,
+        "name": "My Repo",
+        "hierarchyId": "5aa23c1a1280b0c0acce",
+        "scmId": "git",
+        "state": "AVAILABLE",
+        "statusMessage": "Available",
+        "forkable": true,
+        "project": {
+          "key": "PRJ",
+          "id": 2,
+          "name": "Project",
+          "public": false,
+          "type": "NORMAL",
+          "links": {
+            "self": [
+              {
+                "href": "http://example.com:7990/projects/PRJ"
+              }
+            ]
+          }
+        },
+        "public": false,
+        "links": {
+          "clone": [
+            {
+              "href": "ssh://git@example.com:7999/prj/my-repo.git",
+              "name": "ssh"
+            },
+            {
+              "href": "http://example.com:7990/scm/prj/my-repo.git",
+              "name": "http"
+            }
+          ],
+          "self": [
+            {
+              "href": "http://example.com:7990/projects/PRJ/repos/my-repo/browse"
+            }
+          ]
+        }
+      }
+    },
+    "locked": false,
+    "author": {
+      "user": {
+        "name": "jcitizen",
+        "emailAddress": "jane@example.com",
+        "id": 1,
+        "displayName": "Jane Citizen",
+        "active": true,
+        "slug": "jcitizen",
+        "type": "NORMAL",
+        "links": {
+          "self": [
+            {
+              "href": "http://example.com:7990/users/jcitizen"
+            }
+          ]
+        }
+      },
+      "role": "AUTHOR",
+      "approved": false,
+      "status": "UNAPPROVED"
+    },
+    "reviewers": [],
+    "participants": [],
+    "links": {
+      "self": [
+        {
+          "href": "http://example.com:7990/projects/PRJ/repos/my-repo/pull-requests/6"
+        }
+      ]
+    }
+  },
+  "previousTitle": "Clean README.md",
+  "previousDescription": "Cleaned old info out of REAME.",
+  "previousTarget": {
+    "id": "refs/heads/master",
+    "displayId": "master",
+    "type": "BRANCH",
+    "latestCommit": "a4dae7792cf772d72149730091141ef48bba8697",
+    "latestChangeset": "a4dae7792cf772d72149730091141ef48bba8697"
+  }
+}

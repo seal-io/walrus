@@ -1,0 +1,103 @@
+{
+    "name": "yooo",
+    "links": {
+        "commits": {
+            "href": "https://api.bitbucket.org/2.0/repositories/tphoney/scm-test/commits/yooo"
+        },
+        "self": {
+            "href": "https://api.bitbucket.org/2.0/repositories/tphoney/scm-test/refs/branches/yooo"
+        },
+        "html": {
+            "href": "https://bitbucket.org/tphoney/scm-test/branch/yooo"
+        }
+    },
+    "default_merge_strategy": "merge_commit",
+    "merge_strategies": [
+        "merge_commit",
+        "squash",
+        "fast_forward"
+    ],
+    "type": "branch",
+    "target": {
+        "hash": "2e684d13a43afd86cb48ea36d9f40f43e791fae9",
+        "repository": {
+            "links": {
+                "self": {
+                    "href": "https://api.bitbucket.org/2.0/repositories/tphoney/scm-test"
+                },
+                "html": {
+                    "href": "https://bitbucket.org/tphoney/scm-test"
+                },
+                "avatar": {
+                    "href": "https://bytebucket.org/ravatar/%7Bb918ca22-3472-4053-b234-c61deee57314%7D?ts=default"
+                }
+            },
+            "type": "repository",
+            "name": "scm-test",
+            "full_name": "tphoney/scm-test",
+            "uuid": "{b918ca22-3472-4053-b234-c61deee57314}"
+        },
+        "links": {
+            "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/tphoney/scm-test/commit/2e684d13a43afd86cb48ea36d9f40f43e791fae9"
+            },
+            "comments": {
+                "href": "https://api.bitbucket.org/2.0/repositories/tphoney/scm-test/commit/2e684d13a43afd86cb48ea36d9f40f43e791fae9/comments"
+            },
+            "patch": {
+                "href": "https://api.bitbucket.org/2.0/repositories/tphoney/scm-test/patch/2e684d13a43afd86cb48ea36d9f40f43e791fae9"
+            },
+            "html": {
+                "href": "https://bitbucket.org/tphoney/scm-test/commits/2e684d13a43afd86cb48ea36d9f40f43e791fae9"
+            },
+            "diff": {
+                "href": "https://api.bitbucket.org/2.0/repositories/tphoney/scm-test/diff/2e684d13a43afd86cb48ea36d9f40f43e791fae9"
+            },
+            "approve": {
+                "href": "https://api.bitbucket.org/2.0/repositories/tphoney/scm-test/commit/2e684d13a43afd86cb48ea36d9f40f43e791fae9/approve"
+            },
+            "statuses": {
+                "href": "https://api.bitbucket.org/2.0/repositories/tphoney/scm-test/commit/2e684d13a43afd86cb48ea36d9f40f43e791fae9/statuses"
+            }
+        },
+        "author": {
+            "raw": "TP Honey <thomas.honey@harness.io>",
+            "type": "author",
+            "user": {
+                "display_name": "TP Honey",
+                "uuid": "{1d020398-429a-4fb3-9339-7e2096b1ecaf}",
+                "links": {
+                    "self": {
+                        "href": "https://api.bitbucket.org/2.0/users/%7B1d020398-429a-4fb3-9339-7e2096b1ecaf%7D"
+                    },
+                    "html": {
+                        "href": "https://bitbucket.org/%7B1d020398-429a-4fb3-9339-7e2096b1ecaf%7D/"
+                    },
+                    "avatar": {
+                        "href": "https://secure.gravatar.com/avatar/cb9ef853b678d8a34ce0734e57a24f2f?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FTH-3.png"
+                    }
+                },
+                "nickname": "thomas.honey",
+                "type": "user",
+                "account_id": "60259ce77db80e006a2e0935"
+            }
+        },
+        "parents": [
+            {
+                "hash": "ba88d4dd3c98b442a77588ff1e623a16f2656a63",
+                "type": "commit",
+                "links": {
+                    "self": {
+                        "href": "https://api.bitbucket.org/2.0/repositories/tphoney/scm-test/commit/ba88d4dd3c98b442a77588ff1e623a16f2656a63"
+                    },
+                    "html": {
+                        "href": "https://bitbucket.org/tphoney/scm-test/commits/ba88d4dd3c98b442a77588ff1e623a16f2656a63"
+                    }
+                }
+            }
+        ],
+        "date": "2021-04-01T10:38:26+00:00",
+        "message": "asdasd created online with Bitbucket",
+        "type": "commit"
+    }
+}

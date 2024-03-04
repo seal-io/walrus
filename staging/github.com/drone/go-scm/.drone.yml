@@ -1,0 +1,56 @@
+---
+kind: pipeline
+type: vm
+name: default
+
+pool:
+  use: ubuntu
+
+steps:
+- name: vet
+  image: golang:1.15
+  commands:
+  - go vet ./...
+  volumes:
+  - name: gopath
+    path: /go
+  depends_on:
+  - clone
+
+- name: test
+  image: golang:1.15
+  commands:
+  - go test -cover ./...
+  volumes:
+  - name: gopath
+    path: /go
+  depends_on:
+  - vet
+
+- name: check go.mod is up to date
+  image: golang:1.15
+  commands:
+  - cp go.mod go.mod.bak
+  - go mod tidy
+  - diff go.mod go.mod.bak || (echo "go.mod is not up to date" && exit 1)
+  volumes:
+  - name: gopath
+    path: /go
+  depends_on:
+  - vet
+
+- name: golangci-lint
+  image: golangci/golangci-lint:v1.48-alpine
+  commands:
+  - golangci-lint run --timeout 500s --new-from-rev=HEAD~
+  volumes:
+  - name: gopath
+    path: /go
+  depends_on:
+  - clone
+
+volumes:
+- name: gopath
+  temp: {}
+
+...

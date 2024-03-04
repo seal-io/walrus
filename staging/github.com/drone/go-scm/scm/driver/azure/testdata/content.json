@@ -1,0 +1,19 @@
+{
+    "objectId": "0ca446aab9d09eac8625b53e3df8da661976c458",
+    "gitObjectType": "blob",
+    "commitId": "2c0c712b26c3328ed66d5771213360812be9d035",
+    "path": "/README.md",
+    "content": "Hello World!\n",
+    "url": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a/items?path=%2FREADME.md&versionType=Branch&versionOptions=None",
+    "_links": {
+        "self": {
+            "href": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a/items?path=%2FREADME.md&versionType=Branch&versionOptions=None"
+        },
+        "repository": {
+            "href": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a"
+        },
+        "blob": {
+            "href": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a/blobs/0ca446aab9d09eac8625b53e3df8da661976c458"
+        }
+    }
+}

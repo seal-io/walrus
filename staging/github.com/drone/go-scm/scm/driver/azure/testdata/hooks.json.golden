@@ -1,0 +1,22 @@
+[
+    {
+        "ID": "d455cb11-20a0-4b15-b546-7e9fb9973cc6",
+        "Name": "",
+        "Target": "http://www.bla.com",
+        "Events": [
+            "git.pullrequest.created"  
+        ],
+        "Active": true,
+        "SkipVerify": true
+    },
+    {
+        "ID": "d455cb11-20a0-4b15-b546-7e9fb9973cc7",
+        "Name": "",
+        "Target": "http://www.bla.com",
+        "Events": [
+            "git.pullrequest.merged"  
+        ],
+        "Active": true,
+        "SkipVerify": true
+    }
+]

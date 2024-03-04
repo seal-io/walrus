@@ -1,0 +1,22 @@
+[
+  {
+    "path": "docs/content/doc/advanced.en-us.md",
+    "kind": "file",
+    "blobid": "de2bfeed6f2d3ea1d2f91e457e9450efc582bb31"
+  },
+  {
+    "path": "docs/content/doc/advanced.fr-fr.md",
+    "kind": "file",
+    "blobid": "04734a8f81f5641de2b6d738bc9b777c2cc541c6"
+  },
+  {
+    "path": "docs/content/doc/advanced.zh-cn.md",
+    "kind": "file",
+    "blobid": "1f7ebf81e723a0ba82a89eec18a2706ac1b0dace"
+  },
+  {
+    "path": "docs/content/doc/advanced",
+    "kind": "directory",
+    "blobid": "8c43a4fb023735dfd026014bae92ad91414b88bd"
+  }
+]

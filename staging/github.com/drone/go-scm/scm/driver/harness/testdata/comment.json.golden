@@ -1,0 +1,15 @@
+{
+  "ID": 123,
+  "Body": "Comment to be created in the PR",
+  "Author": {
+    "ID": "1",
+    "Login": "identifier",
+    "Name": "displayName",
+    "Email": "email@emailprovider.com",
+    "Avatar": "",
+    "Created": 1695706039266,
+    "Updated": 1695706039266
+  },
+   "Created": 1708354973112,
+    "Updated": 1708354973112
+}

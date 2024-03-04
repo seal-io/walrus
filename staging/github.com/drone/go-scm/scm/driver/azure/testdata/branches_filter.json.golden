@@ -1,0 +1,12 @@
+[
+  {
+    "Name": "main",
+    "Path": "refs/heads/main",
+    "Sha": "e0aee6aa543294d62520fb906689da6710af149c"
+  },
+  {
+    "Name": "main-patch",
+    "Path": "refs/heads/main-patch",
+    "Sha": "01768d964c03e97260af0bd8cd9e5cd1f9ac6356"
+  }
+]

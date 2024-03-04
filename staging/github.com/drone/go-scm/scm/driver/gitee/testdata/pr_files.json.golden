@@ -1,0 +1,30 @@
+[
+  {
+    "BlobID": "2eac1cac02c325058cf959725c45b0612d3e8177",
+    "Path": "change/add.txt",
+    "Added": false,
+    "Renamed": false,
+    "Deleted": true
+  },
+  {
+    "BlobID": "411db0d9e9072851383751c260dc1601840906e4",
+    "Path": "change/add2.txt",
+    "Added": true,
+    "Renamed": false,
+    "Deleted": false
+  },
+  {
+    "BlobID": "411db0d9e9072851383751c260dc1601840906e4",
+    "Path": "change/modified.txt",
+    "Added": false,
+    "Renamed": false,
+    "Deleted": false
+  },
+  {
+    "BlobID": "411db0d9e9072851383751c260dc1601840906e4",
+    "Path": "change/rename.2.txt",
+    "Added": false,
+    "Renamed": true,
+    "Deleted": false
+  }
+]

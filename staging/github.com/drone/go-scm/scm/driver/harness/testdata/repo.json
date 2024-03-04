@@ -1,0 +1,19 @@
+{
+  "id": 9,
+  "parent_id": 16,
+  "uid": "demo",
+  "path": "px7xd_BFRCi-pfWPYXVjvw/default/codeciintegration/demo",
+  "description": "",
+  "is_public": false,
+  "created_by": 10,
+  "created": 1675210116158,
+  "updated": 1675389801066,
+  "default_branch": "main",
+  "fork_id": 0,
+  "num_forks": 0,
+  "num_pulls": 4,
+  "num_closed_pulls": 0,
+  "num_open_pulls": 1,
+  "num_merged_pulls": 3,
+  "git_url": "https://qa.harness.io/code/git/px7xd_BFRCi-pfWPYXVjvw/default/codeciintegration/demo.git"
+}

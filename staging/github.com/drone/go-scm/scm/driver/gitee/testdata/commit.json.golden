@@ -1,0 +1,19 @@
+{
+  "Sha": "e3c0ff4d5cef439ea11b30866fb1ed79b420801d",
+  "Message": "add/update/delete/rename\n",
+  "Author": {
+    "Name": "kit101",
+    "Date": "2021-08-23T23:45:53+08:00",
+    "Email": "qkssk1711@163.com",
+    "Login": "kit101",
+    "Avatar": "https://portrait.gitee.com/uploads/avatars/user/511/1535738_qkssk1711_1578953939.png"
+  },
+  "Committer": {
+    "Name": "kit101",
+    "Date": "2021-08-23T23:45:53+08:00",
+    "Email": "qkssk1711@163.com",
+    "Login": "kit101",
+    "Avatar": "https://portrait.gitee.com/uploads/avatars/user/511/1535738_qkssk1711_1578953939.png"
+  },
+  "Link": "https://gitee.com/kit101/drone-yml-test/commit/e3c0ff4d5cef439ea11b30866fb1ed79b420801d"
+}

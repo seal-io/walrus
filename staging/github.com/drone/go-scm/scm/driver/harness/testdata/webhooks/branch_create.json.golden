@@ -1,0 +1,46 @@
+{
+    "Ref": "refs/heads/new2",
+    "Before": "0000000000000000000000000000000000000000",
+    "After": "aeafa0e2e4ec6909ad75cb8fad57c0b1eb5986e6",
+    "Repo": {
+        "ID": "13",
+        "Namespace": "",
+        "Name": "aba",
+        "Perm": null,
+        "Branch": "main",
+        "Private": false,
+        "Clone": "http://localhost:3000/git/kmpySmUISimoRrJL6NL73w/myOrg/myProject/aba.git",
+        "CloneSSH": "",
+        "Link": "http://localhost:3000/git/kmpySmUISimoRrJL6NL73w/myOrg/myProject/aba.git",
+        "Created": "0001-01-01T00:00:00Z",
+        "Updated": "0001-01-01T00:00:00Z"
+    },
+    "Commit": {
+        "Sha": "aeafa0e2e4ec6909ad75cb8fad57c0b1eb5986e6",
+        "Message": "version 4",
+        "Author": {
+            "Name": "Admin",
+            "Email": "admin@harness.io",
+            "Date": "0001-01-01T00:00:00Z",
+            "Login": "",
+            "Avatar": ""
+        },
+        "Committer": {
+            "Name": "Admin",
+            "Email": "admin@harness.io",
+            "Date": "0001-01-01T00:00:00Z",
+            "Login": "",
+            "Avatar": ""
+        },
+        "Link": ""
+    },
+    "Sender": {
+        "ID": "0osgWsTZRsSZ8RWfjLRkEg",
+        "Login": "0osgWsTZRsSZ8RWfjLRkEg",
+        "Name": "default",
+        "Email": "default@harness.io",
+        "Avatar": "",
+        "Created": "2023-02-02T18:21:25.38-08:00",
+        "Updated": "2023-02-02T18:21:25.38-08:00"
+    }
+}

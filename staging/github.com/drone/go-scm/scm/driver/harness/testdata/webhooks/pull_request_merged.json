@@ -1,0 +1,97 @@
+{
+  "trigger": "pullreq_merged",
+  "repo": {
+    "id": 22,
+    "path": "codeowners/asdsad",
+    "uid": "asdsad",
+    "default_branch": "main",
+    "git_url": "http://localhost:3000/git/codeowners/asdsad.git"
+  },
+  "principal": {
+    "id": 3,
+    "uid": "admin",
+    "display_name": "Administrator",
+    "email": "admin@gitness.io",
+    "type": "user",
+    "created": 1696332021613,
+    "updated": 1696332021613
+  },
+  "pull_req": {
+    "number": 10,
+    "state": "merged",
+    "is_draft": false,
+    "title": "Create xxasc",
+    "source_repo_id": 22,
+    "source_branch": "xas",
+    "target_repo_id": 22,
+    "target_branch": "main",
+    "merge_strategy": "squash",
+    "author": {
+      "id": 3,
+      "uid": "admin",
+      "display_name": "Administrator",
+      "email": "admin@gitness.io",
+      "type": "user",
+      "created": 1696332021613,
+      "updated": 1696332021613
+    },
+    "pr_url": "http://localhost:3000/codeowners/asdsad/pulls/14"
+  },
+  "target_ref": {
+    "name": "refs/heads/main",
+    "repo": {
+      "id": 22,
+      "path": "codeowners/asdsad",
+      "uid": "asdsad",
+      "default_branch": "main",
+      "git_url": "http://localhost:3000/git/codeowners/asdsad.git"
+    }
+  },
+  "ref": {
+    "name": "refs/heads/xas",
+    "repo": {
+      "id": 22,
+      "path": "codeowners/asdsad",
+      "uid": "asdsad",
+      "default_branch": "main",
+      "git_url": "http://localhost:3000/git/codeowners/asdsad.git"
+    }
+  },
+  "sha": "4ec41187008f77222a60dfa21cdbd980f6490443",
+  "commit": {
+    "sha": "4ec41187008f77222a60dfa21cdbd980f6490443",
+    "message": "",
+    "author": {
+      "identity": {
+        "name": "Administrator",
+        "email": "admin@gitness.io"
+      },
+      "when": "2023-12-20T13:40:52+05:30"
+    },
+    "committer": {
+      "identity": {
+        "name": "Gitness",
+        "email": "system@gitness.io"
+      },
+      "when": "2023-12-20T13:40:52+05:30"
+    }
+  },
+  "head_commit": {
+    "sha": "4ec41187008f77222a60dfa21cdbd980f6490443",
+    "message": "",
+    "author": {
+      "identity": {
+        "name": "Administrator",
+        "email": "admin@gitness.io"
+      },
+      "when": "2023-12-20T13:40:52+05:30"
+    },
+    "committer": {
+      "identity": {
+        "name": "Gitness",
+        "email": "system@gitness.io"
+      },
+      "when": "2023-12-20T13:40:52+05:30"
+    }
+  }
+}

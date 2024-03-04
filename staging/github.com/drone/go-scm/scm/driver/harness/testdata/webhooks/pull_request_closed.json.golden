@@ -1,0 +1,48 @@
+{
+  "Action": "closed",
+  "Repo": {
+    "ID": "22",
+    "Namespace": "",
+    "Name": "asdsad",
+    "Branch": "main",
+    "Private": false,
+    "Clone": "http://localhost:3000/git/codeowners/asdsad.git",
+    "CloneSSH": "",
+    "Link": "http://localhost:3000/git/codeowners/asdsad.git",
+    "Created": "0001-01-01T00:00:00Z",
+    "Updated": "0001-01-01T00:00:00Z"
+  },
+  "PullRequest": {
+    "Number": 6,
+    "Title": "Create sad",
+    "Body": "",
+    "Sha": "27822dd2ec788f924c97b0b194c5bfd906f2e574",
+    "Ref": "refs/heads/asdxsa",
+    "Source": "asdxsa",
+    "Target": "main",
+    "Fork": "fork",
+    "Link": "http://localhost:3000/codeowners/asdsad/pulls/14",
+    "Closed": true,
+    "Merged": false,
+    "Author": {
+      "ID": "admin",
+      "Login": "admin",
+      "Name": "Administrator",
+      "Email": "admin@gitness.io",
+      "Avatar": "",
+      "Created": "2023-10-03T16:50:21.613+05:30",
+      "Updated": "2023-10-03T16:50:21.613+05:30"
+    },
+    "Created": "0001-01-01T00:00:00Z",
+    "Updated": "0001-01-01T00:00:00Z"
+  },
+  "Sender": {
+    "ID": "admin",
+    "Login": "admin",
+    "Name": "Administrator",
+    "Email": "admin@gitness.io",
+    "Avatar": "",
+    "Created": "2023-10-03T16:50:21.613+05:30",
+    "Updated": "2023-10-03T16:50:21.613+05:30"
+  }
+}

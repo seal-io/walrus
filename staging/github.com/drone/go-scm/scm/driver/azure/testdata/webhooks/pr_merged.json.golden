@@ -1,0 +1,61 @@
+{
+  "Action": "merged",
+  "Repo": {
+    "ID": "4bc14d40-c903-45e2-872e-0462c7748079",
+    "Namespace": "Fabrikam",
+    "Name": "Fabrikam",
+    "Perm": null,
+    "Branch": "",
+    "Archived": false,
+    "Private": false,
+    "Visibility": 0,
+    "Clone": "https://dev.azure.com/fabrikam/DefaultCollection/_git/Fabrikam",
+    "CloneSSH": "git@ssh.dev.azure.com:v3/fabrikam/DefaultCollection/Fabrikam",
+    "Link": "https://dev.azure.com/fabrikam/DefaultCollection/_git/Fabrikam",
+    "Created": "0001-01-01T00:00:00Z",
+    "Updated": "0001-01-01T00:00:00Z"
+  },
+  "PullRequest": {
+    "Number": 1,
+    "Title": "my first pull request",
+    "Body": " - test2\r\n",
+    "Sha": "53d54ac915144006c2c9e90d2c7d3880920db49c",
+    "Ref": "refs/heads/mytopic",
+    "Source": "mytopic",
+    "Target": "master",
+    "Fork": "",
+    "Link": "https://dev.azure.com/fabrikam/DefaultCollection/_apis/repos/git/repositories/4bc14d40-c903-45e2-872e-0462c7748079/pullRequests/1",
+    "Diff": "",
+    "Closed": false,
+    "Merged": true,
+    "Base": {
+      "Name": "",
+      "Path": "",
+      "Sha": ""
+    },
+    "Head": {
+      "Name": "",
+      "Path": "",
+      "Sha": ""
+    },
+    "Author": {
+      "Login": "Jamal Hartnett",
+      "Name": "Jamal Hartnett",
+      "Email": "fabrikamfiber4@hotmail.com",
+      "Avatar": "https://dev.azure.com/fabrikam/DefaultCollection/_api/_common/identityImage?id=54d125f7-69f7-4191-904f-c5b96b6261c8",
+      "Created": "0001-01-01T00:00:00Z",
+      "Updated": "0001-01-01T00:00:00Z"
+    },
+    "Created": "2014-06-17T16:55:46.589889Z",
+    "Updated": "0001-01-01T00:00:00Z",
+    "Labels": null
+  },
+  "Sender": {
+    "Login": "54d125f7-69f7-4191-904f-c5b96b6261c8",
+    "Name": "Jamal Hartnett",
+    "Email": "fabrikamfiber4@hotmail.com",
+    "Avatar": "https://dev.azure.com/fabrikam/DefaultCollection/_api/_common/identityImage?id=54d125f7-69f7-4191-904f-c5b96b6261c8",
+    "Created": "0001-01-01T00:00:00Z",
+    "Updated": "0001-01-01T00:00:00Z"
+  }
+}

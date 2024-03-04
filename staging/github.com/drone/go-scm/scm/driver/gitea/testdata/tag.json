@@ -1,0 +1,11 @@
+[
+    {
+        "ref": "refs/tags/v1.0.0",
+        "url": "https://try.gitea.io/api/v1/repos/go-gitea/gitea/git/refs/tags/v1.0.0",
+        "object": {
+            "type": "commit",
+            "sha": "4b736a01b6291e21c663ae9aab494850e7a50723",
+            "url": "https://try.gitea.io/api/v1/repos/go-gitea/gitea/git/commits/4b736a01b6291e21c663ae9aab494850e7a50723"
+        }
+    }
+]

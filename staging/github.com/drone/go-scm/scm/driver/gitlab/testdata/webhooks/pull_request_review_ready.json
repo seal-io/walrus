@@ -1,0 +1,154 @@
+{
+  "object_kind": "merge_request",
+  "event_type": "merge_request",
+  "user": {
+    "id": 13900456,
+    "name": "Meet Rathod",
+    "username": "rathod.meetsatish",
+    "avatar_url": "https://secure.gravatar.com/avatar/0e68aaeb6c49dd6ba280370c96280803?s=80&d=identicon",
+    "email": "[REDACTED]"
+  },
+  "project": {
+    "id": 44067058,
+    "name": "meet",
+    "description": null,
+    "web_url": "https://gitlab.com/rathod.meetsatish/meet",
+    "avatar_url": null,
+    "git_ssh_url": "git@gitlab.com:rathod.meetsatish/meet.git",
+    "git_http_url": "https://gitlab.com/rathod.meetsatish/meet.git",
+    "namespace": "Meet Rathod",
+    "visibility_level": 0,
+    "path_with_namespace": "rathod.meetsatish/meet",
+    "default_branch": "main",
+    "ci_config_path": "",
+    "homepage": "https://gitlab.com/rathod.meetsatish/meet",
+    "url": "git@gitlab.com:rathod.meetsatish/meet.git",
+    "ssh_url": "git@gitlab.com:rathod.meetsatish/meet.git",
+    "http_url": "https://gitlab.com/rathod.meetsatish/meet.git"
+  },
+  "object_attributes": {
+    "assignee_id": null,
+    "author_id": 13900456,
+    "created_at": "2023-09-07 19:42:34 UTC",
+    "description": "",
+    "draft": true,
+    "head_pipeline_id": null,
+    "id": 248466002,
+    "iid": 3,
+    "last_edited_at": null,
+    "last_edited_by_id": null,
+    "merge_commit_sha": null,
+    "merge_error": null,
+    "merge_params": {
+      "force_remove_source_branch": "1"
+    },
+    "merge_status": "can_be_merged",
+    "merge_user_id": null,
+    "merge_when_pipeline_succeeds": false,
+    "milestone_id": null,
+    "source_branch": "main1234",
+    "source_project_id": 44067058,
+    "state_id": 1,
+    "target_branch": "main",
+    "target_project_id": 44067058,
+    "time_estimate": 0,
+    "title": "Draft: Update README.md",
+    "updated_at": "2023-09-07 19:42:45 UTC",
+    "updated_by_id": 13900456,
+    "url": "https://gitlab.com/rathod.meetsatish/meet/-/merge_requests/3",
+    "source": {
+      "id": 44067058,
+      "name": "meet",
+      "description": null,
+      "web_url": "https://gitlab.com/rathod.meetsatish/meet",
+      "avatar_url": null,
+      "git_ssh_url": "git@gitlab.com:rathod.meetsatish/meet.git",
+      "git_http_url": "https://gitlab.com/rathod.meetsatish/meet.git",
+      "namespace": "Meet Rathod",
+      "visibility_level": 0,
+      "path_with_namespace": "rathod.meetsatish/meet",
+      "default_branch": "main",
+      "ci_config_path": "",
+      "homepage": "https://gitlab.com/rathod.meetsatish/meet",
+      "url": "git@gitlab.com:rathod.meetsatish/meet.git",
+      "ssh_url": "git@gitlab.com:rathod.meetsatish/meet.git",
+      "http_url": "https://gitlab.com/rathod.meetsatish/meet.git"
+    },
+    "target": {
+      "id": 44067058,
+      "name": "meet",
+      "description": null,
+      "web_url": "https://gitlab.com/rathod.meetsatish/meet",
+      "avatar_url": null,
+      "git_ssh_url": "git@gitlab.com:rathod.meetsatish/meet.git",
+      "git_http_url": "https://gitlab.com/rathod.meetsatish/meet.git",
+      "namespace": "Meet Rathod",
+      "visibility_level": 0,
+      "path_with_namespace": "rathod.meetsatish/meet",
+      "default_branch": "main",
+      "ci_config_path": "",
+      "homepage": "https://gitlab.com/rathod.meetsatish/meet",
+      "url": "git@gitlab.com:rathod.meetsatish/meet.git",
+      "ssh_url": "git@gitlab.com:rathod.meetsatish/meet.git",
+      "http_url": "https://gitlab.com/rathod.meetsatish/meet.git"
+    },
+    "last_commit": {
+      "id": "ffd71529ecdfb41a530ee13f91b8fdd3e743c754",
+      "message": "Update README.md",
+      "title": "Update README.md",
+      "timestamp": "2023-09-07T19:42:21+00:00",
+      "url": "https://gitlab.com/rathod.meetsatish/meet/-/commit/ffd71529ecdfb41a530ee13f91b8fdd3e743c754",
+      "author": {
+        "name": "Meet Rathod",
+        "email": "[REDACTED]"
+      }
+    },
+    "work_in_progress": true,
+    "total_time_spent": 0,
+    "time_change": 0,
+    "human_total_time_spent": null,
+    "human_time_change": null,
+    "human_time_estimate": null,
+    "assignee_ids": [
+
+    ],
+    "reviewer_ids": [
+
+    ],
+    "labels": [
+
+    ],
+    "state": "opened",
+    "blocking_discussions_resolved": true,
+    "first_contribution": true,
+    "detailed_merge_status": "draft_status",
+    "action": "update"
+  },
+  "labels": [
+
+  ],
+  "changes": {
+    "draft": {
+      "previous": false,
+      "current": true
+    },
+    "title": {
+      "previous": "Update README.md",
+      "current": "Draft: Update README.md"
+    },
+    "updated_at": {
+      "previous": "2023-09-07 19:42:35 UTC",
+      "current": "2023-09-07 19:42:45 UTC"
+    },
+    "updated_by_id": {
+      "previous": null,
+      "current": 13900456
+    }
+  },
+  "repository": {
+    "name": "meet",
+    "url": "git@gitlab.com:rathod.meetsatish/meet.git",
+    "description": null,
+    "homepage": "https://gitlab.com/rathod.meetsatish/meet"
+  }
+}

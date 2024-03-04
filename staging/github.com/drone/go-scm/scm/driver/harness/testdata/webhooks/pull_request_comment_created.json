@@ -1,0 +1,64 @@
+{
+  "trigger": "pullreq_comment_created",
+  "repo": {
+    "id": 18,
+    "path": "asd/demo",
+    "uid": "demo",
+    "default_branch": "main",
+    "git_url": "http://localhost:3000/git/asd/demo.git"
+  },
+  "principal": {
+    "id": 3,
+    "uid": "admin",
+    "display_name": "Administrator",
+    "email": "admin@gitness.io",
+    "type": "user",
+    "created": 1696332021613,
+    "updated": 1696332021613
+  },
+  "pull_req": {
+    "number": 2,
+    "state": "open",
+    "is_draft": false,
+    "title": "Update test.txt",
+    "source_repo_id": 18,
+    "source_branch": "pr2",
+    "target_repo_id": 18,
+    "target_branch": "main",
+    "merge_strategy": null,
+    "author": {
+      "id": 8,
+      "uid": "0osgWsTZRsSZ8RWfjLRkEg",
+      "display_name": "Admin",
+      "email": "admin@harness.io",
+      "type": "user",
+      "created": 1675390885380,
+      "updated": 1675390885380
+    },
+    "pr_url": "http://localhost:3000/codeowners/asdsad/pulls/14"
+  },
+  "target_ref": {
+    "name": "refs/heads/main",
+    "repo": {
+      "id": 18,
+      "path": "asd/demo",
+      "uid": "demo",
+      "default_branch": "main",
+      "git_url": "http://localhost:3000/git/asd/demo.git"
+    }
+  },
+  "ref": {
+    "name": "refs/heads/pr2",
+    "repo": {
+      "id": 18,
+      "path": "asd/demo",
+      "uid": "demo",
+      "default_branch": "main",
+      "git_url": "http://localhost:3000/git/asd/demo.git"
+    }
+  },
+  "comment": {
+    "id": 1,
+    "text": "pr comment"
+  }
+}

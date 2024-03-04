@@ -1,0 +1,16 @@
+{
+  "Number": 735267685380,
+  "Title": "test issue 1",
+  "Body": "test issue 1",
+  "Link": "https://gitee.com/kit101/drone-yml-test/issues/I4CD5P",
+  "Labels": [
+    "feature"
+  ],
+  "Closed": false,
+  "Author": {
+    "Login": "kit101",
+    "Avatar": "https://portrait.gitee.com/uploads/avatars/user/511/1535738_qkssk1711_1578953939.png"
+  },
+  "Created": "2021-09-29T09:21:28+08:00",
+  "Updated": "2021-09-29T09:55:42+08:00"
+}

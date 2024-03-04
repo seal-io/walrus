@@ -1,0 +1,123 @@
+{
+  "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/commits/e3c0ff4d5cef439ea11b30866fb1ed79b420801d",
+  "sha": "e3c0ff4d5cef439ea11b30866fb1ed79b420801d",
+  "html_url": "https://gitee.com/kit101/drone-yml-test/commit/e3c0ff4d5cef439ea11b30866fb1ed79b420801d",
+  "comments_url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/commits/e3c0ff4d5cef439ea11b30866fb1ed79b420801d/comments",
+  "commit": {
+    "author": {
+      "name": "kit101",
+      "date": "2021-08-23T23:45:53+08:00",
+      "email": "qkssk1711@163.com"
+    },
+    "committer": {
+      "name": "kit101",
+      "date": "2021-08-23T23:45:53+08:00",
+      "email": "qkssk1711@163.com"
+    },
+    "message": "add/update/delete/rename\n",
+    "tree": {
+      "sha": "55d4c682f3e2b276cc40c70e59cebb17dcb1273a",
+      "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/git/trees/55d4c682f3e2b276cc40c70e59cebb17dcb1273a"
+    }
+  },
+  "author": {
+    "id": 1535738,
+    "login": "kit101",
+    "name": "kit101",
+    "avatar_url": "https://portrait.gitee.com/uploads/avatars/user/511/1535738_qkssk1711_1578953939.png",
+    "url": "https://gitee.com/api/v5/users/kit101",
+    "html_url": "https://gitee.com/kit101",
+    "remark": "",
+    "followers_url": "https://gitee.com/api/v5/users/kit101/followers",
+    "following_url": "https://gitee.com/api/v5/users/kit101/following_url{/other_user}",
+    "gists_url": "https://gitee.com/api/v5/users/kit101/gists{/gist_id}",
+    "starred_url": "https://gitee.com/api/v5/users/kit101/starred{/owner}{/repo}",
+    "subscriptions_url": "https://gitee.com/api/v5/users/kit101/subscriptions",
+    "organizations_url": "https://gitee.com/api/v5/users/kit101/orgs",
+    "repos_url": "https://gitee.com/api/v5/users/kit101/repos",
+    "events_url": "https://gitee.com/api/v5/users/kit101/events{/privacy}",
+    "received_events_url": "https://gitee.com/api/v5/users/kit101/received_events",
+    "type": "User"
+  },
+  "committer": {
+    "id": 1535738,
+    "login": "kit101",
+    "name": "kit101",
+    "avatar_url": "https://portrait.gitee.com/uploads/avatars/user/511/1535738_qkssk1711_1578953939.png",
+    "url": "https://gitee.com/api/v5/users/kit101",
+    "html_url": "https://gitee.com/kit101",
+    "remark": "",
+    "followers_url": "https://gitee.com/api/v5/users/kit101/followers",
+    "following_url": "https://gitee.com/api/v5/users/kit101/following_url{/other_user}",
+    "gists_url": "https://gitee.com/api/v5/users/kit101/gists{/gist_id}",
+    "starred_url": "https://gitee.com/api/v5/users/kit101/starred{/owner}{/repo}",
+    "subscriptions_url": "https://gitee.com/api/v5/users/kit101/subscriptions",
+    "organizations_url": "https://gitee.com/api/v5/users/kit101/orgs",
+    "repos_url": "https://gitee.com/api/v5/users/kit101/repos",
+    "events_url": "https://gitee.com/api/v5/users/kit101/events{/privacy}",
+    "received_events_url": "https://gitee.com/api/v5/users/kit101/received_events",
+    "type": "User"
+  },
+  "parents": [
+    {
+      "sha": "537575f44a09c57dfc472e26fe067754fd2f9374",
+      "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/commits/537575f44a09c57dfc472e26fe067754fd2f9374"
+    }
+  ],
+  "stats": {
+    "id": "e3c0ff4d5cef439ea11b30866fb1ed79b420801d",
+    "additions": 4,
+    "deletions": 3,
+    "total": 7
+  },
+  "files": [
+    {
+      "sha": "d28d40b18823a27071d0e9ce89c149adb3f9c4ee",
+      "filename": "change/add.txt",
+      "status": "added",
+      "additions": 1,
+      "deletions": 0,
+      "changes": 1,
+      "blob_url": "https://gitee.com/kit101/drone-yml-test/blob/e3c0ff4d5cef439ea11b30866fb1ed79b420801d/change/add.txt",
+      "raw_url": "https://gitee.com/kit101/drone-yml-test/raw/e3c0ff4d5cef439ea11b30866fb1ed79b420801d/change/add.txt",
+      "content_url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/contents/change/add.txt?ref=e3c0ff4d5cef439ea11b30866fb1ed79b420801d",
+      "patch": "@@ -0,0 +1 @@\n+add\n\\ No newline at end of file\n"
+    },
+    {
+      "sha": "41f6d1ab2598013cc08173771d81f67106bd15fc",
+      "filename": "change/modified.txt",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 1,
+      "changes": 3,
+      "blob_url": "https://gitee.com/kit101/drone-yml-test/blob/e3c0ff4d5cef439ea11b30866fb1ed79b420801d/change/modified.txt",
+      "raw_url": "https://gitee.com/kit101/drone-yml-test/raw/e3c0ff4d5cef439ea11b30866fb1ed79b420801d/change/modified.txt",
+      "content_url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/contents/change/modified.txt?ref=e3c0ff4d5cef439ea11b30866fb1ed79b420801d",
+      "patch": "@@ -1 +1,2 @@\n-will be modified\n\\ No newline at end of file\n+will be modified\n+modified\n\\ No newline at end of file\n"
+    },
+    {
+      "sha": "026c61940bebac2bd51a709af499db11a62b9beb",
+      "filename": "change/remove.txt",
+      "status": "removed",
+      "additions": 0,
+      "deletions": 1,
+      "changes": 1,
+      "blob_url": "https://gitee.com/kit101/drone-yml-test/blob/537575f44a09c57dfc472e26fe067754fd2f9374/change/remove.txt",
+      "raw_url": "https://gitee.com/kit101/drone-yml-test/raw/537575f44a09c57dfc472e26fe067754fd2f9374/change/remove.txt",
+      "content_url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/contents/change/remove.txt?ref=537575f44a09c57dfc472e26fe067754fd2f9374",
+      "patch": "@@ -1 +0,0 @@\n-will be removed\n\\ No newline at end of file\n"
+    },
+    {
+      "sha": "b5442782c85d797e70d7bcd14abab49fd8c40b5b",
+      "filename": "change/rename.1.txt",
+      "status": "modified",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "blob_url": "https://gitee.com/kit101/drone-yml-test/blob/e3c0ff4d5cef439ea11b30866fb1ed79b420801d/change/rename.1.txt",
+      "raw_url": "https://gitee.com/kit101/drone-yml-test/raw/e3c0ff4d5cef439ea11b30866fb1ed79b420801d/change/rename.1.txt",
+      "content_url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/contents/change/rename.1.txt?ref=e3c0ff4d5cef439ea11b30866fb1ed79b420801d",
+      "patch": ""
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "Action": "merged",
+  "Repo": {
+    "ID": "22",
+    "Namespace": "",
+    "Name": "asdsad",
+    "Branch": "main",
+    "Private": false,
+    "Clone": "http://localhost:3000/git/codeowners/asdsad.git",
+    "CloneSSH": "",
+    "Link": "http://localhost:3000/git/codeowners/asdsad.git",
+    "Created": "0001-01-01T00:00:00Z",
+    "Updated": "0001-01-01T00:00:00Z"
+  },
+  "PullRequest": {
+    "Number": 10,
+    "Title": "Create xxasc",
+    "Body": "",
+    "Sha": "4ec41187008f77222a60dfa21cdbd980f6490443",
+    "Ref": "refs/heads/xas",
+    "Source": "xas",
+    "Target": "main",
+    "Fork": "fork",
+    "Link": "http://localhost:3000/codeowners/asdsad/pulls/14",
+    "Closed": true,
+    "Merged": true,
+    "Author": {
+      "ID": "admin",
+      "Login": "admin",
+      "Name": "Administrator",
+      "Email": "admin@gitness.io",
+      "Avatar": "",
+      "Created": "2023-10-03T16:50:21.613+05:30",
+      "Updated": "2023-10-03T16:50:21.613+05:30"
+    },
+    "Created": "0001-01-01T00:00:00Z",
+    "Updated": "0001-01-01T00:00:00Z"
+  },
+  "Sender": {
+    "ID": "admin",
+    "Login": "admin",
+    "Name": "Administrator",
+    "Email": "admin@gitness.io",
+    "Avatar": "",
+    "Created": "2023-10-03T16:50:21.613+05:30",
+    "Updated": "2023-10-03T16:50:21.613+05:30"
+  }
+}

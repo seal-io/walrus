@@ -1,0 +1,55 @@
+{
+  "Action": "review_ready",
+  "Repo": {
+    "ID": "498312568",
+    "Namespace": "wings-software",
+    "Name": "meet-git-sync-test",
+    "Perm": null,
+    "Branch": "main",
+    "Private": true,
+    "Visibility": 3,
+    "Clone": "https://github.com/wings-software/meet-git-sync-test.git",
+    "CloneSSH": "git@github.com:wings-software/meet-git-sync-test.git",
+    "Link": "https://github.com/wings-software/meet-git-sync-test",
+    "Created": "0001-01-01T00:00:00Z",
+    "Updated": "0001-01-01T00:00:00Z"
+  },
+  "PullRequest": {
+    "Number": 38,
+    "Title": "Update dgdggd.me",
+    "Body": null,
+    "Sha": "212015fb011c49a2913c4a1a860ce07c0821c362",
+    "Ref": "refs/pull/38/head",
+    "Target": "main",
+    "Source": "rathodmeetsatish-patch-25",
+    "Fork": "wings-software/meet-git-sync-test",
+    "Link": "https://github.com/wings-software/meet-git-sync-test/pull/38",
+    "Diff": "https://github.com/wings-software/meet-git-sync-test/pull/38.diff",
+    "Closed": null,
+    "Merged": null,
+    "Base": {
+      "Sha": "8b8d2b3e6a2ee6df108c8429e86c9a750e728f9d",
+      "Path": "refs/heads/main",
+      "Name": "main"
+    },
+    "Head": {
+        "Sha": "212015fb011c49a2913c4a1a860ce07c0821c362",
+        "Path": "refs/heads/rathodmeetsatish-patch-25",
+        "Name": "rathodmeetsatish-patch-25"
+    },
+    "Author": {
+      "Login": "rathodmeetsatish",
+      "Name": "",
+      "Email": "",
+      "Avatar": "https://avatars.githubusercontent.com/u/84321134?v=4"
+    },
+    "Created": "2023-08-28T19:15:53Z",
+    "Updated": "2023-08-28T19:16:06Z"
+  },
+  "Sender": {
+    "Login": "rathodmeetsatish",
+    "Name": "",
+    "Email": "",
+    "Avatar": "https://avatars.githubusercontent.com/u/84321134?v=4"
+  }
+}

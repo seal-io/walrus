@@ -1,0 +1,47 @@
+{
+  "status": "SUCCESS",
+  "data": {
+    "uuid": "0Nnoezs6RGa_fOWvG_Ta4w",
+    "name": "thomas.honey",
+    "email": "thomas.honey@harness.io",
+    "token": null,
+    "defaultAccountId": "px7xd_BFRCi-pfWPYXVjvw",
+    "intent": null,
+    "accounts": [
+      {
+        "uuid": "px7xd_BFRCi-pfWPYXVjvw",
+        "accountName": "harness-dev",
+        "companyName": "harness-dev",
+        "defaultExperience": "NG",
+        "createdFromNG": false,
+        "nextGenEnabled": true
+      },
+      {
+        "uuid": "Ws0xvw71Sm2YmpSC7A8z4g",
+        "accountName": "OPA-Governance",
+        "companyName": "Feature-Flag",
+        "defaultExperience": "NG",
+        "createdFromNG": false,
+        "nextGenEnabled": true
+      }
+    ],
+    "admin": false,
+    "twoFactorAuthenticationEnabled": false,
+    "emailVerified": true,
+    "locked": false,
+    "disabled": false,
+    "signupAction": null,
+    "edition": null,
+    "billingFrequency": null,
+    "utmInfo": {
+      "utmSource": null,
+      "utmContent": null,
+      "utmMedium": null,
+      "utmTerm": null,
+      "utmCampaign": null
+    },
+    "externallyManaged": false
+  },
+  "metaData": null,
+  "correlationId": "c4014fdb-10a1-4dc4-ace0-6fad93544993"
+}

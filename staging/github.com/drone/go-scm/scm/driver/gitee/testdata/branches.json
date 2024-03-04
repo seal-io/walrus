@@ -1,0 +1,11 @@
+[
+  {
+    "name": "master",
+    "commit": {
+      "sha": "e3c0ff4d5cef439ea11b30866fb1ed79b420801d",
+      "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/commits/e3c0ff4d5cef439ea11b30866fb1ed79b420801d"
+    },
+    "protected": false,
+    "protection_url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/branches/master/protection"
+  }
+]

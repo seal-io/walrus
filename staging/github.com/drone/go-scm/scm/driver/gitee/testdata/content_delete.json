@@ -1,0 +1,27 @@
+{
+  "content": null,
+  "commit": {
+    "sha": "bdce92fc3e96f54d7e918c7f2b6e61053366da5e",
+    "author": {
+      "name": "kit101",
+      "date": "2021-08-17T15:49:36+00:00",
+      "email": "kit101@gitee.com"
+    },
+    "committer": {
+      "name": "Gitee",
+      "date": "2021-08-17T15:49:36+00:00",
+      "email": "noreply@gitee.com"
+    },
+    "message": "delete commit message",
+    "tree": {
+      "sha": "4de6efba7063724cb20ab9135be309db0477c186",
+      "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/git/trees/4de6efba7063724cb20ab9135be309db0477c186"
+    },
+    "parents": [
+      {
+        "sha": "56b7c68eea99df8469f819fca08ca71c2d942d8d",
+        "url": "https://gitee.com/api/v5/repos/kit101/drone-yml-test/commits/56b7c68eea99df8469f819fca08ca71c2d942d8d"
+      }
+    ]
+  }
+}

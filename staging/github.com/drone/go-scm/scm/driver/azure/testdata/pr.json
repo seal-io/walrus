@@ -1,0 +1,75 @@
+{
+    "repository": {
+        "id": "fde2d21f-13b9-4864-a995-83329045289a",
+        "name": "test_repo2",
+        "url": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a",
+        "project": {
+            "id": "d350c9c0-7749-4ff8-a78f-f9c1f0e56729",
+            "name": "test_project",
+            "description": "",
+            "url": "https://dev.azure.com/tphoney/_apis/projects/d350c9c0-7749-4ff8-a78f-f9c1f0e56729",
+            "state": "wellFormed",
+            "revision": 11
+        },
+        "remoteUrl": "https://tphoney@dev.azure.com/tphoney/test_project/_git/test_repo2"
+    },
+    "pullRequestId": 19,
+    "codeReviewId": 19,
+    "status": "completed",
+    "createdBy": {
+        "id": "3ff4a20f-306e-677e-8a01-57f35e71f109",
+        "displayName": "tp",
+        "uniqueName": "tp@harness.io",
+        "url": "https://spsproduks1.vssps.visualstudio.com/A93f74f38-2b8d-42d4-a5cb-74646f46666e/_apis/Identities/3ff4a20f-306e-677e-8a01-57f35e71f109",
+        "imageUrl": "https://dev.azure.com/tphoney/_api/_common/identityImage?id=3ff4a20f-306e-677e-8a01-57f35e71f109"
+    },
+    "creationDate": "2022-03-04T13:34:54.3177724Z",
+    "closedDate": "2022-06-03T06:33:42.2405472Z",
+    "title": "test_pr",
+    "description": "test_pr_body",
+    "sourceRefName": "refs/heads/pr_branch",
+    "targetRefName": "refs/heads/main",
+    "mergeStatus": "queued",
+    "mergeId": "36c88bf7-3d14-437f-82aa-e38cce733261",
+    "lastMergeSourceCommit": {
+        "commitId": "01768d964c03e97260af0bd8cd9e5cd1f9ac6356",
+        "url": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a/commits/01768d964c03e97260af0bd8cd9e5cd1f9ac6356"
+    },
+    "lastMergeTargetCommit": {
+        "commitId": "b748ab7eb49b8627214f22f631f878c4af9893b5",
+        "url": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a/commits/b748ab7eb49b8627214f22f631f878c4af9893b5"
+    },
+    "reviewers": [],
+    "url": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a/pullRequests/19",
+    "_links": {
+        "self": {
+            "href": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a/pullRequests/19"
+        },
+        "repository": {
+            "href": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a"
+        },
+        "workItems": {
+            "href": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a/pullRequests/19/workitems"
+        },
+        "sourceBranch": {
+            "href": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a/refs/heads/pr_branch"
+        },
+        "targetBranch": {
+            "href": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a/refs/heads/main"
+        },
+        "sourceCommit": {
+            "href": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a/commits/01768d964c03e97260af0bd8cd9e5cd1f9ac6356"
+        },
+        "targetCommit": {
+            "href": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a/commits/b748ab7eb49b8627214f22f631f878c4af9893b5"
+        },
+        "createdBy": {
+            "href": "https://spsproduks1.vssps.visualstudio.com/A93f74f38-2b8d-42d4-a5cb-74646f46666e/_apis/Identities/3ff4a20f-306e-677e-8a01-57f35e71f109"
+        },
+        "iterations": {
+            "href": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a/pullRequests/19/iterations"
+        }
+    },
+    "supportsIterations": true,
+    "artifactId": "vstfs:///Git/PullRequestId/d350c9c0-7749-4ff8-a78f-f9c1f0e56729%2ffde2d21f-13b9-4864-a995-83329045289a%2f19"
+}

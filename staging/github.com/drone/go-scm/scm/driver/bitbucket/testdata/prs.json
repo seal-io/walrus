@@ -1,0 +1,149 @@
+{
+  "pagelen": 10,
+  "values": [
+    {
+      "description": "IOS date picker component duplicate March issue",
+      "links": {
+        "decline": {
+          "href": "https://api.bitbucket.org/2.0/repositories/atlassian/atlaskit/pullrequests/4982/decline"
+        },
+        "diffstat": {
+          "href": "https://api.bitbucket.org/2.0/repositories/atlassian/atlaskit/diffstat/lachlanv/atlaskit:31c54529bd80%0D710db794f15b?from_pullrequest_id=4982"
+        },
+        "commits": {
+          "href": "https://api.bitbucket.org/2.0/repositories/atlassian/atlaskit/pullrequests/4982/commits"
+        },
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/repositories/atlassian/atlaskit/pullrequests/4982"
+        },
+        "comments": {
+          "href": "https://api.bitbucket.org/2.0/repositories/atlassian/atlaskit/pullrequests/4982/comments"
+        },
+        "merge": {
+          "href": "https://api.bitbucket.org/2.0/repositories/atlassian/atlaskit/pullrequests/4982/merge"
+        },
+        "html": {
+          "href": "https://bitbucket.org/atlassian/atlaskit/pull-requests/4982"
+        },
+        "activity": {
+          "href": "https://api.bitbucket.org/2.0/repositories/atlassian/atlaskit/pullrequests/4982/activity"
+        },
+        "diff": {
+          "href": "https://api.bitbucket.org/2.0/repositories/atlassian/atlaskit/diff/lachlanv/atlaskit:31c54529bd80%0D710db794f15b?from_pullrequest_id=4982"
+        },
+        "approve": {
+          "href": "https://api.bitbucket.org/2.0/repositories/atlassian/atlaskit/pullrequests/4982/approve"
+        },
+        "statuses": {
+          "href": "https://api.bitbucket.org/2.0/repositories/atlassian/atlaskit/pullrequests/4982/statuses"
+        }
+      },
+      "title": "IOS date picker component duplicate March issue",
+      "close_source_branch": false,
+      "type": "pullrequest",
+      "id": 4982,
+      "destination": {
+        "commit": {
+          "hash": "710db794f15b",
+          "type": "commit",
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/repositories/atlassian/atlaskit/commit/710db794f15b"
+            },
+            "html": {
+              "href": "https://bitbucket.org/atlassian/atlaskit/commits/710db794f15b"
+            }
+          }
+        },
+        "repository": {
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/repositories/atlassian/atlaskit"
+            },
+            "html": {
+              "href": "https://bitbucket.org/atlassian/atlaskit"
+            },
+            "avatar": {
+              "href": "https://bytebucket.org/ravatar/%7B1082744e-871d-4463-b373-df00db2986e7%7D?ts=1198711"
+            }
+          },
+          "type": "repository",
+          "name": "Atlaskit",
+          "full_name": "atlassian/atlaskit",
+          "uuid": "{1082744e-871d-4463-b373-df00db2986e7}"
+        },
+        "branch": {
+          "name": "master"
+        }
+      },
+      "created_on": "2020-01-17T01:02:49.003611+00:00",
+      "summary": {
+        "raw": "IOS date picker component duplicate March issue",
+        "markup": "markdown",
+        "html": "<p>IOS date picker component duplicate March issue</p>",
+        "type": "rendered"
+      },
+      "source": {
+        "commit": {
+          "hash": "31c54529bd80",
+          "type": "commit",
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/repositories/lachlanv/atlaskit/commit/31c54529bd80"
+            },
+            "html": {
+              "href": "https://bitbucket.org/lachlanv/atlaskit/commits/31c54529bd80"
+            }
+          }
+        },
+        "repository": {
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/repositories/lachlanv/atlaskit"
+            },
+            "html": {
+              "href": "https://bitbucket.org/lachlanv/atlaskit"
+            },
+            "avatar": {
+              "href": "https://bytebucket.org/ravatar/%7Bffe76500-0627-43f6-a9c5-4d6373a5e4eb%7D?ts=js"
+            }
+          },
+          "type": "repository",
+          "name": "atlaskit",
+          "full_name": "lachlanv/atlaskit",
+          "uuid": "{ffe76500-0627-43f6-a9c5-4d6373a5e4eb}"
+        },
+        "branch": {
+          "name": "Lachlan-Vass/ios-date-picker-component-duplicate-marc-1579222909688"
+        }
+      },
+      "comment_count": 0,
+      "state": "OPEN",
+      "task_count": 0,
+      "reason": "",
+      "updated_on": "2020-01-17T01:02:49.933253+00:00",
+      "author": {
+        "display_name": "Lachlan Vass",
+        "uuid": "{ef9d9075-f870-417f-b424-83adbc8efa54}",
+        "links": {
+          "self": {
+            "href": "https://api.bitbucket.org/2.0/users/%7Bef9d9075-f870-417f-b424-83adbc8efa54%7D"
+          },
+          "html": {
+            "href": "https://bitbucket.org/%7Bef9d9075-f870-417f-b424-83adbc8efa54%7D/"
+          },
+          "avatar": {
+            "href": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/5c7c7b1a0b79db7c3e33eca2/6b6b8178-0da0-4a37-b0dd-f8b5e3628eaa/128"
+          }
+        },
+        "nickname": "Lachlan",
+        "type": "user",
+        "account_id": "5c7c7b1a0b79db7c3e33eca2"
+      },
+      "merge_commit": null,
+      "closed_by": null
+    }
+  ],
+  "page": 1,
+  "size": 1
+}

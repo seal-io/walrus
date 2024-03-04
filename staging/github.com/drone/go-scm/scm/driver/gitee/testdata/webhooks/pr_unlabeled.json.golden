@@ -1,0 +1,51 @@
+{
+  "Action": "unlabeled",
+  "Repo": {
+    "ID": "14836026",
+    "Namespace": "kit101",
+    "Name": "drone-yml-test",
+    "Branch": "master",
+    "Private": false,
+    "Clone": "https://gitee.com/kit101/drone-yml-test.git",
+    "CloneSSH": "git@gitee.com:kit101/drone-yml-test.git",
+    "Link": "https://gitee.com/kit101/drone-yml-test",
+    "Created": "2021-03-24T11:24:34+08:00",
+    "Updated": "2021-10-08T17:16:06+08:00"
+  },
+  "PullRequest": {
+    "Number": 8,
+    "Title": "feat-3 1",
+    "Body": "feat-3 1",
+    "Sha": "dc8fa2ebe050d63f639c5b834311e96bc2303523",
+    "Ref": "refs/pull/8/head",
+    "Source": "feat-3",
+    "Target": "master",
+    "Fork": "kit101/drone-yml-test",
+    "Link": "https://gitee.com/kit101/drone-yml-test/pulls/8",
+    "Diff": "https://gitee.com/kit101/drone-yml-test/pulls/8.diff",
+    "Closed": false,
+    "Merged": false,
+    "Head": {
+      "Name": "feat-3",
+      "Path": "refs/heads/feat-3",
+      "Sha": "dc8fa2ebe050d63f639c5b834311e96bc2303523"
+    },
+    "Base": {
+      "Name": "master",
+      "Path": "refs/heads/master",
+      "Sha": "2eac1cac02c325058cf959725c45b0612d3e8177"
+    },
+    "Author": {
+      "Login": "kit101",
+      "Avatar": "https://portrait.gitee.com/uploads/avatars/user/511/1535738_qkssk1711_1578953939.png"
+    },
+    "Created": "2021-10-08T17:16:06+08:00",
+    "Updated": "2021-10-08T17:23:09+08:00"
+  },
+  "Sender": {
+    "Avatar": "https://portrait.gitee.com/uploads/avatars/user/511/1535738_qkssk1711_1578953939.png",
+    "Email": "qkssk1711@163.com",
+    "Login": "kit101",
+    "Name": "kit101"
+  }
+}

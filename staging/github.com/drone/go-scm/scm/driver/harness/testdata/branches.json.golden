@@ -1,0 +1,17 @@
+[
+    {
+        "Name": "bla",
+        "Path": "refs/heads/bla",
+        "Sha": "0c221fd126b9457d0ad2037641416083549f59c5"
+    },
+    {
+        "Name": "branch3",
+        "Path": "refs/heads/branch3",
+        "Sha": "59e1cdf0e421fd14b106f4861fb02dfd56b4dc34"
+    },
+    {
+        "Name": "main",
+        "Path": "refs/heads/main",
+        "Sha": "1d640265d8bdd818175fa736f0fcbad2c9b716c9"
+    }
+]

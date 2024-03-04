@@ -1,0 +1,46 @@
+{
+    "Ref": "refs/heads/master",
+    "Before": "a273c385628167932e10caaa58e12550c491f241",
+    "After": "92e21bfcddc1418079cddbb518ad6fd72917798a",
+    "Repo": {
+        "ID": "68",
+        "Namespace": "",
+        "Name": "abhinav-git-sync",
+        "Perm": null,
+        "Branch": "master",
+        "Private": false,
+        "Clone": "https://git.harness.io/vpCkHKsDSxK9_KYfjCTMKA/default/Repo_With_PR_checks/abhinav-git-sync.git",
+        "CloneSSH": "",
+        "Link": "https://git.harness.io/vpCkHKsDSxK9_KYfjCTMKA/default/Repo_With_PR_checks/abhinav-git-sync.git",
+        "Created": "0001-01-01T00:00:00Z",
+        "Updated": "0001-01-01T00:00:00Z"
+    },
+    "Commit": {
+        "Sha": "92e21bfcddc1418079cddbb518ad6fd72917798a",
+        "Message": "Create asdsad (#2)",
+        "Author": {
+            "Name": "abhinav.singh@harness.io",
+            "Email": "abhinav.singh@harness.io",
+            "Date" : "0001-01-01T00:00:00Z",
+            "Login": "",
+            "Avatar": ""
+        },
+        "Committer": {
+            "Name": "Harness",
+            "Email": "noreply@harness.io",
+            "Date": "0001-01-01T00:00:00Z",
+            "Login": "",
+            "Avatar": ""
+        },
+        "Link": ""
+    },
+    "Sender": {
+        "ID": "ec9UfvFwTf663F47Hlqxbg",
+        "Login": "ec9UfvFwTf663F47Hlqxbg",
+        "Name": "abhinav.singh@harness.io",
+        "Email": "abhinav.singh@harness.io",
+        "Avatar": "",
+        "Created": "2023-10-18T13:56:29.873+05:30",
+        "Updated": "2023-10-18T13:56:29.873+05:30"
+    }
+}

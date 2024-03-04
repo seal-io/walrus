@@ -1,0 +1,34 @@
+{
+  "Action": "released",
+  "Release": {
+		"ID": 81372309,
+		"Title": "New release!",
+		"Description": "New release!",
+		"Link": "https://github.com/vcalasansh/harness-ngtriggers-test/releases/tag/v1.0.0",
+		"Tag": "v1.0.0",
+		"Commitish": "test-branch",
+		"Draft": false,
+		"Prerelease": false,
+		"Created": "2022-10-28T13:03:11Z",
+		"Published": "2022-10-28T16:36:52Z"
+  },
+  "Repo": {
+    "ID": "530296249",
+    "Namespace": "vcalasansh",
+    "Name": "harness-ngtriggers-test",
+    "Perm": null,
+    "Branch": "test-branch",
+    "Private": true,
+    "Clone": "https://github.com/vcalasansh/harness-ngtriggers-test.git",
+    "CloneSSH": "git@github.com:vcalasansh/harness-ngtriggers-test.git",
+    "Link": "https://github.com/vcalasansh/harness-ngtriggers-test",
+    "Created": "0001-01-01T00:00:00Z",
+    "Updated": "0001-01-01T00:00:00Z"
+  },
+  "Sender": {
+    "Login": "vcalasansh",
+    "Name": "",
+    "Email": "",
+    "Avatar": "https://avatars.githubusercontent.com/u/109106581?v=4"
+  }
+}

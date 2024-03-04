@@ -1,0 +1,20 @@
+[
+    {
+        "ID": "508719340",
+        "Namespace": "user123",
+        "Name": "testRepo2",
+        "Perm": {
+            "Pull": false,
+            "Push": false,
+            "Admin": false
+        },
+        "Branch": "main",
+        "Private": false,
+        "Visibility": 1,
+        "Clone": "https://github.com/user123/testRepo2.git",
+        "CloneSSH": "git@github.com:user123/testRepo2.git",
+        "Link": "https://github.com/user123/testRepo2",
+        "Created": "2022-06-29T14:11:36Z",
+        "Updated": "2023-06-27T07:10:05Z"
+    }
+]

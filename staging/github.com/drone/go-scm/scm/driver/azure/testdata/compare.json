@@ -1,0 +1,24 @@
+{
+    "allChangesIncluded": true,
+    "changeCounts": {
+        "Edit": 1
+    },
+    "changes": [
+        {
+            "item": {
+                "objectId": "a493dad221fb22ff4c35ff89f112a61f8c39e924",
+                "originalObjectId": "c42585a91aea68fcdd2f06508f7073983689aa5f",
+                "gitObjectType": "blob",
+                "commitId": "66df312dad61e84dd896d1e8d14ee3dce53b62f0",
+                "path": "/testfile",
+                "url": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a/items/testfile?versionType=Commit&version=66df312dad61e84dd896d1e8d14ee3dce53b62f0"
+            },
+            "changeType": "edit"
+        }
+    ],
+    "commonCommit": "9788e5ddf8b387cb79228628f34d8dc18582d606",
+    "baseCommit": "9788e5ddf8b387cb79228628f34d8dc18582d606",
+    "targetCommit": "66df312dad61e84dd896d1e8d14ee3dce53b62f0",
+    "aheadCount": 10,
+    "behindCount": 0
+}

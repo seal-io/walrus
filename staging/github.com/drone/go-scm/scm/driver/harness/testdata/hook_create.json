@@ -1,0 +1,17 @@
+{
+  "id": 9,
+  "version": 1,
+  "parent_id": 11,
+  "parent_type": "repo",
+  "created_by": 14,
+  "created": 1675872629243,
+  "updated": 1675872777592,
+  "identifier": "drone",
+  "description": "",
+  "url": "https://example.com",
+  "enabled": true,
+  "insecure": true,
+  "triggers": [],
+  "latest_execution_result": "success",
+  "has_secret": true
+}

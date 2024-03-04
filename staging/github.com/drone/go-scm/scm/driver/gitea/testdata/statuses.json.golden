@@ -1,0 +1,8 @@
+[
+    {
+        "State": 3,
+        "Label": "continuous-integration/drone",
+        "Desc": "",
+        "Target": "https://example.com"
+    }
+]

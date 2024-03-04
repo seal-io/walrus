@@ -1,0 +1,19 @@
+[
+    {
+        "Sha": "0c221fd126b9457d0ad2037641416083549f59c5",
+        "Message": "Create bla_file",
+        "Author": {
+            "Name": "thomas.honey",
+            "Email": "thomas.honey@harness.io",
+            "Login": "",
+            "Avatar": ""
+        },
+        "Committer": {
+            "Name": "Harness",
+            "Email": "noreply@harness.io",
+            "Login": "",
+            "Avatar": ""
+        },
+        "Link": ""
+    }
+]

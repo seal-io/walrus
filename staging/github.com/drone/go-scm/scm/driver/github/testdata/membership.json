@@ -1,0 +1,40 @@
+{
+    "url": "https://api.github.com/orgs/github/memberships/octocat",
+    "state": "active",
+    "role": "admin",
+    "organization_url": "https://api.github.com/orgs/github",
+    "user": {
+        "login": "octocat",
+        "id": 817538,
+        "node_id": "MDQ6VXNlcjgxNzUzOA==",
+        "avatar_url": "https://avatars1.githubusercontent.com/u/817538?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/octocat",
+        "html_url": "https://github.com/octocat",
+        "followers_url": "https://api.github.com/users/octocat/followers",
+        "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+        "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+        "organizations_url": "https://api.github.com/users/octocat/orgs",
+        "repos_url": "https://api.github.com/users/octocat/repos",
+        "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/octocat/received_events",
+        "type": "User",
+        "site_admin": false
+    },
+    "organization": {
+        "login": "github",
+        "id": 2181346,
+        "node_id": "MDEyOk9yZ2FuaXphdGlvbjIxODEzNDY=",
+        "url": "https://api.github.com/orgs/github",
+        "repos_url": "https://api.github.com/orgs/github/repos",
+        "events_url": "https://api.github.com/orgs/github/events",
+        "hooks_url": "https://api.github.com/orgs/github/hooks",
+        "issues_url": "https://api.github.com/orgs/github/issues",
+        "members_url": "https://api.github.com/orgs/github/members{/member}",
+        "public_members_url": "https://api.github.com/orgs/github/public_members{/member}",
+        "avatar_url": "https://avatars1.githubusercontent.com/u/2181346?v=4",
+        "description": ""
+    }
+}

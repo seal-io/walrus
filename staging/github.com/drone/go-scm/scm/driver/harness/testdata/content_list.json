@@ -1,0 +1,79 @@
+{
+    "type": "dir",
+    "sha": "4fdc5acb2f9074a6d6ec826f01518fb27fe20a06",
+    "name": "",
+    "path": "",
+    "latest_commit": {
+        "sha": "4381eecb9dd29c34972087c4185f392c20d9f7c0",
+        "title": "move to version 1.1.2",
+        "message": "move to version 1.1.2",
+        "author": {
+            "identity": {
+                "name": "Johannes Batzill",
+                "email": "johannes.batzill@harness.io"
+            },
+            "when": "2023-02-01T02:27:42Z"
+        },
+        "committer": {
+            "identity": {
+                "name": "Johannes Batzill",
+                "email": "johannes.batzill@harness.io"
+            },
+            "when": "2023-02-01T02:27:42Z"
+        }
+    },
+    "content": {
+        "entries": [
+            {
+                "type": "file",
+                "sha": "41fdf994e79e42bd4136c7e3004367f6d21d800d",
+                "name": ".gitignore",
+                "path": ".gitignore",
+                "latest_commit": {
+                    "sha": "f8de11b6f3e4499889e16b989977c66c84ad02c9",
+                    "title": "add initial version of demo application",
+                    "message": "add initial version of demo application",
+                    "author": {
+                        "identity": {
+                            "name": "Johannes Batzill",
+                            "email": "johannes.batzill@harness.io"
+                        },
+                        "when": "2023-02-01T00:08:20Z"
+                    },
+                    "committer": {
+                        "identity": {
+                            "name": "Johannes Batzill",
+                            "email": "johannes.batzill@harness.io"
+                        },
+                        "when": "2023-02-01T00:08:20Z"
+                    }
+                }
+            },
+            {
+                "type": "file",
+                "sha": "261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64",
+                "name": "LICENSE",
+                "path": "LICENSE",
+                "latest_commit": {
+                    "sha": "a2a1bb3664f096e69f4b15b80f4650cc9f8ae913",
+                    "title": "Initial commit",
+                    "message": "Initial commit",
+                    "author": {
+                        "identity": {
+                            "name": "Johannes Batzill",
+                            "email": "johannes.batzill@harness.io"
+                        },
+                        "when": "2023-01-31T23:54:24Z"
+                    },
+                    "committer": {
+                        "identity": {
+                            "name": "GitHub",
+                            "email": "noreply@github.com"
+                        },
+                        "when": "2023-01-31T23:54:24Z"
+                    }
+                }
+            }
+        ]
+    }
+}

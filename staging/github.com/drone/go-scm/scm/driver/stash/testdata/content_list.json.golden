@@ -1,0 +1,106 @@
+[
+  {
+    "path": "content.go",
+    "kind": "file"
+  },
+  {
+    "path": "content_test.go",
+    "kind": "file"
+  },
+  {
+    "path": "git.go",
+    "kind": "file"
+  },
+  {
+    "path": "git_test.go",
+    "kind": "file"
+  },
+  {
+    "path": "issue.go",
+    "kind": "file"
+  },
+  {
+    "path": "issue_test.go",
+    "kind": "file"
+  },
+  {
+    "path": "linker.go",
+    "kind": "file"
+  },
+  {
+    "path": "linker_test.go",
+    "kind": "file"
+  },
+  {
+    "path": "org.go",
+    "kind": "file"
+  },
+  {
+    "path": "org_test.go",
+    "kind": "file"
+  },
+  {
+    "path": "pr.go",
+    "kind": "file"
+  },
+  {
+    "path": "pr_test.go",
+    "kind": "file"
+  },
+  {
+    "path": "repo.go",
+    "kind": "file"
+  },
+  {
+    "path": "repo_test.go",
+    "kind": "file"
+  },
+  {
+    "path": "review.go",
+    "kind": "file"
+  },
+  {
+    "path": "review_test.go",
+    "kind": "file"
+  },
+  {
+    "path": "stash.go",
+    "kind": "file"
+  },
+  {
+    "path": "stash_test.go",
+    "kind": "file"
+  },
+  {
+    "path": "testdata/branch.json",
+    "kind": "file"
+  },
+  {
+    "path": "testdata/branch.json.golden",
+    "kind": "file"
+  },
+  {
+    "path": "testdata/branches.json",
+    "kind": "file"
+  },
+  {
+    "path": "testdata/branches.json.golden",
+    "kind": "file"
+  },
+  {
+    "path": "testdata/changes.json",
+    "kind": "file"
+  },
+  {
+    "path": "testdata/changes.json.golden",
+    "kind": "file"
+  },
+  {
+    "path": "testdata/commit.json",
+    "kind": "file"
+  },
+  {
+    "path": "testdata/default_branch.json",
+    "kind": "file"
+  }
+]

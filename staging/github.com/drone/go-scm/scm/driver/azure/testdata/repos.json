@@ -1,0 +1,45 @@
+{
+    "value": [
+        {
+            "id": "91f0d4cb-4c36-49a5-b28d-2d72da089c4d",
+            "name": "test_project",
+            "url": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/91f0d4cb-4c36-49a5-b28d-2d72da089c4d",
+            "project": {
+                "id": "d350c9c0-7749-4ff8-a78f-f9c1f0e56729",
+                "name": "test_project",
+                "url": "https://dev.azure.com/tphoney/_apis/projects/d350c9c0-7749-4ff8-a78f-f9c1f0e56729",
+                "state": "wellFormed",
+                "revision": 11,
+                "visibility": "private",
+                "lastUpdateTime": "2022-02-24T15:31:27.89Z"
+            },
+            "defaultBranch": "refs/heads/main",
+            "size": 1232,
+            "remoteUrl": "https://tphoney@dev.azure.com/tphoney/test_project/_git/test_project",
+            "sshUrl": "git@ssh.dev.azure.com:v3/tphoney/test_project/test_project",
+            "webUrl": "https://dev.azure.com/tphoney/test_project/_git/test_project",
+            "isDisabled": false
+        },
+        {
+            "id": "fde2d21f-13b9-4864-a995-83329045289a",
+            "name": "test_repo2",
+            "url": "https://dev.azure.com/tphoney/d350c9c0-7749-4ff8-a78f-f9c1f0e56729/_apis/git/repositories/fde2d21f-13b9-4864-a995-83329045289a",
+            "project": {
+                "id": "d350c9c0-7749-4ff8-a78f-f9c1f0e56729",
+                "name": "test_project",
+                "url": "https://dev.azure.com/tphoney/_apis/projects/d350c9c0-7749-4ff8-a78f-f9c1f0e56729",
+                "state": "wellFormed",
+                "revision": 11,
+                "visibility": "private",
+                "lastUpdateTime": "2022-02-24T15:31:27.89Z"
+            },
+            "defaultBranch": "refs/heads/main",
+            "size": 37687,
+            "remoteUrl": "https://tphoney@dev.azure.com/tphoney/test_project/_git/test_repo2",
+            "sshUrl": "git@ssh.dev.azure.com:v3/tphoney/test_project/test_repo2",
+            "webUrl": "https://dev.azure.com/tphoney/test_project/_git/test_repo2",
+            "isDisabled": false
+        }
+    ],
+    "count": 2
+}

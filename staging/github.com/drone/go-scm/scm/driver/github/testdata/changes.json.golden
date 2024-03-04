@@ -1,0 +1,9 @@
+[
+    {
+        "Path": "file1.txt",
+        "Added": true,
+        "Renamed": false,
+        "Deleted": false,
+        "BlobID": "bbcd538c8e72b8c175046e27cc8f907076331401"
+    }
+]

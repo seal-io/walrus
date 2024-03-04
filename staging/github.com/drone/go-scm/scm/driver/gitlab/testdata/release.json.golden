@@ -1,0 +1,10 @@
+{
+  "ID": 0,
+  "Title": "Awesome app v0.1 alpha",
+  "Description": "## CHANGELOG\r\n\r\n- Remove limit of 100 when searching repository code. !8671\r\n- Show error message when attempting to reopen an MR and there is an open MR for the same branch. !16447 (Akos Gyimesi)\r\n- Fix a bug where internal email pattern wasn't respected. !22516",
+  "Link": "",
+  "Tag": "v0.1",
+  "Commitish": "f8d3d94cbd347e924aa7b715845e439d00e80ca4",
+  "Draft": false,
+  "Prerelease": false
+}
