@@ -1,0 +1,152 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: walrus-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: walrus-system
+  name: walrus
+  labels:
+    "app.kubernetes.io/part-of": "walrus"
+    "app.kubernetes.io/component": "walrus"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: walrus
+  labels:
+    "app.kubernetes.io/part-of": "walrus"
+    "app.kubernetes.io/component": "walrus"
+subjects:
+  - kind: ServiceAccount
+    name: walrus
+    namespace: walrus-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: walrus-system
+  name: walrus
+  labels:
+    "app.kubernetes.io/part-of": "walrus"
+    "app.kubernetes.io/component": "walrus"
+spec:
+  # When a PVC does not specify a storageClassName,
+  # the default StorageClass is used.
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: walrus-system
+  name: walrus
+spec:
+  selector:
+    "app.kubernetes.io/part-of": "walrus"
+    "app.kubernetes.io/component": "walrus"
+  sessionAffinity: ClientIP
+  ports:
+    - name: https
+      port: 443
+      targetPort: https
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: walrus-system
+  name: walrus
+  labels:
+    "app.kubernetes.io/part-of": "walrus"
+    "app.kubernetes.io/component": "walrus"
+    "app.kubernetes.io/name": "walrus-server"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      "app.kubernetes.io/part-of": "walrus"
+      "app.kubernetes.io/component": "walrus"
+      "app.kubernetes.io/name": "walrus-server"
+  template:
+    metadata:
+      labels:
+        "app.kubernetes.io/part-of": "walrus"
+        "app.kubernetes.io/component": "walrus"
+        "app.kubernetes.io/name": "walrus-server"
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: "kubernetes.io/hostname"
+                labelSelector:
+                  matchExpressions:
+                    - key: "app.kubernetes.io/component"
+                      operator: In
+                      values:
+                        - "walrus"
+                    - key: "app.kubernetes.io/part-of"
+                      operator: In
+                      values:
+                        - "walrus"
+                    - key: "app.kubernetes.io/name"
+                      operator: In
+                      values:
+                        - "walrus-server"
+      restartPolicy: Always
+      serviceAccountName: walrus
+      containers:
+        - name: walrus
+          image: sealio/walrus:main
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: '4'
+              memory: '8Gi'
+            requests:
+              cpu: '500m'
+              memory: '512Mi'
+          ports:
+            - name: https
+              containerPort: 443
+          startupProbe:
+            failureThreshold: 10
+            periodSeconds: 5
+            httpGet:
+              scheme: HTTPS
+              port: 443
+              path: /readyz
+          readinessProbe:
+            failureThreshold: 3
+            timeoutSeconds: 5
+            periodSeconds: 5
+            httpGet:
+              scheme: HTTPS
+              port: 443
+              path: /readyz
+          livenessProbe:
+            failureThreshold: 10
+            timeoutSeconds: 5
+            periodSeconds: 10
+            httpGet:
+              scheme: HTTPS
+              port: 443
+              path: /livez
+          volumeMounts:
+            - name: data
+              mountPath: /var/run/walrus
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: walrus

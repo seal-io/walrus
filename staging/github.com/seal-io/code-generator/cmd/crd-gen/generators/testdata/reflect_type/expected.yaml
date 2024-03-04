@@ -1,0 +1,338 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  name: dummies.samplecontroller.k8s.io
+spec:
+  group: samplecontroller.k8s.io
+  names:
+    categories:
+    - all
+    - walrus
+    kind: Dummy
+    listKind: DummyList
+    plural: projects
+    shortNames:
+    - proj
+    singular: dummy
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: Dummy is the schema for the projects API.
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              arrayObject:
+                maxItems: 3
+                minItems: 3
+                properties:
+                  a:
+                    type: string
+                  b:
+                    type: integer
+                  c:
+                    type: boolean
+                  d:
+                    format: double
+                    type: number
+                  e:
+                    additionalProperties:
+                      type: object
+                    nullable: true
+                    type: object
+                required:
+                - a
+                - b
+                - c
+                - d
+                - e
+                type: object
+                x-kubernetes-validations:
+                - message: b must be greater than 0,
+                  rule: self.b > 0
+                - message: mutate a
+                  reason: FieldValueRequired
+                  rule: |-
+                    self.e.length() % 2 == 0
+                    ? self.a == self.a + ' is even'
+                    : self.a == self.a + ' is odd'
+              arrayPointString:
+                maxItems: 3
+                minItems: 3
+                nullable: true
+                type: string
+              arrayString:
+                maxItems: 3
+                minItems: 3
+                type: string
+              bool:
+                type: boolean
+              boolPointer:
+                default: true
+                nullable: true
+                type: boolean
+              duration:
+                format: duration
+                type: string
+              durationPointer:
+                format: duration
+                nullable: true
+                type: string
+              float:
+                format: double
+                type: number
+              floatPointer:
+                format: float
+                maximum: 10
+                nullable: true
+                type: number
+              intOrString:
+                anyOf:
+                - type: integer
+                - type: string
+                x-kubernetes-int-or-string: true
+              intOrStringPointer:
+                anyOf:
+                - type: integer
+                - type: string
+                nullable: true
+                x-kubernetes-int-or-string: true
+              integer:
+                minimum: 1
+                type: integer
+              integerPointer:
+                enum:
+                - 1
+                - 2
+                - 3
+                - 5
+                - 7
+                format: int64
+                type: integer
+              mapInOrString:
+                additionalProperties:
+                  anyOf:
+                  - type: integer
+                  - type: string
+                  x-kubernetes-int-or-string: true
+                nullable: true
+                type: object
+                x-kubernetes-map-type: atomic
+              mapInterface:
+                additionalProperties:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                nullable: true
+                type: object
+              mapObject:
+                additionalProperties:
+                  properties:
+                    a:
+                      type: string
+                    b:
+                      type: integer
+                    c:
+                      type: boolean
+                    d:
+                      format: double
+                      type: number
+                    e:
+                      additionalProperties:
+                        type: object
+                      nullable: true
+                      type: object
+                    f:
+                      items:
+                        type: object
+                      nullable: true
+                      type: array
+                  required:
+                  - a
+                  - b
+                  - c
+                  - d
+                  - e
+                  - f
+                  type: object
+                nullable: true
+                type: object
+              mapPointString:
+                additionalProperties:
+                  nullable: true
+                  type: string
+                nullable: true
+                type: object
+              mapString:
+                additionalProperties:
+                  type: string
+                maxProperties: 3
+                nullable: true
+                type: object
+                x-kubernetes-map-type: atomic
+              mapStringPointer:
+                additionalProperties:
+                  type: string
+                nullable: true
+                type: object
+              microTime:
+                format: date-time
+                type: string
+              microTimePointer:
+                format: date-time
+                nullable: true
+                type: string
+              rawExtension:
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              rawExtensionPointer:
+                nullable: true
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              sliceBytes:
+                format: byte
+                nullable: true
+                type: string
+              sliceBytesPointer:
+                format: byte
+                nullable: true
+                type: string
+              sliceInterface:
+                items:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                nullable: true
+                type: array
+              sliceObject:
+                items:
+                  properties:
+                    a:
+                      type: string
+                    b:
+                      type: integer
+                    c:
+                      type: boolean
+                    d:
+                      format: double
+                      type: number
+                    e:
+                      additionalProperties:
+                        type: object
+                      nullable: true
+                      type: object
+                    f:
+                      items:
+                        type: object
+                      nullable: true
+                      type: array
+                  required:
+                  - a
+                  - b
+                  - c
+                  - d
+                  - e
+                  - f
+                  type: object
+                nullable: true
+                type: array
+                x-kubernetes-validations:
+                - message: b must be greater than 0
+                  rule: self.b > 0
+              slicePointString:
+                items:
+                  nullable: true
+                  type: string
+                nullable: true
+                type: array
+              sliceString:
+                items:
+                  type: string
+                maxItems: 3
+                minItems: 1
+                nullable: true
+                type: array
+              sliceSubDummySpec:
+                items:
+                  $ref: '#/definitions/github.com~1seal-io~1code-generator~1cmd~1crd-gen~1generators~1testdata~1reflect_type~0DummySpec'
+                nullable: true
+                type: array
+              string:
+                enum:
+                - x
+                - "y"
+                - z
+                type: string
+              stringPointer:
+                default: x
+                nullable: true
+                type: string
+              subDummySpecPointer:
+                $ref: '#/definitions/github.com~1seal-io~1code-generator~1cmd~1crd-gen~1generators~1testdata~1reflect_type~0DummySpec'
+                nullable: true
+              time:
+                format: date-time
+                type: string
+              timePointer:
+                format: date-time
+                nullable: true
+                type: string
+            required:
+            - integer
+            - float
+            - string
+            - bool
+            - integerPointer
+            - floatPointer
+            - stringPointer
+            - boolPointer
+            - microTime
+            - duration
+            - time
+            - intOrString
+            - rawExtension
+            - microTimePointer
+            - durationPointer
+            - timePointer
+            - intOrStringPointer
+            - rawExtensionPointer
+            - mapString
+            - mapPointString
+            - mapObject
+            - mapInOrString
+            - mapStringPointer
+            - mapInterface
+            - sliceString
+            - slicePointString
+            - sliceObject
+            - sliceBytes
+            - sliceBytesPointer
+            - sliceInterface
+            - arrayString
+            - arrayPointString
+            - arrayObject
+            - subDummySpecPointer
+            - sliceSubDummySpec
+            type: object
+          status:
+            type: object
+        required:
+        - metadata
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: null
+  storedVersions: null
