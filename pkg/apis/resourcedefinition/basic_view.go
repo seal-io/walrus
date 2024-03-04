@@ -25,8 +25,8 @@ func (r *CreateRequest) Validate() error {
 		return err
 	}
 
-	if r.UiSchema != nil {
-		if err := r.UiSchema.Validate(); err != nil {
+	if r.UISchema != nil {
+		if err := r.UISchema.Validate(); err != nil {
 			return err
 		}
 	}
@@ -49,8 +49,8 @@ func (r *UpdateRequest) Validate() error {
 		return err
 	}
 
-	if r.UiSchema != nil {
-		if err := r.UiSchema.Validate(); err != nil {
+	if r.UISchema != nil {
+		if err := r.UISchema.Validate(); err != nil {
 			return err
 		}
 	}

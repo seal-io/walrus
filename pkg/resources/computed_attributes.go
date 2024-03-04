@@ -66,7 +66,7 @@ func GenComputedAttributes(
 			Select(
 				templateversion.FieldID,
 				templateversion.FieldName,
-				templateversion.FieldUiSchema,
+				templateversion.FieldUISchema,
 				templateversion.FieldSchemaDefaultValue).
 			Only(ctx)
 		if err != nil {
@@ -90,13 +90,13 @@ func GenComputedAttributes(
 			WithTemplate(func(tq *model.TemplateVersionQuery) {
 				tq.Select(
 					templateversion.FieldID,
-					templateversion.FieldUiSchema,
+					templateversion.FieldUISchema,
 					templateversion.FieldSchemaDefaultValue,
 				)
 			}).
 			WithResourceDefinition(func(rq *model.ResourceDefinitionQuery) {
 				rq.Select(
-					resourcedefinition.FieldUiSchema)
+					resourcedefinition.FieldUISchema)
 			}).
 			Only(ctx)
 		if err != nil {
@@ -132,7 +132,7 @@ func computedAttributeWithTemplate(
 
 	attrsByte, err = openapi.GenSchemaDefaultWithAttribute(
 		ctx,
-		template.UiSchema.VariableSchema(),
+		template.UISchema.VariableSchema(),
 		attrs,
 		template.SchemaDefaultValue)
 	if err != nil {
@@ -181,10 +181,10 @@ func computedAttributeWithResourceDefinition(
 	}
 
 	switch {
-	case rule.Edges.ResourceDefinition.UiSchema != nil && !rule.Edges.ResourceDefinition.UiSchema.IsEmpty():
+	case rule.Edges.ResourceDefinition.UISchema != nil && !rule.Edges.ResourceDefinition.UISchema.IsEmpty():
 		attrsByte, err = openapi.GenSchemaDefaultWithAttribute(
 			ctx,
-			rule.Edges.ResourceDefinition.UiSchema.VariableSchema(),
+			rule.Edges.ResourceDefinition.UISchema.VariableSchema(),
 			attrs,
 			rdSchemaDefault)
 		if err != nil {
@@ -201,7 +201,7 @@ func computedAttributeWithResourceDefinition(
 	default:
 		attrsByte, err = openapi.GenSchemaDefaultWithAttribute(
 			ctx,
-			rule.Edges.Template.UiSchema.VariableSchema(),
+			rule.Edges.Template.UISchema.VariableSchema(),
 			attrs,
 			rdSchemaDefault)
 		if err != nil {

@@ -23,9 +23,9 @@ func (h Handler) Update(req UpdateRequest) error {
 		return err
 	}
 
-	entity.UiSchema.SetUserEdited()
+	entity.UISchema.SetUserEdited()
 	_, err = h.modelClient.TemplateVersions().UpdateOne(entity).
-		SetUiSchema(entity.UiSchema).
+		SetUISchema(entity.UISchema).
 		SetSchemaDefaultValue(entity.SchemaDefaultValue).
 		Save(req.Context)
 

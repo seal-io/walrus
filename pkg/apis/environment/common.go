@@ -128,7 +128,7 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 			templateversion.FieldName,
 			templateversion.FieldVersion,
 			templateversion.FieldSchema,
-			templateversion.FieldUiSchema).
+			templateversion.FieldUISchema).
 		All(r.Context)
 	if err != nil {
 		return fmt.Errorf("failed to get template version: %w", err)
@@ -153,7 +153,7 @@ func validateEnvironmentCreateInput(r model.EnvironmentCreateInput) error {
 		case res.Template != nil:
 			// Verify attributes with schema.
 			// TODO(thxCode): migrate schema to ui schema, then reduce if-else.
-			if s := tvm[res.Template.ID].UiSchema; !s.IsEmpty() {
+			if s := tvm[res.Template.ID].UISchema; !s.IsEmpty() {
 				err = res.Attributes.ValidateWith(s.VariableSchema())
 				if err != nil {
 					return fmt.Errorf("invalid variables: violate ui schema: %w", err)

@@ -42,7 +42,7 @@ func applyUserEditedUISchema(ctx context.Context, tv *model.TemplateVersion, mc 
 
 	existed, err := mc.TemplateVersions().Query().
 		Where(ps...).
-		Select(templateversion.FieldUiSchema).
+		Select(templateversion.FieldUISchema).
 		Only(ctx)
 	if err != nil {
 		if model.IsNotFound(err) {
@@ -51,8 +51,8 @@ func applyUserEditedUISchema(ctx context.Context, tv *model.TemplateVersion, mc 
 		return err
 	}
 
-	if existed.UiSchema.IsUserEdited() {
-		tv.UiSchema = existed.UiSchema
+	if existed.UISchema.IsUserEdited() {
+		tv.UISchema = existed.UISchema
 	}
 	return nil
 }

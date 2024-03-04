@@ -124,7 +124,7 @@ func (r *PatchRequest) Validate() error {
 		WithTemplate(func(tvq *model.TemplateVersionQuery) {
 			tvq.Select(
 				templateversion.FieldName,
-				templateversion.FieldUiSchema,
+				templateversion.FieldUISchema,
 				templateversion.FieldSchema,
 				templateversion.FieldVersion)
 		}).
@@ -169,7 +169,7 @@ func (r *PatchRequest) Validate() error {
 				resourcedefinition.FieldName,
 				resourcedefinition.FieldType,
 				resourcedefinition.FieldSchema,
-				resourcedefinition.FieldUiSchema,
+				resourcedefinition.FieldUISchema,
 			).
 			WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
 				rq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
@@ -350,7 +350,7 @@ func (r *CollectionCreateRequest) Validate() error {
 			templateversion.FieldName,
 			templateversion.FieldVersion,
 			templateversion.FieldSchema,
-			templateversion.FieldUiSchema,
+			templateversion.FieldUISchema,
 		).
 		All(r.Context)
 	if err != nil {
@@ -563,7 +563,7 @@ func ValidateCreateInput(rci *model.ResourceCreateInput) error {
 				templateversion.FieldID,
 				templateversion.FieldName,
 				templateversion.FieldSchema,
-				templateversion.FieldUiSchema).
+				templateversion.FieldUISchema).
 			Only(rci.Context)
 		if err != nil {
 			return fmt.Errorf("failed to get template version: %w", err)
@@ -587,7 +587,7 @@ func ValidateCreateInput(rci *model.ResourceCreateInput) error {
 				resourcedefinition.FieldName,
 				resourcedefinition.FieldType,
 				resourcedefinition.FieldSchema,
-				resourcedefinition.FieldUiSchema,
+				resourcedefinition.FieldUISchema,
 			).
 			WithMatchingRules(func(rq *model.ResourceDefinitionMatchingRuleQuery) {
 				rq.Order(model.Asc(resourcedefinitionmatchingrule.FieldOrder)).
@@ -654,7 +654,7 @@ func validateAttributesWithTemplate(
 	attrs property.Values,
 	tv *model.TemplateVersion,
 ) error {
-	if s := tv.UiSchema; !s.IsEmpty() {
+	if s := tv.UISchema; !s.IsEmpty() {
 		injectedAttrs, err := injectAttributes(ctx, client, projectID, environmentID, attrs)
 		if err != nil {
 			return fmt.Errorf("failed to inject attributes before valiate: %w", err)
@@ -677,7 +677,7 @@ func validateAttributesWithResourceDefinition(
 	rd *model.ResourceDefinition,
 ) error {
 	rdo := dao.ExposeResourceDefinition(rd)
-	if s := rdo.UiSchema; !s.IsEmpty() {
+	if s := rdo.UISchema; !s.IsEmpty() {
 		injectedAttrs, err := injectAttributes(ctx, client, projectID, environmentID, attrs)
 		if err != nil {
 			return fmt.Errorf("failed to inject attributes before valiate: %w", err)

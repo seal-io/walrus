@@ -21,7 +21,7 @@ func (r *UpdateRequest) Validate() error {
 		return err
 	}
 
-	err := r.TemplateVersionUpdateInput.UiSchema.Validate()
+	err := r.TemplateVersionUpdateInput.UISchema.Validate()
 	if err != nil {
 		return fmt.Errorf("invalid ui schema: %w", err)
 	}

@@ -25,7 +25,7 @@ func SetResourceDefinitionSchemaDefault(
 
 		rd.Edges.MatchingRules[i].SchemaDefaultValue, err = openapi.GenSchemaDefaultWithAttribute(
 			ctx,
-			tv.UiSchema.VariableSchema(),
+			tv.UISchema.VariableSchema(),
 			rule.Attributes,
 			tv.SchemaDefaultValue,
 		)
@@ -44,7 +44,7 @@ func SetTemplateSchemaDefault(ctx context.Context, tv *model.TemplateVersion) er
 		return err
 	}
 
-	uiSchemaDefault, err := openapi.GenSchemaDefaultPatch(ctx, tv.UiSchema.VariableSchema())
+	uiSchemaDefault, err := openapi.GenSchemaDefaultPatch(ctx, tv.UISchema.VariableSchema())
 	if err != nil {
 		return err
 	}
