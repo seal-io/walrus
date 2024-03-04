@@ -15,9 +15,11 @@ import (
 
 // PerformRunJob performs the run job by the given run.
 // Depending on the run type and status, the deployer will perform different actions.
-func PerformRunJob(ctx context.Context, mc model.ClientSet, dp deptypes.Deployer, run *model.ResourceRun) error {
+func PerformRunJob(ctx context.Context, mc model.ClientSet, dp deptypes.Deployer, run *model.ResourceRun) (err error) {
+	logger := log.WithName("resource-run")
 	if status.ResourceRunStatusCanceled.IsTrue(run) {
-		log.WithName("resource-run").Info("run job is canceled", "run:", run.ID)
+		logger.Info("run job is canceled", "run:", run.ID)
+
 		return nil
 	}
 
@@ -25,6 +27,13 @@ func PerformRunJob(ctx context.Context, mc model.ClientSet, dp deptypes.Deployer
 	if err != nil {
 		return err
 	}
+
+	defer func() {
+		_, rerr := runstatus.UpdateStatusWithErr(ctx, mc, run, err)
+		if rerr != nil {
+			logger.Error(rerr, "failed to update run status", "run:", run.ID)
+		}
+	}()
 
 	switch runJobType {
 	case types.RunTaskTypePlan:
