@@ -855,8 +855,12 @@ func init() {
 	templateversionDescSchema := templateversionFields[4].Descriptor()
 	// templateversion.DefaultSchema holds the default value on creation for the schema field.
 	templateversion.DefaultSchema = templateversionDescSchema.Default.(types.TemplateVersionSchema)
+	// templateversionDescOriginalUISchema is the schema descriptor for original_ui_schema field.
+	templateversionDescOriginalUISchema := templateversionFields[5].Descriptor()
+	// templateversion.DefaultOriginalUISchema holds the default value on creation for the original_ui_schema field.
+	templateversion.DefaultOriginalUISchema = templateversionDescOriginalUISchema.Default.(types.UISchema)
 	// templateversionDescUiSchema is the schema descriptor for uiSchema field.
-	templateversionDescUiSchema := templateversionFields[5].Descriptor()
+	templateversionDescUiSchema := templateversionFields[6].Descriptor()
 	// templateversion.DefaultUiSchema holds the default value on creation for the uiSchema field.
 	templateversion.DefaultUiSchema = templateversionDescUiSchema.Default.(types.UISchema)
 	tokenMixin := schema.Token{}.Mixin()

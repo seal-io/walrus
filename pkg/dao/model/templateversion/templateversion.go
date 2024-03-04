@@ -35,6 +35,8 @@ const (
 	FieldSource = "source"
 	// FieldSchema holds the string denoting the schema field in the database.
 	FieldSchema = "schema"
+	// FieldOriginalUISchema holds the string denoting the original_ui_schema field in the database.
+	FieldOriginalUISchema = "original_ui_schema"
 	// FieldUiSchema holds the string denoting the uischema field in the database.
 	FieldUiSchema = "ui_schema"
 	// FieldSchemaDefaultValue holds the string denoting the schema_default_value field in the database.
@@ -91,6 +93,7 @@ var Columns = []string{
 	FieldVersion,
 	FieldSource,
 	FieldSchema,
+	FieldOriginalUISchema,
 	FieldUiSchema,
 	FieldSchemaDefaultValue,
 	FieldProjectID,
@@ -130,6 +133,8 @@ var (
 	SourceValidator func(string) error
 	// DefaultSchema holds the default value on creation for the "schema" field.
 	DefaultSchema types.TemplateVersionSchema
+	// DefaultOriginalUISchema holds the default value on creation for the "original_ui_schema" field.
+	DefaultOriginalUISchema types.UISchema
 	// DefaultUiSchema holds the default value on creation for the "uiSchema" field.
 	DefaultUiSchema types.UISchema
 )
