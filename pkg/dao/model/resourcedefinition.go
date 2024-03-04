@@ -41,7 +41,7 @@ type ResourceDefinition struct {
 	// Generated schema of the resource definition.
 	Schema types.Schema `json:"schema,omitempty"`
 	// UI schema of the resource definition.
-	UiSchema *types.UISchema `json:"uiSchema,omitempty"`
+	UISchema *types.UISchema `json:"ui_schema,omitempty"`
 	// Indicate whether the resource definition is builtin, decided when creating.
 	Builtin bool `json:"builtin,omitempty,cli-table-column"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -84,7 +84,7 @@ func (*ResourceDefinition) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case resourcedefinition.FieldLabels, resourcedefinition.FieldAnnotations, resourcedefinition.FieldSchema, resourcedefinition.FieldUiSchema:
+		case resourcedefinition.FieldLabels, resourcedefinition.FieldAnnotations, resourcedefinition.FieldSchema, resourcedefinition.FieldUISchema:
 			values[i] = new([]byte)
 		case resourcedefinition.FieldID:
 			values[i] = new(object.ID)
@@ -171,12 +171,12 @@ func (rd *ResourceDefinition) assignValues(columns []string, values []any) error
 					return fmt.Errorf("unmarshal field schema: %w", err)
 				}
 			}
-		case resourcedefinition.FieldUiSchema:
+		case resourcedefinition.FieldUISchema:
 			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field uiSchema", values[i])
+				return fmt.Errorf("unexpected type %T for field ui_schema", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &rd.UiSchema); err != nil {
-					return fmt.Errorf("unmarshal field uiSchema: %w", err)
+				if err := json.Unmarshal(*value, &rd.UISchema); err != nil {
+					return fmt.Errorf("unmarshal field ui_schema: %w", err)
 				}
 			}
 		case resourcedefinition.FieldBuiltin:
@@ -259,8 +259,8 @@ func (rd *ResourceDefinition) String() string {
 	builder.WriteString("schema=")
 	builder.WriteString(fmt.Sprintf("%v", rd.Schema))
 	builder.WriteString(", ")
-	builder.WriteString("uiSchema=")
-	builder.WriteString(fmt.Sprintf("%v", rd.UiSchema))
+	builder.WriteString("ui_schema=")
+	builder.WriteString(fmt.Sprintf("%v", rd.UISchema))
 	builder.WriteString(", ")
 	builder.WriteString("builtin=")
 	builder.WriteString(fmt.Sprintf("%v", rd.Builtin))

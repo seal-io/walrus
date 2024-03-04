@@ -396,14 +396,14 @@ func TypeContainsFold(v string) predicate.ResourceDefinition {
 	return predicate.ResourceDefinition(sql.FieldContainsFold(FieldType, v))
 }
 
-// UiSchemaIsNil applies the IsNil predicate on the "uiSchema" field.
-func UiSchemaIsNil() predicate.ResourceDefinition {
-	return predicate.ResourceDefinition(sql.FieldIsNull(FieldUiSchema))
+// UISchemaIsNil applies the IsNil predicate on the "ui_schema" field.
+func UISchemaIsNil() predicate.ResourceDefinition {
+	return predicate.ResourceDefinition(sql.FieldIsNull(FieldUISchema))
 }
 
-// UiSchemaNotNil applies the NotNil predicate on the "uiSchema" field.
-func UiSchemaNotNil() predicate.ResourceDefinition {
-	return predicate.ResourceDefinition(sql.FieldNotNull(FieldUiSchema))
+// UISchemaNotNil applies the NotNil predicate on the "ui_schema" field.
+func UISchemaNotNil() predicate.ResourceDefinition {
+	return predicate.ResourceDefinition(sql.FieldNotNull(FieldUISchema))
 }
 
 // BuiltinEQ applies the EQ predicate on the "builtin" field.

@@ -116,16 +116,16 @@ func (tvc *TemplateVersionCreate) SetNillableOriginalUISchema(ts *types.UISchema
 	return tvc
 }
 
-// SetUiSchema sets the "uiSchema" field.
-func (tvc *TemplateVersionCreate) SetUiSchema(ts types.UISchema) *TemplateVersionCreate {
-	tvc.mutation.SetUiSchema(ts)
+// SetUISchema sets the "ui_schema" field.
+func (tvc *TemplateVersionCreate) SetUISchema(ts types.UISchema) *TemplateVersionCreate {
+	tvc.mutation.SetUISchema(ts)
 	return tvc
 }
 
-// SetNillableUiSchema sets the "uiSchema" field if the given value is not nil.
-func (tvc *TemplateVersionCreate) SetNillableUiSchema(ts *types.UISchema) *TemplateVersionCreate {
+// SetNillableUISchema sets the "ui_schema" field if the given value is not nil.
+func (tvc *TemplateVersionCreate) SetNillableUISchema(ts *types.UISchema) *TemplateVersionCreate {
 	if ts != nil {
-		tvc.SetUiSchema(*ts)
+		tvc.SetUISchema(*ts)
 	}
 	return tvc
 }
@@ -255,9 +255,9 @@ func (tvc *TemplateVersionCreate) defaults() error {
 		v := templateversion.DefaultOriginalUISchema
 		tvc.mutation.SetOriginalUISchema(v)
 	}
-	if _, ok := tvc.mutation.UiSchema(); !ok {
-		v := templateversion.DefaultUiSchema
-		tvc.mutation.SetUiSchema(v)
+	if _, ok := tvc.mutation.UISchema(); !ok {
+		v := templateversion.DefaultUISchema
+		tvc.mutation.SetUISchema(v)
 	}
 	return nil
 }
@@ -318,12 +318,12 @@ func (tvc *TemplateVersionCreate) check() error {
 			return &ValidationError{Name: "original_ui_schema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.original_ui_schema": %w`, err)}
 		}
 	}
-	if _, ok := tvc.mutation.UiSchema(); !ok {
-		return &ValidationError{Name: "uiSchema", err: errors.New(`model: missing required field "TemplateVersion.uiSchema"`)}
+	if _, ok := tvc.mutation.UISchema(); !ok {
+		return &ValidationError{Name: "ui_schema", err: errors.New(`model: missing required field "TemplateVersion.ui_schema"`)}
 	}
-	if v, ok := tvc.mutation.UiSchema(); ok {
+	if v, ok := tvc.mutation.UISchema(); ok {
 		if err := v.Validate(); err != nil {
-			return &ValidationError{Name: "uiSchema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.uiSchema": %w`, err)}
+			return &ValidationError{Name: "ui_schema", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.ui_schema": %w`, err)}
 		}
 	}
 	if _, ok := tvc.mutation.TemplateID(); !ok {
@@ -394,9 +394,9 @@ func (tvc *TemplateVersionCreate) createSpec() (*TemplateVersion, *sqlgraph.Crea
 		_spec.SetField(templateversion.FieldOriginalUISchema, field.TypeJSON, value)
 		_node.OriginalUISchema = value
 	}
-	if value, ok := tvc.mutation.UiSchema(); ok {
-		_spec.SetField(templateversion.FieldUiSchema, field.TypeJSON, value)
-		_node.UiSchema = value
+	if value, ok := tvc.mutation.UISchema(); ok {
+		_spec.SetField(templateversion.FieldUISchema, field.TypeJSON, value)
+		_node.UISchema = value
 	}
 	if value, ok := tvc.mutation.SchemaDefaultValue(); ok {
 		_spec.SetField(templateversion.FieldSchemaDefaultValue, field.TypeBytes, value)
@@ -501,7 +501,7 @@ func (tvc *TemplateVersionCreate) Set(obj *TemplateVersion) *TemplateVersionCrea
 	tvc.SetSource(obj.Source)
 	tvc.SetSchema(obj.Schema)
 	tvc.SetOriginalUISchema(obj.OriginalUISchema)
-	tvc.SetUiSchema(obj.UiSchema)
+	tvc.SetUISchema(obj.UISchema)
 
 	// Optional.
 	if obj.CreateTime != nil {
@@ -884,15 +884,15 @@ func (u *TemplateVersionUpsert) UpdateOriginalUISchema() *TemplateVersionUpsert 
 	return u
 }
 
-// SetUiSchema sets the "uiSchema" field.
-func (u *TemplateVersionUpsert) SetUiSchema(v types.UISchema) *TemplateVersionUpsert {
-	u.Set(templateversion.FieldUiSchema, v)
+// SetUISchema sets the "ui_schema" field.
+func (u *TemplateVersionUpsert) SetUISchema(v types.UISchema) *TemplateVersionUpsert {
+	u.Set(templateversion.FieldUISchema, v)
 	return u
 }
 
-// UpdateUiSchema sets the "uiSchema" field to the value that was provided on create.
-func (u *TemplateVersionUpsert) UpdateUiSchema() *TemplateVersionUpsert {
-	u.SetExcluded(templateversion.FieldUiSchema)
+// UpdateUISchema sets the "ui_schema" field to the value that was provided on create.
+func (u *TemplateVersionUpsert) UpdateUISchema() *TemplateVersionUpsert {
+	u.SetExcluded(templateversion.FieldUISchema)
 	return u
 }
 
@@ -1022,17 +1022,17 @@ func (u *TemplateVersionUpsertOne) UpdateOriginalUISchema() *TemplateVersionUpse
 	})
 }
 
-// SetUiSchema sets the "uiSchema" field.
-func (u *TemplateVersionUpsertOne) SetUiSchema(v types.UISchema) *TemplateVersionUpsertOne {
+// SetUISchema sets the "ui_schema" field.
+func (u *TemplateVersionUpsertOne) SetUISchema(v types.UISchema) *TemplateVersionUpsertOne {
 	return u.Update(func(s *TemplateVersionUpsert) {
-		s.SetUiSchema(v)
+		s.SetUISchema(v)
 	})
 }
 
-// UpdateUiSchema sets the "uiSchema" field to the value that was provided on create.
-func (u *TemplateVersionUpsertOne) UpdateUiSchema() *TemplateVersionUpsertOne {
+// UpdateUISchema sets the "ui_schema" field to the value that was provided on create.
+func (u *TemplateVersionUpsertOne) UpdateUISchema() *TemplateVersionUpsertOne {
 	return u.Update(func(s *TemplateVersionUpsert) {
-		s.UpdateUiSchema()
+		s.UpdateUISchema()
 	})
 }
 
@@ -1334,17 +1334,17 @@ func (u *TemplateVersionUpsertBulk) UpdateOriginalUISchema() *TemplateVersionUps
 	})
 }
 
-// SetUiSchema sets the "uiSchema" field.
-func (u *TemplateVersionUpsertBulk) SetUiSchema(v types.UISchema) *TemplateVersionUpsertBulk {
+// SetUISchema sets the "ui_schema" field.
+func (u *TemplateVersionUpsertBulk) SetUISchema(v types.UISchema) *TemplateVersionUpsertBulk {
 	return u.Update(func(s *TemplateVersionUpsert) {
-		s.SetUiSchema(v)
+		s.SetUISchema(v)
 	})
 }
 
-// UpdateUiSchema sets the "uiSchema" field to the value that was provided on create.
-func (u *TemplateVersionUpsertBulk) UpdateUiSchema() *TemplateVersionUpsertBulk {
+// UpdateUISchema sets the "ui_schema" field to the value that was provided on create.
+func (u *TemplateVersionUpsertBulk) UpdateUISchema() *TemplateVersionUpsertBulk {
 	return u.Update(func(s *TemplateVersionUpsert) {
-		s.UpdateUiSchema()
+		s.UpdateUISchema()
 	})
 }
 

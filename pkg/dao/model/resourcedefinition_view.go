@@ -33,7 +33,7 @@ type ResourceDefinitionCreateInput struct {
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// UI schema of the resource definition.
-	UiSchema *types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
+	UISchema *types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
 
 	// MatchingRules specifies full inserting the new ResourceDefinitionMatchingRule entities of the ResourceDefinition entity.
 	MatchingRules []*ResourceDefinitionMatchingRuleCreateInput `uri:"-" query:"-" json:"matchingRules,omitempty"`
@@ -51,7 +51,7 @@ func (rdci *ResourceDefinitionCreateInput) Model() *ResourceDefinition {
 		Name:        rdci.Name,
 		Description: rdci.Description,
 		Labels:      rdci.Labels,
-		UiSchema:    rdci.UiSchema,
+		UISchema:    rdci.UISchema,
 	}
 
 	if rdci.MatchingRules != nil {
@@ -115,7 +115,7 @@ type ResourceDefinitionCreateInputsItem struct {
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// UI schema of the resource definition.
-	UiSchema *types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
+	UISchema *types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
 
 	// MatchingRules specifies full inserting the new ResourceDefinitionMatchingRule entities.
 	MatchingRules []*ResourceDefinitionMatchingRuleCreateInput `uri:"-" query:"-" json:"matchingRules,omitempty"`
@@ -172,7 +172,7 @@ func (rdci *ResourceDefinitionCreateInputs) Model() []*ResourceDefinition {
 			Name:        rdci.Items[i].Name,
 			Description: rdci.Items[i].Description,
 			Labels:      rdci.Items[i].Labels,
-			UiSchema:    rdci.Items[i].UiSchema,
+			UISchema:    rdci.Items[i].UISchema,
 		}
 
 		if rdci.Items[i].MatchingRules != nil {
@@ -387,7 +387,7 @@ type ResourceDefinitionPatchInput struct {
 	// Generated schema of the resource definition.
 	Schema types.Schema `path:"-" query:"-" json:"schema,omitempty"`
 	// UI schema of the resource definition.
-	UiSchema *types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
+	UISchema *types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
 	// Indicate whether the resource definition is builtin, decided when creating.
 	Builtin bool `path:"-" query:"-" json:"builtin,omitempty"`
 
@@ -412,7 +412,7 @@ func (rdpi *ResourceDefinitionPatchInput) PatchModel() *ResourceDefinition {
 		UpdateTime:  rdpi.UpdateTime,
 		Type:        rdpi.Type,
 		Schema:      rdpi.Schema,
-		UiSchema:    rdpi.UiSchema,
+		UISchema:    rdpi.UISchema,
 		Builtin:     rdpi.Builtin,
 	}
 
@@ -688,7 +688,7 @@ type ResourceDefinitionUpdateInput struct {
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// UI schema of the resource definition.
-	UiSchema *types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
+	UISchema *types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
 
 	// MatchingRules indicates replacing the stale ResourceDefinitionMatchingRule entities.
 	MatchingRules []*ResourceDefinitionMatchingRuleCreateInput `uri:"-" query:"-" json:"matchingRules,omitempty"`
@@ -706,7 +706,7 @@ func (rdui *ResourceDefinitionUpdateInput) Model() *ResourceDefinition {
 		Name:        rdui.Name,
 		Description: rdui.Description,
 		Labels:      rdui.Labels,
-		UiSchema:    rdui.UiSchema,
+		UISchema:    rdui.UISchema,
 	}
 
 	if rdui.MatchingRules != nil {
@@ -771,7 +771,7 @@ type ResourceDefinitionUpdateInputsItem struct {
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// UI schema of the resource definition.
-	UiSchema *types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
+	UISchema *types.UISchema `path:"-" query:"-" json:"uiSchema,omitempty"`
 
 	// MatchingRules indicates replacing the stale ResourceDefinitionMatchingRule entities.
 	MatchingRules []*ResourceDefinitionMatchingRuleCreateInput `uri:"-" query:"-" json:"matchingRules,omitempty"`
@@ -828,7 +828,7 @@ func (rdui *ResourceDefinitionUpdateInputs) Model() []*ResourceDefinition {
 			Name:        rdui.Items[i].Name,
 			Description: rdui.Items[i].Description,
 			Labels:      rdui.Items[i].Labels,
-			UiSchema:    rdui.Items[i].UiSchema,
+			UISchema:    rdui.Items[i].UISchema,
 		}
 
 		if rdui.Items[i].MatchingRules != nil {
@@ -962,7 +962,7 @@ type ResourceDefinitionOutput struct {
 	UpdateTime  *time.Time        `json:"updateTime,omitempty"`
 	Type        string            `json:"type,cli-table-column,omitempty"`
 	Schema      types.Schema      `json:"schema,omitempty"`
-	UiSchema    *types.UISchema   `json:"uiSchema,omitempty"`
+	UISchema    *types.UISchema   `json:"uiSchema,omitempty"`
 	Builtin     bool              `json:"builtin,cli-table-column,omitempty"`
 
 	MatchingRules []*ResourceDefinitionMatchingRuleOutput `json:"matchingRules,omitempty"`
@@ -993,7 +993,7 @@ func ExposeResourceDefinition(_rd *ResourceDefinition) *ResourceDefinitionOutput
 		UpdateTime:  _rd.UpdateTime,
 		Type:        _rd.Type,
 		Schema:      _rd.Schema,
-		UiSchema:    _rd.UiSchema,
+		UISchema:    _rd.UISchema,
 		Builtin:     _rd.Builtin,
 	}
 

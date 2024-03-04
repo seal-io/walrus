@@ -519,10 +519,10 @@ func init() {
 	resourcedefinitionDescSchema := resourcedefinitionFields[1].Descriptor()
 	// resourcedefinition.DefaultSchema holds the default value on creation for the schema field.
 	resourcedefinition.DefaultSchema = resourcedefinitionDescSchema.Default.(types.Schema)
-	// resourcedefinitionDescUiSchema is the schema descriptor for uiSchema field.
-	resourcedefinitionDescUiSchema := resourcedefinitionFields[2].Descriptor()
-	// resourcedefinition.DefaultUiSchema holds the default value on creation for the uiSchema field.
-	resourcedefinition.DefaultUiSchema = resourcedefinitionDescUiSchema.Default.(*types.UISchema)
+	// resourcedefinitionDescUISchema is the schema descriptor for ui_schema field.
+	resourcedefinitionDescUISchema := resourcedefinitionFields[2].Descriptor()
+	// resourcedefinition.DefaultUISchema holds the default value on creation for the ui_schema field.
+	resourcedefinition.DefaultUISchema = resourcedefinitionDescUISchema.Default.(*types.UISchema)
 	// resourcedefinitionDescBuiltin is the schema descriptor for builtin field.
 	resourcedefinitionDescBuiltin := resourcedefinitionFields[3].Descriptor()
 	// resourcedefinition.DefaultBuiltin holds the default value on creation for the builtin field.
@@ -859,10 +859,10 @@ func init() {
 	templateversionDescOriginalUISchema := templateversionFields[5].Descriptor()
 	// templateversion.DefaultOriginalUISchema holds the default value on creation for the original_ui_schema field.
 	templateversion.DefaultOriginalUISchema = templateversionDescOriginalUISchema.Default.(types.UISchema)
-	// templateversionDescUiSchema is the schema descriptor for uiSchema field.
-	templateversionDescUiSchema := templateversionFields[6].Descriptor()
-	// templateversion.DefaultUiSchema holds the default value on creation for the uiSchema field.
-	templateversion.DefaultUiSchema = templateversionDescUiSchema.Default.(types.UISchema)
+	// templateversionDescUISchema is the schema descriptor for ui_schema field.
+	templateversionDescUISchema := templateversionFields[6].Descriptor()
+	// templateversion.DefaultUISchema holds the default value on creation for the ui_schema field.
+	templateversion.DefaultUISchema = templateversionDescUISchema.Default.(types.UISchema)
 	tokenMixin := schema.Token{}.Mixin()
 	tokenMixinHooks0 := tokenMixin[0].Hooks()
 	token.Hooks[0] = tokenMixinHooks0[0]

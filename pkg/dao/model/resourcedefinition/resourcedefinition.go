@@ -37,8 +37,8 @@ const (
 	FieldType = "type"
 	// FieldSchema holds the string denoting the schema field in the database.
 	FieldSchema = "schema"
-	// FieldUiSchema holds the string denoting the uischema field in the database.
-	FieldUiSchema = "ui_schema"
+	// FieldUISchema holds the string denoting the ui_schema field in the database.
+	FieldUISchema = "ui_schema"
 	// FieldBuiltin holds the string denoting the builtin field in the database.
 	FieldBuiltin = "builtin"
 	// EdgeMatchingRules holds the string denoting the matching_rules edge name in mutations.
@@ -74,7 +74,7 @@ var Columns = []string{
 	FieldUpdateTime,
 	FieldType,
 	FieldSchema,
-	FieldUiSchema,
+	FieldUISchema,
 	FieldBuiltin,
 }
 
@@ -109,8 +109,8 @@ var (
 	UpdateDefaultUpdateTime func() time.Time
 	// DefaultSchema holds the default value on creation for the "schema" field.
 	DefaultSchema types.Schema
-	// DefaultUiSchema holds the default value on creation for the "uiSchema" field.
-	DefaultUiSchema *types.UISchema
+	// DefaultUISchema holds the default value on creation for the "ui_schema" field.
+	DefaultUISchema *types.UISchema
 	// DefaultBuiltin holds the default value on creation for the "builtin" field.
 	DefaultBuiltin bool
 )

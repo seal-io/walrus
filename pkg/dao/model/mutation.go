@@ -14764,7 +14764,7 @@ type ResourceDefinitionMutation struct {
 	update_time           *time.Time
 	_type                 *string
 	schema                *types.Schema
-	uiSchema              **types.UISchema
+	ui_schema             **types.UISchema
 	builtin               *bool
 	clearedFields         map[string]struct{}
 	matching_rules        map[object.ID]struct{}
@@ -15209,53 +15209,53 @@ func (m *ResourceDefinitionMutation) ResetSchema() {
 	m.schema = nil
 }
 
-// SetUiSchema sets the "uiSchema" field.
-func (m *ResourceDefinitionMutation) SetUiSchema(ts *types.UISchema) {
-	m.uiSchema = &ts
+// SetUISchema sets the "ui_schema" field.
+func (m *ResourceDefinitionMutation) SetUISchema(ts *types.UISchema) {
+	m.ui_schema = &ts
 }
 
-// UiSchema returns the value of the "uiSchema" field in the mutation.
-func (m *ResourceDefinitionMutation) UiSchema() (r *types.UISchema, exists bool) {
-	v := m.uiSchema
+// UISchema returns the value of the "ui_schema" field in the mutation.
+func (m *ResourceDefinitionMutation) UISchema() (r *types.UISchema, exists bool) {
+	v := m.ui_schema
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldUiSchema returns the old "uiSchema" field's value of the ResourceDefinition entity.
+// OldUISchema returns the old "ui_schema" field's value of the ResourceDefinition entity.
 // If the ResourceDefinition object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ResourceDefinitionMutation) OldUiSchema(ctx context.Context) (v *types.UISchema, err error) {
+func (m *ResourceDefinitionMutation) OldUISchema(ctx context.Context) (v *types.UISchema, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUiSchema is only allowed on UpdateOne operations")
+		return v, errors.New("OldUISchema is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUiSchema requires an ID field in the mutation")
+		return v, errors.New("OldUISchema requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUiSchema: %w", err)
+		return v, fmt.Errorf("querying old value for OldUISchema: %w", err)
 	}
-	return oldValue.UiSchema, nil
+	return oldValue.UISchema, nil
 }
 
-// ClearUiSchema clears the value of the "uiSchema" field.
-func (m *ResourceDefinitionMutation) ClearUiSchema() {
-	m.uiSchema = nil
-	m.clearedFields[resourcedefinition.FieldUiSchema] = struct{}{}
+// ClearUISchema clears the value of the "ui_schema" field.
+func (m *ResourceDefinitionMutation) ClearUISchema() {
+	m.ui_schema = nil
+	m.clearedFields[resourcedefinition.FieldUISchema] = struct{}{}
 }
 
-// UiSchemaCleared returns if the "uiSchema" field was cleared in this mutation.
-func (m *ResourceDefinitionMutation) UiSchemaCleared() bool {
-	_, ok := m.clearedFields[resourcedefinition.FieldUiSchema]
+// UISchemaCleared returns if the "ui_schema" field was cleared in this mutation.
+func (m *ResourceDefinitionMutation) UISchemaCleared() bool {
+	_, ok := m.clearedFields[resourcedefinition.FieldUISchema]
 	return ok
 }
 
-// ResetUiSchema resets all changes to the "uiSchema" field.
-func (m *ResourceDefinitionMutation) ResetUiSchema() {
-	m.uiSchema = nil
-	delete(m.clearedFields, resourcedefinition.FieldUiSchema)
+// ResetUISchema resets all changes to the "ui_schema" field.
+func (m *ResourceDefinitionMutation) ResetUISchema() {
+	m.ui_schema = nil
+	delete(m.clearedFields, resourcedefinition.FieldUISchema)
 }
 
 // SetBuiltin sets the "builtin" field.
@@ -15461,8 +15461,8 @@ func (m *ResourceDefinitionMutation) Fields() []string {
 	if m.schema != nil {
 		fields = append(fields, resourcedefinition.FieldSchema)
 	}
-	if m.uiSchema != nil {
-		fields = append(fields, resourcedefinition.FieldUiSchema)
+	if m.ui_schema != nil {
+		fields = append(fields, resourcedefinition.FieldUISchema)
 	}
 	if m.builtin != nil {
 		fields = append(fields, resourcedefinition.FieldBuiltin)
@@ -15491,8 +15491,8 @@ func (m *ResourceDefinitionMutation) Field(name string) (ent.Value, bool) {
 		return m.GetType()
 	case resourcedefinition.FieldSchema:
 		return m.Schema()
-	case resourcedefinition.FieldUiSchema:
-		return m.UiSchema()
+	case resourcedefinition.FieldUISchema:
+		return m.UISchema()
 	case resourcedefinition.FieldBuiltin:
 		return m.Builtin()
 	}
@@ -15520,8 +15520,8 @@ func (m *ResourceDefinitionMutation) OldField(ctx context.Context, name string) 
 		return m.OldType(ctx)
 	case resourcedefinition.FieldSchema:
 		return m.OldSchema(ctx)
-	case resourcedefinition.FieldUiSchema:
-		return m.OldUiSchema(ctx)
+	case resourcedefinition.FieldUISchema:
+		return m.OldUISchema(ctx)
 	case resourcedefinition.FieldBuiltin:
 		return m.OldBuiltin(ctx)
 	}
@@ -15589,12 +15589,12 @@ func (m *ResourceDefinitionMutation) SetField(name string, value ent.Value) erro
 		}
 		m.SetSchema(v)
 		return nil
-	case resourcedefinition.FieldUiSchema:
+	case resourcedefinition.FieldUISchema:
 		v, ok := value.(*types.UISchema)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetUiSchema(v)
+		m.SetUISchema(v)
 		return nil
 	case resourcedefinition.FieldBuiltin:
 		v, ok := value.(bool)
@@ -15642,8 +15642,8 @@ func (m *ResourceDefinitionMutation) ClearedFields() []string {
 	if m.FieldCleared(resourcedefinition.FieldAnnotations) {
 		fields = append(fields, resourcedefinition.FieldAnnotations)
 	}
-	if m.FieldCleared(resourcedefinition.FieldUiSchema) {
-		fields = append(fields, resourcedefinition.FieldUiSchema)
+	if m.FieldCleared(resourcedefinition.FieldUISchema) {
+		fields = append(fields, resourcedefinition.FieldUISchema)
 	}
 	return fields
 }
@@ -15668,8 +15668,8 @@ func (m *ResourceDefinitionMutation) ClearField(name string) error {
 	case resourcedefinition.FieldAnnotations:
 		m.ClearAnnotations()
 		return nil
-	case resourcedefinition.FieldUiSchema:
-		m.ClearUiSchema()
+	case resourcedefinition.FieldUISchema:
+		m.ClearUISchema()
 		return nil
 	}
 	return fmt.Errorf("unknown ResourceDefinition nullable field %s", name)
@@ -15703,8 +15703,8 @@ func (m *ResourceDefinitionMutation) ResetField(name string) error {
 	case resourcedefinition.FieldSchema:
 		m.ResetSchema()
 		return nil
-	case resourcedefinition.FieldUiSchema:
-		m.ResetUiSchema()
+	case resourcedefinition.FieldUISchema:
+		m.ResetUISchema()
 		return nil
 	case resourcedefinition.FieldBuiltin:
 		m.ResetBuiltin()
@@ -24177,7 +24177,7 @@ type TemplateVersionMutation struct {
 	source                      *string
 	schema                      *types.TemplateVersionSchema
 	original_ui_schema          *types.UISchema
-	uiSchema                    *types.UISchema
+	ui_schema                   *types.UISchema
 	schema_default_value        *[]byte
 	clearedFields               map[string]struct{}
 	template                    *object.ID
@@ -24587,40 +24587,40 @@ func (m *TemplateVersionMutation) ResetOriginalUISchema() {
 	m.original_ui_schema = nil
 }
 
-// SetUiSchema sets the "uiSchema" field.
-func (m *TemplateVersionMutation) SetUiSchema(ts types.UISchema) {
-	m.uiSchema = &ts
+// SetUISchema sets the "ui_schema" field.
+func (m *TemplateVersionMutation) SetUISchema(ts types.UISchema) {
+	m.ui_schema = &ts
 }
 
-// UiSchema returns the value of the "uiSchema" field in the mutation.
-func (m *TemplateVersionMutation) UiSchema() (r types.UISchema, exists bool) {
-	v := m.uiSchema
+// UISchema returns the value of the "ui_schema" field in the mutation.
+func (m *TemplateVersionMutation) UISchema() (r types.UISchema, exists bool) {
+	v := m.ui_schema
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldUiSchema returns the old "uiSchema" field's value of the TemplateVersion entity.
+// OldUISchema returns the old "ui_schema" field's value of the TemplateVersion entity.
 // If the TemplateVersion object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TemplateVersionMutation) OldUiSchema(ctx context.Context) (v types.UISchema, err error) {
+func (m *TemplateVersionMutation) OldUISchema(ctx context.Context) (v types.UISchema, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUiSchema is only allowed on UpdateOne operations")
+		return v, errors.New("OldUISchema is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUiSchema requires an ID field in the mutation")
+		return v, errors.New("OldUISchema requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUiSchema: %w", err)
+		return v, fmt.Errorf("querying old value for OldUISchema: %w", err)
 	}
-	return oldValue.UiSchema, nil
+	return oldValue.UISchema, nil
 }
 
-// ResetUiSchema resets all changes to the "uiSchema" field.
-func (m *TemplateVersionMutation) ResetUiSchema() {
-	m.uiSchema = nil
+// ResetUISchema resets all changes to the "ui_schema" field.
+func (m *TemplateVersionMutation) ResetUISchema() {
+	m.ui_schema = nil
 }
 
 // SetSchemaDefaultValue sets the "schema_default_value" field.
@@ -24942,8 +24942,8 @@ func (m *TemplateVersionMutation) Fields() []string {
 	if m.original_ui_schema != nil {
 		fields = append(fields, templateversion.FieldOriginalUISchema)
 	}
-	if m.uiSchema != nil {
-		fields = append(fields, templateversion.FieldUiSchema)
+	if m.ui_schema != nil {
+		fields = append(fields, templateversion.FieldUISchema)
 	}
 	if m.schema_default_value != nil {
 		fields = append(fields, templateversion.FieldSchemaDefaultValue)
@@ -24975,8 +24975,8 @@ func (m *TemplateVersionMutation) Field(name string) (ent.Value, bool) {
 		return m.Schema()
 	case templateversion.FieldOriginalUISchema:
 		return m.OriginalUISchema()
-	case templateversion.FieldUiSchema:
-		return m.UiSchema()
+	case templateversion.FieldUISchema:
+		return m.UISchema()
 	case templateversion.FieldSchemaDefaultValue:
 		return m.SchemaDefaultValue()
 	case templateversion.FieldProjectID:
@@ -25006,8 +25006,8 @@ func (m *TemplateVersionMutation) OldField(ctx context.Context, name string) (en
 		return m.OldSchema(ctx)
 	case templateversion.FieldOriginalUISchema:
 		return m.OldOriginalUISchema(ctx)
-	case templateversion.FieldUiSchema:
-		return m.OldUiSchema(ctx)
+	case templateversion.FieldUISchema:
+		return m.OldUISchema(ctx)
 	case templateversion.FieldSchemaDefaultValue:
 		return m.OldSchemaDefaultValue(ctx)
 	case templateversion.FieldProjectID:
@@ -25077,12 +25077,12 @@ func (m *TemplateVersionMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetOriginalUISchema(v)
 		return nil
-	case templateversion.FieldUiSchema:
+	case templateversion.FieldUISchema:
 		v, ok := value.(types.UISchema)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetUiSchema(v)
+		m.SetUISchema(v)
 		return nil
 	case templateversion.FieldSchemaDefaultValue:
 		v, ok := value.([]byte)
@@ -25186,8 +25186,8 @@ func (m *TemplateVersionMutation) ResetField(name string) error {
 	case templateversion.FieldOriginalUISchema:
 		m.ResetOriginalUISchema()
 		return nil
-	case templateversion.FieldUiSchema:
-		m.ResetUiSchema()
+	case templateversion.FieldUISchema:
+		m.ResetUISchema()
 		return nil
 	case templateversion.FieldSchemaDefaultValue:
 		m.ResetSchemaDefaultValue()

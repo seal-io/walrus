@@ -43,7 +43,7 @@ type TemplateVersion struct {
 	// store the original ui schema of the template.
 	OriginalUISchema types.UISchema `json:"original_ui_schema,omitempty"`
 	// ui schema of the template.
-	UiSchema types.UISchema `json:"uiSchema,omitempty"`
+	UISchema types.UISchema `json:"ui_schema,omitempty"`
 	// Default value generated from schema and ui schema
 	SchemaDefaultValue []byte `json:"schema_default_value,omitempty"`
 	// ID of the project to belong, empty means for all projects.
@@ -118,7 +118,7 @@ func (*TemplateVersion) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case templateversion.FieldSchema, templateversion.FieldOriginalUISchema, templateversion.FieldUiSchema, templateversion.FieldSchemaDefaultValue:
+		case templateversion.FieldSchema, templateversion.FieldOriginalUISchema, templateversion.FieldUISchema, templateversion.FieldSchemaDefaultValue:
 			values[i] = new([]byte)
 		case templateversion.FieldID, templateversion.FieldTemplateID, templateversion.FieldProjectID:
 			values[i] = new(object.ID)
@@ -201,12 +201,12 @@ func (tv *TemplateVersion) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field original_ui_schema: %w", err)
 				}
 			}
-		case templateversion.FieldUiSchema:
+		case templateversion.FieldUISchema:
 			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field uiSchema", values[i])
+				return fmt.Errorf("unexpected type %T for field ui_schema", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &tv.UiSchema); err != nil {
-					return fmt.Errorf("unmarshal field uiSchema: %w", err)
+				if err := json.Unmarshal(*value, &tv.UISchema); err != nil {
+					return fmt.Errorf("unmarshal field ui_schema: %w", err)
 				}
 			}
 		case templateversion.FieldSchemaDefaultValue:
@@ -305,8 +305,8 @@ func (tv *TemplateVersion) String() string {
 	builder.WriteString("original_ui_schema=")
 	builder.WriteString(fmt.Sprintf("%v", tv.OriginalUISchema))
 	builder.WriteString(", ")
-	builder.WriteString("uiSchema=")
-	builder.WriteString(fmt.Sprintf("%v", tv.UiSchema))
+	builder.WriteString("ui_schema=")
+	builder.WriteString(fmt.Sprintf("%v", tv.UISchema))
 	builder.WriteString(", ")
 	builder.WriteString("schema_default_value=")
 	builder.WriteString(fmt.Sprintf("%v", tv.SchemaDefaultValue))
