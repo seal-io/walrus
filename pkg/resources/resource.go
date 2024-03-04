@@ -73,11 +73,6 @@ func UpdateResourceSubjectID(ctx context.Context, mc model.ClientSet, resources 
 	return nil
 }
 
-const (
-	summaryStatusDeploying   = "Deploying"
-	summaryStatusProgressing = "Progressing"
-)
-
 // CheckDependencyStatus check resource dependencies status is ready to apply.
 // Resource with dependencies cannot be applied directly,
 // it must wait for dependencies to be ready.

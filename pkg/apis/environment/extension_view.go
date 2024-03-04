@@ -115,7 +115,7 @@ func (r *RouteStopRequest) Validate() error {
 	stoppableResourceIDs := make([]object.ID, 0, len(resources))
 
 	for _, r := range resources {
-		if pkgresource.IsStoppable(r) {
+		if pkgresource.IsStoppable(r) && pkgresource.CanBeStopped(r) {
 			stoppableResources = append(stoppableResources, r)
 			stoppableResourceIDs = append(stoppableResourceIDs, r.ID)
 		}

@@ -207,7 +207,7 @@ func Delete(ctx context.Context, mc model.ClientSet, entity *model.Resource, opt
 
 // Start starts the resource.
 func Start(ctx context.Context, mc model.ClientSet, entity *model.Resource, opts Options) (*model.ResourceRun, error) {
-	if resstatus.IsInactive(entity) {
+	if !resstatus.IsInactive(entity) {
 		return nil, fmt.Errorf("cannot start resource %q: in %q status", entity.Name, entity.Status.SummaryStatus)
 	}
 
@@ -237,13 +237,8 @@ func upgrade(
 
 	// Update Status and ave the resource.
 	if opts.Draft {
-		if !resstatus.IsInactive(entity) {
-			return nil, fmt.Errorf(
-				"cannot save resource %q to draft: in %q status",
-				entity.Name,
-				entity.Status.SummaryStatus,
-			)
-		}
+		status.ResourceStatusUnDeployed.True(entity, "Draft")
+		entity.Status.SetSummary(status.WalkResource(&entity.Status))
 
 		err := mc.Resources().UpdateOne(entity).
 			Set(entity).
@@ -251,6 +246,8 @@ func upgrade(
 		if err != nil {
 			return nil, err
 		}
+
+		return nil, nil
 	}
 
 	if err := SetSubjectID(ctx, entity); err != nil {
