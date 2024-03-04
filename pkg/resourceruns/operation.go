@@ -221,7 +221,8 @@ func Create(ctx context.Context, mc model.ClientSet, opts CreateOptions) (*model
 
 	// Cancel the previous planed run if new run is created.
 	if prevEntity != nil && prevEntity.Status.SummaryStatus == string(status.ResourceRunStatusPlanned) {
-		status.ResourceRunStatusCanceled.Reset(prevEntity, "canceled by new run")
+		status.ResourceRunStatusCanceled.Reset(prevEntity, "")
+		status.ResourceRunStatusCanceled.True(prevEntity, "canceled by new run")
 		entity.Status.SetSummary(status.WalkResourceRun(&prevEntity.Status))
 
 		_, err = runstatus.UpdateStatus(ctx, mc, prevEntity)
