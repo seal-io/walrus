@@ -238,6 +238,10 @@ func (h Handler) RouteGetOutputs(req RouteGetOutputsRequest) (RouteGetOutputsRes
 }
 
 func (h Handler) getResourceOutputs(resource *model.Resource) ([]types.OutputValue, error) {
+	if resource.Edges.State == nil {
+		return nil, nil
+	}
+
 	var p tfparser.StateParser
 
 	o, err := p.GetOriginalOutputs(resource.Edges.State.Data, resource.Name)
