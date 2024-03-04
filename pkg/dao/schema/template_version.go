@@ -70,7 +70,7 @@ func (TemplateVersion) Fields() []ent.Field {
 			Default(types.UISchema{}).
 			Annotations(
 				entx.SkipIO()),
-		field.JSON("uiSchema", types.UISchema{}).
+		field.JSON("ui_schema", types.UISchema{}).
 			Comment("ui schema of the template.").
 			Default(types.UISchema{}).
 			Annotations(
