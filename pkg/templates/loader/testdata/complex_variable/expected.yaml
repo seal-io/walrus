@@ -1,38 +1,92 @@
-openAPISchema:
-  components:
-    schemas:
-      variables:
-        properties:
-          any:
-            title: Any
-            type: object
-            x-walrus-original:
-              type: dynamic
-            x-walrus-ui:
-              colSpan: 12
-              group: Basic
-              order: 1
-              widget: YamlEditor
-          any_map:
-            additionalProperties:
+schema:
+  openAPISchema:
+    components:
+      schemas:
+        variables:
+          properties:
+            any:
+              title: Any
               type: object
               x-walrus-original:
                 type: dynamic
               x-walrus-ui:
                 colSpan: 12
-            title: Any Map
-            type: object
-            x-walrus-original:
-              type:
-              - map
-              - dynamic
-            x-walrus-ui:
-              colSpan: 12
-              group: Basic
-              order: 2
-              widget: YamlEditor
-          list_object:
-            items:
+                group: Basic
+                order: 1
+                widget: YamlEditor
+            any_map:
+              additionalProperties:
+                type: object
+                x-walrus-original:
+                  type: dynamic
+                x-walrus-ui:
+                  colSpan: 12
+              title: Any Map
+              type: object
+              x-walrus-original:
+                type:
+                - map
+                - dynamic
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 2
+                widget: YamlEditor
+            list_object:
+              items:
+                properties:
+                  a:
+                    title: A
+                    type: string
+                    x-walrus-original:
+                      type: string
+                    x-walrus-ui:
+                      order: 1
+                  b:
+                    title: B
+                    type: number
+                    x-walrus-original:
+                      type: number
+                    x-walrus-ui:
+                      order: 2
+                  c:
+                    title: C
+                    type: boolean
+                    x-walrus-original:
+                      type: bool
+                    x-walrus-ui:
+                      order: 3
+                required:
+                - a
+                - b
+                - c
+                type: object
+                x-walrus-original:
+                  type:
+                  - object
+                  - a: string
+                    b: number
+                    c: bool
+                x-walrus-ui:
+                  colSpan: 12
+              title: List Object
+              type: array
+              x-walrus-original:
+                type:
+                - list
+                - - object
+                  - a: string
+                    b: number
+                    c: bool
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 7
+            object:
+              default:
+                a: a
+                b: 1
+                c: true
               properties:
                 a:
                   title: A
@@ -59,6 +113,7 @@ openAPISchema:
               - a
               - b
               - c
+              title: Object
               type: object
               x-walrus-original:
                 type:
@@ -68,230 +123,370 @@ openAPISchema:
                   c: bool
               x-walrus-ui:
                 colSpan: 12
-            title: List Object
-            type: array
-            x-walrus-original:
-              type:
-              - list
-              - - object
-                - a: string
-                  b: number
-                  c: bool
-            x-walrus-ui:
-              colSpan: 12
-              group: Basic
-              order: 7
-          object:
-            default:
-              a: a
-              b: 1
-              c: true
-            properties:
-              a:
-                title: A
-                type: string
-                x-walrus-original:
+                group: Basic
+                order: 5
+            object_nested:
+              default:
+                a: a
+                b:
+                - c: true
+              properties:
+                a:
+                  title: A
                   type: string
-                x-walrus-ui:
-                  order: 1
-              b:
-                title: B
-                type: number
-                x-walrus-original:
-                  type: number
-                x-walrus-ui:
-                  order: 2
-              c:
-                title: C
-                type: boolean
-                x-walrus-original:
-                  type: bool
-                x-walrus-ui:
-                  order: 3
-            required:
-            - a
-            - b
-            - c
-            title: Object
-            type: object
-            x-walrus-original:
-              type:
-              - object
-              - a: string
-                b: number
-                c: bool
-            x-walrus-ui:
-              colSpan: 12
-              group: Basic
-              order: 5
-          object_nested:
-            default:
-              a: a
-              b:
-              - c: true
-            properties:
-              a:
-                title: A
-                type: string
-                x-walrus-original:
-                  type: string
-                x-walrus-ui:
-                  order: 1
-              b:
-                items:
-                  properties:
-                    c:
-                      title: C
-                      type: boolean
-                      x-walrus-original:
-                        type: bool
-                      x-walrus-ui:
-                        order: 1
-                  required:
-                  - c
-                  type: object
+                  x-walrus-original:
+                    type: string
+                  x-walrus-ui:
+                    order: 1
+                b:
+                  items:
+                    properties:
+                      c:
+                        title: C
+                        type: boolean
+                        x-walrus-original:
+                          type: bool
+                        x-walrus-ui:
+                          order: 1
+                    required:
+                    - c
+                    type: object
+                    x-walrus-original:
+                      type:
+                      - object
+                      - c: bool
+                    x-walrus-ui:
+                      colSpan: 12
+                  title: B
+                  type: array
                   x-walrus-original:
                     type:
-                    - object
-                    - c: bool
+                    - list
+                    - - object
+                      - c: bool
                   x-walrus-ui:
                     colSpan: 12
-                title: B
-                type: array
-                x-walrus-original:
-                  type:
+                    order: 2
+              required:
+              - a
+              - b
+              title: Object Nested
+              type: object
+              x-walrus-original:
+                type:
+                - object
+                - a: string
+                  b:
                   - list
                   - - object
                     - c: bool
-                x-walrus-ui:
-                  colSpan: 12
-                  order: 2
-            required:
-            - a
-            - b
-            title: Object Nested
-            type: object
-            x-walrus-original:
-              type:
-              - object
-              - a: string
-                b:
-                - list
-                - - object
-                  - c: bool
-            x-walrus-ui:
-              colSpan: 12
-              group: Basic
-              order: 6
-          object_tuple:
-            properties:
-              data:
-                default:
-                - foo
-                - true
-                items:
-                  type: object
-                title: Data
-                type: array
-                x-walrus-original:
-                  type:
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 6
+            object_tuple:
+              properties:
+                data:
+                  default:
+                  - foo
+                  - true
+                  items:
+                    type: object
+                  title: Data
+                  type: array
+                  x-walrus-original:
+                    type:
+                    - tuple
+                    - - string
+                      - bool
+                  x-walrus-ui:
+                    colSpan: 12
+                    order: 1
+              title: Object Tuple
+              type: object
+              x-walrus-original:
+                type:
+                - object
+                - data:
                   - tuple
                   - - string
                     - bool
-                x-walrus-ui:
-                  colSpan: 12
-                  order: 1
-            title: Object Tuple
-            type: object
-            x-walrus-original:
-              type:
-              - object
-              - data:
+                - - data
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 9
+            string_map:
+              additionalProperties:
+                type: string
+                x-walrus-original:
+                  type: string
+              default:
+                a: a
+                b: "1"
+                c: "true"
+              title: String Map
+              type: object
+              x-walrus-original:
+                type:
+                - map
+                - string
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 3
+            string_slice:
+              default:
+              - x
+              - "y"
+              - z
+              items:
+                type: string
+                x-walrus-original:
+                  type: string
+              title: String Slice
+              type: array
+              x-walrus-original:
+                type:
+                - list
+                - string
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 4
+            tuple:
+              items:
+                type: object
+              title: Tuple
+              type: array
+              x-walrus-original:
+                type:
                 - tuple
                 - - string
                   - bool
-              - - data
-            x-walrus-ui:
-              colSpan: 12
-              group: Basic
-              order: 9
-          string_map:
-            additionalProperties:
-              type: string
-              x-walrus-original:
-                type: string
-            default:
-              a: a
-              b: "1"
-              c: "true"
-            title: String Map
-            type: object
-            x-walrus-original:
-              type:
-              - map
-              - string
-            x-walrus-ui:
-              colSpan: 12
-              group: Basic
-              order: 3
-          string_slice:
-            default:
-            - x
-            - "y"
-            - z
-            items:
-              type: string
-              x-walrus-original:
-                type: string
-            title: String Slice
-            type: array
-            x-walrus-original:
-              type:
-              - list
-              - string
-            x-walrus-ui:
-              colSpan: 12
-              group: Basic
-              order: 4
-          tuple:
-            items:
-              type: object
-            title: Tuple
-            type: array
-            x-walrus-original:
-              type:
-              - tuple
-              - - string
-                - bool
-                - number
-            x-walrus-ui:
-              colSpan: 12
-              group: Basic
-              order: 8
-        required:
-        - any
-        - list_object
-        - object_tuple
-        - tuple
-        type: object
-        x-walrus-original:
-          sequence:
+                  - number
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 8
+          required:
           - any
-          - any_map
-          - string_map
-          - string_slice
-          - object
-          - object_nested
           - list_object
-          - tuple
           - object_tuple
-        x-walrus-ui:
-          groupOrder:
-          - Basic
-  info:
-    title: OpenAPI schema for template dev-template
-    version: ""
-  openapi: 3.0.3
-  paths: null
-readme: ""
-requiredProviders: null
+          - tuple
+          type: object
+          x-walrus-original:
+            sequence:
+            - any
+            - any_map
+            - string_map
+            - string_slice
+            - object
+            - object_nested
+            - list_object
+            - tuple
+            - object_tuple
+          x-walrus-ui:
+            groupOrder:
+            - Basic
+    info:
+      title: OpenAPI schema for template dev-template
+      version: ""
+    openapi: 3.0.3
+    paths: null
+  readme: ""
+  requiredProviders: null
+uiSchema:
+  openAPISchema:
+    components:
+      schemas:
+        variables:
+          properties:
+            any:
+              title: Any
+              type: object
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 1
+                widget: YamlEditor
+            any_map:
+              additionalProperties:
+                type: object
+                x-walrus-ui:
+                  colSpan: 12
+              title: Any Map
+              type: object
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 2
+                widget: YamlEditor
+            list_object:
+              items:
+                properties:
+                  a:
+                    title: A
+                    type: string
+                    x-walrus-ui:
+                      order: 1
+                  b:
+                    title: B
+                    type: number
+                    x-walrus-ui:
+                      order: 2
+                  c:
+                    title: C
+                    type: boolean
+                    x-walrus-ui:
+                      order: 3
+                required:
+                - a
+                - b
+                - c
+                type: object
+                x-walrus-ui:
+                  colSpan: 12
+              title: List Object
+              type: array
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 7
+            object:
+              default:
+                a: a
+                b: 1
+                c: true
+              properties:
+                a:
+                  title: A
+                  type: string
+                  x-walrus-ui:
+                    order: 1
+                b:
+                  title: B
+                  type: number
+                  x-walrus-ui:
+                    order: 2
+                c:
+                  title: C
+                  type: boolean
+                  x-walrus-ui:
+                    order: 3
+              required:
+              - a
+              - b
+              - c
+              title: Object
+              type: object
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 5
+            object_nested:
+              default:
+                a: a
+                b:
+                - c: true
+              properties:
+                a:
+                  title: A
+                  type: string
+                  x-walrus-ui:
+                    order: 1
+                b:
+                  items:
+                    properties:
+                      c:
+                        title: C
+                        type: boolean
+                        x-walrus-ui:
+                          order: 1
+                    required:
+                    - c
+                    type: object
+                    x-walrus-ui:
+                      colSpan: 12
+                  title: B
+                  type: array
+                  x-walrus-ui:
+                    colSpan: 12
+                    order: 2
+              required:
+              - a
+              - b
+              title: Object Nested
+              type: object
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 6
+            object_tuple:
+              properties:
+                data:
+                  default:
+                  - foo
+                  - true
+                  items:
+                    type: object
+                  title: Data
+                  type: array
+                  x-walrus-ui:
+                    colSpan: 12
+                    order: 1
+              title: Object Tuple
+              type: object
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 9
+            string_map:
+              additionalProperties:
+                type: string
+              default:
+                a: a
+                b: "1"
+                c: "true"
+              title: String Map
+              type: object
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 3
+            string_slice:
+              default:
+              - x
+              - "y"
+              - z
+              items:
+                type: string
+              title: String Slice
+              type: array
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 4
+            tuple:
+              items:
+                type: object
+              title: Tuple
+              type: array
+              x-walrus-ui:
+                colSpan: 12
+                group: Basic
+                order: 8
+          required:
+          - any
+          - list_object
+          - object_tuple
+          - tuple
+          type: object
+          x-walrus-ui:
+            groupOrder:
+            - Basic
+    info:
+      title: OpenAPI schema for template dev-template
+      version: ""
+    openapi: 3.0.3
+    paths: null

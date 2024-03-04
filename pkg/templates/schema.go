@@ -8,32 +8,17 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model/predicate"
 	"github.com/seal-io/walrus/pkg/dao/model/templateversion"
 	"github.com/seal-io/walrus/pkg/templates/loader"
-	"github.com/seal-io/walrus/pkg/templates/openapi"
 )
 
 // getSchemas returns template version schema and ui schema from a git repository.
-func getSchemas(rootDir, templateName string) (*schemaGroup, error) {
+func getSchemas(rootDir, templateName string) (*loader.SchemaGroup, error) {
 	// Load schema.
-	originSchema, err := loader.LoadOriginalSchema(rootDir, templateName)
+	s, err := loader.LoadSchema(rootDir, templateName)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = originSchema.Validate(); err != nil {
-		return nil, fmt.Errorf("error validate schema for %s: %w", templateName, err)
-	}
-
-	fileSchema, err := loader.LoadFileSchema(rootDir, templateName)
-	if err != nil {
-		return nil, fmt.Errorf("error load file schema for %s: %w", templateName, err)
-	}
-
-	uiSchema := originSchema.Expose(openapi.WalrusContextVariableName)
-	if fileSchema != nil && !fileSchema.IsEmpty() {
-		uiSchema = fileSchema.Expose()
-	}
-
-	satisfy, err := isConstraintSatisfied(fileSchema)
+	satisfy, err := isConstraintSatisfied(s.UISchema)
 	if err != nil {
 		return nil, fmt.Errorf("error check server version constraint for %s: %w", templateName, err)
 	}
@@ -42,10 +27,7 @@ func getSchemas(rootDir, templateName string) (*schemaGroup, error) {
 		return nil, fmt.Errorf("%s does not satisfy server version constraint", templateName)
 	}
 
-	return &schemaGroup{
-		UISchema: &uiSchema,
-		Schema:   originSchema,
-	}, nil
+	return s, nil
 }
 
 // applySchemaDefault applies exist user edit schema to ui schema.
