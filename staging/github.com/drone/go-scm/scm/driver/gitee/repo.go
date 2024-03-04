@@ -110,6 +110,7 @@ type repository struct {
 	Name          string    `json:"name"`
 	FullName      string    `json:"full_name"`
 	HumanName     string    `json:"human_name"`
+	Description   string    `json:"description"`
 	Path          string    `json:"path"`
 	Public        bool      `json:"public"`
 	Private       bool      `json:"private"`
@@ -126,6 +127,13 @@ type repository struct {
 		Push  bool `json:"push"`
 		Pull  bool `json:"pull"`
 	} `json:"permission"`
+	ProjectLabels []projectLabel `json:"project_labels"`
+}
+
+type projectLabel struct {
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
+	Ident string `json:"ident"`
 }
 
 type hook struct {
@@ -162,9 +170,10 @@ func convertRepositoryList(from []*repository) []*scm.Repository {
 }
 func convertRepository(from *repository) *scm.Repository {
 	return &scm.Repository{
-		ID:        strconv.Itoa(from.ID),
-		Name:      from.Path,
-		Namespace: from.Namespace.Path,
+		ID:          strconv.Itoa(from.ID),
+		Name:        from.Path,
+		Namespace:   from.Namespace.Path,
+		Description: from.Description,
 		Perm: &scm.Perm{
 			Push:  from.Permission.Push,
 			Pull:  from.Permission.Pull,
@@ -175,9 +184,18 @@ func convertRepository(from *repository) *scm.Repository {
 		Private:  from.Private,
 		Clone:    from.HtmlURL,
 		CloneSSH: from.SshURL,
+		Topics:   convertTopics(from.ProjectLabels),
 		Created:  from.CreatedAt,
 		Updated:  from.UpdatedAt,
 	}
+}
+
+func convertTopics(from []projectLabel) []string {
+	var topics []string
+	for _, v := range from {
+		topics = append(topics, v.Name)
+	}
+	return topics
 }
 
 func convertHookList(from []*hook) []*scm.Hook {

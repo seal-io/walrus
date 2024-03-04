@@ -20,7 +20,11 @@ type pullService struct {
 
 func (s *pullService) Find(ctx context.Context, repo string, index int) (*scm.PullRequest, *scm.Response, error) {
 	harnessURI := buildHarnessURI(s.client.account, s.client.organization, s.client.project, repo)
-	path := fmt.Sprintf("api/v1/repos/%s/pullreq/%d", harnessURI, index)
+	repoId, queryParams, err := getRepoAndQueryParams(harnessURI)
+	if err != nil {
+		return nil, nil, err
+	}
+	path := fmt.Sprintf("api/v1/repos/%s/pullreq/%d?%s", repoId, index, queryParams)
 	out := new(pr)
 	res, err := s.client.do(ctx, "GET", path, nil, out)
 	return convertPullRequest(out), res, err
@@ -33,7 +37,11 @@ func (s *pullService) FindComment(context.Context, string, int, int) (*scm.Comme
 
 func (s *pullService) List(ctx context.Context, repo string, opts scm.PullRequestListOptions) ([]*scm.PullRequest, *scm.Response, error) {
 	harnessURI := buildHarnessURI(s.client.account, s.client.organization, s.client.project, repo)
-	path := fmt.Sprintf("api/v1/repos/%s/pullreq?%s", harnessURI, encodePullRequestListOptions(opts))
+	repoId, queryParams, err := getRepoAndQueryParams(harnessURI)
+	if err != nil {
+		return nil, nil, err
+	}
+	path := fmt.Sprintf("api/v1/repos/%s/pullreq?%s&%s", repoId, encodePullRequestListOptions(opts), queryParams)
 	out := []*pr{}
 	res, err := s.client.do(ctx, "GET", path, nil, &out)
 	return convertPullRequestList(out), res, err
@@ -45,7 +53,11 @@ func (s *pullService) ListComments(context.Context, string, int, scm.ListOptions
 
 func (s *pullService) ListCommits(ctx context.Context, repo string, index int, opts scm.ListOptions) ([]*scm.Commit, *scm.Response, error) {
 	harnessURI := buildHarnessURI(s.client.account, s.client.organization, s.client.project, repo)
-	path := fmt.Sprintf("api/v1/repos/%s/pullreq/%d/commits?%s", harnessURI, index, encodeListOptions(opts))
+	repoId, queryParams, err := getRepoAndQueryParams(harnessURI)
+	if err != nil {
+		return nil, nil, err
+	}
+	path := fmt.Sprintf("api/v1/repos/%s/pullreq/%d/commits?%s&%s", repoId, index, encodeListOptions(opts), queryParams)
 	out := []*commit{}
 	res, err := s.client.do(ctx, "GET", path, nil, &out)
 	return convertCommits(out), res, err
@@ -53,7 +65,11 @@ func (s *pullService) ListCommits(ctx context.Context, repo string, index int, o
 
 func (s *pullService) ListChanges(ctx context.Context, repo string, number int, _ scm.ListOptions) ([]*scm.Change, *scm.Response, error) {
 	harnessURI := buildHarnessURI(s.client.account, s.client.organization, s.client.project, repo)
-	path := fmt.Sprintf("api/v1/repos/%s/pullreq/%d/diff", harnessURI, number)
+	repoId, queryParams, err := getRepoAndQueryParams(harnessURI)
+	if err != nil {
+		return nil, nil, err
+	}
+	path := fmt.Sprintf("api/v1/repos/%s/pullreq/%d/diff?%s", repoId, number, queryParams)
 	out := []*fileDiff{}
 	res, err := s.client.do(ctx, "POST", path, nil, &out)
 	return convertFileDiffs(out), res, err
@@ -61,7 +77,11 @@ func (s *pullService) ListChanges(ctx context.Context, repo string, number int, 
 
 func (s *pullService) Create(ctx context.Context, repo string, input *scm.PullRequestInput) (*scm.PullRequest, *scm.Response, error) {
 	harnessURI := buildHarnessURI(s.client.account, s.client.organization, s.client.project, repo)
-	path := fmt.Sprintf("api/v1/repos/%s/pullreq", harnessURI)
+	repoId, queryParams, err := getRepoAndQueryParams(harnessURI)
+	if err != nil {
+		return nil, nil, err
+	}
+	path := fmt.Sprintf("api/v1/repos/%s/pullreq?%s", repoId, queryParams)
 	in := &prInput{
 		Title:        input.Title,
 		Description:  input.Body,
@@ -74,8 +94,12 @@ func (s *pullService) Create(ctx context.Context, repo string, input *scm.PullRe
 }
 
 func (s *pullService) CreateComment(ctx context.Context, repo string, prNumber int, input *scm.CommentInput) (*scm.Comment, *scm.Response, error) {
-	harnessQueryParams := fmt.Sprintf("?accountIdentifier=%s&orgIdentifier=%s&projectIdentifier=%s", s.client.account, s.client.organization, s.client.project)
-	path := fmt.Sprintf("api/v1/repos/%s/pullreq/%d/comments%s", repo, prNumber, harnessQueryParams)
+	harnessURI := buildHarnessURI(s.client.account, s.client.organization, s.client.project, repo)
+	repoId, queryParams, err := getRepoAndQueryParams(harnessURI)
+	if err != nil {
+		return nil, nil, err
+	}
+	path := fmt.Sprintf("api/v1/repos/%s/pullreq/%d/comments?%s", repoId, prNumber, queryParams)
 	in := &prComment{
 		Text: input.Body,
 	}

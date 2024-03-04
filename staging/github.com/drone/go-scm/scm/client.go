@@ -80,6 +80,8 @@ type (
 	RepoListOptions struct {
 		ListOptions
 		RepoSearchTerm
+
+		IncludePrivate bool
 	}
 
 	// RepoSearchTerm specifies searchable parameters.

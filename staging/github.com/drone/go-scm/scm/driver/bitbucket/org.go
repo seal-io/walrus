@@ -34,6 +34,10 @@ func (s *organizationService) List(ctx context.Context, opts scm.ListOptions) ([
 	return convertOrganizationList(out), res, err
 }
 
+func (s *organizationService) ListRepositories(ctx context.Context, name string, opts scm.ListOptions) ([]*scm.Repository, *scm.Response, error) {
+	return nil, nil, scm.ErrNotSupported
+}
+
 func convertOrganizationList(from *organizationList) []*scm.Organization {
 	to := []*scm.Organization{}
 	for _, v := range from.Values {

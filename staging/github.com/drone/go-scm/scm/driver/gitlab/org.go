@@ -34,6 +34,13 @@ func (s *organizationService) List(ctx context.Context, opts scm.ListOptions) ([
 	return convertOrganizationList(out), res, err
 }
 
+func (s *organizationService) ListRepositories(ctx context.Context, name string, opts scm.ListOptions) ([]*scm.Repository, *scm.Response, error) {
+	path := fmt.Sprintf("api/v4/groups/%s/projects?%s", encode(name), encodeListOptions(opts))
+	out := []*repository{}
+	res, err := s.client.do(ctx, "GET", path, nil, &out)
+	return convertRepositoryList(out), res, err
+}
+
 type organization struct {
 	Name   string      `json:"name"`
 	Path   string      `json:"path"`

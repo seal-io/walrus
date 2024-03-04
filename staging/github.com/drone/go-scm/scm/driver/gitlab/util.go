@@ -79,6 +79,10 @@ func encodeRepoListOptions(opts scm.RepoListOptions) string {
 			params.Set("per_page", strconv.Itoa(opts.ListOptions.Size))
 		}
 	}
+	if !opts.IncludePrivate {
+		params.Add("visibility", "public")
+		params.Add("visibility", "internal")
+	}
 	return params.Encode()
 }
 

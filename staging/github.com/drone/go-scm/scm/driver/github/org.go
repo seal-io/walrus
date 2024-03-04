@@ -36,6 +36,13 @@ func (s *organizationService) List(ctx context.Context, opts scm.ListOptions) ([
 	return convertOrganizationList(out), res, err
 }
 
+func (s *organizationService) ListRepositories(ctx context.Context, name string, opts scm.ListOptions) ([]*scm.Repository, *scm.Response, error) {
+	path := fmt.Sprintf("orgs/%s/repos?%s", name, encodeListOptions(opts))
+	out := []*repository{}
+	res, err := s.client.do(ctx, "GET", path, nil, &out)
+	return convertRepositoryList(out), res, err
+}
+
 func convertOrganizationList(from []*organization) []*scm.Organization {
 	to := []*scm.Organization{}
 	for _, v := range from {

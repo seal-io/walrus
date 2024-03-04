@@ -37,6 +37,10 @@ func (s *gitService) FindBranch(ctx context.Context, repo, name string) (*scm.Re
 	return nil, nil, scm.ErrNotSupported
 }
 
+func (s *gitService) CreateCommit(ctx context.Context, repo string, opts *scm.CommitInput) (*scm.Commit, *scm.Response, error) {
+	return nil, nil, scm.ErrNotSupported
+}
+
 func (s *gitService) FindCommit(ctx context.Context, repo, ref string) (*scm.Commit, *scm.Response, error) {
 	// https://docs.microsoft.com/en-us/rest/api/azure/devops/git/commits/get?view=azure-devops-rest-6.0#get-by-id
 	if s.client.project == "" {

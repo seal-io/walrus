@@ -19,6 +19,7 @@ import (
 type repository struct {
 	ID            int         `json:"id"`
 	Path          string      `json:"path"`
+	Description   string      `json:"description"`
 	PathNamespace string      `json:"path_with_namespace"`
 	DefaultBranch string      `json:"default_branch"`
 	Visibility    string      `json:"visibility"`
@@ -26,6 +27,7 @@ type repository struct {
 	WebURL        string      `json:"web_url"`
 	SSHURL        string      `json:"ssh_url_to_repo"`
 	HTTPURL       string      `json:"http_url_to_repo"`
+	Topics        []string    `json:"topics"`
 	Namespace     namespace   `json:"namespace"`
 	Permissions   permissions `json:"permissions"`
 }
@@ -195,11 +197,13 @@ func convertRepository(from *repository) *scm.Repository {
 		Clone:      from.HTTPURL,
 		CloneSSH:   from.SSHURL,
 		Link:       from.WebURL,
+		Topics:     from.Topics,
 		Perm: &scm.Perm{
 			Pull:  true,
 			Push:  canPush(from),
 			Admin: canAdmin(from),
 		},
+		Description: from.Description,
 	}
 	if path := from.Namespace.FullPath; path != "" {
 		to.Namespace = path

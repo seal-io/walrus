@@ -35,6 +35,20 @@ type (
 		Link      string
 	}
 
+	// CommitInput provides the input fields required for
+	// creating a git commit.
+	CommitInput struct {
+		Message string
+		Base    string
+		Blobs   []Blob
+	}
+
+	Blob struct {
+		Path    string
+		Mode    string
+		Content string
+	}
+
 	// CommitListOptions provides options for querying a
 	// list of repository commits.
 	CommitListOptions struct {
@@ -63,6 +77,9 @@ type (
 
 		// FindBranch finds a git branch by name.
 		FindBranch(ctx context.Context, repo, name string) (*Reference, *Response, error)
+
+		// CreateCommit creates a git commit.
+		CreateCommit(ctx context.Context, repo string, opts *CommitInput) (*Commit, *Response, error)
 
 		// FindCommit finds a git commit by ref.
 		FindCommit(ctx context.Context, repo, ref string) (*Commit, *Response, error)

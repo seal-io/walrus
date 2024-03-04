@@ -32,6 +32,10 @@ func (s *organizationService) List(ctx context.Context, _ scm.ListOptions) ([]*s
 	return convertOrgList(out), res, err
 }
 
+func (s *organizationService) ListRepositories(ctx context.Context, name string, opts scm.ListOptions) ([]*scm.Repository, *scm.Response, error) {
+	return nil, nil, scm.ErrNotSupported
+}
+
 //
 // native data structures
 //

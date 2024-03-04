@@ -32,6 +32,46 @@ func (s *gitService) FindBranch(ctx context.Context, repo, name string) (*scm.Re
 	return convertBranch(out), res, err
 }
 
+func (s *gitService) CreateCommit(ctx context.Context, repo string, opts *scm.CommitInput) (*scm.Commit, *scm.Response, error) {
+	tree, res, err := s.createTree(ctx, repo, opts)
+	if err != nil {
+		return nil, res, err
+	}
+
+	path := fmt.Sprintf("repos/%s/git/commits", repo)
+	in := new(commitInput)
+	in.Message = opts.Message
+	in.Tree = tree.Sha
+	in.Parents = []string{opts.Base}
+	out := new(commit)
+	res, err = s.client.do(ctx, "POST", path, in, out)
+	if err != nil {
+		return nil, res, err
+	}
+
+	return convertCommit(out), res, err
+}
+
+func (s *gitService) createTree(ctx context.Context, repo string, opts *scm.CommitInput) (*gitTree, *scm.Response, error) {
+	path := fmt.Sprintf("repos/%s/git/trees", repo)
+	owner, repo := scm.Split(repo)
+	in := new(gitTree)
+	in.BaseTree = opts.Base
+	in.Owner = owner
+	in.Repo = repo
+	for _, b := range opts.Blobs {
+		in.Tree = append(in.Tree, blob{
+			Path:    b.Path,
+			Mode:    b.Mode,
+			Type:    "commit",
+			Content: b.Content,
+		})
+	}
+	out := new(gitTree)
+	res, err := s.client.do(ctx, "POST", path, in, out)
+	return out, res, err
+}
+
 func (s *gitService) FindCommit(ctx context.Context, repo, ref string) (*scm.Commit, *scm.Response, error) {
 	path := fmt.Sprintf("repos/%s/commits/%s", repo, ref)
 	out := new(commit)
@@ -123,6 +163,29 @@ type commit struct {
 		Login     string `json:"login"`
 	} `json:"committer"`
 	Files []*file `json:"files"`
+}
+
+type commitInput struct {
+	Message string   `json:"message"`
+	Tree    string   `json:"tree"`
+	Parents []string `json:"parents"`
+}
+
+type gitTree struct {
+	Sha      string `json:"sha"`
+	URL      string `json:"url"`
+	Owner    string `json:"owner"`
+	Repo     string `json:"repo"`
+	Tree     []blob `json:"tree"`
+	BaseTree string `json:"base_tree"`
+}
+
+type blob struct {
+	Path    string `json:"path,omitempty"`
+	Mode    string `json:"mode,omitempty"`
+	Type    string `json:"type,omitempty"`
+	Sha     string `json:"sha,omitempty"`
+	Content string `json:"content,omitempty"`
 }
 
 type ref struct {

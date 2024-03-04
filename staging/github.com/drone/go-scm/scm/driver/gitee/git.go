@@ -33,6 +33,10 @@ func (s *gitService) FindBranch(ctx context.Context, repo, name string) (*scm.Re
 	return convertBranch(out), res, err
 }
 
+func (s *gitService) CreateCommit(ctx context.Context, repo string, opts *scm.CommitInput) (*scm.Commit, *scm.Response, error) {
+	return nil, nil, scm.ErrNotSupported
+}
+
 func (s *gitService) FindCommit(ctx context.Context, repo, ref string) (*scm.Commit, *scm.Response, error) {
 	path := fmt.Sprintf("repos/%s/commits/%s", repo, ref)
 	out := new(commit)
@@ -100,7 +104,7 @@ type branchCreate struct {
 }
 
 type branch struct {
-	//Links         string `json:"_links"`
+	// Links         string `json:"_links"`
 	Name          string `json:"name"`
 	Commit        tree   `json:"commit"`
 	Protected     bool   `json:"protected"`

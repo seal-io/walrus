@@ -32,5 +32,8 @@ type (
 
 		// List returns the user organization list.
 		List(ctx context.Context, opts ListOptions) ([]*Organization, *Response, error)
+
+		// ListRepositories returns the repositories for an organization.
+		ListRepositories(ctx context.Context, name string, opts ListOptions) ([]*Repository, *Response, error)
 	}
 )

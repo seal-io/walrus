@@ -28,6 +28,10 @@ func (s *gitService) FindBranch(ctx context.Context, repo, name string) (*scm.Re
 	return convertBranch(out), res, err
 }
 
+func (s *gitService) CreateCommit(ctx context.Context, repo string, opts *scm.CommitInput) (*scm.Commit, *scm.Response, error) {
+	return nil, nil, scm.ErrNotSupported
+}
+
 func (s *gitService) FindCommit(ctx context.Context, repo, ref string) (*scm.Commit, *scm.Response, error) {
 	ref = scm.TrimRef(ref)
 	path := fmt.Sprintf("api/v1/repos/%s/git/commits/%s", repo, url.PathEscape(ref))

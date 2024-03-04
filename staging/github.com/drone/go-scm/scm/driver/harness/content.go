@@ -18,8 +18,12 @@ type contentService struct {
 }
 
 func (s *contentService) Find(ctx context.Context, repo, path, ref string) (*scm.Content, *scm.Response, error) {
-	repo = buildHarnessURI(s.client.account, s.client.organization, s.client.project, repo)
-	endpoint := fmt.Sprintf("api/v1/repos/%s/content/%s?git_ref=%s&include_commit=true", repo, path, ref)
+	slug := buildHarnessURI(s.client.account, s.client.organization, s.client.project, repo)
+	repoId, queryParams, err := getRepoAndQueryParams(slug)
+	if err != nil {
+		return nil, nil, err
+	}
+	endpoint := fmt.Sprintf("api/v1/repos/%s/content/%s?git_ref=%s&include_commit=true&%s", repoId, path, ref, queryParams)
 	out := new(fileContent)
 	res, err := s.client.do(ctx, "GET", endpoint, nil, out)
 	// decode raw output content
@@ -33,8 +37,12 @@ func (s *contentService) Find(ctx context.Context, repo, path, ref string) (*scm
 }
 
 func (s *contentService) Create(ctx context.Context, repo, path string, params *scm.ContentParams) (*scm.Response, error) {
-	repo = buildHarnessURI(s.client.account, s.client.organization, s.client.project, repo)
-	endpoint := fmt.Sprintf("api/v1/repos/%s/commits", repo)
+	slug := buildHarnessURI(s.client.account, s.client.organization, s.client.project, repo)
+	repoId, queryParams, err := getRepoAndQueryParams(slug)
+	if err != nil {
+		return nil, err
+	}
+	endpoint := fmt.Sprintf("api/v1/repos/%s/commits?%s", repoId, queryParams)
 	a := action{
 		Action:   "CREATE",
 		Path:     path,
@@ -53,8 +61,12 @@ func (s *contentService) Create(ctx context.Context, repo, path string, params *
 }
 
 func (s *contentService) Update(ctx context.Context, repo, path string, params *scm.ContentParams) (*scm.Response, error) {
-	repo = buildHarnessURI(s.client.account, s.client.organization, s.client.project, repo)
-	endpoint := fmt.Sprintf("api/v1/repos/%s/commits", repo)
+	slug := buildHarnessURI(s.client.account, s.client.organization, s.client.project, repo)
+	repoId, queryParams, err := getRepoAndQueryParams(slug)
+	if err != nil {
+		return nil, err
+	}
+	endpoint := fmt.Sprintf("api/v1/repos/%s/commits?%s", repoId, queryParams)
 	a := action{
 		Action:   "UPDATE",
 		Path:     path,
@@ -74,8 +86,12 @@ func (s *contentService) Update(ctx context.Context, repo, path string, params *
 }
 
 func (s *contentService) Delete(ctx context.Context, repo, path string, params *scm.ContentParams) (*scm.Response, error) {
-	repo = buildHarnessURI(s.client.account, s.client.organization, s.client.project, repo)
-	endpoint := fmt.Sprintf("api/v1/repos/%s/commits", repo)
+	slug := buildHarnessURI(s.client.account, s.client.organization, s.client.project, repo)
+	repoId, queryParams, err := getRepoAndQueryParams(slug)
+	if err != nil {
+		return nil, err
+	}
+	endpoint := fmt.Sprintf("api/v1/repos/%s/commits?%s", repoId, queryParams)
 	a := action{
 		Action:   "DELETE",
 		Path:     path,
@@ -93,8 +109,12 @@ func (s *contentService) Delete(ctx context.Context, repo, path string, params *
 }
 
 func (s *contentService) List(ctx context.Context, repo, path, ref string, _ scm.ListOptions) ([]*scm.ContentInfo, *scm.Response, error) {
-	repo = buildHarnessURI(s.client.account, s.client.organization, s.client.project, repo)
-	endpoint := fmt.Sprintf("api/v1/repos/%s/content/%s?git_ref=%s&include_commit=true", repo, path, ref)
+	slug := buildHarnessURI(s.client.account, s.client.organization, s.client.project, repo)
+	repoId, queryParams, err := getRepoAndQueryParams(slug)
+	if err != nil {
+		return nil, nil, err
+	}
+	endpoint := fmt.Sprintf("api/v1/repos/%s/content/%s?git_ref=%s&include_commit=true&%s", repoId, path, ref, queryParams)
 	out := new(contentList)
 	res, err := s.client.do(ctx, "GET", endpoint, nil, &out)
 	return convertContentInfoList(out.Content.Entries), res, err

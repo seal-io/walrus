@@ -47,6 +47,9 @@ func encodeRepoListOptions(opts scm.RepoListOptions) string {
 			sb.WriteString(strconv.Itoa(opts.ListOptions.Size))
 		}
 	}
+	if !opts.IncludePrivate {
+		sb.WriteString("&visibility=public")
+	}
 	return sb.String()
 }
 
