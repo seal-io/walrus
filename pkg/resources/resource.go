@@ -9,6 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/walrus/pkg/auths/session"
+	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
@@ -93,34 +94,6 @@ func CheckDependencyStatus(
 			resourcerelationship.DependencyIDNEQ(entity.ID),
 		).
 		QueryDependency().
-		Select(resource.FieldID).
-		Where(
-			resource.Or(
-				func(s *sql.Selector) {
-					s.Where(sqljson.ValueEQ(
-						resource.FieldStatus,
-						summaryStatusDeploying,
-						sqljson.Path("summaryStatus"),
-					))
-				},
-				resource.And(
-					func(s *sql.Selector) {
-						s.Where(sqljson.ValueEQ(
-							resource.FieldStatus,
-							summaryStatusProgressing,
-							sqljson.Path("summaryStatus"),
-						))
-					},
-					func(s *sql.Selector) {
-						s.Where(sqljson.ValueEQ(
-							resource.FieldStatus,
-							true,
-							sqljson.Path("transitioning"),
-						))
-					},
-				),
-			),
-		).
 		All(ctx)
 	if err != nil {
 		return false, err
@@ -130,13 +103,42 @@ func CheckDependencyStatus(
 		return true, nil
 	}
 
+	var (
+		// Dependencies that are not ready.
+		notReadyDependencies = make([]*model.Resource, 0, len(dependencies))
+		resIDs               = make([]object.ID, 0, len(dependencies))
+		dependencyMap        = make(map[object.ID]*model.Resource, len(dependencies))
+	)
+	for _, d := range dependencies {
+		// If the resource status is ready or deployed, dependency is ready.
+		if status.ResourceStatusReady.IsTrue(d) || status.ResourceStatusDeployed.IsTrue(d) {
+			continue
+		}
+
+		resIDs = append(resIDs, d.ID)
+		dependencyMap[d.ID] = d
+	}
+
+	latestRuns, err := dao.GetResourcesLatestRuns(ctx, mc, resIDs...)
+	if err != nil {
+		return false, err
+	}
+
+	for i := range latestRuns {
+		run := latestRuns[i]
+		// If the resource run is not applied, resource is not ready.
+		if !status.ResourceRunStatusApplied.IsTrue(run) {
+			notReadyDependencies = append(notReadyDependencies, dependencyMap[run.ResourceID])
+		}
+	}
+
 	if status.ResourceStatusProgressing.IsUnknown(entity) {
 		return false, nil
 	}
 
 	// Set status to progressing with a dependency message.
 	dependencyNames := sets.NewString()
-	for _, d := range dependencies {
+	for _, d := range notReadyDependencies {
 		dependencyNames.Insert(d.Name)
 	}
 	msg := fmt.Sprintf("Waiting for dependent resources to be ready: %s", strs.Join(", ", dependencyNames.List()...))

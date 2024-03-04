@@ -98,8 +98,8 @@ func (s syncer) Do(ctx context.Context, bm runbus.BusMessage) (err error) {
 			status.ResourceStatusReady.Unknown(entity, "")
 		}
 	case runstatus.IsStatusFailed(run):
-		// If plan failed, resource status will not change.
-		if status.ResourceRunStatusPlanned.IsFalse(run) {
+		// If job fail, and preview is true, then we should not update the resource status.
+		if status.ResourceRunStatusPlanned.IsFalse(run) && run.Preview {
 			return nil
 		}
 

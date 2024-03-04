@@ -90,3 +90,14 @@ func UpdateStatus(ctx context.Context, mc model.ClientSet, run *model.ResourceRu
 
 	return run, nil
 }
+
+// UpdateStatusWithErr updates the status of the resource run with the given error.
+func UpdateStatusWithErr(ctx context.Context, mc model.ClientSet, run *model.ResourceRun, err error) (*model.ResourceRun, error) {
+	if err == nil {
+		return run, nil
+	}
+
+	SetStatusFalse(run, err.Error())
+
+	return UpdateStatus(ctx, mc, run)
+}

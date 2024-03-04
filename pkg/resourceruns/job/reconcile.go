@@ -96,7 +96,7 @@ func (r Reconciler) syncRunStatus(ctx context.Context, job *batchv1.Job) (err er
 
 	if job.Status.Failed > 0 {
 		r.Logger.Info("failed", "resource-run", runID)
-		runstatus.SetStatusFalse(run, "run job failed")
+		runstatus.SetStatusFalse(run, "please check the logs")
 		// Clear component changes and summary when run failed.
 		update.ClearComponentChanges().
 			ClearComponentChangeSummary()
