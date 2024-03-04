@@ -144,7 +144,6 @@ func (h Handler) Update(req UpdateRequest) error {
 
 var (
 	queryFields = []string{
-		subject.FieldDomain,
 		subject.FieldName,
 	}
 	getFields = subject.WithoutFields(
