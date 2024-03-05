@@ -232,9 +232,10 @@ func (h Handler) RouteClone(req RouteCloneEnvironmentRequest) (*RouteCloneEnviro
 	}
 
 	return createEnvironment(req.Context, h.modelClient, entity, pkgresource.Options{
-		Deployer: dp,
-		Draft:    req.Draft,
-		Preview:  req.Preview,
+		StorageManager: h.storageManager,
+		Deployer:       dp,
+		Draft:          req.Draft,
+		Preview:        req.Preview,
 	})
 }
 
@@ -344,8 +345,9 @@ func (h Handler) RouteStart(req RouteStartRequest) error {
 		}
 
 		return pkgresource.CollectionStart(req.Context, tx, toStartResources, pkgresource.Options{
-			Deployer: dp,
-			Preview:  req.Preview,
+			StorageManager: h.storageManager,
+			Deployer:       dp,
+			Preview:        req.Preview,
 		})
 	})
 	if err != nil {
@@ -368,8 +370,9 @@ func (h Handler) RouteStop(req RouteStopRequest) error {
 		}
 
 		destroyOpts := pkgresource.Options{
-			Deployer: dp,
-			Preview:  req.Preview,
+			StorageManager: h.storageManager,
+			Deployer:       dp,
+			Preview:        req.Preview,
 		}
 
 		return pkgresource.CollectionStop(req.Context, tx, req.stoppableResources, destroyOpts)

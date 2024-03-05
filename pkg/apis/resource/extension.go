@@ -27,10 +27,11 @@ func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 	}
 
 	_, err = pkgresource.Upgrade(req.Context, h.modelClient, entity, pkgresource.Options{
-		Deployer:      dp,
-		ChangeComment: req.ChangeComment,
-		Draft:         req.Draft,
-		Preview:       req.Preview,
+		StorageManager: h.storageManager,
+		Deployer:       dp,
+		ChangeComment:  req.ChangeComment,
+		Draft:          req.Draft,
+		Preview:        req.Preview,
 	})
 	if err != nil {
 		return err
@@ -51,8 +52,10 @@ func (h Handler) RouteRollback(req RouteRollbackRequest) error {
 		req.ID,
 		req.RunID,
 		pkgresource.Options{
-			Deployer:      dp,
-			ChangeComment: req.ChangeComment,
+			StorageManager: h.storageManager,
+			Deployer:       dp,
+			ChangeComment:  req.ChangeComment,
+			Preview:        req.Preview,
 		})
 }
 
@@ -65,8 +68,9 @@ func (h Handler) RouteStart(req RouteStartRequest) (*RouteStartResponse, error) 
 	}
 
 	run, err := pkgresource.Start(req.Context, h.modelClient, entity, pkgresource.Options{
-		Deployer:      dp,
-		ChangeComment: req.ChangeComment,
+		StorageManager: h.storageManager,
+		Deployer:       dp,
+		ChangeComment:  req.ChangeComment,
 	})
 	if err != nil {
 		return nil, err
@@ -85,8 +89,9 @@ func (h Handler) RouteStop(req RouteStopRequest) error {
 	}
 
 	opts := pkgresource.Options{
-		Deployer:      dp,
-		ChangeComment: req.ChangeComment,
+		StorageManager: h.storageManager,
+		Deployer:       dp,
+		ChangeComment:  req.ChangeComment,
 	}
 
 	entity, err := h.modelClient.Resources().Query().
@@ -311,8 +316,9 @@ func (h Handler) CollectionRouteStart(req CollectionRouteStartRequest) error {
 	}
 
 	return pkgresource.CollectionStart(req.Context, h.modelClient, resources, pkgresource.Options{
-		Deployer:      dp,
-		ChangeComment: req.ChangeComment,
+		StorageManager: h.storageManager,
+		Deployer:       dp,
+		ChangeComment:  req.ChangeComment,
 	})
 }
 
@@ -323,8 +329,9 @@ func (h Handler) CollectionRouteStop(req CollectionRouteStopRequest) error {
 	}
 
 	opts := pkgresource.Options{
-		Deployer:      dp,
-		ChangeComment: req.ChangeComment,
+		StorageManager: h.storageManager,
+		Deployer:       dp,
+		ChangeComment:  req.ChangeComment,
 	}
 
 	return pkgresource.CollectionStop(req.Context, h.modelClient, req.Resources, opts)
@@ -339,8 +346,9 @@ func (h Handler) CollectionRouteUpgrade(req CollectionRouteUpgradeRequest) error
 	}
 
 	return pkgresource.CollectionUpgrade(req.Context, h.modelClient, resources, pkgresource.Options{
-		Deployer:      dp,
-		ChangeComment: req.ChangeComment,
-		Draft:         req.Draft,
+		StorageManager: h.storageManager,
+		Deployer:       dp,
+		ChangeComment:  req.ChangeComment,
+		Draft:          req.Draft,
 	})
 }

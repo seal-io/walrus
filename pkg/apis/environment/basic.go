@@ -34,9 +34,10 @@ func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 	}
 
 	return createEnvironment(req.Context, h.modelClient, req.Model(), pkgresource.Options{
-		Deployer: dp,
-		Draft:    false,
-		Preview:  req.Preview,
+		StorageManager: h.storageManager,
+		Deployer:       dp,
+		Draft:          false,
+		Preview:        req.Preview,
 	})
 }
 

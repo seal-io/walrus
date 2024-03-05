@@ -18,6 +18,7 @@ import (
 	runjob "github.com/seal-io/walrus/pkg/resourceruns/job"
 	runstatus "github.com/seal-io/walrus/pkg/resourceruns/status"
 	resstatus "github.com/seal-io/walrus/pkg/resources/status"
+	"github.com/seal-io/walrus/pkg/storage"
 	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
 )
@@ -31,6 +32,8 @@ const (
 type Options struct {
 	// Deployer The deployer type to perform the resource run.
 	Deployer deptypes.Deployer
+	// StorageManager is the storage manager.
+	StorageManager *storage.Manager
 
 	// Draft if resource is in draft status.
 	Draft bool
@@ -109,11 +112,12 @@ func Create(
 
 		// Create resource run.
 		run, err = pkgrun.Create(ctx, tx, pkgrun.CreateOptions{
-			ResourceID:    entity.ID,
-			DeployerType:  opts.Deployer.Type(),
-			Type:          types.RunTypeCreate,
-			ChangeComment: opts.ChangeComment,
-			Preview:       opts.Preview,
+			StorageManager: opts.StorageManager,
+			ResourceID:     entity.ID,
+			DeployerType:   opts.Deployer.Type(),
+			Type:           types.RunTypeCreate,
+			ChangeComment:  opts.ChangeComment,
+			Preview:        opts.Preview,
 		})
 
 		return err
@@ -190,11 +194,12 @@ func Delete(ctx context.Context, mc model.ClientSet, entity *model.Resource, opt
 	defer errorHandler(mc, entity, run, status.ResourceStatusDeleted, err)
 
 	run, err = pkgrun.Create(ctx, mc, pkgrun.CreateOptions{
-		ResourceID:    entity.ID,
-		DeployerType:  opts.Deployer.Type(),
-		Type:          types.RunTypeDelete,
-		ChangeComment: opts.ChangeComment,
-		Preview:       opts.Preview,
+		StorageManager: opts.StorageManager,
+		ResourceID:     entity.ID,
+		DeployerType:   opts.Deployer.Type(),
+		Type:           types.RunTypeDelete,
+		ChangeComment:  opts.ChangeComment,
+		Preview:        opts.Preview,
 	})
 	if err != nil {
 		return err
@@ -271,11 +276,12 @@ func upgrade(
 	defer errorHandler(mc, entity, run, status.ResourceStatusDeployed, err)
 
 	run, err = pkgrun.Create(ctx, mc, pkgrun.CreateOptions{
-		ResourceID:    entity.ID,
-		DeployerType:  opts.Deployer.Type(),
-		Type:          opts.RunType,
-		ChangeComment: opts.ChangeComment,
-		Preview:       opts.Preview,
+		StorageManager: opts.StorageManager,
+		ResourceID:     entity.ID,
+		DeployerType:   opts.Deployer.Type(),
+		Type:           opts.RunType,
+		ChangeComment:  opts.ChangeComment,
+		Preview:        opts.Preview,
 	})
 	if err != nil {
 		return nil, err
@@ -339,11 +345,12 @@ func Stop(ctx context.Context, mc model.ClientSet, entity *model.Resource, opts 
 	defer errorHandler(mc, entity, run, status.ResourceStatusStopped, err)
 
 	run, err = pkgrun.Create(ctx, mc, pkgrun.CreateOptions{
-		ResourceID:    entity.ID,
-		DeployerType:  opts.Deployer.Type(),
-		Type:          types.RunTypeStop,
-		ChangeComment: opts.ChangeComment,
-		Preview:       opts.Preview,
+		StorageManager: opts.StorageManager,
+		ResourceID:     entity.ID,
+		DeployerType:   opts.Deployer.Type(),
+		Type:           types.RunTypeStop,
+		ChangeComment:  opts.ChangeComment,
+		Preview:        opts.Preview,
 	})
 	if err != nil {
 		return err
@@ -420,11 +427,12 @@ func Rollback(ctx context.Context, mc model.ClientSet, resourceID, runID object.
 
 	// Create resource run.
 	run, err = pkgrun.Create(ctx, mc, pkgrun.CreateOptions{
-		ResourceID:    entity.ID,
-		DeployerType:  opts.Deployer.Type(),
-		Type:          types.RunTypeRollback,
-		ChangeComment: opts.ChangeComment,
-		Preview:       opts.Preview,
+		StorageManager: opts.StorageManager,
+		ResourceID:     entity.ID,
+		DeployerType:   opts.Deployer.Type(),
+		Type:           types.RunTypeRollback,
+		ChangeComment:  opts.ChangeComment,
+		Preview:        opts.Preview,
 	})
 	if err != nil {
 		return err

@@ -201,7 +201,8 @@ func (h Handler) RouteDeleteResources(req RouteDeleteResourcesRequest) error {
 
 	return pkgresource.CollectionDelete(req.Context, h.modelClient, resources, pkgresource.DeleteOptions{
 		Options: pkgresource.Options{
-			Deployer: dp,
+			StorageManager: h.storageManager,
+			Deployer:       dp,
 		},
 		WithoutCleanup: req.WithoutCleanup,
 	})
@@ -214,8 +215,9 @@ func (h Handler) RouteUpgradeResources(req RouteUpgradeResourcesRequest) error {
 	}
 
 	return pkgresource.CollectionUpgrade(req.Context, h.modelClient, req.Model(), pkgresource.Options{
-		Deployer:      dp,
-		ChangeComment: req.ChangeComment,
+		StorageManager: h.storageManager,
+		Deployer:       dp,
+		ChangeComment:  req.ChangeComment,
 	})
 }
 
