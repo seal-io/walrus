@@ -52,7 +52,17 @@ func PerformRunJob(ctx context.Context, mc model.ClientSet, dp deptypes.Deployer
 			return err
 		}
 
-		return dp.Apply(ctx, mc, run, deptypes.ApplyOptions{})
+		err = dp.Apply(ctx, mc, run, deptypes.ApplyOptions{})
+		if err != nil {
+			status.ResourceStatusDeployed.False(res, err.Error())
+			if rerr := resstatus.UpdateStatus(ctx, mc, res); rerr != nil {
+				logger.Errorf("failed to update resource status, resource: %s, error: %s", res.ID, rerr)
+			}
+
+			return err
+		}
+
+		return nil
 	case types.RunTaskTypeDestroy:
 		res, err := mc.Resources().Get(ctx, run.ResourceID)
 		if err != nil {
@@ -65,13 +75,31 @@ func PerformRunJob(ctx context.Context, mc model.ClientSet, dp deptypes.Deployer
 			status.ResourceStatusStopped.Reset(res, "")
 		case types.RunTypeDelete:
 			status.ResourceStatusDeleted.Reset(res, "")
+		default:
+			return fmt.Errorf("unsupported run type %s for destroy", run.Type)
 		}
 
 		if err = resstatus.UpdateStatus(ctx, mc, res); err != nil {
 			return err
 		}
 
-		return dp.Destroy(ctx, mc, run, deptypes.DestroyOptions{})
+		err = dp.Destroy(ctx, mc, run, deptypes.DestroyOptions{})
+		if err != nil {
+			switch types.RunType(run.Type) {
+			case types.RunTypeStop:
+				status.ResourceStatusStopped.False(res, err.Error())
+			case types.RunTypeDelete:
+				status.ResourceStatusDeleted.False(res, err.Error())
+			}
+
+			if rerr := resstatus.UpdateStatus(ctx, mc, res); rerr != nil {
+				logger.Errorf("failed to update resource status, resource: %s, error: %s", res.ID, rerr)
+			}
+
+			return err
+		}
+
+		return nil
 	}
 
 	return fmt.Errorf("unknown run job type %s", runJobType)
