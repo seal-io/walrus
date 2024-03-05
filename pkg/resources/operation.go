@@ -64,9 +64,19 @@ func Create(
 		status.ResourceStatusUnDeployed.True(entity, "Draft")
 		entity.Status.SetSummary(status.WalkResource(&entity.Status))
 
-		entity, err = mc.Resources().Create().
-			Set(entity).
-			SaveE(ctx, dao.ResourceDependenciesEdgeSave)
+		err = mc.WithTx(ctx, func(tx *model.Tx) (err error) {
+			entity, err = tx.Resources().Create().
+				Set(entity).
+				SaveE(ctx, dao.ResourceDependenciesEdgeSave)
+			if err != nil {
+				return err
+			}
+
+			return tx.ResourceStates().Create().
+				SetResourceID(entity.ID).
+				SetData("").
+				Exec(ctx)
+		})
 		if err != nil {
 			return nil, nil, err
 		}
