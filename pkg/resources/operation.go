@@ -329,7 +329,10 @@ func Stop(ctx context.Context, mc model.ClientSet, entity *model.Resource, opts 
 	}
 
 	if !exist {
-		return mc.Resources().DeleteOneID(entity.ID).Exec(ctx)
+		status.ResourceStatusStopped.Reset(entity, "")
+		status.ResourceStatusStopped.True(entity, "")
+
+		return resstatus.UpdateStatus(ctx, mc, entity)
 	}
 
 	var run *model.ResourceRun
