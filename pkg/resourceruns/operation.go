@@ -34,6 +34,9 @@ import (
 )
 
 type CreateOptions struct {
+	// StorageManager is the storage manager.
+	StorageManager *storage.Manager
+
 	// ResourceID is the ID of the resource.
 	ResourceID object.ID
 
@@ -227,6 +230,11 @@ func Create(ctx context.Context, mc model.ClientSet, opts CreateOptions) (*model
 
 		_, err = runstatus.UpdateStatus(ctx, mc, prevEntity)
 		if err != nil {
+			return nil, err
+		}
+
+		// Clean the plan file.
+		if err = CleanPlanFiles(ctx, mc, opts.StorageManager, prevEntity.ID); err != nil {
 			return nil, err
 		}
 	}
