@@ -156,17 +156,17 @@ func BatchCreateObjects(sc *config.Config, group string, objs ObjectByScope) (
 	return success, failed, err
 }
 
-type collectionCreateInput struct {
-	Items []any `json:"items"`
-}
-
-func newCollectionCreateInputs(objs []Object) collectionCreateInput {
-	items := make([]any, 0, len(objs))
-	for _, o := range objs {
-		items = append(items, o.Value)
+func newCollectionCreateInputs(objs []Object) map[string]any {
+	if len(objs) == 0 {
+		return nil
 	}
 
-	return collectionCreateInput{Items: items}
+	items := make([]any, len(objs))
+	for i, o := range objs {
+		items[i] = o.Value
+	}
+
+	return map[string]any{"items": items}
 }
 
 func batchCreateObjects(sc *config.Config, createOpt *api.Operation, scope ObjectScope, objs []Object) error {
@@ -335,19 +335,19 @@ type deleteInput struct {
 	Name string `json:"name"`
 }
 
-type collectionDeleteInput struct {
-	Items []*deleteInput `json:"items"`
-}
-
-func newCollectionDeleteInput(objs []Object) collectionDeleteInput {
-	input := collectionDeleteInput{}
-	for _, v := range objs {
-		input.Items = append(input.Items, &deleteInput{
-			Name: v.Name,
-		})
+func newCollectionDeleteInput(objs []Object) map[string]any {
+	if len(objs) == 0 {
+		return nil
 	}
 
-	return input
+	items := make([]*deleteInput, len(objs))
+	for i, v := range objs {
+		items[i] = &deleteInput{
+			Name: v.Name,
+		}
+	}
+
+	return map[string]any{"items": items}
 }
 
 // DeleteObjects send delete objects request.

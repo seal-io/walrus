@@ -10,7 +10,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
 
@@ -45,7 +44,7 @@ type Operation struct {
 // Command returns a Cobra command instance for this operation.
 func (o Operation) Command(sc *config.Config) *cobra.Command {
 	var (
-		body  any
+		body  = make(map[string]any)
 		flags = map[string]any{}
 	)
 
@@ -137,20 +136,8 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 	}
 
 	if o.BodyParams != nil {
-		switch o.BodyParams.Type {
-		case openapi3.TypeArray:
-			// Array request body is considered as a single params.
-			if len(o.BodyParams.Params) != 0 {
-				b := o.BodyParams.Params[0]
-				bp := b.AddFlag(sub.Flags())
-				body = bp
-			}
-		case openapi3.TypeObject:
-			bps := make(map[string]any)
-			for _, p := range o.BodyParams.Params {
-				bps[p.Name] = p.AddFlag(sub.Flags())
-			}
-			body = bps
+		for _, p := range o.BodyParams.Params {
+			body[p.Name] = p.AddFlag(sub.Flags())
 		}
 	}
 
@@ -164,7 +151,7 @@ func (o Operation) Request(
 	cmd *cobra.Command,
 	args []string,
 	flags map[string]any,
-	body any,
+	body map[string]any,
 	sc config.ServerContext,
 ) (*http.Request, error) {
 	// Generate URI template.
@@ -264,9 +251,16 @@ func (o Operation) Request(
 
 	// Generate request body.
 	var br io.Reader
+	if o.BodyMediaType != "" && o.BodyParams != nil && len(o.BodyParams.Params) != 0 {
+		sb := make(map[string]any)
+		for _, param := range o.BodyParams.Params {
+			v := param.Serialize(body[param.Name], cmd.Flags())
+			if v != nil {
+				sb[param.Name] = v
+			}
+		}
 
-	if o.BodyMediaType != "" {
-		b, err := json.Marshal(body)
+		b, err := json.Marshal(sb)
 		if err != nil {
 			return nil, fmt.Errorf("invalid body: %w", err)
 		}
