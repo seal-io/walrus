@@ -124,8 +124,7 @@ func (in *RelationshipCheckTask) applyResources(ctx context.Context) error {
 			continue
 		}
 
-		// Deploy.
-		err = in.deployResource(ctx, res)
+		err = pkgresource.PerformResource(ctx, in.modelClient, in.deployer, res.ID)
 		if err != nil {
 			return err
 		}
@@ -289,18 +288,6 @@ func (in *RelationshipCheckTask) checkDependants(ctx context.Context, res *model
 	}
 
 	return true, nil
-}
-
-func (in *RelationshipCheckTask) deployResource(ctx context.Context, entity *model.Resource) error {
-	// Reset status.
-	status.ResourceStatusDeployed.Reset(entity, "")
-
-	err := resstatus.UpdateStatus(ctx, in.modelClient, entity)
-	if err != nil {
-		return err
-	}
-
-	return pkgresource.PerformResource(ctx, in.modelClient, in.deployer, entity.ID)
 }
 
 // setResourceStatusFalse sets a resource status to false if parent dependencies statuses are false or deleted.
