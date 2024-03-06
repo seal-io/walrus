@@ -238,11 +238,6 @@ func upgrade(
 	}
 
 	if opts.Draft {
-		// Only stopped resource can save as draft.
-		if !status.ResourceStatusStopped.IsTrue(entity) {
-			return nil, fmt.Errorf("cannot save resource %q as draft: in %q status", entity.Name, entity.Status.SummaryStatus)
-		}
-
 		err := mc.Resources().UpdateOne(entity).
 			Set(entity).
 			Exec(ctx)
