@@ -21,8 +21,6 @@ import (
 const (
 	ActionDelete = "delete"
 	ActionStop   = "stop"
-
-	summaryStatusStopping = "Stopping"
 )
 
 // IsStatusRunning checks if the resource run is in the running status.
@@ -163,14 +161,6 @@ func CheckDependencyStatus(
 			return false, nil
 		}
 
-		if resstatus.IsInactive(d) {
-			msg := fmt.Sprintf("failed as the dependency resource %s is inactive", d.Name)
-			SetStatusFalse(run, msg)
-			if _, err := UpdateStatus(ctx, mc, run); err != nil {
-				return false, err
-			}
-		}
-
 		if !resstatus.IsStatusReady(d) {
 			notReadyDependencies = append(notReadyDependencies, d)
 		}
@@ -210,14 +200,14 @@ func CheckDependantStatus(
 			resourcerelationship.ResourceIDNEQ(run.ResourceID),
 			resourcerelationship.DependencyID(run.ResourceID),
 		).
-		QueryDependency()
+		QueryResource()
 
 	// When stop resource, stopped dependant resource should be exclude.
 	if run.Type == types.RunTypeStop.String() {
 		query.Where(func(s *sql.Selector) {
 			s.Where(sqljson.ValueNEQ(
 				resource.FieldStatus,
-				summaryStatusStopping,
+				status.ResourceStatusStopped.String(),
 				sqljson.Path("summaryStatus"),
 			))
 		})
