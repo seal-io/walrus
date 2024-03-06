@@ -85,11 +85,6 @@ func (Resource) Fields() []ent.Field {
 			Comment("Endpoints of the resource.").
 			Optional().
 			StructTag(`json:"endpoints,omitempty,cli-table-column"`),
-		field.Bool("is_modified").
-			Comment("Whether the resource is modified.").
-			Default(false).
-			Annotations(
-				entx.SkipInput()),
 	}
 }
 
@@ -151,7 +146,7 @@ func (Resource) Edges() []ent.Edge {
 			Comment("Runs that belong to the resource.").
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
-				entx.SkipIO()),
+				entx.SkipInput()),
 		// Resource 1-* ResourceComponents.
 		edge.To("components", ResourceComponent.Type).
 			Comment("Components that belong to the resource.").
