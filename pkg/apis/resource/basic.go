@@ -98,29 +98,22 @@ func (h Handler) Delete(req DeleteRequest) (err error) {
 		deleteOptions)
 }
 
-func (h Handler) Patch(req PatchRequest) (*PatchResponse, error) {
+func (h Handler) Patch(req PatchRequest) error {
 	entity := req.Model()
 
 	dp, err := getDeployer(req.Context, h.kubeConfig)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	run, err := pkgresource.Upgrade(req.Context, h.modelClient, entity, pkgresource.Options{
+	_, err = pkgresource.Upgrade(req.Context, h.modelClient, entity, pkgresource.Options{
 		StorageManager: h.storageManager,
 		Deployer:       dp,
 		ChangeComment:  req.ChangeComment,
 		Draft:          req.Draft,
 		Preview:        req.Preview,
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &PatchResponse{
-		ResourceOutput: model.ExposeResource(entity),
-		Run:            model.ExposeResourceRun(run),
-	}, nil
+	return err
 }
 
 func (h Handler) CollectionCreate(req CollectionCreateRequest) (CollectionCreateResponse, error) {
