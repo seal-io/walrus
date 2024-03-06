@@ -97,7 +97,6 @@ func UpdateStatus(
 
 	err := mc.Resources().UpdateOne(entity).
 		SetStatus(entity.Status).
-		SetIsModified(false).
 		Exec(ctx)
 	if err != nil && !model.IsNotFound(err) {
 		return err
