@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 
 	hcl "github.com/hashicorp/hcl/v2"
@@ -511,20 +512,22 @@ func ParseAbsProviderString(str string) (*AbsProviderConfig, error) {
 // ParseIndexKey parse the index key from the instance object state.
 // The index key is used to identify the terraform resource instance, e.g. `helm_release.foo[0]`.
 func ParseIndexKey(rs resourceState, is instanceObjectState) (string, error) {
+	logger := log.WithName("deployer").WithName("tf").WithName("parser")
+
 	if rs.Type == "" || rs.Name == "" {
 		return "", errors.New("resource type or name is empty")
 	}
 
-	if is.IndexKey == nil {
-		return strs.Join(".", rs.Module, rs.Type, rs.Name), nil
+	if is.IndexKey != nil {
+		switch reflect.TypeOf(is.IndexKey).Kind() {
+		case reflect.String:
+			return strs.Join(".", rs.Module, rs.Type, rs.Name) + fmt.Sprintf("[\"%v\"]", is.IndexKey), nil
+		case reflect.Int, reflect.Float64:
+			return strs.Join(".", rs.Module, rs.Type, rs.Name) + fmt.Sprintf("[%v]", is.IndexKey), nil
+		default:
+			logger.Warnf("unsupported index key: %v", is.IndexKey)
+		}
 	}
 
-	switch is.IndexKey.(type) {
-	case string:
-		return strs.Join(".", rs.Module, rs.Type, rs.Name) + fmt.Sprintf("[\"%v\"]", is.IndexKey), nil
-	case int:
-		return strs.Join(".", rs.Module, rs.Type, rs.Name) + fmt.Sprintf("[%v]", is.IndexKey), nil
-	}
-
-	return "", fmt.Errorf("invalid index key: %v", is.IndexKey)
+	return strs.Join(".", rs.Module, rs.Type, rs.Name), nil
 }

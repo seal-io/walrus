@@ -3,6 +3,7 @@ package resourcecomponents
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	tfjson "github.com/hashicorp/terraform-json"
 	"go.uber.org/multierr"
@@ -163,20 +164,22 @@ func FilterResourceComponentChange(
 			continue
 		}
 
-		switch rcc.Index.(type) {
-		case int:
-			rcsKey := strs.Join(".", rcc.ModuleAddress, rcc.Type, rcc.Name) + fmt.Sprintf("[%d]", rcc.Index)
-			if rc, rcsOk := rcsIndex[rcsKey]; rcsOk {
-				rcc.Name = rc.Name
-				fchanges = append(fchanges, rcc)
-				continue
-			}
-		case string:
-			rcsKey := strs.Join(".", rcc.ModuleAddress, rcc.Type, rcc.Name) + fmt.Sprintf("[\"%s\"]", rcc.Index)
-			if rc, rcsOk := rcsIndex[rcsKey]; rcsOk {
-				rcc.Name = rc.Name
-				fchanges = append(fchanges, rcc)
-				continue
+		if rcc.Index != nil {
+			switch reflect.TypeOf(rcc.Index).Kind() {
+			case reflect.Int, reflect.Float64:
+				rcsKey := strs.Join(".", rcc.ModuleAddress, rcc.Type, rcc.Name) + fmt.Sprintf("[%d]", rcc.Index)
+				if rc, rcsOk := rcsIndex[rcsKey]; rcsOk {
+					rcc.Name = rc.Name
+					fchanges = append(fchanges, rcc)
+					continue
+				}
+			case reflect.String:
+				rcsKey := strs.Join(".", rcc.ModuleAddress, rcc.Type, rcc.Name) + fmt.Sprintf("[\"%s\"]", rcc.Index)
+				if rc, rcsOk := rcsIndex[rcsKey]; rcsOk {
+					rcc.Name = rc.Name
+					fchanges = append(fchanges, rcc)
+					continue
+				}
 			}
 		}
 
