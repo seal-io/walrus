@@ -73,7 +73,7 @@ func apply(sc *config.Config, set manifest.ObjectSet, flags *manifest.ApplyOptio
 
 	// Apply the files.
 	wg.Go(func(ctx context.Context) error {
-		operator := manifest.DefaultApplyOperator(sc, flags.Wait)
+		operator := manifest.DefaultApplyOperator(sc, flags.Wait, flags.Comment)
 		r, err := operator.Operate(set)
 		operator.PrintResult(r)
 		if err != nil {
@@ -93,7 +93,7 @@ func preview(sc *config.Config, set manifest.ObjectSet, flags *manifest.ApplyOpt
 	ctx := context.Background()
 
 	// Apply the files.
-	operator := manifest.DefaultPreviewOperator(sc, flags.Wait)
+	operator := manifest.DefaultPreviewOperator(sc, flags.Wait, flags.Comment)
 	r, err := operator.Operate(set)
 	operator.PrintResult(r)
 	if err != nil {
