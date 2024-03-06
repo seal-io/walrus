@@ -14,11 +14,7 @@ func Format(resp *http.Response, opts Options) ([]byte, error) {
 	case "yaml":
 		f = &YamlFormatter{}
 	default:
-		f = &TableFormatter{
-			Columns:   opts.Columns,
-			Group:     opts.Group,
-			Operation: opts.Operation,
-		}
+		f = DefaultTableFormatter(opts.Columns, opts.Group, opts.Operation)
 	}
 
 	return f.Format(resp)

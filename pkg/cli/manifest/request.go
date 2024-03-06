@@ -24,6 +24,7 @@ import (
 )
 
 const (
+	operationList        = "list"
 	operationWatch       = "list"
 	operationBatchCreate = "collection-create"
 	operationBatchDelete = "collection-delete"
@@ -46,7 +47,7 @@ type result struct {
 }
 
 // PatchObjects send patches objects request.
-func PatchObjects(sc *config.Config, group string, objs ObjectByScope) (success, failed ObjectSet, err error) {
+func PatchObjects(sc *config.Config, group string, objs ObjectByScope, ebps extraBodyParams) (success, failed ObjectSet, err error) {
 	if len(objs) == 0 {
 		return success, failed, nil
 	}
@@ -68,8 +69,9 @@ func PatchObjects(sc *config.Config, group string, objs ObjectByScope) (success,
 			csp := sc.ServerContext
 			csp.Project = o.Project
 			csp.Environment = o.Environment
+			body := ebps.applyToBody(o.Value)
 
-			req, err := patchOpt.Request(nil, []string{o.Name}, o.ObjectScope.Map(), o.Value, csp)
+			req, err := patchOpt.Request(nil, []string{o.Name}, o.ObjectScope.Map(), body, csp)
 			if err != nil {
 				results <- result{
 					err: err,
@@ -114,7 +116,7 @@ func PatchObjects(sc *config.Config, group string, objs ObjectByScope) (success,
 }
 
 // BatchCreateObjects send batch create objects request.
-func BatchCreateObjects(sc *config.Config, group string, objs ObjectByScope) (
+func BatchCreateObjects(sc *config.Config, group string, objs ObjectByScope, ebps extraBodyParams) (
 	success, failed ObjectSet, err error,
 ) {
 	if len(objs) == 0 {
@@ -133,7 +135,7 @@ func BatchCreateObjects(sc *config.Config, group string, objs ObjectByScope) (
 		s := scope
 
 		gopool.Go(func() {
-			err := batchCreateObjects(sc, createOpt, s, o)
+			err := batchCreateObjects(sc, createOpt, s, o, ebps)
 			results <- result{
 				err:  err,
 				objs: o,
@@ -169,7 +171,7 @@ func newCollectionCreateInputs(objs []Object) map[string]any {
 	return map[string]any{"items": items}
 }
 
-func batchCreateObjects(sc *config.Config, createOpt *api.Operation, scope ObjectScope, objs []Object) error {
+func batchCreateObjects(sc *config.Config, createOpt *api.Operation, scope ObjectScope, objs []Object, ebps extraBodyParams) error {
 	if len(objs) == 0 {
 		return nil
 	}
@@ -179,6 +181,7 @@ func batchCreateObjects(sc *config.Config, createOpt *api.Operation, scope Objec
 	csp.Environment = scope.Environment
 
 	body := newCollectionCreateInputs(objs)
+	body = ebps.applyToBody(body)
 
 	req, err := createOpt.Request(nil, nil, scope.Map(), body, csp)
 	if err != nil {
