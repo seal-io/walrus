@@ -77,6 +77,9 @@ stringData:
   db_user: "root"
   db_password: "Root123"
   db_name: "walrus"
+  minio_root_user: "minio"
+  minio_root_password: "Minio123"
+  minio_bucket: "walrus"
 # Uncomment the following lines if consuming custom TLS.
 #
 #---
@@ -264,7 +267,96 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: database
-
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: walrus-system
+  name: minio
+  labels:
+    "app.kubernetes.io/part-of": "walrus"
+    "app.kubernetes.io/component": "minio"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: walrus-system
+  name: minio
+spec:
+  selector:
+    "app.kubernetes.io/part-of": "walrus"
+    "app.kubernetes.io/component": "minio"
+  ports:
+    - name: minio
+      port: 9000
+      targetPort: minio
+---
+apiVersion: apps/v1 #  for k8s versions before 1.9.0 use apps/v1beta2  and before 1.8.0 use extensions/v1beta1
+kind: Deployment
+metadata:
+  # This name uniquely identifies the Deployment
+  name: minio
+  namespace: walrus-system
+  labels:
+    "app.kubernetes.io/part-of": "walrus"
+    "app.kubernetes.io/component": "minio"
+    "app.kubernetes.io/name": "minio"
+spec:
+  selector:
+    matchLabels:
+      "app.kubernetes.io/part-of": "walrus"
+      "app.kubernetes.io/component": "minio"
+      "app.kubernetes.io/name": "minio"
+  strategy:
+    type: Recreate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        "app.kubernetes.io/part-of": "walrus"
+        "app.kubernetes.io/component": "minio"
+        "app.kubernetes.io/name": "minio"
+    spec:
+      volumes:
+      - name: storage
+        persistentVolumeClaim:
+          claimName: minio
+      containers:
+      - name: minio
+        image: minio/minio:RELEASE.2024-02-26T09-33-48Z
+        args:
+        - server
+        - /storage
+        resources:
+          limits:
+            cpu: '1'
+            memory: '1Gi'
+          requests:
+            cpu: '500m'
+            memory: '512Mi'
+        ports:
+        - name: minio
+          containerPort: 9000
+        env:
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              name: walrus
+              key: minio_root_user
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: walrus
+              key: minio_root_password
+        volumeMounts:
+        - name: storage
+          mountPath: "/storage"
 
 # Identity Access Manager
 #
@@ -716,6 +808,21 @@ spec:
                 secretKeyRef:
                   name: walrus
                   key: db_name
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: walrus
+                  key: minio_root_user
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: walrus
+                  key: minio_root_password
+            - name: MINIO_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: walrus
+                  key: minio_bucket
             - name: SERVER_ENABLE_TLS
               valueFrom:
                 secretKeyRef:
@@ -731,6 +838,8 @@ spec:
               value: $(DB_DRIVER)://$(DB_USER):$(DB_PASSWORD)@database:5432/$(DB_NAME)?sslmode=disable
             - name: SERVER_CASDOOR_SERVER
               value: http://identity-access-manager:8000
+            - name: SERVER_S3_SOURCE_ADDRESS
+              value: s3://$(MINIO_ROOT_USER):$(MINIO_ROOT_PASSWORD)@minio:9000/$(MINIO_BUCKET)?sslmode=disable
           ports:
             - name: http
               containerPort: 80
