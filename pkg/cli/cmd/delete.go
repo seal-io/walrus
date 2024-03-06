@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/spf13/cobra"
 
@@ -9,16 +10,17 @@ import (
 	"github.com/seal-io/walrus/pkg/cli/config"
 	"github.com/seal-io/walrus/pkg/cli/manifest"
 	"github.com/seal-io/walrus/utils/gopool"
+	"github.com/seal-io/walrus/utils/strs"
 )
 
 func Delete(sc *config.Config) (*cobra.Command, error) {
-	flags := &manifest.Option{}
+	flags := &manifest.CommonOption{}
 
 	use := "delete"
 	cmd := &cobra.Command{
 		Use:     use,
 		GroupID: common.GroupAdvanced.ID,
-		Example: manifestExample("delete"),
+		Example: deleteExample("delete"),
 		Short:   "Delete resource using the provided file path or folder.",
 		PreRun:  setupServerContextFunc(sc, flags),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -67,4 +69,25 @@ func Delete(sc *config.Config) (*cobra.Command, error) {
 	flags.AddFlags(cmd)
 
 	return cmd, nil
+}
+
+func deleteExample(action string) string {
+	title := strs.Title(action)
+
+	return fmt.Sprintf(`  # %s the configuration in the walrus-file.yaml 
+  $ walrus %s -f walrus-file.yaml
+
+  # %s configurations from a directory containing yaml files
+  $ walrus %s -f dir/
+
+  # %s configurations from a directory recursively
+  $ walrus %s -f dir/ --recursive
+
+  # %s configurations with a specific project/environment
+  $ walrus %s -f dir/ -p my-project -e my-environment
+`,
+		title, action,
+		title, action,
+		title, action,
+		title, action)
 }

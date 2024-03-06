@@ -6,8 +6,22 @@ import (
 	"github.com/seal-io/walrus/pkg/cli/config"
 )
 
-// Option is a type that represents the options for the manifest apply.
-type Option struct {
+// ApplyOption is a type that represents the options for the manifest apply.
+type ApplyOption struct {
+	CommonOption
+
+	// Apply in preview mode.
+	Preview bool `json:"preview,omitempty"`
+}
+
+func (f *ApplyOption) AddFlags(cmd *cobra.Command) {
+	f.CommonOption.AddFlags(cmd)
+
+	cmd.Flags().BoolVarP(&f.Preview, "preview", "", false, "Applying changes will generate a preview instead of actual deployment")
+}
+
+// CommonOption is a type that represents the options for the manifest operation.
+type CommonOption struct {
 	// Context flags.
 	config.ScopeContext
 
@@ -27,7 +41,7 @@ type Option struct {
 	ValidateParametersSet bool `json:"validateParametersSet,omitempty"`
 }
 
-func (f *Option) AddFlags(cmd *cobra.Command) {
+func (f *CommonOption) AddFlags(cmd *cobra.Command) {
 	f.ScopeContext.AddFlags(cmd)
 
 	cmd.Flags().StringSliceVarP(&f.Filenames, "filenames", "f", nil, "File path or folder path")

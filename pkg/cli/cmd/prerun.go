@@ -8,7 +8,7 @@ import (
 	"github.com/seal-io/walrus/pkg/cli/manifest"
 )
 
-func setupServerContextFunc(sc *config.Config, opts *manifest.Option) func(*cobra.Command, []string) {
+func setupServerContextFunc(sc *config.Config, opts *manifest.CommonOption) func(*cobra.Command, []string) {
 	return func(cmd *cobra.Command, args []string) {
 		// Context unchanged.
 		if sc.ServerContext.Project == opts.Project && sc.ServerContext.Environment == opts.Environment {

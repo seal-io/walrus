@@ -58,7 +58,7 @@ func (b BodyParam) Serialize(value any, flagSet *pflag.FlagSet) any {
 
 		if (v.Kind() == reflect.Array || v.Kind() == reflect.Slice) &&
 			v.Len() == 0 &&
-			!flagSet.Changed(b.OptionName()) {
+			flagSet != nil && !flagSet.Changed(b.OptionName()) {
 			return nil
 		}
 	case ValueTypeMapStringInt64, ValueTypeMapStringInt32, ValueTypeMapStringInt, ValueTypeMapStringString:
@@ -69,7 +69,7 @@ func (b BodyParam) Serialize(value any, flagSet *pflag.FlagSet) any {
 
 		if v.Kind() == reflect.Map &&
 			v.Len() == 0 &&
-			!flagSet.Changed(b.OptionName()) {
+			flagSet != nil && !flagSet.Changed(b.OptionName()) {
 			return nil
 		}
 
@@ -77,7 +77,7 @@ func (b BodyParam) Serialize(value any, flagSet *pflag.FlagSet) any {
 		v, ok := value.(*ObjectFlag)
 		if ok &&
 			(v == nil || reflect.DeepEqual(*v, ObjectFlag{})) &&
-			!flagSet.Changed(b.OptionName()) {
+			flagSet != nil && !flagSet.Changed(b.OptionName()) {
 			return nil
 		}
 	}

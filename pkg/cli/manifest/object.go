@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	GroupResources = "resources"
+	GroupResources    = "resources"
+	GroupResourceRuns = "resourceruns"
 )
 
 // GroupSequence defines the sequence of group to create.

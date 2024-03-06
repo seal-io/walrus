@@ -39,11 +39,23 @@ var fieldAlias = map[string]string{
 	fieldEnvironment: "ENVIRONMENT",
 }
 
+// DefaultTableFormatter.
+
+func DefaultTableFormatter(columns []string, group, operation string) *TableFormatter {
+	return &TableFormatter{
+		Columns:           columns,
+		Group:             group,
+		Operation:         operation,
+		ColumnDisplayName: columnDisplayName,
+	}
+}
+
 // TableFormatter use to convert response to table format.
 type TableFormatter struct {
-	Columns   []string
-	Group     string
-	Operation string
+	Columns           []string
+	Group             string
+	Operation         string
+	ColumnDisplayName func(string) string
 }
 
 func (f *TableFormatter) Format(resp *http.Response) ([]byte, error) {
@@ -70,19 +82,19 @@ func (f *TableFormatter) Format(resp *http.Response) ([]byte, error) {
 	case r.IsObject():
 		result := gjson.GetBytes(body, "items")
 		if result.Exists() {
-			formatted = f.resourceItems([]byte(result.Raw))
+			formatted = f.ResourceItems([]byte(result.Raw))
 		} else {
 			formatted = f.resourceItem(body)
 		}
 
 	case r.IsArray():
-		formatted = f.resourceItems(body)
+		formatted = f.ResourceItems(body)
 	}
 
 	return []byte(formatted), nil
 }
 
-func (f *TableFormatter) resourceItems(body []byte) string {
+func (f *TableFormatter) ResourceItems(body []byte) string {
 	data := gjson.ParseBytes(body).Array()
 	if len(data) == 0 {
 		return ""
@@ -164,7 +176,7 @@ func (f *TableFormatter) renderColumns(columns []fieldRender, data []gjson.Resul
 		header = append(header,
 			&simpletable.Cell{
 				Align: simpletable.AlignLeft,
-				Text:  columnDisplayName(v.name),
+				Text:  f.ColumnDisplayName(v.name),
 			})
 	}
 

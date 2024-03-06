@@ -11,6 +11,7 @@ import (
 	"text/template"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"golang.org/x/exp/slices"
 
 	"github.com/seal-io/walrus/pkg/cli/config"
@@ -250,11 +251,16 @@ func (o Operation) Request(
 	}
 
 	// Generate request body.
+	var cmdFlags *pflag.FlagSet
+	if cmd != nil {
+		cmdFlags = cmd.Flags()
+	}
+
 	var br io.Reader
 	if o.BodyMediaType != "" && o.BodyParams != nil && len(o.BodyParams.Params) != 0 {
 		sb := make(map[string]any)
 		for _, param := range o.BodyParams.Params {
-			v := param.Serialize(body[param.Name], cmd.Flags())
+			v := param.Serialize(body[param.Name], cmdFlags)
 			if v != nil {
 				sb[param.Name] = v
 			}
