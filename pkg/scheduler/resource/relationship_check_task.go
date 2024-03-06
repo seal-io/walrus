@@ -316,7 +316,7 @@ func setResourceStatusFalse(ctx context.Context, mc model.ClientSet, res *model.
 	}
 
 	if len(runs) == 0 {
-		return fmt.Errorf("no runs found for resource %s", res.ID)
+		return fmt.Errorf("no runs found for resource %s", res.Name)
 	}
 
 	run := runs[0]

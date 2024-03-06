@@ -21,6 +21,8 @@ import (
 const (
 	ActionDelete = "delete"
 	ActionStop   = "stop"
+
+	summaryStatusStopping = "Stopping"
 )
 
 // IsStatusRunning checks if the resource run is in the running status.
@@ -69,6 +71,9 @@ func SetStatusFalse(run *model.ResourceRun, errMsg string) {
 	case status.ResourceRunStatusApplied.IsUnknown(run):
 		errMsg = fmt.Sprintf("apply failed: %s", errMsg)
 		status.ResourceRunStatusApplied.False(run, errMsg)
+	case status.ResourceRunStatusPending.IsUnknown(run):
+		errMsg = fmt.Sprintf("pending failed: %s", errMsg)
+		status.ResourceRunStatusPending.False(run, errMsg)
 	}
 
 	run.Status.SetSummary(status.WalkResourceRun(&run.Status))
@@ -149,7 +154,7 @@ func CheckDependencyStatus(
 
 	for _, d := range dependencies {
 		if resstatus.IsStatusError(d) {
-			msg := fmt.Sprintf("failed as the dependency resource %s has an error status", d.ID)
+			msg := fmt.Sprintf("failed as the dependency resource %s has an error status", d.Name)
 			SetStatusFalse(run, msg)
 			if _, err := UpdateStatus(ctx, mc, run); err != nil {
 				return false, err
@@ -159,7 +164,7 @@ func CheckDependencyStatus(
 		}
 
 		if resstatus.IsInactive(d) {
-			msg := fmt.Sprintf("failed as the dependency resource %s is inactive", d.ID)
+			msg := fmt.Sprintf("failed as the dependency resource %s is inactive", d.Name)
 			SetStatusFalse(run, msg)
 			if _, err := UpdateStatus(ctx, mc, run); err != nil {
 				return false, err
@@ -212,7 +217,7 @@ func CheckDependantStatus(
 		query.Where(func(s *sql.Selector) {
 			s.Where(sqljson.ValueNEQ(
 				resource.FieldStatus,
-				status.ResourceStatusStopped.String(),
+				summaryStatusStopping,
 				sqljson.Path("summaryStatus"),
 			))
 		})
@@ -231,7 +236,7 @@ func CheckDependantStatus(
 	dependantsNames := sets.NewString()
 	for _, d := range dependants {
 		if resstatus.IsStatusError(d) {
-			msg := fmt.Sprintf("failed as the dependant resource %s has an error status", d.ID)
+			msg := fmt.Sprintf("failed as the dependant resource %s has an error status", d.Name)
 			SetStatusFalse(run, msg)
 
 			if _, err = UpdateStatus(ctx, mc, run); err != nil {
