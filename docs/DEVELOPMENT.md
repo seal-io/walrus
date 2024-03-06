@@ -16,6 +16,20 @@ $ docker run -d -p 5432:5432 -e "POSTGRES_USER=root" -e "POSTGRES_PASSWORD=Root1
 
 ```
 
+### Local MinIO via [Docker](https://docs.docker.com/desktop/install/mac-install/)
+
+```bash
+$ mkdir -p ${HOME}/minio/data
+
+$ docker run -d \
+   -p 9000:9000 \
+   --name minio \
+   -v ~/minio/data:/data \
+   -e "MINIO_ROOT_USER=minio" \
+   -e "MINIO_ROOT_PASSWORD=Minio123" \
+   docker.io/minio/minio server /data
+```
+
 ### Local Casdoor via [Docker](https://docs.docker.com/desktop/install/mac-install/)
 
 ```bash
@@ -27,7 +41,7 @@ $ docker run -d -p 8000:8000 sealio/casdoor:v1.344.0-seal.1
 
 ```bash
 $ docker run -d -p 6379:6379 redis:6.2.11 redis-server --save "" --appendonly no --databases 1 --requirepass Default123
- 
+
 ```
 
 ### Run
@@ -36,11 +50,13 @@ $ docker run -d -p 6379:6379 redis:6.2.11 redis-server --save "" --appendonly no
 $ # default.
 $ go run cmd/server/server.go --log-debug \
   --data-source-address="postgres://root:Root123@127.0.0.1:5432/walrus?sslmode=disable" \
+  --s3-source-address="s3://minio:minio@localhost:9000/walrus?sslmode=disable" \
   --casdoor-server="http://127.0.0.1:8000"
 
 $ # with cache data source.
 $ go run cmd/server/server.go --log-debug \
   --data-source-address="postgres://root:Root123@127.0.0.1:5432/walrus?sslmode=disable" \
+  --s3-source-address="s3://minio:minio@localhost:9000/walrus?sslmode=disable" \
   --casdoor-server="http://127.0.0.1:8000" \
   --cache-source-address="redis://default:Default123@127.0.0.1:6379/0"
 
