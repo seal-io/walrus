@@ -73,7 +73,7 @@ VOLUME /var/lib/k3s
 ENV K3S_DATA_DIR=/var/lib/k3s \
     K3S_RESOLV_CONF=/etc/resolv.conf \
     ETCDCTL_API=3
-COPY --from=rancher/k3s:v1.27.9-k3s1 \
+COPY --from=rancher/k3s:v1.27.11-k3s1 \
     /bin/blkid \
     /bin/bandwidth \
     /bin/cni \
@@ -113,7 +113,7 @@ RUN set -eux; \
     ln -s /usr/bin/xtables-legacy-multi /usr/bin/ip6tables-restore && \
     ln -s /usr/bin/xtables-legacy-multi /usr/bin/ip6tables-translate; \
     \
-    IMAGE_URL="https://github.com/k3s-io/k3s/releases/download/v1.27.9%2Bk3s1/k3s-airgap-images-${TARGETARCH}.tar.zst"; \
+    IMAGE_URL="https://github.com/k3s-io/k3s/releases/download/v1.27.11%2Bk3s1/k3s-airgap-images-${TARGETARCH}.tar.zst"; \
     mkdir -p ${K3S_DATA_DIR}/agent/images && \
     axel -n 16 -o ${K3S_DATA_DIR}/agent/images/k3s-images.tar.zst ${IMAGE_URL}; \
     \
