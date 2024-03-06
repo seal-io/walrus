@@ -404,10 +404,6 @@ func init() {
 	resourceDescComputedAttributes := resourceFields[7].Descriptor()
 	// resource.DefaultComputedAttributes holds the default value on creation for the computed_attributes field.
 	resource.DefaultComputedAttributes = resourceDescComputedAttributes.Default.(property.Values)
-	// resourceDescIsModified is the schema descriptor for is_modified field.
-	resourceDescIsModified := resourceFields[9].Descriptor()
-	// resource.DefaultIsModified holds the default value on creation for the is_modified field.
-	resource.DefaultIsModified = resourceDescIsModified.Default.(bool)
 	resourcecomponentMixin := schema.ResourceComponent{}.Mixin()
 	resourcecomponentMixinHooks0 := resourcecomponentMixin[0].Hooks()
 	resourcecomponent.Hooks[0] = resourcecomponentMixinHooks0[0]

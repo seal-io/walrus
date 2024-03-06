@@ -53,8 +53,6 @@ const (
 	FieldComputedAttributes = "computed_attributes"
 	// FieldEndpoints holds the string denoting the endpoints field in the database.
 	FieldEndpoints = "endpoints"
-	// FieldIsModified holds the string denoting the is_modified field in the database.
-	FieldIsModified = "is_modified"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
@@ -159,7 +157,6 @@ var Columns = []string{
 	FieldAttributes,
 	FieldComputedAttributes,
 	FieldEndpoints,
-	FieldIsModified,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -200,8 +197,6 @@ var (
 	DefaultAttributes property.Values
 	// DefaultComputedAttributes holds the default value on creation for the "computed_attributes" field.
 	DefaultComputedAttributes property.Values
-	// DefaultIsModified holds the default value on creation for the "is_modified" field.
-	DefaultIsModified bool
 )
 
 // OrderOption defines the ordering options for the Resource queries.
@@ -270,11 +265,6 @@ func ByAttributes(opts ...sql.OrderTermOption) OrderOption {
 // ByComputedAttributes orders the results by the computed_attributes field.
 func ByComputedAttributes(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldComputedAttributes, opts...).ToFunc()
-}
-
-// ByIsModified orders the results by the is_modified field.
-func ByIsModified(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIsModified, opts...).ToFunc()
 }
 
 // ByProjectField orders the results by project field.

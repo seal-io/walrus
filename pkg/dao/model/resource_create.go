@@ -203,20 +203,6 @@ func (rc *ResourceCreate) SetEndpoints(te types.ResourceEndpoints) *ResourceCrea
 	return rc
 }
 
-// SetIsModified sets the "is_modified" field.
-func (rc *ResourceCreate) SetIsModified(b bool) *ResourceCreate {
-	rc.mutation.SetIsModified(b)
-	return rc
-}
-
-// SetNillableIsModified sets the "is_modified" field if the given value is not nil.
-func (rc *ResourceCreate) SetNillableIsModified(b *bool) *ResourceCreate {
-	if b != nil {
-		rc.SetIsModified(*b)
-	}
-	return rc
-}
-
 // SetID sets the "id" field.
 func (rc *ResourceCreate) SetID(o object.ID) *ResourceCreate {
 	rc.mutation.SetID(o)
@@ -379,10 +365,6 @@ func (rc *ResourceCreate) defaults() error {
 		v := resource.DefaultComputedAttributes
 		rc.mutation.SetComputedAttributes(v)
 	}
-	if _, ok := rc.mutation.IsModified(); !ok {
-		v := resource.DefaultIsModified
-		rc.mutation.SetIsModified(v)
-	}
 	return nil
 }
 
@@ -417,9 +399,6 @@ func (rc *ResourceCreate) check() error {
 		if err := resource.EnvironmentIDValidator(string(v)); err != nil {
 			return &ValidationError{Name: "environment_id", err: fmt.Errorf(`model: validator failed for field "Resource.environment_id": %w`, err)}
 		}
-	}
-	if _, ok := rc.mutation.IsModified(); !ok {
-		return &ValidationError{Name: "is_modified", err: errors.New(`model: missing required field "Resource.is_modified"`)}
 	}
 	if _, ok := rc.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "Resource.project"`)}
@@ -507,10 +486,6 @@ func (rc *ResourceCreate) createSpec() (*Resource, *sqlgraph.CreateSpec) {
 	if value, ok := rc.mutation.Endpoints(); ok {
 		_spec.SetField(resource.FieldEndpoints, field.TypeJSON, value)
 		_node.Endpoints = value
-	}
-	if value, ok := rc.mutation.IsModified(); ok {
-		_spec.SetField(resource.FieldIsModified, field.TypeBool, value)
-		_node.IsModified = value
 	}
 	if nodes := rc.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -696,7 +671,6 @@ func (rc *ResourceCreate) Set(obj *Resource) *ResourceCreate {
 	rc.SetName(obj.Name)
 	rc.SetProjectID(obj.ProjectID)
 	rc.SetEnvironmentID(obj.EnvironmentID)
-	rc.SetIsModified(obj.IsModified)
 
 	// Optional.
 	if obj.Description != "" {
@@ -1278,18 +1252,6 @@ func (u *ResourceUpsert) ClearEndpoints() *ResourceUpsert {
 	return u
 }
 
-// SetIsModified sets the "is_modified" field.
-func (u *ResourceUpsert) SetIsModified(v bool) *ResourceUpsert {
-	u.Set(resource.FieldIsModified, v)
-	return u
-}
-
-// UpdateIsModified sets the "is_modified" field to the value that was provided on create.
-func (u *ResourceUpsert) UpdateIsModified() *ResourceUpsert {
-	u.SetExcluded(resource.FieldIsModified)
-	return u
-}
-
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -1574,20 +1536,6 @@ func (u *ResourceUpsertOne) UpdateEndpoints() *ResourceUpsertOne {
 func (u *ResourceUpsertOne) ClearEndpoints() *ResourceUpsertOne {
 	return u.Update(func(s *ResourceUpsert) {
 		s.ClearEndpoints()
-	})
-}
-
-// SetIsModified sets the "is_modified" field.
-func (u *ResourceUpsertOne) SetIsModified(v bool) *ResourceUpsertOne {
-	return u.Update(func(s *ResourceUpsert) {
-		s.SetIsModified(v)
-	})
-}
-
-// UpdateIsModified sets the "is_modified" field to the value that was provided on create.
-func (u *ResourceUpsertOne) UpdateIsModified() *ResourceUpsertOne {
-	return u.Update(func(s *ResourceUpsert) {
-		s.UpdateIsModified()
 	})
 }
 
@@ -2044,20 +1992,6 @@ func (u *ResourceUpsertBulk) UpdateEndpoints() *ResourceUpsertBulk {
 func (u *ResourceUpsertBulk) ClearEndpoints() *ResourceUpsertBulk {
 	return u.Update(func(s *ResourceUpsert) {
 		s.ClearEndpoints()
-	})
-}
-
-// SetIsModified sets the "is_modified" field.
-func (u *ResourceUpsertBulk) SetIsModified(v bool) *ResourceUpsertBulk {
-	return u.Update(func(s *ResourceUpsert) {
-		s.SetIsModified(v)
-	})
-}
-
-// UpdateIsModified sets the "is_modified" field to the value that was provided on create.
-func (u *ResourceUpsertBulk) UpdateIsModified() *ResourceUpsertBulk {
-	return u.Update(func(s *ResourceUpsert) {
-		s.UpdateIsModified()
 	})
 }
 
