@@ -26,10 +26,13 @@ type OperateResult struct {
 	UnChanged ObjectSet
 }
 
-// DefaultApplyOperator returns a apply Operator.
-func DefaultApplyOperator(sc *config.Config, wait bool) Operator {
+// DefaultApplyOperator returns an apply Operator.
+func DefaultApplyOperator(sc *config.Config, wait bool, comment string) Operator {
 	return &ApplyOperator{
 		operatorConfig: newOperatorConfig(sc, wait),
+		extraBodyParams: map[string]any{
+			"changeComment": comment,
+		},
 	}
 }
 
@@ -41,11 +44,12 @@ func DefaultDeleteOperator(sc *config.Config, wait bool) Operator {
 }
 
 // DefaultPreviewOperator returns preview Operator.
-func DefaultPreviewOperator(sc *config.Config, wait bool) Operator {
+func DefaultPreviewOperator(sc *config.Config, wait bool, comment string) Operator {
 	return &PreviewOperator{
 		operatorConfig: newOperatorConfig(sc, wait),
 		extraBodyParams: map[string]any{
-			"preview": true,
+			"preview":       true,
+			"changeComment": comment,
 		},
 	}
 }
@@ -73,6 +77,8 @@ func newOperatorConfig(sc *config.Config, wait bool) operatorConfig {
 // ApplyOperator is a type that represents an apply operator.
 type ApplyOperator struct {
 	operatorConfig
+
+	extraBodyParams map[string]any
 }
 
 // Operate applies the provided ObjectSet.
@@ -144,7 +150,7 @@ func (o *ApplyOperator) apply(set ObjectSet) (r OperateResult, err error) {
 		r.Failed.Remove(unchanged.All()...)
 
 		// Patch.
-		successPatched, _, err := PatchObjects(o.serverContext, group, changed.ByGroup(group), nil)
+		successPatched, _, err := PatchObjects(o.serverContext, group, changed.ByGroup(group), o.extraBodyParams)
 		if err != nil {
 			return r, err
 		}
@@ -153,7 +159,7 @@ func (o *ApplyOperator) apply(set ObjectSet) (r OperateResult, err error) {
 		r.Failed.Remove(successPatched.All()...)
 
 		// Batch create.
-		successCreated, _, err := BatchCreateObjects(o.serverContext, group, notFound.ByGroup(group), nil)
+		successCreated, _, err := BatchCreateObjects(o.serverContext, group, notFound.ByGroup(group), o.extraBodyParams)
 		if err != nil {
 			return r, err
 		}

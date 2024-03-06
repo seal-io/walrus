@@ -12,12 +12,16 @@ type ApplyOption struct {
 
 	// Apply in preview mode.
 	Preview bool `json:"preview,omitempty"`
+
+	// Comment.
+	Comment string `json:"comment,omitempty"`
 }
 
 func (f *ApplyOption) AddFlags(cmd *cobra.Command) {
 	f.CommonOption.AddFlags(cmd)
 
 	cmd.Flags().BoolVarP(&f.Preview, "preview", "", false, "Applying changes will generate a preview instead of actual deployment")
+	cmd.Flags().StringVarP(&f.Comment, "comment", "", "", "Add comment to the operation")
 }
 
 // CommonOption is a type that represents the options for the manifest operation.
