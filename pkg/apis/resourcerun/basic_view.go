@@ -22,9 +22,10 @@ type (
 
 type (
 	CollectionFieldQuery struct {
-		QueryID     object.ID `query:"id"`
-		QueryType   string    `query:"type"`
-		QueryStatus string    `query:"status"`
+		QueryID      object.ID `query:"id"`
+		QueryType    string    `query:"type"`
+		QueryStatus  string    `query:"status"`
+		QueryPreview *bool     `query:"preview"`
 	}
 
 	CollectionGetRequest struct {
@@ -67,6 +68,11 @@ func (q *CollectionFieldQuery) Queries() (queries []predicate.ResourceRun, ok bo
 			))
 		})
 
+		ok = true
+	}
+
+	if q.QueryPreview != nil {
+		queries = append(queries, resourcerun.Preview(*q.QueryPreview))
 		ok = true
 	}
 
