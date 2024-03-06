@@ -134,3 +134,4 @@ volumes:
   walrus-data: { }
   prometheus-data: { }
   grafana-data: { }
+  minio-data: { }
