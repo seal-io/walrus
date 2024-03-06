@@ -10499,7 +10499,6 @@ type ResourceMutation struct {
 	computed_attributes                      *property.Values
 	endpoints                                *types.ResourceEndpoints
 	appendendpoints                          types.ResourceEndpoints
-	is_modified                              *bool
 	clearedFields                            map[string]struct{}
 	project                                  *object.ID
 	clearedproject                           bool
@@ -11366,42 +11365,6 @@ func (m *ResourceMutation) ResetEndpoints() {
 	delete(m.clearedFields, resource.FieldEndpoints)
 }
 
-// SetIsModified sets the "is_modified" field.
-func (m *ResourceMutation) SetIsModified(b bool) {
-	m.is_modified = &b
-}
-
-// IsModified returns the value of the "is_modified" field in the mutation.
-func (m *ResourceMutation) IsModified() (r bool, exists bool) {
-	v := m.is_modified
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIsModified returns the old "is_modified" field's value of the Resource entity.
-// If the Resource object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ResourceMutation) OldIsModified(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsModified is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsModified requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsModified: %w", err)
-	}
-	return oldValue.IsModified, nil
-}
-
-// ResetIsModified resets all changes to the "is_modified" field.
-func (m *ResourceMutation) ResetIsModified() {
-	m.is_modified = nil
-}
-
 // ClearProject clears the "project" edge to the Project entity.
 func (m *ResourceMutation) ClearProject() {
 	m.clearedproject = true
@@ -11772,7 +11735,7 @@ func (m *ResourceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ResourceMutation) Fields() []string {
-	fields := make([]string, 0, 17)
+	fields := make([]string, 0, 16)
 	if m.name != nil {
 		fields = append(fields, resource.FieldName)
 	}
@@ -11821,9 +11784,6 @@ func (m *ResourceMutation) Fields() []string {
 	if m.endpoints != nil {
 		fields = append(fields, resource.FieldEndpoints)
 	}
-	if m.is_modified != nil {
-		fields = append(fields, resource.FieldIsModified)
-	}
 	return fields
 }
 
@@ -11864,8 +11824,6 @@ func (m *ResourceMutation) Field(name string) (ent.Value, bool) {
 		return m.ComputedAttributes()
 	case resource.FieldEndpoints:
 		return m.Endpoints()
-	case resource.FieldIsModified:
-		return m.IsModified()
 	}
 	return nil, false
 }
@@ -11907,8 +11865,6 @@ func (m *ResourceMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldComputedAttributes(ctx)
 	case resource.FieldEndpoints:
 		return m.OldEndpoints(ctx)
-	case resource.FieldIsModified:
-		return m.OldIsModified(ctx)
 	}
 	return nil, fmt.Errorf("unknown Resource field %s", name)
 }
@@ -12029,13 +11985,6 @@ func (m *ResourceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEndpoints(v)
-		return nil
-	case resource.FieldIsModified:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIsModified(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Resource field %s", name)
@@ -12202,9 +12151,6 @@ func (m *ResourceMutation) ResetField(name string) error {
 		return nil
 	case resource.FieldEndpoints:
 		m.ResetEndpoints()
-		return nil
-	case resource.FieldIsModified:
-		m.ResetIsModified()
 		return nil
 	}
 	return fmt.Errorf("unknown Resource field %s", name)

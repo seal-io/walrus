@@ -122,11 +122,6 @@ func ComputedAttributes(v property.Values) predicate.Resource {
 	return predicate.Resource(sql.FieldEQ(FieldComputedAttributes, v))
 }
 
-// IsModified applies equality check predicate on the "is_modified" field. It's identical to IsModifiedEQ.
-func IsModified(v bool) predicate.Resource {
-	return predicate.Resource(sql.FieldEQ(FieldIsModified, v))
-}
-
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Resource {
 	return predicate.Resource(sql.FieldEQ(FieldName, v))
@@ -940,16 +935,6 @@ func EndpointsIsNil() predicate.Resource {
 // EndpointsNotNil applies the NotNil predicate on the "endpoints" field.
 func EndpointsNotNil() predicate.Resource {
 	return predicate.Resource(sql.FieldNotNull(FieldEndpoints))
-}
-
-// IsModifiedEQ applies the EQ predicate on the "is_modified" field.
-func IsModifiedEQ(v bool) predicate.Resource {
-	return predicate.Resource(sql.FieldEQ(FieldIsModified, v))
-}
-
-// IsModifiedNEQ applies the NEQ predicate on the "is_modified" field.
-func IsModifiedNEQ(v bool) predicate.Resource {
-	return predicate.Resource(sql.FieldNEQ(FieldIsModified, v))
 }
 
 // HasProject applies the HasEdge predicate on the "project" edge.

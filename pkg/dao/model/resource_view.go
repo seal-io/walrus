@@ -527,8 +527,6 @@ type ResourcePatchInput struct {
 	ComputedAttributes property.Values `path:"-" query:"-" json:"computedAttributes,omitempty"`
 	// Endpoints of the resource.
 	Endpoints types.ResourceEndpoints `path:"-" query:"-" json:"endpoints,omitempty"`
-	// Whether the resource is modified.
-	IsModified bool `path:"-" query:"-" json:"isModified,omitempty"`
 
 	// Template indicates replacing the stale TemplateVersion entity.
 	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template,omitempty"`
@@ -558,7 +556,6 @@ func (rpi *ResourcePatchInput) PatchModel() *Resource {
 		Attributes:         rpi.Attributes,
 		ComputedAttributes: rpi.ComputedAttributes,
 		Endpoints:          rpi.Endpoints,
-		IsModified:         rpi.IsModified,
 	}
 
 	if rpi.Project != nil {
@@ -688,7 +685,6 @@ func (rpi *ResourcePatchInput) ValidateWith(ctx context.Context, cs ClientSet, c
 			resource.FieldCreateTime,
 			resource.FieldUpdateTime,
 			resource.FieldStatus,
-			resource.FieldIsModified,
 		)...,
 	)
 
@@ -1277,12 +1273,12 @@ type ResourceOutput struct {
 	Attributes         property.Values         `json:"attributes"`
 	ComputedAttributes property.Values         `json:"computedAttributes"`
 	Endpoints          types.ResourceEndpoints `json:"endpoints,cli-table-column,omitempty"`
-	IsModified         bool                    `json:"isModified,omitempty"`
 
 	Project                        *ProjectOutput                        `json:"project,omitempty"`
 	Environment                    *EnvironmentOutput                    `json:"environment,omitempty"`
 	Template                       *TemplateVersionOutput                `json:"template,omitempty"`
 	ResourceDefinitionMatchingRule *ResourceDefinitionMatchingRuleOutput `json:"resourceDefinitionMatchingRule,omitempty"`
+	Runs                           []*ResourceRunOutput                  `json:"runs,omitempty"`
 }
 
 // View returns the output of Resource entity.
@@ -1313,7 +1309,6 @@ func ExposeResource(_r *Resource) *ResourceOutput {
 		Attributes:         _r.Attributes,
 		ComputedAttributes: _r.ComputedAttributes,
 		Endpoints:          _r.Endpoints,
-		IsModified:         _r.IsModified,
 	}
 
 	if _r.Edges.Project != nil {
@@ -1343,6 +1338,9 @@ func ExposeResource(_r *Resource) *ResourceOutput {
 		ro.ResourceDefinitionMatchingRule = &ResourceDefinitionMatchingRuleOutput{
 			ID: *_r.ResourceDefinitionMatchingRuleID,
 		}
+	}
+	if _r.Edges.Runs != nil {
+		ro.Runs = ExposeResourceRuns(_r.Edges.Runs)
 	}
 	return ro
 }
