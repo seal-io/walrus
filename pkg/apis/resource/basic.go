@@ -3,6 +3,8 @@ package resource
 import (
 	"context"
 
+	"entgo.io/ent/dialect/sql"
+
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
@@ -148,6 +150,30 @@ var (
 		resource.FieldCreateTime,
 		resource.FieldType,
 	}
+
+	resourceRunLatestQuery = func(rrq *model.ResourceRunQuery) {
+		rrq.Select(
+			resourcerun.FieldID,
+			resourcerun.FieldResourceID,
+			resourcerun.FieldStatus,
+			resourcerun.FieldComponentChangeSummary,
+		).
+			Where(func(s *sql.Selector) {
+				sq := s.Clone().
+					AppendSelectExprAs(
+						sql.RowNumber().
+							PartitionBy(resourcerun.FieldResourceID).
+							OrderBy(sql.Desc(resourcerun.FieldCreateTime)),
+						"row_number",
+					).
+					Where(s.P()).
+					From(s.Table()).
+					As(resourcerun.Table)
+
+				s.Where(sql.EQ(s.C("row_number"), 1)).
+					From(sq)
+			})
+	}
 )
 
 func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse, int, error) {
@@ -213,6 +239,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 						}
 					}).
 					Unique(false).
+					WithRuns(resourceRunLatestQuery).
 					All(stream)
 				if err != nil {
 					return nil, 0, err
@@ -281,6 +308,7 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 			}
 		}).
 		Unique(false).
+		WithRuns(resourceRunLatestQuery).
 		All(req.Context)
 	if err != nil {
 		return nil, 0, err

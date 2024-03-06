@@ -13,6 +13,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
+	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
@@ -23,11 +24,6 @@ import (
 	resstatus "github.com/seal-io/walrus/pkg/resources/status"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/strs"
-)
-
-const (
-	summaryStatusProgressing = "Progressing"
-	summaryStatusDeleting    = "Deleting"
 )
 
 // RelationshipCheckTask checks resources pending on relationships and
@@ -88,33 +84,18 @@ func (in *RelationshipCheckTask) Process(ctx context.Context, args ...any) error
 
 // applyResources applies all resources that are in the progressing state.
 func (in *RelationshipCheckTask) applyResources(ctx context.Context) error {
-	resources, err := in.modelClient.Resources().Query().
-		Where(
-			func(s *sql.Selector) {
-				s.Where(sqljson.ValueEQ(
-					resource.FieldStatus,
-					summaryStatusProgressing,
-					sqljson.Path("summaryStatus"),
-				))
-			},
-			func(s *sql.Selector) {
-				s.Where(sqljson.ValueEQ(
-					resource.FieldStatus,
-					true,
-					sqljson.Path("transitioning"),
-				))
-			},
-		).
-		All(ctx)
-	if err != nil && !model.IsNotFound(err) {
+	resources, err := in.getPendingRunResources(
+		ctx,
+		types.RunTypeCreate.String(),
+		types.RunTypeUpdate.String(),
+		types.RunTypeRollback.String(),
+		types.RunTypeStart.String(),
+	)
+	if err != nil {
 		return err
 	}
 
 	for _, res := range resources {
-		if status.ResourceStatusStopped.Exist(res) {
-			continue
-		}
-
 		ok, err := in.checkDependencies(ctx, res)
 		if err != nil {
 			return err
@@ -134,27 +115,12 @@ func (in *RelationshipCheckTask) applyResources(ctx context.Context) error {
 }
 
 func (in *RelationshipCheckTask) destroyResources(ctx context.Context) error {
-	resources, err := in.modelClient.Resources().Query().
-		Where(
-			func(s *sql.Selector) {
-				s.Where(sqljson.ValueEQ(
-					resource.FieldStatus,
-					summaryStatusDeleting,
-					sqljson.Path("summaryStatus"),
-				))
-			},
-		).
-		All(ctx)
+	resources, err := in.getPendingRunResources(ctx, types.RunTypeDelete.String())
 	if err != nil && !model.IsNotFound(err) {
 		return err
 	}
 
 	for _, res := range resources {
-		if status.ResourceStatusProgressing.IsTrue(res) {
-			// Dependencies resolved and destruction in progress.
-			continue
-		}
-
 		ok, err := in.checkDependants(ctx, res)
 		if err != nil {
 			return err
@@ -175,17 +141,7 @@ func (in *RelationshipCheckTask) destroyResources(ctx context.Context) error {
 
 // stopResources stops all resources that are in the progressing and stopping state.
 func (in *RelationshipCheckTask) stopResources(ctx context.Context) error {
-	resources, err := in.modelClient.Resources().Query().
-		Where(
-			func(s *sql.Selector) {
-				s.Where(sqljson.ValueEQ(
-					resource.FieldStatus,
-					summaryStatusProgressing,
-					sqljson.Path("summaryStatus"),
-				))
-			},
-		).
-		All(ctx)
+	resources, err := in.getPendingRunResources(ctx, types.RunTypeStop.String())
 	if err != nil && !model.IsNotFound(err) {
 		return err
 	}
@@ -354,23 +310,59 @@ func (in *RelationshipCheckTask) checkDependantResourceStatus(
 
 // setResourceStatusFalse sets resource and resource run status to false.
 func setResourceStatusFalse(ctx context.Context, mc model.ClientSet, res *model.Resource, errMsg string) error {
-	status.ResourceStatusProgressing.False(res, errMsg)
-
-	err := resstatus.UpdateStatus(ctx, mc, res)
-	if err != nil {
-		return err
-	}
-
 	runs, err := dao.GetResourcesLatestRuns(ctx, mc, res.ID)
 	if err != nil {
 		return err
 	}
 
 	if len(runs) == 0 {
-		return nil
+		return fmt.Errorf("no runs found for resource %s", res.ID)
 	}
 
-	runstatus.SetStatusFalse(runs[0], errMsg)
+	run := runs[0]
 
-	return nil
+	switch types.RunType(run.Type) {
+	case types.RunTypeCreate, types.RunTypeUpdate, types.RunTypeRollback, types.RunTypeStart:
+		status.ResourceStatusDeployed.False(res, errMsg)
+	case types.RunTypeDelete:
+		status.ResourceStatusDeleted.False(res, errMsg)
+	case types.RunTypeStop:
+		status.ResourceStatusStopped.False(res, errMsg)
+	default:
+		return fmt.Errorf("unsupported action type: %s", res.Type)
+	}
+
+	err = resstatus.UpdateStatus(ctx, mc, res)
+	if err != nil {
+		return err
+	}
+
+	runstatus.SetStatusFalse(run, errMsg)
+	_, err = runstatus.UpdateStatus(ctx, mc, run)
+
+	return err
+}
+
+// getPendingRuns Retrieve resources from all runs that are pending.
+func (in *RelationshipCheckTask) getPendingRunResources(ctx context.Context, runTypes ...string) ([]*model.Resource, error) {
+	return in.modelClient.ResourceRuns().Query().
+		Where(
+			resourcerun.TypeIn(runTypes...),
+			func(s *sql.Selector) {
+				s.Where(sqljson.ValueEQ(
+					resourcerun.FieldStatus,
+					status.ResourceRunStatusPending.String(),
+					sqljson.Path("summaryStatus"),
+				))
+			},
+			func(s *sql.Selector) {
+				s.Where(sqljson.ValueNEQ(
+					resourcerun.FieldStatus,
+					"",
+					sqljson.Path("summaryStatusMessage"),
+				))
+			},
+		).
+		QueryResource().
+		All(ctx)
 }

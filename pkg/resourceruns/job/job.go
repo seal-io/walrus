@@ -23,6 +23,17 @@ func PerformRunJob(ctx context.Context, mc model.ClientSet, dp deptypes.Deployer
 		return nil
 	}
 
+	ready, err := runstatus.CheckStatus(ctx, mc, run)
+	if err != nil {
+		return err
+	}
+
+	// If the run is not ready, it will not be performed.
+	// Scheduler will check and perform the run job later.
+	if !ready {
+		return nil
+	}
+
 	runJobType, err := GetRunJobType(run)
 	if err != nil {
 		return err
@@ -45,7 +56,6 @@ func PerformRunJob(ctx context.Context, mc model.ClientSet, dp deptypes.Deployer
 			return err
 		}
 
-		res.IsModified = false
 		status.ResourceStatusDeployed.Reset(res, "")
 
 		if err = resstatus.UpdateStatus(ctx, mc, res); err != nil {
@@ -68,7 +78,7 @@ func PerformRunJob(ctx context.Context, mc model.ClientSet, dp deptypes.Deployer
 		if err != nil {
 			return err
 		}
-		res.IsModified = false
+
 		// Mark resource status as destroying.（stop or delete）.
 		switch types.RunType(run.Type) {
 		case types.RunTypeStop:

@@ -4,23 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqljson"
-	"k8s.io/apimachinery/pkg/util/sets"
-
 	"github.com/seal-io/walrus/pkg/auths/session"
-	"github.com/seal-io/walrus/pkg/dao"
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/environment"
-	"github.com/seal-io/walrus/pkg/dao/model/resource"
-	"github.com/seal-io/walrus/pkg/dao/model/resourcerelationship"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
-	deptypes "github.com/seal-io/walrus/pkg/deployer/types"
-	resstatus "github.com/seal-io/walrus/pkg/resources/status"
 	"github.com/seal-io/walrus/utils/errorx"
-	"github.com/seal-io/walrus/utils/strs"
 )
 
 func GetSubjectID(entity *model.Resource) (object.ID, error) {
@@ -71,153 +61,6 @@ func UpdateResourceSubjectID(ctx context.Context, mc model.ClientSet, resources 
 	}
 
 	return nil
-}
-
-// CheckDependencyStatus check resource dependencies status is ready to apply.
-// Resource with dependencies cannot be applied directly,
-// it must wait for dependencies to be ready.
-func CheckDependencyStatus(
-	ctx context.Context,
-	mc model.ClientSet,
-	dp deptypes.Deployer,
-	entity *model.Resource,
-) (bool, error) {
-	// Check dependencies.
-	dependencies, err := mc.ResourceRelationships().Query().
-		Where(
-			resourcerelationship.ResourceID(entity.ID),
-			resourcerelationship.DependencyIDNEQ(entity.ID),
-		).
-		QueryDependency().
-		All(ctx)
-	if err != nil {
-		return false, err
-	}
-
-	if len(dependencies) == 0 {
-		return true, nil
-	}
-
-	var (
-		// Dependencies that are not ready.
-		notReadyDependencies = make([]*model.Resource, 0, len(dependencies))
-		resIDs               = make([]object.ID, 0, len(dependencies))
-		dependencyMap        = make(map[object.ID]*model.Resource, len(dependencies))
-	)
-	for _, d := range dependencies {
-		// If the resource status is ready or deployed, dependency is ready.
-		if status.ResourceStatusReady.IsTrue(d) || status.ResourceStatusDeployed.IsTrue(d) {
-			continue
-		}
-
-		resIDs = append(resIDs, d.ID)
-		dependencyMap[d.ID] = d
-	}
-
-	latestRuns, err := dao.GetResourcesLatestRuns(ctx, mc, resIDs...)
-	if err != nil {
-		return false, err
-	}
-
-	for i := range latestRuns {
-		run := latestRuns[i]
-		// If the resource run is not applied, resource is not ready.
-		if !status.ResourceRunStatusApplied.IsTrue(run) {
-			notReadyDependencies = append(notReadyDependencies, dependencyMap[run.ResourceID])
-		}
-	}
-
-	if status.ResourceStatusProgressing.IsUnknown(entity) {
-		return false, nil
-	}
-
-	// Set status to progressing with a dependency message.
-	dependencyNames := sets.NewString()
-	for _, d := range notReadyDependencies {
-		dependencyNames.Insert(d.Name)
-	}
-	msg := fmt.Sprintf("Waiting for dependent resources to be ready: %s", strs.Join(", ", dependencyNames.List()...))
-	status.ResourceStatusProgressing.Reset(entity, msg)
-
-	if err = resstatus.UpdateStatus(ctx, mc, entity); err != nil {
-		return false, fmt.Errorf("failed to update resource status: %w", err)
-	}
-
-	return false, nil
-}
-
-// CheckDependantStatus check resource dependants status is ready to delete or stop.
-// Resource with dependants cannot be deleted or stopped directly,
-// it must wait for dependants to be deleted or stopped.
-func CheckDependantStatus(
-	ctx context.Context,
-	mc model.ClientSet,
-	entity *model.Resource,
-	actionType string,
-) (bool, error) {
-	query := mc.ResourceRelationships().Query().
-		Where(
-			resourcerelationship.ResourceIDNEQ(entity.ID),
-			resourcerelationship.DependencyID(entity.ID),
-		).
-		QueryDependency()
-
-	// When stop resource, stopped dependant resource should be exclude.
-	if actionType == "stop" {
-		query.Where(func(s *sql.Selector) {
-			s.Where(sqljson.ValueNEQ(
-				resource.FieldStatus,
-				status.ResourceStatusStopped.String(),
-				sqljson.Path("summaryStatus"),
-			))
-		})
-	}
-
-	// Check dependants.
-	dependants, err := query.All(ctx)
-	if err != nil {
-		return false, err
-	}
-
-	if len(dependants) == 0 {
-		return true, nil
-	}
-
-	dependantsNames := sets.NewString()
-	for _, d := range dependants {
-		dependantsNames.Insert(d.Name)
-	}
-
-	switch actionType {
-	case ActionDelete:
-		msg := fmt.Sprintf("Waiting for dependants to be deleted: %s", strs.Join(", ", dependantsNames.List()...))
-		if !status.ResourceStatusProgressing.IsUnknown(entity) ||
-			status.ResourceStatusDeleted.GetMessage(entity) != msg {
-			// Mark status to deleting with a dependency message.
-			status.ResourceStatusDeleted.Reset(entity, msg)
-			status.ResourceStatusProgressing.Unknown(entity, "")
-
-			if err = resstatus.UpdateStatus(ctx, mc, entity); err != nil {
-				return false, fmt.Errorf("failed to update resource status: %w", err)
-			}
-		}
-	case ActionStop:
-		msg := fmt.Sprintf("Waiting for dependants to be stopped: %s", strs.Join(", ", dependantsNames.List()...))
-		if !status.ResourceStatusProgressing.IsUnknown(entity) ||
-			status.ResourceStatusStopped.GetMessage(entity) != msg {
-			// Mark status to stopping with a dependency message.
-			status.ResourceStatusStopped.Reset(entity, "")
-			status.ResourceStatusProgressing.Unknown(entity, msg)
-
-			if err = resstatus.UpdateStatus(ctx, mc, entity); err != nil {
-				return false, fmt.Errorf("failed to update resource status: %w", err)
-			}
-		}
-	default:
-		return false, fmt.Errorf("unsupported action type: %s", actionType)
-	}
-
-	return false, nil
 }
 
 // IsStoppable tells whether the given resource is stoppable.
