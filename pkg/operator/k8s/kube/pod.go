@@ -63,6 +63,12 @@ const (
 	ContainerEphemeral = "ephemeral"
 )
 
+var ContainerTypeOrderMap = map[ContainerType]int{
+	ContainerRun:       0,
+	ContainerInit:      1,
+	ContainerEphemeral: 2,
+}
+
 // Container holds container type and name.
 type Container struct {
 	Type ContainerType

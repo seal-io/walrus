@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"context"
+	"sort"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
@@ -45,6 +46,12 @@ func (op Operator) GetKeys(
 		running = kube.IsPodRunning(p)
 		states  = kube.GetContainerStates(p)
 	)
+
+	sort.Slice(states, func(i, j int) bool {
+		ti, tj := states[i].Type, states[j].Type
+
+		return kube.ContainerTypeOrderMap[ti] < kube.ContainerTypeOrderMap[tj]
+	})
 
 	ks := make([]types.ResourceComponentOperationKey, len(states))
 	for i := 0; i < len(states); i++ {
