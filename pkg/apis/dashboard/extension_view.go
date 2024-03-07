@@ -12,6 +12,8 @@ import (
 )
 
 type RunStatusCount struct {
+	Planned   int `json:"planned"`
+	Canceled  int `json:"canceled"`
 	Running   int `json:"running"`
 	Failed    int `json:"failed"`
 	Succeeded int `json:"succeeded"`

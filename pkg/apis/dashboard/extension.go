@@ -238,7 +238,13 @@ func getResourceRunStatusStats(
 			statMap[t].Failed = c.Count
 		case status.ResourceRunSummaryStatusSucceed:
 			statMap[t].Succeeded = c.Count
-		case status.ResourceRunSummaryStatusRunning:
+		case status.ResourceRunSummaryStatusCanceled:
+			statMap[t].Canceled = c.Count
+		case status.ResourceRunSummaryStatusPlanned:
+			statMap[t].Planned = c.Count
+		case status.ResourceRunSummaryStatusRunning,
+			status.ResourceRunSummaryStatusPlanning,
+			status.ResourceRunSummaryStatusPending:
 			statMap[t].Running = c.Count
 		}
 	}
@@ -252,6 +258,8 @@ func getResourceRunStatusStats(
 				Failed:    sm.Failed,
 				Succeeded: sm.Succeeded,
 				Running:   sm.Running,
+				Canceled:  sm.Canceled,
+				Planned:   sm.Planned,
 			},
 			StartTime: k,
 		})
@@ -298,7 +306,13 @@ func getResourceRunStatusCount(
 			r.Failed = sc.Count
 		case status.ResourceRunSummaryStatusSucceed:
 			r.Succeeded = sc.Count
-		case status.ResourceRunSummaryStatusRunning:
+		case status.ResourceRunSummaryStatusCanceled:
+			r.Canceled = sc.Count
+		case status.ResourceRunSummaryStatusPlanned:
+			r.Planned = sc.Count
+		case status.ResourceRunSummaryStatusRunning,
+			status.ResourceRunSummaryStatusPlanning,
+			status.ResourceRunSummaryStatusPending:
 			r.Running = sc.Count
 		}
 	}
