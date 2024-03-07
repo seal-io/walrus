@@ -6,9 +6,13 @@ const (
 	ResourceRunStatusApplied  ConditionType = "Applied"
 	ResourceRunStatusCanceled ConditionType = "Canceled"
 
-	ResourceRunSummaryStatusRunning string = "Running"
-	ResourceRunSummaryStatusFailed  string = "Failed"
-	ResourceRunSummaryStatusSucceed string = "Succeeded"
+	ResourceRunSummaryStatusPlanning string = "Planning"
+	ResourceRunSummaryStatusPlanned  string = "Planned"
+	ResourceRunSummaryStatusPending  string = "Pending"
+	ResourceRunSummaryStatusCanceled string = "Canceled"
+	ResourceRunSummaryStatusRunning  string = "Running"
+	ResourceRunSummaryStatusFailed   string = "Failed"
+	ResourceRunSummaryStatusSucceed  string = "Succeeded"
 )
 
 // resourceRunStatusPaths makes the following decision.
