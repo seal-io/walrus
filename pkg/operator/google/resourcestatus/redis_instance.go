@@ -27,7 +27,7 @@ func getRedisInstance(ctx context.Context, resourceType, name string) (*status.S
 	}
 
 	req := &redispb.GetInstanceRequest{
-		Name: fmt.Sprintf("projects/%s/locations/%s/instances/%s", cred.Project, cred.Region, name),
+		Name: name,
 	}
 
 	instance, err := client.GetInstance(ctx, req)
