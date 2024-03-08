@@ -1,0 +1,27 @@
+{
+	"format_version": "1.2",
+	"terraform_version": "1.5.7",
+	"resource_changes": [
+		{
+			"address": "module.test.helm_release.mysql",
+			"module_address": "module.test",
+			"mode": "managed",
+			"type": "helm_release",
+			"name": "mysql",
+			"provider_name": "registry.terraform.io/hashicorp/helm",
+			"change": {
+				"actions": [
+					"create"
+				],
+				"before": {},
+				"after": {
+					"value1": "value1",
+					"value2": "value2",
+					"sensitive_value": "\u003csensitive value(changed)\u003e",
+					"after_unknown": "\u003cknown after apply\u003e"
+				},
+				"type": "create"
+			}
+		}
+	]
+}

@@ -53,3 +53,32 @@ func ApplyPatches(doc []byte, patches ...[]byte) ([]byte, error) {
 
 	return doc, nil
 }
+
+// CreateMergePatch creates a merge patch from the original and modifies.
+// The merge patch returned follows the specification defined at
+// http://tools.ietf.org/html/draft-ietf-appsawg-json-merge-patch-07.
+func CreateMergePatch(original, modified any) (any, error) {
+	mp := reflect.New(reflect.TypeOf(original)).Interface()
+
+	originalJSON, err := Marshal(original)
+	if err != nil {
+		return nil, err
+	}
+
+	modifiedJSON, err := Marshal(modified)
+	if err != nil {
+		return nil, err
+	}
+
+	mergePatch, err := jsonpatch.CreateMergePatch(originalJSON, modifiedJSON)
+	if err != nil {
+		return nil, err
+	}
+
+	err = Unmarshal(mergePatch, mp)
+	if err != nil {
+		return nil, err
+	}
+
+	return mp, nil
+}

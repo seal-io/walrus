@@ -70,7 +70,7 @@ services:
       - "--log-verbosity=4"
       - "--data-source-address=postgres://root:Root123@postgres:5432/walrus?sslmode=disable"
       - "--cache-source-address=redis://default:Default123@redis:6379/0"
-      - "--s3-source-address=s3://minio:Minio123@localhost:9000/walrus?sslmode=disable"
+      - "--s3-source-address=s3://minio:Minio123@minio:9000/walrus?sslmode=disable"
       - "--casdoor-server=http://casdoor:8000"
     volumes:
       - walrus-data:/var/run/walrus
