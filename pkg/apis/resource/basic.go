@@ -39,7 +39,11 @@ func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 		},
 	)
 
-	return model.ExposeResource(entity), err
+	if entity != nil {
+		return model.ExposeResource(entity), nil
+	}
+
+	return nil, err
 }
 
 func (h Handler) Get(req GetRequest) (GetResponse, error) {
@@ -93,10 +97,17 @@ func (h Handler) Delete(req DeleteRequest) (err error) {
 		WithoutCleanup: req.WithoutCleanup,
 	}
 
+	entity, err := h.modelClient.Resources().Query().
+		Where(resource.ID(req.ID)).
+		Only(req.Context)
+	if err != nil {
+		return err
+	}
+
 	return pkgresource.Delete(
 		req.Context,
 		h.modelClient,
-		req.Model(),
+		entity,
 		deleteOptions)
 }
 
