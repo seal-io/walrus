@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"reflect"
 	"strings"
 
@@ -157,6 +158,12 @@ func (StateParser) GetComponentsAndExtractDependencies(
 				}
 			}
 
+			name, err := url.QueryUnescape(instanceID)
+			if err != nil {
+				name = instanceID
+				logger.Errorf("unescape instance id failed: %v, instance id: %s", err, instanceID)
+			}
+
 			instanceResource := &model.ResourceComponent{
 				ProjectID:     run.ProjectID,
 				EnvironmentID: run.EnvironmentID,
@@ -164,7 +171,7 @@ func (StateParser) GetComponentsAndExtractDependencies(
 				ConnectorID:   object.ID(connectorID),
 				Mode:          rs.Mode,
 				Type:          rs.Type,
-				Name:          instanceID,
+				Name:          name,
 				Shape:         types.ResourceComponentShapeInstance,
 				DeployerType:  run.DeployerType,
 				IndexKey:      indexKey,
