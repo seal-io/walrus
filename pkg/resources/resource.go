@@ -145,3 +145,19 @@ func SetDefaultLabels(ctx context.Context, mc model.ClientSet, entities ...*mode
 
 	return nil
 }
+
+func UpdateMetadata(ctx context.Context, mc model.ClientSet, entity *model.Resource) error {
+	if err := SetSubjectID(ctx, entity); err != nil {
+		return err
+	}
+
+	if err := SetDefaultLabels(ctx, mc, entity); err != nil {
+		return err
+	}
+
+	return mc.Resources().UpdateOne(entity).
+		SetAnnotations(entity.Annotations).
+		SetLabels(entity.Labels).
+		SetDescription(entity.Description).
+		Exec(ctx)
+}

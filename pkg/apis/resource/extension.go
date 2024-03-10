@@ -21,6 +21,10 @@ import (
 func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 	entity := req.Model()
 
+	if req.MetadataOnly {
+		return pkgresource.UpdateMetadata(req.Context, h.modelClient, entity)
+	}
+
 	dp, err := getDeployer(req.Context, h.kubeConfig)
 	if err != nil {
 		return err

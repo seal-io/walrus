@@ -45,6 +45,7 @@ type (
 		ChangeComment   string `json:"changeComment,omitempty"`
 		ReuseAttributes bool   `json:"reuseAttributes,default=false"`
 		Preview         bool   `json:"preview,default=false"`
+		MetadataOnly    bool   `json:"metadataOnly,default=false"`
 	}
 )
 
