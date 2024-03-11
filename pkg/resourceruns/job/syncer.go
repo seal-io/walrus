@@ -40,9 +40,6 @@ func (s syncer) Do(ctx context.Context, bm runbus.BusMessage) (err error) {
 	// Report to resource.
 	entity, err := mc.Resources().Query().
 		Where(resource.ID(run.ResourceID)).
-		Select(
-			resource.FieldID,
-			resource.FieldStatus).
 		Only(ctx)
 	if err != nil {
 		return err
@@ -66,12 +63,19 @@ func (s syncer) Do(ctx context.Context, bm runbus.BusMessage) (err error) {
 
 			return nil
 		}
+
+		s.logger.Debugf("resource %s %q run %s %q, wait to be applied", entity.Name, run.Type, run.ID, run.Status.SummaryStatus)
+
+		return nil
 	case runstatus.IsStatusSucceeded(run):
+		s.logger.Debugf("resource %s %q run %s status %q", entity.Name, run.Type, run.ID, run.Status.SummaryStatus)
+
 		switch {
 		case status.ResourceStatusDeleted.IsUnknown(entity):
 			err = mc.Resources().DeleteOne(entity).
 				Exec(ctx)
 			if err == nil {
+				s.logger.Debugf("resource %s is deleted", entity.Name, run.ID, run.Status.SummaryStatus)
 				return nil
 			}
 
@@ -100,8 +104,11 @@ func (s syncer) Do(ctx context.Context, bm runbus.BusMessage) (err error) {
 	case runstatus.IsStatusFailed(run):
 		// If job fail, and preview is true, then we should not update the resource status.
 		if runstatus.IsPreviewPlanFailed(run) {
+			s.logger.Debugf("resource %s %q run %s plan Failed", entity.Name, run.Type, run.ID)
 			return nil
 		}
+
+		s.logger.Debugf("resource %s %q run %s status %q", entity.Name, run.Type, run.ID, run.Status.SummaryStatus)
 
 		switch run.Type {
 		case types.RunTypeCreate.String(), types.RunTypeUpdate.String(), types.RunTypeRollback.String(), types.RunTypeStart.String():
@@ -110,12 +117,20 @@ func (s syncer) Do(ctx context.Context, bm runbus.BusMessage) (err error) {
 			status.ResourceStatusDeleted.False(entity, "")
 		case types.RunTypeStop.String():
 			status.ResourceStatusStopped.False(entity, "")
+		default:
+			s.logger.Debugf("run %s unsupported action type %q", run.ID, run.Type)
+			return nil
 		}
 
 		entity.Status.SummaryStatusMessage = run.Status.SummaryStatusMessage
+	default:
+		s.logger.Debugf("skip resource run %s status %q", run.ID, run.Status.SummaryStatus)
+		return nil
 	}
 
 	entity.Status.SetSummary(status.WalkResource(&entity.Status))
+
+	s.logger.Debugf("set resource %s status to %q", entity.Name, entity.Status.SummaryStatus)
 
 	return mc.Resources().UpdateOne(entity).
 		SetStatus(entity.Status).
