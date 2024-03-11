@@ -15,6 +15,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	resstatus "github.com/seal-io/walrus/pkg/resources/status"
+	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/strs"
 )
 
@@ -70,6 +71,8 @@ func IsPreviewPlanFailed(run *model.ResourceRun) bool {
 
 // SetStatusFalse sets the status of the resource run to false.
 func SetStatusFalse(run *model.ResourceRun, errMsg string) {
+	logger := log.WithName("resource-run").WithName("status")
+
 	switch {
 	case status.ResourceRunStatusPlanned.IsUnknown(run):
 		errMsg = fmt.Sprintf("plan failed: %s", errMsg)
@@ -80,6 +83,9 @@ func SetStatusFalse(run *model.ResourceRun, errMsg string) {
 	case status.ResourceRunStatusPending.IsUnknown(run):
 		errMsg = fmt.Sprintf("pending failed: %s", errMsg)
 		status.ResourceRunStatusPending.False(run, errMsg)
+	default:
+		logger.Debugf("cannot set status false, unknown status: %s", run.Status.SummaryStatus)
+		return
 	}
 
 	run.Status.SetSummary(status.WalkResourceRun(&run.Status))
@@ -88,11 +94,16 @@ func SetStatusFalse(run *model.ResourceRun, errMsg string) {
 // SetStatusTrue sets the status of the resource run to true.
 // It marks the status of the resource run as "Succeeded".
 func SetStatusTrue(run *model.ResourceRun, msg string) {
+	logger := log.WithName("resource-run").WithName("status")
+
 	switch {
 	case status.ResourceRunStatusPlanned.IsUnknown(run):
 		status.ResourceRunStatusPlanned.True(run, "")
 	case status.ResourceRunStatusApplied.IsUnknown(run):
 		status.ResourceRunStatusApplied.True(run, msg)
+	default:
+		logger.Debugf("cannot set status true, unknown status: %s", run.Status.SummaryStatus)
+		return
 	}
 
 	run.Status.SetSummary(status.WalkResourceRun(&run.Status))
