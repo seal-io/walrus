@@ -2,7 +2,6 @@ package types
 
 import (
 	"context"
-	"errors"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
@@ -249,31 +248,7 @@ type TemplateVersionSchema struct {
 
 // Validate reports if the schema is valid.
 func (s *TemplateVersionSchema) Validate() error {
-	if err := s.Schema.Validate(); err != nil {
-		return err
-	}
-
-	providerExist := len(s.RequiredProviders) != 0
-
-	var (
-		variablesExist bool
-		outputsExist   bool
-	)
-
-	switch {
-	case s.OpenAPISchema == nil || s.OpenAPISchema.Components == nil:
-		variablesExist = false
-		outputsExist = false
-	default:
-		variablesExist = s.OpenAPISchema.Components.Schemas["variables"] != nil
-		outputsExist = s.OpenAPISchema.Components.Schemas["outputs"] != nil
-	}
-
-	if !providerExist && !variablesExist && !outputsExist {
-		return errors.New("invalid schema: at least one of requiredProviders, variables, outputs must be specified")
-	}
-
-	return nil
+	return s.Schema.Validate()
 }
 
 // TemplateVersionSchemaData include the data of this template version.
