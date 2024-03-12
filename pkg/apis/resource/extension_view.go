@@ -318,12 +318,6 @@ type (
 
 		resource *model.Resource `json:"-"`
 	}
-
-	RouteStartResponse struct {
-		*model.ResourceOutput
-
-		Run *model.ResourceRunOutput `json:"run"`
-	}
 )
 
 func (r *RouteStartRequest) Validate() error {

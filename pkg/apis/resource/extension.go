@@ -14,6 +14,7 @@ import (
 	pkgcomponent "github.com/seal-io/walrus/pkg/resourcecomponents"
 	pkgresource "github.com/seal-io/walrus/pkg/resources"
 	tfparser "github.com/seal-io/walrus/pkg/terraform/parser"
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/topic"
 )
@@ -26,15 +27,16 @@ func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 		return err
 	}
 
-	_, err = pkgresource.Upgrade(req.Context, h.modelClient, entity, pkgresource.Options{
+	run, err := pkgresource.Upgrade(req.Context, h.modelClient, entity, pkgresource.Options{
 		StorageManager: h.storageManager,
 		Deployer:       dp,
 		ChangeComment:  req.ChangeComment,
 		Draft:          req.Draft,
 		Preview:        req.Preview,
 	})
-	if err != nil {
-		return err
+	// NB(alex): If resource run created successfully, users can check the resource run status and logs.
+	if err != nil && run == nil {
+		return errorx.Wrap(err, "failed to upgrade resource")
 	}
 
 	return nil
@@ -46,7 +48,7 @@ func (h Handler) RouteRollback(req RouteRollbackRequest) error {
 		return err
 	}
 
-	return pkgresource.Rollback(
+	err = pkgresource.Rollback(
 		req.Context,
 		h.modelClient,
 		req.ID,
@@ -57,29 +59,31 @@ func (h Handler) RouteRollback(req RouteRollbackRequest) error {
 			ChangeComment:  req.ChangeComment,
 			Preview:        req.Preview,
 		})
+	if err != nil {
+		return errorx.Wrap(err, "failed to rollback resource")
+	}
+
+	return nil
 }
 
-func (h Handler) RouteStart(req RouteStartRequest) (*RouteStartResponse, error) {
+func (h Handler) RouteStart(req RouteStartRequest) error {
 	entity := req.resource
 
 	dp, err := getDeployer(req.Context, h.kubeConfig)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	run, err := pkgresource.Start(req.Context, h.modelClient, entity, pkgresource.Options{
+	_, err = pkgresource.Start(req.Context, h.modelClient, entity, pkgresource.Options{
 		StorageManager: h.storageManager,
 		Deployer:       dp,
 		ChangeComment:  req.ChangeComment,
 	})
 	if err != nil {
-		return nil, err
+		return errorx.Wrap(err, "failed to start resource")
 	}
 
-	return &RouteStartResponse{
-		ResourceOutput: model.ExposeResource(entity),
-		Run:            model.ExposeResourceRun(run),
-	}, nil
+	return nil
 }
 
 func (h Handler) RouteStop(req RouteStopRequest) error {
@@ -101,7 +105,12 @@ func (h Handler) RouteStop(req RouteStopRequest) error {
 		return err
 	}
 
-	return pkgresource.Stop(req.Context, h.modelClient, entity, opts)
+	err = pkgresource.Stop(req.Context, h.modelClient, entity, opts)
+	if err != nil {
+		return errorx.Wrap(err, "failed to stop resource")
+	}
+
+	return nil
 }
 
 func (h Handler) RouteGetEndpoints(req RouteGetEndpointsRequest) (RouteGetEndpointsResponse, error) {
