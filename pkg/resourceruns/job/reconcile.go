@@ -2,6 +2,7 @@ package job
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -12,7 +13,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
-	client "sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	runbus "github.com/seal-io/walrus/pkg/bus/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -66,6 +67,15 @@ func (r Reconciler) syncRunStatus(ctx context.Context, job *batchv1.Job) (err er
 		return nil
 	}
 
+	taskType, ok := job.Labels[types.LabelWalrusResourceRunTaskType]
+	if !ok {
+		return nil
+	}
+
+	if job.DeletionTimestamp != nil {
+		return nil
+	}
+
 	run, err := r.ModelClient.ResourceRuns().Get(ctx, object.ID(runID))
 	if err != nil {
 		return err
@@ -91,12 +101,12 @@ func (r Reconciler) syncRunStatus(ctx context.Context, job *batchv1.Job) (err er
 
 	if job.Status.Succeeded > 0 {
 		r.Logger.Info("succeed", "resource-run", runID)
-		runstatus.SetStatusTrue(run, "")
+		setStatusTrue(run, taskType, "")
 	}
 
 	if job.Status.Failed > 0 {
 		r.Logger.Info("failed", "resource-run", runID)
-		runstatus.SetStatusFalse(run, "please check the logs")
+		setStatusFalse(run, taskType, "please check the logs")
 		// Clear component changes and summary when run failed.
 		update.ClearComponentChanges().
 			ClearComponentChangeSummary()
@@ -174,4 +184,47 @@ func (r Reconciler) cleanPlanFiles(run *model.ResourceRun) {
 			r.Logger.Error(err, "failed to delete run plan", "run", run.ID)
 		}
 	})
+}
+
+// SetStatusFalse sets the status of the resource run to false with task type.
+func setStatusFalse(run *model.ResourceRun, taskType, errMsg string) {
+	if status.ResourceRunStatusPending.IsUnknown(run) {
+		errMsg = fmt.Sprintf("pending failed: %s", errMsg)
+		status.ResourceRunStatusPending.False(run, errMsg)
+	}
+
+	var ct status.ConditionType
+	switch taskType {
+	case types.RunTaskTypePlan.String():
+		ct = status.ResourceRunStatusPlanned
+		errMsg = fmt.Sprintf("plan failed: %s", errMsg)
+	case types.RunTaskTypeApply.String(), types.RunTaskTypeDestroy.String():
+		ct = status.ResourceRunStatusApplied
+		errMsg = fmt.Sprintf("apply failed: %s", errMsg)
+	}
+
+	if ct.IsUnknown(run) {
+		ct.False(run, errMsg)
+	}
+
+	run.Status.SetSummary(status.WalkResourceRun(&run.Status))
+}
+
+// setStatusTrue sets the status of the resource run to true with task type.
+func setStatusTrue(run *model.ResourceRun, taskType, msg string) {
+	var ct status.ConditionType
+
+	switch taskType {
+	case types.RunTaskTypePlan.String():
+		ct = status.ResourceRunStatusPlanned
+		msg = ""
+	case types.RunTaskTypeApply.String(), types.RunTaskTypeDestroy.String():
+		ct = status.ResourceRunStatusApplied
+	}
+
+	if ct.IsUnknown(run) {
+		ct.True(run, msg)
+	}
+
+	run.Status.SetSummary(status.WalkResourceRun(&run.Status))
 }

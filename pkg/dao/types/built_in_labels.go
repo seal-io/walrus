@@ -29,4 +29,6 @@ const (
 	LabelEmbeddedKubernetes = "walrus.seal.io/embedded-kubernetes"
 	// LabelWalrusResourceRunID is the label for resource run id of the run job.
 	LabelWalrusResourceRunID = "walrus.seal.io/resource-run-id"
+	// LabelWalrusResourceRunTaskType is the label for resource run task type of the run job.
+	LabelWalrusResourceRunTaskType = "walrus.seal.io/resource-run-task-type"
 )
