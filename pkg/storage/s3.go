@@ -3,10 +3,9 @@ package storage
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 
-	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/aws-sdk-go/service/s3"
 	minio "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 
@@ -84,8 +83,7 @@ func (m *Manager) DeleteRunPlan(ctx context.Context, run *model.ResourceRun) err
 	bucketName := m.config.Bucket
 
 	err := m.minioClient.RemoveObject(ctx, bucketName, fileName, minio.RemoveObjectOptions{})
-	var notFoundErr *s3types.NoSuchKey
-	if err != nil && !errors.As(err, &notFoundErr) {
+	if err != nil && minio.ToErrorResponse(err).Code != s3.ErrCodeNoSuchKey {
 		return err
 	}
 
@@ -106,14 +104,9 @@ func (m *Manager) CheckValidBucketName(ctx context.Context, bucketName string) e
 		Region: m.config.Region,
 	})
 	if err != nil {
-		var (
-			bucketAlreadyOwnedByYouErr *s3types.BucketAlreadyOwnedByYou
-			bucketAlreadyExistsErr     *s3types.BucketAlreadyExists
-		)
-
-		switch {
-		case errors.As(err, &bucketAlreadyExistsErr),
-			errors.As(err, &bucketAlreadyOwnedByYouErr):
+		switch minio.ToErrorResponse(err).Code {
+		case s3.ErrCodeBucketAlreadyOwnedByYou,
+			s3.ErrCodeBucketAlreadyExists:
 			return nil
 		}
 
