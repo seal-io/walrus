@@ -66,6 +66,10 @@ func (l *TerraformLoader) Load(
 
 // loadMod load the terraform module.
 func (l *TerraformLoader) loadMod(rootDir string) (*tfconfig.Module, error) {
+	if !tfconfig.IsModuleDir(rootDir) {
+		return nil, fmt.Errorf("no terraform configuration files found")
+	}
+
 	mod, diags := tfconfig.LoadModule(rootDir)
 	if diags.HasErrors() {
 		return nil, diags.Err()
