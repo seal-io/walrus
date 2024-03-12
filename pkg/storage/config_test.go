@@ -25,7 +25,7 @@ func TestParseConfig(t *testing.T) {
 		},
 		{
 			name:   "valid",
-			config: `s3://accessKey:secretAccessKey@endpoint:9000/bucketName?sslMode=disable`,
+			config: `s3://accessKey:secretAccessKey@endpoint:9000/bucketName?sslmode=disable`,
 			want: &Config{
 				Endpoint:        "endpoint:9000",
 				Bucket:          "bucketName",
@@ -36,7 +36,7 @@ func TestParseConfig(t *testing.T) {
 		},
 		{
 			name:   "valid-secure",
-			config: `s3://accessKey1:xdrlT7a2x*sd34s@endpoint:9000/bucketName?sslMode=enable`,
+			config: `s3://accessKey1:xdrlT7a2x*sd34s@endpoint:9000/bucketName?sslmode=enable`,
 			want: &Config{
 				Endpoint:        "endpoint:9000",
 				Bucket:          "bucketName",
@@ -53,6 +53,18 @@ func TestParseConfig(t *testing.T) {
 				Bucket:          "bucketName",
 				AccessKeyID:     "ak1",
 				SecretAccessKey: "sk2sk2sk2",
+				Secure:          true,
+			},
+		},
+		{
+			name:   "with-region",
+			config: `s3://accessKey:secret@yourdomain/bucket?region=ap-northeast-1`,
+			want: &Config{
+				Endpoint:        "yourdomain",
+				Bucket:          "bucket",
+				AccessKeyID:     "accessKey",
+				SecretAccessKey: "secret",
+				Region:          "ap-northeast-1",
 				Secure:          true,
 			},
 		},

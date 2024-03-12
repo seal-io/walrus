@@ -37,27 +37,7 @@ func getPlanCommands(run *model.ResourceRun, opts JobCreateOptions) string {
 		destroy = "-destroy"
 	}
 
-	planCommands := fmt.Sprintf(_planCommands, destroy, varfile)
-
-	planAPI := fmt.Sprintf("%s%s", opts.ServerURL,
-		fmt.Sprintf(_planAPI,
-			run.ProjectID,
-			run.EnvironmentID,
-			run.ResourceID,
-			run.ID))
-
-	planCommands += fmt.Sprintf(
-		" && curl -sS -X POST -H \"Content-Type: multipart/form-data\" -H \"Authorization: Bearer $ACCESS_TOKEN\" %s -F jsonplan=@%s -F plan=@%s",
-		planAPI,
-		_jsonPlanFileName,
-		_planFileName,
-	)
-
-	if !servervars.TlsCertified.Get() {
-		planCommands += " -k"
-	}
-
-	return planCommands
+	return fmt.Sprintf(_planCommands, destroy, varfile) + setPlanFile(run, opts)
 }
 
 func getApplyCommands(run *model.ResourceRun, opts JobCreateOptions) string {
@@ -68,12 +48,13 @@ func getDestroyCommands(run *model.ResourceRun, opts JobCreateOptions) string {
 	return fmt.Sprintf("%s && %s", getPlanFile(run, opts), fmt.Sprintf(_destroyCommands, _planFileName))
 }
 
+// getPlanFile returns the command to get the plan file.
 func getPlanFile(run *model.ResourceRun, opts JobCreateOptions) string {
 	getPlanAPI := fmt.Sprintf("%s%s", opts.ServerURL,
 		fmt.Sprintf(_planAPI, run.ProjectID, run.EnvironmentID, run.ResourceID, run.ID))
 
 	getPlan := fmt.Sprintf(
-		"curl -sS -X GET -H \"Authorization: Bearer $ACCESS_TOKEN\" %s -o %s",
+		"curl -sS --fail-with-body -X GET -H \"Authorization: Bearer $ACCESS_TOKEN\" %s -o %s",
 		getPlanAPI,
 		_planFileName,
 	)
@@ -83,4 +64,28 @@ func getPlanFile(run *model.ResourceRun, opts JobCreateOptions) string {
 	}
 
 	return getPlan
+}
+
+// setPlanFile returns the command to set the plan file.
+func setPlanFile(run *model.ResourceRun, opts JobCreateOptions) string {
+	setPlanAPI := fmt.Sprintf("%s%s", opts.ServerURL,
+		fmt.Sprintf(_planAPI,
+			run.ProjectID,
+			run.EnvironmentID,
+			run.ResourceID,
+			run.ID))
+
+	setPlan := fmt.Sprintf(
+		" && curl -sS --fail-with-body -X POST -H \"Content-Type: multipart/form-data\" -H \"Authorization: Bearer $ACCESS_TOKEN\""+
+			" %s -F jsonplan=@%s -F plan=@%s",
+		setPlanAPI,
+		_jsonPlanFileName,
+		_planFileName,
+	)
+
+	if !servervars.TlsCertified.Get() {
+		setPlan += " -k"
+	}
+
+	return setPlan
 }
