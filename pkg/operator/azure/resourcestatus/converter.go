@@ -14,6 +14,7 @@ var virtualMachineStatusConverter = status.NewConverter(
 	[]string{
 		"running",
 	},
+	nil,
 	[]string{
 		"stopped",
 		"deallocated",
@@ -33,6 +34,7 @@ var mySQLFlexibleServerStatusConverter = status.NewConverter(
 	[]string{
 		"Ready",
 	},
+	nil,
 	[]string{
 		"Stopped",
 		"Disabled",
@@ -52,6 +54,7 @@ var postgreSQLFlexibleServerStatusConverter = status.NewConverter(
 	[]string{
 		"Ready",
 	},
+	nil,
 	[]string{
 		"Stopped",
 		"Disabled",
@@ -71,6 +74,7 @@ var redisCacheStatusConverter = status.NewConverter(
 	[]string{
 		"Succeeded",
 	},
+	nil,
 	[]string{
 		"Disabled",
 	},
@@ -90,6 +94,7 @@ var virtualNetworkStatusConverter = status.NewConverter(
 	[]string{
 		"Succeeded",
 	},
+	nil,
 	nil,
 	[]string{
 		"Failed",

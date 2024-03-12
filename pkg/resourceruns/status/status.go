@@ -60,6 +60,14 @@ func IsStatusSucceeded(run *model.ResourceRun) bool {
 	return status.ResourceRunStatusApplied.IsTrue(run)
 }
 
+func IsStatusCanceled(run *model.ResourceRun) bool {
+	return status.ResourceRunStatusCanceled.IsTrue(run)
+}
+
+func IsPreviewPlanFailed(run *model.ResourceRun) bool {
+	return run.Preview && status.ResourceRunStatusPlanned.IsFalse(run)
+}
+
 // SetStatusFalse sets the status of the resource run to false.
 func SetStatusFalse(run *model.ResourceRun, errMsg string) {
 	switch {
@@ -82,7 +90,7 @@ func SetStatusFalse(run *model.ResourceRun, errMsg string) {
 func SetStatusTrue(run *model.ResourceRun, msg string) {
 	switch {
 	case status.ResourceRunStatusPlanned.IsUnknown(run):
-		status.ResourceRunStatusPlanned.True(run, msg)
+		status.ResourceRunStatusPlanned.True(run, "")
 	case status.ResourceRunStatusApplied.IsUnknown(run):
 		status.ResourceRunStatusApplied.True(run, msg)
 	}
