@@ -16,6 +16,7 @@ import (
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
 	pkgrun "github.com/seal-io/walrus/pkg/resourceruns"
 	pkgresource "github.com/seal-io/walrus/pkg/resources"
+	"github.com/seal-io/walrus/utils/errorx"
 	"github.com/seal-io/walrus/utils/topic"
 )
 
@@ -43,7 +44,7 @@ func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 		return model.ExposeResource(entity), nil
 	}
 
-	return nil, err
+	return nil, errorx.Wrap(err, "failed to create resource")
 }
 
 func (h Handler) Get(req GetRequest) (GetResponse, error) {
@@ -104,11 +105,17 @@ func (h Handler) Delete(req DeleteRequest) (err error) {
 		return err
 	}
 
-	return pkgresource.Delete(
+	err = pkgresource.Delete(
 		req.Context,
 		h.modelClient,
 		entity,
 		deleteOptions)
+
+	if err != nil {
+		return errorx.Wrap(err, "failed to delete resource")
+	}
+
+	return nil
 }
 
 func (h Handler) Patch(req PatchRequest) error {
@@ -126,7 +133,11 @@ func (h Handler) Patch(req PatchRequest) error {
 		Draft:          req.Draft,
 		Preview:        req.Preview,
 	})
-	return err
+	if err != nil {
+		return errorx.Wrap(err, "failed to patch resource")
+	}
+
+	return nil
 }
 
 func (h Handler) CollectionCreate(req CollectionCreateRequest) (CollectionCreateResponse, error) {
