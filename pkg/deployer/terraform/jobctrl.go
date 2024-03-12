@@ -195,7 +195,8 @@ func getPodTemplate(configName string, opts JobCreateOptions) corev1.PodTemplate
 		ObjectMeta: metav1.ObjectMeta{
 			Name: _podName,
 			Labels: map[string]string{
-				types.LabelWalrusResourceRunID: opts.ResourceRun.ID.String(),
+				types.LabelWalrusResourceRunID:       opts.ResourceRun.ID.String(),
+				types.LabelWalrusResourceRunTaskType: opts.Type.String(),
 			},
 		},
 		Spec: corev1.PodSpec{
