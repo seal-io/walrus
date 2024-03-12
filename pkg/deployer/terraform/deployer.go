@@ -51,7 +51,7 @@ func (d Deployer) Apply(
 ) (err error) {
 	defer d.errorHandle(mc, run, err)
 
-	if !status.ResourceRunStatusPlanned.IsTrue(run) {
+	if !runstatus.IsStatusPlanned(run) {
 		err = fmt.Errorf("resource run %s is not planned", run.ID)
 		return
 	}
@@ -80,7 +80,7 @@ func (d Deployer) Plan(
 ) (err error) {
 	defer d.errorHandle(mc, run, err)
 
-	if !status.ResourceRunStatusPending.IsUnknown(run) {
+	if !runstatus.IsStatusPending(run) {
 		err = fmt.Errorf("resource run %s is not pending", run.ID)
 		return
 	}
@@ -111,7 +111,7 @@ func (d Deployer) Destroy(
 ) (err error) {
 	defer d.errorHandle(mc, run, err)
 
-	if !status.ResourceRunStatusPlanned.IsTrue(run) {
+	if !runstatus.IsStatusPlanned(run) {
 		err = fmt.Errorf("resource run %s is not planned", run.ID)
 		return
 	}

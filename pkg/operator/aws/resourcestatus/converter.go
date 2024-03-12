@@ -16,6 +16,7 @@ var ec2InstanceStatusConverter = status.NewConverter(
 	[]string{
 		"running",
 	},
+	nil,
 	[]string{
 		"terminated",
 		"stopped",
@@ -34,6 +35,7 @@ var ec2ImageStatusConverter = status.NewConverter(
 	[]string{
 		"available",
 	},
+	nil,
 	nil,
 	[]string{
 		"failed",
@@ -54,6 +56,7 @@ var ec2VolumeStatusConverter = status.NewConverter(
 		"in_use",
 		"available",
 	},
+	nil,
 	[]string{
 		"deleted",
 	},
@@ -75,6 +78,7 @@ var ec2SnapshotStatusConverter = status.NewConverter(
 		"completed",
 		"recoverable",
 	},
+	nil,
 	nil,
 	[]string{
 		"error",
@@ -98,6 +102,7 @@ var ec2NetworkInterfaceStatusConverter = status.NewConverter(
 	},
 	nil,
 	nil,
+	nil,
 )
 
 // vpcStatusConverter generate the summary use following table, other status will be treated as transitioning.
@@ -112,6 +117,7 @@ var vpcStatusConverter = status.NewConverter(
 	},
 	nil,
 	nil,
+	nil,
 )
 
 // ec2SubnetStatusConverter generate the summary use following table, other status will be treated as transitioning.
@@ -124,6 +130,7 @@ var ec2SubnetStatusConverter = status.NewConverter(
 	[]string{
 		"available",
 	},
+	nil,
 	nil,
 	nil,
 )
@@ -149,6 +156,7 @@ var rdsDBInstanceStatusConverter = status.NewConverter(
 	[]string{
 		"available",
 	},
+	nil,
 	[]string{
 		"stopped",
 	},
@@ -184,6 +192,7 @@ var rdsDBClusterStatusConverter = status.NewConverter(
 		"available",
 		"maintenance",
 	},
+	nil,
 	[]string{
 		"stopped",
 	},
@@ -208,6 +217,7 @@ var cloudFrontStatusConverter = status.NewConverter(
 	},
 	nil,
 	nil,
+	nil,
 )
 
 // elasticCacheStatusConverter generate the summary use following table, other status will be treated as transitioning.
@@ -223,6 +233,7 @@ var elasticCacheStatusConverter = status.NewConverter(
 	[]string{
 		"available",
 	},
+	nil,
 	[]string{
 		"deleted",
 	},
@@ -246,6 +257,7 @@ var elbLoadBalancerStatusConverter = status.NewConverter(
 		"active",
 	},
 	nil,
+	nil,
 	[]string{
 		"failed",
 		"active_impaired",
@@ -264,6 +276,7 @@ var eksClusterStatusConverter = status.NewConverter(
 	[]string{
 		"ACTIVE",
 	},
+	nil,
 	[]string{
 		"INACTIVE",
 	},

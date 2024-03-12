@@ -38,6 +38,28 @@ var resourceRunStatusPaths = NewWalker(
 		},
 	},
 	func(d Decision[ConditionType]) {
+		d.Make(ResourceRunStatusPlanned,
+			func(st ConditionStatus, reason string) *Summary {
+				switch st {
+				case ConditionStatusUnknown:
+					return &Summary{
+						SummaryStatus: "Planning",
+						Transitioning: true,
+					}
+				case ConditionStatusFalse:
+					return &Summary{
+						SummaryStatus:        "Failed",
+						Error:                true,
+						SummaryStatusMessage: reason,
+					}
+				}
+				return &Summary{
+					SummaryStatus: "Planned",
+					Warning:       true,
+				}
+			})
+	},
+	func(d Decision[ConditionType]) {
 		d.Make(ResourceRunStatusCanceled,
 			func(st ConditionStatus, reason string) *Summary {
 				switch st {

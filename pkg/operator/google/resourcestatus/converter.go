@@ -14,6 +14,7 @@ var sqlDatabaseInstanceStatusConverter = status.NewConverter(
 	[]string{
 		"runnable",
 	},
+	nil,
 	[]string{
 		"suspended",
 	},
@@ -34,6 +35,7 @@ var redisInstanceStatusConverter = status.NewConverter(
 		"ready",
 	},
 	nil,
+	nil,
 	[]string{
 		"failing_over",
 	},
@@ -51,6 +53,7 @@ var computeInstanceStatusConverter = status.NewConverter(
 	[]string{
 		"running",
 	},
+	nil,
 	[]string{
 		"stopped",
 	},

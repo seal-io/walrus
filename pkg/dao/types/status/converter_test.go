@@ -10,6 +10,7 @@ func TestConverterExample(t *testing.T) {
 	// 1. Define the status of resource.
 	const (
 		StatusCreating     = "Creating"
+		StatusWarning      = "Warning"
 		StatusAvailable    = "Available"
 		StatusInActive     = "InActive"
 		StatusUnAvailable  = "UnAvailable"
@@ -21,6 +22,7 @@ func TestConverterExample(t *testing.T) {
 	//  | Human Readable Status | Human Sensible Status |
 	//  | --------------------- | --------------------- |
 	//  | StatusAvailable       |                       |
+	//  | StatusWarning         | Warning               |
 	//  | StatusInActive        | Inactive              |
 	//  | StatusUnAvailable     | Error                 |
 	//  | StatusCreateFailed    | Error                 |
@@ -29,6 +31,9 @@ func TestConverterExample(t *testing.T) {
 	f := NewConverter(
 		[]string{
 			StatusAvailable,
+		},
+		[]string{
+			StatusWarning,
 		},
 		[]string{
 			StatusInActive,
@@ -51,6 +56,7 @@ func TestConverterExample(t *testing.T) {
 func TestConverter(t *testing.T) {
 	const (
 		StatusCreating     = "Creating"
+		StatusWarning      = "Warning"
 		StatusAvailable    = "Available"
 		StatusInActive     = "InActive"
 		StatusUnAvailable  = "UnAvailable"
@@ -60,6 +66,9 @@ func TestConverter(t *testing.T) {
 	f := NewConverter(
 		[]string{
 			StatusAvailable,
+		},
+		[]string{
+			StatusWarning,
 		},
 		[]string{
 			StatusInActive,
@@ -91,6 +100,16 @@ func TestConverter(t *testing.T) {
 				Summary: Summary{
 					SummaryStatus: StatusCreating,
 					Transitioning: true,
+				},
+			},
+		},
+		{
+			name:  "warning",
+			input: []string{StatusWarning, ""},
+			expected: &Status{
+				Summary: Summary{
+					SummaryStatus: StatusWarning,
+					Warning:       true,
 				},
 			},
 		},

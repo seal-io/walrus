@@ -15,6 +15,7 @@ var ecsInstanceStatusConverter = status.NewConverter(
 	[]string{
 		"Running",
 	},
+	nil,
 	[]string{
 		"Stopped",
 	},
@@ -34,6 +35,7 @@ var ecsImageStatusConverter = status.NewConverter(
 	[]string{
 		"Available",
 	},
+	nil,
 	nil,
 	[]string{
 		"UnAvailable",
@@ -58,6 +60,7 @@ var ecsDiskStatusConverter = status.NewConverter(
 	},
 	nil,
 	nil,
+	nil,
 )
 
 // ecsSnapshotStatusConverter generate the summary use following table, other status will be treated as transitioning.
@@ -73,6 +76,7 @@ var ecsSnapshotStatusConverter = status.NewConverter(
 		"accomplished",
 		"all",
 	},
+	nil,
 	nil,
 	[]string{
 		"failed",
@@ -94,6 +98,7 @@ var ecsNetworkInterfaceStatusConverter = status.NewConverter(
 	},
 	nil,
 	nil,
+	nil,
 )
 
 // cdnDomainStatusConverter generate the summary use following table, other status will be treated as transitioning.
@@ -109,6 +114,7 @@ var cdnDomainStatusConverter = status.NewConverter(
 	[]string{
 		"online",
 	},
+	nil,
 	nil,
 	[]string{
 		"offline",
@@ -130,6 +136,7 @@ var rdsDBInstanceStatusConverter = status.NewConverter(
 	},
 	nil,
 	nil,
+	nil,
 )
 
 // polarDBClusterStatusConverter generate the summary use following table,
@@ -145,6 +152,7 @@ var polarDBClusterStatusConverter = status.NewConverter(
 	[]string{
 		"Running",
 	},
+	nil,
 	[]string{
 		"Deleted",
 		"Stopped",
@@ -165,6 +173,7 @@ var slbLoadBalancerStatusConverter = status.NewConverter(
 	[]string{
 		"active",
 	},
+	nil,
 	[]string{
 		"inactive",
 	},
@@ -185,6 +194,7 @@ var vpcStatusConverter = status.NewConverter(
 	},
 	nil,
 	nil,
+	nil,
 )
 
 // vpcVSwitchStatusConverter generate the summary use following table, other status will be treated as transitioning.
@@ -197,6 +207,7 @@ var vpcVSwitchStatusConverter = status.NewConverter(
 	[]string{
 		"Available",
 	},
+	nil,
 	nil,
 	nil,
 )
@@ -213,6 +224,7 @@ var vpcEipStatusConverter = status.NewConverter(
 		"InUse",
 		"Available",
 	},
+	nil,
 	nil,
 	nil,
 )
@@ -235,6 +247,7 @@ var csClusterStatusConverter = status.NewConverter(
 		"initial",
 		"running",
 	},
+	nil,
 	[]string{
 		"stopped",
 		"deleted",
