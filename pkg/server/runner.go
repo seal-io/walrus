@@ -399,7 +399,7 @@ func (r *Server) Flags(cmd *cli.Command) {
 		&cli.StringFlag{
 			Name: "s3-source-address",
 			Usage: "The addresses for connecting s3 service, e.g. " +
-				"S3(s3://[aceessKey[:secretKey]@]region.endpoint[:port]/bucketName[?param1=value1&...&paramN=valueN])",
+				"S3(s3://[aceessKey[:secretKey]@]endpoint[:port]/bucketName[?region=region1&sslmode=disable])",
 			Destination: &r.S3SourceAddress,
 			Value:       r.S3SourceAddress,
 		},
@@ -594,6 +594,8 @@ func (r *Server) Run(c context.Context) error {
 		}
 	}
 
+	var storageConf *storage.Config
+
 	if r.S3SourceAddress == "" {
 		var e storage.Embedded
 
@@ -609,15 +611,20 @@ func (r *Server) Run(c context.Context) error {
 		})
 
 		r.S3SourceAddress = storage.DefaultS3SourceAddress
-	}
 
-	storageConf, err := storage.NewConfig(r.S3SourceAddress)
-	if err != nil {
-		return fmt.Errorf("error loading s3 config: %w", err)
-	}
+		storageConf, err = storage.NewConfig(r.S3SourceAddress)
+		if err != nil {
+			return fmt.Errorf("error loading s3 config: %w", err)
+		}
 
-	if err = storage.Wait(ctx, storageConf.Endpoint); err != nil {
-		return fmt.Errorf("error waiting s3 ready: %w", err)
+		if err = storage.Wait(ctx, storageConf.Endpoint); err != nil {
+			return fmt.Errorf("error waiting s3 ready: %w", err)
+		}
+	} else {
+		storageConf, err = storage.NewConfig(r.S3SourceAddress)
+		if err != nil {
+			return fmt.Errorf("error loading s3 config: %w", err)
+		}
 	}
 
 	// Load object manager.

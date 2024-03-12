@@ -3,8 +3,10 @@ package storage
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 
+	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	minio "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 
@@ -20,7 +22,7 @@ type Manager struct {
 func NewManager(conf *Config) (*Manager, error) {
 	minioClient, err := minio.New(conf.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(conf.AccessKeyID, conf.SecretAccessKey, ""),
-		Secure: !conf.Secure,
+		Secure: conf.Secure,
 	})
 	if err != nil {
 		return nil, err
@@ -82,7 +84,8 @@ func (m *Manager) DeleteRunPlan(ctx context.Context, run *model.ResourceRun) err
 	bucketName := m.config.Bucket
 
 	err := m.minioClient.RemoveObject(ctx, bucketName, fileName, minio.RemoveObjectOptions{})
-	if err != nil && !(minio.ToErrorResponse(err).Code == "NoSuchKey") {
+	var notFoundErr *s3types.NoSuchKey
+	if err != nil && !errors.As(err, &notFoundErr) {
 		return err
 	}
 
@@ -99,5 +102,23 @@ func (m *Manager) CheckValidBucketName(ctx context.Context, bucketName string) e
 		return nil
 	}
 
-	return m.minioClient.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
+	err = m.minioClient.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{
+		Region: m.config.Region,
+	})
+	if err != nil {
+		var (
+			bucketAlreadyOwnedByYouErr *s3types.BucketAlreadyOwnedByYou
+			bucketAlreadyExistsErr     *s3types.BucketAlreadyExists
+		)
+
+		switch {
+		case errors.As(err, &bucketAlreadyExistsErr),
+			errors.As(err, &bucketAlreadyOwnedByYouErr):
+			return nil
+		}
+
+		return err
+	}
+
+	return nil
 }

@@ -3,6 +3,7 @@ package resourcerun
 import (
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
+	"github.com/seal-io/walrus/pkg/dao/model/resource"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcerun"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/datalisten/modelchange"
@@ -13,6 +14,9 @@ import (
 func (h Handler) Get(req GetRequest) (GetResponse, error) {
 	entity, err := h.modelClient.ResourceRuns().Query().
 		Where(resourcerun.ID(req.ID)).
+		WithResource(func(rq *model.ResourceQuery) {
+			rq.Select(resource.FieldID, resource.FieldName)
+		}).
 		Only(req.Context)
 	if err != nil {
 		return nil, err
