@@ -3,6 +3,7 @@ package catalog
 import (
 	"fmt"
 	"net/url"
+	"regexp"
 
 	"github.com/seal-io/walrus/pkg/apis/runtime"
 	"github.com/seal-io/walrus/pkg/dao/model"
@@ -40,6 +41,10 @@ func (r *CreateRequest) Validate() error {
 		return fmt.Errorf("unsupported catalog type %q", r.Type)
 	}
 
+	if _, err = regexp.Compile(r.FilterPattern); err != nil {
+		return fmt.Errorf("invalid filter pattern: %w", err)
+	}
+
 	return nil
 }
 
@@ -58,6 +63,10 @@ type UpdateRequest struct {
 func (r *UpdateRequest) Validate() error {
 	if err := r.CatalogUpdateInput.Validate(); err != nil {
 		return err
+	}
+
+	if _, err := regexp.Compile(r.FilterPattern); err != nil {
+		return fmt.Errorf("invalid filter pattern: %w", err)
 	}
 
 	return nil
