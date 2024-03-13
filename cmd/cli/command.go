@@ -44,6 +44,7 @@ func NewRootCmd() *cobra.Command {
 		NewDeleteCmd(),
 		NewVersionCmd(),
 		NewLocalCmd(),
+		NewPreviewCmd(),
 	)
 
 	cmd.SetHelpTemplate(helpTemplate)
@@ -77,7 +78,7 @@ func NewSchemaCmd() *cobra.Command {
 	return pkgcmd.Schema()
 }
 
-// NewApplyCmd apply manifest.
+// NewApplyCmd generate apply manifest command.
 func NewApplyCmd() *cobra.Command {
 	cmd, err := pkgcmd.Apply(serverConfig)
 	if err != nil {
@@ -87,9 +88,19 @@ func NewApplyCmd() *cobra.Command {
 	return cmd
 }
 
-// NewDeleteCmd apply manifest.
+// NewDeleteCmd generate delete manifest command.
 func NewDeleteCmd() *cobra.Command {
 	cmd, err := pkgcmd.Delete(serverConfig)
+	if err != nil {
+		panic(err)
+	}
+
+	return cmd
+}
+
+// NewPreviewCmd generate preview/preview apply command.
+func NewPreviewCmd() *cobra.Command {
+	cmd, err := pkgcmd.Preview(serverConfig)
 	if err != nil {
 		panic(err)
 	}

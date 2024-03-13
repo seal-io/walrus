@@ -15,6 +15,7 @@ import (
 	"github.com/seal-io/walrus/pkg/cli/api"
 	"github.com/seal-io/walrus/pkg/cli/common"
 	"github.com/seal-io/walrus/pkg/cli/config"
+	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types/status"
 	"github.com/seal-io/walrus/utils/gopool"
 	"github.com/seal-io/walrus/utils/json"
@@ -24,6 +25,7 @@ import (
 )
 
 const (
+	operationApply       = "apply"
 	operationList        = "list"
 	operationWatch       = "list"
 	operationBatchCreate = "collection-create"
@@ -588,4 +590,187 @@ type EventItem struct {
 	ID     string        `json:"id"`
 	Name   string        `json:"name"`
 	Status status.Status `json:"status"`
+}
+
+// ApplyResourceRuns send preview apply request for the object's last planned run.
+func ApplyResourceRuns(sc *config.Config, objs ObjectByScope) (success ObjectSet, err error) {
+	listOpt := api.OpenAPI.GetOperation(GroupResourceRuns, operationList)
+	if listOpt == nil {
+		return success, fmt.Errorf("not found %s operation for %s", operationList, GroupResourceRuns)
+	}
+
+	applyOpt := api.OpenAPI.GetOperation(GroupResourceRuns, operationApply)
+	if applyOpt == nil {
+		return success, fmt.Errorf("not found %s operation for %s", operationApply, GroupResourceRuns)
+	}
+
+	var (
+		results = make(chan result, 1)
+		all     = objs.All()
+	)
+
+	// Get runs.
+	for _, obj := range all {
+		o := obj
+
+		gopool.Go(func() {
+			csp := sc.ServerContext
+			csp.Project = o.Project
+			csp.Environment = o.Environment
+
+			runs, err := ListResourceRuns(sc, o, listOpt, status.ResourceRunSummaryStatusPlanned)
+			if err != nil {
+				results <- result{
+					err: err,
+					obj: o,
+				}
+
+				return
+			}
+
+			run := runs.Items[0]
+			o.SetValue(FieldResourceRunID, run.ID.String())
+			results <- result{
+				obj: o,
+			}
+		})
+	}
+
+	// Return once error occurs.
+	var objWithRunID []Object
+	for i := 0; i < len(all); i++ {
+		r := <-results
+		if r.err != nil {
+			return success, fmt.Errorf("resource %s preview apply error: %w", all[i].ScopedName(all[i].Name), r.err)
+		}
+		objWithRunID = append(objWithRunID, r.obj)
+	}
+
+	// Apply.
+	wg := gopool.GroupWithContextIn(context.Background())
+	for _, obj := range objWithRunID {
+		o := obj
+		wg.Go(func(ctx context.Context) error {
+			err = applyResourceRun(sc, o, applyOpt)
+			if err != nil {
+				return err
+			}
+
+			success.Add(o)
+			return nil
+		})
+	}
+
+	return success, wg.Wait()
+}
+
+func applyResourceRun(sc *config.Config, obj Object, applyOpt *api.Operation) error {
+	m := obj.Map()
+	m["resource"] = obj.Name
+
+	body := map[string]any{
+		"approve": true,
+	}
+
+	runID := fmt.Sprintf("%v", obj.GetValue(FieldResourceRunID))
+
+	req, err := applyOpt.Request(nil, []string{obj.Name, runID}, m, body, sc.ServerContext)
+	if err != nil {
+		return err
+	}
+
+	resp, err := sc.DoRequest(req)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	return common.CheckResponseStatus(resp)
+}
+
+// ListResourceRuns send list resource runs request.
+func ListResourceRuns(sc *config.Config, obj Object, listOpt *api.Operation, st string) (*collectionGetResourceRun, error) {
+	m := obj.Map()
+	m["resource"] = obj.Name
+	m["order"] = "-createTime"
+	m["perPage"] = 1
+	m["page"] = 1
+	m["preview"] = true
+	m["labels"] = obj.RunLabelQuery()
+	if st != "" {
+		m["status"] = st
+	}
+
+	req, err := listOpt.Request(nil, []string{obj.Name}, m, nil, sc.ServerContext)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := sc.DoRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	err = common.CheckResponseStatus(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error read response from list resource run: %w", err)
+	}
+
+	var runs collectionGetResourceRun
+
+	err = json.Unmarshal(body, &runs)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshal response from list resource run: %w", err)
+	}
+
+	if len(runs.Items) == 0 {
+		return nil, errors.New("no resource runs matching the criteria were found")
+	}
+
+	return &runs, nil
+}
+
+// GetResourceRun send get resource run request.
+func GetResourceRun(sc *config.Config, obj Object, getOpt *api.Operation, runID string) (*model.ResourceRunOutput, error) {
+	m := obj.Map()
+	m["resource"] = obj.Name
+
+	req, err := getOpt.Request(nil, []string{obj.Name, runID}, m, nil, sc.ServerContext)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := sc.DoRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	err = common.CheckResponseStatus(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error read response from get resource run: %w", err)
+	}
+
+	var res model.ResourceRunOutput
+
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshal response from get resource run: %w", err)
+	}
+
+	return &res, nil
 }

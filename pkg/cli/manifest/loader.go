@@ -20,7 +20,7 @@ type Loader interface {
 }
 
 // DefaultLoader creates a Loader with default configurations.
-func DefaultLoader(sc *config.Config, validateParametersSet bool) Loader {
+func DefaultLoader(sc *config.Config, validateParametersSet bool, runLabels map[string]string) Loader {
 	return &ObjectLoader{
 		serverContext: sc,
 		groups:        GroupSequence,
@@ -30,6 +30,7 @@ func DefaultLoader(sc *config.Config, validateParametersSet bool) Loader {
 			"environment": sc.Environment,
 		},
 		validateParametersSet: validateParametersSet,
+		runLabels:             runLabels,
 	}
 }
 
@@ -40,6 +41,7 @@ type ObjectLoader struct {
 	groups                []string
 	serverContext         *config.Config
 	validateParametersSet bool
+	runLabels             map[string]string
 }
 
 // LoadFromByte parses the provided YAML byte slice `b` and returns an `ObjectSet` and an error.
@@ -190,6 +192,8 @@ func (l *ObjectLoader) toObject(group string, obj map[string]any) (*Object, erro
 		obj["environment"] = IDName{
 			Name: scope.Environment,
 		}
+
+		obj["runLabels"] = l.runLabels
 
 	default:
 		return nil, fmt.Errorf("supported group %s", group)

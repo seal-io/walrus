@@ -44,13 +44,21 @@ func DefaultDeleteOperator(sc *config.Config, wait bool) Operator {
 }
 
 // DefaultPreviewOperator returns preview Operator.
-func DefaultPreviewOperator(sc *config.Config, wait bool, comment string) Operator {
+func DefaultPreviewOperator(sc *config.Config, wait bool, comment string, runLabels map[string]string) Operator {
 	return &PreviewOperator{
 		operatorConfig: newOperatorConfig(sc, wait),
 		extraBodyParams: map[string]any{
 			"preview":       true,
 			"changeComment": comment,
+			"runLabels":     runLabels,
 		},
+	}
+}
+
+// DefaultPreviewApplyOperator returns preview apply Operator.
+func DefaultPreviewApplyOperator(sc *config.Config, wait bool) Operator {
+	return &PreviewApplyOperator{
+		operatorConfig: newOperatorConfig(sc, wait),
 	}
 }
 
@@ -380,23 +388,15 @@ func (o *PreviewOperator) Operate(set ObjectSet) (OperateResult, error) {
 
 func (o *PreviewOperator) PrintResult(r OperateResult) {
 	var (
-		failed = "preview generation failed"
-
-		success = map[ObjectStatus]string{
-			statusNotFound:  "preview generated",
-			statusUnchanged: "preview generated",
-		}
-
-		wait = map[ObjectStatus]string{
-			statusNotFound:  "preview generating",
-			statusUnchanged: "preview generating",
-		}
+		failed  = "preview plan failed"
+		success = "preview planned"
+		wait    = "preview planning"
 	)
 
 	for _, os := range r.Success.All() {
-		msg := success[os.Status]
+		msg := success
 		if o.wait {
-			msg = wait[os.Status]
+			msg = wait
 		}
 
 		fmt.Printf("%s %s %s\n", strs.Singularize(os.Group), os.Key(), msg)
@@ -469,4 +469,116 @@ func (e extraBodyParams) applyToBody(body map[string]any) map[string]any {
 		body[k] = v
 	}
 	return body
+}
+
+// PreviewApplyOperator is a type that represents preview apply operator.
+type PreviewApplyOperator struct {
+	operatorConfig
+}
+
+// Operate apply previews of the provided ObjectSet.
+func (o *PreviewApplyOperator) Operate(set ObjectSet) (OperateResult, error) {
+	if o.backoff == nil {
+		return o.previewApply(set)
+	}
+
+	var (
+		err         error
+		retryErr    *common.RetryableError
+		finalResult = OperateResult{
+			Success:   ObjectSet{},
+			UnChanged: ObjectSet{},
+		}
+	)
+	err = utilwait.ExponentialBackoff(*o.backoff, func() (bool, error) {
+		if set.Len() == 0 {
+			return true, nil
+		}
+
+		r, err := o.previewApply(set)
+		if err != nil {
+			if errors.As(err, &retryErr) {
+				err = nil
+			}
+			set = r.Failed
+
+			return false, err
+		}
+
+		finalResult.NotFound.Add(r.NotFound.All()...)
+		finalResult.Success.Add(r.Success.All()...)
+
+		set = ObjectSet{}
+
+		return true, nil
+	})
+
+	finalResult.Failed = set
+
+	return finalResult, err
+}
+
+func (o *PreviewApplyOperator) PrintResult(r OperateResult) {
+	var (
+		failed   = "preview apply failed"
+		success  = "preview applied"
+		wait     = "preview applying"
+		notFound = "preview not found"
+	)
+
+	for _, os := range r.Success.All() {
+		msg := success
+		if o.wait {
+			msg = wait
+		}
+
+		fmt.Printf("%s %s %s\n", strs.Singularize(os.Group), os.Key(), msg)
+	}
+
+	for _, os := range r.Failed.All() {
+		fmt.Printf("%s %s %s\n", strs.Singularize(os.Group), os.Key(), failed)
+	}
+
+	for _, os := range r.NotFound.All() {
+		fmt.Printf("%s %s %s\n", strs.Singularize(os.Group), os.Key(), notFound)
+	}
+}
+
+func (o *PreviewApplyOperator) previewApply(set ObjectSet) (r OperateResult, err error) {
+	if set.Len() == 0 {
+		return
+	}
+
+	r = OperateResult{
+		Success:   ObjectSet{},
+		Failed:    set,
+		UnChanged: ObjectSet{},
+	}
+
+	for _, group := range o.groupSequence {
+		objByScope := set.ByGroup(group)
+		if len(objByScope) == 0 {
+			continue
+		}
+
+		unchanged, notFound, _, err := GetObjects(o.serverContext, group, objByScope, false)
+		if err != nil {
+			return r, err
+		}
+
+		// NotFound.
+		r.NotFound.Add(notFound.All()...)
+		r.Failed.Remove(notFound.All()...)
+
+		// Apply.
+		success, err := ApplyResourceRuns(o.serverContext, unchanged.ByGroup(group))
+		if err != nil {
+			return r, err
+		}
+
+		r.Success.Add(success.All()...)
+		r.Failed.Remove(success.All()...)
+	}
+
+	return r, nil
 }

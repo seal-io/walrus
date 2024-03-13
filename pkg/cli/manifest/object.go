@@ -13,6 +13,10 @@ const (
 	GroupResourceRuns = "resourceruns"
 )
 
+const (
+	FieldResourceRunID = "resourceRunID"
+)
+
 // GroupSequence defines the sequence of group to create.
 var GroupSequence = []string{
 	GroupResources,
@@ -49,6 +53,47 @@ func (o Object) Key() string {
 // MarshalJSON returns the JSON encoding of Object.
 func (o Object) MarshalJSON() ([]byte, error) {
 	return json.Marshal(o.Value)
+}
+
+// RunLabelQuery returns the query of runLabels.
+func (o Object) RunLabelQuery() []string {
+	if len(o.Value) == 0 {
+		return nil
+	}
+
+	val, ok := o.Value["runLabels"]
+	if !ok {
+		return nil
+	}
+
+	labels, ok := val.(map[string]string)
+	if !ok {
+		return nil
+	}
+
+	queryLabels := make([]string, 0, len(labels))
+	for k, v := range labels {
+		queryLabels = append(queryLabels, fmt.Sprintf("%s=%v", k, v))
+	}
+	return queryLabels
+}
+
+// SetValue sets the value of object's field.
+func (o Object) SetValue(key string, val any) {
+	if o.Value == nil {
+		o.Value = make(map[string]any)
+	}
+
+	o.Value[key] = val
+}
+
+// GetValue gets the value of object's field.
+func (o Object) GetValue(key string) any {
+	if o.Value == nil {
+		return nil
+	}
+
+	return o.Value[key]
 }
 
 // ObjectList is the list of object.

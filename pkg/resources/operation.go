@@ -44,6 +44,8 @@ type Options struct {
 	Preview bool
 	// ChangeComment of the resource run.
 	ChangeComment string
+	// RunLabels of the resource run.
+	RunLabels map[string]string
 }
 
 // Basic Operations.
@@ -122,6 +124,7 @@ func Create(
 			Type:           types.RunTypeCreate,
 			ChangeComment:  opts.ChangeComment,
 			Preview:        opts.Preview,
+			Labels:         opts.RunLabels,
 		})
 
 		return err
@@ -199,6 +202,7 @@ func Delete(ctx context.Context, mc model.ClientSet, entity *model.Resource, opt
 		Type:           types.RunTypeDelete,
 		ChangeComment:  opts.ChangeComment,
 		Preview:        opts.Preview,
+		Labels:         opts.RunLabels,
 	})
 	if err != nil {
 		return err
@@ -273,6 +277,7 @@ func upgrade(
 		Type:           opts.RunType,
 		ChangeComment:  opts.ChangeComment,
 		Preview:        opts.Preview,
+		Labels:         opts.RunLabels,
 	})
 	if err != nil {
 		return nil, err
@@ -336,6 +341,7 @@ func Stop(ctx context.Context, mc model.ClientSet, entity *model.Resource, opts 
 		Type:           types.RunTypeStop,
 		ChangeComment:  opts.ChangeComment,
 		Preview:        opts.Preview,
+		Labels:         opts.RunLabels,
 	})
 	if err != nil {
 		return err
@@ -411,6 +417,7 @@ func Rollback(ctx context.Context, mc model.ClientSet, resourceID, runID object.
 		Type:           types.RunTypeRollback,
 		ChangeComment:  opts.ChangeComment,
 		Preview:        opts.Preview,
+		Labels:         opts.RunLabels,
 	})
 	if err != nil {
 		return err
