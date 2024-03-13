@@ -3,6 +3,7 @@ package resourcerun
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
@@ -26,6 +27,7 @@ type (
 		QueryType    string    `query:"type"`
 		QueryStatus  string    `query:"status"`
 		QueryPreview *bool     `query:"preview"`
+		QueryLabels  []string  `query:"labels"`
 	}
 
 	CollectionGetRequest struct {
@@ -73,6 +75,32 @@ func (q *CollectionFieldQuery) Queries() (queries []predicate.ResourceRun, ok bo
 
 	if q.QueryPreview != nil {
 		queries = append(queries, resourcerun.Preview(*q.QueryPreview))
+		ok = true
+	}
+
+	if len(q.QueryLabels) != 0 {
+		labels := make(map[string]string)
+		for _, ql := range q.QueryLabels {
+			arr := strings.Split(ql, "=")
+			if len(arr) != 2 {
+				continue
+			}
+
+			labels[arr[0]] = arr[1]
+		}
+
+		var ps []*sql.Predicate
+		for k, v := range labels {
+			ps = append(ps, sqljson.ValueEQ(
+				resourcerun.FieldLabels,
+				v,
+				sqljson.Path(k),
+			))
+		}
+
+		queries = append(queries, func(s *sql.Selector) {
+			s.Where(sql.And(ps...))
+		})
 		ok = true
 	}
 

@@ -33,12 +33,19 @@ import (
 	"github.com/seal-io/walrus/utils/validation"
 )
 
+type ResourceRunInfo struct {
+	Preview       bool              `json:"preview,default=false"`
+	ChangeComment string            `json:"changeComment,omitempty"`
+	RunLabels     map[string]string `json:"runLabels,omitempty"`
+}
+
 type (
 	CreateRequest struct {
 		model.ResourceCreateInput `path:",inline" json:",inline"`
 
-		Draft   bool `json:"draft,default=false"`
-		Preview bool `json:"preview,default=false"`
+		ResourceRunInfo `json:",inline"`
+
+		Draft bool `json:"draft,default=false"`
 	}
 
 	CreateResponse = *model.ResourceOutput
@@ -96,9 +103,9 @@ type (
 	PatchRequest struct {
 		model.ResourcePatchInput `path:",inline" json:",inline"`
 
-		Draft         bool   `json:"draft,default=false"`
-		ChangeComment string `json:"changeComment,omitempty"`
-		Preview       bool   `json:"preview,default=false"`
+		ResourceRunInfo `json:",inline"`
+
+		Draft bool `json:"draft,default=false"`
 	}
 
 	PatchResponse struct {
@@ -242,8 +249,9 @@ type (
 	CollectionCreateRequest struct {
 		model.ResourceCreateInputs `path:",inline" json:",inline"`
 
-		Draft   bool `json:"draft,default=false"`
-		Preview bool `json:"preview,default=false"`
+		ResourceRunInfo `json:",inline"`
+
+		Draft bool `json:"draft,default=false"`
 	}
 
 	CollectionCreateResponse = []*model.ResourceOutput

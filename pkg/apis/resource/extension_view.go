@@ -41,10 +41,10 @@ type (
 
 		model.ResourceUpdateInput `path:",inline" json:",inline"`
 
-		Draft           bool   `json:"draft,default=false"`
-		ChangeComment   string `json:"changeComment,omitempty"`
-		ReuseAttributes bool   `json:"reuseAttributes,default=false"`
-		Preview         bool   `json:"preview,default=false"`
+		ResourceRunInfo `json:",inline"`
+
+		Draft           bool `json:"draft,default=false"`
+		ReuseAttributes bool `json:"reuseAttributes,default=false"`
 	}
 )
 
@@ -502,10 +502,10 @@ type CollectionRouteUpgradeRequest struct {
 
 	model.ResourceUpdateInputs `path:",inline" json:",inline"`
 
-	ChangeComment   string `json:"changeComment"`
-	Draft           bool   `json:"draft,default=false"`
-	ReuseAttributes bool   `json:"reuseAttributes,default=false"`
-	Preview         bool   `json:"preview,default=false"`
+	ResourceRunInfo `json:",inline"`
+
+	Draft           bool `json:"draft,default=false"`
+	ReuseAttributes bool `json:"reuseAttributes,default=false"`
 }
 
 func (r *CollectionRouteUpgradeRequest) Validate() error {

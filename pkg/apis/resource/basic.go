@@ -37,6 +37,8 @@ func (h Handler) Create(req CreateRequest) (CreateResponse, error) {
 			Deployer:       dp,
 			Draft:          req.Draft,
 			Preview:        req.Preview,
+			ChangeComment:  req.ChangeComment,
+			RunLabels:      req.RunLabels,
 		},
 	)
 
@@ -132,6 +134,7 @@ func (h Handler) Patch(req PatchRequest) error {
 		ChangeComment:  req.ChangeComment,
 		Draft:          req.Draft,
 		Preview:        req.Preview,
+		RunLabels:      req.RunLabels,
 	})
 	if err != nil {
 		return errorx.Wrap(err, "failed to patch resource")
@@ -153,6 +156,8 @@ func (h Handler) CollectionCreate(req CollectionCreateRequest) (CollectionCreate
 		Deployer:       dp,
 		Draft:          req.Draft,
 		Preview:        req.Preview,
+		ChangeComment:  req.ChangeComment,
+		RunLabels:      req.RunLabels,
 	})
 	if err != nil {
 		return nil, err
