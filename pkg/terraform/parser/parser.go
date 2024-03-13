@@ -526,10 +526,10 @@ func ParseIndexKey(rs resourceState, is instanceObjectState) (string, error) {
 	}
 
 	if is.IndexKey != nil {
-		switch reflect.TypeOf(is.IndexKey).Kind() {
-		case reflect.String:
+		switch {
+		case IsString(is.IndexKey):
 			return strs.Join(".", rs.Module, rs.Type, rs.Name) + fmt.Sprintf("[\"%v\"]", is.IndexKey), nil
-		case reflect.Int, reflect.Float64:
+		case IsNumber(is.IndexKey):
 			return strs.Join(".", rs.Module, rs.Type, rs.Name) + fmt.Sprintf("[%v]", is.IndexKey), nil
 		default:
 			logger.Warnf("unsupported index key: %v", is.IndexKey)
@@ -537,4 +537,15 @@ func ParseIndexKey(rs resourceState, is instanceObjectState) (string, error) {
 	}
 
 	return strs.Join(".", rs.Module, rs.Type, rs.Name), nil
+}
+
+// IsNumber returns true if the index key is a number.
+// https://github.com/hashicorp/terraform/blob/v1.5.7/internal/states/statefile/version4.go#L114-L124.
+// As terraform indexKey treated as int key, assume all number types are int when parsing index key.
+func IsNumber(indexKey any) bool {
+	return reflect.TypeOf(indexKey).Kind() >= reflect.Int && reflect.TypeOf(indexKey).Kind() <= reflect.Float64
+}
+
+func IsString(indexKey any) bool {
+	return reflect.TypeOf(indexKey).Kind() == reflect.String
 }

@@ -3,7 +3,6 @@ package resourcecomponents
 import (
 	"context"
 	"fmt"
-	"reflect"
 
 	tfjson "github.com/hashicorp/terraform-json"
 	"go.uber.org/multierr"
@@ -165,15 +164,15 @@ func FilterResourceComponentChange(
 		}
 
 		if rcc.Index != nil {
-			switch reflect.TypeOf(rcc.Index).Kind() {
-			case reflect.Int, reflect.Float64:
+			switch {
+			case parser.IsNumber(rcc.Index):
 				rcsKey := strs.Join(".", rcc.ModuleAddress, rcc.Type, rcc.Name) + fmt.Sprintf("[%d]", rcc.Index)
 				if rc, rcsOk := rcsIndex[rcsKey]; rcsOk {
 					rcc.Name = rc.Name
 					fchanges = append(fchanges, rcc)
 					continue
 				}
-			case reflect.String:
+			case parser.IsString(rcc.Index):
 				rcsKey := strs.Join(".", rcc.ModuleAddress, rcc.Type, rcc.Name) + fmt.Sprintf("[\"%s\"]", rcc.Index)
 				if rc, rcsOk := rcsIndex[rcsKey]; rcsOk {
 					rcc.Name = rc.Name
