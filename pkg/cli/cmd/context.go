@@ -49,7 +49,7 @@ func Context(serverConfig *config.Config) *cobra.Command {
 				config.ServerContext{
 					ScopeContext: cfgCtx,
 					Server:       serverConfig.Server,
-					Token:        serverConfig.Token,
+					APIKey:       serverConfig.APIKey,
 					Insecure:     serverConfig.Insecure,
 				},
 				serverConfig,

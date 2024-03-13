@@ -181,7 +181,7 @@ func (r *RouteApplyRequest) Validate() error {
 	return nil
 }
 
-func serverContext(project, env, token string) *config.Config {
+func serverContext(project, env, apiKey string) *config.Config {
 	scheme := "http"
 	if servervars.EnableTls.Get() {
 		scheme = "https"
@@ -195,7 +195,7 @@ func serverContext(project, env, token string) *config.Config {
 			},
 			Server:   fmt.Sprintf("%s://localhost", scheme),
 			Insecure: true,
-			Token:    token,
+			APIKey:   apiKey,
 		},
 	}
 }
