@@ -619,6 +619,7 @@ var (
 		{Name: "type", Type: field.TypeString},
 		{Name: "preview", Type: field.TypeBool, Default: false},
 		{Name: "annotations", Type: field.TypeJSON, Nullable: true},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
 		{Name: "component_changes", Type: field.TypeJSON, Nullable: true},
 		{Name: "component_change_summary", Type: field.TypeJSON, Nullable: true},
 		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
@@ -633,19 +634,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "resource_runs_environments_resource_runs",
-				Columns:    []*schema.Column{ResourceRunsColumns[22]},
+				Columns:    []*schema.Column{ResourceRunsColumns[23]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "resource_runs_projects_resource_runs",
-				Columns:    []*schema.Column{ResourceRunsColumns[23]},
+				Columns:    []*schema.Column{ResourceRunsColumns[24]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "resource_runs_resources_runs",
-				Columns:    []*schema.Column{ResourceRunsColumns[24]},
+				Columns:    []*schema.Column{ResourceRunsColumns[25]},
 				RefColumns: []*schema.Column{ResourcesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

@@ -636,6 +636,10 @@ func init() {
 	resourcerunDescAnnotations := resourcerunFields[19].Descriptor()
 	// resourcerun.DefaultAnnotations holds the default value on creation for the annotations field.
 	resourcerun.DefaultAnnotations = resourcerunDescAnnotations.Default.(map[string]string)
+	// resourcerunDescLabels is the schema descriptor for labels field.
+	resourcerunDescLabels := resourcerunFields[20].Descriptor()
+	// resourcerun.DefaultLabels holds the default value on creation for the labels field.
+	resourcerun.DefaultLabels = resourcerunDescLabels.Default.(map[string]string)
 	resourcestateMixin := schema.ResourceState{}.Mixin()
 	resourcestateMixinHooks0 := resourcestateMixin[0].Hooks()
 	resourcestate.Hooks[0] = resourcestateMixinHooks0[0]

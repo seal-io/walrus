@@ -66,6 +66,8 @@ const (
 	FieldPreview = "preview"
 	// FieldAnnotations holds the string denoting the annotations field in the database.
 	FieldAnnotations = "annotations"
+	// FieldLabels holds the string denoting the labels field in the database.
+	FieldLabels = "labels"
 	// FieldComponentChanges holds the string denoting the component_changes field in the database.
 	FieldComponentChanges = "component_changes"
 	// FieldComponentChangeSummary holds the string denoting the component_change_summary field in the database.
@@ -126,6 +128,7 @@ var Columns = []string{
 	FieldType,
 	FieldPreview,
 	FieldAnnotations,
+	FieldLabels,
 	FieldComponentChanges,
 	FieldComponentChangeSummary,
 }
@@ -174,6 +177,8 @@ var (
 	DefaultPreview bool
 	// DefaultAnnotations holds the default value on creation for the "annotations" field.
 	DefaultAnnotations map[string]string
+	// DefaultLabels holds the default value on creation for the "labels" field.
+	DefaultLabels map[string]string
 )
 
 // OrderOption defines the ordering options for the ResourceRun queries.

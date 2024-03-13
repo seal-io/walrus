@@ -17505,6 +17505,7 @@ type ResourceRunMutation struct {
 	_type                             *string
 	preview                           *bool
 	annotations                       *map[string]string
+	labels                            *map[string]string
 	component_changes                 *[]*types.ResourceComponentChange
 	appendcomponent_changes           []*types.ResourceComponentChange
 	component_change_summary          *types.ResourceComponentChangeSummary
@@ -18542,6 +18543,55 @@ func (m *ResourceRunMutation) ResetAnnotations() {
 	delete(m.clearedFields, resourcerun.FieldAnnotations)
 }
 
+// SetLabels sets the "labels" field.
+func (m *ResourceRunMutation) SetLabels(value map[string]string) {
+	m.labels = &value
+}
+
+// Labels returns the value of the "labels" field in the mutation.
+func (m *ResourceRunMutation) Labels() (r map[string]string, exists bool) {
+	v := m.labels
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLabels returns the old "labels" field's value of the ResourceRun entity.
+// If the ResourceRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceRunMutation) OldLabels(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLabels is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLabels requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLabels: %w", err)
+	}
+	return oldValue.Labels, nil
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (m *ResourceRunMutation) ClearLabels() {
+	m.labels = nil
+	m.clearedFields[resourcerun.FieldLabels] = struct{}{}
+}
+
+// LabelsCleared returns if the "labels" field was cleared in this mutation.
+func (m *ResourceRunMutation) LabelsCleared() bool {
+	_, ok := m.clearedFields[resourcerun.FieldLabels]
+	return ok
+}
+
+// ResetLabels resets all changes to the "labels" field.
+func (m *ResourceRunMutation) ResetLabels() {
+	m.labels = nil
+	delete(m.clearedFields, resourcerun.FieldLabels)
+}
+
 // SetComponentChanges sets the "component_changes" field.
 func (m *ResourceRunMutation) SetComponentChanges(tcc []*types.ResourceComponentChange) {
 	m.component_changes = &tcc
@@ -18771,7 +18821,7 @@ func (m *ResourceRunMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ResourceRunMutation) Fields() []string {
-	fields := make([]string, 0, 24)
+	fields := make([]string, 0, 25)
 	if m.create_time != nil {
 		fields = append(fields, resourcerun.FieldCreateTime)
 	}
@@ -18838,6 +18888,9 @@ func (m *ResourceRunMutation) Fields() []string {
 	if m.annotations != nil {
 		fields = append(fields, resourcerun.FieldAnnotations)
 	}
+	if m.labels != nil {
+		fields = append(fields, resourcerun.FieldLabels)
+	}
 	if m.component_changes != nil {
 		fields = append(fields, resourcerun.FieldComponentChanges)
 	}
@@ -18896,6 +18949,8 @@ func (m *ResourceRunMutation) Field(name string) (ent.Value, bool) {
 		return m.Preview()
 	case resourcerun.FieldAnnotations:
 		return m.Annotations()
+	case resourcerun.FieldLabels:
+		return m.Labels()
 	case resourcerun.FieldComponentChanges:
 		return m.ComponentChanges()
 	case resourcerun.FieldComponentChangeSummary:
@@ -18953,6 +19008,8 @@ func (m *ResourceRunMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldPreview(ctx)
 	case resourcerun.FieldAnnotations:
 		return m.OldAnnotations(ctx)
+	case resourcerun.FieldLabels:
+		return m.OldLabels(ctx)
 	case resourcerun.FieldComponentChanges:
 		return m.OldComponentChanges(ctx)
 	case resourcerun.FieldComponentChangeSummary:
@@ -19120,6 +19177,13 @@ func (m *ResourceRunMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetAnnotations(v)
 		return nil
+	case resourcerun.FieldLabels:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLabels(v)
+		return nil
 	case resourcerun.FieldComponentChanges:
 		v, ok := value.([]*types.ResourceComponentChange)
 		if !ok {
@@ -19200,6 +19264,9 @@ func (m *ResourceRunMutation) ClearedFields() []string {
 	if m.FieldCleared(resourcerun.FieldAnnotations) {
 		fields = append(fields, resourcerun.FieldAnnotations)
 	}
+	if m.FieldCleared(resourcerun.FieldLabels) {
+		fields = append(fields, resourcerun.FieldLabels)
+	}
 	if m.FieldCleared(resourcerun.FieldComponentChanges) {
 		fields = append(fields, resourcerun.FieldComponentChanges)
 	}
@@ -19240,6 +19307,9 @@ func (m *ResourceRunMutation) ClearField(name string) error {
 		return nil
 	case resourcerun.FieldAnnotations:
 		m.ClearAnnotations()
+		return nil
+	case resourcerun.FieldLabels:
+		m.ClearLabels()
 		return nil
 	case resourcerun.FieldComponentChanges:
 		m.ClearComponentChanges()
@@ -19320,6 +19390,9 @@ func (m *ResourceRunMutation) ResetField(name string) error {
 		return nil
 	case resourcerun.FieldAnnotations:
 		m.ResetAnnotations()
+		return nil
+	case resourcerun.FieldLabels:
+		m.ResetLabels()
 		return nil
 	case resourcerun.FieldComponentChanges:
 		m.ResetComponentChanges()

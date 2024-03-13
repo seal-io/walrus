@@ -1233,6 +1233,16 @@ func AnnotationsNotNil() predicate.ResourceRun {
 	return predicate.ResourceRun(sql.FieldNotNull(FieldAnnotations))
 }
 
+// LabelsIsNil applies the IsNil predicate on the "labels" field.
+func LabelsIsNil() predicate.ResourceRun {
+	return predicate.ResourceRun(sql.FieldIsNull(FieldLabels))
+}
+
+// LabelsNotNil applies the NotNil predicate on the "labels" field.
+func LabelsNotNil() predicate.ResourceRun {
+	return predicate.ResourceRun(sql.FieldNotNull(FieldLabels))
+}
+
 // ComponentChangesIsNil applies the IsNil predicate on the "component_changes" field.
 func ComponentChangesIsNil() predicate.ResourceRun {
 	return predicate.ResourceRun(sql.FieldIsNull(FieldComponentChanges))
