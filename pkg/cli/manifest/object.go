@@ -14,7 +14,8 @@ const (
 )
 
 const (
-	FieldResourceRunID = "resourceRunID"
+	FieldResourceRunID     = "resourceRunID"
+	FieldResourceRunStatus = "resourceRunStatus"
 )
 
 // GroupSequence defines the sequence of group to create.

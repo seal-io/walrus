@@ -46,7 +46,7 @@ func Delete(sc *config.Config) (*cobra.Command, error) {
 
 			// Delete the files.
 			wg.Go(func(ctx context.Context) error {
-				operator := manifest.DefaultDeleteOperator(sc, flags.Wait)
+				operator := manifest.DefaultDeleteOperator(sc, flags)
 				r, err := operator.Operate(set)
 				operator.PrintResult(r)
 				if err != nil {

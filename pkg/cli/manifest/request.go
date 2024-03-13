@@ -593,15 +593,15 @@ type EventItem struct {
 }
 
 // ApplyResourceRuns send preview apply request for the object's last planned run.
-func ApplyResourceRuns(sc *config.Config, objs ObjectByScope) (success ObjectSet, err error) {
+func ApplyResourceRuns(sc *config.Config, objs ObjectByScope) (success ObjectSet, retry ObjectSet, err error) {
 	listOpt := api.OpenAPI.GetOperation(GroupResourceRuns, operationList)
 	if listOpt == nil {
-		return success, fmt.Errorf("not found %s operation for %s", operationList, GroupResourceRuns)
+		return success, retry, fmt.Errorf("not found %s operation for %s", operationList, GroupResourceRuns)
 	}
 
 	applyOpt := api.OpenAPI.GetOperation(GroupResourceRuns, operationApply)
 	if applyOpt == nil {
-		return success, fmt.Errorf("not found %s operation for %s", operationApply, GroupResourceRuns)
+		return success, retry, fmt.Errorf("not found %s operation for %s", operationApply, GroupResourceRuns)
 	}
 
 	var (
@@ -618,7 +618,7 @@ func ApplyResourceRuns(sc *config.Config, objs ObjectByScope) (success ObjectSet
 			csp.Project = o.Project
 			csp.Environment = o.Environment
 
-			runs, err := ListResourceRuns(sc, o, listOpt, status.ResourceRunSummaryStatusPlanned)
+			runs, err := ListResourceRuns(sc, o, listOpt, "")
 			if err != nil {
 				results <- result{
 					err: err,
@@ -628,27 +628,46 @@ func ApplyResourceRuns(sc *config.Config, objs ObjectByScope) (success ObjectSet
 				return
 			}
 
-			run := runs.Items[0]
+			run, err := getLastPreviewRun(runs)
+			if err != nil {
+				results <- result{
+					err: err,
+					obj: o,
+				}
+
+				return
+			}
+
 			o.SetValue(FieldResourceRunID, run.ID.String())
+			o.SetValue(FieldResourceRunStatus, run.Status.SummaryStatus)
 			results <- result{
 				obj: o,
 			}
 		})
 	}
 
-	// Return once error occurs.
-	var objWithRunID []Object
+	var (
+		plannedObjs []Object
+		retryObjs   []Object
+	)
 	for i := 0; i < len(all); i++ {
 		r := <-results
 		if r.err != nil {
-			return success, fmt.Errorf("resource %s preview apply error: %w", all[i].ScopedName(all[i].Name), r.err)
+			return success, retry, fmt.Errorf("resource %s preview apply error: %w", all[i].ScopedName(all[i].Name), r.err)
 		}
-		objWithRunID = append(objWithRunID, r.obj)
+
+		st := r.obj.GetValue(FieldResourceRunStatus)
+		switch st {
+		case status.ResourceRunSummaryStatusPlanned:
+			plannedObjs = append(plannedObjs, r.obj)
+		case status.ResourceRunSummaryStatusPending:
+			retryObjs = append(retryObjs, r.obj)
+		}
 	}
 
 	// Apply.
 	wg := gopool.GroupWithContextIn(context.Background())
-	for _, obj := range objWithRunID {
+	for _, obj := range plannedObjs {
 		o := obj
 		wg.Go(func(ctx context.Context) error {
 			err = applyResourceRun(sc, o, applyOpt)
@@ -661,7 +680,14 @@ func ApplyResourceRuns(sc *config.Config, objs ObjectByScope) (success ObjectSet
 		})
 	}
 
-	return success, wg.Wait()
+	err = wg.Wait()
+	if err != nil {
+		return success, retry, err
+	}
+
+	retry.Add(retryObjs...)
+
+	return success, retry, nil
 }
 
 func applyResourceRun(sc *config.Config, obj Object, applyOpt *api.Operation) error {
@@ -773,4 +799,14 @@ func GetResourceRun(sc *config.Config, obj Object, getOpt *api.Operation, runID 
 	}
 
 	return &res, nil
+}
+
+func getLastPreviewRun(runs *collectionGetResourceRun) (*model.ResourceRunOutput, error) {
+	for i := range runs.Items {
+		switch runs.Items[i].Status.SummaryStatus {
+		case status.ResourceRunSummaryStatusPlanned, status.ResourceRunSummaryStatusPending, status.ResourceRunSummaryStatusPlanning:
+			return runs.Items[i], nil
+		}
+	}
+	return nil, errors.New("no resource runs matching the criteria were found")
 }

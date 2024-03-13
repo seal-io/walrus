@@ -120,7 +120,7 @@ func DefaultPreviewWaiter(sc *config.Config, timeoutSecond int) *PreviewWaiter {
 		backoff: &utilwait.Backoff{
 			Duration: 200 * time.Millisecond,
 			Factor:   2,
-			Steps:    8,
+			Steps:    10,
 			Cap:      timeout,
 		},
 		timeout: timeout,
@@ -221,6 +221,9 @@ func (o *PreviewWaiter) getResourceRun(obj Object, listOpt *api.Operation) error
 		return fmt.Errorf("resource run %s is in unexpected status %s", run.ID, run.Status.SummaryStatus)
 	case status.ResourceRunSummaryStatusPlanning:
 		return common.NewRetryableError("preview is planning")
+	case status.ResourceRunSummaryStatusPending:
+		fmt.Printf("resource %s preview is pending\n", obj.ScopedName(obj.Name))
+		return nil
 	case status.ResourceRunSummaryStatusCanceled:
 		fmt.Printf("resource %s preview is canceled\n", obj.ScopedName(obj.Name))
 		return nil
@@ -237,7 +240,7 @@ func DefaultPreviewApplyWaiter(sc *config.Config, timeoutSecond int) *PreviewApp
 		backoff: &utilwait.Backoff{
 			Duration: 200 * time.Millisecond,
 			Factor:   2,
-			Steps:    8,
+			Steps:    10,
 			Cap:      timeout,
 		},
 		timeout: timeout,

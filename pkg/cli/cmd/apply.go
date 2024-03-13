@@ -64,7 +64,7 @@ func apply(sc *config.Config, set manifest.ObjectSet, flags *manifest.ApplyOptio
 
 	// Apply the files.
 	wg.Go(func(ctx context.Context) error {
-		operator := manifest.DefaultApplyOperator(sc, flags.Wait, flags.ChangeComment)
+		operator := manifest.DefaultApplyOperator(sc, flags)
 		r, err := operator.Operate(set)
 		operator.PrintResult(r)
 		if err != nil {

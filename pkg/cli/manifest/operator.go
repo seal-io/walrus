@@ -27,38 +27,38 @@ type OperateResult struct {
 }
 
 // DefaultApplyOperator returns an apply Operator.
-func DefaultApplyOperator(sc *config.Config, wait bool, comment string) Operator {
+func DefaultApplyOperator(sc *config.Config, opt *ApplyOption) Operator {
 	return &ApplyOperator{
-		operatorConfig: newOperatorConfig(sc, wait),
+		operatorConfig: newOperatorConfig(sc, opt.Wait, opt.Timeout),
 		extraBodyParams: map[string]any{
-			"changeComment": comment,
+			"changeComment": opt.ChangeComment,
 		},
 	}
 }
 
 // DefaultDeleteOperator returns a delete Operator.
-func DefaultDeleteOperator(sc *config.Config, wait bool) Operator {
+func DefaultDeleteOperator(sc *config.Config, opt *CommonOption) Operator {
 	return &DeleteOperator{
-		operatorConfig: newOperatorConfig(sc, wait),
+		operatorConfig: newOperatorConfig(sc, opt.Wait, opt.Timeout),
 	}
 }
 
 // DefaultPreviewOperator returns preview Operator.
-func DefaultPreviewOperator(sc *config.Config, wait bool, comment string, runLabels map[string]string) Operator {
+func DefaultPreviewOperator(sc *config.Config, opt *PreviewOption) Operator {
 	return &PreviewOperator{
-		operatorConfig: newOperatorConfig(sc, wait),
+		operatorConfig: newOperatorConfig(sc, opt.Wait, opt.Timeout),
 		extraBodyParams: map[string]any{
 			"preview":       true,
-			"changeComment": comment,
-			"runLabels":     runLabels,
+			"changeComment": opt.ChangeComment,
+			"runLabels":     opt.RunLabels,
 		},
 	}
 }
 
 // DefaultPreviewApplyOperator returns preview apply Operator.
-func DefaultPreviewApplyOperator(sc *config.Config, wait bool) Operator {
+func DefaultPreviewApplyOperator(sc *config.Config, opt *PreviewOption) Operator {
 	return &PreviewApplyOperator{
-		operatorConfig: newOperatorConfig(sc, wait),
+		operatorConfig: newOperatorConfig(sc, opt.Wait, opt.Timeout),
 	}
 }
 
@@ -69,14 +69,16 @@ type operatorConfig struct {
 	wait          bool
 }
 
-func newOperatorConfig(sc *config.Config, wait bool) operatorConfig {
+func newOperatorConfig(sc *config.Config, wait bool, timeoutSecond int) operatorConfig {
+	timeout := time.Duration(timeoutSecond) * time.Second
 	return operatorConfig{
 		serverContext: sc,
 		groupSequence: GroupSequence,
 		backoff: &utilwait.Backoff{
 			Duration: 100 * time.Millisecond,
 			Factor:   2,
-			Steps:    3,
+			Steps:    20,
+			Cap:      timeout,
 		},
 		wait: wait,
 	}
@@ -488,6 +490,7 @@ func (o *PreviewApplyOperator) Operate(set ObjectSet) (OperateResult, error) {
 		finalResult = OperateResult{
 			Success:   ObjectSet{},
 			UnChanged: ObjectSet{},
+			NotFound:  ObjectSet{},
 		}
 	)
 	err = utilwait.ExponentialBackoff(*o.backoff, func() (bool, error) {
@@ -571,13 +574,17 @@ func (o *PreviewApplyOperator) previewApply(set ObjectSet) (r OperateResult, err
 		r.Failed.Remove(notFound.All()...)
 
 		// Apply.
-		success, err := ApplyResourceRuns(o.serverContext, unchanged.ByGroup(group))
+		success, retry, err := ApplyResourceRuns(o.serverContext, unchanged.ByGroup(group))
 		if err != nil {
 			return r, err
 		}
 
 		r.Success.Add(success.All()...)
 		r.Failed.Remove(success.All()...)
+
+		if retry.Len() > 0 {
+			return r, common.NewRetryableError("resource runs need retry")
+		}
 	}
 
 	return r, nil
