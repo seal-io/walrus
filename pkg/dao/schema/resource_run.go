@@ -100,6 +100,11 @@ func (ResourceRun) Fields() []ent.Field {
 			Annotations(
 				entx.SkipInput(),
 				entx.SkipOutput()),
+		field.JSON("labels", map[string]string{}).
+			Optional().
+			Default(map[string]string{}).
+			Annotations(
+				entx.SkipClearingOptionalField()),
 		field.JSON("component_changes", []*types.ResourceComponentChange{}).
 			Comment("Changes of the resource components.").
 			Optional(),
