@@ -33,6 +33,7 @@ func (h Handler) RouteUpgrade(req RouteUpgradeRequest) error {
 		ChangeComment:  req.ChangeComment,
 		Draft:          req.Draft,
 		Preview:        req.Preview,
+		RunLabels:      req.RunLabels,
 	})
 	// NB(alex): If resource run created successfully, users can check the resource run status and logs.
 	if err != nil && run == nil {
@@ -359,5 +360,7 @@ func (h Handler) CollectionRouteUpgrade(req CollectionRouteUpgradeRequest) error
 		Deployer:       dp,
 		ChangeComment:  req.ChangeComment,
 		Draft:          req.Draft,
+		Preview:        req.Preview,
+		RunLabels:      req.RunLabels,
 	})
 }
