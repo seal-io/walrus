@@ -96,6 +96,11 @@ func ProjectID(v object.ID) predicate.Catalog {
 	return predicate.Catalog(sql.FieldEQ(FieldProjectID, v))
 }
 
+// FilterPattern applies equality check predicate on the "filter_pattern" field. It's identical to FilterPatternEQ.
+func FilterPattern(v string) predicate.Catalog {
+	return predicate.Catalog(sql.FieldEQ(FieldFilterPattern, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Catalog {
 	return predicate.Catalog(sql.FieldEQ(FieldName, v))
@@ -564,6 +569,81 @@ func ProjectIDEqualFold(v object.ID) predicate.Catalog {
 func ProjectIDContainsFold(v object.ID) predicate.Catalog {
 	vc := string(v)
 	return predicate.Catalog(sql.FieldContainsFold(FieldProjectID, vc))
+}
+
+// FilterPatternEQ applies the EQ predicate on the "filter_pattern" field.
+func FilterPatternEQ(v string) predicate.Catalog {
+	return predicate.Catalog(sql.FieldEQ(FieldFilterPattern, v))
+}
+
+// FilterPatternNEQ applies the NEQ predicate on the "filter_pattern" field.
+func FilterPatternNEQ(v string) predicate.Catalog {
+	return predicate.Catalog(sql.FieldNEQ(FieldFilterPattern, v))
+}
+
+// FilterPatternIn applies the In predicate on the "filter_pattern" field.
+func FilterPatternIn(vs ...string) predicate.Catalog {
+	return predicate.Catalog(sql.FieldIn(FieldFilterPattern, vs...))
+}
+
+// FilterPatternNotIn applies the NotIn predicate on the "filter_pattern" field.
+func FilterPatternNotIn(vs ...string) predicate.Catalog {
+	return predicate.Catalog(sql.FieldNotIn(FieldFilterPattern, vs...))
+}
+
+// FilterPatternGT applies the GT predicate on the "filter_pattern" field.
+func FilterPatternGT(v string) predicate.Catalog {
+	return predicate.Catalog(sql.FieldGT(FieldFilterPattern, v))
+}
+
+// FilterPatternGTE applies the GTE predicate on the "filter_pattern" field.
+func FilterPatternGTE(v string) predicate.Catalog {
+	return predicate.Catalog(sql.FieldGTE(FieldFilterPattern, v))
+}
+
+// FilterPatternLT applies the LT predicate on the "filter_pattern" field.
+func FilterPatternLT(v string) predicate.Catalog {
+	return predicate.Catalog(sql.FieldLT(FieldFilterPattern, v))
+}
+
+// FilterPatternLTE applies the LTE predicate on the "filter_pattern" field.
+func FilterPatternLTE(v string) predicate.Catalog {
+	return predicate.Catalog(sql.FieldLTE(FieldFilterPattern, v))
+}
+
+// FilterPatternContains applies the Contains predicate on the "filter_pattern" field.
+func FilterPatternContains(v string) predicate.Catalog {
+	return predicate.Catalog(sql.FieldContains(FieldFilterPattern, v))
+}
+
+// FilterPatternHasPrefix applies the HasPrefix predicate on the "filter_pattern" field.
+func FilterPatternHasPrefix(v string) predicate.Catalog {
+	return predicate.Catalog(sql.FieldHasPrefix(FieldFilterPattern, v))
+}
+
+// FilterPatternHasSuffix applies the HasSuffix predicate on the "filter_pattern" field.
+func FilterPatternHasSuffix(v string) predicate.Catalog {
+	return predicate.Catalog(sql.FieldHasSuffix(FieldFilterPattern, v))
+}
+
+// FilterPatternIsNil applies the IsNil predicate on the "filter_pattern" field.
+func FilterPatternIsNil() predicate.Catalog {
+	return predicate.Catalog(sql.FieldIsNull(FieldFilterPattern))
+}
+
+// FilterPatternNotNil applies the NotNil predicate on the "filter_pattern" field.
+func FilterPatternNotNil() predicate.Catalog {
+	return predicate.Catalog(sql.FieldNotNull(FieldFilterPattern))
+}
+
+// FilterPatternEqualFold applies the EqualFold predicate on the "filter_pattern" field.
+func FilterPatternEqualFold(v string) predicate.Catalog {
+	return predicate.Catalog(sql.FieldEqualFold(FieldFilterPattern, v))
+}
+
+// FilterPatternContainsFold applies the ContainsFold predicate on the "filter_pattern" field.
+func FilterPatternContainsFold(v string) predicate.Catalog {
+	return predicate.Catalog(sql.FieldContainsFold(FieldFilterPattern, v))
 }
 
 // HasTemplates applies the HasEdge predicate on the "templates" edge.

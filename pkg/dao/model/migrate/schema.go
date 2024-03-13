@@ -25,6 +25,7 @@ var (
 		{Name: "type", Type: field.TypeString},
 		{Name: "source", Type: field.TypeString},
 		{Name: "sync", Type: field.TypeJSON, Nullable: true},
+		{Name: "filter_pattern", Type: field.TypeString, Nullable: true},
 		{Name: "project_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// CatalogsTable holds the schema information for the "catalogs" table.
@@ -35,7 +36,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "catalogs_projects_catalogs",
-				Columns:    []*schema.Column{CatalogsColumns[11]},
+				Columns:    []*schema.Column{CatalogsColumns[12]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -44,7 +45,7 @@ var (
 			{
 				Name:    "catalog_project_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{CatalogsColumns[11], CatalogsColumns[1]},
+				Columns: []*schema.Column{CatalogsColumns[12], CatalogsColumns[1]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "project_id IS NOT NULL",
 				},

@@ -39,6 +39,8 @@ type CatalogCreateInput struct {
 	Description string `path:"-" query:"-" json:"description,omitempty"`
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Catalog regexp pattern to filter the repositories by names.
+	FilterPattern string `path:"-" query:"-" json:"filterPattern,omitempty"`
 }
 
 // Model returns the Catalog entity for creating,
@@ -49,11 +51,12 @@ func (cci *CatalogCreateInput) Model() *Catalog {
 	}
 
 	_c := &Catalog{
-		Source:      cci.Source,
-		Type:        cci.Type,
-		Name:        cci.Name,
-		Description: cci.Description,
-		Labels:      cci.Labels,
+		Source:        cci.Source,
+		Type:          cci.Type,
+		Name:          cci.Name,
+		Description:   cci.Description,
+		Labels:        cci.Labels,
+		FilterPattern: cci.FilterPattern,
 	}
 
 	if cci.Project != nil {
@@ -108,6 +111,8 @@ type CatalogCreateInputsItem struct {
 	Description string `path:"-" query:"-" json:"description,omitempty"`
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Catalog regexp pattern to filter the repositories by names.
+	FilterPattern string `path:"-" query:"-" json:"filterPattern,omitempty"`
 }
 
 // ValidateWith checks the CatalogCreateInputsItem entity with the given context and client set.
@@ -146,11 +151,12 @@ func (cci *CatalogCreateInputs) Model() []*Catalog {
 
 	for i := range cci.Items {
 		_c := &Catalog{
-			Source:      cci.Items[i].Source,
-			Type:        cci.Items[i].Type,
-			Name:        cci.Items[i].Name,
-			Description: cci.Items[i].Description,
-			Labels:      cci.Items[i].Labels,
+			Source:        cci.Items[i].Source,
+			Type:          cci.Items[i].Type,
+			Name:          cci.Items[i].Name,
+			Description:   cci.Items[i].Description,
+			Labels:        cci.Items[i].Labels,
+			FilterPattern: cci.Items[i].FilterPattern,
 		}
 
 		if cci.Project != nil {
@@ -394,6 +400,8 @@ type CatalogPatchInput struct {
 	Source string `path:"-" query:"-" json:"source,omitempty"`
 	// Sync information of the catalog.
 	Sync *types.CatalogSync `path:"-" query:"-" json:"sync,omitempty"`
+	// Catalog regexp pattern to filter the repositories by names.
+	FilterPattern string `path:"-" query:"-" json:"filterPattern,omitempty"`
 
 	patchedEntity *Catalog `path:"-" query:"-" json:"-"`
 }
@@ -405,16 +413,17 @@ func (cpi *CatalogPatchInput) PatchModel() *Catalog {
 	}
 
 	_c := &Catalog{
-		Name:        cpi.Name,
-		Description: cpi.Description,
-		Labels:      cpi.Labels,
-		Annotations: cpi.Annotations,
-		CreateTime:  cpi.CreateTime,
-		UpdateTime:  cpi.UpdateTime,
-		Status:      cpi.Status,
-		Type:        cpi.Type,
-		Source:      cpi.Source,
-		Sync:        cpi.Sync,
+		Name:          cpi.Name,
+		Description:   cpi.Description,
+		Labels:        cpi.Labels,
+		Annotations:   cpi.Annotations,
+		CreateTime:    cpi.CreateTime,
+		UpdateTime:    cpi.UpdateTime,
+		Status:        cpi.Status,
+		Type:          cpi.Type,
+		Source:        cpi.Source,
+		Sync:          cpi.Sync,
+		FilterPattern: cpi.FilterPattern,
 	}
 
 	if cpi.Project != nil {
@@ -724,6 +733,8 @@ type CatalogUpdateInput struct {
 	Description string `path:"-" query:"-" json:"description,omitempty"`
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Catalog regexp pattern to filter the repositories by names.
+	FilterPattern string `path:"-" query:"-" json:"filterPattern,omitempty"`
 }
 
 // Model returns the Catalog entity for modifying,
@@ -734,10 +745,11 @@ func (cui *CatalogUpdateInput) Model() *Catalog {
 	}
 
 	_c := &Catalog{
-		ID:          cui.ID,
-		Name:        cui.Name,
-		Description: cui.Description,
-		Labels:      cui.Labels,
+		ID:            cui.ID,
+		Name:          cui.Name,
+		Description:   cui.Description,
+		Labels:        cui.Labels,
+		FilterPattern: cui.FilterPattern,
 	}
 
 	return _c
@@ -776,6 +788,8 @@ type CatalogUpdateInputsItem struct {
 	Description string `path:"-" query:"-" json:"description,omitempty"`
 	// Labels holds the value of the "labels" field.
 	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Catalog regexp pattern to filter the repositories by names.
+	FilterPattern string `path:"-" query:"-" json:"filterPattern,omitempty"`
 }
 
 // ValidateWith checks the CatalogUpdateInputsItem entity with the given context and client set.
@@ -814,10 +828,11 @@ func (cui *CatalogUpdateInputs) Model() []*Catalog {
 
 	for i := range cui.Items {
 		_c := &Catalog{
-			ID:          cui.Items[i].ID,
-			Name:        cui.Items[i].Name,
-			Description: cui.Items[i].Description,
-			Labels:      cui.Items[i].Labels,
+			ID:            cui.Items[i].ID,
+			Name:          cui.Items[i].Name,
+			Description:   cui.Items[i].Description,
+			Labels:        cui.Items[i].Labels,
+			FilterPattern: cui.Items[i].FilterPattern,
 		}
 
 		_cs[i] = _c
@@ -951,16 +966,17 @@ func (cui *CatalogUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet, 
 
 // CatalogOutput holds the output of the Catalog entity.
 type CatalogOutput struct {
-	ID          object.ID          `json:"id,omitempty"`
-	Name        string             `json:"name,omitempty"`
-	Description string             `json:"description,omitempty"`
-	Labels      map[string]string  `json:"labels,omitempty"`
-	CreateTime  *time.Time         `json:"createTime,omitempty"`
-	UpdateTime  *time.Time         `json:"updateTime,omitempty"`
-	Status      status.Status      `json:"status,omitempty"`
-	Type        string             `json:"type,cli-table-column,omitempty"`
-	Source      string             `json:"source,omitempty"`
-	Sync        *types.CatalogSync `json:"sync,omitempty"`
+	ID            object.ID          `json:"id,omitempty"`
+	Name          string             `json:"name,omitempty"`
+	Description   string             `json:"description,omitempty"`
+	Labels        map[string]string  `json:"labels,omitempty"`
+	CreateTime    *time.Time         `json:"createTime,omitempty"`
+	UpdateTime    *time.Time         `json:"updateTime,omitempty"`
+	Status        status.Status      `json:"status,omitempty"`
+	Type          string             `json:"type,cli-table-column,omitempty"`
+	Source        string             `json:"source,omitempty"`
+	Sync          *types.CatalogSync `json:"sync,omitempty"`
+	FilterPattern string             `json:"filterPattern,omitempty"`
 
 	Project *ProjectOutput `json:"project,omitempty"`
 }
@@ -982,16 +998,17 @@ func ExposeCatalog(_c *Catalog) *CatalogOutput {
 	}
 
 	co := &CatalogOutput{
-		ID:          _c.ID,
-		Name:        _c.Name,
-		Description: _c.Description,
-		Labels:      _c.Labels,
-		CreateTime:  _c.CreateTime,
-		UpdateTime:  _c.UpdateTime,
-		Status:      _c.Status,
-		Type:        _c.Type,
-		Source:      _c.Source,
-		Sync:        _c.Sync,
+		ID:            _c.ID,
+		Name:          _c.Name,
+		Description:   _c.Description,
+		Labels:        _c.Labels,
+		CreateTime:    _c.CreateTime,
+		UpdateTime:    _c.UpdateTime,
+		Status:        _c.Status,
+		Type:          _c.Type,
+		Source:        _c.Source,
+		Sync:          _c.Sync,
+		FilterPattern: _c.FilterPattern,
 	}
 
 	if _c.Edges.Project != nil {

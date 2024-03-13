@@ -48,6 +48,8 @@ type Catalog struct {
 	Sync *types.CatalogSync `json:"sync,omitempty"`
 	// ID of the project to belong, empty means for all projects.
 	ProjectID object.ID `json:"project_id,omitempty"`
+	// Catalog regexp pattern to filter the repositories by names.
+	FilterPattern string `json:"filter_pattern,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CatalogQuery when eager-loading is set.
 	Edges        CatalogEdges `json:"edges,omitempty"`
@@ -96,7 +98,7 @@ func (*Catalog) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case catalog.FieldID, catalog.FieldProjectID:
 			values[i] = new(object.ID)
-		case catalog.FieldName, catalog.FieldDescription, catalog.FieldType, catalog.FieldSource:
+		case catalog.FieldName, catalog.FieldDescription, catalog.FieldType, catalog.FieldSource, catalog.FieldFilterPattern:
 			values[i] = new(sql.NullString)
 		case catalog.FieldCreateTime, catalog.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -197,6 +199,12 @@ func (c *Catalog) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				c.ProjectID = *value
 			}
+		case catalog.FieldFilterPattern:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field filter_pattern", values[i])
+			} else if value.Valid {
+				c.FilterPattern = value.String
+			}
 		default:
 			c.selectValues.Set(columns[i], values[i])
 		}
@@ -279,6 +287,9 @@ func (c *Catalog) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("project_id=")
 	builder.WriteString(fmt.Sprintf("%v", c.ProjectID))
+	builder.WriteString(", ")
+	builder.WriteString("filter_pattern=")
+	builder.WriteString(c.FilterPattern)
 	builder.WriteByte(')')
 	return builder.String()
 }

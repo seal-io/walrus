@@ -141,6 +141,20 @@ func (cc *CatalogCreate) SetNillableProjectID(o *object.ID) *CatalogCreate {
 	return cc
 }
 
+// SetFilterPattern sets the "filter_pattern" field.
+func (cc *CatalogCreate) SetFilterPattern(s string) *CatalogCreate {
+	cc.mutation.SetFilterPattern(s)
+	return cc
+}
+
+// SetNillableFilterPattern sets the "filter_pattern" field if the given value is not nil.
+func (cc *CatalogCreate) SetNillableFilterPattern(s *string) *CatalogCreate {
+	if s != nil {
+		cc.SetFilterPattern(*s)
+	}
+	return cc
+}
+
 // SetID sets the "id" field.
 func (cc *CatalogCreate) SetID(o object.ID) *CatalogCreate {
 	cc.mutation.SetID(o)
@@ -338,6 +352,10 @@ func (cc *CatalogCreate) createSpec() (*Catalog, *sqlgraph.CreateSpec) {
 		_spec.SetField(catalog.FieldSync, field.TypeJSON, value)
 		_node.Sync = value
 	}
+	if value, ok := cc.mutation.FilterPattern(); ok {
+		_spec.SetField(catalog.FieldFilterPattern, field.TypeString, value)
+		_node.FilterPattern = value
+	}
 	if nodes := cc.mutation.TemplatesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -425,6 +443,9 @@ func (cc *CatalogCreate) Set(obj *Catalog) *CatalogCreate {
 	if obj.ProjectID != "" {
 		cc.SetProjectID(obj.ProjectID)
 	}
+	if obj.FilterPattern != "" {
+		cc.SetFilterPattern(obj.FilterPattern)
+	}
 
 	// Record the given object.
 	cc.object = obj
@@ -496,6 +517,9 @@ func (cc *CatalogCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Cont
 		}
 		if _, set := cc.mutation.Field(catalog.FieldProjectID); set {
 			obj.ProjectID = x.ProjectID
+		}
+		if _, set := cc.mutation.Field(catalog.FieldFilterPattern); set {
+			obj.FilterPattern = x.FilterPattern
 		}
 		obj.Edges = x.Edges
 	}
@@ -634,6 +658,9 @@ func (ccb *CatalogCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx context
 			}
 			if _, set := ccb.builders[i].mutation.Field(catalog.FieldProjectID); set {
 				objs[i].ProjectID = x[i].ProjectID
+			}
+			if _, set := ccb.builders[i].mutation.Field(catalog.FieldFilterPattern); set {
+				objs[i].FilterPattern = x[i].FilterPattern
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -863,6 +890,24 @@ func (u *CatalogUpsert) ClearSync() *CatalogUpsert {
 	return u
 }
 
+// SetFilterPattern sets the "filter_pattern" field.
+func (u *CatalogUpsert) SetFilterPattern(v string) *CatalogUpsert {
+	u.Set(catalog.FieldFilterPattern, v)
+	return u
+}
+
+// UpdateFilterPattern sets the "filter_pattern" field to the value that was provided on create.
+func (u *CatalogUpsert) UpdateFilterPattern() *CatalogUpsert {
+	u.SetExcluded(catalog.FieldFilterPattern)
+	return u
+}
+
+// ClearFilterPattern clears the value of the "filter_pattern" field.
+func (u *CatalogUpsert) ClearFilterPattern() *CatalogUpsert {
+	u.SetNull(catalog.FieldFilterPattern)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -1042,6 +1087,27 @@ func (u *CatalogUpsertOne) UpdateSync() *CatalogUpsertOne {
 func (u *CatalogUpsertOne) ClearSync() *CatalogUpsertOne {
 	return u.Update(func(s *CatalogUpsert) {
 		s.ClearSync()
+	})
+}
+
+// SetFilterPattern sets the "filter_pattern" field.
+func (u *CatalogUpsertOne) SetFilterPattern(v string) *CatalogUpsertOne {
+	return u.Update(func(s *CatalogUpsert) {
+		s.SetFilterPattern(v)
+	})
+}
+
+// UpdateFilterPattern sets the "filter_pattern" field to the value that was provided on create.
+func (u *CatalogUpsertOne) UpdateFilterPattern() *CatalogUpsertOne {
+	return u.Update(func(s *CatalogUpsert) {
+		s.UpdateFilterPattern()
+	})
+}
+
+// ClearFilterPattern clears the value of the "filter_pattern" field.
+func (u *CatalogUpsertOne) ClearFilterPattern() *CatalogUpsertOne {
+	return u.Update(func(s *CatalogUpsert) {
+		s.ClearFilterPattern()
 	})
 }
 
@@ -1393,6 +1459,27 @@ func (u *CatalogUpsertBulk) UpdateSync() *CatalogUpsertBulk {
 func (u *CatalogUpsertBulk) ClearSync() *CatalogUpsertBulk {
 	return u.Update(func(s *CatalogUpsert) {
 		s.ClearSync()
+	})
+}
+
+// SetFilterPattern sets the "filter_pattern" field.
+func (u *CatalogUpsertBulk) SetFilterPattern(v string) *CatalogUpsertBulk {
+	return u.Update(func(s *CatalogUpsert) {
+		s.SetFilterPattern(v)
+	})
+}
+
+// UpdateFilterPattern sets the "filter_pattern" field to the value that was provided on create.
+func (u *CatalogUpsertBulk) UpdateFilterPattern() *CatalogUpsertBulk {
+	return u.Update(func(s *CatalogUpsert) {
+		s.UpdateFilterPattern()
+	})
+}
+
+// ClearFilterPattern clears the value of the "filter_pattern" field.
+func (u *CatalogUpsertBulk) ClearFilterPattern() *CatalogUpsertBulk {
+	return u.Update(func(s *CatalogUpsert) {
+		s.ClearFilterPattern()
 	})
 }
 
