@@ -134,9 +134,9 @@ func questions(serverConfig *config.Config) []*survey.Question {
 	}
 
 	ap := &ask.Password{
-		Message:        strs.Question(config.FlagNameToken),
-		Default:        serverConfig.Token,
-		DefaultDisplay: hiddenPassword(serverConfig.Token),
+		Message:        "API Key: ",
+		Default:        serverConfig.APIKey,
+		DefaultDisplay: hiddenPassword(serverConfig.APIKey),
 	}
 
 	proj := serverConfig.Project
@@ -154,7 +154,7 @@ func questions(serverConfig *config.Config) []*survey.Question {
 			Validate: survey.Required,
 		},
 		{
-			Name:     config.FlagNameToken,
+			Name:     config.FlagNameAPIKey,
 			Prompt:   ap,
 			Validate: ap.Required,
 		},

@@ -13,7 +13,7 @@ var InjectFields = []string{"project", "environment"}
 // Flags for server context.
 const (
 	FlagNameServer   = "server"
-	FlagNameToken    = "token"
+	FlagNameAPIKey   = "api-key"
 	FlagNameInsecure = "insecure"
 )
 
@@ -24,7 +24,7 @@ type ServerContext struct {
 
 	// Server config.
 	Server   string `json:"server" survey:"server"`
-	Token    string `json:"token" survey:"token"`
+	APIKey   string `json:"api-key" survey:"api-key"`
 	Insecure bool   `json:"insecure" survey:"insecure"`
 
 	// Reachable.
@@ -35,7 +35,7 @@ func (c *ServerContext) AddFlags(cmd *cobra.Command) {
 	c.ScopeContext.AddFlags(cmd)
 
 	cmd.Flags().StringVarP(&c.Server, FlagNameServer, "s", "", "Server address, format: scheme://host:port")
-	cmd.Flags().StringVarP(&c.Token, FlagNameToken, "", "", "Auth token to communicate to server")
+	cmd.Flags().StringVarP(&c.APIKey, FlagNameAPIKey, "", "", "API key to communicate with server")
 	cmd.Flags().BoolVarP(&c.Insecure, FlagNameInsecure, "", false, "Disable SSL verification")
 }
 
@@ -137,8 +137,8 @@ func (c *ServerContext) Merge(ns ServerContext, flags *pflag.FlagSet) ServerCont
 		merged.Server = ns.Server
 	}
 
-	if ns.Token != "" {
-		merged.Token = ns.Token
+	if ns.APIKey != "" {
+		merged.APIKey = ns.APIKey
 	}
 
 	if flags.Changed("insecure") {
