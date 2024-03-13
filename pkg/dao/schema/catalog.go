@@ -58,6 +58,9 @@ func (Catalog) Fields() []ent.Field {
 			Comment("ID of the project to belong, empty means for all projects.").
 			Immutable().
 			Optional(),
+		field.String("filter_pattern").
+			Comment("Catalog regexp pattern to filter the repositories by names.").
+			Optional(),
 	}
 }
 
