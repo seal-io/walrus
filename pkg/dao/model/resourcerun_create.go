@@ -234,6 +234,12 @@ func (rrc *ResourceRunCreate) SetAnnotations(m map[string]string) *ResourceRunCr
 	return rrc
 }
 
+// SetLabels sets the "labels" field.
+func (rrc *ResourceRunCreate) SetLabels(m map[string]string) *ResourceRunCreate {
+	rrc.mutation.SetLabels(m)
+	return rrc
+}
+
 // SetComponentChanges sets the "component_changes" field.
 func (rrc *ResourceRunCreate) SetComponentChanges(tcc []*types.ResourceComponentChange) *ResourceRunCreate {
 	rrc.mutation.SetComponentChanges(tcc)
@@ -342,6 +348,10 @@ func (rrc *ResourceRunCreate) defaults() error {
 	if _, ok := rrc.mutation.Annotations(); !ok {
 		v := resourcerun.DefaultAnnotations
 		rrc.mutation.SetAnnotations(v)
+	}
+	if _, ok := rrc.mutation.Labels(); !ok {
+		v := resourcerun.DefaultLabels
+		rrc.mutation.SetLabels(v)
 	}
 	return nil
 }
@@ -545,6 +555,10 @@ func (rrc *ResourceRunCreate) createSpec() (*ResourceRun, *sqlgraph.CreateSpec) 
 		_spec.SetField(resourcerun.FieldAnnotations, field.TypeJSON, value)
 		_node.Annotations = value
 	}
+	if value, ok := rrc.mutation.Labels(); ok {
+		_spec.SetField(resourcerun.FieldLabels, field.TypeJSON, value)
+		_node.Labels = value
+	}
 	if value, ok := rrc.mutation.ComponentChanges(); ok {
 		_spec.SetField(resourcerun.FieldComponentChanges, field.TypeJSON, value)
 		_node.ComponentChanges = value
@@ -669,6 +683,9 @@ func (rrc *ResourceRunCreate) Set(obj *ResourceRun) *ResourceRunCreate {
 	}
 	if !reflect.ValueOf(obj.Annotations).IsZero() {
 		rrc.SetAnnotations(obj.Annotations)
+	}
+	if !reflect.ValueOf(obj.Labels).IsZero() {
+		rrc.SetLabels(obj.Labels)
 	}
 	if !reflect.ValueOf(obj.ComponentChanges).IsZero() {
 		rrc.SetComponentChanges(obj.ComponentChanges)
@@ -1279,6 +1296,24 @@ func (u *ResourceRunUpsert) ClearAnnotations() *ResourceRunUpsert {
 	return u
 }
 
+// SetLabels sets the "labels" field.
+func (u *ResourceRunUpsert) SetLabels(v map[string]string) *ResourceRunUpsert {
+	u.Set(resourcerun.FieldLabels, v)
+	return u
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *ResourceRunUpsert) UpdateLabels() *ResourceRunUpsert {
+	u.SetExcluded(resourcerun.FieldLabels)
+	return u
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *ResourceRunUpsert) ClearLabels() *ResourceRunUpsert {
+	u.SetNull(resourcerun.FieldLabels)
+	return u
+}
+
 // SetComponentChanges sets the "component_changes" field.
 func (u *ResourceRunUpsert) SetComponentChanges(v []*types.ResourceComponentChange) *ResourceRunUpsert {
 	u.Set(resourcerun.FieldComponentChanges, v)
@@ -1658,6 +1693,27 @@ func (u *ResourceRunUpsertOne) UpdateAnnotations() *ResourceRunUpsertOne {
 func (u *ResourceRunUpsertOne) ClearAnnotations() *ResourceRunUpsertOne {
 	return u.Update(func(s *ResourceRunUpsert) {
 		s.ClearAnnotations()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *ResourceRunUpsertOne) SetLabels(v map[string]string) *ResourceRunUpsertOne {
+	return u.Update(func(s *ResourceRunUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *ResourceRunUpsertOne) UpdateLabels() *ResourceRunUpsertOne {
+	return u.Update(func(s *ResourceRunUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *ResourceRunUpsertOne) ClearLabels() *ResourceRunUpsertOne {
+	return u.Update(func(s *ResourceRunUpsert) {
+		s.ClearLabels()
 	})
 }
 
@@ -2215,6 +2271,27 @@ func (u *ResourceRunUpsertBulk) UpdateAnnotations() *ResourceRunUpsertBulk {
 func (u *ResourceRunUpsertBulk) ClearAnnotations() *ResourceRunUpsertBulk {
 	return u.Update(func(s *ResourceRunUpsert) {
 		s.ClearAnnotations()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *ResourceRunUpsertBulk) SetLabels(v map[string]string) *ResourceRunUpsertBulk {
+	return u.Update(func(s *ResourceRunUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *ResourceRunUpsertBulk) UpdateLabels() *ResourceRunUpsertBulk {
+	return u.Update(func(s *ResourceRunUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *ResourceRunUpsertBulk) ClearLabels() *ResourceRunUpsertBulk {
+	return u.Update(func(s *ResourceRunUpsert) {
+		s.ClearLabels()
 	})
 }
 

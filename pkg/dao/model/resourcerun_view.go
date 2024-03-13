@@ -62,6 +62,8 @@ type ResourceRunCreateInput struct {
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 	// If the run is preview.
 	Preview bool `path:"-" query:"-" json:"preview,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Changes of the resource components.
 	ComponentChanges []*types.ResourceComponentChange `path:"-" query:"-" json:"componentChanges,omitempty"`
 	// Change summary of the resource.
@@ -90,6 +92,7 @@ func (rrci *ResourceRunCreateInput) Model() *ResourceRun {
 		Record:                    rrci.Record,
 		ChangeComment:             rrci.ChangeComment,
 		Preview:                   rrci.Preview,
+		Labels:                    rrci.Labels,
 		ComponentChanges:          rrci.ComponentChanges,
 		ComponentChangeSummary:    rrci.ComponentChangeSummary,
 	}
@@ -178,6 +181,8 @@ type ResourceRunCreateInputsItem struct {
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 	// If the run is preview.
 	Preview bool `path:"-" query:"-" json:"preview,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Changes of the resource components.
 	ComponentChanges []*types.ResourceComponentChange `path:"-" query:"-" json:"componentChanges,omitempty"`
 	// Change summary of the resource.
@@ -238,6 +243,7 @@ func (rrci *ResourceRunCreateInputs) Model() []*ResourceRun {
 			Record:                    rrci.Items[i].Record,
 			ChangeComment:             rrci.Items[i].ChangeComment,
 			Preview:                   rrci.Items[i].Preview,
+			Labels:                    rrci.Items[i].Labels,
 			ComponentChanges:          rrci.Items[i].ComponentChanges,
 			ComponentChangeSummary:    rrci.Items[i].ComponentChangeSummary,
 		}
@@ -513,6 +519,8 @@ type ResourceRunPatchInput struct {
 	Preview bool `path:"-" query:"-" json:"preview,omitempty"`
 	// Annotations holds the value of the "annotations" field.
 	Annotations map[string]string `path:"-" query:"-" json:"annotations,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Changes of the resource components.
 	ComponentChanges []*types.ResourceComponentChange `path:"-" query:"-" json:"componentChanges,omitempty"`
 	// Change summary of the resource.
@@ -547,6 +555,7 @@ func (rrpi *ResourceRunPatchInput) PatchModel() *ResourceRun {
 		Type:                      rrpi.Type,
 		Preview:                   rrpi.Preview,
 		Annotations:               rrpi.Annotations,
+		Labels:                    rrpi.Labels,
 		ComponentChanges:          rrpi.ComponentChanges,
 		ComponentChangeSummary:    rrpi.ComponentChangeSummary,
 	}
@@ -904,6 +913,8 @@ type ResourceRunUpdateInput struct {
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 	// If the run is preview.
 	Preview bool `path:"-" query:"-" json:"preview,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Changes of the resource components.
 	ComponentChanges []*types.ResourceComponentChange `path:"-" query:"-" json:"componentChanges,omitempty"`
 	// Change summary of the resource.
@@ -931,6 +942,7 @@ func (rrui *ResourceRunUpdateInput) Model() *ResourceRun {
 		Record:                    rrui.Record,
 		ChangeComment:             rrui.ChangeComment,
 		Preview:                   rrui.Preview,
+		Labels:                    rrui.Labels,
 		ComponentChanges:          rrui.ComponentChanges,
 		ComponentChangeSummary:    rrui.ComponentChangeSummary,
 	}
@@ -989,6 +1001,8 @@ type ResourceRunUpdateInputsItem struct {
 	ChangeComment string `path:"-" query:"-" json:"changeComment,omitempty"`
 	// If the run is preview.
 	Preview bool `path:"-" query:"-" json:"preview"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 	// Changes of the resource components.
 	ComponentChanges []*types.ResourceComponentChange `path:"-" query:"-" json:"componentChanges,omitempty"`
 	// Change summary of the resource.
@@ -1048,6 +1062,7 @@ func (rrui *ResourceRunUpdateInputs) Model() []*ResourceRun {
 			Record:                    rrui.Items[i].Record,
 			ChangeComment:             rrui.Items[i].ChangeComment,
 			Preview:                   rrui.Items[i].Preview,
+			Labels:                    rrui.Items[i].Labels,
 			ComponentChanges:          rrui.Items[i].ComponentChanges,
 			ComponentChangeSummary:    rrui.Items[i].ComponentChangeSummary,
 		}
@@ -1185,6 +1200,7 @@ type ResourceRunOutput struct {
 	CreatedBy                 string                               `json:"createdBy,omitempty"`
 	Type                      string                               `json:"type,omitempty"`
 	Preview                   bool                                 `json:"preview,omitempty"`
+	Labels                    map[string]string                    `json:"labels,omitempty"`
 	ComponentChanges          []*types.ResourceComponentChange     `json:"componentChanges,omitempty"`
 	ComponentChangeSummary    types.ResourceComponentChangeSummary `json:"componentChangeSummary,omitempty"`
 
@@ -1228,6 +1244,7 @@ func ExposeResourceRun(_rr *ResourceRun) *ResourceRunOutput {
 		CreatedBy:                 _rr.CreatedBy,
 		Type:                      _rr.Type,
 		Preview:                   _rr.Preview,
+		Labels:                    _rr.Labels,
 		ComponentChanges:          _rr.ComponentChanges,
 		ComponentChangeSummary:    _rr.ComponentChangeSummary,
 	}

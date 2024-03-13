@@ -74,6 +74,8 @@ type ResourceRun struct {
 	Preview bool `json:"preview,omitempty"`
 	// Annotations holds the value of the "annotations" field.
 	Annotations map[string]string `json:"annotations,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `json:"labels,omitempty"`
 	// Changes of the resource components.
 	ComponentChanges []*types.ResourceComponentChange `json:"component_changes,omitempty"`
 	// Change summary of the resource.
@@ -141,7 +143,7 @@ func (*ResourceRun) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case resourcerun.FieldStatus, resourcerun.FieldInputConfigs, resourcerun.FieldPreviousRequiredProviders, resourcerun.FieldAnnotations, resourcerun.FieldComponentChanges, resourcerun.FieldComponentChangeSummary:
+		case resourcerun.FieldStatus, resourcerun.FieldInputConfigs, resourcerun.FieldPreviousRequiredProviders, resourcerun.FieldAnnotations, resourcerun.FieldLabels, resourcerun.FieldComponentChanges, resourcerun.FieldComponentChangeSummary:
 			values[i] = new([]byte)
 		case resourcerun.FieldVariables:
 			values[i] = new(crypto.Map[string, string])
@@ -319,6 +321,14 @@ func (rr *ResourceRun) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field annotations: %w", err)
 				}
 			}
+		case resourcerun.FieldLabels:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field labels", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &rr.Labels); err != nil {
+					return fmt.Errorf("unmarshal field labels: %w", err)
+				}
+			}
 		case resourcerun.FieldComponentChanges:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field component_changes", values[i])
@@ -452,6 +462,9 @@ func (rr *ResourceRun) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("annotations=")
 	builder.WriteString(fmt.Sprintf("%v", rr.Annotations))
+	builder.WriteString(", ")
+	builder.WriteString("labels=")
+	builder.WriteString(fmt.Sprintf("%v", rr.Labels))
 	builder.WriteString(", ")
 	builder.WriteString("component_changes=")
 	builder.WriteString(fmt.Sprintf("%v", rr.ComponentChanges))

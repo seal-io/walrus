@@ -273,6 +273,18 @@ func (rru *ResourceRunUpdate) ClearAnnotations() *ResourceRunUpdate {
 	return rru
 }
 
+// SetLabels sets the "labels" field.
+func (rru *ResourceRunUpdate) SetLabels(m map[string]string) *ResourceRunUpdate {
+	rru.mutation.SetLabels(m)
+	return rru
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (rru *ResourceRunUpdate) ClearLabels() *ResourceRunUpdate {
+	rru.mutation.ClearLabels()
+	return rru
+}
+
 // SetComponentChanges sets the "component_changes" field.
 func (rru *ResourceRunUpdate) SetComponentChanges(tcc []*types.ResourceComponentChange) *ResourceRunUpdate {
 	rru.mutation.SetComponentChanges(tcc)
@@ -435,6 +447,9 @@ func (rru *ResourceRunUpdate) Set(obj *ResourceRun) *ResourceRunUpdate {
 	if !reflect.ValueOf(obj.Annotations).IsZero() {
 		rru.SetAnnotations(obj.Annotations)
 	}
+	if !reflect.ValueOf(obj.Labels).IsZero() {
+		rru.SetLabels(obj.Labels)
+	}
 	if !reflect.ValueOf(obj.ComponentChanges).IsZero() {
 		rru.SetComponentChanges(obj.ComponentChanges)
 	} else {
@@ -548,6 +563,12 @@ func (rru *ResourceRunUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if rru.mutation.AnnotationsCleared() {
 		_spec.ClearField(resourcerun.FieldAnnotations, field.TypeJSON)
+	}
+	if value, ok := rru.mutation.Labels(); ok {
+		_spec.SetField(resourcerun.FieldLabels, field.TypeJSON, value)
+	}
+	if rru.mutation.LabelsCleared() {
+		_spec.ClearField(resourcerun.FieldLabels, field.TypeJSON)
 	}
 	if value, ok := rru.mutation.ComponentChanges(); ok {
 		_spec.SetField(resourcerun.FieldComponentChanges, field.TypeJSON, value)
@@ -822,6 +843,18 @@ func (rruo *ResourceRunUpdateOne) ClearAnnotations() *ResourceRunUpdateOne {
 	return rruo
 }
 
+// SetLabels sets the "labels" field.
+func (rruo *ResourceRunUpdateOne) SetLabels(m map[string]string) *ResourceRunUpdateOne {
+	rruo.mutation.SetLabels(m)
+	return rruo
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (rruo *ResourceRunUpdateOne) ClearLabels() *ResourceRunUpdateOne {
+	rruo.mutation.ClearLabels()
+	return rruo
+}
+
 // SetComponentChanges sets the "component_changes" field.
 func (rruo *ResourceRunUpdateOne) SetComponentChanges(tcc []*types.ResourceComponentChange) *ResourceRunUpdateOne {
 	rruo.mutation.SetComponentChanges(tcc)
@@ -1039,6 +1072,11 @@ func (rruo *ResourceRunUpdateOne) Set(obj *ResourceRun) *ResourceRunUpdateOne {
 					rruo.SetAnnotations(obj.Annotations)
 				}
 			}
+			if !reflect.ValueOf(obj.Labels).IsZero() {
+				if !reflect.DeepEqual(db.Labels, obj.Labels) {
+					rruo.SetLabels(obj.Labels)
+				}
+			}
 			if !reflect.ValueOf(obj.ComponentChanges).IsZero() {
 				if !reflect.DeepEqual(db.ComponentChanges, obj.ComponentChanges) {
 					rruo.SetComponentChanges(obj.ComponentChanges)
@@ -1147,6 +1185,9 @@ func (rruo *ResourceRunUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx con
 		}
 		if _, set := rruo.mutation.Field(resourcerun.FieldAnnotations); set {
 			obj.Annotations = x.Annotations
+		}
+		if _, set := rruo.mutation.Field(resourcerun.FieldLabels); set {
+			obj.Labels = x.Labels
 		}
 		if _, set := rruo.mutation.Field(resourcerun.FieldComponentChanges); set {
 			obj.ComponentChanges = x.ComponentChanges
@@ -1300,6 +1341,12 @@ func (rruo *ResourceRunUpdateOne) sqlSave(ctx context.Context) (_node *ResourceR
 	}
 	if rruo.mutation.AnnotationsCleared() {
 		_spec.ClearField(resourcerun.FieldAnnotations, field.TypeJSON)
+	}
+	if value, ok := rruo.mutation.Labels(); ok {
+		_spec.SetField(resourcerun.FieldLabels, field.TypeJSON, value)
+	}
+	if rruo.mutation.LabelsCleared() {
+		_spec.ClearField(resourcerun.FieldLabels, field.TypeJSON)
 	}
 	if value, ok := rruo.mutation.ComponentChanges(); ok {
 		_spec.SetField(resourcerun.FieldComponentChanges, field.TypeJSON, value)
