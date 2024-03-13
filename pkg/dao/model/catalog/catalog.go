@@ -41,6 +41,8 @@ const (
 	FieldSync = "sync"
 	// FieldProjectID holds the string denoting the project_id field in the database.
 	FieldProjectID = "project_id"
+	// FieldFilterPattern holds the string denoting the filter_pattern field in the database.
+	FieldFilterPattern = "filter_pattern"
 	// EdgeTemplates holds the string denoting the templates edge name in mutations.
 	EdgeTemplates = "templates"
 	// EdgeProject holds the string denoting the project edge name in mutations.
@@ -77,6 +79,7 @@ var Columns = []string{
 	FieldSource,
 	FieldSync,
 	FieldProjectID,
+	FieldFilterPattern,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -156,6 +159,11 @@ func BySource(opts ...sql.OrderTermOption) OrderOption {
 // ByProjectID orders the results by the project_id field.
 func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
+}
+
+// ByFilterPattern orders the results by the filter_pattern field.
+func ByFilterPattern(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFilterPattern, opts...).ToFunc()
 }
 
 // ByTemplatesCount orders the results by templates count.

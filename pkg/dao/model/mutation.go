@@ -110,6 +110,7 @@ type CatalogMutation struct {
 	_type            *string
 	source           *string
 	sync             **types.CatalogSync
+	filter_pattern   *string
 	clearedFields    map[string]struct{}
 	templates        map[object.ID]struct{}
 	removedtemplates map[object.ID]struct{}
@@ -699,6 +700,55 @@ func (m *CatalogMutation) ResetProjectID() {
 	delete(m.clearedFields, catalog.FieldProjectID)
 }
 
+// SetFilterPattern sets the "filter_pattern" field.
+func (m *CatalogMutation) SetFilterPattern(s string) {
+	m.filter_pattern = &s
+}
+
+// FilterPattern returns the value of the "filter_pattern" field in the mutation.
+func (m *CatalogMutation) FilterPattern() (r string, exists bool) {
+	v := m.filter_pattern
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFilterPattern returns the old "filter_pattern" field's value of the Catalog entity.
+// If the Catalog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CatalogMutation) OldFilterPattern(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFilterPattern is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFilterPattern requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFilterPattern: %w", err)
+	}
+	return oldValue.FilterPattern, nil
+}
+
+// ClearFilterPattern clears the value of the "filter_pattern" field.
+func (m *CatalogMutation) ClearFilterPattern() {
+	m.filter_pattern = nil
+	m.clearedFields[catalog.FieldFilterPattern] = struct{}{}
+}
+
+// FilterPatternCleared returns if the "filter_pattern" field was cleared in this mutation.
+func (m *CatalogMutation) FilterPatternCleared() bool {
+	_, ok := m.clearedFields[catalog.FieldFilterPattern]
+	return ok
+}
+
+// ResetFilterPattern resets all changes to the "filter_pattern" field.
+func (m *CatalogMutation) ResetFilterPattern() {
+	m.filter_pattern = nil
+	delete(m.clearedFields, catalog.FieldFilterPattern)
+}
+
 // AddTemplateIDs adds the "templates" edge to the Template entity by ids.
 func (m *CatalogMutation) AddTemplateIDs(ids ...object.ID) {
 	if m.templates == nil {
@@ -814,7 +864,7 @@ func (m *CatalogMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CatalogMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.name != nil {
 		fields = append(fields, catalog.FieldName)
 	}
@@ -848,6 +898,9 @@ func (m *CatalogMutation) Fields() []string {
 	if m.project != nil {
 		fields = append(fields, catalog.FieldProjectID)
 	}
+	if m.filter_pattern != nil {
+		fields = append(fields, catalog.FieldFilterPattern)
+	}
 	return fields
 }
 
@@ -878,6 +931,8 @@ func (m *CatalogMutation) Field(name string) (ent.Value, bool) {
 		return m.Sync()
 	case catalog.FieldProjectID:
 		return m.ProjectID()
+	case catalog.FieldFilterPattern:
+		return m.FilterPattern()
 	}
 	return nil, false
 }
@@ -909,6 +964,8 @@ func (m *CatalogMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldSync(ctx)
 	case catalog.FieldProjectID:
 		return m.OldProjectID(ctx)
+	case catalog.FieldFilterPattern:
+		return m.OldFilterPattern(ctx)
 	}
 	return nil, fmt.Errorf("unknown Catalog field %s", name)
 }
@@ -995,6 +1052,13 @@ func (m *CatalogMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetProjectID(v)
 		return nil
+	case catalog.FieldFilterPattern:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFilterPattern(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Catalog field %s", name)
 }
@@ -1043,6 +1107,9 @@ func (m *CatalogMutation) ClearedFields() []string {
 	if m.FieldCleared(catalog.FieldProjectID) {
 		fields = append(fields, catalog.FieldProjectID)
 	}
+	if m.FieldCleared(catalog.FieldFilterPattern) {
+		fields = append(fields, catalog.FieldFilterPattern)
+	}
 	return fields
 }
 
@@ -1074,6 +1141,9 @@ func (m *CatalogMutation) ClearField(name string) error {
 		return nil
 	case catalog.FieldProjectID:
 		m.ClearProjectID()
+		return nil
+	case catalog.FieldFilterPattern:
+		m.ClearFilterPattern()
 		return nil
 	}
 	return fmt.Errorf("unknown Catalog nullable field %s", name)
@@ -1115,6 +1185,9 @@ func (m *CatalogMutation) ResetField(name string) error {
 		return nil
 	case catalog.FieldProjectID:
 		m.ResetProjectID()
+		return nil
+	case catalog.FieldFilterPattern:
+		m.ResetFilterPattern()
 		return nil
 	}
 	return fmt.Errorf("unknown Catalog field %s", name)

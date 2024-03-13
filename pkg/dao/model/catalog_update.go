@@ -124,6 +124,26 @@ func (cu *CatalogUpdate) ClearSync() *CatalogUpdate {
 	return cu
 }
 
+// SetFilterPattern sets the "filter_pattern" field.
+func (cu *CatalogUpdate) SetFilterPattern(s string) *CatalogUpdate {
+	cu.mutation.SetFilterPattern(s)
+	return cu
+}
+
+// SetNillableFilterPattern sets the "filter_pattern" field if the given value is not nil.
+func (cu *CatalogUpdate) SetNillableFilterPattern(s *string) *CatalogUpdate {
+	if s != nil {
+		cu.SetFilterPattern(*s)
+	}
+	return cu
+}
+
+// ClearFilterPattern clears the value of the "filter_pattern" field.
+func (cu *CatalogUpdate) ClearFilterPattern() *CatalogUpdate {
+	cu.mutation.ClearFilterPattern()
+	return cu
+}
+
 // AddTemplateIDs adds the "templates" edge to the Template entity by IDs.
 func (cu *CatalogUpdate) AddTemplateIDs(ids ...object.ID) *CatalogUpdate {
 	cu.mutation.AddTemplateIDs(ids...)
@@ -257,6 +277,11 @@ func (cu *CatalogUpdate) Set(obj *Catalog) *CatalogUpdate {
 	if !reflect.ValueOf(obj.Sync).IsZero() {
 		cu.SetSync(obj.Sync)
 	}
+	if obj.FilterPattern != "" {
+		cu.SetFilterPattern(obj.FilterPattern)
+	} else {
+		cu.ClearFilterPattern()
+	}
 
 	// With Default.
 	if obj.UpdateTime != nil {
@@ -316,6 +341,12 @@ func (cu *CatalogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if cu.mutation.SyncCleared() {
 		_spec.ClearField(catalog.FieldSync, field.TypeJSON)
+	}
+	if value, ok := cu.mutation.FilterPattern(); ok {
+		_spec.SetField(catalog.FieldFilterPattern, field.TypeString, value)
+	}
+	if cu.mutation.FilterPatternCleared() {
+		_spec.ClearField(catalog.FieldFilterPattern, field.TypeString)
 	}
 	if cu.mutation.TemplatesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -469,6 +500,26 @@ func (cuo *CatalogUpdateOne) SetSync(ts *types.CatalogSync) *CatalogUpdateOne {
 // ClearSync clears the value of the "sync" field.
 func (cuo *CatalogUpdateOne) ClearSync() *CatalogUpdateOne {
 	cuo.mutation.ClearSync()
+	return cuo
+}
+
+// SetFilterPattern sets the "filter_pattern" field.
+func (cuo *CatalogUpdateOne) SetFilterPattern(s string) *CatalogUpdateOne {
+	cuo.mutation.SetFilterPattern(s)
+	return cuo
+}
+
+// SetNillableFilterPattern sets the "filter_pattern" field if the given value is not nil.
+func (cuo *CatalogUpdateOne) SetNillableFilterPattern(s *string) *CatalogUpdateOne {
+	if s != nil {
+		cuo.SetFilterPattern(*s)
+	}
+	return cuo
+}
+
+// ClearFilterPattern clears the value of the "filter_pattern" field.
+func (cuo *CatalogUpdateOne) ClearFilterPattern() *CatalogUpdateOne {
+	cuo.mutation.ClearFilterPattern()
 	return cuo
 }
 
@@ -638,6 +689,13 @@ func (cuo *CatalogUpdateOne) Set(obj *Catalog) *CatalogUpdateOne {
 					cuo.SetSync(obj.Sync)
 				}
 			}
+			if obj.FilterPattern != "" {
+				if db.FilterPattern != obj.FilterPattern {
+					cuo.SetFilterPattern(obj.FilterPattern)
+				}
+			} else {
+				cuo.ClearFilterPattern()
+			}
 
 			// With Default.
 			if (obj.UpdateTime != nil) && (!reflect.DeepEqual(db.UpdateTime, obj.UpdateTime)) {
@@ -702,6 +760,9 @@ func (cuo *CatalogUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context.
 		}
 		if _, set := cuo.mutation.Field(catalog.FieldSync); set {
 			obj.Sync = x.Sync
+		}
+		if _, set := cuo.mutation.Field(catalog.FieldFilterPattern); set {
+			obj.FilterPattern = x.FilterPattern
 		}
 		obj.Edges = x.Edges
 	}
@@ -802,6 +863,12 @@ func (cuo *CatalogUpdateOne) sqlSave(ctx context.Context) (_node *Catalog, err e
 	}
 	if cuo.mutation.SyncCleared() {
 		_spec.ClearField(catalog.FieldSync, field.TypeJSON)
+	}
+	if value, ok := cuo.mutation.FilterPattern(); ok {
+		_spec.SetField(catalog.FieldFilterPattern, field.TypeString, value)
+	}
+	if cuo.mutation.FilterPatternCleared() {
+		_spec.ClearField(catalog.FieldFilterPattern, field.TypeString)
 	}
 	if cuo.mutation.TemplatesCleared() {
 		edge := &sqlgraph.EdgeSpec{
