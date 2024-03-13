@@ -52,6 +52,9 @@ type CreateOptions struct {
 
 	// Preview is the run need preview.
 	Preview bool
+
+	// Labels is the labels of the run.
+	Labels map[string]string
 }
 
 // Create creates a resource run.
@@ -165,6 +168,7 @@ func Create(ctx context.Context, mc model.ClientSet, opts CreateOptions) (*model
 		ChangeComment:      opts.ChangeComment,
 		Type:               opts.Type.String(),
 		Preview:            opts.Preview,
+		Labels:             opts.Labels,
 	}
 
 	status.ResourceRunStatusPending.Unknown(entity, "")

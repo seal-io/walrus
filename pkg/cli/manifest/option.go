@@ -10,18 +10,34 @@ import (
 type ApplyOption struct {
 	CommonOption
 
-	// Apply in preview mode.
-	Preview bool `json:"preview,omitempty"`
-
-	// Comment.
-	Comment string `json:"comment,omitempty"`
+	// ChangeComment.
+	ChangeComment string `json:"changeComment,omitempty"`
 }
 
 func (f *ApplyOption) AddFlags(cmd *cobra.Command) {
 	f.CommonOption.AddFlags(cmd)
 
-	cmd.Flags().BoolVarP(&f.Preview, "preview", "", false, "Applying changes will generate a preview instead of actual deployment")
-	cmd.Flags().StringVarP(&f.Comment, "comment", "", "", "Add comment to the operation")
+	cmd.Flags().StringVarP(&f.ChangeComment, "change-comment", "", "", "Add comment to the operation")
+}
+
+// PreviewOption is a type that represents the options for the manifest preview.
+type PreviewOption struct {
+	CommonOption
+
+	// Apply.
+	Apply bool `json:"apply,omitempty"`
+	// ChangeComment.
+	ChangeComment string `json:"changeComment,omitempty"`
+	// RunLabels.
+	RunLabels map[string]string `json:"runLabels,omitempty"`
+}
+
+func (f *PreviewOption) AddFlags(cmd *cobra.Command) {
+	f.CommonOption.AddFlags(cmd)
+
+	cmd.Flags().BoolVarP(&f.Apply, "apply", "", false, "Apply previews with the provided labels")
+	cmd.Flags().StringVarP(&f.ChangeComment, "change-comment", "", "", "Add comment to previews")
+	cmd.Flags().StringToStringVar(&f.RunLabels, "run-labels", nil, "Labels for resource runs")
 }
 
 // CommonOption is a type that represents the options for the manifest operation.

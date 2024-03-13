@@ -399,7 +399,7 @@ func (h Handler) RouteApply(req RouteApplyRequest) error {
 
 	sc := serverContext(req.Project.Name, req.Name, token.AccessToken)
 
-	loader := manifest.DefaultLoader(sc, true)
+	loader := manifest.DefaultLoader(sc, true, nil)
 
 	set, err := loader.LoadFromByte([]byte(req.YAML))
 	if err != nil {

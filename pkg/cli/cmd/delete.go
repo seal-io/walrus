@@ -25,7 +25,7 @@ func Delete(sc *config.Config) (*cobra.Command, error) {
 		PreRun:  setupServerContextFunc(sc, flags),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Load from files.
-			loader := manifest.DefaultLoader(sc, flags.ValidateParametersSet)
+			loader := manifest.DefaultLoader(sc, flags.ValidateParametersSet, nil)
 			set, err := loader.LoadFromFiles(flags.Filenames, flags.Recursive)
 			if err != nil {
 				panic(err)
