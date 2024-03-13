@@ -155,11 +155,26 @@ func (in *StatusSyncTask) process(
 		opLimiter.Release(op.ID())
 	}
 
+	// As the components state task may take a long time to complete,
+	// it is necessary to get the resource again to avoid overriding the status.
+	res, err = in.modelClient.Resources().Query().
+		Select(
+			resource.FieldID,
+			resource.FieldStatus).
+		Where(resource.ID(res.ID)).
+		Only(ctx)
+	if err != nil {
+		return fmt.Errorf("error getting resource %s: %w", res.ID, err)
+	}
+
 	// State resource.
+	// NB(alex): If the resource is transitioning, it should be skipped,
+	// as the resource transitioning status may be changed by other tasks.
 	if status.ResourceStatusUnDeployed.IsTrue(res) ||
+		status.ResourceStatusDeployed.IsUnknown(res) ||
 		status.ResourceStatusDeleted.Exist(res) ||
 		status.ResourceStatusStopped.Exist(res) {
-		// Skip if the resource is undeployed, on deleting or stopping.
+		// Skip if the resource is undeployed, on deploying, deleting or stopping.
 		return berr
 	}
 
