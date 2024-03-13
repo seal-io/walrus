@@ -3,6 +3,7 @@ package catalog
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -64,15 +65,27 @@ func getRepos(ctx context.Context, c *model.Catalog, ua string, skipTLSVerify bo
 		return nil, err
 	}
 
-	list := make([]*vcs.Repository, len(repos))
+	var nameReg *regexp.Regexp
+	if c.FilterPattern != "" {
+		nameReg, err = regexp.Compile(c.FilterPattern)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	list := make([]*vcs.Repository, 0, len(repos))
 	for i := range repos {
-		list[i] = &vcs.Repository{
+		if c.FilterPattern != "" && !nameReg.MatchString(repos[i].Name) {
+			continue
+		}
+
+		list = append(list, &vcs.Repository{
 			Namespace:   repos[i].Namespace,
 			Name:        repos[i].Name,
 			Description: repos[i].Description,
 			Link:        repos[i].Link,
 			Topics:      repos[i].Topics,
-		}
+		})
 	}
 
 	return list, nil
