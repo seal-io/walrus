@@ -27,7 +27,6 @@ func (h Handler) Get(req GetRequest) (GetResponse, error) {
 
 var (
 	getFields = resourcerun.WithoutFields(
-		resourcerun.FieldRecord,
 		resourcerun.FieldInputConfigs,
 		resourcerun.FieldTemplateName,
 		resourcerun.FieldTemplateVersion,
@@ -95,8 +94,12 @@ func (h Handler) CollectionGet(req CollectionGetRequest) (CollectionGetResponse,
 			case modelchange.EventTypeCreate, modelchange.EventTypeUpdate:
 				runs, err := query.Clone().
 					Where(resourcerun.IDIn(ids...)).
-					// Must append service ID.
-					Select(resourcerun.FieldResourceID).
+					// Must append resource ID and records.
+					Select(
+						resourcerun.FieldResourceID,
+						resourcerun.FieldPlanRecord,
+						resourcerun.FieldRecord,
+					).
 					Unique(false).
 					WithResource(func(rq *model.ResourceQuery) {
 						rq.Select(resource.FieldID, resource.FieldName)
