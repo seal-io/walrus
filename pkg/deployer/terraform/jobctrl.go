@@ -256,7 +256,7 @@ func StreamJobLogs(ctx context.Context, opts StreamJobLogsOptions) error {
 				return false, getErr
 			}
 
-			return kube.IsPodReady(jobPod), nil
+			return kube.IsPodReady(jobPod) || kube.IsPodSucceeded(jobPod), nil
 		})
 	if err != nil {
 		return err
