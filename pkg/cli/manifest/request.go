@@ -593,7 +593,7 @@ type EventItem struct {
 }
 
 // ApplyResourceRuns send preview apply request for the object's last planned run.
-func ApplyResourceRuns(sc *config.Config, objs ObjectByScope) (success ObjectSet, retry ObjectSet, err error) {
+func ApplyResourceRuns(sc *config.Config, objs ObjectByScope) (success, retry ObjectSet, err error) {
 	listOpt := api.OpenAPI.GetOperation(GroupResourceRuns, operationList)
 	if listOpt == nil {
 		return success, retry, fmt.Errorf("not found %s operation for %s", operationList, GroupResourceRuns)

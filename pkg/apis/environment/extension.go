@@ -406,7 +406,11 @@ func (h Handler) RouteApply(req RouteApplyRequest) error {
 		return errorx.Wrap(err, "failed to load walrus file")
 	}
 
-	operator := manifest.DefaultApplyOperator(sc, false, "")
+	operator := manifest.DefaultApplyOperator(sc, &manifest.ApplyOption{
+		CommonOption: manifest.CommonOption{
+			Wait: false,
+		},
+	})
 
 	r, err := operator.Operate(set)
 	if err != nil {
