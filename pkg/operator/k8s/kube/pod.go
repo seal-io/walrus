@@ -38,6 +38,14 @@ func IsPodAssigned(pod *core.Pod) bool {
 	return pod.Spec.NodeName != ""
 }
 
+func IsPodSucceeded(pod *core.Pod) bool {
+	if !IsPodAssigned(pod) {
+		return false
+	}
+
+	return pod.Status.Phase == core.PodSucceeded
+}
+
 // GetPodCondition extracts the provided condition from the given PodStatus and returns that.
 func GetPodCondition(status *core.PodStatus, conditionType core.PodConditionType) (c *core.PodCondition, exist bool) {
 	if status == nil {
