@@ -35,6 +35,7 @@ var (
 		"/projects/:project/environments/:environment/export",
 		"/projects/:project/environments/:environment/resources/:resource/runs/:resourcerun/log",
 		"/projects/:project/environments/:environment/resources/:resource/runs/:resourcerun/terraform-states",
+		"/projects/:project/environments/:environment/resources/:resource/runs/:resourcerun/plan",
 		"/projects/:project/environments/:environment/resources/_/graph",
 		"/projects/:project/environments/:environment/resources/:resource/graph",
 		"/projects/:project/environments/:environment/resources/:resource/components/:resourcecomponent/keys",
