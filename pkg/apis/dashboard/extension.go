@@ -235,17 +235,17 @@ func getResourceRunStatusStats(
 
 		switch c.SummaryStatus {
 		case status.ResourceRunSummaryStatusFailed:
-			statMap[t].Failed = c.Count
+			statMap[t].Failed += c.Count
 		case status.ResourceRunSummaryStatusSucceed:
-			statMap[t].Succeeded = c.Count
+			statMap[t].Succeeded += c.Count
 		case status.ResourceRunSummaryStatusCanceled:
-			statMap[t].Canceled = c.Count
+			statMap[t].Canceled += c.Count
 		case status.ResourceRunSummaryStatusPlanned:
-			statMap[t].Planned = c.Count
+			statMap[t].Planned += c.Count
 		case status.ResourceRunSummaryStatusRunning,
 			status.ResourceRunSummaryStatusPlanning,
 			status.ResourceRunSummaryStatusPending:
-			statMap[t].Running = c.Count
+			statMap[t].Running += c.Count
 		}
 	}
 
@@ -303,17 +303,17 @@ func getResourceRunStatusCount(
 	for _, sc := range counts {
 		switch sc.SummaryStatus {
 		case status.ResourceRunSummaryStatusFailed:
-			r.Failed = sc.Count
+			r.Failed += sc.Count
 		case status.ResourceRunSummaryStatusSucceed:
-			r.Succeeded = sc.Count
+			r.Succeeded += sc.Count
 		case status.ResourceRunSummaryStatusCanceled:
-			r.Canceled = sc.Count
+			r.Canceled += sc.Count
 		case status.ResourceRunSummaryStatusPlanned:
-			r.Planned = sc.Count
+			r.Planned += sc.Count
 		case status.ResourceRunSummaryStatusRunning,
 			status.ResourceRunSummaryStatusPlanning,
 			status.ResourceRunSummaryStatusPending:
-			r.Running = sc.Count
+			r.Running += sc.Count
 		}
 	}
 
