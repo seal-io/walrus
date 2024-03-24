@@ -20,10 +20,7 @@ func (m GoogleConvertor) ToBlocks(connectors model.Connectors, opts Options) (bl
 			continue
 		}
 
-		b, err := toCloudProviderBlock(string(m), c, opts)
-		if err != nil {
-			return nil, err
-		}
+		b := toCloudProviderBlock(string(m), c)
 
 		blocks = append(blocks, b)
 	}
