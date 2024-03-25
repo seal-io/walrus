@@ -19,6 +19,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	opk8s "github.com/seal-io/walrus/pkg/operator/k8s"
 	"github.com/seal-io/walrus/pkg/operator/k8s/kube"
+	"github.com/seal-io/walrus/pkg/vcs"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/pointer"
 )
@@ -31,6 +32,7 @@ type JobCreateOptions struct {
 	Env        []corev1.EnvVar
 	DockerMode bool
 
+	Template    *model.TemplateVersion
 	ResourceRun *model.ResourceRun
 	Token       string
 	ServerURL   string
@@ -137,10 +139,23 @@ func CreateSecret(ctx context.Context, clientSet *kubernetes.Clientset, name str
 
 // getPodTemplate returns a pod template for deployment.
 func getPodTemplate(configName string, opts JobCreateOptions) corev1.PodTemplateSpec {
+	repo, err := vcs.ParseURLToRepo(opts.Template.Source)
+	if err != nil {
+		return corev1.PodTemplateSpec{}
+	}
+
 	var (
 		command       = []string{"/bin/sh", "-c"}
-		deployCommand = fmt.Sprintf("cp %s/main.tf main.tf && ", _secretMountPath)
+		deployCommand = fmt.Sprintf("git clone %s /var/terraform/workspace &&", repo.Link)
 	)
+
+	deployCommand += fmt.Sprintf("git checkout %s && ", opts.Template.Version)
+
+	if repo.SubPath != "" {
+		deployCommand += fmt.Sprintf("cd %s && ", repo.SubPath)
+	}
+
+	deployCommand += fmt.Sprintf("cp %s/main.tf override.tf && ", _secretMountPath)
 
 	switch opts.Type {
 	case types.RunTaskTypePlan:

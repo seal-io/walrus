@@ -95,8 +95,6 @@ func (c *TerraformConfigurator) LoadAll(
 		return nil, err
 	}
 
-	moduleConfig.Attributes = attrs
-
 	// Update output sensitive with variables.
 	wrapVariables, err := updateOutputWithVariables(variables, moduleConfig)
 	if err != nil {
@@ -130,18 +128,16 @@ func (c *TerraformConfigurator) LoadAll(
 				SecretMonthPath:       opts.SecretMountPath,
 				ConnectorSeparator:    parser.ConnectorSeparator,
 			},
-			ModuleOptions: &config.ModuleOptions{
-				ModuleConfigs: []*config.ModuleConfig{moduleConfig},
-			},
 			VariableOptions: &config.VariableOptions{
-				VariablePrefix:    _variablePrefix,
-				ResourcePrefix:    _resourcePrefix,
 				Variables:         wrapVariables,
 				DependencyOutputs: dependencyOutputs,
+				Attributes:        moduleConfig.Attributes,
 			},
 			OutputOptions: moduleConfig.Outputs,
 		},
-		config.FileVars: getVarConfigOptions(variables, dependencyOutputs),
+		config.FileVars: {
+			Attributes: attrs,
+		},
 	}
 
 	inputConfigs := make(map[string]types.ResourceRunConfigData, len(tfCreateOpts))

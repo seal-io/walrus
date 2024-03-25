@@ -51,10 +51,8 @@ func (m K8sConvertor) toBlock(connector *model.Connector, opts any) (*block.Bloc
 	var (
 		// NB(alex) the config path should keep the same with the secret mount path in deployer.
 		configPath = convertOpts.ConfigPath + "/" + util.GetK8sSecretName(connector.ID.String())
-		alias      = convertOpts.ConnSeparator + connector.ID.String()
 		attributes = map[string]any{
 			"config_path": configPath,
-			"alias":       alias,
 		}
 	)
 

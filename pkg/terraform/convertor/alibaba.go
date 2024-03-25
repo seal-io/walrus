@@ -1,8 +1,6 @@
 package convertor
 
 import (
-	"errors"
-
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/property"
@@ -24,10 +22,7 @@ func (m AlibabaConvertor) ToBlocks(connectors model.Connectors, opts Options) (b
 			continue
 		}
 
-		b, err := toCloudProviderBlock(string(m), c, opts)
-		if err != nil {
-			return nil, err
-		}
+		b := toCloudProviderBlock(string(m), c)
 
 		blocks = append(blocks, b)
 	}
@@ -35,18 +30,10 @@ func (m AlibabaConvertor) ToBlocks(connectors model.Connectors, opts Options) (b
 	return blocks, nil
 }
 
-func toCloudProviderBlock(label string, conn *model.Connector, opts any) (*block.Block, error) {
-	convertOpts, ok := opts.(ConvertOptions)
-	if !ok {
-		return nil, errors.New("invalid options type")
-	}
-
+func toCloudProviderBlock(label string, conn *model.Connector) *block.Block {
 	var (
-		alias      = convertOpts.ConnSeparator + conn.ID.String()
-		attributes = map[string]any{
-			"alias": alias,
-		}
-		err error
+		attributes = map[string]any{}
+		err        error
 	)
 
 	for k, v := range conn.ConfigData {
@@ -60,5 +47,5 @@ func toCloudProviderBlock(label string, conn *model.Connector, opts any) (*block
 		Type:       block.TypeProvider,
 		Attributes: attributes,
 		Labels:     []string{label},
-	}, nil
+	}
 }

@@ -47,14 +47,8 @@ func (m HelmConvertor) toBlock(connector *model.Connector, opts Options) (*block
 		return nil, fmt.Errorf("connector type is not k8s, connector: %s", connector.ID)
 	}
 
-	var (
-		// NB(alex) the config path should keep the same with the secret mount path in deployer.
-		configPath = k8sOpts.ConfigPath + "/" + util.GetK8sSecretName(connector.ID.String())
-		alias      = k8sOpts.ConnSeparator + connector.ID.String()
-		attributes = map[string]any{
-			"alias": alias,
-		}
-	)
+	// NB(alex) the config path should keep the same with the secret mount path in deployer.
+	configPath := k8sOpts.ConfigPath + "/" + util.GetK8sSecretName(connector.ID.String())
 
 	_, _, err := opk8s.LoadApiConfig(*connector)
 	if err != nil {
@@ -73,7 +67,7 @@ func (m HelmConvertor) toBlock(connector *model.Connector, opts Options) (*block
 	var (
 		helmBlock = &block.Block{
 			Type:       block.TypeProvider,
-			Attributes: attributes,
+			Attributes: map[string]any{},
 			// Convert the connector type to provider type.
 			Labels: []string{string(m)},
 		}

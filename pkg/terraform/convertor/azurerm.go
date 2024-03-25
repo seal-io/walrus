@@ -20,10 +20,7 @@ func (m AzureRMConvertor) ToBlocks(connectors model.Connectors, opts Options) (b
 			continue
 		}
 
-		b, err := toCloudProviderBlock(string(m), c, opts)
-		if err != nil {
-			return nil, err
-		}
+		b := toCloudProviderBlock(string(m), c)
 
 		b.AppendBlock(&block.Block{
 			Type: block.TypeFeatures,

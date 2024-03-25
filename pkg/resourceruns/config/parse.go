@@ -22,21 +22,13 @@ import (
 	"github.com/seal-io/walrus/utils/json"
 )
 
-const (
-	// _variablePrefix the prefix of the variable name.
-	_variablePrefix = "_walrus_var_"
-
-	// _resourcePrefix the prefix of the resource output name.
-	_resourcePrefix = "_walrus_res_"
-)
-
 // _interpolationReg is the regular expression for matching non-reference or non-variable expressions.
 // Reference: https://developer.hashicorp.com/terraform/language/expressions/strings#escape-sequences-1
 // To handle escape sequences, ${xxx} is converted to $${xxx}.
 // If there are more than two consecutive $ symbols, like $${xxx}, they are further converted to $$${xxx}.
 // During Terraform processing, $${} is ultimately transformed back to ${};
 // this interpolation is used to ensure a WYSIWYG user experience.
-var _interpolationReg = regexp.MustCompile(`\$\{((var\.)?([^.}]+)(?:\.([^.}]+))?)[^\}]*\}`)
+var _interpolationReg = regexp.MustCompile(`\$\{((var\.|res\.)?([^.}]+)(?:\.([^.}]+))?)[^\}]*\}`)
 
 type RunOpts struct {
 	ResourceRun *model.ResourceRun
@@ -64,7 +56,7 @@ func ParseModuleAttributes(
 
 	attrs, templateVariables, dependencyResourceOutputs, err = parseAttributeReplace(attributes, replaced)
 	if err != nil {
-		return
+		return nil, nil, nil, err
 	}
 
 	// If a resource run has variables that inherit from cloned run, use them directly.
@@ -82,7 +74,32 @@ func ParseModuleAttributes(
 		}
 	}
 
+	vars := make(map[string]*model.Variable)
+	for _, v := range variables {
+		vars[v.Name] = v
+	}
+
 	if !onlyValidated {
+		// Replace variables and resource references.
+		bs, err := json.Marshal(attributes)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+
+		bs = interpolation.VariableReg.ReplaceAllFunc(bs, func(match []byte) []byte {
+			m := interpolation.VariableReg.FindSubmatch(match)
+
+			if len(m) != 2 {
+				return match
+			}
+
+			if v, ok := vars[string(m[1])]; ok {
+				return []byte(v.Value)
+			}
+
+			return match
+		})
+
 		dependOutputMap := toDependOutputMap(dependencyResourceOutputs)
 
 		outputs, err = getResourceDependencyOutputsByID(
@@ -100,6 +117,31 @@ func ParseModuleAttributes(
 				return nil, nil, nil, fmt.Errorf("resource %s dependency output %s not found",
 					opts.ResourceName, outputName)
 			}
+		}
+
+		bs = interpolation.ResourceReg.ReplaceAllFunc(bs, func(match []byte) []byte {
+			m := interpolation.ResourceReg.FindSubmatch(match)
+
+			if len(m) != 3 {
+				return match
+			}
+
+			if v, ok := outputs[fmt.Sprintf("%s_%s", m[1], m[2])]; ok {
+				var str string
+				err := json.Unmarshal(v.Value, &str)
+				if err != nil {
+					return v.Value
+				}
+				return []byte(str)
+			}
+
+			return match
+		})
+
+		attrs = make(map[string]any)
+		err = json.Unmarshal(bs, &attrs)
+		if err != nil {
+			return nil, nil, nil, err
 		}
 	}
 
@@ -156,12 +198,6 @@ func parseAttributeReplace(
 		}
 	}
 
-	variableRepl := "${var." + _variablePrefix + "${1}}"
-	bs = interpolation.VariableReg.ReplaceAll(bs, []byte(variableRepl))
-
-	resourceRepl := "${var." + _resourcePrefix + "${1}_${2}}"
-	bs = interpolation.ResourceReg.ReplaceAll(bs, []byte(resourceRepl))
-
 	// Replace interpolation from ${} to $${} to avoid escape sequences.
 	bs = _interpolationReg.ReplaceAllFunc(bs, func(match []byte) []byte {
 		m := _interpolationReg.FindSubmatch(match)
@@ -171,7 +207,7 @@ func parseAttributeReplace(
 		}
 
 		// If it is a variable or resource reference, do not replace.
-		if string(m[2]) == "var." {
+		if string(m[2]) == "var." || string(m[2]) == "res." {
 			return match
 		}
 

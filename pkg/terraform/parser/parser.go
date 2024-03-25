@@ -22,6 +22,7 @@ import (
 	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/dao/types/object"
 	"github.com/seal-io/walrus/pkg/templates/translator"
+	"github.com/seal-io/walrus/pkg/terraform/convertor"
 	"github.com/seal-io/walrus/utils/json"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/strs"
@@ -85,11 +86,25 @@ func (StateParser) GetComponentsAndExtractDependencies(
 		case types.ResourceComponentModeManaged, types.ResourceComponentModeData:
 		}
 
-		// Try to get the connectorID id from the provider.
-		connectorID, err := ParseInstanceProviderConnector(rs.Provider)
+		connectors, err := mc.Environments().QueryConnectors(run.Edges.Environment).WithConnector().All(ctx)
 		if err != nil {
-			logger.Errorf("invalid provider format: %s", rs.Provider)
+			return nil, nil, err
+		}
+
+		providerConfig, err := ParseAbsProviderString(rs.Provider)
+		if err != nil {
+			logger.Errorf("parse provider failed: %v, provider: %s", err, rs.Provider)
 			continue
+		}
+
+		converter := convertor.LoadConvertor(providerConfig.Provider.Type)
+
+		var connectorID string
+		for _, c := range connectors {
+			if converter.IsSupported(c.Edges.Connector) {
+				connectorID = c.ConnectorID.String()
+				break
+			}
 		}
 
 		if connectorID == "" {
@@ -259,9 +274,6 @@ func (p StateParser) GetOriginalOutputs(stateData, resourceName string) ([]types
 	for _, mn := range sets.StringKeySet(osm).List() {
 		// E.g. `n` is in the form of `{resource name}_{output name}`.
 		n := strings.TrimPrefix(mn, prefix)
-		if n == mn {
-			continue
-		}
 		o := osm[mn]
 
 		count++

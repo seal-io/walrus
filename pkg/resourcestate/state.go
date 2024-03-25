@@ -2,6 +2,7 @@ package resourcestate
 
 import (
 	"context"
+	"strings"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
 	"github.com/seal-io/walrus/pkg/dao/model/resourcestate"
@@ -19,31 +20,35 @@ func GetDependencyOutputs(
 ) (map[string]types.OutputValue, error) {
 	states, err := client.ResourceStates().Query().
 		Where(resourcestate.ResourceIDIn(dependencyResourceIDs...)).
+		WithResource().
 		All(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	outputs := make(map[string]types.OutputValue)
-
 	var p parser.StateParser
 
+	// Get the outputs of the dependency resources.
+	resToOutputs := make(map[string]map[string]types.OutputValue)
 	for _, s := range states {
-		osm, err := p.GetOutputMap(s.Data)
+		resToOutputs[s.Edges.Resource.Name], err = p.GetOutputMap(s.Data)
 		if err != nil {
 			return nil, err
 		}
+	}
 
-		for n, o := range osm {
-			if _, ok := dependOutputs[n]; !ok {
-				continue
-			}
+	outputs := make(map[string]types.OutputValue)
 
-			outputs[n] = types.OutputValue{
-				Value:     o.Value,
-				Type:      o.Type,
-				Sensitive: o.Sensitive,
-			}
+	for k := range dependOutputs {
+		split := strings.Split(k, "_")
+		res, output := split[0], split[1]
+
+		o := resToOutputs[res][output]
+
+		outputs[k] = types.OutputValue{
+			Value:     o.Value,
+			Type:      o.Type,
+			Sensitive: o.Sensitive,
 		}
 	}
 

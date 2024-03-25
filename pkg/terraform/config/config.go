@@ -4,15 +4,19 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"regexp"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/zclconf/go-cty/cty"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/walrus/pkg/templates/translator"
 	"github.com/seal-io/walrus/pkg/terraform/block"
 	"github.com/seal-io/walrus/pkg/terraform/convertor"
+	"github.com/seal-io/walrus/utils/json"
 	"github.com/seal-io/walrus/utils/log"
 	"github.com/seal-io/walrus/utils/strs"
 )
@@ -208,10 +212,6 @@ func loadBlocks(opts CreateOptions) (blocks block.Blocks, err error) {
 			return nil, err
 		}
 	}
-	// Load module blocks.
-	if opts.ModuleOptions != nil {
-		moduleBlocks = loadModuleBlocks(opts.ModuleOptions.ModuleConfigs, providerBlocks)
-	}
 	// Load variable blocks.
 	if opts.VariableOptions != nil {
 		variableBlocks = loadVariableBlocks(opts.VariableOptions)
@@ -294,89 +294,55 @@ func loadProviderBlocks(opts *ProviderOptions) (block.Blocks, error) {
 	})
 }
 
-// loadModuleBlocks returns config modules to get terraform module config block.
-func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers block.Blocks) block.Blocks {
-	var (
-		logger       = log.WithName("deployer").WithName("tf").WithName("config")
-		blocks       block.Blocks
-		providersMap = make(map[string]any)
-	)
-
-	for _, p := range providers {
-		alias, ok := p.Attributes["alias"].(string)
-		if !ok {
-			continue
-		}
-
-		if len(p.Labels) == 0 {
-			continue
-		}
-		name := p.Labels[0]
-		// Template "{{xxx}}" will be replaced by xxx, the quote will be removed.
-		providersMap[name] = fmt.Sprintf("{{%s.%s}}", name, alias)
-	}
-
-	for _, mc := range moduleConfigs {
-		mb, err := ToModuleBlock(mc)
-		if err != nil {
-			logger.Warnf("get module mb failed, %w", mc)
-			continue
-		}
-		// Inject providers alias to the module.
-		if len(mc.SchemaData.RequiredProviders) != 0 {
-			moduleProviders := map[string]any{}
-
-			for _, p := range mc.SchemaData.RequiredProviders {
-				if _, ok := providersMap[p.Name]; !ok {
-					logger.Warnf("provider not found, skip provider: %s", p.Name)
-					continue
-				}
-				moduleProviders[p.Name] = providersMap[p.Name]
-			}
-			mb.Attributes["providers"] = moduleProviders
-		}
-
-		blocks = append(blocks, mb)
-	}
-
-	return blocks
-}
-
 // loadVariableBlocks returns config variables to get terraform variable config block.
 func loadVariableBlocks(opts *VariableOptions) block.Blocks {
 	var (
-		logger = log.WithName("terraform").WithName("config")
-		blocks = make(block.Blocks, 0, len(opts.Variables)+len(opts.DependencyOutputs))
+		logger               = log.WithName("terraform").WithName("config")
+		blocks               = make(block.Blocks, 0, len(opts.Variables)+len(opts.DependencyOutputs))
+		encryptVariableNames = sets.NewString()
 	)
 
 	// Secret variables.
 	for name, sensitive := range opts.Variables {
-		blocks = append(blocks, &block.Block{
-			Type:   block.TypeVariable,
-			Labels: []string{opts.VariablePrefix + name},
-			Attributes: map[string]any{
-				"type":      "{{string}}",
-				"sensitive": sensitive,
-			},
-		})
+		if sensitive {
+			encryptVariableNames.Insert(name)
+		}
 	}
 
 	// Dependency variables.
 	for k, o := range opts.DependencyOutputs {
-		t, err := typeExprTokens(o.Type)
+		if o.Sensitive {
+			encryptVariableNames.Insert(k)
+		}
+	}
+
+	if encryptVariableNames.Len() == 0 {
+		return blocks
+	}
+
+	reg, err := matchAnyRegex(encryptVariableNames.UnsortedList())
+	if err != nil {
+		logger.Errorf("match any regex failed, %s", err.Error())
+		return nil
+	}
+
+	for k, v := range opts.Attributes {
+		b, err := json.Marshal(v)
 		if err != nil {
-			logger.Errorf("get type expr tokens failed, %s", err.Error())
-			t = hclwrite.TokensForIdentifier("string")
+			logger.Errorf("marshal failed, %s", err.Error())
+			return nil
 		}
 
-		blocks = append(blocks, &block.Block{
-			Type:   block.TypeVariable,
-			Labels: []string{opts.ResourcePrefix + k},
-			Attributes: map[string]any{
-				"type":      tokensToTypeAttr(t),
-				"sensitive": o.Sensitive,
-			},
-		})
+		matches := reg.FindAllString(string(b), -1)
+		if len(matches) != 0 {
+			blocks = append(blocks, &block.Block{
+				Type:   block.TypeVariable,
+				Labels: []string{k},
+				Attributes: map[string]any{
+					"sensitive": true,
+				},
+			})
+		}
 	}
 
 	return blocks
@@ -384,48 +350,20 @@ func loadVariableBlocks(opts *VariableOptions) block.Blocks {
 
 // loadOutputBlocks returns terraform outputs config block.
 func loadOutputBlocks(opts OutputOptions) block.Blocks {
-	blockConfig := func(output Output) (string, string) {
-		label := fmt.Sprintf("%s_%s", output.ResourceName, output.Name)
-		value := fmt.Sprintf(`{{module.%s.%s}}`, output.ResourceName, output.Name)
-
-		return label, value
-	}
-
 	// Template output.
 	blocks := make(block.Blocks, 0, len(opts))
 
 	for _, o := range opts {
-		label, value := blockConfig(o)
-
 		blocks = append(blocks, &block.Block{
 			Type:   block.TypeOutput,
-			Labels: []string{label},
+			Labels: []string{o.Name},
 			Attributes: map[string]any{
-				"value":     value,
 				"sensitive": o.Sensitive,
 			},
 		})
 	}
 
 	return blocks
-}
-
-// ToModuleBlock returns module block for the given module and variables.
-func ToModuleBlock(mc *ModuleConfig) (*block.Block, error) {
-	var b block.Block
-
-	if mc.Attributes == nil {
-		mc.Attributes = make(map[string]any, 0)
-	}
-
-	mc.Attributes["source"] = mc.Source
-	b = block.Block{
-		Type:       block.TypeModule,
-		Labels:     []string{mc.Name},
-		Attributes: mc.Attributes,
-	}
-
-	return &b, nil
 }
 
 func CreateConfigToBytes(opts CreateOptions) ([]byte, error) {
@@ -435,11 +373,6 @@ func CreateConfigToBytes(opts CreateOptions) ([]byte, error) {
 	}
 
 	return conf.Bytes()
-}
-
-// tokensToTypeAttr returns the HCL tokens for a type attribute.
-func tokensToTypeAttr(tokens hclwrite.Tokens) string {
-	return fmt.Sprintf("{{%s}}", tokens.Bytes())
 }
 
 // typeExprTokens returns the HCL tokens for a type expression.
@@ -518,4 +451,22 @@ func typeExprTokens(ty cty.Type) (hclwrite.Tokens, error) {
 	}
 
 	return nil, fmt.Errorf("unsupported type: %s", ty.GoString())
+}
+
+func matchAnyRegex(list []string) (*regexp.Regexp, error) {
+	var sb strings.Builder
+
+	sb.WriteString("(")
+
+	for i, v := range list {
+		sb.WriteString(v)
+
+		if i < len(list)-1 {
+			sb.WriteString("|")
+		}
+	}
+
+	sb.WriteString(")")
+
+	return regexp.Compile(sb.String())
 }

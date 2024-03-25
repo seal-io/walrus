@@ -8,7 +8,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/walrus/pkg/dao/model"
-	"github.com/seal-io/walrus/pkg/dao/types"
 	"github.com/seal-io/walrus/pkg/terraform/config"
 	"github.com/seal-io/walrus/utils/json"
 )
@@ -41,7 +40,7 @@ func updateOutputWithVariables(variables model.Variables, moduleConfig *config.M
 		variableOpts[s.Name] = s.Sensitive
 
 		if s.Sensitive {
-			encryptVariableNames.Insert(_variablePrefix + s.Name)
+			encryptVariableNames.Insert(s.Name)
 		}
 	}
 
@@ -85,24 +84,4 @@ func updateOutputWithVariables(variables model.Variables, moduleConfig *config.M
 	}
 
 	return variableOpts, nil
-}
-
-func getVarConfigOptions(
-	variables model.Variables,
-	resourceOutputs map[string]types.OutputValue,
-) config.CreateOptions {
-	varsConfigOpts := config.CreateOptions{
-		Attributes: map[string]any{},
-	}
-
-	for _, v := range variables {
-		varsConfigOpts.Attributes[_variablePrefix+v.Name] = v.Value
-	}
-
-	// Setup resource outputs.
-	for n, v := range resourceOutputs {
-		varsConfigOpts.Attributes[_resourcePrefix+n] = v.Value
-	}
-
-	return varsConfigOpts
 }

@@ -31,7 +31,6 @@ type CreateOptions struct {
 	Attributes       map[string]any
 	TerraformOptions *TerraformOptions
 	ProviderOptions  *ProviderOptions
-	ModuleOptions    *ModuleOptions
 	VariableOptions  *VariableOptions
 	OutputOptions    OutputOptions
 }
@@ -70,14 +69,12 @@ type (
 
 	// VariableOptions is the options to create variables blocks.
 	VariableOptions struct {
-		// VariablePrefix is the prefix of the variable name.
-		VariablePrefix string
-		// ResourcePrefix is the prefix of the Walrus resource variable name.
-		ResourcePrefix string
 		// Variables is map with name in key and sensitive flag in value.
 		Variables map[string]bool
 		// DependencyOutputs is the map of the variable name and value.
 		DependencyOutputs map[string]types.OutputValue
+		// Attributes is the attributes of the module.
+		Attributes map[string]any
 	}
 
 	// OutputOptions is the options to create outputs blocks.

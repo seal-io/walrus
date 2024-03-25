@@ -179,12 +179,31 @@ func (d Deployer) createK8sJob(ctx context.Context, mc model.ClientSet, opts cre
 		return err
 	}
 
+	resource, err := mc.ResourceRuns().
+		QueryResource(opts.ResourceRun).
+		WithTemplate().
+		WithResourceDefinitionMatchingRule(func(query *model.ResourceDefinitionMatchingRuleQuery) {
+			query.WithTemplate()
+		}).
+		Only(ctx)
+	if err != nil {
+		return err
+	}
+
+	var template *model.TemplateVersion
+	if resource.TemplateID != nil {
+		template = resource.Edges.Template
+	} else {
+		template = resource.Edges.ResourceDefinitionMatchingRule.Edges.Template
+	}
+
 	// Create a deployment job.
 	jobOpts := JobCreateOptions{
 		Type:        opts.Type,
 		Image:       jobImage,
 		Env:         jobEnv,
 		DockerMode:  localEnvironmentMode == "docker",
+		Template:    template,
 		ResourceRun: opts.ResourceRun,
 		ServerURL:   secretOpts.SeverULR,
 		Token:       secretOpts.Token,
