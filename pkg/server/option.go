@@ -27,7 +27,8 @@ type Options struct {
 	ManagerOptions *manager.Options
 
 	// Control.
-	DisableAuths bool
+	DisableAuths        bool
+	DisableApplications []string
 
 	// Authentication.
 	AuthnTokenWebhookCacheTTL time.Duration
@@ -51,7 +52,8 @@ func NewOptions() *Options {
 		ManagerOptions: mgrOptions,
 
 		// Control.
-		DisableAuths: false,
+		DisableAuths:        false,
+		DisableApplications: []string{},
 
 		// Authentication.
 		AuthnTokenWebhookCacheTTL: 10 * time.Second,
@@ -74,6 +76,8 @@ func (o *Options) AddFlags(fs *pflag.FlagSet) {
 	// Control.
 	fs.BoolVar(&o.DisableAuths, "disable-auths", o.DisableAuths,
 		"disable authentication and authorization.")
+	fs.StringSliceVar(&o.DisableApplications, "disable-applications", o.DisableApplications,
+		"disable installing applications, select from [minio, hermitcrab].")
 
 	// Authentication.
 	fs.DurationVar(&o.AuthnTokenWebhookCacheTTL, "authentication-token-webhook-cache-ttl",
@@ -143,6 +147,8 @@ func (o *Options) Complete(ctx context.Context) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	system.ConfigureDisallowApplications(o.DisableApplications)
 
 	serve := &genericoptions.SecureServingOptions{
 		BindAddress: o.ManagerOptions.BindAddress,

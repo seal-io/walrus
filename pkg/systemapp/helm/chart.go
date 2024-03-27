@@ -88,18 +88,18 @@ func (ch Chart) GetValues(ctx context.Context) (map[string]any, error) {
 	return ch.Values.GetValues(ctx)
 }
 
-type StaticChartValues map[string]any
+type MapStaticChartValues map[string]any
 
-func (cv StaticChartValues) GetValues(ctx context.Context) (map[string]any, error) {
+func (cv MapStaticChartValues) GetValues(ctx context.Context) (map[string]any, error) {
 	return cv, nil
 }
 
-type TemplatedChartValues struct {
+type YamlTemplateChartValues struct {
 	Template string
 	Context  map[string]any
 }
 
-func (cv TemplatedChartValues) GetValues(ctx context.Context) (map[string]any, error) {
+func (cv YamlTemplateChartValues) GetValues(ctx context.Context) (map[string]any, error) {
 	tmpl, err := template.New("values").
 		Funcs(templateFuncMap()).
 		Parse(cv.Template)
@@ -120,7 +120,7 @@ func (cv TemplatedChartValues) GetValues(ctx context.Context) (map[string]any, e
 }
 
 func templateFuncMap() template.FuncMap {
-	fm := sprig.HermeticTxtFuncMap()
+	fm := sprig.TxtFuncMap()
 	fm["toYaml"] = toYAML
 
 	return fm

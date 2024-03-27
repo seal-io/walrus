@@ -8,6 +8,7 @@ import (
 
 	"github.com/seal-io/utils/funcx"
 	helmaction "helm.sh/helm/v3/pkg/action"
+	helmchartutil "helm.sh/helm/v3/pkg/chartutil"
 	helmregistry "helm.sh/helm/v3/pkg/registry"
 	helmrelease "helm.sh/helm/v3/pkg/release"
 	helmdriver "helm.sh/helm/v3/pkg/storage/driver"
@@ -106,10 +107,10 @@ func (c Client) KubeClientSet() kubernetes.Interface {
 	return funcx.MustNoError(c.config.KubernetesClientSet())
 }
 
-// Install installs the given chart.
+// Install installs the given chart, and returns the values.
 //
 // If the release has been found, it will be done.
-func (c Client) Install(ctx context.Context, chart *Chart) error {
+func (c Client) Install(ctx context.Context, chart *Chart) (helmchartutil.Values, error) {
 	next := func(r *helmrelease.Release) NextStepType {
 		switch r.Info.Status {
 		case helmrelease.StatusDeployed, helmrelease.StatusSuperseded:
@@ -144,13 +145,13 @@ type NextStepConditionFunc func(release *helmrelease.Release) (next NextStepType
 //
 // The condition function is used to determine what to do next by the given release,
 // which only calls when the release has been found.
-func (c Client) InstallWith(ctx context.Context, chart *Chart, next NextStepConditionFunc) error {
+func (c Client) InstallWith(ctx context.Context, chart *Chart, next NextStepConditionFunc) (helmchartutil.Values, error) {
 	// Validate.
 	if err := chart.Validate(); err != nil {
-		return fmt.Errorf("validate chart: %w", err)
+		return nil, fmt.Errorf("validate chart: %w", err)
 	}
 	if next == nil {
-		return errors.New("next is required")
+		return nil, errors.New("next is required")
 	}
 
 	logger := klog.Background().WithName(chart.Name).WithValues("release", chart.Release)
@@ -159,7 +160,7 @@ func (c Client) InstallWith(ctx context.Context, chart *Chart, next NextStepCond
 	g := helmaction.NewGet(&c.config)
 	r, err := g.Run(chart.Release)
 	if err != nil && !errors.Is(err, helmdriver.ErrReleaseNotFound) {
-		return fmt.Errorf("helm get: release %s: %w", chart.Release, err)
+		return nil, fmt.Errorf("helm get: release %s: %w", chart.Release, err)
 	}
 
 	// Next.
@@ -176,7 +177,7 @@ func (c Client) InstallWith(ctx context.Context, chart *Chart, next NextStepCond
 			time.Sleep(10 * time.Second)
 			r, err = g.Run(chart.Release)
 			if err != nil && !errors.Is(err, helmdriver.ErrReleaseNotFound) {
-				return fmt.Errorf("helm get: release %s: %w", chart.Release, err)
+				return nil, fmt.Errorf("helm get: release %s: %w", chart.Release, err)
 			}
 		case NextStepUpgrade:
 			// Upgrade.
@@ -188,15 +189,15 @@ func (c Client) InstallWith(ctx context.Context, chart *Chart, next NextStepCond
 			u.Force = true
 			ch, err := chart.Load(ctx, &c.config)
 			if err != nil {
-				return fmt.Errorf("helm upgrade: load chart: %w", err)
+				return nil, fmt.Errorf("helm upgrade: load chart: %w", err)
 			}
 			vs, err := chart.Values.GetValues(ctx)
 			if err != nil {
-				return fmt.Errorf("helm upgrade: get values: %w", err)
+				return nil, fmt.Errorf("helm upgrade: get values: %w", err)
 			}
 			r, err = u.RunWithContext(ctx, chart.Release, ch, vs)
 			if err != nil {
-				return fmt.Errorf("helm upgrade: release %s: %w", chart.Release, err)
+				return nil, fmt.Errorf("helm upgrade: release %s: %w", chart.Release, err)
 			}
 			logger.Infof("upgraded: %s", r.Info.Status.String())
 		case NextStepReinstall:
@@ -210,7 +211,7 @@ func (c Client) InstallWith(ctx context.Context, chart *Chart, next NextStepCond
 			ui.DeletionPropagation = string(meta.DeletePropagationForeground)
 			r, err := ui.Run(chart.Release)
 			if err != nil && errors.Is(err, helmdriver.ErrReleaseNotFound) {
-				return fmt.Errorf("helm uninstall: release %s: %w", chart.Release, err)
+				return nil, fmt.Errorf("helm uninstall: release %s: %w", chart.Release, err)
 			}
 			logger.Infof("uninstalled: %s", r.Info)
 			fallthrough
@@ -225,19 +226,19 @@ func (c Client) InstallWith(ctx context.Context, chart *Chart, next NextStepCond
 			i.IncludeCRDs = true
 			ch, err := chart.Load(ctx, &c.config)
 			if err != nil {
-				return fmt.Errorf("helm install: load chart: %w", err)
+				return nil, fmt.Errorf("helm install: load chart: %w", err)
 			}
 			vs, err := chart.Values.GetValues(ctx)
 			if err != nil {
-				return fmt.Errorf("helm install: get values: %w", err)
+				return nil, fmt.Errorf("helm install: get values: %w", err)
 			}
 			r, err = i.RunWithContext(ctx, ch, vs)
 			if err != nil {
-				return fmt.Errorf("helm install: release %s: %w", chart.Release, err)
+				return nil, fmt.Errorf("helm install: release %s: %w", chart.Release, err)
 			}
 			logger.Infof("installed: %s", r.Info.Status.String())
 		default:
-			return nil
+			return helmchartutil.MergeValues(r.Chart, r.Config)
 		}
 	}
 }

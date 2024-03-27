@@ -285,7 +285,7 @@ var (
 		"object-storage-service-url",
 		"Indicates the URL of the object storage service, "+
 			"it's in form of s3://[accessKey[:secretKey]@]endpoint[:port]/bucketName[?param1=value1&...&paramN=valueN].",
-		_SettingPropEditable,
+		_SettingPropEditable|_SettingPropSensitive,
 		setting.InitializeFromEnv(),
 		setting.AdmitWith(setting.DisallowBlank, setting.AllowUrlWithSchema("s3")),
 	)

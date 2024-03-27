@@ -30,7 +30,7 @@ var installers = []_Installer{
 type _Installer func(context.Context, *helm.Client, map[string]any, sets.Set[string]) error
 
 // Install installs the system applications.
-func Install(ctx context.Context, cliConfig rest.Config, without sets.Set[string]) error {
+func Install(ctx context.Context, cliConfig rest.Config, disable sets.Set[string]) error {
 	hc, err := helm.NewClient(&cliConfig, helm.WithNamespace(systemkuberes.SystemNamespaceName))
 	if err != nil {
 		return fmt.Errorf("create helm client: %w", err)
@@ -47,7 +47,7 @@ func Install(ctx context.Context, cliConfig rest.Config, without sets.Set[string
 		gvc := maps.Clone(gvc)
 		in := installers[i]
 		gp.Go(func() error {
-			err = in(ctx, hc, gvc, without)
+			err = in(ctx, hc, gvc, disable)
 			if err != nil {
 				return fmt.Errorf("%s: %w", loadInstallerName(in), err)
 			}

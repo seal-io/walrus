@@ -99,7 +99,7 @@ func (s *Server) Prepare(ctx context.Context) error {
 	}
 
 	// Install application.
-	err = systemapp.Install(ctx, system.LoopbackKubeClientConfig.Get(), nil)
+	err = systemapp.Install(ctx, system.LoopbackKubeClientConfig.Get(), system.DisableApplications.Get())
 	if err != nil {
 		return fmt.Errorf("install application: %w", err)
 	}

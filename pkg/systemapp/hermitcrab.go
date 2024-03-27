@@ -12,13 +12,13 @@ import (
 	"github.com/seal-io/walrus/pkg/systemsetting"
 )
 
-func installHermitCrab(ctx context.Context, cli *helm.Client, globalValuesContext map[string]any, without sets.Set[string]) error {
+func installHermitCrab(ctx context.Context, cli *helm.Client, globalValuesContext map[string]any, disable sets.Set[string]) error {
 	// NB: please update the following files if changed.
 	// - hack/mirror/walrus-images.txt.
 	// - pack/walrus/image/Dockerfile.
 	name := "hermitcrab"
 	version := "0.1.3"
-	if without.Has(name) {
+	if disable.Has(name) {
 		return nil
 	}
 
@@ -34,7 +34,7 @@ fullnameOverride: "{{ .Release }}"
 namespaceOverride: "{{ .Namespace }}"
 
 commonAnnotations: 
-  {{.ManagedLabel}}: "true"
+  {{ .ManagedLabel }}: "true"
 
 {{ if .Env }}
 hermitcrab:
@@ -51,12 +51,12 @@ hermitcrab:
 		Release:         release,
 		File:            file,
 		FileDownloadURL: download,
-		Values: helm.TemplatedChartValues{
+		Values: helm.YamlTemplateChartValues{
 			Template: valuesTemplate,
 			Context:  valuesContext,
 		},
 	}
-	err := cli.Install(ctx, chart)
+	_, err := cli.Install(ctx, chart)
 	if err != nil {
 		return err
 	}

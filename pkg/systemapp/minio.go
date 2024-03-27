@@ -13,13 +13,13 @@ import (
 	"github.com/seal-io/walrus/pkg/systemsetting"
 )
 
-func installMinio(ctx context.Context, cli *helm.Client, globalValuesContext map[string]any, withouts sets.Set[string]) error {
+func installMinio(ctx context.Context, cli *helm.Client, globalValuesContext map[string]any, disable sets.Set[string]) error {
 	// NB: please update the following files if changed.
 	// - hack/mirror/walrus-images.txt.
 	// - pack/walrus/image/Dockerfile.
 	name := "minio"
 	version := "14.1.3"
-	if withouts.Has(name) {
+	if disable.Has(name) {
 		return nil
 	}
 
@@ -35,18 +35,24 @@ fullnameOverride: "{{ .Release }}"
 namespaceOverride: "{{ .Namespace }}"
 
 commonAnnotations: 
-  {{.ManagedLabel}}: "true"
+  {{ .ManagedLabel }}: "true"
 
 mode: "standalone"
 
 auth:
   rootUser: "admin"
-  rootPassword: "admin123"
+  rootPassword: {{ randAlphaNum 10 | quote }}
 
 defaultBuckets: "walrus"
 
 provisioning: 
   enabled: false
+
+volumePermissions:
+  enabled: true
+
+persistence:
+  enabled: true
 `
 	valuesContext := globalValuesContext
 	valuesContext["Release"] = release
@@ -58,12 +64,12 @@ provisioning:
 		Release:         release,
 		File:            file,
 		FileDownloadURL: download,
-		Values: helm.TemplatedChartValues{
+		Values: helm.YamlTemplateChartValues{
 			Template: valuesTemplate,
 			Context:  valuesContext,
 		},
 	}
-	err := cli.Install(ctx, chart)
+	values, err := cli.Install(ctx, chart)
 	if err != nil {
 		return err
 	}
@@ -79,6 +85,14 @@ provisioning:
 		host = svc.Spec.ClusterIP
 	}
 
-	endpoint := fmt.Sprintf("s3://admin:admin123@%s:9000/walrus?sslmode=disable", host)
+	user, err := values.PathValue("auth.rootUser")
+	if err != nil {
+		return fmt.Errorf("get root user: %w", err)
+	}
+	pass, err := values.PathValue("auth.rootPassword")
+	if err != nil {
+		return fmt.Errorf("get root password: %w", err)
+	}
+	endpoint := fmt.Sprintf("s3://%s:%s@%s:9000/walrus?sslmode=disable", user, pass, host)
 	return systemsetting.ObjectStorageServiceUrl.Configure(ctx, endpoint)
 }

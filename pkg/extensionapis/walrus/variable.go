@@ -319,7 +319,7 @@ func (h *VariableHandler) OnWatch(ctx context.Context, opts ctrlcli.ListOptions)
 
 				notes := systemmeta.DescribeResourceNotes(sec, []string{"project", "environment"})
 				vraL1IndexKey := stringx.Join("/", notes["project"], notes["environment"])
-				vraIndexKeySet := sets.NewString()
+				vraIndexKeySet := sets.New[string]()
 
 				// Send.
 				for name := range sec.Data {
