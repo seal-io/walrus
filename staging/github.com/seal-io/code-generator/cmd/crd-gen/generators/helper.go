@@ -1065,7 +1065,7 @@ func collectMarkers(comments []string, into map[string][]string) {
 				into["validation"] = append(into["validation"], "default="+v)
 			}
 		case line == optionalMarker:
-			into["validation"] = append(into["validation"], "optional")
+			into["validation"] = append(into["validation"], "optional=true")
 		case strings.HasPrefix(line, listTypeMarker):
 			if v := line[len(listTypeMarker):]; v != "" {
 				into["validation"] = append(into["validation"], "listType="+v)

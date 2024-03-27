@@ -284,10 +284,6 @@ spec:
                 nullable: true
                 type: string
             required:
-            - integer
-            - float
-            - string
-            - bool
             - integerPointer
             - floatPointer
             - stringPointer

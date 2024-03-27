@@ -70,10 +70,6 @@ func crd_crd_gen_generators_testdata_crd_gen_Dummy() *v1.CustomResourceDefinitio
 								"spec": {
 									Type: "object",
 									Required: []string{
-										"integer",
-										"float",
-										"string",
-										"bool",
 										"integerPointer",
 										"floatPointer",
 										"stringPointer",
