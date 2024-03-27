@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/walrus/pkg/kubeclientset"
 	"github.com/seal-io/walrus/pkg/system"
 	"github.com/seal-io/walrus/pkg/systemkuberes"
+	"github.com/seal-io/walrus/pkg/systemsetting/setting"
 )
 
 type _SettingProp uint8
@@ -29,7 +30,7 @@ type Setting struct {
 	name        string
 	description string
 	defVal      string
-	admit       Admission
+	admit       setting.Admission
 	props       _SettingProp
 }
 
@@ -168,7 +169,7 @@ var settings = map[string]Setting{}
 
 func newSetting(
 	name, description string, props _SettingProp,
-	init Initializer, admit Admission,
+	init setting.Initializer, admit setting.Admission,
 ) Setting {
 	settings[name] = Setting{
 		name:        name,
@@ -200,48 +201,49 @@ var (
 	DeployerHttpProxy = newSetting(
 		"deployer-http-proxy",
 		"Indicates an address for proxying none SSL http outbound traffic used by deployer, "+
-			"it's in form of http(s)://[user:password@]address[:port].",
+			"it's in form of [http|https]://[user:password@]address[:port].",
 		_SettingPropEditable,
-		InitializeFromSpecifiedEnv("HTTP_PROXY"),
-		AdmitWith(AllowBlank, AllowHttpUrl),
+		setting.InitializeFromSpecifiedEnv("HTTP_PROXY"),
+		setting.AdmitWith(setting.AllowBlank, setting.AllowUrlWithSchema("http", "https")),
 	)
 	DeployerHttpsProxy = newSetting(
 		"deployer-https-proxy",
 		"Indicates an address for proxying SSL http outbound traffic used by deployer, "+
-			"it's in form of http(s)://[user:password@]address[:port].",
+			"it's in form of [http|https]://[user:password@]address[:port].",
 		_SettingPropEditable,
-		InitializeFromSpecifiedEnv("HTTPS_PROXY"),
-		AdmitWith(AllowBlank, AllowHttpUrl),
+		setting.InitializeFromSpecifiedEnv("HTTPS_PROXY"),
+		setting.AdmitWith(setting.AllowBlank, setting.AllowUrlWithSchema("http", "https")),
 	)
 	DeployerAllProxy = newSetting(
 		"deployer-all-proxy",
 		"Indicates an address for proxying all outbound traffic used by deployer, "+
-			"it's in form of scheme://[user:password@]address[:port].",
+			"it's in form of [sock4|sock5]://[user:password@]address[:port].",
 		_SettingPropEditable,
-		InitializeFromSpecifiedEnv("ALL_PROXY"),
-		AdmitWith(AllowBlank, AllowSockUrl),
+		setting.InitializeFromSpecifiedEnv("ALL_PROXY"),
+		setting.AdmitWith(setting.AllowBlank, setting.AllowUrlWithSchema("sock4", "sock5")),
 	)
 	DeployerNoProxy = newSetting(
 		"deployer-no-proxy",
 		"Indicates addresses that should not to proxy, "+
 			"it's in form of comma separated list of IPs or DNS names.",
 		_SettingPropEditable,
-		InitializeFromSpecifiedEnv("NO_PROXY"),
-		Allow,
+		setting.InitializeFromSpecifiedEnv("NO_PROXY"),
+		setting.Allow,
 	)
-	DeployerImage = newSetting(
-		"deployer-image",
-		"Indicates the image used by deployer.",
+	TerraformDeployerImage = newSetting(
+		"terraform-deployer-image",
+		"Indicates the image used by Terraform deployer.",
 		_SettingPropEditable,
-		InitializeFromEnv("sealio/terraform-deployer:v1.5.7-seal.1"),
-		AdmitWith(DisallowBlank, AllowContainerImageReference),
+		setting.InitializeFromEnv("sealio/terraform-deployer:v1.5.7-seal.1"),
+		setting.AdmitWith(setting.DisallowBlank, setting.AllowContainerImageReference),
 	)
-	DeployerNetworkMirrorUrl = newSetting(
-		"deployer-network-mirror-url",
-		"Indicates the URL to configure the network mirror for deployer.",
+	TerraformDeployerNetworkMirrorUrl = newSetting(
+		"terraform-deployer-network-mirror-url",
+		"Indicates the URL to configure the network mirror for Terraform deployer, "+
+			"it's in form of https://address[:port]/path/, must with a tail slash. ",
 		_SettingPropEditable,
-		InitializeFromEnv(),
-		AdmitWith(AllowBlank, AllowHttpUrl),
+		setting.InitializeFromEnv(),
+		setting.AdmitWith(setting.AllowBlank, setting.AllowUrlWithSchema("https")),
 	)
 )
 
@@ -252,74 +254,83 @@ var (
 		"Indicates the UUID after server installation, "+
 			"it's used for telemetry.",
 		_SettingPropPrivate,
-		InitializeFrom(stringx.Hex(16)),
-		Disallow,
+		setting.InitializeFrom(stringx.Hex(16)),
+		setting.Disallow,
 	)
 	ServeUiUrl = newSetting(
 		"serve-ui-url",
 		"Indicates a URL to provide the server UI, "+
-			"it's in form of scheme://address[:port]/path.",
+			"it's in form of [https|file]://address[:port]/path.",
 		_SettingPropPrivate,
-		InitializeFromEnv("https://walrus-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html"), // nolint: lll
-		AdmitWith(DisallowBlank, AllowUrl),
+		setting.InitializeFromEnv("https://walrus-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html"), // nolint: lll
+		setting.AdmitWith(setting.DisallowBlank, setting.AllowUrlWithSchema("https", "file")),
 	)
 	ServeWalrusFilesUrl = newSetting(
 		"serve-walrus-files-url",
-		"Indicates a URL to provide the WalrusFiles.",
+		"Indicates a URL to provide the WalrusFiles, "+
+			"it's in form of [http|https|file]://address[:port]/path.",
 		_SettingPropEditable,
-		InitializeFromEnv("https://github.com/seal-io/walrus-file-hub"),
-		AdmitWith(DisallowBlank, AllowUrl),
+		setting.InitializeFromEnv("https://github.com/seal-io/walrus-file-hub"),
+		setting.AdmitWith(setting.DisallowBlank, setting.AllowUrlWithSchema("http", "https", "file")),
 	)
 	ServeUrl = newSetting(
 		"serve-url",
 		"Indicates the URL to access server, "+
 			"it's in form of https://address[:port].",
 		_SettingPropEditable,
-		InitializeFromEnv(),
-		AdmitWith(DisallowBlank, AllowHttpUrl),
+		setting.InitializeFromEnv(),
+		setting.AdmitWith(setting.DisallowBlank, setting.AllowUrlWithSchema("https")),
+	)
+	ObjectStorageServiceUrl = newSetting(
+		"object-storage-service-url",
+		"Indicates the URL of the object storage service, "+
+			"it's in form of s3://[accessKey[:secretKey]@]endpoint[:port]/bucketName[?param1=value1&...&paramN=valueN].",
+		_SettingPropEditable,
+		setting.InitializeFromEnv(),
+		setting.AdmitWith(setting.DisallowBlank, setting.AllowUrlWithSchema("s3")),
 	)
 	EnableTelemetry = newSetting(
 		"enable-telemetry",
 		"Indicates whether to enable telemetry.",
 		_SettingPropEditable,
-		InitializeFromEnv("true"),
-		AllowBoolean,
+		setting.InitializeFromEnv("true"),
+		setting.AllowBoolean,
 	)
 	EnableSyncCatalog = newSetting(
 		"enable-sync-catalog",
 		"Indicates whether to enable the catalog synchronization, "+
 			"If enabled, the server will synchronize all versioned templates under the catalog.",
 		_SettingPropEditable,
-		InitializeFromEnv("true"),
-		AllowBoolean,
+		setting.InitializeFromEnv("true"),
+		setting.AllowBoolean,
 	)
 	EnableBuiltInCatalog = newSetting(
 		"enable-builtin-catalog",
 		"Indicates whether to enable the builtin catalog.",
 		_SettingPropEditable,
-		InitializeFromEnv("true"),
-		AllowBoolean,
+		setting.InitializeFromEnv("true"),
+		setting.AllowBoolean,
 	)
 	EnableRemoteTlsVerify = newSetting(
 		"enable-remote-tls-verify",
 		"Indicates whether to enable the remote TLS verification.",
 		_SettingPropEditable,
-		InitializeFromEnv("true"),
-		AllowBoolean,
+		setting.InitializeFromEnv("true"),
+		setting.AllowBoolean,
 	)
 	ImageRegistry = newSetting(
 		"image-registry",
 		"Indicates the registry used by the server to pull images.",
 		_SettingPropEditable,
-		InitializeFromEnv("docker.io"),
-		AdmitWith(AllowBlank, AllowContainerRegistry),
+		setting.InitializeFromEnv("docker.io"),
+		setting.AdmitWith(setting.AllowBlank, setting.AllowContainerRegistry),
 	)
 	DefaultEnvironmentMode = newSetting(
 		"default-environment-mode",
 		"Indicates the default environment mode.",
 		_SettingPropPrivate,
-		InitializeFromEnv("kubernetes"),
-		Disallow,
+		setting.InitializeFromEnv("kubernetes"),
+		setting.Disallow,
 	)
 )
 
@@ -331,8 +342,8 @@ var (
 			"default Cron Expression means executing check every 5 minutes. "+
 			"The Cron Expression to sync is at least 1 minute.",
 		_SettingPropEditable,
-		InitializeFromEnv("0 */5 * ? * *" /* every 5 minutes */),
-		AllowCronExpressionAtLeast(1*time.Minute),
+		setting.InitializeFromEnv("0 */5 * ? * *" /* every 5 minutes */),
+		setting.AllowCronExpressionAtLeast(1*time.Minute),
 	)
 	CatalogSyncCron = newSetting(
 		"catalog-sync-cron",
@@ -340,8 +351,8 @@ var (
 			"default Cron Expression means executing check every day at 1 o'clock. "+
 			"The Cron Expression to sync is at least 30 minutes.",
 		_SettingPropEditable,
-		InitializeFromEnv("0 0 1 * * *" /* every day at 1 o'clock */),
-		AllowCronExpressionAtLeast(30*time.Minute),
+		setting.InitializeFromEnv("0 0 1 * * *" /* every day at 1 o'clock */),
+		setting.AllowCronExpressionAtLeast(30*time.Minute),
 	)
 	ResourceRelationshipCheckCron = newSetting(
 		"resource-relationship-check-cron",
@@ -349,8 +360,8 @@ var (
 			"default Cron Expression means executing check every 30 minutes. "+
 			"The Cron Expression to sync is at least 1 minute.",
 		_SettingPropEditable,
-		InitializeFromEnv("*/30 * * ? * *" /* every 30 minutes */),
-		AllowCronExpressionAtLeast(1*time.Minute),
+		setting.InitializeFromEnv("*/30 * * ? * *" /* every 30 minutes */),
+		setting.AllowCronExpressionAtLeast(1*time.Minute),
 	)
 	ResourceComponentStatusSyncCron = newSetting(
 		"resource-component-status-sync-cron",
@@ -358,8 +369,8 @@ var (
 			"default Cron Expression means executing check every 1 minutes. "+
 			"The Cron Expression to sync is at least 30 seconds",
 		_SettingPropEditable,
-		InitializeFromEnv("0 */1 * ? * *" /* every 1 minutes */),
-		AllowCronExpressionAtLeast(30*time.Second),
+		setting.InitializeFromEnv("0 */1 * ? * *" /* every 1 minutes */),
+		setting.AllowCronExpressionAtLeast(30*time.Second),
 	)
 	TelemetryReportCron = newSetting(
 		"telemetry-report-cron",
@@ -367,7 +378,7 @@ var (
 			"default Cron Expression means executing check every day at 2 o'clock. "+
 			"The Cron Expression to sync is at least 1 hour.",
 		_SettingPropEditable,
-		InitializeFromEnv("0 0 2 * * *" /* every day at 2 o'clock */),
-		AllowCronExpressionAtLeast(1*time.Hour),
+		setting.InitializeFromEnv("0 0 2 * * *" /* every day at 2 o'clock */),
+		setting.AllowCronExpressionAtLeast(1*time.Hour),
 	)
 )

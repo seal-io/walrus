@@ -34,6 +34,7 @@ import (
 	"github.com/seal-io/walrus/pkg/server/ui"
 	"github.com/seal-io/walrus/pkg/servers/serverset/scheme"
 	"github.com/seal-io/walrus/pkg/system"
+	"github.com/seal-io/walrus/pkg/systemapp"
 	"github.com/seal-io/walrus/pkg/systemauthz"
 	"github.com/seal-io/walrus/pkg/systemkuberes"
 	"github.com/seal-io/walrus/pkg/systemsetting"
@@ -97,6 +98,12 @@ func (s *Server) Prepare(ctx context.Context) error {
 		return fmt.Errorf("install authorization: %w", err)
 	}
 
+	// Install application.
+	err = systemapp.Install(ctx, system.LoopbackKubeClientConfig.Get(), nil)
+	if err != nil {
+		return fmt.Errorf("install application: %w", err)
+	}
+
 	// Setup extension API handlers.
 	err = extensionapis.Setup(ctx, s.APIServer, scheme.Scheme, scheme.ParameterCodec, scheme.Codecs, s.Manager.CtrlManager)
 	if err != nil {
@@ -143,7 +150,7 @@ func (s *Server) Start(ctx context.Context) error {
 	mu := s.APIServer.Handler.NonGoRestfulMux
 
 	// Register UI.
-	mu.NotFoundHandler(ui.Index(ctx))
+	mu.NotFoundHandler(ui.Index())
 
 	// Register /validate-*, /mutate-*.
 	err := webhooks.Setup(ctx, cm, mu)
@@ -202,7 +209,7 @@ func (s *Server) Start(ctx context.Context) error {
 	}
 
 	// Register /clis.
-	mu.HandlePrefix("/clis/", http.StripPrefix("/clis/", clis.Index(ctx)))
+	mu.HandlePrefix("/clis/", http.StripPrefix("/clis/", clis.Index()))
 
 	// Start.
 	gp := gopool.GroupWithContextIn(ctx)

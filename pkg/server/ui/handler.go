@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"context"
 	"io"
 	"net/http"
 	"net/url"
@@ -11,15 +10,23 @@ import (
 	"github.com/seal-io/utils/httpx"
 
 	"github.com/seal-io/walrus/pkg/system"
+	"github.com/seal-io/walrus/pkg/systemsetting"
 )
 
-var Dir = system.SubDataDir("ui")
+func Index() http.Handler {
+	dir := system.SubLibDir("ui")
 
-func Index(ctx context.Context) http.Handler {
-	// TODO: support settings.
-	uri := funcx.MustNoError(url.Parse(
-		"https://walrus-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html"))
-	return serve(uri)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		uiUrl := funcx.NoError(systemsetting.ServeUiUrl.ValueURL(r.Context()))
+		if uiUrl == nil {
+			uiUrl = &url.URL{
+				Scheme: "file",
+				Path:   dir,
+			}
+		}
+
+		serve(uiUrl).ServeHTTP(w, r)
+	})
 }
 
 func serve(uri *url.URL) http.Handler {

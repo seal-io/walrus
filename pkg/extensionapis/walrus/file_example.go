@@ -70,7 +70,7 @@ func (h *FileExampleHandler) SetupHandler(
 		if wfUri.Scheme != "file" {
 			// Git clone from remote.
 			// TODO(thxCode): support other remote source?
-			dir := system.SubDataDir("files")
+			dir := system.SubLibDir("files")
 			wfFs, err = vcs.GitClone(ctx, dir, vcs.GitCloneOptions{URL: wfUri.String()})
 			if err != nil {
 				return

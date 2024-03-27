@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/henvic/httpretty"
+
+	"github.com/seal-io/utils/pools/bytespool"
 )
 
 // DefaultClient is the default http.Client used by the package.
@@ -178,4 +180,19 @@ func Close(resp *http.Response) {
 	if resp != nil && resp.Body != nil {
 		_ = resp.Body.Close()
 	}
+}
+
+// BodyBytes returns the body of the http response as a byte slice.
+func BodyBytes(resp *http.Response) []byte {
+	buf := bytespool.GetBytes()
+	defer bytespool.Put(buf)
+
+	w := bytespool.GetBuffer()
+	_, _ = io.CopyBuffer(w, resp.Body, buf)
+	return w.Bytes()
+}
+
+// BodyString returns the body of the http response as a string.
+func BodyString(resp *http.Response) string {
+	return string(BodyBytes(resp))
 }

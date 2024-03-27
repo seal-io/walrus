@@ -1,7 +1,6 @@
 package clis
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"path"
@@ -13,12 +12,12 @@ import (
 	"github.com/seal-io/walrus/pkg/system"
 )
 
-var Dir = system.SubDataDir("clis")
+func Index() http.Handler {
+	dir := system.SubLibDir("clis")
 
-func Index(_ context.Context) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		reqFile := path.Base(r.URL.Path)
-		locFile := filepath.Join(Dir, reqFile)
+		locFile := filepath.Join(dir, reqFile)
 
 		if !osx.ExistsFile(locFile) {
 			httpx.Error(rw, http.StatusNotFound)

@@ -1,3 +1,1 @@
 # Mirrored images format <registry>/sealio/mirrored-<original-repo>:<tag-with-prefix-v>
-quay.io/argoproj/workflow-controller:v3.5.0                     docker.io/sealio/mirrored-workflow-controller:v3.5.0
-quay.io/argoproj/argoexec:v3.5.0                                docker.io/sealio/mirrored-argoexec:v3.5.0

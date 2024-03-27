@@ -102,9 +102,9 @@ func (Embedded) Start(ctx context.Context) error {
 	}
 
 	var (
+		runDataPath      = system.SubDataDir("k3s")
 		k3sDataDir       = osx.Getenv("K3S_DATA_DIR", "/var/lib/k3s")
 		k3sServerDataDir = filepath.Join(k3sDataDir, "server")
-		runDataPath      = filepath.Join(system.DataDir, "k3s")
 	)
 
 	// Link run data directory.

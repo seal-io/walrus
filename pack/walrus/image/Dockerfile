@@ -109,23 +109,24 @@ RUN set -eux; \
     axel -n 16 -o /tmp/etcdctl.tar.gz ${ETCDCTL_URL} && \
     tar -xzvf /tmp/etcdctl.tar.gz --directory /usr/bin/ --strip-components=1 --no-same-owner etcd-${ETCDCTL_VER}-linux-${TARGETARCH}/etcdctl
 
-ENV CHARTS_DIR="/var/lib/walrus/manifests/charts" \
-    CLI_DIR="/var/lib/walrus/cli"
+ENV WALRUS_DATA_DIR="/var/run/walrus" \
+    WALRUS_LID_DIR="/var/lib/walrus"
 
-# get workflow tools
-## NB: Please update walrus-images.txt if change the following images.
-ENV WORKFLOW_CONTROLLER_IMAGE="sealio/mirrored-workflow-controller:v3.5.0" \
-    WORKFLOW_EXECUTOR_IMAGE="sealio/mirrored-argoexec:v3.5.0" \
-    WORKFLOW_STEP_IMAGE="sealio/curl-jq:v0.0.1"
+# get storage tools
+## NB: please update the following files if changed.
+## - hack/mirror/walrus-images.txt.
+## - pkg/systemkubres/helmcharts.go.
+ENV MINIO_IMAGE="bitnami/minio:2024.3.26-debian-12-r0" \
+    MINIO_OS_SHELL_IMAGE="bitnami/os-shell:12-debian-12-r17"
 RUN set -exo pipefail; \
-    crane pull --platform=${TARGETPLATFORM} ${WORKFLOW_CONTROLLER_IMAGE} ${K3S_DATA_DIR}/agent/images/workflow-controller.tar; \
-    crane pull --platform=${TARGETPLATFORM} ${WORKFLOW_EXECUTOR_IMAGE} ${K3S_DATA_DIR}/agent/images/workflow-executor.tar; \
-    crane pull --platform=${TARGETPLATFORM} ${WORKFLOW_STEP_IMAGE} ${K3S_DATA_DIR}/agent/images/workflow-step.tar
-ENV WORKFLOW_ARGO_WORKFLOWS_CHART_PATH="${CHARTS_DIR}/argo-workflows.tgz"
-ADD https://github.com/argoproj/argo-helm/releases/download/argo-workflows-0.36.1/argo-workflows-0.36.1.tgz ${WORKFLOW_ARGO_WORKFLOWS_CHART_PATH}
+    crane pull --platform=${TARGETPLATFORM} ${MINIO_IMAGE} ${K3S_DATA_DIR}/agent/images/minio.tar; \
+    crane pull --platform=${TARGETPLATFORM} ${MINIO_OS_SHELL_IMAGE} ${K3S_DATA_DIR}/agent/images/minio-os-shell.tar
+ADD https://charts.bitnami.com/bitnami/minio-14.1.3.tgz "${WALRUS_LID_DIR}/charts/minio.tgz"
 
 # get deployer tools
-## NB: Please update walrus-images.txt if change the following images.
+## NB: please update the following files if changed.
+## - hack/mirror/walrus-images.txt.
+## - pkg/systemkubres/helmcharts.go.
 ENV DEPLOYER_TERRAFORM_IMAGE="sealio/terraform-deployer:v1.5.7-seal.1" \
     DEPLOYER_OPENTOFU_IMAGE="sealio/opentofu-deployer:v1.6.0-seal.1" \
     DEPLOYER_TERRAFORM_NETWORK_MIRROR_IMAGE="sealio/hermitcrab:v0.1.3"
@@ -133,19 +134,18 @@ RUN set -exo pipefail; \
     crane pull --platform=${TARGETPLATFORM} ${DEPLOYER_TERRAFORM_IMAGE} ${K3S_DATA_DIR}/agent/images/deployer-terraform.tar; \
     crane pull --platform=${TARGETPLATFORM} ${DEPLOYER_OPENTOFU_IMAGE} ${K3S_DATA_DIR}/agent/images/deployer-opentofu.tar; \
     crane pull --platform=${TARGETPLATFORM} ${DEPLOYER_TERRAFORM_NETWORK_MIRROR_IMAGE} ${K3S_DATA_DIR}/agent/images/deployer-terraform-network-mirror.tar
-ENV DEPLOYER_TERRAFORM_HERMITCRAB_CHART_PATH="${CHARTS_DIR}/hermitcrab.tgz"
-ADD https://github.com/seal-io/helm-charts/releases/download/hermitcrab-0.1.3/hermitcrab-0.1.3.tgz ${DEPLOYER_TERRAFORM_HERMITCRAB_CHART_PATH}
+ADD https://github.com/seal-io/helm-charts/releases/download/hermitcrab-0.1.3/hermitcrab-0.1.3.tgz "${WALRUS_LID_DIR}/charts/hermitcrab.tgz"
 
 # get cli
-COPY /build/walrus-cli* ${CLI_DIR}/
+COPY /build/walrus-cli* ${WALRUS_LID_DIR}/clis/
 
-ARG SERVE_UI_INDEX="file:///var/lib/walrus/ui"
-ENV WALRUS_SETTING_SERVE_URL="" \
-    WALRUS_SETTING_SERVE_UI_INDEX="${SERVE_UI_INDEX}" \
-    WALRUS_SETTING_DEPLOYER_IMAGE="${DEPLOYER_TERRAFORM_IMAGE}" \
-    WALRUS_SETTING_WALRUS_FILE_HUB_URL="file:///var/lib/walrus/files"
+ARG SERVE_UI_URL="file://${WALRUS_LID_DIR}/ui"
+ARG WALRUS_FILES_URL="file://${WALRUS_LID_DIR}/files"
+ENV WALRUS_SETTING_DEPLOYER_IMAGE="${DEPLOYER_TERRAFORM_IMAGE}" \
+    WALRUS_SETTING_SERVE_UI_URL="${SERVE_UI_URL}" \
+    WALRUS_SETTING_WALRUS_FILES_URL="${WALRUS_FILES_URL}"
 EXPOSE 80 443
-VOLUME /var/run/walrus
+VOLUME ${WALRUS_DATA_DIR}
 COPY /image/ /
 COPY /build/walrus-manager-${TARGETOS}-${TARGETARCH} /usr/bin/walrus-manager
 COPY /build/walrus-server-${TARGETOS}-${TARGETARCH} /usr/bin/walrus-server

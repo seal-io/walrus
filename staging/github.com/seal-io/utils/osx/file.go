@@ -111,7 +111,7 @@ func Close(c io.Closer) {
 func IsEmptyDir(dir string) bool {
 	f, err := os.Open(dir)
 	if err != nil {
-		return false
+		return errors.Is(err, os.ErrNotExist)
 	}
 	defer Close(f)
 
@@ -123,7 +123,7 @@ func IsEmptyDir(dir string) bool {
 func IsEmptyFile(file string) bool {
 	s, err := os.Lstat(file)
 	if err != nil {
-		return false
+		return errors.Is(err, os.ErrNotExist)
 	}
 	if !s.Mode().IsRegular() {
 		return false

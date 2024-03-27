@@ -1,4 +1,4 @@
-package systemsetting
+package setting
 
 import (
 	"context"
@@ -149,28 +149,35 @@ func AllowFloat64(ctx context.Context, oldVal, newVal string) error {
 	return err
 }
 
-// AllowHttpUrl implements the Admission stereotype,
-// which means the value can be modified if it is an HTTP URL.
-// This Admission allows blank new value,
-// if not allowed, combine with DisallowBlank.
-func AllowHttpUrl(ctx context.Context, oldVal, newVal string) error {
-	return checkUrl(newVal, httpSchemeUrlOnly)
-}
-
-// AllowSockUrl implements the Admission stereotype,
-// which means the value can be modified if it is a Socket URL.
-// This Admission allows blank new value,
-// if not allowed, combine with DisallowBlank.
-func AllowSockUrl(ctx context.Context, oldVal, newVal string) error {
-	return checkUrl(newVal, sockSchemeUrlOnly)
-}
-
 // AllowUrl implements the Admission stereotype,
 // which means the value can be modified if it is a URL.
 // This Admission allows blank new value,
 // if not allowed, combine with DisallowBlank.
 func AllowUrl(ctx context.Context, oldVal, newVal string) error {
-	return checkUrl(newVal, anySchemeUrl)
+	return checkUrl(newVal, func(_ url.URL) error {
+		return nil
+	})
+}
+
+// AllowUrlWithSchema implements the Admission stereotype,
+// which means the value can be modified if it is a URL with specified schemas.
+// This Admission allows blank new value,
+// if not allowed, combine with DisallowBlank.
+func AllowUrlWithSchema(schema string, otherSchemas ...string) Admission {
+	return func(ctx context.Context, oldVal, newVal string) error {
+		return checkUrl(newVal, func(u url.URL) error {
+			if u.Scheme == schema {
+				return nil
+			}
+			for _, s := range otherSchemas {
+				if u.Scheme == s {
+					return nil
+				}
+			}
+			return fmt.Errorf("invalid schema: %q, allowed: %s",
+				u.Scheme, strings.Join(append([]string{schema}, otherSchemas...), ", "))
+		})
+	}
 }
 
 // AllowCronExpression implements the Admission stereotype,
@@ -219,29 +226,7 @@ func isBlank(s string) bool {
 	return slices.Contains([]string{"", "{}", "[]"}, strings.TrimSpace(s))
 }
 
-type urlChecker func(url.URL) error
-
-func anySchemeUrl(_ url.URL) error {
-	return nil
-}
-
-func httpSchemeUrlOnly(u url.URL) error {
-	switch strings.ToLower(u.Scheme) {
-	case "http", "https":
-		return nil
-	}
-	return fmt.Errorf("invalid schema: %q, allowed: http, https", u.Scheme)
-}
-
-func sockSchemeUrlOnly(u url.URL) error {
-	switch strings.ToLower(u.Scheme) {
-	case "socks4", "socks5":
-		return nil
-	}
-	return fmt.Errorf("invalid schema: %q, allowed socks4, socks5", u.Scheme)
-}
-
-func checkUrl(str string, check urlChecker) error {
+func checkUrl(str string, check func(url.URL) error) error {
 	v, err := url.Parse(str)
 	if err != nil {
 		return fmt.Errorf("%s is illegal URL format: %w", str, err)
