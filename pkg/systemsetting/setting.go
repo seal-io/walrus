@@ -281,9 +281,9 @@ var (
 		setting.InitializeFromEnv(),
 		setting.AdmitWith(setting.DisallowBlank, setting.AllowUrlWithSchema("https")),
 	)
-	ObjectStorageServiceUrl = newSetting(
-		"object-storage-service-url",
-		"Indicates the URL of the object storage service, "+
+	ServeObjectStorageUrl = newSetting(
+		"serve-object-storage-url",
+		"Indicates the URL to provide the Object Storage, "+
 			"it's in form of s3://[accessKey[:secretKey]@]endpoint[:port]/bucketName[?param1=value1&...&paramN=valueN].",
 		_SettingPropEditable|_SettingPropSensitive,
 		setting.InitializeFromEnv(),

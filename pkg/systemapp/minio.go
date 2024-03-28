@@ -17,6 +17,8 @@ func installMinio(ctx context.Context, cli *helm.Client, globalValuesContext map
 	// NB: please update the following files if changed.
 	// - hack/mirror/walrus-images.txt.
 	// - pack/walrus/image/Dockerfile.
+	// - github.com/seal-io/helm-charts/charts/walrus.
+
 	name := "minio"
 	version := "14.1.3"
 	if disable.Has(name) {
@@ -45,11 +47,18 @@ auth:
 
 defaultBuckets: "walrus"
 
+image:
+  repository: "bitnami/minio"
+  tag: "2024.3.26-debian-12-r0"
+
 provisioning: 
   enabled: false
 
 volumePermissions:
   enabled: true
+  image: 
+    repository: "bitnami/os-shell"
+    tag: "12-debian-12-r17"
 
 persistence:
   enabled: true
@@ -94,5 +103,5 @@ persistence:
 		return fmt.Errorf("get root password: %w", err)
 	}
 	endpoint := fmt.Sprintf("s3://%s:%s@%s:9000/walrus?sslmode=disable", user, pass, host)
-	return systemsetting.ObjectStorageServiceUrl.Configure(ctx, endpoint)
+	return systemsetting.ServeObjectStorageUrl.Configure(ctx, endpoint)
 }
