@@ -216,7 +216,7 @@ func (o *Options) Complete(ctx context.Context) (*Config, error) {
 				"/", "/assets/*", "/favicon.ico", // UI assets
 				"/mutate-*", "/validate-*", // Webhooks
 				"/livez", "/readyz", "/metrics", "/debug/*", // Measure
-				"/clis/*",    // Walrus CLI binaries
+				"/clis/*",    // CLI binaries
 				"/openapi/*", // OpenAPI
 				"/swagger/*", // Swagger
 			},

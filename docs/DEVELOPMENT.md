@@ -18,8 +18,8 @@
 ```bash
 $ # Setup local Kubernetes cluster.
 
-$ # Run the Walrus.
-$ go run cmd/server/main.go --v=4
+$ # Run the Walrus without auths.
+$ go run cmd/server/main.go --v=4 --kube-leader-election=false --disable-auths=true
 
 ```
 
@@ -35,7 +35,7 @@ $ kubectl get apiservices | grep walrus
 
 ```bash
 $ # Open Swagger UI.
-$ open http://localhost:8081/swagger/
+$ open https://localhost/swagger/
 
 ```
 
