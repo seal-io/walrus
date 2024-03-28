@@ -218,6 +218,7 @@ func (o *Options) Complete(ctx context.Context) (*Config, error) {
 				"/livez", "/readyz", "/metrics", "/debug/*", // Measure
 				"/clis/*",    // Walrus CLI binaries
 				"/openapi/*", // OpenAPI
+				"/swagger/*", // Swagger
 			},
 		}
 	}

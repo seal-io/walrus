@@ -1,45 +1,48 @@
 # Development Guide
 
-## Setup Development Environment
+## Environment Setup
 
-### Local Kubernetes via [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installing-with-a-package-manager)
+### Prerequisites
 
-```bash
-$ kind create cluster --name local
-
-```
+- [Install Go](https://golang.org/doc/install): Required, for `go run`, and [version sensitive](../go.mod).
+- Provide local Kubernetes cluster.
+    - [x] [OrbStack](https://docs.orbstack.dev/install): Approved, nice to work, but unsupported in Windows platform at
+      present.
+    - [ ] [Kubernetes of Docker Desktop](https://docs.docker.com/desktop/kubernetes/): Unsupported, bypass APIService is
+      not working, it doesn't support tuning.
+    - [ ] [KinD](https://kind.sigs.k8s.io/docs/user/quick-start/#installing-with-a-package-manager): Unsupported, bypass
+      APIService is not working properly and requires further investigation.
 
 ### Go Run
 
 ```bash
-$ # default.
-$ go run cmd/server/main.go --log-verbosity=4
+$ # Setup local Kubernetes cluster.
 
-$ # with specified kubernetes cluster.
-$ go run cmd/server/main.go --log-verbosity=4 --kubeconfig=/path/to/kubeconfig
+$ # Run the Walrus.
+$ go run cmd/server/main.go --v=4
+
 ```
 
-#### Interact with [HTTPie](https://httpie.io/docs/cli/macos)
+#### Interact with [Kubectl](https://kubernetes.io/docs/tasks/tools/)
 
 ```bash
-$ # get init password from console: !!! Bootstrap Admin Password: <here> !!!
-$ https --verify=no POST :/account/login username=admin password=<password>
-
-$ # access with login session.
-$ https --verify=no GET :/settings Cookie:walrus_session=<response from above request>
+$ # Operate with Walrus API.
+$ kubectl get apiservices | grep walrus
 
 ```
 
 #### Interact with [Swagger UI](https://github.com/swagger-api/swagger-ui)
 
 ```bash
-$ open http://127.0.0.1/swagger
+$ # Open Swagger UI.
+$ open http://localhost:8081/swagger/
 
 ```
 
-## Development Commands
+## Commands
 
-The Makefile includes some useful commands for development. You can build locally using the `make` command. You can run `make help` for details. The output is shown as below.
+The Makefile includes some useful commands for development. You can build locally using the `make` command. You can
+run `make help` for details. The output is shown as below.
 
 ```bash
 $ make help

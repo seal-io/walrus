@@ -31,6 +31,7 @@ import (
 	"github.com/seal-io/walrus/pkg/kubereviewself"
 	"github.com/seal-io/walrus/pkg/manager"
 	"github.com/seal-io/walrus/pkg/server/clis"
+	"github.com/seal-io/walrus/pkg/server/swagger"
 	"github.com/seal-io/walrus/pkg/server/ui"
 	"github.com/seal-io/walrus/pkg/servers/serverset/scheme"
 	"github.com/seal-io/walrus/pkg/system"
@@ -210,6 +211,9 @@ func (s *Server) Start(ctx context.Context) error {
 
 	// Register /clis.
 	mu.HandlePrefix("/clis/", http.StripPrefix("/clis/", clis.Index()))
+
+	// Register /swagger.
+	mu.HandlePrefix("/swagger/", http.StripPrefix("/swagger/", swagger.Index()))
 
 	// Start.
 	gp := gopool.GroupWithContextIn(ctx)
